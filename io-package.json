@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.37.0",
+    "version": "0.37.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.37.1": {
+        "en": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "de": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "ru": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "pt": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "nl": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "fr": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "it": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "es": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "pl": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "uk": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
+        "zh-cn": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)"
+      },
       "0.37.0": {
         "en": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
         "de": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
@@ -184,19 +197,6 @@
         "pl": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
         "uk": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4",
         "zh-cn": "Timer - astro events now show the resolved sunrise/sunset time next to the symbol\nTimer - all events are now shown in a scrollable list instead of being cut off at 4"
-      },
-      "0.36.1": {
-        "en": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "de": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "ru": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "pt": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "nl": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "fr": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "it": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "es": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "pl": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "uk": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices",
-        "zh-cn": "Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices"
       }
     }
   },

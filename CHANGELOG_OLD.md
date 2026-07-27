@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.33.2 (2026-07-16)
+- Distribution chart - configurable frontend time-range selector (1h/6h/24h/7d/30d/custom) with an option to lock the range
+
 ## 0.33.1 (2026-07-15)
 - Editor - tab bar now always stays on top in the editor; the footer (bottom) position applies to the frontend only
 - Editor - the section menu is only previewed in the editor when set to "fixed sidebar"; top/bottom bar placement no longer moves the editor preview
