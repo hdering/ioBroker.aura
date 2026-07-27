@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.37.2",
+    "version": "0.37.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.37.3": {
+        "en": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "de": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "ru": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "pt": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "nl": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "fr": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "it": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "es": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "pl": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "uk": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
+        "zh-cn": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects"
+      },
       "0.37.2": {
         "en": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
         "de": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
@@ -184,19 +197,6 @@
         "pl": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
         "uk": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)",
         "zh-cn": "Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)"
-      },
-      "0.36.3": {
-        "en": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "de": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "ru": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "pt": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "nl": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "fr": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "it": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "es": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "pl": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "uk": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)",
-        "zh-cn": "Timer - new option to hide the astro symbol so only the resolved time is shown\nJSON table - per-column prefix and suffix to decorate cell values (e.g. units or currency)\nGroup - transparent groups now stay transparent when opened via the \"Popup: widget content\" click action\nGroup - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)"
       }
     }
   },

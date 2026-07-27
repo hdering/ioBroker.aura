@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.33.4 (2026-07-23)
+- Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover
+- Group - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor
+
 ## 0.33.3 (2026-07-18)
 - 🌟 **New feature:** EVCC - grid power now reads from the JSON `status.grid` object as well, so it keeps working on adapters that expose resolved/nested nodes instead of a flat gridPower state
 - 🌟 **New feature:** Universal widget - button cells (switch in button mode) can now be sized to full cell width or matched to the widest label so buttons line up evenly regardless of text length
