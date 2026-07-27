@@ -224,11 +224,18 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // Column span the children were designed for — used by keepGrid so the grid
     // isn't clamped/reflowed on a narrow phone, just uniformly scaled.
     const designCols = Math.max(2, ...gridChildren.map((c) => c.gridPos.x + c.gridPos.w));
-    const cols = keepGrid
-        ? designCols
-        : !isMobile && width > 0
-          ? Math.max(2, Math.floor((width - gridGap) / (cellSize + gridGap)))
-          : 4;
+    // Column count derived from the group's pixel width assumes the inner pitch
+    // (frontend.gridRowHeight + gridGap) equals the OUTER grid pitch. The outer
+    // grid actually snaps on gridSnapX (not gridRowHeight) and may carry
+    // layout/section setting overrides, so the two pitches can differ. When the
+    // derived count drops below designCols — the span the children were authored
+    // for — every child at x ≥ cols gets clamped into the last column (see the
+    // layout map below), squeezing the whole group. This shows up sharply after
+    // importing a tab authored on a dashboard with different grid settings.
+    // Floor the count at designCols so the authored layout is always reproduced
+    // (and scaled by RGL to the box width) instead of clamped.
+    const measuredCols = width > 0 ? Math.max(2, Math.floor((width - gridGap) / (cellSize + gridGap))) : 4;
+    const cols = keepGrid ? designCols : !isMobile && width > 0 ? Math.max(measuredCols, designCols) : 4;
     // ── Uniform GROUP_GAP inset + fill ──────────────────────────────────────────
     // Children sit on the outer grid pitch, so a fixed CSS inset would round the
     // box up a whole row and leave a gap. Instead the children are scaled to fill
