@@ -45,7 +45,29 @@ export function MirrorConfig({ config, onConfigChange }: Props) {
         });
 
     const select = (id: string | undefined) => {
-        onConfigChange({ ...config, options: { ...config.options, targetWidgetId: id } });
+        // Make the mirror start out as a visual clone of the source: adopt its
+        // size (w/h — the mirror keeps its own position x/y) and the frame-level
+        // appearance options WidgetFrame reads from the mirror's OWN config
+        // (transparent/transparency/styleOverride). The content already comes
+        // from the source live via MirrorWidget, but those frame options don't —
+        // so without copying them a mirror of e.g. a transparent group would
+        // still draw a card. Picking "— Kein Widget —" leaves everything as is.
+        const target = id ? allWidgets.find((w) => w.id === id) : undefined;
+        if (!target) {
+            onConfigChange({ ...config, options: { ...config.options, targetWidgetId: id } });
+            return;
+        }
+        onConfigChange({
+            ...config,
+            gridPos: { ...config.gridPos, w: target.gridPos.w, h: target.gridPos.h },
+            options: {
+                ...config.options,
+                targetWidgetId: id,
+                transparent: target.options?.transparent,
+                transparency: target.options?.transparency,
+                styleOverride: target.options?.styleOverride,
+            },
+        });
     };
 
     const rowStyle = (id: string): React.CSSProperties => ({
