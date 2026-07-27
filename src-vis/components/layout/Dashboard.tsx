@@ -75,6 +75,17 @@ export function Dashboard({
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const groupDefs = useGroupDefsStore((s) => s.defs);
     const groupCollapsed = useGroupCollapseStore((s) => s.collapsed);
+    // Every widget on the dashboard, by id — used to resolve a mirror's source so
+    // a mirror of a group can hug/derive its height exactly like the source group
+    // does (a mirror is not type 'group', so without this it would render at its
+    // stored gridPos.h and compress the group's children — see the hug logic below).
+    const allLayoutsForMirror = useDashboardStore((s) => s.layouts);
+    const widgetById = useMemo(() => {
+        const m = new Map<string, WidgetConfig>();
+        for (const l of allLayoutsForMirror)
+            for (const sec of l.sections) for (const tb of sec.tabs) for (const wdg of tb.widgets) m.set(wdg.id, wdg);
+        return m;
+    }, [allLayoutsForMirror]);
     const mobileBreakpoint = settings.mobileBreakpoint ?? 600;
     const hideGridScrollbar = settings.hideGridScrollbar ?? false;
     const guidelinesEnabled = settings.guidelinesEnabled ?? false;
@@ -522,9 +533,20 @@ export function Dashboard({
                                             !reflowHiddenIds.has(w.id) && !(fillTabWidget && w.id === fillTabWidget.id),
                                     );
                                     const tabLayout = tabGridWidgets.map((w) => {
-                                        const isGroup = w.type === 'group';
-                                        const autoShrink = isGroup && !!w.options?.autoShrink;
-                                        const defId = isGroup ? (w.options?.defId as string | undefined) : undefined;
+                                        // A mirror renders its SOURCE inside; for height it must hug/derive
+                                        // exactly like the source group would, so resolve the source and use
+                                        // it (`gw`) for all group-hug math while keeping the mirror's own
+                                        // identity/position (i/x/y/w) below.
+                                        const mirrorTarget =
+                                            w.type === 'mirror'
+                                                ? widgetById.get(
+                                                      (w.options?.targetWidgetId as string | undefined) ?? '',
+                                                  )
+                                                : undefined;
+                                        const gw = mirrorTarget ?? w;
+                                        const isGroup = gw.type === 'group';
+                                        const autoShrink = isGroup && !!gw.options?.autoShrink;
+                                        const defId = isGroup ? (gw.options?.defId as string | undefined) : undefined;
                                         const groupChildren = defId ? (groupDefs[defId] ?? []) : [];
 
                                         // A non-autoShrink group hugs its children (equal GROUP_GAP spacing on
@@ -532,8 +554,8 @@ export function Dashboard({
                                         const groupCollapsedNow =
                                             isGroup &&
                                             !editMode &&
-                                            !!w.options?.defaultCollapsed &&
-                                            (groupCollapsed[w.id] ?? true);
+                                            !!gw.options?.defaultCollapsed &&
+                                            (groupCollapsed[gw.id] ?? true);
                                         const hugGroup = isGroup && !autoShrink && !groupCollapsedNow;
 
                                         let minH = 1;
@@ -544,14 +566,14 @@ export function Dashboard({
                                             const maxBottom = Math.max(
                                                 ...groupChildren.map((c) => c.gridPos.y + c.gridPos.h),
                                             );
-                                            const showTitle = w.options?.showTitle !== false;
-                                            const showIcon = w.options?.showIcon !== false;
+                                            const showTitle = gw.options?.showTitle !== false;
+                                            const showIcon = gw.options?.showIcon !== false;
                                             const hasHeader =
-                                                (showTitle && !!w.title) || showIcon || !!w.options?.groupSwitch;
+                                                (showTitle && !!gw.title) || showIcon || !!gw.options?.groupSwitch;
                                             minH = groupRows(
                                                 maxBottom,
                                                 hasHeader,
-                                                showTitle && !!w.title,
+                                                showTitle && !!gw.title,
                                                 cellSize,
                                                 MARGIN,
                                             );
@@ -577,12 +599,12 @@ export function Dashboard({
                                                 );
                                                 const innerH =
                                                     maxBottom > 0 ? maxBottom * (cellSize + MARGIN) - MARGIN : 0;
-                                                const showTitle = w.options?.showTitle !== false;
+                                                const showTitle = gw.options?.showTitle !== false;
                                                 const titleBarH = editMode
-                                                    ? w.title
+                                                    ? gw.title
                                                         ? 37
                                                         : 36
-                                                    : (showTitle && w.title) || w.options?.groupSwitch
+                                                    : (showTitle && gw.title) || gw.options?.groupSwitch
                                                       ? 37
                                                       : 0;
                                                 const shrunk = Math.max(
@@ -603,14 +625,14 @@ export function Dashboard({
                                                 ? Math.max(...fitLayout.map((c) => c.gridPos.y + c.gridPos.h))
                                                 : 0;
                                             if (maxBottom > 0) {
-                                                const showTitle = w.options?.showTitle !== false;
-                                                const showIcon = w.options?.showIcon !== false;
+                                                const showTitle = gw.options?.showTitle !== false;
+                                                const showIcon = gw.options?.showIcon !== false;
                                                 const hasHeader =
-                                                    (showTitle && !!w.title) || showIcon || !!w.options?.groupSwitch;
+                                                    (showTitle && !!gw.title) || showIcon || !!gw.options?.groupSwitch;
                                                 h = groupRows(
                                                     maxBottom,
                                                     hasHeader,
-                                                    showTitle && !!w.title,
+                                                    showTitle && !!gw.title,
                                                     cellSize,
                                                     MARGIN,
                                                 );
@@ -624,8 +646,8 @@ export function Dashboard({
                                         if (
                                             isGroup &&
                                             !editMode &&
-                                            !!w.options?.defaultCollapsed &&
-                                            (groupCollapsed[w.id] ?? true)
+                                            !!gw.options?.defaultCollapsed &&
+                                            (groupCollapsed[gw.id] ?? true)
                                         ) {
                                             const headerRows = Math.ceil((37 + 10 + MARGIN) / (cellSize + MARGIN));
                                             h = Math.max(1, headerRows);
@@ -666,8 +688,15 @@ export function Dashboard({
                                             // auto-height widgets size to their content — neither's rendered
                                             // height is stored, so keep the canonical gridPos.h and never let a
                                             // transient value get persisted on an unrelated drag/resize.
+                                            const mirrorSrc =
+                                                w.type === 'mirror'
+                                                    ? widgetById.get(
+                                                          (w.options?.targetWidgetId as string | undefined) ?? '',
+                                                      )
+                                                    : undefined;
                                             const derivedH =
                                                 w.type === 'group' ||
+                                                mirrorSrc?.type === 'group' ||
                                                 (w.type === 'statusoverview' && w.options?.autoHeight === true);
                                             const h = derivedH ? w.gridPos.h : pos.h;
                                             return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
