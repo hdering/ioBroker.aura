@@ -254,21 +254,40 @@ function LastChangeCellView({
     );
 }
 
-/** Renders an image from a URL or base64 data URI. */
+/** Renders an image from a static URL/base64 or from a datapoint value (URL / path / base64). */
 function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-    if (!cell.imageUrl) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    const { value: dpValue } = useDatapoint(cell.dpId ?? '');
+    // A configured datapoint takes precedence; its value carries the image (URL / path / base64).
+    const src = (() => {
+        if (cell.dpId && dpValue != null) {
+            const str = String(dpValue).trim();
+            if (!str) return '';
+            if (str.startsWith('data:') || str.startsWith('http://') || str.startsWith('https://')) return str;
+            if (str.startsWith('/') || str.startsWith('aura-file:')) return proxifyIfMixed(resolveAssetUrl(str));
+            // Long bare string with no path/URL markers → assume raw base64 payload.
+            if (str.length > 64) return `data:image/jpeg;base64,${str}`;
+            return proxifyIfMixed(resolveAssetUrl(str));
+        }
+        return cell.imageUrl ? proxifyIfMixed(resolveAssetUrl(cell.imageUrl)) : '';
+    })();
+    if (!src) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+
+    // Explicit pixel dimensions override the cell-filling default; cellWrapStyle
+    // already flex-centers (respecting align/valign) so the image positions correctly.
+    const hasPx = cell.imageWidth != null || cell.imageHeight != null;
+    const imgStyle: React.CSSProperties = hasPx
+        ? {
+              width: cell.imageWidth != null ? cell.imageWidth : 'auto',
+              height: cell.imageHeight != null ? cell.imageHeight : 'auto',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: cell.objectFit ?? 'contain',
+              display: 'block',
+          }
+        : { width: '100%', height: '100%', objectFit: cell.objectFit ?? 'contain', display: 'block' };
     return (
         <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: 0 }}>
-            <img
-                src={proxifyIfMixed(resolveAssetUrl(cell.imageUrl))}
-                alt=""
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: cell.objectFit ?? 'contain',
-                    display: 'block',
-                }}
-            />
+            <img src={src} alt="" style={imgStyle} />
         </div>
     );
 }

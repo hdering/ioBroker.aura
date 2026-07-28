@@ -228,8 +228,11 @@ export interface CustomCell {
     wrap?: boolean; // wrap long text onto multiple lines instead of ellipsis (default false)
     colSpan?: number; // 'component' type: how many grid columns to span (1..cols)
     rowSpan?: number; // analog colSpan, vertical
-    imageUrl?: string; // 'image' type: URL or base64 data URI
+    imageUrl?: string; // 'image' type: static URL or base64 data URI (fallback when dpId is empty)
     objectFit?: 'contain' | 'cover' | 'fill'; // 'image' type: CSS object-fit
+    imageWidth?: number; // 'image' type: explicit width in px (undefined = fill cell width)
+    imageHeight?: number; // 'image' type: explicit height in px (undefined = fill cell height)
+    // NOTE: 'image' cells also reuse `dpId` — when set, the image source is read from that datapoint's value (URL / path / base64), like the standalone Image widget.
     // 'slider' type
     min?: number;
     max?: number;
