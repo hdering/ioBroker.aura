@@ -1331,11 +1331,13 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                         className="nodrag rounded-lg pl-2 pr-6 py-1 focus:outline-none appearance-none truncate w-full"
                         style={{
                             background: 'var(--app-bg)',
-                            color: cell.color || 'var(--text-primary)',
+                            // A matched per-cell condition overrides the dropdown's
+                            // current-entry color/weight/style (it shows the current value).
+                            color: cond.color || cell.color || 'var(--text-primary)',
                             border: '1px solid var(--app-border)',
                             fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
-                            fontWeight: cell.bold ? 'bold' : undefined,
-                            fontStyle: cell.italic ? 'italic' : undefined,
+                            fontWeight: (cond.bold ?? cell.bold) ? 'bold' : undefined,
+                            fontStyle: (cond.italic ?? cell.italic) ? 'italic' : undefined,
                             maxWidth: '100%',
                             minWidth: 0,
                         }}
