@@ -221,6 +221,7 @@ export interface CustomCell {
     bold?: boolean;
     italic?: boolean;
     color?: string; // CSS color; '' / undefined = theme default
+    conditions?: CellConditionRule[]; // per-cell conditional formatting (Universal Widget) — reacts to the cell's own or a foreign DP value
     align?: CustomCellAlign; // default: 'left'
     valign?: CustomCellValign; // default: 'middle'
     allowOverflow?: boolean; // allow text to overflow into adjacent cells
@@ -409,6 +410,27 @@ export interface WidgetCondition {
     // (i.e. hides while the condition is false).
     visibilityMode?: 'hideOnMatch' | 'showOnMatch';
     reflow?: boolean; // if hiding: remove from grid so other widgets slide up
+}
+
+// ── Per-cell conditional formatting (Universal Widget) ────────────────────────
+// A single custom-grid cell can carry a list of these rules. Each rule combines
+// one or more ConditionClauses (own value when `datapoint` is empty, otherwise a
+// foreign DP) and, when matched, overrides the cell's appearance. Multiple
+// matching rules are merged in order (later rule wins per field), so effects can
+// be stacked. Reuses the same evaluateClause() operator engine as WidgetCondition.
+
+export interface CellConditionRule {
+    id: string;
+    label?: string;
+    logic?: 'AND' | 'OR'; // how to combine clauses (default 'AND')
+    clauses: ConditionClause[]; // empty `datapoint` = the cell's own value; otherwise a foreign DP ref
+    // Effects applied when the rule matches (undefined = no override):
+    color?: string; // text / icon color
+    bg?: string; // cell background
+    bold?: boolean;
+    italic?: boolean;
+    icon?: string; // icon override (icon / state-icon cells)
+    hide?: boolean; // blank the cell content (background is kept)
 }
 
 // ── Badges ──────────────────────────────────────────────────────────────────

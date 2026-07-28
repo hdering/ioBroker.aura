@@ -64,6 +64,7 @@ import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../w
 import { DEFAULT_KNOB_GRID, KnobWidget } from '../widgets/KnobWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
+import { CellConditionEditor } from '../config/CellConditionEditor';
 import { BadgeEditor } from '../config/BadgeEditor';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import { useBadges } from '../../hooks/useBadges';
@@ -5702,6 +5703,7 @@ export function WidgetFrame({
     const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(
         null,
     );
+    const [customCellCondOpen, setCustomCellCondOpen] = useState(false);
     const [draftIconSize, setDraftIconSize] = useState<number | null>(null);
     const [draftTransparency, setDraftTransparency] = useState<number | null>(null);
 
@@ -15960,6 +15962,7 @@ export function WidgetFrame({
                                                         onOpenIconPicker={setCustomCellIconPicker}
                                                         onOpenDpPicker={() => setCustomCellPickerOpen(true)}
                                                         onOpenImagePicker={() => setCustomCellImagePickerOpen(true)}
+                                                        onOpenConditions={() => setCustomCellCondOpen(true)}
                                                     />
                                                 ) : (
                                                     <p
@@ -17440,6 +17443,43 @@ export function WidgetFrame({
                             }}
                             onClose={() => setCustomCellIconPicker(null)}
                         />
+                    );
+                })()}
+
+            {/* Custom-Grid per-cell conditional formatting */}
+            {customCellCondOpen &&
+                selectedCustomCell !== null &&
+                (() => {
+                    const fb =
+                        config.type === 'universal'
+                            ? DEFAULT_UNIVERSAL_GRID
+                            : config.type === 'knob'
+                              ? DEFAULT_KNOB_GRID
+                              : DEFAULT_CUSTOM_GRID;
+                    const grid = normalizeGrid(config.options?.customGrid, fb);
+                    const idx = selectedCustomCell;
+                    const cell = grid.cells[idx];
+                    if (!cell) return null;
+                    return (
+                        <CenteredModal
+                            title={`Bedingungen · Zeile ${Math.floor(idx / grid.cols) + 1}, Spalte ${(idx % grid.cols) + 1}`}
+                            onClose={() => setCustomCellCondOpen(false)}
+                            wide
+                        >
+                            <CellConditionEditor
+                                rules={cell.conditions ?? []}
+                                ownDpId={cell.dpId}
+                                onChange={(next) => {
+                                    const nextGrid: CustomGridDef = {
+                                        ...grid,
+                                        cells: grid.cells.map((c, i) =>
+                                            i === idx ? { ...c, conditions: next.length ? next : undefined } : c,
+                                        ),
+                                    };
+                                    onConfigChange({ ...config, options: { ...config.options, customGrid: nextGrid } });
+                                }}
+                            />
+                        </CenteredModal>
                     );
                 })()}
 

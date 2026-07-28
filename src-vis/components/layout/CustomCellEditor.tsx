@@ -442,7 +442,23 @@ export interface CustomCellEditorProps {
     onOpenIconPicker: (slot: 'iconName' | 'trueIcon' | 'falseIcon') => void;
     onOpenDpPicker: () => void;
     onOpenImagePicker: () => void;
+    onOpenConditions: () => void;
 }
+
+// Value-bearing / icon cell types that support per-cell conditional formatting.
+const CELL_CONDITION_TYPES = new Set<CustomCell['type']>([
+    'dp',
+    'value',
+    'progress',
+    'state-text',
+    'state-icon',
+    'lastchange',
+    'select',
+    'stepper',
+    'slider',
+    'input',
+    'switch',
+]);
 
 export function CustomCellEditor({
     cell,
@@ -456,6 +472,7 @@ export function CustomCellEditor({
     onOpenIconPicker,
     onOpenDpPicker,
     onOpenImagePicker,
+    onOpenConditions,
 }: CustomCellEditorProps) {
     const [entryIconPicker, setEntryIconPicker] = useState<number | null>(null);
     const [importStatus, setImportStatus] = useState<string | null>(null);
@@ -550,6 +567,30 @@ export function CustomCellEditor({
                     </optgroup>
                 </select>
             </div>
+
+            {/* Per-cell conditional formatting (own popup) */}
+            {CELL_CONDITION_TYPES.has(cell.type) && (
+                <button
+                    onClick={onOpenConditions}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors"
+                    style={{
+                        background: 'var(--app-bg)',
+                        border: `1px solid ${cell.conditions?.length ? 'var(--accent)55' : 'var(--app-border)'}`,
+                        color: 'var(--text-primary)',
+                    }}
+                >
+                    <span>Bedingungen</span>
+                    <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full"
+                        style={{
+                            background: cell.conditions?.length ? 'var(--accent)' : 'var(--app-surface)',
+                            color: cell.conditions?.length ? '#fff' : 'var(--text-secondary)',
+                        }}
+                    >
+                        {cell.conditions?.length ?? 0}
+                    </span>
+                </button>
+            )}
 
             {/* Free text content */}
             {cell.type === 'text' && (
