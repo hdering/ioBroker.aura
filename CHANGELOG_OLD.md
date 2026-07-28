@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.33.7 (2026-07-24)
+- Settings - header HTML template field now grows across multiple lines
+
 ## 0.33.6 (2026-07-24)
 - General - dashboard now shows a visible, draggable scrollbar on tablets and phones when the content overflows (native touch scrollbars stay hidden until you scroll)
 - Quick-access chips - add an adjustable corner radius (square to pill), global background and text colours, plus per-chip background and text colour overrides

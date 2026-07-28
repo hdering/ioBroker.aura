@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.38.2 (2026-07-28)
+- Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous
+- Copy/Move widget - the target menu now scrolls when it has more entries than fit on the screen
+- Copy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns
+
+
 ### 0.38.1 (2026-07-28)
 - Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings
 - Popup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box
@@ -200,10 +206,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Carousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name
 
 
-### 0.33.7 (2026-07-24)
-- Settings - header HTML template field now grows across multiple lines
-
-
 ## License
 
 MIT License
@@ -215,6 +217,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

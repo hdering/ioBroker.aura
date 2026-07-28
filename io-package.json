@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.38.1",
+    "version": "0.38.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.38.2": {
+        "en": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "de": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "ru": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "pt": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "nl": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "fr": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "it": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "es": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "pl": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "uk": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
+        "zh-cn": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns"
+      },
       "0.38.1": {
         "en": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
         "de": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
         "uk": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
         "zh-cn": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first"
-      },
-      "0.36.6": {
-        "en": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "de": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "ru": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "pt": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "nl": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "fr": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "it": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "es": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "pl": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "uk": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
-        "zh-cn": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)"
       }
     }
   },
