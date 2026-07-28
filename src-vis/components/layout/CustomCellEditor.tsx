@@ -7,7 +7,7 @@
  * via the callbacks in props — this component never holds picker state itself.
  */
 import React, { useState } from 'react';
-import { Database, FolderOpen, HelpCircle, Plus, type LucideIcon } from 'lucide-react';
+import { Database, FolderOpen, HelpCircle, Plus, SlidersHorizontal, type LucideIcon } from 'lucide-react';
 import { JsonPathButton } from '../config/JsonPathButton';
 import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -567,30 +567,6 @@ export function CustomCellEditor({
                     </optgroup>
                 </select>
             </div>
-
-            {/* Per-cell conditional formatting (own popup) */}
-            {CELL_CONDITION_TYPES.has(cell.type) && (
-                <button
-                    onClick={onOpenConditions}
-                    className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors"
-                    style={{
-                        background: 'var(--app-bg)',
-                        border: `1px solid ${cell.conditions?.length ? 'var(--accent)55' : 'var(--app-border)'}`,
-                        color: 'var(--text-primary)',
-                    }}
-                >
-                    <span>Bedingungen</span>
-                    <span
-                        className="text-[10px] px-1.5 py-0.5 rounded-full"
-                        style={{
-                            background: cell.conditions?.length ? 'var(--accent)' : 'var(--app-surface)',
-                            color: cell.conditions?.length ? '#fff' : 'var(--text-secondary)',
-                        }}
-                    >
-                        {cell.conditions?.length ?? 0}
-                    </span>
-                </button>
-            )}
 
             {/* Free text content */}
             {cell.type === 'text' && (
@@ -2862,6 +2838,38 @@ export function CustomCellEditor({
                         </div>
                     </div>
                 </>
+            )}
+
+            {/* Per-cell conditional formatting (own popup) — always last, highlighted */}
+            {CELL_CONDITION_TYPES.has(cell.type) && (
+                <div style={{ borderTop: '1px solid var(--app-border)', paddingTop: 10, marginTop: 6 }}>
+                    <button
+                        onClick={onOpenConditions}
+                        className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-medium transition-colors hover:opacity-90"
+                        style={{
+                            background: cell.conditions?.length ? 'var(--accent)' : 'var(--accent)15',
+                            border: `1px solid ${cell.conditions?.length ? 'var(--accent)' : 'var(--accent)55'}`,
+                            color: cell.conditions?.length ? '#fff' : 'var(--accent)',
+                        }}
+                    >
+                        <span className="flex items-center gap-1.5">
+                            <SlidersHorizontal size={14} />
+                            Bedingungen
+                        </span>
+                        <span
+                            className="text-[10px] px-1.5 py-0.5 rounded-full"
+                            style={{
+                                background: cell.conditions?.length ? '#ffffff33' : 'var(--accent)',
+                                color: '#fff',
+                            }}
+                        >
+                            {cell.conditions?.length ?? 0}
+                        </span>
+                    </button>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        Auf Werte reagieren — Farbe, Hintergrund, Icon oder Ausblenden nur für diese Zelle.
+                    </p>
+                </div>
             )}
         </>
     );
