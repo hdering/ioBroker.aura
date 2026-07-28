@@ -1333,7 +1333,10 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                             background: 'var(--app-bg)',
                             // A matched per-cell condition overrides the dropdown's
                             // current-entry color/weight/style (it shows the current value).
+                            // WebkitTextFillColor is required for the *selected* value text
+                            // of a native <select> to honor the color on Chromium/Windows.
                             color: cond.color || cell.color || 'var(--text-primary)',
+                            WebkitTextFillColor: cond.color || cell.color || 'var(--text-primary)',
                             border: '1px solid var(--app-border)',
                             fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
                             fontWeight: (cond.bold ?? cell.bold) ? 'bold' : undefined,
