@@ -7331,6 +7331,10 @@ export function WidgetFrame({
                                                                                                   value: 'list',
                                                                                                   label: 'Liste',
                                                                                               },
+                                                                                              {
+                                                                                                  value: 'compact',
+                                                                                                  label: 'Kompakt',
+                                                                                              },
                                                                                           ]
                                                                                         : config.type === 'evcc'
                                                                                           ? [

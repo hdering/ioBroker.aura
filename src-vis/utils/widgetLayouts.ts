@@ -30,6 +30,8 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
             return ['minimal', 'default', 'custom'];
         case 'fill':
             return ['default', 'battery'];
+        case 'trashSchedule':
+            return ['default', 'list', 'compact'];
         case 'gauge':
         case 'climate':
         case 'aircontrol':
@@ -39,7 +41,6 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
         case 'carousel':
         case 'panels':
         case 'trash':
-        case 'trashSchedule':
         case 'adapterstatus':
         case 'scriptstatus':
         case 'adapterlogs':

@@ -99,6 +99,7 @@ export type WidgetLayout =
     | 'loadpoints'
     | 'custom'
     | 'count'
+    | 'list'
     | 'light-all'
     | 'light-brightness'
     | 'light-color'

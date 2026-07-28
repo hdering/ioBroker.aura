@@ -201,6 +201,83 @@ function BinRow({
     );
 }
 
+// ── Single bin line (compact layout: dot · name · days) ────────────────────
+
+function BinLine({
+    entry,
+    showDot,
+    showNames,
+    showDays,
+    showDate,
+    dateFormat,
+    nameFontSize,
+    daysFontSize,
+    dateFontSize,
+    dotSize,
+}: {
+    entry: TrashEntry;
+    showDot: boolean;
+    showNames: boolean;
+    showDays: boolean;
+    showDate: boolean;
+    dateFormat: string;
+    nameFontSize: number;
+    daysFontSize: number;
+    dateFontSize: number;
+    dotSize: number;
+}) {
+    const color = entry._color ?? '#6b7280';
+    const dimmed = entry._completed === true;
+
+    return (
+        <div className="flex items-center gap-2 min-w-0" style={{ opacity: dimmed ? 0.45 : 1 }}>
+            {showDot && (
+                <span
+                    className="rounded-full shrink-0"
+                    style={{
+                        width: dotSize,
+                        height: dotSize,
+                        background: color,
+                        border: dimmed ? `1.5px solid ${color}` : 'none',
+                    }}
+                />
+            )}
+            {showNames && (
+                <span
+                    className="truncate leading-tight min-w-0"
+                    style={{ fontSize: nameFontSize, color: 'var(--text-secondary)' }}
+                    title={entry.name}
+                >
+                    {entry.name}
+                </span>
+            )}
+            {(showDays || showDate) && (
+                <span className="flex items-baseline gap-2 shrink-0 ml-auto">
+                    {showDays && (
+                        <span
+                            className="font-medium leading-none"
+                            style={{
+                                fontSize: daysFontSize,
+                                color: entry.daysLeft <= 1 ? 'var(--accent)' : 'var(--text-primary)',
+                            }}
+                        >
+                            {formatDays(entry.daysLeft)}
+                        </span>
+                    )}
+                    {showDate && (
+                        <span
+                            className="leading-none"
+                            style={{ fontSize: dateFontSize, color: 'var(--text-secondary)' }}
+                        >
+                            {formatDate(entry.nextDate, dateFormat)}
+                        </span>
+                    )}
+                </span>
+            )}
+        </div>
+    );
+}
+
 // ── Shared title row ───────────────────────────────────────────────────────
 
 function TitleRow({
@@ -251,8 +328,10 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
     const showNames = (o.showNames as boolean | undefined) ?? true;
     const showDays = (o.showDays as boolean | undefined) ?? true;
     const showDate = (o.showDate as boolean | undefined) ?? true;
+    const showDot = (o.showDot as boolean | undefined) ?? true;
     const dateFormat = (o.dateFormat as string | undefined) ?? 'dd.MM.';
     const layout = (config.layout as string | undefined) ?? 'default';
+    const dotSize = (o.dotSize as number | undefined) ?? 12;
     const nameFontSize = (o.nameFontSize as number | undefined) ?? 10;
     const daysFontSize = (o.daysFontSize as number | undefined) ?? 10;
     const dateFontSize = (o.dateFontSize as number | undefined) ?? 9;
@@ -308,6 +387,41 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
                 >
                     <Truck size={32} strokeWidth={1} />
                     <span className="text-xs opacity-60">Alle Tonnen ausgeblendet</span>
+                </div>
+            </div>
+        );
+    }
+
+    // ── COMPACT layout (dot · name · days) ─────────────────────────────────────
+    if (layout === 'compact') {
+        return (
+            <div className="aura-widget-row flex flex-col h-full">
+                {(showTitle || showIcon) && (
+                    <TitleRow
+                        config={config}
+                        TitleIcon={TitleIcon}
+                        iconSize={iconSize}
+                        titleAlign={titleAlign}
+                        showTitle={showTitle}
+                        showIcon={showIcon}
+                    />
+                )}
+                <div className="flex-1 flex flex-col gap-1.5 overflow-y-auto min-h-0 justify-center">
+                    {visible.map((entry) => (
+                        <BinLine
+                            key={entry.name}
+                            entry={entry}
+                            showDot={showDot}
+                            showNames={showNames}
+                            showDays={showDays}
+                            showDate={showDate}
+                            dateFormat={dateFormat}
+                            nameFontSize={nameFontSize}
+                            daysFontSize={daysFontSize}
+                            dateFontSize={dateFontSize}
+                            dotSize={dotSize}
+                        />
+                    ))}
                 </div>
             </div>
         );
@@ -410,6 +524,9 @@ export function TrashScheduleConfig({
     const showNames = (o.showNames as boolean | undefined) ?? true;
     const showDays = (o.showDays as boolean | undefined) ?? true;
     const showDate = (o.showDate as boolean | undefined) ?? true;
+    const showDot = (o.showDot as boolean | undefined) ?? true;
+    const dotSize = (o.dotSize as number | undefined) ?? 12;
+    const layout = (config.layout as string | undefined) ?? 'default';
     const dateFormat = (o.dateFormat as string | undefined) ?? 'dd.MM.';
     const nameFontSize = (o.nameFontSize as number | undefined) ?? 10;
     const daysFontSize = (o.daysFontSize as number | undefined) ?? 10;
@@ -591,6 +708,24 @@ export function TrashScheduleConfig({
                         Anzeige-Optionen
                     </label>
 
+                    {layout === 'compact' && (
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                Punkt anzeigen
+                            </label>
+                            <button
+                                onClick={() => setO({ showDot: !showDot })}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{ background: showDot ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: showDot ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                    )}
+
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                             Namen anzeigen
@@ -709,6 +844,23 @@ export function TrashScheduleConfig({
                             className="w-full accent-[var(--accent)]"
                         />
                     </div>
+
+                    {layout === 'compact' && showDot && (
+                        <div>
+                            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                Punkt-Größe ({dotSize}px)
+                            </label>
+                            <input
+                                type="range"
+                                min={6}
+                                max={32}
+                                step={1}
+                                value={dotSize}
+                                onChange={(e) => setO({ dotSize: Number(e.target.value) })}
+                                className="w-full accent-[var(--accent)]"
+                            />
+                        </div>
+                    )}
                 </div>
 
                 {/* ── Textgrößen ── */}
