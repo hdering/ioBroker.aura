@@ -5,9 +5,19 @@ import { usePopupConfigStore } from '../../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../../hooks/useEffectiveSettings';
 import { useConditionStyle, type ConditionResult } from '../../../hooks/useConditionStyle';
 import { getWidgetMap } from '../widgetMap';
+import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import type { WidgetConfig, WidgetCondition } from '../../../types';
 
 const DEFAULT_MARGIN = 10;
+
+/**
+ * Widget types that carry a meaningful "natural" content height (lists grow with their
+ * rows). When the popup dialog height is "auto", these widgets render their full content
+ * and their grid row-count is derived from the measured height — so the grid, and thus
+ * the auto-sized dialog, grows to fit. Fill-type widgets (charts, gauges, maps …) have no
+ * intrinsic height and keep their designed grid height.
+ */
+const CONTENT_HEIGHT_TYPES = new Set(['list', 'autolist']);
 
 // Stable empty reference so useConditionStyle doesn't re-subscribe every render.
 const NO_CONDITIONS: WidgetCondition[] = [];
@@ -211,11 +221,17 @@ function PopupWidgetCell({
     cond,
     widgetPadding,
     onConfigChange,
+    autoHeight = false,
+    onMeasure,
 }: {
     w: WidgetConfig;
     cond: ConditionResult;
     widgetPadding: number;
     onConfigChange: (next: WidgetConfig) => void;
+    /** True when this cell should render its widget at natural height (auto-height popup). */
+    autoHeight?: boolean;
+    /** Reports the cell's measured pixel height so the parent can grow the grid row-count. */
+    onMeasure?: (id: string, px: number) => void;
 }) {
     const wm = getWidgetMap();
     const Widget = wm[w.type as keyof typeof wm];
@@ -227,9 +243,24 @@ function PopupWidgetCell({
               ? 'animate-[blink_1s_step-end_infinite]'
               : '';
 
+    // In auto-height mode, observe the cell's natural (border-box) height and report it up.
+    // Kept off entirely otherwise so fixed-height cells carry no observer overhead.
+    const measureRef = useRef<HTMLDivElement | null>(null);
+    useEffect(() => {
+        if (!autoHeight || !onMeasure) return;
+        const el = measureRef.current;
+        if (!el) return;
+        const report = () => onMeasure(w.id, el.offsetHeight);
+        report();
+        const ro = new ResizeObserver(report);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [autoHeight, onMeasure, w.id]);
+
     return (
         <div
-            className={`h-full box-border overflow-hidden ${effectClass}`}
+            ref={measureRef}
+            className={`box-border ${autoHeight ? '' : 'h-full overflow-hidden'} ${effectClass}`}
             style={{
                 ...cardStyleFor(w, widgetPadding),
                 ...cond.cssVars,
@@ -277,6 +308,10 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const widgetPadding = settings.widgetPadding ?? 16;
 
+    // Auto height: the popup dialog has no explicit pixel height, so content-driven
+    // widgets grow the grid to fit their full content instead of scrolling in a fixed cell.
+    const autoPopupHeight = !(triggerWidget?.options?.popupHeight as number | undefined);
+
     const roRef = useRef<ResizeObserver | null>(null);
     const [containerWidth, setContainerWidth] = useState(0);
 
@@ -298,6 +333,13 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
             }
             return { ...prev, [id]: r };
         });
+    }, []);
+
+    // Measured natural height (px) per content-driven widget in auto-height mode; drives
+    // each widget's grid row-count so the grid — and the auto-sized dialog — grows to fit.
+    const [contentPx, setContentPx] = useState<Record<string, number>>({});
+    const onMeasure = useCallback((id: string, px: number) => {
+        setContentPx((prev) => (prev[id] === px ? prev : { ...prev, [id]: px }));
     }, []);
 
     const containerRefCallback = useCallback((el: HTMLDivElement | null) => {
@@ -369,14 +411,30 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
         return !(c?.hidden && c?.reflow);
     });
 
-    const layout = gridWidgets.map((w) => ({
-        i: w.id,
-        x: w.gridPos.x ?? 0,
-        y: w.gridPos.y ?? 9999,
-        w: w.gridPos.w ?? 4,
-        h: w.gridPos.h ?? 3,
-        minH: 1,
-    }));
+    // Whether a given widget grows to its measured content height (auto dialog + content type).
+    const isAutoCell = (w: WidgetConfig) => autoPopupHeight && CONTENT_HEIGHT_TYPES.has(w.type);
+
+    const layout = gridWidgets.map((w) => {
+        const designedH = w.gridPos.h ?? 3;
+        let h = designedH;
+        if (isAutoCell(w)) {
+            const px = contentPx[w.id];
+            if (px && px > 0) {
+                // Rows needed so the grid slot (h·cellSize + (h−1)·MARGIN) covers the content.
+                const rows = Math.max(1, Math.ceil((px + MARGIN) / (cellSize + MARGIN)));
+                // Grow-only: the designed height acts as a floor, never shrinks below it.
+                h = Math.max(designedH, rows);
+            }
+        }
+        return {
+            i: w.id,
+            x: w.gridPos.x ?? 0,
+            y: w.gridPos.y ?? 9999,
+            w: w.gridPos.w ?? 4,
+            h,
+            minH: 1,
+        };
+    });
 
     return (
         <div ref={containerRefCallback} className="p-3" style={{ minWidth: naturalMinWidth }}>
@@ -403,17 +461,24 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
                         // Pre-substitution original — persist edits against it so
                         // {{...}} placeholders in untouched option keys survive.
                         const orig = view.widgets.find((o) => o.id === w.id) ?? w;
+                        const cellAuto = isAutoCell(w);
                         return (
                             <div key={w.id}>
-                                <PopupWidgetCell
-                                    w={w}
-                                    cond={conds[w.id] ?? EMPTY_COND}
-                                    widgetPadding={widgetPadding}
-                                    onConfigChange={(next) => {
-                                        const patch = mergedOptionsPatch(orig, w, next);
-                                        if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
-                                    }}
-                                />
+                                {/* Provider tells the widget (e.g. list) to render its full
+                                    content without an inner scrollbar in auto-height mode. */}
+                                <PopupAutoHeightContext.Provider value={cellAuto}>
+                                    <PopupWidgetCell
+                                        w={w}
+                                        cond={conds[w.id] ?? EMPTY_COND}
+                                        widgetPadding={widgetPadding}
+                                        autoHeight={cellAuto}
+                                        onMeasure={onMeasure}
+                                        onConfigChange={(next) => {
+                                            const patch = mergedOptionsPatch(orig, w, next);
+                                            if (patch) updateWidgetInView(view.id, orig.id, { options: patch });
+                                        }}
+                                    />
+                                </PopupAutoHeightContext.Provider>
                             </div>
                         );
                     })}

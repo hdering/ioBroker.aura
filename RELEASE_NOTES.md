@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings
+Popup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box

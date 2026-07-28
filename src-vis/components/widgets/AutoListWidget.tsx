@@ -10,6 +10,7 @@ import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
+import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
@@ -718,6 +719,9 @@ function RoomHeader({ room, style }: { room: string; style?: React.CSSProperties
 export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as AutoListOptions, [config.options]);
     const entries = useMemo<AutoListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
+    // Inside an auto-height popup-view: render the full list without an inner scrollbar
+    // so the popup grid (and dialog) can grow to fit every row. Off elsewhere.
+    const autoHeight = usePopupAutoHeight();
     const t = useT();
     const { defaultDecimals } = useGlobalSettingsStore();
     const decimals = (opts.decimals as number) ?? defaultDecimals;
@@ -1144,6 +1148,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     const wrap = !!opts.wrapText;
     const labelWrapCls = wrap ? 'break-words [overflow-wrap:anywhere]' : 'truncate';
+    // Auto-height mode drops the fill-and-scroll classes so the list grows naturally.
+    const rootHCls = autoHeight ? '' : 'h-full';
+    const fillCls = autoHeight ? '' : 'aura-scroll flex-1 overflow-auto min-h-0';
     const labelMinPct = Math.max(10, Math.min(90, opts.labelMinPercent ?? 50));
     const valueMaxPct = 100 - labelMinPct;
     const labelContainerStyle: React.CSSProperties | undefined = wrap ? { minWidth: `${labelMinPct}%` } : undefined;
@@ -1189,11 +1196,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // ── KACHELN (card) ─────────────────────────────────────────────────────────
     if (layout === 'card') {
         return (
-            <div className="aura-widget-row relative flex flex-col h-full">
+            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {visibleEntries.length > 0 && (
-                    <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2 flex flex-col gap-2">
+                    <div className={`${fillCls} p-2 flex flex-col gap-2`}>
                         {sections.map((sec) => (
                             <div key={sec.room ?? '__all'}>
                                 {sec.room != null && (
@@ -1288,12 +1295,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // ── KOMPAKT (compact) — 2-column dense list ────────────────────────────────
     if (layout === 'compact') {
         return (
-            <div className="aura-widget-row relative flex flex-col h-full">
+            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {visibleEntries.length > 0 && (
                     <div
-                        className="aura-scroll flex-1 overflow-auto min-h-0"
+                        className={fillCls}
                         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start' }}
                     >
                         {sections.map((sec) => (
@@ -1379,11 +1386,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // ── BADGES (minimal) — inline pill per entry ───────────────────────────────
     if (layout === 'minimal') {
         return (
-            <div className="aura-widget-row relative flex flex-col h-full">
+            <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
                 {visibleEntries.length > 0 && (
-                    <div className="aura-scroll flex-1 overflow-auto min-h-0 p-2 flex flex-wrap gap-1.5 content-start">
+                    <div className={`${fillCls} p-2 flex flex-wrap gap-1.5 content-start`}>
                         {sections.map((sec) => (
                             <Fragment key={sec.room ?? '__all'}>
                                 {sec.room != null && (
@@ -1516,11 +1523,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     // ── STANDARD (default) — full-width rows ───────────────────────────────────
     return (
-        <div className="relative flex flex-col h-full">
+        <div className={`relative flex flex-col ${rootHCls}`}>
             {header}
             {empty}
             {visibleEntries.length > 0 && (
-                <div className="aura-scroll flex-1 overflow-auto min-h-0">
+                <div className={fillCls}>
                     {sections.map((sec) => (
                         <Fragment key={sec.room ?? '__all'}>
                             {sec.room != null && <RoomHeader room={sec.room} style={roomHeaderStyle} />}

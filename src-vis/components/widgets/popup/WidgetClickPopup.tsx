@@ -162,7 +162,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                     border: '1px solid var(--app-border)',
                     width: isIframe ? undefined : customWidth ? `min(calc(100vw - 16px), ${customWidth}px)` : undefined,
                     maxWidth: isIframe ? undefined : customWidth ? undefined : 'min(calc(100vw - 16px), 600px)',
-                    maxHeight: isIframe ? undefined : customHeight ? `min(85vh, ${customHeight}px)` : '85vh',
+                    maxHeight: isIframe ? undefined : customHeight ? `min(85dvh, ${customHeight}px)` : '85dvh',
                 }}
                 onClick={(e) => e.stopPropagation()}
                 onPointerDown={armTimer}
