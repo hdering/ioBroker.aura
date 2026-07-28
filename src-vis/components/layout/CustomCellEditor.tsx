@@ -589,32 +589,6 @@ export function CustomCellEditor({
                 <>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            Bild aus Datenpunkt (optional)
-                        </label>
-                        <div className="flex gap-1">
-                            <input
-                                type="text"
-                                value={cell.dpId ?? ''}
-                                onChange={(e) => onChange({ dpId: e.target.value || undefined })}
-                                placeholder="DP mit URL / Pfad / Base64"
-                                className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                style={inputSty}
-                            />
-                            <button
-                                onClick={onOpenDpPicker}
-                                className="text-xs px-2 py-1.5 rounded-lg shrink-0"
-                                style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
-                                title="Datenpunkt wählen"
-                            >
-                                <Database size={12} />
-                            </button>
-                        </div>
-                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                            Der Wert des Datenpunkts liefert das Bild (URL, Pfad oder Base64). Leer = feste URL unten.
-                        </p>
-                    </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             Bild-URL oder Base64
                         </label>
                         <div className="flex gap-1">
@@ -650,6 +624,33 @@ export function CustomCellEditor({
                                 Logos ohne externen Server. Bei gesetztem Datenpunkt dient dies als Fallback.
                             </p>
                         )}
+                    </div>
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Bild aus Datenpunkt (optional)
+                        </label>
+                        <div className="flex gap-1">
+                            <input
+                                type="text"
+                                value={cell.dpId ?? ''}
+                                onChange={(e) => onChange({ dpId: e.target.value || undefined })}
+                                placeholder="DP mit URL / Pfad / Base64"
+                                className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={inputSty}
+                            />
+                            <button
+                                onClick={onOpenDpPicker}
+                                className="text-xs px-2 py-1.5 rounded-lg shrink-0"
+                                style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                                title="Datenpunkt wählen"
+                            >
+                                <Database size={12} />
+                            </button>
+                        </div>
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                            Der Wert des Datenpunkts liefert das Bild (URL, Pfad oder Base64) und hat Vorrang vor der
+                            festen URL oben. Leer = feste URL verwenden.
+                        </p>
                     </div>
                     <div className="flex gap-2">
                         <div className="flex-1">
