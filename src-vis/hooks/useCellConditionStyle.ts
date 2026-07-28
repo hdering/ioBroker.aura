@@ -26,13 +26,25 @@ export interface CellCondResult {
 
 const EMPTY: CellCondResult = {};
 
+/**
+ * Token that stands for the cell's own datapoint inside a clause, so the user
+ * doesn't have to re-enter the DP that's already configured on the cell. An
+ * empty datapoint (legacy) and a ref equal to the cell's own DP are treated the
+ * same way.
+ */
+export const OWN_VALUE_TOKEN = '{dp}';
+
+function isOwnRef(ref: string | undefined, ownDp: string): boolean {
+    return !ref || ref === OWN_VALUE_TOKEN || ref === ownDp;
+}
+
 /** Clause DP refs that are NOT the cell's own value and must be subscribed. */
 function foreignRefs(rules: CellConditionRule[], ownDp: string): string[] {
     const set = new Set<string>();
     for (const rule of rules) {
         for (const cl of rule.clauses ?? []) {
-            if (cl.datapoint && cl.datapoint !== ownDp) set.add(cl.datapoint);
-            if (cl.valueType === 'datapoint' && cl.value && cl.value !== ownDp) set.add(cl.value);
+            if (!isOwnRef(cl.datapoint, ownDp)) set.add(cl.datapoint);
+            if (cl.valueType === 'datapoint' && !isOwnRef(cl.value, ownDp)) set.add(cl.value);
         }
     }
     return [...set];
@@ -50,9 +62,9 @@ function evalRules(
         const clauses = rule.clauses ?? [];
         if (!clauses.length) continue;
         const results = clauses.map((cl) => {
-            // Empty datapoint (or one equal to the cell's own DP) compares the
-            // cell's own live value; a foreign DP uses its subscribed value.
-            const raw = cl.datapoint && cl.datapoint !== ownDp ? values.get(cl.datapoint) : ownValue;
+            // '{dp}' / empty / the cell's own DP compare the cell's own live
+            // value; any other ref uses its subscribed foreign value.
+            const raw = isOwnRef(cl.datapoint, ownDp) ? ownValue : values.get(cl.datapoint);
             return evaluateClause(cl, raw, values);
         });
         const matched = (rule.logic ?? 'AND') === 'OR' ? results.some(Boolean) : results.every(Boolean);
@@ -110,8 +122,10 @@ export function useCellConditionStyle(cell: CustomCell, ownValue: unknown, ownDp
 
     if (!rules?.length) return EMPTY;
 
-    // Build the lookup map: own value under its ref + all foreign values.
+    // Build the lookup map: own value under the {dp} token and its ref + all
+    // foreign values. Keying by the token lets a '{dp}' compare-value resolve too.
     const values = new Map(valuesRef.current);
+    values.set(OWN_VALUE_TOKEN, ownValue);
     if (ownDp) values.set(ownDp, ownValue);
     return evalRules(rules, ownDp, ownValue, values);
 }

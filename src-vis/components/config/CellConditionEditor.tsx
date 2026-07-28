@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
 import { ClauseRow, ColorField, newClause } from './ConditionEditor';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { OWN_VALUE_TOKEN } from '../../hooks/useCellConditionStyle';
 import type { CellConditionRule } from '../../types';
+
+/** A new clause that references the cell's own DP by default ({dp} token). */
+function newOwnClause() {
+    return { ...newClause(), datapoint: OWN_VALUE_TOKEN };
+}
 
 // Per-cell conditional-formatting editor for the Universal Widget's custom grid.
 // Reuses ClauseRow / ColorField / newClause from ConditionEditor so the operator
@@ -21,7 +27,7 @@ function newCellRule(): CellConditionRule {
     return {
         id: `ccr-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
         logic: 'AND',
-        clauses: [newClause()],
+        clauses: [newOwnClause()],
     };
 }
 
@@ -55,7 +61,7 @@ function CellRuleEditor({
     const updateClause = (i: number, c: CellConditionRule['clauses'][number]) =>
         update({ clauses: rule.clauses.map((cl, j) => (j === i ? c : cl)) });
     const deleteClause = (i: number) => update({ clauses: rule.clauses.filter((_, j) => j !== i) });
-    const addClause = () => update({ clauses: [...rule.clauses, newClause()] });
+    const addClause = () => update({ clauses: [...rule.clauses, newOwnClause()] });
     const toggleLogic = () => update({ logic: rule.logic === 'OR' ? 'AND' : 'OR' });
 
     const IconPrev = rule.icon ? getWidgetIcon(rule.icon, HelpCircle) : null;
@@ -116,6 +122,7 @@ function CellRuleEditor({
                                 onLogicToggle={toggleLogic}
                                 onChange={(c) => updateClause(i, c)}
                                 onDelete={() => deleteClause(i)}
+                                ownToken={OWN_VALUE_TOKEN}
                             />
                         ))}
                     </div>
@@ -127,7 +134,8 @@ function CellRuleEditor({
                         <Plus size={11} /> Bedingung hinzufügen
                     </button>
                     <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
-                        Leeres DP-Feld = eigener Zellwert.
+                        <span className="font-mono">{OWN_VALUE_TOKEN}</span> = eigener Zellwert (kein erneutes Eintragen
+                        des DP); Pille umschalten für einen anderen Datenpunkt.
                     </p>
 
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />

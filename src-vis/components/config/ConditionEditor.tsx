@@ -59,6 +59,7 @@ export function ClauseRow({
     onLogicToggle,
     onChange,
     onDelete,
+    ownToken,
 }: {
     clause: ConditionClause;
     isFirst: boolean;
@@ -66,12 +67,15 @@ export function ClauseRow({
     onLogicToggle: () => void;
     onChange: (c: ConditionClause) => void;
     onDelete: () => void;
+    /** When set (e.g. '{dp}'), a pill lets the clause reference the cell's own DP instead of typing it. */
+    ownToken?: string;
 }) {
     const t = useT();
     const [showPicker, setShowPicker] = useState(false);
     const [showValuePicker, setShowValuePicker] = useState(false);
     const op = OPERATORS.find((o) => o.value === clause.operator)!;
     const isDpValue = clause.valueType === 'datapoint';
+    const isOwn = !!ownToken && clause.datapoint === ownToken;
 
     return (
         <div className="flex items-center gap-1.5">
@@ -99,31 +103,56 @@ export function ClauseRow({
 
             {/* Datapoint input + picker */}
             <div className="flex gap-0.5 flex-1 min-w-0">
-                <input
-                    type="text"
-                    value={clause.datapoint}
-                    onChange={(e) => onChange({ ...clause, datapoint: e.target.value })}
-                    placeholder={t('cond.datapointId')}
-                    className={`${cls} flex-1 font-mono min-w-0`}
-                    style={inputStyle}
-                />
-                <button
-                    onClick={() => setShowPicker(true)}
-                    className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
-                    style={{
-                        background: 'var(--app-bg)',
-                        color: 'var(--text-secondary)',
-                        border: '1px solid var(--app-border)',
-                    }}
-                    title={t('cond.fromIoBroker')}
-                >
-                    <Database size={11} />
-                </button>
-                <JsonPathButton
-                    value={clause.datapoint}
-                    onChange={(ref) => onChange({ ...clause, datapoint: ref })}
-                    size={11}
-                />
+                {ownToken && (
+                    <button
+                        onClick={() => onChange({ ...clause, datapoint: isOwn ? '' : ownToken })}
+                        className="px-1.5 rounded-lg shrink-0 hover:opacity-80 text-[9px] font-bold font-mono"
+                        style={{
+                            background: isOwn ? 'var(--accent)22' : 'var(--app-bg)',
+                            color: isOwn ? 'var(--accent)' : 'var(--text-secondary)',
+                            border: `1px solid ${isOwn ? 'var(--accent)44' : 'var(--app-border)'}`,
+                        }}
+                        title={isOwn ? 'Anderen Datenpunkt angeben' : 'Eigenen Datenpunkt der Zelle verwenden'}
+                    >
+                        {ownToken}
+                    </button>
+                )}
+                {isOwn ? (
+                    <span
+                        className={`${cls} flex-1 min-w-0 flex items-center`}
+                        style={{ ...inputStyle, color: 'var(--text-secondary)' }}
+                    >
+                        Eigener Zellwert
+                    </span>
+                ) : (
+                    <>
+                        <input
+                            type="text"
+                            value={clause.datapoint}
+                            onChange={(e) => onChange({ ...clause, datapoint: e.target.value })}
+                            placeholder={t('cond.datapointId')}
+                            className={`${cls} flex-1 font-mono min-w-0`}
+                            style={inputStyle}
+                        />
+                        <button
+                            onClick={() => setShowPicker(true)}
+                            className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            title={t('cond.fromIoBroker')}
+                        >
+                            <Database size={11} />
+                        </button>
+                        <JsonPathButton
+                            value={clause.datapoint}
+                            onChange={(ref) => onChange({ ...clause, datapoint: ref })}
+                            size={11}
+                        />
+                    </>
+                )}
             </div>
 
             {/* Operator */}
