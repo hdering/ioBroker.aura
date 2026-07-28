@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.33.5 (2026-07-24)
+- Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left
+- Tab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer
+
 ## 0.33.4 (2026-07-23)
 - Group - now wraps its children with one equal spacing on all four sides and between widgets (no empty row below), with or without a title/icon; when title and icon are disabled the editor header strip is gone and the group's move/menu controls appear as a small toolbar on hover
 - Group - an icon-only group (title off, icon on) now shows its icon header in the live view too, matching the editor
