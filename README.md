@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.38.1 (2026-07-28)
+- Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings
+- Popup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box
+- Popup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered
+
+
 ### 0.38.0 (2026-07-28)
 - 🌟 **New feature:** Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget
 
@@ -198,12 +204,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Settings - header HTML template field now grows across multiple lines
 
 
-### 0.33.6 (2026-07-24)
-- General - dashboard now shows a visible, draggable scrollbar on tablets and phones when the content overflows (native touch scrollbars stay hidden until you scroll)
-- Quick-access chips - add an adjustable corner radius (square to pill), global background and text colours, plus per-chip background and text colour overrides
-- Quick-access chips - in the grid (fixed columns) arrangement all chips now share the widest chip's width, and the alignment setting positions the label inside each chip
-
-
 ## License
 
 MIT License
@@ -215,6 +215,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

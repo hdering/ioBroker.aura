@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.38.0",
+    "version": "0.38.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.38.1": {
+        "en": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "de": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "ru": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "pt": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "nl": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "fr": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "it": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "es": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "pl": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "uk": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered",
+        "zh-cn": "Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings\nPopup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box\nPopup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered"
+      },
       "0.38.0": {
         "en": "🌟 New feature: Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget",
         "de": "🌟 New feature: Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
         "uk": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)",
         "zh-cn": "🌟 New feature: Calendar - multi-day events now show their end date as a range and an optional \"ongoing / N days left\" badge (configurable: span / badge / both / off)"
-      },
-      "0.36.5": {
-        "en": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "de": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "ru": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "pt": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "nl": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "fr": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "it": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "es": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "pl": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "uk": "Design - resetting per-layout header overrides now activates Save and persists after reload",
-        "zh-cn": "Design - resetting per-layout header overrides now activates Save and persists after reload"
       }
     }
   },

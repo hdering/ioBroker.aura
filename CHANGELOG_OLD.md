@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.33.6 (2026-07-24)
+- General - dashboard now shows a visible, draggable scrollbar on tablets and phones when the content overflows (native touch scrollbars stay hidden until you scroll)
+- Quick-access chips - add an adjustable corner radius (square to pill), global background and text colours, plus per-chip background and text colour overrides
+- Quick-access chips - in the grid (fixed columns) arrangement all chips now share the widest chip's width, and the alignment setting positions the label inside each chip
+
 ## 0.33.5 (2026-07-24)
 - Section menu and tab bar now keep their configured center/right alignment on mobile instead of snapping to the left
 - Tab bar and section menu bar now keep their subtle divider line facing the dashboard when placed as a footer
