@@ -358,8 +358,11 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
 
     const naturalMinWidth = useMemo(() => {
         if (!view || view.widgets.length === 0) return 280;
+        const minX = Math.min(...view.widgets.map((w) => w.gridPos.x ?? 0));
         const maxCol = Math.max(...view.widgets.map((w) => (w.gridPos.x ?? 0) + (w.gridPos.w ?? 4)));
-        return maxCol * (snapX + MARGIN) + MARGIN + 24;
+        // Leading empty columns are stripped at render (react-grid-layout compacts only
+        // vertically), so the popup width tracks the used span — not the raw max column.
+        return (maxCol - minX) * (snapX + MARGIN) + MARGIN + 24;
     }, [view, snapX, MARGIN]);
 
     const cols = containerWidth > 0 ? Math.max(2, Math.floor((containerWidth - MARGIN) / (snapX + MARGIN))) : 12;
@@ -414,6 +417,11 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     // Whether a given widget grows to its measured content height (auto dialog + content type).
     const isAutoCell = (w: WidgetConfig) => autoPopupHeight && CONTENT_HEIGHT_TYPES.has(w.type);
 
+    // Strip the shared left offset: react-grid-layout compacts only vertically, so a widget
+    // placed at x>0 in the editor would keep its empty leading columns and hug the right edge.
+    // Flush-left the used block; the auto-width dialog then shrinks to the span and centres.
+    const contentMinX = Math.min(...view.widgets.map((w) => w.gridPos.x ?? 0));
+
     const layout = gridWidgets.map((w) => {
         const designedH = w.gridPos.h ?? 3;
         let h = designedH;
@@ -428,7 +436,7 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
         }
         return {
             i: w.id,
-            x: w.gridPos.x ?? 0,
+            x: Math.max(0, (w.gridPos.x ?? 0) - contentMinX),
             y: w.gridPos.y ?? 9999,
             w: w.gridPos.w ?? 4,
             h,
