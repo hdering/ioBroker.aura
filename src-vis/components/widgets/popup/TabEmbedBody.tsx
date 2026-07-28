@@ -417,10 +417,16 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     // Whether a given widget grows to its measured content height (auto dialog + content type).
     const isAutoCell = (w: WidgetConfig) => autoPopupHeight && CONTENT_HEIGHT_TYPES.has(w.type);
 
-    // Strip the shared left offset: react-grid-layout compacts only vertically, so a widget
-    // placed at x>0 in the editor would keep its empty leading columns and hug the right edge.
-    // Flush-left the used block; the auto-width dialog then shrinks to the span and centres.
+    // react-grid-layout compacts only vertically, so a widget placed at x>0 in the editor
+    // keeps its empty leading columns at runtime and hugs the right edge. Two-step fix:
+    //   1. strip the shared minimum x so the used block starts at column 0, then
+    //   2. re-centre that block inside the available columns.
+    // Step 2 makes centring robust even when the dialog stays wider than the content
+    // (whatever the reason) — the block sits in the middle rather than flush-left/right.
     const contentMinX = Math.min(...view.widgets.map((w) => w.gridPos.x ?? 0));
+    const contentMaxX = Math.max(...view.widgets.map((w) => (w.gridPos.x ?? 0) + (w.gridPos.w ?? 4)));
+    const spanCols = Math.max(1, contentMaxX - contentMinX);
+    const leftPad = Math.max(0, Math.floor((cols - spanCols) / 2));
 
     const layout = gridWidgets.map((w) => {
         const designedH = w.gridPos.h ?? 3;
@@ -436,7 +442,7 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
         }
         return {
             i: w.id,
-            x: Math.max(0, (w.gridPos.x ?? 0) - contentMinX),
+            x: Math.max(0, (w.gridPos.x ?? 0) - contentMinX + leftPad),
             y: w.gridPos.y ?? 9999,
             w: w.gridPos.w ?? 4,
             h,
