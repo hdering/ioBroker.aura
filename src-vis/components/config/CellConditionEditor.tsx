@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
 import { ClauseRow, ColorField, newClause } from './ConditionEditor';
+import { IconPickerModal } from './IconPickerModal';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { OWN_VALUE_TOKEN } from '../../hooks/useCellConditionStyle';
 import type { CellConditionRule } from '../../types';
@@ -15,13 +16,6 @@ function newOwnClause() {
 // dropdown, datapoint picker, JSON-path and AND/OR logic behave identically to the
 // widget-wide conditions. The *effects* differ (text/bg/bold/icon/hide per cell
 // instead of widget-level CSS variables), so this is a separate, lightweight editor.
-
-const inputSty: React.CSSProperties = {
-    background: 'var(--app-bg)',
-    color: 'var(--text-primary)',
-    border: '1px solid var(--app-border)',
-};
-const cls = 'text-xs rounded-lg px-2 py-1.5 focus:outline-none';
 
 function newCellRule(): CellConditionRule {
     return {
@@ -57,6 +51,7 @@ function CellRuleEditor({
     onDelete: () => void;
 }) {
     const [open, setOpen] = useState(true);
+    const [showIcon, setShowIcon] = useState(false);
     const update = (patch: Partial<CellConditionRule>) => onChange({ ...rule, ...patch });
     const updateClause = (i: number, c: CellConditionRule['clauses'][number]) =>
         update({ clauses: rule.clauses.map((cl, j) => (j === i ? c : cl)) });
@@ -160,16 +155,51 @@ function CellRuleEditor({
                         <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
                             Icon
                         </label>
-                        {IconPrev && <IconPrev size={16} style={{ color: rule.color || 'var(--text-primary)' }} />}
-                        <input
-                            type="text"
-                            value={rule.icon ?? ''}
-                            onChange={(e) => update({ icon: e.target.value || undefined })}
-                            placeholder="Lucide-/Iconify-Name (nur Icon-Zellen)"
-                            className={`${cls} flex-1 min-w-0`}
-                            style={inputSty}
-                        />
+                        <button
+                            onClick={() => setShowIcon(true)}
+                            className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs"
+                            style={{
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                                color: 'var(--text-primary)',
+                            }}
+                        >
+                            {IconPrev ? (
+                                <IconPrev
+                                    size={14}
+                                    style={{ flexShrink: 0, color: rule.color || 'var(--text-primary)' }}
+                                />
+                            ) : (
+                                <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />
+                            )}
+                            <span
+                                className="flex-1 truncate text-[11px] text-left"
+                                style={{ color: rule.icon ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                            >
+                                {rule.icon ?? 'Icon wählen… (nur Icon-Zellen)'}
+                            </span>
+                        </button>
+                        {rule.icon && (
+                            <button
+                                onClick={() => update({ icon: undefined })}
+                                className="shrink-0 hover:opacity-60"
+                                style={{ color: 'var(--text-secondary)' }}
+                                title="Icon entfernen"
+                            >
+                                <Trash2 size={12} />
+                            </button>
+                        )}
                     </div>
+                    {showIcon && (
+                        <IconPickerModal
+                            current={rule.icon ?? ''}
+                            onSelect={(name) => {
+                                update({ icon: name || undefined });
+                                setShowIcon(false);
+                            }}
+                            onClose={() => setShowIcon(false)}
+                        />
+                    )}
                 </div>
             )}
         </div>
