@@ -1785,6 +1785,12 @@ function PortalDropdown({
                 background: 'var(--app-surface)',
                 border: '1px solid var(--app-border)',
                 visibility: 'hidden',
+                // Never grow past the viewport: with many sections/tabs the copy/move
+                // submenu can be taller than the screen. Cap the height and let the
+                // panel scroll instead of pushing entries off-screen unreachably.
+                maxHeight: 'calc(100vh - 8px)',
+                overflowY: 'auto',
+                overflowX: 'hidden',
             }}
             onMouseDown={(e) => e.stopPropagation()}
         >
@@ -5503,6 +5509,7 @@ export function WidgetFrame({
                         .filter((t) => !(l.id === aid && sec.id === asid && t.id === atid))
                         .map((t) => ({
                             layoutId: l.id,
+                            sectionId: sec.id,
                             layoutName: l.sections.length > 1 ? `${l.name} · ${sec.name}` : l.name,
                             tabId: t.id,
                             tabName: t.name,
@@ -5515,12 +5522,17 @@ export function WidgetFrame({
             a.every(
                 (ai, i) =>
                     ai.layoutId === b[i].layoutId &&
+                    ai.sectionId === b[i].sectionId &&
                     ai.tabId === b[i].tabId &&
                     ai.layoutName === b[i].layoutName &&
                     ai.tabName === b[i].tabName,
             ),
     );
-    const moveLayoutCount = new Set(moveTargets.map((m) => m.layoutId)).size;
+    // Group targets per layout *section* (not just per layout): sections default to a
+    // single "Dashboard" tab, so a layout with several sections would otherwise render
+    // multiple identically-named tabs under one header with no way to tell them apart.
+    const moveGroupKey = (m: { layoutId: string; sectionId: string }) => `${m.layoutId}::${m.sectionId}`;
+    const moveGroupCount = new Set(moveTargets.map(moveGroupKey)).size;
 
     const addWidgetToView = usePopupConfigStore((s) => s.addWidgetToView);
     // Custom (non-builtin) popup views the widget can be copied/moved into. Built-ins
@@ -5533,15 +5545,22 @@ export function WidgetFrame({
     );
 
     // When the widget can be copied/moved into many tabs, a single-column submenu
-    // grows taller than the viewport and the lower entries become unreachable.
-    // Lay the targets out in 2–3 columns (wider menu) once there are enough of them.
-    const targetCount = moveTargets.length + popupViewTargets.length;
-    const targetCols = targetCount > 6 ? 3 : 1;
+    // grows taller than the viewport. Lay the targets out in a grid whose column
+    // count follows the *busiest* group (a section's tabs, or the popup-view list),
+    // so that group renders its entries side-by-side. Capped at 5 columns.
+    const perGroupTabCount = new Map<string, number>();
+    for (const m of moveTargets) {
+        const k = moveGroupKey(m);
+        perGroupTabCount.set(k, (perGroupTabCount.get(k) ?? 0) + 1);
+    }
+    const widestGroup = Math.max(0, ...perGroupTabCount.values(), popupViewTargets.length);
+    const targetCols = Math.min(5, Math.max(1, widestGroup));
     const targetGridStyle: React.CSSProperties =
-        targetCols > 1 ? { display: 'grid', gridTemplateColumns: `repeat(${targetCols}, minmax(120px, 1fr))` } : {};
+        targetCols > 1 ? { display: 'grid', gridTemplateColumns: `repeat(${targetCols}, minmax(110px, 1fr))` } : {};
     // Section header (per layout / popup-views): accent top rule + tint so the groups
-    // visually stand apart from one another in the copy/move submenu. Layouts use the
-    // blue accent, popup-views a green one so the two kinds of target are distinct.
+    // visually stand apart from one another in the copy/move submenu. Each distinct
+    // layout gets its own colour so its sections are easy to tell apart at a glance,
+    // while popup-views stay green so the two kinds of target remain distinct.
     const makeHeaderStyle = (c: string): React.CSSProperties => ({
         gridColumn: '1 / -1',
         background: `${c}1a`,
@@ -5549,7 +5568,30 @@ export function WidgetFrame({
         borderTop: `2px solid ${c}`,
         borderBottom: '1px solid var(--app-border)',
     });
-    const targetHeaderStyle = makeHeaderStyle('var(--accent)');
+    // Palette for distinguishing layouts. First entry is the theme accent so a
+    // single-layout setup looks unchanged; the rest are fixed, theme-independent
+    // hues (green is intentionally omitted — it is reserved for popup views).
+    const LAYOUT_HEADER_COLORS = [
+        'var(--accent)',
+        '#a855f7',
+        '#f97316',
+        '#ec4899',
+        '#14b8a6',
+        '#eab308',
+        '#ef4444',
+        '#6366f1',
+    ];
+    const layoutHeaderColor = new Map<string, string>();
+    for (const m of moveTargets) {
+        if (!layoutHeaderColor.has(m.layoutId)) {
+            layoutHeaderColor.set(
+                m.layoutId,
+                LAYOUT_HEADER_COLORS[layoutHeaderColor.size % LAYOUT_HEADER_COLORS.length],
+            );
+        }
+    }
+    const headerStyleForLayout = (layoutId: string) =>
+        makeHeaderStyle(layoutHeaderColor.get(layoutId) ?? 'var(--accent)');
     const popupHeaderStyle = makeHeaderStyle('var(--accent-green)');
 
     // Stable reference: never create a new [] on every render (would cause infinite effect loop)
@@ -6657,15 +6699,16 @@ export function WidgetFrame({
                                     {t('wf.menu.copyHere')}
                                 </button>
                                 {/* Other tabs – grouped by layout, derived from moveTargets (no layouts subscription needed) */}
-                                {[...new Map(moveTargets.map((m) => [m.layoutId, m.layoutName])).entries()].map(
-                                    ([layoutId, layoutName]) => {
-                                        const targets = moveTargets.filter((m) => m.layoutId === layoutId);
+                                {[...new Map(moveTargets.map((m) => [moveGroupKey(m), m])).entries()].map(
+                                    ([groupKey, first]) => {
+                                        const targets = moveTargets.filter((m) => moveGroupKey(m) === groupKey);
+                                        const layoutName = first.layoutName;
                                         return (
-                                            <React.Fragment key={layoutId}>
-                                                {moveLayoutCount > 1 && (
+                                            <React.Fragment key={groupKey}>
+                                                {moveGroupCount > 1 && (
                                                     <p
                                                         className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                                                        style={targetHeaderStyle}
+                                                        style={headerStyleForLayout(first.layoutId)}
                                                     >
                                                         {layoutName}
                                                     </p>
@@ -6757,15 +6800,16 @@ export function WidgetFrame({
                                         className="mx-1 mb-0.5 rounded-md overflow-hidden"
                                         style={{ border: '1px solid var(--app-border)', ...targetGridStyle }}
                                     >
-                                        {[...new Map(moveTargets.map((m) => [m.layoutId, m.layoutName])).entries()].map(
-                                            ([layoutId, layoutName]) => {
-                                                const targets = moveTargets.filter((m) => m.layoutId === layoutId);
+                                        {[...new Map(moveTargets.map((m) => [moveGroupKey(m), m])).entries()].map(
+                                            ([groupKey, first]) => {
+                                                const targets = moveTargets.filter((m) => moveGroupKey(m) === groupKey);
+                                                const layoutName = first.layoutName;
                                                 return (
-                                                    <React.Fragment key={layoutId}>
-                                                        {moveLayoutCount > 1 && (
+                                                    <React.Fragment key={groupKey}>
+                                                        {moveGroupCount > 1 && (
                                                             <p
                                                                 className="px-3 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                                                                style={targetHeaderStyle}
+                                                                style={headerStyleForLayout(first.layoutId)}
                                                             >
                                                                 {layoutName}
                                                             </p>
