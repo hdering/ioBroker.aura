@@ -223,13 +223,8 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     ],
     // enum: current-selection / dropdown / display-mode toggles live in EnumConfig
     // (below the entries), matching the universal widget's DP-Auswahlfeld cell editor.
-    climate: [
-        { key: 'showActualTemp', label: 'Ist-Temperatur' },
-        { key: 'showTargetTemp', label: 'Soll-Temperatur' },
-        { key: 'showHumidity', label: 'Luftfeuchtigkeit' },
-        { key: 'showComfort', label: 'Komfortzone' },
-        { key: 'showChart', label: 'Temperaturverlauf' },
-    ],
+    // climate: Ist/Soll/Luftfeuchtigkeit/Komfortzone/Temperaturverlauf toggles live
+    // in the Raumklima settings block (ClimateConfig) — kept out of the generic Darstellung block.
     windowcontact: [{ key: 'showLabel', label: 'Status-Text' }],
     binarysensor: [{ key: 'showLabel', label: 'Status-Text' }],
     stateimage: [{ key: 'showLabel', label: 'Status-Text' }],
@@ -1224,6 +1219,39 @@ function ClimateConfig({
 
     return (
         <>
+            {/* Darstellung — moved here from the generic VIS_FIELDS_PER_TYPE block. */}
+            <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                Darstellung
+            </p>
+            {(
+                [
+                    { key: 'showActualTemp', label: 'Ist-Temperatur', def: true },
+                    { key: 'showTargetTemp', label: 'Soll-Temperatur', def: true },
+                    { key: 'showHumidity', label: 'Luftfeuchtigkeit', def: true },
+                    { key: 'showComfort', label: 'Komfortzone', def: false },
+                    { key: 'showChart', label: 'Temperaturverlauf', def: true },
+                ] as const
+            ).map(({ key, label, def }) => {
+                const val = def ? o[key] !== false : o[key] === true;
+                return (
+                    <div key={key} className="flex items-center justify-between mb-1.5">
+                        <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                            {label}
+                        </span>
+                        <button
+                            onClick={() => set({ [key]: !val })}
+                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                            style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                style={{ left: val ? '14px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                );
+            })}
+
             <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
             <div className="flex items-center justify-between mb-1.5">
                 <p className="text-[11px] font-semibold" style={{ color: 'var(--text-secondary)' }}>
