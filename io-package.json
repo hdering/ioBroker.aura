@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.38.2",
+    "version": "0.38.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.38.3": {
+        "en": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "de": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "ru": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "pt": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "nl": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "fr": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "it": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "es": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "pl": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "uk": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels",
+        "zh-cn": "🌟 New feature: Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels"
+      },
       "0.38.2": {
         "en": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
         "de": "Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous\nCopy/Move widget - the target menu now scrolls when it has more entries than fit on the screen\nCopy/Move widget - each layout is highlighted in its own colour, and a section's tabs are laid out in up to 5 columns",
@@ -184,19 +197,6 @@
         "pl": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
         "uk": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)",
         "zh-cn": "Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)"
-      },
-      "0.37.0": {
-        "en": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "de": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "ru": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "pt": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "nl": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "fr": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "it": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "es": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "pl": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "uk": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first",
-        "zh-cn": "🌟 New feature: AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first"
       }
     }
   },

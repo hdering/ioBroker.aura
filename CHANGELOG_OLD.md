@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.33.8 (2026-07-24)
+- Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones
+- Carousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name
+
 ## 0.33.7 (2026-07-24)
 - Settings - header HTML template field now grows across multiple lines
 
