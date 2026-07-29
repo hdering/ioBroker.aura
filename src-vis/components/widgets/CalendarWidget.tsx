@@ -59,6 +59,8 @@ interface CalEvent {
     allDay: boolean;
     priority?: number; // PRIORITY 1-9 (1-4 = high)
     categories?: string[]; // CATEGORIES
+    rrule?: string; // raw RRULE value (recurrence rule)
+    exdates?: Date[]; // EXDATE exclusions
 }
 
 interface CalEventTagged extends CalEvent {
@@ -132,9 +134,158 @@ function parseIcal(text: string): CalEvent[] {
                 .split(',')
                 .map((c) => c.trim())
                 .filter(Boolean);
+        } else if (key === 'RRULE') {
+            cur.rrule = value.trim();
+        } else if (key === 'EXDATE') {
+            const dates = value
+                .split(',')
+                .map((v) => {
+                    try {
+                        return parseIcalDate(v.trim());
+                    } catch {
+                        return null;
+                    }
+                })
+                .filter((d): d is Date => d != null);
+            cur.exdates = [...(cur.exdates ?? []), ...dates];
         }
     }
     return events;
+}
+
+// ── recurrence expansion (RRULE) ─────────────────────────────────────────────
+
+interface ParsedRRule {
+    freq: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY';
+    interval: number;
+    count?: number;
+    until?: Date;
+    byday?: number[]; // 0=SU … 6=SA
+}
+
+const RRULE_DAY: Record<string, number> = { SU: 0, MO: 1, TU: 2, WE: 3, TH: 4, FR: 5, SA: 6 };
+
+function parseRRule(raw: string): ParsedRRule | null {
+    const map: Record<string, string> = {};
+    for (const part of raw.split(';')) {
+        const eq = part.indexOf('=');
+        if (eq < 0) continue;
+        map[part.slice(0, eq).toUpperCase().trim()] = part.slice(eq + 1).trim();
+    }
+    const freq = map.FREQ?.toUpperCase();
+    if (freq !== 'DAILY' && freq !== 'WEEKLY' && freq !== 'MONTHLY' && freq !== 'YEARLY') return null;
+    const r: ParsedRRule = { freq, interval: Math.max(1, parseInt(map.INTERVAL, 10) || 1) };
+    if (map.COUNT) {
+        const c = parseInt(map.COUNT, 10);
+        if (!isNaN(c)) r.count = c;
+    }
+    if (map.UNTIL) {
+        try {
+            r.until = parseIcalDate(map.UNTIL);
+        } catch {
+            /* ignore malformed UNTIL */
+        }
+    }
+    if (map.BYDAY) {
+        // Take the trailing 2-letter weekday; ordinal prefixes (e.g. "2MO") are approximated.
+        r.byday = map.BYDAY.split(',')
+            .map((tok) => RRULE_DAY[tok.trim().slice(-2).toUpperCase()])
+            .filter((n) => n != null);
+    }
+    return r;
+}
+
+function occKey(d: Date, allDay: boolean): string {
+    return allDay ? `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}` : String(d.getTime());
+}
+
+function advanceDate(d: Date, freq: ParsedRRule['freq'], step: number): Date {
+    const x = new Date(d.getTime());
+    if (freq === 'DAILY') x.setDate(x.getDate() + step);
+    else if (freq === 'WEEKLY') x.setDate(x.getDate() + step * 7);
+    else if (freq === 'MONTHLY') x.setMonth(x.getMonth() + step);
+    else x.setFullYear(x.getFullYear() + step);
+    return x;
+}
+
+/**
+ * Expand a single recurring event into its concrete occurrences whose time range
+ * overlaps [winStart, winEnd]. Non-recurring events are returned unchanged.
+ * Supports FREQ/INTERVAL/COUNT/UNTIL/BYDAY (weekly) and EXDATE — enough for the
+ * common Google/waste-collection ("Abfall") feeds that define pickups via RRULE.
+ */
+function expandRecurring(events: CalEvent[], winStart: Date, winEnd: Date): CalEvent[] {
+    const out: CalEvent[] = [];
+    const MAX_ITER = 3000;
+    const winStartMs = winStart.getTime();
+    const winEndMs = winEnd.getTime();
+
+    for (const ev of events) {
+        const rule = ev.rrule ? parseRRule(ev.rrule) : null;
+        if (!rule) {
+            out.push(ev);
+            continue;
+        }
+
+        const duration = ev.end ? ev.end.getTime() - ev.start.getTime() : 0;
+        const exSet = new Set((ev.exdates ?? []).map((d) => occKey(d, ev.allDay)));
+        const startMs = ev.start.getTime();
+        let seq = 0; // occurrences counted for COUNT
+        let iter = 0;
+
+        const emit = (occStart: Date): 'skip' | 'stop' | 'past' => {
+            if (occStart.getTime() < startMs) return 'skip'; // before series start
+            if (rule.until && occStart.getTime() > rule.until.getTime()) return 'stop';
+            seq++;
+            if (rule.count != null && seq > rule.count) return 'stop';
+            const occStartMs = occStart.getTime();
+            if (occStartMs + duration >= winStartMs && occStartMs <= winEndMs) {
+                if (!exSet.has(occKey(occStart, ev.allDay))) {
+                    out.push({
+                        ...ev,
+                        uid: `${ev.uid}@${occStartMs}`,
+                        start: new Date(occStartMs),
+                        end: ev.end ? new Date(occStartMs + duration) : undefined,
+                        rrule: undefined,
+                        exdates: undefined,
+                    });
+                }
+            }
+            return occStartMs > winEndMs ? 'past' : 'skip';
+        };
+
+        if (rule.freq === 'WEEKLY' && rule.byday && rule.byday.length > 0) {
+            const bydays = [...rule.byday].sort((a, b) => a - b);
+            // Anchor to the Sunday of the series-start week.
+            const weekAnchor = new Date(ev.start);
+            weekAnchor.setDate(weekAnchor.getDate() - weekAnchor.getDay());
+            weekAnchor.setHours(0, 0, 0, 0);
+            let stop = false;
+            while (!stop && iter < MAX_ITER) {
+                for (const wd of bydays) {
+                    const occ = new Date(weekAnchor);
+                    occ.setDate(weekAnchor.getDate() + wd);
+                    occ.setHours(ev.start.getHours(), ev.start.getMinutes(), ev.start.getSeconds(), 0);
+                    const res = emit(occ);
+                    if (res === 'stop' || res === 'past') {
+                        stop = true;
+                        break;
+                    }
+                }
+                weekAnchor.setDate(weekAnchor.getDate() + 7 * rule.interval);
+                iter++;
+            }
+        } else {
+            let cur = new Date(ev.start);
+            while (iter < MAX_ITER) {
+                const res = emit(cur);
+                if (res === 'stop' || res === 'past') break;
+                cur = advanceDate(cur, rule.freq, rule.interval);
+                iter++;
+            }
+        }
+    }
+    return out;
 }
 
 // ── importance detection ───────────────────────────────────────────────────
@@ -443,10 +594,16 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
             // Sequential fetches to avoid state race conditions on aura.0.calendar.response
             const all: CalEventTagged[] = [];
             const errs: string[] = [];
+            // Expansion window: from just before now to the lookahead cutoff.
+            // isUpcoming() applies the exact filter afterwards; this just bounds
+            // how many recurring occurrences we materialise.
+            const now = Date.now();
+            const winStart = new Date(now - 2 * 86_400_000);
+            const winEnd = new Date(now + dA * 86_400_000);
             for (const src of srcs) {
                 try {
                     const text = await fetchIcalText(src.url, ttl);
-                    const parsed = parseIcal(text).map(
+                    const parsed = expandRecurring(parseIcal(text), winStart, winEnd).map(
                         (ev): CalEventTagged => ({
                             ...ev,
                             uid: `${src.id}:${ev.uid}`,

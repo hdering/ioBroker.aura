@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 Waste Collection Schedule - new compact layout showing a colored dot, bin name and pickup countdown on one line, each part individually hideable with optional date
+Calendar - recurring events (RRULE) are now expanded, so calendars built from repeating entries (e.g. waste-collection feeds) no longer appear empty
