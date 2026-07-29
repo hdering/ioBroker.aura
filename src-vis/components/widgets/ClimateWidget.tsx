@@ -10,6 +10,7 @@ import type { WidgetProps } from '../../types';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
+import { StatusBadges } from './StatusBadges';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -183,7 +184,7 @@ export function ClimateWidget({ config }: WidgetProps) {
         ) : null;
 
     return (
-        <div ref={containerRef} className="aura-widget-row flex flex-col h-full gap-1">
+        <div ref={containerRef} className="aura-widget-row flex flex-col h-full gap-1" style={{ position: 'relative' }}>
             {/* Title */}
             {(showTitle || showIcon) && (
                 <div
@@ -347,6 +348,8 @@ export function ClimateWidget({ config }: WidgetProps) {
                     )}
                 </div>
             )}
+
+            <StatusBadges config={config} />
         </div>
     );
 }

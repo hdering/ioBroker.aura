@@ -239,6 +239,14 @@ export const DP_TEMPLATES: DpTemplate[] = [
                     'feuchte',
                 ],
             },
+            {
+                optionKey: 'batteryDp',
+                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
+            },
+            {
+                optionKey: 'unreachDp',
+                siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'],
+            },
         ],
     },
 

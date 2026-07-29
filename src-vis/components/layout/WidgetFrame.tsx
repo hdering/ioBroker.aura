@@ -15257,6 +15257,7 @@ export function WidgetFrame({
                             'switch',
                             'dimmer',
                             'thermostat',
+                            'climate',
                             'shutter',
                             'windowcontact',
                             'binarysensor',
