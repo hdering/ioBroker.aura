@@ -634,6 +634,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 <option value="max">{t('echart.aggMax')}</option>
                                                                 <option value="min">{t('echart.aggMin')}</option>
                                                                 <option value="total">{t('echart.aggTotal')}</option>
+                                                                <option value="none">{t('echart.aggNone')}</option>
                                                             </select>
                                                         </div>
                                                     )}

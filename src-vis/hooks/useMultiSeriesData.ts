@@ -25,9 +25,10 @@ export interface EChartSeriesConfig {
      * getHistory aggregation for stepped fetches (default `average`). `minmax` keeps the real
      * extreme points with their true timestamps — right for sparsely change-logged datapoints
      * (e.g. daily rain counters), where bucket averages smear resets and dropped empty buckets
-     * let the chart interpolate across days.
+     * let the chart interpolate across days. `none` disables bucketing entirely and returns the
+     * raw logged points — no server-side averaging that could smear a value across a gap.
      */
-    aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total';
+    aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total' | 'none';
 }
 
 export interface SeriesDataResult {
@@ -235,11 +236,16 @@ export function useMultiSeriesData(
             const now = Date.now();
             const end = hasAbsWindow ? Math.min(s.historyEnd as number, now) : now;
             const start = hasAbsWindow ? (s.historyStart as number) : end - rangeMs;
-            const step = hasAbsWindow
-                ? getStepForMs(rangeMs)
-                : range === 'custom'
+            // `none` = raw points: skip bucketing so the adapter returns the actual logged
+            // values instead of per-bucket averages.
+            const wantRaw = s.aggregate === 'none';
+            const step = wantRaw
+                ? undefined
+                : hasAbsWindow
                   ? getStepForMs(rangeMs)
-                  : RANGE_STEP[range];
+                  : range === 'custom'
+                    ? getStepForMs(rangeMs)
+                    : RANGE_STEP[range];
 
             getHistoryDirect(s.datapointId, {
                 instance: s.historyInstance,
@@ -267,8 +273,11 @@ export function useMultiSeriesData(
                         const winEnd = s.historyEnd as number;
                         data = data.filter((p) => p[0] >= winStart && p[0] < winEnd);
                     }
-                    if (data.length > 0) {
-                        const current = data[data.length - 1][1];
+
+                    // A pinned PAST day is a frozen view: its "current" is that day's last value,
+                    // never the live state.
+                    if (hasAbsWindow && (s.historyEnd as number) < Date.now()) {
+                        const current = data.length > 0 ? data[data.length - 1][1] : null;
                         setResultsMap((prev) => {
                             const next = new Map(prev);
                             next.set(s.id, { data, current, loading: false });
@@ -276,15 +285,24 @@ export function useMultiSeriesData(
                         });
                         return;
                     }
-                    // Empty window — a change-logged datapoint simply had no changes in the
-                    // range. Seed the current value from the live state so the widget can
-                    // draw a flat line at it instead of reporting "no data".
+
+                    // Rolling / live window: the displayed "current" must be the datapoint's real
+                    // present value. History adapters append a boundary point at `now` that holds
+                    // the LAST logged value, so a datapoint that dropped (e.g. power → 0) without a
+                    // fresh log would otherwise keep showing its stale value (issue #510). Read the
+                    // live state; when it differs from the held tail, extend the line to it so the
+                    // curve drops to reality instead of running flat.
                     const finish = (state: ioBrokerState | null) => {
                         if (!mountedRef.current) return;
-                        const val = typeof state?.val === 'number' ? (state.val as number) : null;
+                        const liveVal = typeof state?.val === 'number' ? (state.val as number) : null;
+                        let outData = data;
+                        if (liveVal !== null && data.length > 0 && data[data.length - 1][1] !== liveVal) {
+                            outData = [...data, [Date.now(), liveVal]];
+                        }
+                        const current = liveVal ?? (data.length > 0 ? data[data.length - 1][1] : null);
                         setResultsMap((prev) => {
                             const next = new Map(prev);
-                            next.set(s.id, { data: [], current: val, loading: false });
+                            next.set(s.id, { data: outData, current, loading: false });
                             return next;
                         });
                     };

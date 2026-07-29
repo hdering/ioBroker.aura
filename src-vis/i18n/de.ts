@@ -1127,6 +1127,7 @@ export const de = {
     'echart.aggMax': 'Maximum',
     'echart.aggMin': 'Minimum',
     'echart.aggTotal': 'Summe',
+    'echart.aggNone': 'Keine (Rohdaten, kein Glätten)',
     'echart.visibleRanges': 'Sichtbare Zeitbereiche im Frontend',
     'echart.dayNavToggle': 'Tages-Navigation im Frontend (◀ Heute ▶)',
     'echart.today': 'Heute',

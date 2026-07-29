@@ -1123,6 +1123,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.aggMax': 'Maximum',
     'echart.aggMin': 'Minimum',
     'echart.aggTotal': 'Total',
+    'echart.aggNone': 'None (raw data, no smoothing)',
     'echart.visibleRanges': 'Time ranges shown in frontend',
     'echart.dayNavToggle': 'Day navigation in frontend (◀ Today ▶)',
     'echart.today': 'Today',
