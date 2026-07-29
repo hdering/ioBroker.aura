@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.34.0 (2026-07-25)
+- 🌟 **New feature:** Editor - a whole tab (with its widgets) can now be moved or copied into another section from the tab settings
+- 🌟 **New feature:** Layouts - a whole section (with its tabs and widgets) can now be moved or copied into another layout via a popup on each section
+
 ## 0.33.8 (2026-07-24)
 - Carousel - compact layout settings plus corner radius, global background/text colours, and per-element colours (now also for popup/link items) that override the global ones
 - Carousel - popup opened from an element now shows the element name as its heading instead of the carousel widget name
