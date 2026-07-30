@@ -643,6 +643,24 @@ function RunningBadge({ ev, t, color, fontSize }: { ev: CalEventTagged; t: TFn; 
     );
 }
 
+/**
+ * Rough width of a string in `ch` units. The agenda layout aligns every event
+ * title on one edge, which needs a shared name-column width – and a proportional
+ * font makes character count a bad proxy. Weighting wide vs. narrow glyphs gets
+ * close enough without measuring the real font, and the column truncates as a
+ * safety net if the estimate comes out short.
+ */
+function nameWidthCh(s: string): number {
+    let w = 0;
+    for (const c of s) {
+        if (/[iljtfrI.,:;'!|() ]/.test(c)) w += 0.55;
+        else if (/[mwMW@]/.test(c)) w += 1.25;
+        else if (/[A-ZÄÖÜ]/.test(c)) w += 1.1;
+        else w += 0.9;
+    }
+    return w;
+}
+
 // ── widget ─────────────────────────────────────────────────────────────────
 
 export function CalendarWidget({ config, onLastChange }: WidgetProps) {
@@ -1137,6 +1155,16 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                         {(() => {
                             const showCalName = options.showCalName !== false;
                             const showDate = options.showDate !== false;
+                            // One shared column width for every name, so the titles
+                            // line up no matter how uneven the calendar names are.
+                            const nameChs = showCalName
+                                ? visibleEvents
+                                      .filter((ev) => ev.showSourceName && ev.sourceName)
+                                      .map((ev) => nameWidthCh(ev.sourceName))
+                                : [];
+                            const nameColWidth = nameChs.length
+                                ? `min(${Math.max(...nameChs).toFixed(1)}ch, 35%)`
+                                : undefined;
                             return visibleEvents.map((ev, idx) => {
                                 const meta = eventMeta(ev, idx);
                                 const important = imp(ev);
@@ -1165,9 +1193,12 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                         />
                                         {showCalName && ev.showSourceName && ev.sourceName && (
                                             <span
-                                                // full name, no fixed column – the summary next to it truncates instead
-                                                className="font-medium shrink-0 whitespace-nowrap"
-                                                style={{ color: ev.sourceColor, fontSize: fs(9) }}
+                                                className="font-medium shrink-0 truncate"
+                                                style={{
+                                                    color: ev.sourceColor,
+                                                    fontSize: fs(9),
+                                                    width: nameColWidth,
+                                                }}
                                             >
                                                 {ev.sourceName}
                                             </span>
