@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.35.3 (2026-07-25)
+- Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like "0x004" display as-is instead of being parsed as hex
+
 ## 0.35.2 (2026-07-25)
 - Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children
 

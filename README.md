@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.38.8 (2026-07-30)
+- Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100
+- Calendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually
+
+
 ### 0.38.7 (2026-07-30)
 - 🌟 **New feature:** Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget
 - Calendar - agenda layout shows the full calendar name instead of cutting it off
@@ -207,10 +212,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles
 
 
-### 0.35.3 (2026-07-25)
-- Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like "0x004" display as-is instead of being parsed as hex
-
-
 ## License
 
 MIT License
@@ -222,6 +223,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
