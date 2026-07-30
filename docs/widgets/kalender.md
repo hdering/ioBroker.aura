@@ -1,6 +1,6 @@
 # Kalender
 
-Zeigt anstehende Termine aus dem iCal-Adapter. Mehrere Kalender-Quellen mit eigener Farbe und Name lassen sich nur per Tab-Wizard hinzufügen. Wichtige Termine werden per Stichwort oder iCal-Priorität hervorgehoben.
+Zeigt anstehende Termine – entweder aus einer Instanz des ioBroker-Adapters **ical** oder direkt von einer iCal-URL. Mehrere Quellen mit eigener Farbe und Name sind möglich. Wichtige Termine werden per Stichwort oder iCal-Priorität hervorgehoben.
 
 ## Layouts
 
@@ -30,11 +30,23 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Quellen
 
-Kalender-Quellen werden über den Tab-Wizard hinzugefügt.
+**Kalender hinzufügen** öffnet ein Formular mit zwei Quellarten:
+
+| Quellart | |
+| --- | --- |
+| **ical-Adapter** | Liest die Tabelle einer vorhandenen `ical.N`-Instanz. Kein eigener Abruf, keine URL – Termine kommen live aus dem Adapter. Optional auf einen einzelnen Kalender der Instanz einschränken |
+| **iCal-URL** | Das Widget ruft die `.ics`-URL selbst über den Aura-Adapter ab |
 
 | Option | Standard | |
 | --- | --- | --- |
-| `calendars` | `[]` | Liste der iCal-Quellen (`url`, `name`, `color`, `showName`) |
+| `calendars` | `[]` | Liste der Quellen |
+| `calendars[].type` | `url` | `adapter` · `url` |
+| `calendars[].datapoint` | — | `adapter`: Tabellen-Datenpunkt, z. B. `ical.0.data.table` |
+| `calendars[].calFilter` | — | `adapter`: nur Termine dieses Kalendernamens (leer = alle) |
+| `calendars[].url` | — | `url`: iCal-URL |
+| `calendars[].name` | — | Anzeigename; bei `adapter` leer = Kalendername aus dem Adapter |
+| `calendars[].color` | — | Farbe der Quelle |
+| `calendars[].showName` | `true` | Name dieser Quelle anzeigen |
 
 ### Abruf
 
@@ -43,6 +55,8 @@ Kalender-Quellen werden über den Tab-Wizard hinzugefügt.
 | `refreshInterval` | `30` | Minuten zwischen Abrufen (`0` = kein Auto-Refresh) |
 | `maxEvents` | `5` | maximale Anzahl angezeigter Termine |
 | `daysAhead` | `14` | Vorschau-Zeitraum in Tagen |
+
+`refreshInterval` gilt nur für `url`-Quellen; `adapter`-Quellen aktualisieren sich bei jeder Änderung der Tabelle. `daysAhead` kann bei `adapter`-Quellen nur so weit reichen wie der Vorschau-Zeitraum der ical-Instanz selbst.
 
 ### Anzeige
 

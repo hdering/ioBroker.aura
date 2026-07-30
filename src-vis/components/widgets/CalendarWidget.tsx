@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { RefreshCw, CalendarDays, MapPin, AlertCircle, Star } from 'lucide-react';
 import type { WidgetProps } from '../../types';
-import { getSocket, subscribeStateDirect, setStateDirect } from '../../hooks/useIoBroker';
+import { getSocket, subscribeStateDirect, setStateDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
@@ -9,12 +9,26 @@ import { NS } from '../../utils/namespace';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
 
+/** `url` = widget fetches the iCal URL itself, `adapter` = read a ioBroker.ical table state. */
+export type CalendarSourceType = 'url' | 'adapter';
+
 export interface CalendarSource {
     id: string;
     url: string;
     name: string;
     color: string;
     showName: boolean;
+    /** Defaults to 'url' so sources saved before adapter support keep working. */
+    type?: CalendarSourceType;
+    /** Adapter source: state holding the ical adapter table JSON (e.g. ical.0.data.table). */
+    datapoint?: string;
+    /** Adapter source: only keep entries of this calendar (empty = all calendars of the state). */
+    calFilter?: string;
+}
+
+/** The URL resp. datapoint a source reads from – empty when it is not configured yet. */
+export function getSourceTarget(src: CalendarSource): string {
+    return ((src.type === 'adapter' ? src.datapoint : src.url) ?? '').trim();
 }
 
 export const DEFAULT_CAL_COLORS = [
@@ -151,6 +165,85 @@ function parseIcal(text: string): CalEvent[] {
         }
     }
     return events;
+}
+
+// ── ioBroker.ical adapter table ─────────────────────────────────────────────
+
+/** One row of the ical adapter's `data.table` JSON. */
+interface IcalTableRow {
+    event?: string;
+    location?: string;
+    _date?: string | number;
+    _end?: string | number;
+    _section?: string;
+    _IDID?: string;
+    _allDay?: boolean;
+    _calName?: string;
+    _calColor?: string;
+    _class?: string;
+}
+
+/** Calendar name of a row – newer ical versions ship `_calName`, older ones only `_class`. */
+function rowCalName(row: IcalTableRow): string {
+    if (row._calName?.trim()) return row._calName.trim();
+    return (row._class ?? '')
+        .replace(/^ical_/, '')
+        .replace(/_/g, ' ')
+        .trim();
+}
+
+function toTableRows(val: unknown): IcalTableRow[] {
+    let raw: unknown = val;
+    if (typeof raw === 'string') {
+        try {
+            raw = JSON.parse(raw);
+        } catch {
+            return [];
+        }
+    }
+    if (!Array.isArray(raw)) return [];
+    return raw.filter((r): r is IcalTableRow => !!r && typeof r === 'object');
+}
+
+/** Distinct calendar names contained in a table state – used by the editor's picker. */
+export function extractCalNames(val: unknown): string[] {
+    const names = new Set<string>();
+    for (const row of toTableRows(val)) {
+        const name = rowCalName(row);
+        if (name) names.add(name);
+    }
+    return [...names].sort((a, b) => a.localeCompare(b, 'de'));
+}
+
+/**
+ * Map the ical adapter's table onto CalEvent. The adapter already expands
+ * recurrences and applies its own preview window, so neither RRULE handling nor
+ * an HTTP fetch is needed for these sources. `PRIORITY`/`CATEGORIES` are not
+ * part of the table – keyword highlighting still works on summary/description.
+ */
+function parseAdapterTable(val: unknown, calFilter?: string): Array<CalEvent & { calName?: string }> {
+    const filter = (calFilter ?? '').trim().toLowerCase();
+    const out: Array<CalEvent & { calName?: string }> = [];
+    for (const row of toTableRows(val)) {
+        const summary = (row.event ?? '').trim();
+        if (!summary || row._date == null) continue;
+        const start = new Date(row._date as string);
+        if (isNaN(start.getTime())) continue;
+        const calName = rowCalName(row);
+        if (filter && calName.toLowerCase() !== filter) continue;
+        const end = row._end != null ? new Date(row._end as string) : undefined;
+        out.push({
+            uid: row._IDID?.trim() || `${start.getTime()}-${summary}`,
+            summary,
+            description: row._section?.trim() || undefined,
+            location: row.location?.trim() || undefined,
+            start,
+            end: end && !isNaN(end.getTime()) ? end : undefined,
+            allDay: !!row._allDay,
+            calName: calName || undefined,
+        });
+    }
+    return out;
 }
 
 // ── recurrence expansion (RRULE) ─────────────────────────────────────────────
@@ -579,7 +672,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         if (fetchingRef.current) return;
         fetchingRef.current = true;
         const opts = config.options ?? {};
-        const srcs = getSources(opts);
+        const srcs = getSources(opts).filter((s) => getSourceTarget(s));
         const dA = (opts.daysAhead as number) ?? 14;
         const ttl = ((opts.refreshInterval as number) ?? 30) * 60; // seconds
         if (srcs.length === 0) {
@@ -600,20 +693,30 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
             const now = Date.now();
             const winStart = new Date(now - 2 * 86_400_000);
             const winEnd = new Date(now + dA * 86_400_000);
+            // Tag events with their source; adapter rows may carry their own
+            // calendar name, which wins when the source name is left blank.
+            const tag = (evs: Array<CalEvent & { calName?: string }>, src: CalendarSource): CalEventTagged[] =>
+                evs.map(({ calName, ...ev }) => ({
+                    ...ev,
+                    uid: `${src.id}:${ev.uid}`,
+                    sourceId: src.id,
+                    sourceName: src.name || calName || '',
+                    sourceColor: src.color,
+                    showSourceName: src.showName,
+                }));
+
             for (const src of srcs) {
                 try {
-                    const text = await fetchIcalText(src.url, ttl);
-                    const parsed = expandRecurring(parseIcal(text), winStart, winEnd).map(
-                        (ev): CalEventTagged => ({
-                            ...ev,
-                            uid: `${src.id}:${ev.uid}`,
-                            sourceId: src.id,
-                            sourceName: src.name,
-                            sourceColor: src.color,
-                            showSourceName: src.showName,
-                        }),
-                    );
-                    all.push(...parsed);
+                    if (src.type === 'adapter') {
+                        // The ical adapter did the fetching and expanding already
+                        const dp = (src.datapoint ?? '').trim();
+                        const state = await getStateDirect(dp);
+                        if (state?.val == null) throw new Error(`${dp}: kein Wert`);
+                        all.push(...tag(parseAdapterTable(state.val, src.calFilter), src));
+                    } else {
+                        const text = await fetchIcalText(src.url, ttl);
+                        all.push(...tag(expandRecurring(parseIcal(text), winStart, winEnd), src));
+                    }
                 } catch (err) {
                     errs.push(err instanceof Error ? err.message : String(err));
                 }
@@ -644,6 +747,22 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         };
     }, [fetchEvents, refreshInterval]);
 
+    // Adapter sources update themselves – refresh as soon as their table changes
+    useEffect(() => {
+        const dps = [
+            ...new Set(
+                getSources(config.options ?? {})
+                    .filter((s) => s.type === 'adapter')
+                    .map((s) => (s.datapoint ?? '').trim())
+                    .filter(Boolean),
+            ),
+        ];
+        if (dps.length === 0) return;
+        const unsubs = dps.map((dp) => subscribeStateDirect(dp, () => void fetchEvents()));
+        return () => unsubs.forEach((u) => u());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sourcesKey, fetchEvents]);
+
     // When all sources failed, retry every 45 s until one succeeds
     useEffect(() => {
         if (retryRef.current) {
@@ -661,7 +780,10 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         };
     }, [errors.length, events.length, fetchEvents]);
 
-    const sources = getSources(options);
+    const sources = getSources(options).filter((s) => getSourceTarget(s));
+    // A single adapter source can carry several calendars, so the "more than one
+    // calendar" gate looks at the event names instead of the source count.
+    const multiCal = sources.length > 1 || new Set(events.map((e) => e.sourceName).filter(Boolean)).size > 1;
     const layout = config.layout ?? 'default';
     const calFontScale = (options.calFontScale as number) ?? 1;
     const multiDayMode = getMultiDayMode(options);
@@ -829,7 +951,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 ) : (
                     <CalendarDays size={14} style={{ color, flexShrink: 0 }} />
                 )}
-                {showCalName && next?.showSourceName && (
+                {showCalName && next?.showSourceName && next.sourceName && (
                     <span className="shrink-0 font-medium" style={{ color: next.sourceColor, fontSize: fs(9) }}>
                         {next.sourceName}
                     </span>
@@ -906,7 +1028,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 <div className="flex-1 flex flex-col justify-center">
                     {next ? (
                         <div className={meta?.className} data-calendar-event={meta?.dataAttr}>
-                            {showCalName && next.showSourceName && (
+                            {showCalName && next.showSourceName && next.sourceName && (
                                 <p style={{ color: next.sourceColor, fontSize: fs(9), marginBottom: 2 }}>
                                     {next.sourceName}
                                 </p>
@@ -1034,7 +1156,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                                 background: important ? highlightColor : ev.sourceColor,
                                             }}
                                         />
-                                        {showCalName && ev.showSourceName && (
+                                        {showCalName && ev.showSourceName && ev.sourceName && (
                                             <span
                                                 className="font-medium shrink-0 w-14 truncate"
                                                 style={{ color: ev.sourceColor, fontSize: fs(9) }}
@@ -1172,7 +1294,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                         />
                                     )}
                                     <div className="flex-1 min-w-0">
-                                        {showCalName && ev.showSourceName && sources.length > 1 && (
+                                        {showCalName && ev.showSourceName && ev.sourceName && multiCal && (
                                             <p style={{ color: ev.sourceColor, fontSize: fs(9) }}>{ev.sourceName}</p>
                                         )}
                                         <p

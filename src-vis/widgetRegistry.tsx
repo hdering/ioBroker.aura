@@ -353,7 +353,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         addMode: 'wizard-only',
         widgetGroup: 'special',
         mock: { t: 'Kalender', v: '3' },
-        hint: 'Termine aus dem iCal-Adapter (nur per Tab-Wizard hinzufügbar)',
+        hint: 'Termine aus einer ical-Adapter-Instanz oder direkt von einer iCal-URL',
     },
     {
         type: 'evcc',

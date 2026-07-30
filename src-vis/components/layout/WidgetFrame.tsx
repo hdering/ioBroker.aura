@@ -68,7 +68,7 @@ import { CellConditionEditor } from '../config/CellConditionEditor';
 import { BadgeEditor } from '../config/BadgeEditor';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import { useBadges } from '../../hooks/useBadges';
-import { getObjectDirect, subscribeStateDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { detectMediaDevices, type DetectedMediaDevice } from '../../utils/mediaDeviceDetectors';
 import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE } from '../../widgetRegistry';
@@ -127,7 +127,14 @@ const LoadTimesWidget = lazyWithReload(() =>
 );
 import { ListWidget } from '../widgets/ListWidget';
 import { ClockWidget } from '../widgets/ClockWidget';
-import { CalendarWidget, getSources, DEFAULT_CAL_COLORS, type CalendarSource } from '../widgets/CalendarWidget';
+import {
+    CalendarWidget,
+    getSources,
+    extractCalNames,
+    DEFAULT_CAL_COLORS,
+    type CalendarSource,
+    type CalendarSourceType,
+} from '../widgets/CalendarWidget';
 import { HeaderWidget } from '../widgets/HeaderWidget';
 // GroupWidget imports WidgetFrame (circular) — safe because it only uses WidgetFrame
 // inside its render function, never at module-init time.
@@ -433,10 +440,53 @@ function CalendarEditPanel({
     const o = config.options ?? {};
     const sources = getSources(o);
     const [adding, setAdding] = useState(false);
+    const [newType, setNewType] = useState<CalendarSourceType>('url');
     const [newUrl, setNewUrl] = useState('');
+    const [newDp, setNewDp] = useState('');
+    const [newFilter, setNewFilter] = useState('');
     const [newName, setNewName] = useState('');
     const [newColor, setNewColor] = useState(DEFAULT_CAL_COLORS[sources.length % DEFAULT_CAL_COLORS.length]);
+    const [icalDps, setIcalDps] = useState<string[]>([]);
+    const [icalDpsLoading, setIcalDpsLoading] = useState(false);
+    const [calNames, setCalNames] = useState<string[]>([]);
     const [importantIconPickerOpen, setImportantIconPickerOpen] = useState(false);
+
+    // Discover the table states of all ioBroker.ical instances
+    useEffect(() => {
+        if (!adding || newType !== 'adapter') return;
+        let cancelled = false;
+        setIcalDpsLoading(true);
+        void (async () => {
+            const res = await getObjectViewDirect('instance', 'system.adapter.ical.', 'system.adapter.ical.香');
+            const dps = (res.rows ?? [])
+                .map((r) => r.id.replace(/^system\.adapter\./, ''))
+                .filter((id) => /^ical\.\d+$/.test(id))
+                .sort()
+                .map((id) => `${id}.data.table`);
+            if (cancelled) return;
+            setIcalDps(dps);
+            setIcalDpsLoading(false);
+            setNewDp((cur) => cur || dps[0] || '');
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [adding, newType]);
+
+    // Offer the calendar names the selected table currently contains
+    useEffect(() => {
+        if (newType !== 'adapter' || !newDp) {
+            setCalNames([]);
+            return;
+        }
+        let cancelled = false;
+        void getStateDirect(newDp).then((st) => {
+            if (!cancelled) setCalNames(extractCalNames(st?.val));
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [newType, newDp]);
 
     const setOpts = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
 
@@ -445,20 +495,34 @@ function CalendarEditPanel({
 
     const removeSource = (id: string) => setOpts({ calendars: sources.filter((s) => s.id !== id) });
 
-    const confirmAdd = () => {
-        if (!newUrl.trim()) return;
-        const next: CalendarSource = {
-            id: Date.now().toString(),
-            url: newUrl.trim(),
-            name: newName.trim() || 'Kalender',
-            color: newColor,
-            showName: true,
-        };
-        setOpts({ calendars: [...sources, next] });
+    const resetAddForm = () => {
         setNewUrl('');
+        setNewDp('');
+        setNewFilter('');
         setNewName('');
-        setNewColor(DEFAULT_CAL_COLORS[(sources.length + 1) % DEFAULT_CAL_COLORS.length]);
         setAdding(false);
+    };
+
+    const addTargetSet = newType === 'adapter' ? !!newDp : !!newUrl.trim();
+
+    const confirmAdd = () => {
+        if (!addTargetSet) return;
+        const base = { id: Date.now().toString(), color: newColor, showName: true };
+        const next: CalendarSource =
+            newType === 'adapter'
+                ? {
+                      ...base,
+                      type: 'adapter',
+                      url: '',
+                      datapoint: newDp,
+                      calFilter: newFilter,
+                      // Blank name = fall back to the calendar name of each table row
+                      name: newName.trim() || newFilter,
+                  }
+                : { ...base, type: 'url', url: newUrl.trim(), name: newName.trim() || 'Kalender' };
+        setOpts({ calendars: [...sources, next] });
+        setNewColor(DEFAULT_CAL_COLORS[(sources.length + 1) % DEFAULT_CAL_COLORS.length]);
+        resetAddForm();
     };
 
     return (
@@ -506,7 +570,9 @@ function CalendarEditPanel({
                             </button>
                         </div>
                         <p className="text-[9px] font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
-                            {src.url}
+                            {src.type === 'adapter'
+                                ? `${src.datapoint}${src.calFilter ? ` · ${src.calFilter}` : ''}`
+                                : src.url}
                         </p>
                     </div>
                 ))}
@@ -518,15 +584,73 @@ function CalendarEditPanel({
                     className="rounded-lg p-2 space-y-1.5"
                     style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                 >
-                    <input
-                        type="url"
-                        value={newUrl}
-                        onChange={(e) => setNewUrl(e.target.value)}
-                        placeholder={t('wf.cal.calUrl')}
-                        autoFocus
-                        className={`${inputCls} font-mono`}
-                        style={inputStyle}
-                    />
+                    {/* source kind: own fetch of an iCal URL, or read a ical adapter table */}
+                    <div className="flex gap-1">
+                        {(['adapter', 'url'] as CalendarSourceType[]).map((k) => (
+                            <button
+                                key={k}
+                                onClick={() => setNewType(k)}
+                                className="flex-1 py-1 text-[10px] rounded-md hover:opacity-80"
+                                style={{
+                                    background: newType === k ? 'var(--accent)' : 'var(--app-surface)',
+                                    color: newType === k ? '#fff' : 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                {t(k === 'adapter' ? 'wf.cal.srcAdapter' : 'wf.cal.srcUrl')}
+                            </button>
+                        ))}
+                    </div>
+                    {newType === 'adapter' ? (
+                        <>
+                            {icalDps.length === 0 ? (
+                                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t(icalDpsLoading ? 'wf.cal.icalLoading' : 'wf.cal.noIcalInstance')}
+                                </p>
+                            ) : (
+                                <select
+                                    value={newDp}
+                                    onChange={(e) => {
+                                        setNewDp(e.target.value);
+                                        setNewFilter('');
+                                    }}
+                                    className={inputCls}
+                                    style={inputStyle}
+                                >
+                                    {icalDps.map((dp) => (
+                                        <option key={dp} value={dp}>
+                                            {dp}
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
+                            {/* one ical instance can serve several calendars */}
+                            <select
+                                value={newFilter}
+                                onChange={(e) => setNewFilter(e.target.value)}
+                                className={inputCls}
+                                style={inputStyle}
+                                disabled={!newDp}
+                            >
+                                <option value="">{t('wf.cal.allCalendars')}</option>
+                                {calNames.map((n) => (
+                                    <option key={n} value={n}>
+                                        {n}
+                                    </option>
+                                ))}
+                            </select>
+                        </>
+                    ) : (
+                        <input
+                            type="url"
+                            value={newUrl}
+                            onChange={(e) => setNewUrl(e.target.value)}
+                            placeholder={t('wf.cal.calUrl')}
+                            autoFocus
+                            className={`${inputCls} font-mono`}
+                            style={inputStyle}
+                        />
+                    )}
                     <div className="flex gap-1.5">
                         <ColorPicker
                             value={newColor}
@@ -537,7 +661,7 @@ function CalendarEditPanel({
                             type="text"
                             value={newName}
                             onChange={(e) => setNewName(e.target.value)}
-                            placeholder={t('wf.cal.calName')}
+                            placeholder={t(newType === 'adapter' ? 'wf.cal.calNameAuto' : 'wf.cal.calName')}
                             className={inputCls}
                             style={inputStyle}
                         />
@@ -545,18 +669,14 @@ function CalendarEditPanel({
                     <div className="flex gap-1.5">
                         <button
                             onClick={confirmAdd}
-                            disabled={!newUrl.trim()}
+                            disabled={!addTargetSet}
                             className="flex-1 py-1.5 text-xs rounded-lg text-white hover:opacity-80 disabled:opacity-30"
                             style={{ background: 'var(--accent)' }}
                         >
                             {t('wf.cal.add')}
                         </button>
                         <button
-                            onClick={() => {
-                                setAdding(false);
-                                setNewUrl('');
-                                setNewName('');
-                            }}
+                            onClick={resetAddForm}
                             className="px-3 py-1.5 text-xs rounded-lg hover:opacity-80"
                             style={{
                                 background: 'var(--app-surface)',
