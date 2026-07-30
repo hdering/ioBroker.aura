@@ -5,6 +5,7 @@ import { getSocket, subscribeStateDirect, setStateDirect, getStateDirect } from 
 import { useT } from '../../i18n';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
+import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { NS } from '../../utils/namespace';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
@@ -646,6 +647,7 @@ function RunningBadge({ ev, t, color, fontSize }: { ev: CalEventTagged; t: TFn; 
 
 export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const t = useT();
+    const autoHeight = usePopupAutoHeight();
     const options = config.options ?? {};
     const refreshInterval = (options.refreshInterval as number) ?? 30;
     const maxEvents = (options.maxEvents as number) ?? 5;
@@ -808,6 +810,11 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         ? events.filter((ev) => isImportant(ev, highlightKeywords, highlightPriority))
         : events;
     const visibleEvents = filteredEvents.slice(0, maxEvents);
+
+    // Event lists scroll when they outgrow the cell. Inside an auto-height
+    // popup-view the list grows instead, so the dialog can fit every entry.
+    const listFillCls = autoHeight ? '' : 'aura-scroll flex-1 overflow-y-auto min-h-0';
+    const listRootCls = autoHeight ? '' : 'h-full overflow-hidden';
 
     // ── no sources configured ────────────────────────────────────────────────
     if (sources.length === 0) {
@@ -1094,7 +1101,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     // ── AGENDA ───────────────────────────────────────────────────────────────
     if (layout === 'agenda') {
         return (
-            <div className="aura-widget-row flex flex-col h-full gap-1 overflow-hidden">
+            <div className={`aura-widget-row flex flex-col gap-1 ${listRootCls}`}>
                 <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                         {showIcon && (
@@ -1126,7 +1133,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                         <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.noEvents')}</p>
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-hidden flex flex-col gap-0.5 min-h-0">
+                    <div className={`${listFillCls} flex flex-col gap-0.5`}>
                         {(() => {
                             const showCalName = options.showCalName !== false;
                             const showDate = options.showDate !== false;
@@ -1217,7 +1224,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
 
     // ── DEFAULT ──────────────────────────────────────────────────────────────
     return (
-        <div className="aura-widget-row flex flex-col h-full gap-1.5 overflow-hidden">
+        <div className={`aura-widget-row flex flex-col gap-1.5 ${listRootCls}`}>
             <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
                 <div className="flex items-center gap-1 min-w-0 flex-1">
                     {showIcon && (
@@ -1252,7 +1259,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                     </p>
                 </div>
             ) : (
-                <div className="flex-1 overflow-hidden flex flex-col gap-1 min-h-0">
+                <div className={`${listFillCls} flex flex-col gap-1`}>
                     {(() => {
                         const showCalName = options.showCalName !== false;
                         const showDate = options.showDate !== false;

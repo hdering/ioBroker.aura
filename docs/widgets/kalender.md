@@ -5,10 +5,10 @@ Zeigt anstehende Termine – entweder aus einer Instanz des ioBroker-Adapters **
 ## Layouts
 
 ### Default
-Liste der nächsten Termine mit farbigem Punkt, Titel, Datum und Ort — für mittlere Zellen.
+Liste der nächsten Termine mit farbigem Punkt, Titel, Datum und Ort — für mittlere Zellen. Passen nicht alle Termine in die Zelle, scrollt die Liste.
 
 ### Agenda
-Kompakte Terminliste mit farbigem Balken je Quelle — für viele Termine auf wenig Platz.
+Kompakte Terminliste mit farbigem Balken je Quelle — für viele Termine auf wenig Platz. Scrollt wie Default.
 
 ### Card
 Nur der nächste Termin groß als Karte mit Datum, Ort und „+N weitere" — für prominente Anzeige.
@@ -53,7 +53,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | Option | Standard | |
 | --- | --- | --- |
 | `refreshInterval` | `30` | Minuten zwischen Abrufen (`0` = kein Auto-Refresh) |
-| `maxEvents` | `5` | maximale Anzahl angezeigter Termine |
+| `maxEvents` | `5` | maximale Anzahl angezeigter Termine (1–100) |
 | `daysAhead` | `14` | Vorschau-Zeitraum in Tagen |
 
 `refreshInterval` gilt nur für `url`-Quellen; `adapter`-Quellen aktualisieren sich bei jeder Änderung der Tabelle. `daysAhead` kann bei `adapter`-Quellen nur so weit reichen wie der Vorschau-Zeitraum der ical-Instanz selbst.

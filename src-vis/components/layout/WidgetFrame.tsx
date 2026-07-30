@@ -744,7 +744,7 @@ function CalendarEditPanel({
                 <input
                     type="number"
                     min={1}
-                    max={20}
+                    max={100}
                     value={(o.maxEvents as number) ?? 5}
                     onChange={(e) => setOpts({ maxEvents: Number(e.target.value) })}
                     className={inputCls}
