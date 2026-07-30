@@ -6,4 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 - Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100
-- Calendar - agenda layout aligns all event titles on one edge, whatever the calendar names are
+- Calendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually

@@ -751,6 +751,31 @@ function CalendarEditPanel({
                     style={inputStyle}
                 />
             </div>
+            {/* agenda layout only: width of the calendar-name column */}
+            {config.layout === 'agenda' && (
+                <div>
+                    <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('wf.cal.nameWidth')}
+                        </label>
+                        <span className="text-[11px] tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                            {((o.calNameWidth as number) || 0) === 0
+                                ? t('wf.cal.nameWidthAuto')
+                                : `${o.calNameWidth as number} %`}
+                        </span>
+                    </div>
+                    <input
+                        type="range"
+                        min={0}
+                        max={60}
+                        step={1}
+                        value={(o.calNameWidth as number) || 0}
+                        onChange={(e) => setOpts({ calNameWidth: Number(e.target.value) })}
+                        className="w-full h-1"
+                        style={{ accentColor: 'var(--accent)' }}
+                    />
+                </div>
+            )}
             <div>
                 <div className="flex items-center justify-between mb-1">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

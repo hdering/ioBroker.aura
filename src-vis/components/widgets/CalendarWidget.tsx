@@ -643,22 +643,56 @@ function RunningBadge({ ev, t, color, fontSize }: { ev: CalEventTagged; t: TFn; 
     );
 }
 
+/** Auto width of the agenda name column may take at most this share of the row. */
+const CAL_NAME_MAX_SHARE = '45%';
+
 /**
- * Rough width of a string in `ch` units. The agenda layout aligns every event
- * title on one edge, which needs a shared name-column width – and a proportional
- * font makes character count a bad proxy. Weighting wide vs. narrow glyphs gets
- * close enough without measuring the real font, and the column truncates as a
- * safety net if the estimate comes out short.
+ * Calendar-name cell of the agenda layout. All cells end up the same width so
+ * every event title starts on one edge.
+ *
+ * On auto width an invisible grid stack of *all* visible names sizes the cell:
+ * grid children sharing one area make the grid as wide as its widest child, in
+ * the real rendered font. That is exact – estimating from the character count
+ * cuts off wide names, since the font is proportional. The actual name is laid
+ * over that sizer. `widthPercent > 0` skips it and fixes the column instead.
  */
-function nameWidthCh(s: string): number {
-    let w = 0;
-    for (const c of s) {
-        if (/[iljtfrI.,:;'!|() ]/.test(c)) w += 0.55;
-        else if (/[mwMW@]/.test(c)) w += 1.25;
-        else if (/[A-ZÄÖÜ]/.test(c)) w += 1.1;
-        else w += 0.9;
+function AgendaCalName({
+    name,
+    allNames,
+    color,
+    fontSize,
+    widthPercent,
+}: {
+    name: string;
+    allNames: string[];
+    color: string;
+    fontSize: string;
+    widthPercent: number;
+}) {
+    if (widthPercent > 0) {
+        return (
+            <span className="font-medium shrink-0 truncate" style={{ color, fontSize, width: `${widthPercent}%` }}>
+                {name}
+            </span>
+        );
     }
-    return w;
+    return (
+        <span
+            className="font-medium shrink-0 relative overflow-hidden"
+            style={{ fontSize, maxWidth: CAL_NAME_MAX_SHARE }}
+        >
+            <span aria-hidden className="invisible grid">
+                {allNames.map((n) => (
+                    <span key={n} className="whitespace-nowrap" style={{ gridArea: '1 / 1' }}>
+                        {n}
+                    </span>
+                ))}
+            </span>
+            <span className="absolute inset-0 truncate" style={{ color }}>
+                {name}
+            </span>
+        </span>
+    );
 }
 
 // ── widget ─────────────────────────────────────────────────────────────────
@@ -831,6 +865,9 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
 
     // Event lists scroll when they outgrow the cell. Inside an auto-height
     // popup-view the list grows instead, so the dialog can fit every entry.
+    // Agenda name column: 0 = auto (as wide as the widest name), else % of the row
+    const calNameWidth = Math.max(0, Math.min(60, (options.calNameWidth as number) || 0));
+
     const listFillCls = autoHeight ? '' : 'aura-scroll flex-1 overflow-y-auto min-h-0';
     const listRootCls = autoHeight ? '' : 'h-full overflow-hidden';
 
@@ -1155,16 +1192,17 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                         {(() => {
                             const showCalName = options.showCalName !== false;
                             const showDate = options.showDate !== false;
-                            // One shared column width for every name, so the titles
-                            // line up no matter how uneven the calendar names are.
-                            const nameChs = showCalName
-                                ? visibleEvents
-                                      .filter((ev) => ev.showSourceName && ev.sourceName)
-                                      .map((ev) => nameWidthCh(ev.sourceName))
+                            // Every visible name – sizes the shared name column so the
+                            // titles line up however uneven the names are.
+                            const calNames = showCalName
+                                ? [
+                                      ...new Set(
+                                          visibleEvents
+                                              .filter((ev) => ev.showSourceName && ev.sourceName)
+                                              .map((ev) => ev.sourceName),
+                                      ),
+                                  ]
                                 : [];
-                            const nameColWidth = nameChs.length
-                                ? `min(${Math.max(...nameChs).toFixed(1)}ch, 35%)`
-                                : undefined;
                             return visibleEvents.map((ev, idx) => {
                                 const meta = eventMeta(ev, idx);
                                 const important = imp(ev);
@@ -1192,16 +1230,13 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                             }}
                                         />
                                         {showCalName && ev.showSourceName && ev.sourceName && (
-                                            <span
-                                                className="font-medium shrink-0 truncate"
-                                                style={{
-                                                    color: ev.sourceColor,
-                                                    fontSize: fs(9),
-                                                    width: nameColWidth,
-                                                }}
-                                            >
-                                                {ev.sourceName}
-                                            </span>
+                                            <AgendaCalName
+                                                name={ev.sourceName}
+                                                allNames={calNames}
+                                                color={ev.sourceColor}
+                                                fontSize={fs(9)}
+                                                widthPercent={calNameWidth}
+                                            />
                                         )}
                                         <p
                                             className="flex-1 truncate min-w-0"

@@ -832,6 +832,8 @@ export const de = {
     'wf.cal.refreshInterval': 'Aktualisierungsintervall',
     'wf.cal.daysAhead': 'Tage im Voraus',
     'wf.cal.maxEntries': 'Max. Einträge',
+    'wf.cal.nameWidth': 'Breite Kalender-Spalte',
+    'wf.cal.nameWidthAuto': 'automatisch',
 
     // Gauge config
     'wf.gauge.strokeWidth': 'Bogenbreite',

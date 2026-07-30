@@ -831,6 +831,8 @@ export const en: Record<TranslationKey, string> = {
     'wf.cal.refreshInterval': 'Refresh Interval',
     'wf.cal.daysAhead': 'Days Ahead',
     'wf.cal.maxEntries': 'Max. Entries',
+    'wf.cal.nameWidth': 'Calendar column width',
+    'wf.cal.nameWidthAuto': 'automatic',
 
     // Gauge config
     'wf.gauge.strokeWidth': 'Arc Width',

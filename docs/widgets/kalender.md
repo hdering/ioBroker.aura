@@ -8,7 +8,7 @@ Zeigt anstehende Termine – entweder aus einer Instanz des ioBroker-Adapters **
 Liste der nächsten Termine mit farbigem Punkt, Titel, Datum und Ort — für mittlere Zellen. Passen nicht alle Termine in die Zelle, scrollt die Liste.
 
 ### Agenda
-Kompakte Terminliste mit farbigem Balken je Quelle — für viele Termine auf wenig Platz. Scrollt wie Default. Die Kalendernamen bilden eine Spalte in der Breite des längsten sichtbaren Namens (max. 35 % der Zelle), damit alle Termin-Titel auf einer Kante beginnen.
+Kompakte Terminliste mit farbigem Balken je Quelle — für viele Termine auf wenig Platz. Scrollt wie Default. Die Kalendernamen bilden eine Spalte, damit alle Termin-Titel auf einer Kante beginnen — Breite per `calNameWidth`.
 
 ### Card
 Nur der nächste Termin groß als Karte mit Datum, Ort und „+N weitere" — für prominente Anzeige.
@@ -68,6 +68,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `calFontScale` | `1` | Schrift-Skalierung |
+| `calNameWidth` | `0` | Agenda: Breite der Kalender-Spalte in % der Zeile; `0` = automatisch (breitester sichtbarer Name, max. 45 %) |
 | `showCalName` | `true` | Kalendername anzeigen |
 | `showDate` | `true` | Datum anzeigen |
 | `showLocation` | `true` | Ort anzeigen (Default/Card) |
