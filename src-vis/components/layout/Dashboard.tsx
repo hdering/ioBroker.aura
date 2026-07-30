@@ -394,7 +394,21 @@ export function Dashboard({
                                             ) : (
                                                 <div className="flex flex-col" style={{ gap: MARGIN }}>
                                                     {sorted.map((w) => {
-                                                        const wl = w.layout ?? 'default';
+                                                        // A mirror renders its SOURCE inside, so the auto-height
+                                                        // decision must follow the source's type/layout — otherwise a
+                                                        // mirror of a group gets a fixed gridPos.h box on mobile and
+                                                        // its stacked children only scroll instead of showing in full
+                                                        // (issue #513). Same source resolution as the desktop branch.
+                                                        const mirrorSrc =
+                                                            w.type === 'mirror'
+                                                                ? widgetById.get(
+                                                                      (w.options?.targetWidgetId as
+                                                                          | string
+                                                                          | undefined) ?? '',
+                                                                  )
+                                                                : undefined;
+                                                        const ew = mirrorSrc ?? w;
+                                                        const wl = ew.layout ?? 'default';
                                                         // Weather's stacking layouts (default/card) top-align their
                                                         // content and let a responsive scale fill the height. On the
                                                         // wide desktop grid that scale grows to fill the box, but in the
@@ -404,14 +418,14 @@ export function Dashboard({
                                                         // grid needs a definite height (CustomGridView is height:100%);
                                                         // minimal/compact already center, so they keep a fixed height.
                                                         const autoHeight =
-                                                            w.type === 'group' ||
-                                                            w.type === 'mediaplayer' ||
-                                                            (w.type === 'weather' &&
+                                                            ew.type === 'group' ||
+                                                            ew.type === 'mediaplayer' ||
+                                                            (ew.type === 'weather' &&
                                                                 wl !== 'custom' &&
                                                                 wl !== 'minimal' &&
                                                                 wl !== 'compact') ||
-                                                            (w.type === 'statusoverview' &&
-                                                                w.options?.autoHeight === true);
+                                                            (ew.type === 'statusoverview' &&
+                                                                ew.options?.autoHeight === true);
                                                         return (
                                                             <div
                                                                 key={w.id}
