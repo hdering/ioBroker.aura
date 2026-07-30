@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.35.0 (2026-07-25)
+- 🌟 **New feature:** Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)
+
 ## 0.34.0 (2026-07-25)
 - 🌟 **New feature:** Editor - a whole tab (with its widgets) can now be moved or copied into another section from the tab settings
 - 🌟 **New feature:** Layouts - a whole section (with its tabs and widgets) can now be moved or copied into another layout via a popup on each section
