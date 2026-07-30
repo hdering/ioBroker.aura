@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.38.6",
+    "version": "0.38.7",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.38.7": {
+        "en": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "de": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "ru": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "pt": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "nl": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "fr": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "it": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "es": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "pl": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "uk": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
+        "zh-cn": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off"
+      },
       "0.38.6": {
         "en": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
         "de": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget",
         "uk": "🌟 New feature: Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget",
         "zh-cn": "🌟 New feature: Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget"
-      },
-      "0.37.3": {
-        "en": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "de": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "ru": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "pt": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "nl": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "fr": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "it": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "es": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "pl": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "uk": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
-        "zh-cn": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects"
       }
     }
   },

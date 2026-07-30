@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.35.2 (2026-07-25)
+- Popup (widget content) - embedded widget now fills the configured popup width/height instead of collapsing to a narrow box; without an explicit size it uses the widget's own designed size, so groups no longer squeeze their children
+
 ## 0.35.1 (2026-07-25)
 - General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit
 
