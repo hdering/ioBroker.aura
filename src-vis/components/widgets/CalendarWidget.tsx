@@ -1158,7 +1158,8 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                         />
                                         {showCalName && ev.showSourceName && ev.sourceName && (
                                             <span
-                                                className="font-medium shrink-0 w-14 truncate"
+                                                // full name, no fixed column – the summary next to it truncates instead
+                                                className="font-medium shrink-0 whitespace-nowrap"
                                                 style={{ color: ev.sourceColor, fontSize: fs(9) }}
                                             >
                                                 {ev.sourceName}
