@@ -40,7 +40,6 @@ import { LayoutDrawer } from '../../components/layout/LayoutDrawer';
 import { FocusedWidgetContext } from '../../contexts/FocusedWidgetContext';
 import { TabWizard } from '../../components/config/TabWizard';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
-import { ColorPicker } from '../../components/common/ColorPicker';
 import type { WidgetConfig, WidgetType, WidgetLayout, WidgetPreset } from '../../types';
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
 import { useWidgetPresetsStore } from '../../store/widgetPresetsStore';
@@ -108,9 +107,6 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     const [groupId, setGroupId] = useState('');
     const [unit, setUnit] = useState('');
     const [showPicker, setShowPicker] = useState(false);
-    const [icalUrl, setIcalUrl] = useState('');
-    const [calName, setCalName] = useState('');
-    const [calColor, setCalColor] = useState('#3b82f6');
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [recentTemplates, setRecentTemplates] = useState<RecentTemplate[]>(() => getRecentTemplates());
     const presets = useWidgetPresetsStore((s) => s.presets);
@@ -179,7 +175,8 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     const isWeather = type === 'weather';
     const isCamera = type === 'camera';
     const noDatapointNeeded = addMode !== 'datapoint';
-    const canAdd = addMode === 'group' ? !!groupId : addMode === 'wizard-only' ? !!icalUrl.trim() : true;
+    // iCal URL is optional – calendar sources can be added later in the widget editor.
+    const canAdd = addMode === 'group' ? !!groupId : true;
 
     // Widget types from WIDGET_REGISTRY not covered by any DP_TEMPLATE
     const coveredWidgetTypes = useMemo(() => new Set(DP_TEMPLATES.map((t) => t.widgetType)), []);
@@ -291,15 +288,8 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                 ...secondaryDpOptions,
                 ...(isCalendar
                     ? {
-                          calendars: [
-                              {
-                                  id: Date.now().toString(),
-                                  url: icalUrl.trim(),
-                                  name: calName.trim() || 'Kalender',
-                                  color: calColor,
-                                  showName: true,
-                              },
-                          ],
+                          // Calendar sources are configured afterwards in the widget editor.
+                          calendars: [],
                           refreshInterval: 30,
                           daysAhead: 14,
                           maxEvents: 5,
@@ -883,38 +873,11 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                             </div>
                         )}
 
-                        {/* Calendar URL */}
+                        {/* Calendar sources are configured in the widget editor after adding */}
                         {isCalendar && (
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.manual.icalUrl')}
-                                </label>
-                                <input
-                                    value={icalUrl}
-                                    onChange={(e) => setIcalUrl(e.target.value)}
-                                    placeholder="https://calendar.google.com/…"
-                                    className={`font-mono ${inputCls}`}
-                                    style={inputStyle}
-                                />
-                                <div className="flex gap-2">
-                                    <input
-                                        value={calName}
-                                        onChange={(e) => setCalName(e.target.value)}
-                                        placeholder={t('editor.manual.calName')}
-                                        className={`flex-1 min-w-0 ${inputCls}`}
-                                        style={inputStyle}
-                                    />
-                                    <ColorPicker
-                                        value={calColor}
-                                        onChange={(v) => setCalColor(v)}
-                                        className="w-10 h-10 rounded-xl cursor-pointer border-0 p-0.5 shrink-0"
-                                        style={{ border: '1px solid var(--app-border)' }}
-                                    />
-                                </div>
-                                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.manual.moreCalendars')}
-                                </p>
-                            </div>
+                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                {t('editor.manual.moreCalendars')}
+                            </p>
                         )}
 
                         {/* Group selector (list widget) */}
