@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.35.1 (2026-07-25)
+- General - widget config changes (e.g. a widget's data point) no longer revert after saving when auto-backups are at their limit
+
 ## 0.35.0 (2026-07-25)
 - 🌟 **New feature:** Mirror - new widget type that shows an existing widget live at a second position (no copy; source changes apply instantly)
 

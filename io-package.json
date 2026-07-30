@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.38.5",
+    "version": "0.38.6",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.38.6": {
+        "en": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "de": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "ru": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "pt": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "nl": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "fr": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "it": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "es": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "pl": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "uk": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
+        "zh-cn": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling"
+      },
       "0.38.5": {
         "en": "🌟 New feature: @ feat(climate): add UNREACH/LOWBAT status datapoints to Raumklima widget\nfix(echart): current value follows live state; add raw aggregation\n@ fix(calendar): expand recurring RRULE events so repeating feeds show up\n🌟 New feature: feat(trashSchedule): add compact single-line layout",
         "de": "🌟 New feature: @ feat(climate): add UNREACH/LOWBAT status datapoints to Raumklima widget\nfix(echart): current value follows live state; add raw aggregation\n@ fix(calendar): expand recurring RRULE events so repeating feeds show up\n🌟 New feature: feat(trashSchedule): add compact single-line layout",
@@ -184,19 +197,6 @@
         "pl": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
         "uk": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects",
         "zh-cn": "Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start\nMirror - the editor now marks a mirror widget with a badge showing which widget it reflects"
-      },
-      "0.37.2": {
-        "en": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "de": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "ru": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "pt": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "nl": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "fr": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "it": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "es": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "pl": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "uk": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges",
-        "zh-cn": "Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges"
       }
     }
   },
