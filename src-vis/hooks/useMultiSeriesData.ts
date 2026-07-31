@@ -93,33 +93,72 @@ function getStepForMs(rangeMs: number): number | undefined {
     return 21_600_000;
 }
 
+/** Key names commonly used for the y value, best guess first. */
+const VALUE_KEY_HINTS = ['value', 'val', 'y', 'v', 'wert', 'amount', 'count'];
+/** Key names commonly used for the x label, best guess first. */
+const LABEL_KEY_HINTS = ['label', 'ts', 'timestamp', 'time', 'date', 'datum', 'x', 'name', 't', 'key'];
+
 /**
- * Turn a JSON datapoint's raw value into label/value points.
- *
- * Accepts the value as an already-parsed object/array or as a JSON string (the usual case for
- * ioBroker string datapoints). Entries whose value doesn't parse to a finite number are dropped;
- * the array order is kept as-is and becomes the category order on the x axis.
+ * Guess which object keys hold the label and the value, so a `{"ts": …, "val": …}` datapoint
+ * charts without anyone having to know the field names. Well-known names win; otherwise the
+ * first numeric field becomes the value and the first remaining field the label.
  */
-export function parseJsonSeries(raw: unknown, s: EChartSeriesConfig): JsonPoint[] {
+export function detectJsonKeys(sample: Record<string, unknown>): { labelKey?: string; valueKey?: string } {
+    const keys = Object.keys(sample);
+    if (keys.length === 0) return {};
+    const numeric = keys.filter((k) => {
+        const v = sample[k];
+        return (typeof v === 'number' || typeof v === 'string') && v !== '' && Number.isFinite(Number(v));
+    });
+    // Well-known value names first: they are the strongest signal, and pinning the value down
+    // keeps a numeric-looking label (`"ts": "1785362400000"`, `"stunde": "08"`) from being
+    // mistaken for it. Only then pick the label, falling back to field order — objects are
+    // written label-first by convention.
+    let valueKey = VALUE_KEY_HINTS.find((h) => keys.includes(h));
+    const labelKey =
+        LABEL_KEY_HINTS.find((h) => keys.includes(h) && h !== valueKey) ?? keys.find((k) => k !== valueKey);
+    valueKey ??= numeric.find((k) => k !== labelKey) ?? keys.find((k) => k !== labelKey);
+    return { labelKey, valueKey };
+}
+
+/** Resolve the array a JSON datapoint's value holds, following the configured path. */
+export function resolveJsonArray(raw: unknown, jsonPath?: string): unknown[] | null {
     let parsed: unknown = raw;
     if (typeof raw === 'string') {
         try {
             parsed = JSON.parse(raw);
         } catch {
-            return [];
+            return null;
         }
     }
-    const path = (s.jsonPath ?? '').trim();
+    const path = (jsonPath ?? '').trim();
     if (path) {
         parsed = path.split('.').reduce<unknown>((acc, key) => {
             if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key];
             return undefined;
         }, parsed);
     }
-    if (!Array.isArray(parsed)) return [];
+    return Array.isArray(parsed) ? parsed : null;
+}
 
-    const labelKey = s.jsonLabelKey || 'label';
-    const valueKey = s.jsonValueKey || 'value';
+/**
+ * Turn a JSON datapoint's raw value into label/value points.
+ *
+ * Accepts the value as an already-parsed object/array or as a JSON string (the usual case for
+ * ioBroker string datapoints). Field names are optional — when unset they are detected from the
+ * first entry. Entries whose value doesn't parse to a finite number are dropped; the array order
+ * is kept as-is and becomes the category order on the x axis.
+ */
+export function parseJsonSeries(raw: unknown, s: EChartSeriesConfig): JsonPoint[] {
+    const parsed = resolveJsonArray(raw, s.jsonPath);
+    if (!parsed) return [];
+
+    const firstObj = parsed.find((i) => !!i && typeof i === 'object' && !Array.isArray(i)) as
+        | Record<string, unknown>
+        | undefined;
+    const detected = firstObj ? detectJsonKeys(firstObj) : {};
+    const labelKey = s.jsonLabelKey || detected.labelKey || 'label';
+    const valueKey = s.jsonValueKey || detected.valueKey || 'value';
     const points: JsonPoint[] = [];
     for (const item of parsed) {
         if (!item || typeof item !== 'object') continue;

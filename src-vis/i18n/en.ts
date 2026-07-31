@@ -1130,6 +1130,10 @@ export const en: Record<TranslationKey, string> = {
     'echart.jsonPathPlaceholder': 'e.g. data.hours – empty = root',
     'echart.jsonLabelKey': 'Label field',
     'echart.jsonValueKey': 'Value field',
+    'echart.jsonKeyAuto': 'Automatic ({key})',
+    'echart.jsonKeyAutoShort': 'Automatic',
+    'echart.jsonPreview': '{count} entries found · first: {label} → {value}',
+    'echart.jsonNoArray': 'The datapoint holds no JSON array at this path.',
     'echart.jsonTimeAxis': 'Label is a timestamp',
     'echart.jsonTimeAxisHint':
         'Time axis instead of categories — accepts epoch in ms or s and ISO dates. Entries without a valid timestamp are dropped.',

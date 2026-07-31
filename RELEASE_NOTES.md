@@ -7,3 +7,4 @@
 
 - Chart (Advanced) - new JSON mode: chart a JSON datapoint holding label/value entries, no history adapter needed
 - Chart (Advanced) - JSON mode can read the label as a timestamp (epoch ms/s or ISO) and draw a real time axis
+- Chart (Advanced) - JSON mode detects the label and value fields on its own and offers the datapoint's actual keys for picking

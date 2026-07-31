@@ -1134,6 +1134,10 @@ export const de = {
     'echart.jsonPathPlaceholder': 'z. B. data.hours – leer = Wurzel',
     'echart.jsonLabelKey': 'Feld für Beschriftung',
     'echart.jsonValueKey': 'Feld für Wert',
+    'echart.jsonKeyAuto': 'Automatisch ({key})',
+    'echart.jsonKeyAutoShort': 'Automatisch',
+    'echart.jsonPreview': '{count} Einträge erkannt · erster: {label} → {value}',
+    'echart.jsonNoArray': 'Der Datenpunkt enthält an dieser Stelle kein JSON-Array.',
     'echart.jsonTimeAxis': 'Beschriftung ist ein Zeitstempel',
     'echart.jsonTimeAxisHint':
         'Zeitachse statt Kategorien — akzeptiert Epoch in ms oder s sowie ISO-Datum. Einträge ohne gültigen Zeitstempel entfallen.',

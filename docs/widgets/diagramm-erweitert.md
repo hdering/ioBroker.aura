@@ -36,6 +36,8 @@ Erwartetes Format im Datenpunkt (String oder Objekt):
 
 Werte dürfen Strings sein und werden in Zahlen gewandelt; Einträge ohne gültige Zahl entfallen. Mehrere Serien werden über gleiche Labels ausgerichtet, fehlende Labels lassen die Linie brechen.
 
+**Feldnamen müssen nicht konfiguriert werden.** Der Editor liest den Datenpunkt aus, erkennt Beschriftungs- und Wertfeld selbst und bietet die tatsächlich vorhandenen Schlüssel in zwei Auswahlfeldern an — inklusive Vorschau des ersten Eintrags. Bekannte Namen (`label`/`value`, `ts`/`val`, `x`/`y`, `time`/`amount`, `name`/`count`) werden bevorzugt, sonst gilt: erstes Feld = Beschriftung, erstes numerisches Feld = Wert. `jsonLabelKey`/`jsonValueKey` sind nur nötig, wenn die Erkennung danebenliegt.
+
 Sind die Beschriftungen Zeitstempel, schaltet `echartJsonTimeAxis` auf eine echte Zeitachse mit korrekten Abständen:
 
 ```json
@@ -45,7 +47,7 @@ Sind die Beschriftungen Zeitstempel, schaltet `echartJsonTimeAxis` auf eine echt
 ]
 ```
 
-Dann `jsonLabelKey: ts` und `jsonValueKey: val` setzen. Erkannt werden Epoch in Millisekunden, Epoch in Sekunden und ISO-Datumsstrings; Einträge ohne gültigen Zeitstempel entfallen. Reine Jahreszahlen wie `2024` gelten nicht als Zeitstempel — dafür die Option ausgeschaltet lassen.
+`ts` und `val` erkennt der Editor selbst; erkennt er zusätzlich, dass alle Beschriftungen Zeitstempel sind, schaltet er die Zeitachse einmalig von allein ein. Akzeptiert werden Epoch in Millisekunden, Epoch in Sekunden und ISO-Datumsstrings; Einträge ohne gültigen Zeitstempel entfallen. Reine Jahreszahlen wie `2024` gelten nicht als Zeitstempel — dafür die Option ausgeschaltet lassen.
 
 ### Gauge
 Tacho-Anzeige des aktuellen Werts der ersten Serie (Widget-Layout `gauge`).
@@ -93,8 +95,8 @@ Nur im Modus `json`.
 | Option | Standard | |
 | --- | --- | --- |
 | `echartSeries[].jsonPath` | — | Punkt-Pfad bis zum Array, z. B. `data.hours`; leer = Wurzel |
-| `echartSeries[].jsonLabelKey` | `label` | Objekt-Feld für die X-Beschriftung |
-| `echartSeries[].jsonValueKey` | `value` | Objekt-Feld für den Y-Wert |
+| `echartSeries[].jsonLabelKey` | automatisch | Objekt-Feld für die X-Beschriftung; leer = erkennen |
+| `echartSeries[].jsonValueKey` | automatisch | Objekt-Feld für den Y-Wert; leer = erkennen |
 | `echartJsonTimeAxis` | `false` | Beschriftungen als Zeitstempel lesen → Zeitachse statt Kategorien |
 
 ### Achsen

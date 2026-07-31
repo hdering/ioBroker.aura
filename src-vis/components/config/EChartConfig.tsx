@@ -2,9 +2,15 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, Database, Plus, Trash2, ChevronUp } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
-import { getObjectDirect } from '../../hooks/useIoBroker';
+import { getObjectDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
-import type { EChartSeriesConfig, EChartTimeRange } from '../../hooks/useMultiSeriesData';
+import {
+    detectJsonKeys,
+    parseTimeLabel,
+    resolveJsonArray,
+    type EChartSeriesConfig,
+    type EChartTimeRange,
+} from '../../hooks/useMultiSeriesData';
 import { useT, t } from '../../i18n';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { ColorPicker } from '../common/ColorPicker';
@@ -37,6 +43,73 @@ const inputStyle = {
 interface SeriesAdapterState {
     adapters: DetectedAdapter[];
     checking: boolean;
+}
+
+/** What reading the actual datapoint told us about a JSON series' structure. */
+interface JsonProbe {
+    /** false while the value is still being fetched. */
+    done: boolean;
+    /** Datapoint value isn't a JSON array (at the configured path). */
+    invalid?: boolean;
+    /** Object keys found in the first entry — these fill the two dropdowns. */
+    keys: string[];
+    /** Keys the auto-detection picked. */
+    labelKey?: string;
+    valueKey?: string;
+    /** First entry's label/value, shown as a live example. */
+    sampleLabel?: string;
+    sampleValue?: string;
+    entries: number;
+    /** Every sampled label parses as a timestamp → the time axis is the right choice. */
+    timeLike: boolean;
+}
+
+/**
+ * Field picker for a JSON series: lists the keys actually present in the datapoint, with the
+ * auto-detected one as the default. Falls back to a free-text input while nothing has been read
+ * yet (template datapoint, offline, value not an array).
+ */
+function JsonKeySelect({
+    value,
+    detected,
+    keys,
+    onChange,
+}: {
+    value?: string;
+    detected?: string;
+    keys: string[];
+    onChange: (v: string | undefined) => void;
+}) {
+    const tr = useT();
+    if (keys.length === 0) {
+        return (
+            <input
+                type="text"
+                value={value ?? ''}
+                onChange={(e) => onChange(e.target.value || undefined)}
+                placeholder={detected ?? tr('echart.jsonKeyAutoShort')}
+                className={inputCls}
+                style={inputStyle}
+            />
+        );
+    }
+    return (
+        <select
+            value={value ?? ''}
+            onChange={(e) => onChange(e.target.value || undefined)}
+            className={inputCls}
+            style={inputStyle}
+        >
+            <option value="">
+                {detected ? tr('echart.jsonKeyAuto', { key: detected }) : tr('echart.jsonKeyAutoShort')}
+            </option>
+            {keys.map((k) => (
+                <option key={k} value={k}>
+                    {k}
+                </option>
+            ))}
+        </select>
+    );
 }
 
 export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
@@ -91,6 +164,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const [pickerForSeries, setPickerForSeries] = useState<string | null>(null);
     const [adapterStates, setAdapterStates] = useState<Record<string, SeriesAdapterState>>({});
     const [jsonOpen, setJsonOpen] = useState(false);
+    const [jsonProbes, setJsonProbes] = useState<Record<string, JsonProbe>>({});
 
     const setSeries = (next: EChartSeriesConfig[]) => setO({ echartSeries: next });
 
@@ -130,6 +204,72 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
         [next[idx], next[swap]] = [next[swap], next[idx]];
         setSeries(next);
     };
+
+    // Read the actual datapoint value of every JSON series to learn its structure: which keys
+    // exist, which ones hold label and value, and whether the labels are timestamps. Without
+    // this the two key fields are pure guesswork for anyone who hasn't read the docs.
+    const jsonProbeKey = isJson ? series.map((s) => `${s.id}:${s.datapointId}:${s.jsonPath ?? ''}`).join(',') : '';
+    useEffect(() => {
+        if (!isJson) return;
+        for (const s of series) {
+            if (!s.datapointId || s.datapointId.includes('{{')) continue;
+            getStateDirect(s.datapointId)
+                .then((state) => {
+                    const arr = resolveJsonArray(state?.val, s.jsonPath);
+                    if (!arr) {
+                        setJsonProbes((prev) => ({
+                            ...prev,
+                            [s.id]: { done: true, invalid: true, keys: [], entries: 0, timeLike: false },
+                        }));
+                        return;
+                    }
+                    const first = arr.find((i) => !!i && typeof i === 'object' && !Array.isArray(i)) as
+                        | Record<string, unknown>
+                        | undefined;
+                    const keys = first ? Object.keys(first) : [];
+                    const detected = first ? detectJsonKeys(first) : {};
+                    const labelKey = s.jsonLabelKey || detected.labelKey;
+                    const valueKey = s.jsonValueKey || detected.valueKey;
+                    // Sample the first entries rather than all of them — enough to tell a
+                    // timestamp column from a text one without walking a 1000-point array.
+                    const sample = arr.slice(0, 10).filter((i) => !!i && typeof i === 'object') as Record<
+                        string,
+                        unknown
+                    >[];
+                    const labels = labelKey ? sample.map((i) => String(i[labelKey] ?? '')) : [];
+                    const timeLike = labels.length > 0 && labels.every((l) => parseTimeLabel(l) !== null);
+                    setJsonProbes((prev) => ({
+                        ...prev,
+                        [s.id]: {
+                            done: true,
+                            keys,
+                            labelKey,
+                            valueKey,
+                            sampleLabel: labelKey && first ? String(first[labelKey] ?? '') : undefined,
+                            sampleValue: valueKey && first ? String(first[valueKey] ?? '') : undefined,
+                            entries: arr.length,
+                            timeLike,
+                        },
+                    }));
+                })
+                .catch(() => {
+                    setJsonProbes((prev) => ({
+                        ...prev,
+                        [s.id]: { done: true, invalid: true, keys: [], entries: 0, timeLike: false },
+                    }));
+                });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [jsonProbeKey, isJson]);
+
+    // Timestamp labels only make sense on a time axis — switch it on the first time we see them,
+    // unless the user has already made a choice.
+    useEffect(() => {
+        if (!isJson || o.echartJsonTimeAxis !== undefined) return;
+        const probes = series.map((s) => jsonProbes[s.id]).filter((p) => p?.done && !p.invalid);
+        if (probes.length > 0 && probes.every((p) => p.timeLike)) setO({ echartJsonTimeAxis: true });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isJson, jsonProbes, o.echartJsonTimeAxis]);
 
     // Detect history adapters when datapoint changes
     useEffect(() => {
@@ -209,25 +349,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     ))}
                 </div>
                 {isJson && (
-                    <>
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                            {t('echart.jsonHint')}
-                        </p>
-                        <label className="flex items-center gap-2 mt-2 cursor-pointer">
-                            <input
-                                type="checkbox"
-                                checked={jsonTimeAxis}
-                                onChange={(e) => setO({ echartJsonTimeAxis: e.target.checked })}
-                                className="accent-[var(--accent)]"
-                            />
-                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('echart.jsonTimeAxis')}
-                            </span>
-                        </label>
-                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                            {t('echart.jsonTimeAxisHint')}
-                        </p>
-                    </>
+                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {t('echart.jsonHint')}
+                    </p>
                 )}
             </div>
 
@@ -257,6 +381,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     {series.map((s, idx) => {
                         const isExpanded = expandedId === s.id;
                         const adState = adapterStates[s.id];
+                        const probe = jsonProbes[s.id];
                         const isTpl = (s.datapointId ?? '').includes('{{');
                         return (
                             <div
@@ -565,6 +690,37 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                     style={inputStyle}
                                                                 />
                                                             </div>
+                                                            {/* Widget-level: the axis type is shared, so this toggle
+                                                                shows the same state in every series panel. */}
+                                                            <div>
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={jsonTimeAxis}
+                                                                        onChange={(e) =>
+                                                                            setO({
+                                                                                echartJsonTimeAxis: e.target.checked,
+                                                                            })
+                                                                        }
+                                                                        className="accent-[var(--accent)]"
+                                                                    />
+                                                                    <span
+                                                                        className="text-[11px]"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.jsonTimeAxis')}
+                                                                    </span>
+                                                                </label>
+                                                                <p
+                                                                    className="text-[11px] mt-1"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.7,
+                                                                    }}
+                                                                >
+                                                                    {t('echart.jsonTimeAxisHint')}
+                                                                </p>
+                                                            </div>
                                                             <div className="flex gap-2">
                                                                 <div className="flex-1 min-w-0">
                                                                     <label
@@ -573,18 +729,13 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                     >
                                                                         {t('echart.jsonLabelKey')}
                                                                     </label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={s.jsonLabelKey ?? ''}
-                                                                        onChange={(e) =>
-                                                                            updateSeries(s.id, {
-                                                                                jsonLabelKey:
-                                                                                    e.target.value || undefined,
-                                                                            })
+                                                                    <JsonKeySelect
+                                                                        value={s.jsonLabelKey}
+                                                                        detected={probe?.labelKey}
+                                                                        keys={probe?.keys ?? []}
+                                                                        onChange={(v) =>
+                                                                            updateSeries(s.id, { jsonLabelKey: v })
                                                                         }
-                                                                        placeholder="label"
-                                                                        className={inputCls}
-                                                                        style={inputStyle}
                                                                     />
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
@@ -594,21 +745,39 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                     >
                                                                         {t('echart.jsonValueKey')}
                                                                     </label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={s.jsonValueKey ?? ''}
-                                                                        onChange={(e) =>
-                                                                            updateSeries(s.id, {
-                                                                                jsonValueKey:
-                                                                                    e.target.value || undefined,
-                                                                            })
+                                                                    <JsonKeySelect
+                                                                        value={s.jsonValueKey}
+                                                                        detected={probe?.valueKey}
+                                                                        keys={probe?.keys ?? []}
+                                                                        onChange={(v) =>
+                                                                            updateSeries(s.id, { jsonValueKey: v })
                                                                         }
-                                                                        placeholder="value"
-                                                                        className={inputCls}
-                                                                        style={inputStyle}
                                                                     />
                                                                 </div>
                                                             </div>
+                                                            {probe?.done && probe.invalid && (
+                                                                <p
+                                                                    className="text-[11px]"
+                                                                    style={{ color: 'var(--danger, #ef4444)' }}
+                                                                >
+                                                                    {t('echart.jsonNoArray')}
+                                                                </p>
+                                                            )}
+                                                            {probe?.done && !probe.invalid && (
+                                                                <p
+                                                                    className="text-[11px]"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.8,
+                                                                    }}
+                                                                >
+                                                                    {t('echart.jsonPreview', {
+                                                                        count: probe.entries,
+                                                                        label: probe.sampleLabel ?? '?',
+                                                                        value: probe.sampleValue ?? '?',
+                                                                    })}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )}
