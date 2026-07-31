@@ -44,6 +44,7 @@
     "format": "prettier --write src-vis main.js",
     "format:check": "prettier --check src-vis main.js",
     "test": "node test/adapter.test.js",
+    "test:group-fit": "node tools/tests/group-fit.mjs",
     "test:package": "node test/adapter.test.js",
     "test:integration": "node test/adapter.test.js",
     "release": "release-script",

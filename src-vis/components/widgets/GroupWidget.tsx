@@ -583,10 +583,15 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 ref={containerRef}
                 // `filled` groups: no CSS padding — the equal margin on all four sides
                 // comes from RGL containerPadding (GROUP_GAP) with the children scaled
-                // to fill, so the box hugs its rows without an extra empty row. Overflow
-                // hidden in the live view so the exact fill never shows a sub-px bar.
+                // to fill, so the box hugs its rows without an extra empty row.
+                // Overflow hidden in BOTH views: the box is derived from the children,
+                // so the grid itself always fits, but a child whose own content needs
+                // more room than its cell (a widget at 1-2 grid rows, or a small row
+                // height) spills past it — WidgetFrame is deliberately overflow-visible
+                // for badges. In the editor that spill used to raise the group's
+                // scrollbar while the frontend clipped it, so the two views disagreed.
                 // autoShrink keeps the classic p-1 inset and its scroll behaviour.
-                className={`flex-1 min-h-0 ${filled ? `p-0 ${editMode ? 'overflow-auto' : 'overflow-hidden'}` : 'overflow-auto p-1'}`}
+                className={`flex-1 min-h-0 ${filled ? 'p-0 overflow-hidden' : 'overflow-auto p-1'}`}
                 style={isCollapsed ? { display: 'none' } : undefined}
                 onMouseDown={editMode ? (e) => e.stopPropagation() : undefined}
                 onPointerDown={editMode ? (e) => e.stopPropagation() : undefined}
