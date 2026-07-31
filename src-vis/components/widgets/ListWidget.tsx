@@ -742,6 +742,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const globalInactiveBg = opts.inactiveBg;
     const showDividers = opts.showDividers ?? true;
     const HeaderIcon = getWidgetIcon(o.icon as string | undefined, List);
+    const statsAlign = opts.sumAlign ?? 'left';
 
     // ── Shared header ──────────────────────────────────────────────────────────
     const header =
@@ -758,13 +759,17 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             style={{ color: 'var(--text-secondary)' }}
                         />
                     )}
-                    <div className="flex-1 min-w-0">
+                    {/* Title and stats share one line: the title shrinks/truncates, the stats
+                        keep their natural width. sumAlign 'left' parks them right after the
+                        title, 'center'/'right' lets the stats box take the rest of the row. */}
+                    <div className="flex-1 min-w-0 flex items-center gap-2">
                         {showTitle && (
                             <p
-                                className="aura-widget-title text-xs font-semibold truncate"
+                                className="aura-widget-title text-xs font-semibold truncate min-w-0"
                                 style={{
                                     color: 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    flex: statsAlign === 'left' ? '0 1 auto' : '1 1 auto',
                                 }}
                             >
                                 {config.title || 'Statische Liste'}
@@ -777,16 +782,21 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             </p>
                         )}
                         {opts.showSum && sumInfo && (
-                            <StatLine
-                                stats={sumInfo}
-                                selected={opts.sumStats}
-                                labels={opts.statLabels}
-                                icons={opts.statIcons}
-                                sumLabel={opts.sumLabel}
-                                decimals={defaultDecimals}
-                                align={opts.sumAlign ?? 'left'}
-                                fontSize={opts.sumFontSize ?? 10}
-                            />
+                            <div
+                                className="min-w-0"
+                                style={{ flex: showTitle && statsAlign === 'left' ? '0 1 auto' : '1 1 auto' }}
+                            >
+                                <StatLine
+                                    stats={sumInfo}
+                                    selected={opts.sumStats}
+                                    labels={opts.statLabels}
+                                    icons={opts.statIcons}
+                                    sumLabel={opts.sumLabel}
+                                    decimals={defaultDecimals}
+                                    align={statsAlign}
+                                    fontSize={opts.sumFontSize ?? 10}
+                                />
+                            </div>
                         )}
                     </div>
                 </div>
