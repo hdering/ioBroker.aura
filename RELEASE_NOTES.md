@@ -6,5 +6,6 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 Static list - statistics are shown on the same line as the title instead of a second header row
-Group - new groups start as a taller, roughly square box instead of a narrow strip, so children fit without resizing the group first; default sizes dialog no longer caps width/height at 12
+Group - an empty group no longer collapses to a single grid row in the editor: it keeps its configured height and can be resized until the first child is added
+Group - new groups start wider and taller instead of as a narrow strip; default sizes dialog no longer caps width/height at 12
 Settings - every Design card (theme, CSS variables, typography and spacing, grid and mobile, guidelines and resolution, header, section menu, navigation, tab bar) has a "Reset" button that restores the default values, or removes the layout/section overrides in scoped views

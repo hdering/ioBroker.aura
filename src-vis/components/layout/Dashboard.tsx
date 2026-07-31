@@ -75,6 +75,16 @@ export function Dashboard({
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const groupDefs = useGroupDefsStore((s) => s.defs);
     const groupCollapsed = useGroupCollapseStore((s) => s.collapsed);
+    /** True for a group that actually holds children — i.e. one whose height is
+     *  derived from its content instead of the stored gridPos.h. */
+    const hasGroupChildren = useCallback(
+        (w?: WidgetConfig) => {
+            if (w?.type !== 'group') return false;
+            const defId = w.options?.defId as string | undefined;
+            return !!defId && (groupDefs[defId]?.length ?? 0) > 0;
+        },
+        [groupDefs],
+    );
     // Every widget on the dashboard, by id — used to resolve a mirror's source so
     // a mirror of a group can hug/derive its height exactly like the source group
     // does (a mirror is not type 'group', so without this it would render at its
@@ -570,7 +580,11 @@ export function Dashboard({
                                             !editMode &&
                                             !!gw.options?.defaultCollapsed &&
                                             (groupCollapsed[gw.id] ?? true);
-                                        const hugGroup = isGroup && !autoShrink && !groupCollapsedNow;
+                                        // An empty group has nothing to hug: without this it would clamp to
+                                        // minH (= 1 row) in the editor, so a fresh group came out as a flat
+                                        // strip and its stored height had no effect at all.
+                                        const hugGroup =
+                                            isGroup && !autoShrink && !groupCollapsedNow && groupChildren.length > 0;
 
                                         let minH = 1;
                                         // Editor: hug a group to its exact fit so a height stored under an
@@ -702,6 +716,7 @@ export function Dashboard({
                                             // auto-height widgets size to their content — neither's rendered
                                             // height is stored, so keep the canonical gridPos.h and never let a
                                             // transient value get persisted on an unrelated drag/resize.
+                                            // An empty group derives nothing, so its height stays user-settable.
                                             const mirrorSrc =
                                                 w.type === 'mirror'
                                                     ? widgetById.get(
@@ -709,8 +724,8 @@ export function Dashboard({
                                                       )
                                                     : undefined;
                                             const derivedH =
-                                                w.type === 'group' ||
-                                                mirrorSrc?.type === 'group' ||
+                                                hasGroupChildren(w) ||
+                                                hasGroupChildren(mirrorSrc) ||
                                                 (w.type === 'statusoverview' && w.options?.autoHeight === true);
                                             const h = derivedH ? w.gridPos.h : pos.h;
                                             return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };

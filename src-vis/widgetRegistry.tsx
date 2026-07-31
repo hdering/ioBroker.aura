@@ -475,12 +475,11 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         iconName: 'Layers2',
         color: '#a78bfa',
         // A group is a container, not a tile: at the default grid pitch (20px
-        // cell + 10px gap = 30px in both axes) this is roughly a 470x410 box —
-        // wide enough for a child tile plus its label, and clearly taller than
-        // the old 12x6 strip. The height only applies while the group is empty:
-        // once it has children it hugs them (see groupRows / Dashboard).
+        // cell + 10px gap = 30px in both axes) this is roughly a 470x200 box,
+        // instead of the old 12x6 strip. The height only applies while the group
+        // is empty: once it has children it hugs them (groupRows / Dashboard).
         defaultW: 16,
-        defaultH: 14,
+        defaultH: 7,
         addMode: 'free',
         widgetGroup: 'layout',
         mock: { t: 'Gruppe', v: '' },
