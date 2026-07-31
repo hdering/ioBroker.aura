@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.36.1 (2026-07-25)
+- Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices
+
 ## 0.36.0 (2026-07-25)
 - 🌟 **New feature:** Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles
 
