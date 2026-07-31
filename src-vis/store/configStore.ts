@@ -54,6 +54,13 @@ export interface FrontendSettings {
      * top/bottom: permanently docked horizontal section bar (like the tab bar) above / below the dashboard.
      */
     layoutDrawerPlacement: 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
+    /**
+     * Placement below the mobile breakpoint, where a docked sidebar would eat too
+     * much horizontal space. 'auto' puts the hamburger into the tab bar when that
+     * bar is visible anyway and floats it otherwise, so a single-tab section can
+     * keep its bar-less look; any other value forces that placement on mobile.
+     */
+    layoutDrawerMobilePlacement: 'auto' | 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
     /** Width in px of the docked sidebar (placement='sidebar'). */
     layoutDrawerWidth: number;
     /** Top offset in px of the docked sidebar menu content (placement='sidebar'). */
@@ -176,6 +183,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerSize: 'md',
     layoutDrawerAutoHide: false,
     layoutDrawerPlacement: 'floating',
+    layoutDrawerMobilePlacement: 'auto',
     layoutDrawerWidth: 240,
     layoutDrawerTopOffset: 0,
     layoutDrawerBottomOffset: 0,

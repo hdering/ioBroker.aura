@@ -141,6 +141,7 @@ export interface LayoutSettings {
     layoutDrawerSize?: 'sm' | 'md' | 'lg';
     layoutDrawerAutoHide?: boolean;
     layoutDrawerPlacement?: 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
+    layoutDrawerMobilePlacement?: 'auto' | 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
     layoutDrawerWidth?: number;
     layoutDrawerTopOffset?: number;
     layoutDrawerBottomOffset?: number;

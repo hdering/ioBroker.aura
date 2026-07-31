@@ -18,6 +18,7 @@ import { IconPickerModal } from '../config/IconPickerModal';
 import { useT } from '../../i18n';
 import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
+import { tabBarShowsOnOwn } from '../../utils/tabBarVisible';
 import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
 import { useBadges, useTabBadgeAggregate } from '../../hooks/useBadges';
 import { ConditionEditor } from '../config/ConditionEditor';
@@ -354,8 +355,9 @@ export function TabBar({
 
     // Hide the bar only when there is genuinely nothing to show: a single tab and
     // no extra items. Tab-bar items (clock / datapoint / text) — global, layout or
-    // section scope — must render even when the section has just one tab.
-    if (tabs.length <= 1 && readonly && !headerSlot && !tbSettings?.showSingle && items.length === 0) return null;
+    // section scope — must render even when the section has just one tab, and so
+    // must an injected headerSlot (the section-menu hamburger placed in the bar).
+    if (readonly && !headerSlot && !tabBarShowsOnOwn(tabs.length, tbSettings)) return null;
 
     const settingsTab = tabs.find((t) => t.id === settingsTabId);
 

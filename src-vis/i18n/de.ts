@@ -110,6 +110,10 @@ export const de = {
     'settings.frontend.layoutDrawerPlacementBottom': 'Leiste unten',
     'settings.frontend.layoutDrawerPlacementHint':
         'Schwebend/Tab-Leiste zeigen einen Hamburger mit Overlay (nur bei ausgeblendetem Header). Feste Seitenleiste ist ein dauerhaft sichtbares Menü links. Leiste oben/unten ist eine waagerechte Bereichsleiste wie die Tab-Leiste – oben liegt sie über der Tab-Leiste.',
+    'settings.frontend.layoutDrawerMobilePlacement': 'Platzierung auf Mobilgeräten',
+    'settings.frontend.layoutDrawerMobilePlacementAuto': 'Automatisch',
+    'settings.frontend.layoutDrawerMobilePlacementHint':
+        'Gilt unterhalb des Mobil-Umbruchpunkts. „Automatisch“ ersetzt nur die feste Seitenleiste: der Hamburger wandert in die Tab-Leiste, wenn diese ohnehin sichtbar ist – sonst schwebt er, damit eine Leiste mit nur einem Tab ausgeblendet bleibt.',
     'settings.frontend.layoutDrawerWidth': 'Breite der Seitenleiste',
     'settings.frontend.layoutDrawerTopOffset': 'Abstand nach oben',
     'settings.frontend.layoutDrawerBottomOffset': 'Abstand nach unten',

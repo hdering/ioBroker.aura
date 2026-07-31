@@ -35,6 +35,7 @@ import { useIframeStore } from './store/iframeStore';
 import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
 import { applyCustomFormat, fmtTime, fmtDate } from './utils/clockUtils';
+import { tabBarShowsOnOwn } from './utils/tabBarVisible';
 import type { Tab } from './store/dashboardStore';
 import type { FrontendSettings } from './store/configStore';
 
@@ -824,27 +825,45 @@ export default function App() {
         (visibleSectionCount > 1 || (effectiveSettings.layoutDrawerShowSingle ?? false));
     const drawerSize = effectiveSettings.layoutDrawerSize ?? 'md';
     const drawerAutoHide = effectiveSettings.layoutDrawerAutoHide ?? false;
-    const drawerPlacement = effectiveSettings.layoutDrawerPlacement ?? 'floating';
+    // Tab-bar settings cascade global → layout → section, same as the bar itself.
+    const tabBarResolved = resolveTabBarSettings(
+        resolveTabBarSettings(frontend.tabBar, layout?.settings?.tabBar),
+        section?.settings?.tabBar,
+    );
+    // Below the mobile breakpoint the configured mobile placement wins outright.
+    // 'auto' only rewrites a docked sidebar (which would eat the whole screen width
+    // there): into the tab bar when that bar is visible anyway, otherwise as a
+    // floating hamburger — so a single-tab section keeps its clean, bar-less look.
+    // Every other desktop placement passes through unchanged.
+    const desktopPlacement = effectiveSettings.layoutDrawerPlacement ?? 'floating';
+    const mobilePlacement = effectiveSettings.layoutDrawerMobilePlacement ?? 'auto';
+    const autoMobilePlacement =
+        desktopPlacement === 'sidebar'
+            ? tabBarShowsOnOwn(tabs.length, tabBarResolved)
+                ? 'tabbar'
+                : 'floating'
+            : desktopPlacement;
+    const mobileChoice = mobilePlacement === 'auto' ? autoMobilePlacement : mobilePlacement;
+    const drawerPlacement = isMobileViewport ? mobileChoice : desktopPlacement;
+    // A mobile placement that deliberately differs from the desktop one — explicitly
+    // configured, or the auto-rewritten sidebar — is the chosen host even when a
+    // header is shown; the header rules below only guard the pass-through case.
+    const mobileRelocated = isMobileViewport && (mobilePlacement !== 'auto' || mobileChoice !== desktopPlacement);
     // Docked sidebar: always-visible left menu, works with or without header — overrides overlay placements.
-    // On mobile it would eat too much horizontal space, so it collapses into the tab bar as an
-    // overlay hamburger and re-docks on wider viewports.
-    const drawerSidebar = drawerEnabled && drawerPlacement === 'sidebar' && !isMobileViewport;
-    const drawerSidebarCollapsed = drawerEnabled && drawerPlacement === 'sidebar' && isMobileViewport;
+    const drawerSidebar = drawerEnabled && drawerPlacement === 'sidebar';
     const drawerWidth = effectiveSettings.layoutDrawerWidth ?? 240;
     // Docked horizontal section bar (like the tab bar), above or below the dashboard.
     // Works with or without the header — the bar is self-contained (no hamburger).
     const drawerBarTop = drawerEnabled && drawerPlacement === 'top';
     const drawerBarBottom = drawerEnabled && drawerPlacement === 'bottom';
     const drawerBar = drawerBarTop || drawerBarBottom;
-    // Tab-bar hamburger: either the explicit tabbar placement, or a docked sidebar that
-    // collapsed on mobile — the collapsed sidebar always lands here, even with a header shown.
+    // Exactly one host shows the hamburger: the tab bar, a floating overlay button or
+    // the header. Tab bar wins when that placement is active — with a visible header
+    // only if the menu was relocated for mobile, otherwise the header hosts it.
     const drawerInTabBar =
-        (drawerEnabled &&
-            !drawerSidebar &&
-            !effectiveSettings.showHeader &&
-            drawerPlacement === 'tabbar' &&
-            !drawerAutoHide) ||
-        drawerSidebarCollapsed;
+        drawerEnabled &&
+        drawerPlacement === 'tabbar' &&
+        (mobileRelocated || (!effectiveSettings.showHeader && !drawerAutoHide));
     const drawerFloating =
         drawerEnabled && !drawerSidebar && !drawerBar && !effectiveSettings.showHeader && !drawerInTabBar;
     const drawerShowTitle = effectiveSettings.layoutDrawerShowTitle ?? true;
@@ -859,12 +878,7 @@ export default function App() {
     const drawerItems = effectiveSettings.layoutDrawerItems ?? [];
 
     // Tab bar can be placed above the dashboard (default) or as a footer below it.
-    // Resolve the same global → layout → section cascade the bar itself uses.
-    const tabBarAtBottom =
-        resolveTabBarSettings(
-            resolveTabBarSettings(frontend.tabBar, layout?.settings?.tabBar),
-            section?.settings?.tabBar,
-        ).position === 'bottom';
+    const tabBarAtBottom = tabBarResolved.position === 'bottom';
 
     const tabBarNode = (
         <TabBar
@@ -976,7 +990,7 @@ export default function App() {
                             style={{ background: 'var(--app-surface)', borderBottom: '1px solid var(--app-border)' }}
                         >
                             <div className="flex items-center gap-3 min-w-0">
-                                {drawerEnabled && !drawerSidebar && !drawerSidebarCollapsed && !drawerBar && (
+                                {drawerEnabled && !drawerSidebar && !drawerInTabBar && !drawerBar && (
                                     <LayoutDrawer
                                         activeLayoutId={layout?.id}
                                         activeSectionId={section?.id}

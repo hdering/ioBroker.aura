@@ -4,6 +4,7 @@ import { X, Monitor } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { guidelinesTopInset, insetKeyFor, readMeasuredInset, storeMeasuredInset } from '../../utils/guidelinesInset';
+import { tabBarShowsOnOwn } from '../../utils/tabBarVisible';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useGroupCollapseStore } from '../../store/groupCollapseStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
@@ -137,8 +138,10 @@ export function Dashboard({
         section?.settings?.tabBar,
     );
     const guidelineTabs = viewTabs ?? section?.tabs ?? [];
-    const tabBarVisible =
-        guidelineTabs.length > 1 || (tabBarResolved.showSingle ?? false) || (tabBarResolved.items?.length ?? 0) > 0;
+    // Same rule the bar itself uses. A section-menu hamburger injected into the bar
+    // can make it render for a single tab too, but that only happens on mobile —
+    // this estimator deliberately describes the desktop chrome (see file header).
+    const tabBarVisible = tabBarShowsOnOwn(guidelineTabs.length, tabBarResolved);
     const guidelinesFallbackInset = guidelinesTopInset({
         showHeader: settings.showHeader ?? true,
         tabBarVisible,

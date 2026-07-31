@@ -2214,7 +2214,9 @@ export function AdminEditor() {
     const drawerSidebarPreview =
         (editorSettings.layoutDrawerEnabled ?? false) &&
         (editorSettings.layoutDrawerPlacement ?? 'floating') === 'sidebar' &&
-        !isMobileViewport &&
+        // On a narrow editor window the frontend only keeps the docked sidebar when the
+        // mobile placement explicitly says so — otherwise it becomes a hamburger there.
+        (!isMobileViewport || (editorSettings.layoutDrawerMobilePlacement ?? 'auto') === 'sidebar') &&
         activeSectionForEditor &&
         ((useDashboardStore
             .getState()

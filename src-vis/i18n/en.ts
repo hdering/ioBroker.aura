@@ -111,6 +111,10 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerPlacementBottom': 'Bar at bottom',
     'settings.frontend.layoutDrawerPlacementHint':
         'Floating/tab bar show a hamburger with an overlay (header hidden only). Docked sidebar is a permanently visible left menu. Bar at top/bottom is a horizontal section bar like the tab bar — at the top it sits above the tab bar.',
+    'settings.frontend.layoutDrawerMobilePlacement': 'Placement on mobile',
+    'settings.frontend.layoutDrawerMobilePlacementAuto': 'Automatic',
+    'settings.frontend.layoutDrawerMobilePlacementHint':
+        'Applies below the mobile breakpoint. "Automatic" only replaces the docked sidebar: the hamburger moves into the tab bar when that bar is visible anyway — otherwise it floats, so a bar with just one tab stays hidden.',
     'settings.frontend.layoutDrawerWidth': 'Sidebar width',
     'settings.frontend.layoutDrawerTopOffset': 'Top offset',
     'settings.frontend.layoutDrawerBottomOffset': 'Bottom offset',

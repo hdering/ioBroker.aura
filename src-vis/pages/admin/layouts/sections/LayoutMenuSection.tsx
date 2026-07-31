@@ -14,6 +14,7 @@ const DRAWER_KEYS: (keyof LayoutSettings)[] = [
     'layoutDrawerSize',
     'layoutDrawerAutoHide',
     'layoutDrawerPlacement',
+    'layoutDrawerMobilePlacement',
     'layoutDrawerWidth',
     'layoutDrawerTopOffset',
     'layoutDrawerBottomOffset',
@@ -318,6 +319,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         layoutDrawerSize: eff('layoutDrawerSize')[0],
         layoutDrawerAutoHide: eff('layoutDrawerAutoHide')[0],
         layoutDrawerPlacement: eff('layoutDrawerPlacement')[0],
+        layoutDrawerMobilePlacement: eff('layoutDrawerMobilePlacement')[0],
         layoutDrawerWidth: eff('layoutDrawerWidth')[0],
         layoutDrawerTopOffset: eff('layoutDrawerTopOffset')[0],
         layoutDrawerBottomOffset: eff('layoutDrawerBottomOffset')[0],
@@ -523,6 +525,45 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                         </div>
                         <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                             {t('settings.frontend.layoutDrawerPlacementHint')}
+                        </p>
+                    </div>
+                    {/* Separate placement below the mobile breakpoint — a docked sidebar
+                        would eat the whole screen width there, and everyone wants a
+                        different substitute (hamburger in the bar, floating, bar at the
+                        bottom). 'auto' keeps the tab bar hideable on single-tab sections. */}
+                    <div>
+                        <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                            {t('settings.frontend.layoutDrawerMobilePlacement')}
+                        </p>
+                        <div className="flex gap-1.5 flex-wrap">
+                            {(['auto', 'floating', 'tabbar', 'sidebar', 'top', 'bottom'] as const).map((v) => {
+                                const labels = {
+                                    auto: t('settings.frontend.layoutDrawerMobilePlacementAuto'),
+                                    floating: t('settings.frontend.layoutDrawerPlacementFloating'),
+                                    tabbar: t('settings.frontend.layoutDrawerPlacementTabbar'),
+                                    sidebar: t('settings.frontend.layoutDrawerPlacementSidebar'),
+                                    top: t('settings.frontend.layoutDrawerPlacementTop'),
+                                    bottom: t('settings.frontend.layoutDrawerPlacementBottom'),
+                                };
+                                const active = (frontend.layoutDrawerMobilePlacement ?? 'auto') === v;
+                                return (
+                                    <button
+                                        key={v}
+                                        onClick={() => updateFrontend({ layoutDrawerMobilePlacement: v })}
+                                        className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {labels[v]}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            {t('settings.frontend.layoutDrawerMobilePlacementHint')}
                         </p>
                     </div>
                     {/* Placement-dependent options as an indented sub-group directly under the
