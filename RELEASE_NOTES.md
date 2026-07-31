@@ -6,7 +6,7 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 Static list - statistics are shown on the same line as the title instead of a second header row
-Group - no more inner scrollbar in the editor: the group box and its children now use the same (layout and section scoped) grid settings, the header height is measured instead of assumed, and the fitted height always covers the content
+Group - the editor now shows the same spacing as the frontend: children fill the group box in both views, so no oversized gap below the last widget and no inner scrollbar (grid settings, header height and fitted height are resolved identically now)
 Group - an empty group no longer collapses to a single grid row in the editor: it keeps its configured height and can be resized until the first child is added
 Group - new groups start wider and taller instead of as a narrow strip; default sizes dialog no longer caps width/height at 12
 Settings - every Design card (theme, CSS variables, typography and spacing, grid and mobile, guidelines and resolution, header, section menu, navigation, tab bar) has a "Reset" button that restores the default values, or removes the layout/section overrides in scoped views

@@ -277,14 +277,19 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const maxRow = gridChildren.length ? Math.max(...gridChildren.map((c) => c.gridPos.y + c.gridPos.h)) : 0;
     // Fill-scaling ties EVERY child to one derived rowHeight (box height / maxRow),
     // so resizing one child changes maxRow → recomputes the shared rowHeight →
-    // visibly rescales the others (issue #500). That coupling is only wanted for the
-    // pixel-perfect hug in the live frontend; in the editor use the fixed cellSize
-    // pitch so resize/drag is 1:1 and each child is independent (uniform GROUP_GAP
-    // spacing is kept via margin/containerPadding below). shrinkToFit still hugs the
-    // outer box on every edit, so no visible slack remains.
+    // visibly rescales the others (issue #500). It is used in BOTH views anyway: the
+    // outer box can only snap to whole outer rows, while the children sit on the
+    // denser GROUP_GAP pitch, so a fixed inner pitch always leaves up to one outer
+    // row of slack at the bottom. In the frontend the fill absorbs it; leaving the
+    // editor on the fixed cellSize pitch made that slack visible as a big gap
+    // between the last child and the group edge, i.e. the editor no longer showed
+    // what the frontend renders. The rescale is bounded by that slack (< 1 row
+    // spread over maxRow rows), and shrinkToFit re-hugs the box on every edit.
+    // Truncated to 1/100 px so the rows can never sum a hair ABOVE the box — the
+    // editor's overflow-auto would answer that with a scrollbar.
     const fillRowHeight =
-        filled && !editMode && height > 0 && maxRow > 0
-            ? Math.max(8, (height - (maxRow + 1) * GROUP_GAP) / maxRow)
+        filled && height > 0 && maxRow > 0
+            ? Math.max(8, Math.floor(((height - (maxRow + 1) * GROUP_GAP) / maxRow) * 100) / 100)
             : null;
 
     // keepGrid uses square cells (rowHeight = colWidth) so width AND height scale
