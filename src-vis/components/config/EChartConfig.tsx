@@ -46,6 +46,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const series = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
     const isComparison = echartMode === 'comparison';
+    const isJson = echartMode === 'json';
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
@@ -64,6 +65,11 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const frontendPresets = CHART_RANGES.filter((r) => r !== 'custom');
     const visibleRanges = (o.echartVisibleRanges as EChartTimeRange[] | undefined) ?? frontendPresets;
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
+    /** Switching the mode also flips every series' data source, so no series is left half-configured. */
+    const setMode = (mode: 'timeseries' | 'comparison' | 'json') => {
+        const source: EChartSeriesConfig['source'] = mode === 'json' ? 'json' : 'history';
+        setO({ echartMode: mode, echartSeries: series.map((s) => ({ ...s, source })) });
+    };
     const toggleVisibleRange = (r: EChartTimeRange) => {
         const next = visibleRanges.includes(r)
             ? visibleRanges.filter((x) => x !== r)
@@ -99,6 +105,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
             datapointId: '',
             chartType: 'line',
             color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'][series.length % 6],
+            source: isJson ? 'json' : 'history',
             historyRange: '24h',
             smooth: true,
             yAxisIndex: 0,
@@ -129,6 +136,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
             // Template datapoints ({{dp}}, {{parent}}.x) can't be resolved to a real object,
             // so adapter detection is skipped — a free-text instance field is shown instead.
             if (!s.datapointId || s.datapointId.includes('{{')) continue;
+            // JSON series read the datapoint value directly — no history adapter involved.
+            if (s.source === 'json') continue;
             const existing = adapterStates[s.id];
             // Only re-detect if we haven't already
             if (existing) continue;
@@ -179,10 +188,10 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     {t('echart.mode')}
                 </label>
                 <div className="flex gap-1">
-                    {(['timeseries', 'comparison'] as const).map((m) => (
+                    {(['timeseries', 'comparison', 'json'] as const).map((m) => (
                         <button
                             key={m}
-                            onClick={() => setO({ echartMode: m })}
+                            onClick={() => setMode(m)}
                             className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
                             style={{
                                 background: echartMode === m ? 'var(--accent)' : 'var(--app-bg)',
@@ -190,10 +199,19 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 border: `1px solid ${echartMode === m ? 'var(--accent)' : 'var(--app-border)'}`,
                             }}
                         >
-                            {m === 'timeseries' ? t('echart.modeTimeseries') : t('echart.modeComparison')}
+                            {m === 'timeseries'
+                                ? t('echart.modeTimeseries')
+                                : m === 'comparison'
+                                  ? t('echart.modeComparison')
+                                  : t('echart.modeJson')}
                         </button>
                     ))}
                 </div>
+                {isJson && (
+                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {t('echart.jsonHint')}
+                    </p>
+                )}
             </div>
 
             {/* ── Series list ──────────────────────────────────────────────────── */}
@@ -497,87 +515,108 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                     </div>
                                                 )}
 
-                                                <div>
-                                                    <div
-                                                        className="h-px my-1"
-                                                        style={{ background: 'var(--app-border)' }}
-                                                    />
-                                                    <p
-                                                        className="text-[11px] font-semibold mb-1.5"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {t('echart.history')}
-                                                    </p>
-                                                    {!s.datapointId && (
+                                                {isJson && (
+                                                    <div>
+                                                        <div
+                                                            className="h-px my-1"
+                                                            style={{ background: 'var(--app-border)' }}
+                                                        />
                                                         <p
-                                                            className="text-[11px]"
+                                                            className="text-[11px] font-semibold mb-1.5"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
-                                                            {t('echart.selectDpFirst')}
+                                                            {t('echart.jsonSection')}
                                                         </p>
-                                                    )}
-                                                    {s.datapointId && isTpl && (
-                                                        <div>
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                {t('echart.instance')}
-                                                            </label>
-                                                            <input
-                                                                type="text"
-                                                                placeholder={t('echart.templateInstancePlaceholder')}
-                                                                value={s.historyInstance ?? ''}
-                                                                onChange={(e) =>
-                                                                    updateSeries(s.id, {
-                                                                        historyInstance: e.target.value || undefined,
-                                                                    })
-                                                                }
-                                                                className={inputCls}
-                                                                style={inputStyle}
-                                                            />
-                                                            <p
-                                                                className="text-[11px] mt-1"
-                                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                            >
-                                                                {t('echart.templateInstanceHint')}
-                                                            </p>
+                                                        <div className="flex flex-col gap-2">
+                                                            <div>
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {t('echart.jsonPath')}
+                                                                </label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={s.jsonPath ?? ''}
+                                                                    onChange={(e) =>
+                                                                        updateSeries(s.id, {
+                                                                            jsonPath: e.target.value || undefined,
+                                                                        })
+                                                                    }
+                                                                    placeholder={t('echart.jsonPathPlaceholder')}
+                                                                    className={inputCls}
+                                                                    style={inputStyle}
+                                                                />
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <div className="flex-1 min-w-0">
+                                                                    <label
+                                                                        className="text-[11px] mb-1 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.jsonLabelKey')}
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={s.jsonLabelKey ?? ''}
+                                                                        onChange={(e) =>
+                                                                            updateSeries(s.id, {
+                                                                                jsonLabelKey:
+                                                                                    e.target.value || undefined,
+                                                                            })
+                                                                        }
+                                                                        placeholder="label"
+                                                                        className={inputCls}
+                                                                        style={inputStyle}
+                                                                    />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <label
+                                                                        className="text-[11px] mb-1 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.jsonValueKey')}
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={s.jsonValueKey ?? ''}
+                                                                        onChange={(e) =>
+                                                                            updateSeries(s.id, {
+                                                                                jsonValueKey:
+                                                                                    e.target.value || undefined,
+                                                                            })
+                                                                        }
+                                                                        placeholder="value"
+                                                                        className={inputCls}
+                                                                        style={inputStyle}
+                                                                    />
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                    )}
-                                                    {s.datapointId && !isTpl && adState?.checking && (
+                                                    </div>
+                                                )}
+
+                                                {!isJson && (
+                                                    <div>
+                                                        <div
+                                                            className="h-px my-1"
+                                                            style={{ background: 'var(--app-border)' }}
+                                                        />
                                                         <p
-                                                            className="text-[11px]"
+                                                            className="text-[11px] font-semibold mb-1.5"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
-                                                            {t('echart.checking')}
+                                                            {t('echart.history')}
                                                         </p>
-                                                    )}
-                                                    {s.datapointId && !isTpl && !adState?.checking && !adState && (
-                                                        <button
-                                                            onClick={() => refreshAdapters(s.id, s.datapointId)}
-                                                            className="text-[11px] hover:opacity-80"
-                                                            style={{ color: 'var(--accent)' }}
-                                                        >
-                                                            {t('echart.detect')}
-                                                        </button>
-                                                    )}
-                                                    {s.datapointId &&
-                                                        !isTpl &&
-                                                        adState &&
-                                                        !adState.checking &&
-                                                        adState.adapters.length === 0 && (
+                                                        {!s.datapointId && (
                                                             <p
                                                                 className="text-[11px]"
                                                                 style={{ color: 'var(--text-secondary)' }}
                                                             >
-                                                                {t('echart.noAdapter')}
+                                                                {t('echart.selectDpFirst')}
                                                             </p>
                                                         )}
-                                                    {s.datapointId &&
-                                                        !isTpl &&
-                                                        adState &&
-                                                        !adState.checking &&
-                                                        adState.adapters.length > 0 && (
+                                                        {s.datapointId && isTpl && (
                                                             <div>
                                                                 <label
                                                                     className="text-[11px] mb-1 block"
@@ -585,7 +624,11 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 >
                                                                     {t('echart.instance')}
                                                                 </label>
-                                                                <select
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder={t(
+                                                                        'echart.templateInstancePlaceholder',
+                                                                    )}
                                                                     value={s.historyInstance ?? ''}
                                                                     onChange={(e) =>
                                                                         updateSeries(s.id, {
@@ -595,50 +638,118 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                     }
                                                                     className={inputCls}
                                                                     style={inputStyle}
+                                                                />
+                                                                <p
+                                                                    className="text-[11px] mt-1"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.7,
+                                                                    }}
                                                                 >
-                                                                    <option value="">{t('echart.liveData')}</option>
-                                                                    {adState.adapters.map((a) => (
-                                                                        <option key={a.instance} value={a.instance}>
-                                                                            {a.label}
-                                                                        </option>
-                                                                    ))}
+                                                                    {t('echart.templateInstanceHint')}
+                                                                </p>
+                                                            </div>
+                                                        )}
+                                                        {s.datapointId && !isTpl && adState?.checking && (
+                                                            <p
+                                                                className="text-[11px]"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                {t('echart.checking')}
+                                                            </p>
+                                                        )}
+                                                        {s.datapointId && !isTpl && !adState?.checking && !adState && (
+                                                            <button
+                                                                onClick={() => refreshAdapters(s.id, s.datapointId)}
+                                                                className="text-[11px] hover:opacity-80"
+                                                                style={{ color: 'var(--accent)' }}
+                                                            >
+                                                                {t('echart.detect')}
+                                                            </button>
+                                                        )}
+                                                        {s.datapointId &&
+                                                            !isTpl &&
+                                                            adState &&
+                                                            !adState.checking &&
+                                                            adState.adapters.length === 0 && (
+                                                                <p
+                                                                    className="text-[11px]"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {t('echart.noAdapter')}
+                                                                </p>
+                                                            )}
+                                                        {s.datapointId &&
+                                                            !isTpl &&
+                                                            adState &&
+                                                            !adState.checking &&
+                                                            adState.adapters.length > 0 && (
+                                                                <div>
+                                                                    <label
+                                                                        className="text-[11px] mb-1 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.instance')}
+                                                                    </label>
+                                                                    <select
+                                                                        value={s.historyInstance ?? ''}
+                                                                        onChange={(e) =>
+                                                                            updateSeries(s.id, {
+                                                                                historyInstance:
+                                                                                    e.target.value || undefined,
+                                                                            })
+                                                                        }
+                                                                        className={inputCls}
+                                                                        style={inputStyle}
+                                                                    >
+                                                                        <option value="">{t('echart.liveData')}</option>
+                                                                        {adState.adapters.map((a) => (
+                                                                            <option key={a.instance} value={a.instance}>
+                                                                                {a.label}
+                                                                            </option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                            )}
+                                                        {s.datapointId && s.historyInstance && (
+                                                            <div className="mt-1.5">
+                                                                <label
+                                                                    className="text-[11px] mb-1 block"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {t('echart.aggregation')}
+                                                                </label>
+                                                                <select
+                                                                    value={s.aggregate ?? 'average'}
+                                                                    onChange={(e) =>
+                                                                        updateSeries(s.id, {
+                                                                            aggregate:
+                                                                                e.target.value === 'average'
+                                                                                    ? undefined
+                                                                                    : (e.target
+                                                                                          .value as EChartSeriesConfig['aggregate']),
+                                                                        })
+                                                                    }
+                                                                    className={inputCls}
+                                                                    style={inputStyle}
+                                                                >
+                                                                    <option value="average">
+                                                                        {t('echart.aggAverage')}
+                                                                    </option>
+                                                                    <option value="minmax">
+                                                                        {t('echart.aggMinmax')}
+                                                                    </option>
+                                                                    <option value="max">{t('echart.aggMax')}</option>
+                                                                    <option value="min">{t('echart.aggMin')}</option>
+                                                                    <option value="total">
+                                                                        {t('echart.aggTotal')}
+                                                                    </option>
+                                                                    <option value="none">{t('echart.aggNone')}</option>
                                                                 </select>
                                                             </div>
                                                         )}
-                                                    {s.datapointId && s.historyInstance && (
-                                                        <div className="mt-1.5">
-                                                            <label
-                                                                className="text-[11px] mb-1 block"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                {t('echart.aggregation')}
-                                                            </label>
-                                                            <select
-                                                                value={s.aggregate ?? 'average'}
-                                                                onChange={(e) =>
-                                                                    updateSeries(s.id, {
-                                                                        aggregate:
-                                                                            e.target.value === 'average'
-                                                                                ? undefined
-                                                                                : (e.target
-                                                                                      .value as EChartSeriesConfig['aggregate']),
-                                                                    })
-                                                                }
-                                                                className={inputCls}
-                                                                style={inputStyle}
-                                                            >
-                                                                <option value="average">
-                                                                    {t('echart.aggAverage')}
-                                                                </option>
-                                                                <option value="minmax">{t('echart.aggMinmax')}</option>
-                                                                <option value="max">{t('echart.aggMax')}</option>
-                                                                <option value="min">{t('echart.aggMin')}</option>
-                                                                <option value="total">{t('echart.aggTotal')}</option>
-                                                                <option value="none">{t('echart.aggNone')}</option>
-                                                            </select>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                                    </div>
+                                                )}
                                             </>
                                         )}
                                     </div>

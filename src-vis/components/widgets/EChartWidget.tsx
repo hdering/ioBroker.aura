@@ -125,7 +125,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // is configured.
     const effectiveSeries = echartSeries.map((s) => ({
         ...s,
-        historyInstance: s.historyInstance ?? resolved[s.id]?.instance,
+        // JSON series never carry a history instance — auto-detection must not graft one on,
+        // or the range selector would appear for data that has no time window.
+        historyInstance: s.source === 'json' ? undefined : (s.historyInstance ?? resolved[s.id]?.instance),
         historyRange: activeRange,
         historyRangeCustomValue: activeCustomVal,
         historyRangeCustomUnit: activeCustomUnit,
@@ -223,6 +225,56 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const effHasData =
         isPreview || hasAnyData || (echartSeries.length > 0 && !allLoading && (dayWindow !== null || hasHistory));
     const effLoading = !isPreview && allLoading;
+
+    // ── Shared y axes and current-value block (used by the timeseries and JSON branches) ──
+    const hasRightAxis = echartSeries.some((s) => (s.yAxisIndex ?? 0) === 1);
+
+    const leftAxis: Record<string, unknown> = {
+        type: 'value',
+        // Fit the axis to the data range instead of forcing zero in — otherwise a
+        // line at e.g. 200–250 sits at the top with the whole 0–200 band left blank.
+        scale: true,
+        axisLabel: {
+            show: echartShowYAxis,
+            color: '#888',
+            fontSize: 10,
+            formatter: echartLeftUnit ? `{value} ${echartLeftUnit}` : '{value}',
+        },
+        axisTick: { show: echartShowYAxis },
+        axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
+        splitLine: { show: echartShowYAxis && echartShowGridLines, lineStyle: { color: '#333' } },
+        ...(echartLeftMin !== undefined ? { min: echartLeftMin } : {}),
+        ...(echartLeftMax !== undefined ? { max: echartLeftMax } : {}),
+    };
+
+    const rightAxis: Record<string, unknown> = hasRightAxis
+        ? {
+              type: 'value',
+              scale: true,
+              axisLabel: {
+                  show: echartShowYAxis,
+                  color: '#888',
+                  fontSize: 10,
+                  formatter: echartRightUnit ? `{value} ${echartRightUnit}` : '{value}',
+              },
+              axisTick: { show: echartShowYAxis },
+              axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
+              splitLine: { show: false },
+              ...(echartRightMin !== undefined ? { min: echartRightMin } : {}),
+              ...(echartRightMax !== undefined ? { max: echartRightMax } : {}),
+          }
+        : { show: false };
+
+    // Current value(s) shown top-right — one per series, tinted with its colour.
+    const currentValues = echartSeries
+        .map((s, idx) => ({
+            value: seriesCurrent(idx, s.id),
+            color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
+            unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+        }))
+        .filter((c) => c.value !== null);
+
+    const showCurrentBlock = echartShowCurrent && currentValues.length > 0;
 
     // Gauge mode: show first series' current value as a gauge
     if (isGauge) {
@@ -436,43 +488,175 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         );
     }
 
-    const hasRightAxis = echartSeries.some((s) => (s.yAxisIndex ?? 0) === 1);
+    // JSON mode: each series reads a label/value array straight out of its datapoint, so the
+    // x axis is categorical (the labels) instead of a time axis (issue #509).
+    if (echartMode === 'json') {
+        const pointsPerSeries = echartSeries.map((s) => seriesDataMap.get(s.id)?.points ?? []);
 
-    const leftAxis: Record<string, unknown> = {
-        type: 'value',
-        // Fit the axis to the data range instead of forcing zero in — otherwise a
-        // line at e.g. 200–250 sits at the top with the whole 0–200 band left blank.
-        scale: true,
-        axisLabel: {
-            show: echartShowYAxis,
-            color: '#888',
-            fontSize: 10,
-            formatter: echartLeftUnit ? `{value} ${echartLeftUnit}` : '{value}',
-        },
-        axisTick: { show: echartShowYAxis },
-        axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
-        splitLine: { show: echartShowYAxis && echartShowGridLines, lineStyle: { color: '#333' } },
-        ...(echartLeftMin !== undefined ? { min: echartLeftMin } : {}),
-        ...(echartLeftMax !== undefined ? { max: echartLeftMax } : {}),
-    };
+        // Category order: first series wins, labels only present in later series are appended.
+        const categories: string[] = [];
+        const seen = new Set<string>();
+        for (const points of pointsPerSeries) {
+            for (const p of points) {
+                if (seen.has(p.label)) continue;
+                seen.add(p.label);
+                categories.push(p.label);
+            }
+        }
 
-    const rightAxis: Record<string, unknown> = hasRightAxis
-        ? {
-              type: 'value',
-              scale: true,
-              axisLabel: {
-                  show: echartShowYAxis,
-                  color: '#888',
-                  fontSize: 10,
-                  formatter: echartRightUnit ? `{value} ${echartRightUnit}` : '{value}',
-              },
-              axisTick: { show: echartShowYAxis },
-              axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
-              splitLine: { show: false },
-              ...(echartRightMin !== undefined ? { min: echartRightMin } : {}),
-              ...(echartRightMax !== undefined ? { max: echartRightMax } : {}),
-          }
-        : { show: false };
+        const jsonSeriesList = echartSeries.map((s, idx) => {
+            const byLabel = new Map(pointsPerSeries[idx].map((p) => [p.label, p.value]));
+            return {
+                name: s.name,
+                type: s.chartType === 'area' ? 'line' : s.chartType,
+                areaStyle: s.chartType === 'area' ? { opacity: 0.2 } : undefined,
+                smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
+                smoothMonotone: 'x',
+                lineStyle: { width: s.lineWidth ?? 2 },
+                itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
+                // Labels missing from this series stay null so the line breaks instead of
+                // silently shifting the remaining points onto the wrong categories.
+                data: categories.map((c) => byLabel.get(c) ?? null),
+                yAxisIndex: s.yAxisIndex ?? 0,
+                showSymbol: false,
+            };
+        });
+
+        const jsonHasData = categories.length > 0;
+
+        // Own current-value block: the shared one is derived from history/preview data, which a
+        // JSON series never has. Here "current" is simply the last point of the array.
+        const jsonCurrentValues = echartSeries
+            .map((s, idx) => ({
+                value:
+                    pointsPerSeries[idx].length > 0
+                        ? pointsPerSeries[idx][pointsPerSeries[idx].length - 1].value
+                        : null,
+                color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
+                unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+            }))
+            .filter((c) => c.value !== null);
+        const showJsonCurrent = echartShowCurrent && jsonCurrentValues.length > 0;
+
+        const jsonOption: Record<string, unknown> = {
+            backgroundColor: 'transparent',
+            tooltip: {
+                trigger: 'axis',
+                backgroundColor: 'var(--app-surface, #1e1e1e)',
+                borderColor: 'var(--app-border, #333)',
+                textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
+                formatter: (params: unknown) => {
+                    const items = params as {
+                        axisValue: string;
+                        seriesName: string;
+                        value: number | null;
+                        marker: string;
+                        seriesIndex: number;
+                    }[];
+                    if (!items?.length) return '';
+                    const lines = items
+                        .filter((p) => p.value !== null && p.value !== undefined)
+                        .map((p) => {
+                            const seriesCfg = echartSeries[p.seriesIndex];
+                            const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+                            return `${p.marker} ${p.seriesName}: <b>${formatNum(p.value as number, decimals)}${
+                                unit ? `\u202F${unit}` : ''
+                            }</b>`;
+                        });
+                    return `${items[0].axisValue}<br/>${lines.join('<br/>')}`;
+                },
+            },
+            legend: echartShowLegend
+                ? { show: true, textStyle: { color: '#888', fontSize: 11 }, top: 4 }
+                : { show: false },
+            grid: {
+                left: echartShowYAxis ? 60 : 6,
+                right: hasRightAxis && echartShowYAxis ? 60 : 6,
+                top: echartShowLegend ? 30 : 6,
+                bottom: echartShowXAxis ? 32 : 6,
+                containLabel: false,
+            },
+            xAxis: {
+                type: 'category',
+                data: categories,
+                show: echartShowXAxis,
+                boundaryGap: echartSeries.some((s) => s.chartType === 'bar'),
+                axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+                axisTick: { show: echartShowXAxis },
+                axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
+                splitLine: { show: false },
+            },
+            yAxis: [leftAxis, rightAxis],
+            series: jsonSeriesList,
+        };
+
+        let mergedJson = jsonOption;
+        if (echartJsonExtra) {
+            try {
+                const extra = JSON.parse(echartJsonExtra) as Record<string, unknown>;
+                mergedJson = deepMerge(jsonOption, extra);
+            } catch {
+                /* ignore invalid JSON */
+            }
+        }
+
+        return (
+            <div ref={containerRef} className="aura-widget-row flex flex-col w-full h-full">
+                {(showTitle || showIcon || showJsonCurrent) && (
+                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        {showJsonCurrent && (
+                            <div className="flex items-center gap-2 shrink-0 ml-auto">
+                                {jsonCurrentValues.map((c, i) => (
+                                    <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
+                                        {formatNum(c.value as number, decimals)}
+                                        {c.unit ? ` ${c.unit}` : ''}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+                <div className="flex-1 relative min-h-0">
+                    {!jsonHasData && (
+                        <div
+                            className="absolute inset-0 flex flex-col items-center justify-center gap-2"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <BarChart2 size={28} strokeWidth={1.5} />
+                            <span className="text-xs">{t('echart.noData')}</span>
+                        </div>
+                    )}
+                    {hasSize && jsonHasData && (
+                        <ReactECharts
+                            ref={chartRef}
+                            option={mergedJson}
+                            style={{ width: '100%', height: '100%' }}
+                            opts={{ renderer: 'canvas' }}
+                            notMerge
+                        />
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     const seriesList = echartSeries.map((s, idx) => {
         const data = seriesData(idx, s.id);
@@ -557,17 +741,6 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             // ignore invalid JSON
         }
     }
-
-    // Current value(s) shown top-right — one per series, tinted with its colour.
-    const currentValues = echartSeries
-        .map((s, idx) => ({
-            value: seriesCurrent(idx, s.id),
-            color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
-            unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
-        }))
-        .filter((c) => c.value !== null);
-
-    const showCurrentBlock = echartShowCurrent && currentValues.length > 0;
 
     // Frontend range selector — shown when at least one series has history and not locked.
     const rangeSelector =

@@ -29,12 +29,32 @@ export interface EChartSeriesConfig {
      * raw logged points — no server-side averaging that could smear a value across a gap.
      */
     aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total' | 'none';
+    /**
+     * Where the series gets its points from. `history` (default) queries a history adapter;
+     * `json` reads a JSON array straight out of the datapoint's value — for datapoints that
+     * already hold pre-aggregated label/value pairs (issue #509).
+     */
+    source?: 'history' | 'json';
+    /** Dotted path into the parsed JSON value down to the array, e.g. `data.hours`. Empty = root. */
+    jsonPath?: string;
+    /** Object key holding the x category (default `label`). */
+    jsonLabelKey?: string;
+    /** Object key holding the y value (default `value`). */
+    jsonValueKey?: string;
+}
+
+/** One label/value pair of a JSON-sourced series. */
+export interface JsonPoint {
+    label: string;
+    value: number;
 }
 
 export interface SeriesDataResult {
     data: [number, number][];
     current: number | null;
     loading: boolean;
+    /** Categorical points — only filled for `source: 'json'` series. */
+    points?: JsonPoint[];
 }
 
 const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
@@ -71,6 +91,44 @@ function getStepForMs(rangeMs: number): number | undefined {
     if (rangeMs <= 48 * 3_600_000) return 900_000;
     if (rangeMs <= 14 * 86_400_000) return 3_600_000;
     return 21_600_000;
+}
+
+/**
+ * Turn a JSON datapoint's raw value into label/value points.
+ *
+ * Accepts the value as an already-parsed object/array or as a JSON string (the usual case for
+ * ioBroker string datapoints). Entries whose value doesn't parse to a finite number are dropped;
+ * the array order is kept as-is and becomes the category order on the x axis.
+ */
+export function parseJsonSeries(raw: unknown, s: EChartSeriesConfig): JsonPoint[] {
+    let parsed: unknown = raw;
+    if (typeof raw === 'string') {
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            return [];
+        }
+    }
+    const path = (s.jsonPath ?? '').trim();
+    if (path) {
+        parsed = path.split('.').reduce<unknown>((acc, key) => {
+            if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key];
+            return undefined;
+        }, parsed);
+    }
+    if (!Array.isArray(parsed)) return [];
+
+    const labelKey = s.jsonLabelKey || 'label';
+    const valueKey = s.jsonValueKey || 'value';
+    const points: JsonPoint[] = [];
+    for (const item of parsed) {
+        if (!item || typeof item !== 'object') continue;
+        const rec = item as Record<string, unknown>;
+        const value = Number(rec[valueKey]);
+        if (!Number.isFinite(value)) continue;
+        points.push({ label: String(rec[labelKey] ?? ''), value });
+    }
+    return points;
 }
 
 export interface SeriesInstanceResolution {
@@ -176,8 +234,16 @@ export function useMultiSeriesData(
             s.historyStart,
             s.historyEnd,
             s.aggregate,
+            s.source,
+            s.jsonPath,
+            s.jsonLabelKey,
+            s.jsonValueKey,
         ]),
     );
+
+    // Last raw value seen per JSON series — lets the live subscription bail out of a re-render
+    // when an adapter re-writes the identical payload (same flicker guard as numeric series).
+    const lastRawRef = useRef<Map<string, string>>(new Map());
 
     // Fetch history for all series
     useEffect(() => {
@@ -201,6 +267,36 @@ export function useMultiSeriesData(
                     next.set(s.id, { data: existing?.data ?? [], current: existing?.current ?? null, loading: false });
                     return next;
                 });
+                return;
+            }
+
+            if (s.source === 'json') {
+                // JSON series: the datapoint value IS the whole dataset — no history query.
+                const applyJson = (state: ioBrokerState | null) => {
+                    if (!mountedRef.current) return;
+                    const points = parseJsonSeries(state?.val, s);
+                    lastRawRef.current.set(
+                        s.id,
+                        typeof state?.val === 'string' ? state.val : JSON.stringify(state?.val),
+                    );
+                    setResultsMap((prev) => {
+                        const next = new Map(prev);
+                        next.set(s.id, {
+                            data: [],
+                            points,
+                            current: points.length > 0 ? points[points.length - 1].value : null,
+                            loading: false,
+                        });
+                        return next;
+                    });
+                };
+                const cachedJson = getStateFromCache(s.datapointId);
+                if (cachedJson) applyJson(cachedJson);
+                else if (getState)
+                    getState(s.datapointId)
+                        .then(applyJson)
+                        .catch(() => applyJson(null));
+                else applyJson(null);
                 return;
             }
 
@@ -336,9 +432,33 @@ export function useMultiSeriesData(
         if (!connected || series.length === 0) return;
         const unsubs = series
             // Series pinned to a past absolute window are a frozen view — no live appends.
-            .filter((s) => !!s.datapointId && !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now()))
+            .filter(
+                (s) =>
+                    !!s.datapointId &&
+                    (s.source === 'json' || !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now())),
+            )
             .map((s) => {
                 const cutoffMs = getRangeMs(s);
+                if (s.source === 'json') {
+                    // JSON datapoints are rewritten as a whole — re-parse the payload instead of
+                    // appending a point, and skip the update when the raw value is unchanged.
+                    return subscribe(s.datapointId, (state: ioBrokerState) => {
+                        const rawStr = typeof state.val === 'string' ? state.val : JSON.stringify(state.val);
+                        if (lastRawRef.current.get(s.id) === rawStr) return;
+                        lastRawRef.current.set(s.id, rawStr);
+                        const points = parseJsonSeries(state.val, s);
+                        setResultsMap((prev) => {
+                            const next = new Map(prev);
+                            next.set(s.id, {
+                                data: [],
+                                points,
+                                current: points.length > 0 ? points[points.length - 1].value : null,
+                                loading: false,
+                            });
+                            return next;
+                        });
+                    });
+                }
                 return subscribe(s.datapointId, (state: ioBrokerState) => {
                     if (typeof state.val !== 'number') return;
                     const val = state.val as number;

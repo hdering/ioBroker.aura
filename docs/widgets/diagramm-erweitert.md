@@ -8,8 +8,9 @@ Das Widget hat keinen eigenen Haupt-Datenpunkt — jede Serie trägt ihren Daten
 
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
-| `echartSeries[].datapointId` | ja | `number` | Datenpunkt der Serie |
+| `echartSeries[].datapointId` | ja | `number` · `string` | Datenpunkt der Serie (`string` im JSON-Modus) |
 | `echartSeries[].historyInstance` | nein | — | History-Adapter; leer = Live-Daten |
+| `echartSeries[].source` | nein | — | `history` (Standard) · `json` |
 
 ## Layouts
 
@@ -20,6 +21,20 @@ Zeitachsen-Diagramm mit allen Serien über die Zeit — Standard.
 
 ### Comparison
 Kategorisches Balkendiagramm — je Serie ein Balken mit ihrem aktuellen Wert.
+
+### JSON
+Kategorisches Diagramm aus einem JSON-Datenpunkt statt aus einem History-Adapter — die Labels bilden die X-Achse, in der Reihenfolge des Arrays. Kein Zeitraum-Umschalter, keine Tages-Navigation.
+
+Erwartetes Format im Datenpunkt (String oder Objekt):
+
+```json
+[
+  { "label": "12:00", "value": "0.5" },
+  { "label": "13:00", "value": "1.2" }
+]
+```
+
+Werte dürfen Strings sein und werden in Zahlen gewandelt; Einträge ohne gültige Zahl entfallen. Mehrere Serien werden über gleiche Labels ausgerichtet, fehlende Labels lassen die Linie brechen.
 
 ### Gauge
 Tacho-Anzeige des aktuellen Werts der ersten Serie (Widget-Layout `gauge`).
@@ -50,7 +65,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `echartMode` | `timeseries` | `timeseries` · `comparison` |
+| `echartMode` | `timeseries` | `timeseries` · `comparison` · `json` |
 | `echartSeries` | `[]` | Liste der Serien (siehe unten) |
 | `echartSeries[].name` | `Serie N` | Name in Legende/Tooltip |
 | `echartSeries[].chartType` | `line` | `line` · `area` · `bar` · `scatter` |
@@ -59,6 +74,16 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].smooth` | `true` | geglättete Linie (nur Linie/Fläche) |
 | `echartSeries[].aggregate` | `average` | `average` · `minmax` · `max` · `min` · `total` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen) |
 | `echartSeries[].lineWidth` | `2` | Linienstärke 1–4 (nur Linie/Fläche) |
+
+### JSON-Quelle
+
+Nur im Modus `json`.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `echartSeries[].jsonPath` | — | Punkt-Pfad bis zum Array, z. B. `data.hours`; leer = Wurzel |
+| `echartSeries[].jsonLabelKey` | `label` | Objekt-Feld für die X-Beschriftung |
+| `echartSeries[].jsonValueKey` | `value` | Objekt-Feld für den Y-Wert |
 
 ### Achsen
 
