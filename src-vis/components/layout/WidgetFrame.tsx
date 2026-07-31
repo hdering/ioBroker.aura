@@ -30,6 +30,7 @@ import type { LucideIcon } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
+import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { SavePresetDialog } from '../config/SavePresetDialog';
@@ -47,7 +48,6 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useDashboardStore, useActiveSection, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
-import { useConfigStore } from '../../store/configStore';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import type {
@@ -6231,15 +6231,28 @@ export function WidgetFrame({
                 )
               : [];
     void dpCacheReady; // referenced so the checklist re-renders once names load
-    const groupCellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
-    const groupGridGap = useConfigStore((s) => s.frontend.gridGap ?? 10);
+    const activeLayoutIdCtx = useActiveLayoutId();
+    const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
+    // Same pitch the Dashboard sizes the group box with (and GroupWidget lays its
+    // children out on): effective settings, not the raw global ones — otherwise a
+    // layout/section grid override makes the fitted height too small and the group
+    // scrolls.
+    const groupCellSize = effectiveSettings.gridRowHeight ?? 20;
+    const groupGridGap = effectiveSettings.gridGap ?? 10;
 
     const fitGroupHeight = () => {
         if (!groupDefId || groupChildren.length === 0) return;
         const maxBottom = Math.max(...groupChildren.map((c) => c.gridPos.y + c.gridPos.h));
         const hasHeader = !isHeaderlessGroup;
         const titled = config.options?.showTitle !== false && !!config.title;
-        const newH = groupRows(maxBottom, hasHeader, titled, groupCellSize, groupGridGap);
+        const newH = groupRows(
+            maxBottom,
+            hasHeader,
+            titled,
+            groupCellSize,
+            groupGridGap,
+            useAutoHeightStore.getState().groupHeaders[config.id],
+        );
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
     };
 
@@ -6257,19 +6270,26 @@ export function WidgetFrame({
         };
         const next = verticalCompact([...groupChildren, newChild]);
         useGroupDefsStore.getState().setDef(groupDefId, next);
-        // auto-fit height using compacted positions
+        // Auto-fit height using the compacted positions — via groupRows, the same
+        // math the Dashboard and GroupWidget use. Rolling its own formula here (with
+        // the outer gridGap between children instead of GROUP_GAP) produced a height
+        // that disagreed with the rendered layout.
         const maxBottom = Math.max(...next.map((c) => c.gridPos.y + c.gridPos.h));
-        const innerH = maxBottom * (groupCellSize + groupGridGap) - groupGridGap;
-        const titleBarH = config.title ? (isTransparent ? 36 : 37) : 36;
-        const newH = Math.ceil((titleBarH + innerH + 10 + groupGridGap) / (groupCellSize + groupGridGap));
+        const titled = config.options?.showTitle !== false && !!config.title;
+        const newH = groupRows(
+            maxBottom,
+            !isHeaderlessGroup,
+            titled,
+            groupCellSize,
+            groupGridGap,
+            useAutoHeightStore.getState().groupHeaders[config.id],
+        );
         onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
         setShowGroupTypePicker(false);
         openPanelFor(null);
     };
     // ──────────────────────────────────────────────────────────────────────────
 
-    const activeLayoutIdCtx = useActiveLayoutId();
-    const effectiveSettings = useEffectiveSettings(activeLayoutIdCtx);
     const widgetPadding = effectiveSettings.widgetPadding ?? 16;
     // A mirror renders its source inside the frame, so its outer padding must
     // follow the SOURCE's type — not 'mirror'. Otherwise a mirrored group (which

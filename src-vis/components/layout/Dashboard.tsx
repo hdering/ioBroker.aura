@@ -71,6 +71,8 @@ export function Dashboard({
     const widgetPadding = settings.widgetPadding ?? 16;
     // Measured content heights for auto-height widgets (RAM-only, per widget id).
     const autoHeights = useAutoHeightStore((s) => s.heights);
+    // Measured group header heights — see groupRows / GroupWidget.
+    const groupHeaderHeights = useAutoHeightStore((s) => s.groupHeaders);
     const snapX = settings.gridSnapX ?? settings.gridRowHeight ?? 20;
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const groupDefs = useGroupDefsStore((s) => s.defs);
@@ -604,6 +606,7 @@ export function Dashboard({
                                                 showTitle && !!gw.title,
                                                 cellSize,
                                                 MARGIN,
+                                                groupHeaderHeights[gw.id],
                                             );
                                         }
                                         // Hugged groups clamp to the fit; everything else keeps the stored h.
@@ -655,14 +658,21 @@ export function Dashboard({
                                             if (maxBottom > 0) {
                                                 const showTitle = gw.options?.showTitle !== false;
                                                 const showIcon = gw.options?.showIcon !== false;
+                                                // Mirrors GroupWidget's hasHeaderContent, which counts a
+                                                // collapsible group's chevron bar too (frontend only) — without
+                                                // it the box came out one header short and scrolled.
                                                 const hasHeader =
-                                                    (showTitle && !!gw.title) || showIcon || !!gw.options?.groupSwitch;
+                                                    (showTitle && !!gw.title) ||
+                                                    showIcon ||
+                                                    !!gw.options?.groupSwitch ||
+                                                    !!gw.options?.defaultCollapsed;
                                                 h = groupRows(
                                                     maxBottom,
                                                     hasHeader,
                                                     showTitle && !!gw.title,
                                                     cellSize,
                                                     MARGIN,
+                                                    groupHeaderHeights[gw.id],
                                                 );
                                                 minH = Math.min(minH, h);
                                             }
@@ -677,7 +687,10 @@ export function Dashboard({
                                             !!gw.options?.defaultCollapsed &&
                                             (groupCollapsed[gw.id] ?? true)
                                         ) {
-                                            const headerRows = Math.ceil((37 + 10 + MARGIN) / (cellSize + MARGIN));
+                                            const headerPx = groupHeaderHeights[gw.id] ?? 37;
+                                            const headerRows = Math.ceil(
+                                                (headerPx + 10 + MARGIN) / (cellSize + MARGIN),
+                                            );
                                             h = Math.max(1, headerRows);
                                             minH = Math.min(minH, h);
                                         }

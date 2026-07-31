@@ -2,7 +2,9 @@ import { useRef, useState, useEffect, useMemo } from 'react';
 import { Layers, Loader, ChevronDown } from 'lucide-react';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import type { WidgetProps, WidgetConfig, WidgetType, ioBrokerState } from '../../types';
-import { useConfigStore } from '../../store/configStore';
+import { useAutoHeightStore } from '../../store/autoHeightStore';
+import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
+import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import {
     groupChildDpIds,
@@ -113,8 +115,16 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const showIcon = config.options?.showIcon !== false;
     const iconSize = (config.options?.iconSize as number | undefined) || 20;
     const WidgetIcon = getWidgetIcon(config.options?.icon as string | undefined, Layers);
-    const cellSize = useConfigStore((s) => s.frontend.gridRowHeight ?? 80);
-    const gridGap = useConfigStore((s) => s.frontend.gridGap ?? 10);
+    // The children's pitch MUST match the one the Dashboard used to size this
+    // group's outer box (groupRows), and that one comes from the *effective*
+    // settings — global → layout → section. Reading the global values here made
+    // the two disagree as soon as a layout/section overrode the grid size (or the
+    // global value was unset, where the old 80px fallback was 4x the real pitch):
+    // the box was sized for one pitch and the children laid out on another, so
+    // the group overflowed and showed its inner scrollbar.
+    const groupSettings = useEffectiveSettings(useActiveLayoutId());
+    const cellSize = groupSettings.gridRowHeight ?? 20;
+    const gridGap = groupSettings.gridGap ?? 10;
     const dashboardIsMobile = useDashboardMobile();
     const [isDragOver, setIsDragOver] = useState(false);
 
@@ -132,6 +142,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         ro.observe(el);
         return () => ro.disconnect();
     }, []);
+
+    const headerRef = useRef<HTMLDivElement>(null);
+    const setGroupHeader = useAutoHeightStore((s) => s.setGroupHeader);
 
     // ── Group action control (switch / dimmer / shutter / momentary) ────────────
     const groupSwitchEnabled = !!config.options?.groupSwitch;
@@ -211,6 +224,23 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // the group's config buttons don't collide with the first child's — so it
     // must not wear a divider that makes it look like a real header.
     const hasHeaderContent = (showTitle && !!config.title) || showIcon || showMaster || collapsible;
+
+    // Report the real header height so the outer box (sized in Dashboard via
+    // groupRows) reserves exactly what the bar occupies — icon size, master control
+    // and font scale all change it, so it must be measured instead of guessed at
+    // 36/37px. Being a few px short is what raised the group's inner scrollbar.
+    useEffect(() => {
+        const el = headerRef.current;
+        if (!hasHeaderContent || !el) {
+            setGroupHeader(config.id, 0);
+            return;
+        }
+        const report = () => setGroupHeader(config.id, Math.ceil(el.getBoundingClientRect().height));
+        report();
+        const ro = new ResizeObserver(report);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [config.id, hasHeaderContent, setGroupHeader]);
 
     if (configLayout === 'custom') return <CustomGridView config={config} value="" />;
 
@@ -374,6 +404,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const titleAlign = (config.options?.titleAlign as string | undefined) ?? 'left';
     const titleBar = hasHeaderContent ? (
         <div
+            ref={headerRef}
             className="shrink-0 flex items-center gap-1.5 px-3 py-2.5 min-w-0"
             style={{
                 color: 'var(--text-secondary)',
