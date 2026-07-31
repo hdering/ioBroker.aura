@@ -1134,6 +1134,9 @@ export const de = {
     'echart.jsonPathPlaceholder': 'z. B. data.hours – leer = Wurzel',
     'echart.jsonLabelKey': 'Feld für Beschriftung',
     'echart.jsonValueKey': 'Feld für Wert',
+    'echart.jsonTimeAxis': 'Beschriftung ist ein Zeitstempel',
+    'echart.jsonTimeAxisHint':
+        'Zeitachse statt Kategorien — akzeptiert Epoch in ms oder s sowie ISO-Datum. Einträge ohne gültigen Zeitstempel entfallen.',
     'echart.aggregation': 'Aggregation',
     'echart.aggAverage': 'Durchschnitt (Standard)',
     'echart.aggMinmax': 'Min/Max (echte Extremwerte — z.B. Regenzähler)',

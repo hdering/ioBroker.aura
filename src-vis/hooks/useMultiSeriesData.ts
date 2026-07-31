@@ -131,6 +131,29 @@ export function parseJsonSeries(raw: unknown, s: EChartSeriesConfig): JsonPoint[
     return points;
 }
 
+/**
+ * Read a JSON label as a point in time — for datapoints that key their entries by timestamp
+ * (`{"ts": "1785362400000", "val": 0}`) rather than by a display label.
+ *
+ * Accepts epoch milliseconds, epoch seconds (anything below the year-2001 millisecond mark is
+ * treated as seconds) and any string `Date.parse` understands, e.g. ISO 8601. Returns null when
+ * the label is not a timestamp, so the caller can fall back to the category axis.
+ */
+export function parseTimeLabel(label: string): number | null {
+    const trimmed = label.trim();
+    if (!trimmed) return null;
+    if (/^-?\d+(\.\d+)?$/.test(trimmed)) {
+        const n = Number(trimmed);
+        // Below 1e8 (≈ March 1973 in seconds) nothing is a plausible epoch — a bare "2024"
+        // is a year label, and silently plotting it in 1970 would be worse than dropping it.
+        if (!Number.isFinite(n) || n < 1e8) return null;
+        // 1e11 ms = 1973, 1e11 s = year 5138 — no realistic dataset sits on the wrong side.
+        return n < 1e11 ? n * 1000 : n;
+    }
+    const parsed = Date.parse(trimmed);
+    return Number.isNaN(parsed) ? null : parsed;
+}
+
 export interface SeriesInstanceResolution {
     /** Effective history instance to use — the sole detected adapter, or the picked one. */
     instance?: string;

@@ -6,6 +6,7 @@ import {
     useMultiSeriesData,
     useAutoHistoryInstances,
     rangeToMs,
+    parseTimeLabel,
     type EChartSeriesConfig,
     type EChartTimeRange,
 } from '../../hooks/useMultiSeriesData';
@@ -488,21 +489,39 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         );
     }
 
-    // JSON mode: each series reads a label/value array straight out of its datapoint, so the
-    // x axis is categorical (the labels) instead of a time axis (issue #509).
+    // JSON mode: each series reads a label/value array straight out of its datapoint. The labels
+    // form the x axis — as plain categories, or as a real time axis when they are timestamps
+    // (`{"ts": "1785362400000", "val": 0}`, issue #509).
     if (echartMode === 'json') {
         const pointsPerSeries = echartSeries.map((s) => seriesDataMap.get(s.id)?.points ?? []);
+        const jsonTimeAxis = o.echartJsonTimeAxis === true;
 
         // Category order: first series wins, labels only present in later series are appended.
         const categories: string[] = [];
         const seen = new Set<string>();
-        for (const points of pointsPerSeries) {
-            for (const p of points) {
-                if (seen.has(p.label)) continue;
-                seen.add(p.label);
-                categories.push(p.label);
+        if (!jsonTimeAxis) {
+            for (const points of pointsPerSeries) {
+                for (const p of points) {
+                    if (seen.has(p.label)) continue;
+                    seen.add(p.label);
+                    categories.push(p.label);
+                }
             }
         }
+
+        // Time axis: labels become x coordinates. Entries whose label isn't a timestamp are
+        // dropped — plotting them at an arbitrary position would be worse than omitting them.
+        const timePointsPerSeries = jsonTimeAxis
+            ? pointsPerSeries.map((points) =>
+                  points
+                      .map((p): [number, number] | null => {
+                          const ts = parseTimeLabel(p.label);
+                          return ts === null ? null : [ts, p.value];
+                      })
+                      .filter((p): p is [number, number] => p !== null)
+                      .sort((a, b) => a[0] - b[0]),
+              )
+            : [];
 
         const jsonSeriesList = echartSeries.map((s, idx) => {
             const byLabel = new Map(pointsPerSeries[idx].map((p) => [p.label, p.value]));
@@ -516,25 +535,34 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
                 // Labels missing from this series stay null so the line breaks instead of
                 // silently shifting the remaining points onto the wrong categories.
-                data: categories.map((c) => byLabel.get(c) ?? null),
+                data: jsonTimeAxis ? timePointsPerSeries[idx] : categories.map((c) => byLabel.get(c) ?? null),
                 yAxisIndex: s.yAxisIndex ?? 0,
                 showSymbol: false,
             };
         });
 
-        const jsonHasData = categories.length > 0;
+        const jsonHasData = jsonTimeAxis ? timePointsPerSeries.some((p) => p.length > 0) : categories.length > 0;
 
         // Own current-value block: the shared one is derived from history/preview data, which a
         // JSON series never has. Here "current" is simply the last point of the array.
         const jsonCurrentValues = echartSeries
-            .map((s, idx) => ({
-                value:
-                    pointsPerSeries[idx].length > 0
-                        ? pointsPerSeries[idx][pointsPerSeries[idx].length - 1].value
-                        : null,
-                color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
-                unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
-            }))
+            .map((s, idx) => {
+                // On the time axis the points are sorted chronologically, so "last" means latest.
+                const tp = timePointsPerSeries[idx] ?? [];
+                const cp = pointsPerSeries[idx];
+                const tail = jsonTimeAxis
+                    ? tp.length > 0
+                        ? tp[tp.length - 1][1]
+                        : null
+                    : cp.length > 0
+                      ? cp[cp.length - 1].value
+                      : null;
+                return {
+                    value: tail,
+                    color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
+                    unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+                };
+            })
             .filter((c) => c.value !== null);
         const showJsonCurrent = echartShowCurrent && jsonCurrentValues.length > 0;
 
@@ -547,23 +575,32 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
                 formatter: (params: unknown) => {
                     const items = params as {
-                        axisValue: string;
+                        axisValue: string | number;
                         seriesName: string;
-                        value: number | null;
+                        value: number | [number, number] | null;
                         marker: string;
                         seriesIndex: number;
                     }[];
                     if (!items?.length) return '';
                     const lines = items
-                        .filter((p) => p.value !== null && p.value !== undefined)
+                        .map((p) => ({ ...p, num: Array.isArray(p.value) ? p.value[1] : p.value }))
+                        .filter((p) => p.num !== null && p.num !== undefined)
                         .map((p) => {
                             const seriesCfg = echartSeries[p.seriesIndex];
                             const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
-                            return `${p.marker} ${p.seriesName}: <b>${formatNum(p.value as number, decimals)}${
+                            return `${p.marker} ${p.seriesName}: <b>${formatNum(p.num as number, decimals)}${
                                 unit ? `\u202F${unit}` : ''
                             }</b>`;
                         });
-                    return `${items[0].axisValue}<br/>${lines.join('<br/>')}`;
+                    const head = jsonTimeAxis
+                        ? new Date(Number(items[0].axisValue)).toLocaleString(t('echart.dateLocale'), {
+                              day: '2-digit',
+                              month: '2-digit',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                          })
+                        : items[0].axisValue;
+                    return `${head}<br/>${lines.join('<br/>')}`;
                 },
             },
             legend: echartShowLegend
@@ -576,16 +613,25 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 bottom: echartShowXAxis ? 32 : 6,
                 containLabel: false,
             },
-            xAxis: {
-                type: 'category',
-                data: categories,
-                show: echartShowXAxis,
-                boundaryGap: echartSeries.some((s) => s.chartType === 'bar'),
-                axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
-                axisTick: { show: echartShowXAxis },
-                axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
-                splitLine: { show: false },
-            },
+            xAxis: jsonTimeAxis
+                ? {
+                      type: 'time',
+                      show: echartShowXAxis,
+                      axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+                      axisTick: { show: echartShowXAxis },
+                      axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
+                      splitLine: { show: false },
+                  }
+                : {
+                      type: 'category',
+                      data: categories,
+                      show: echartShowXAxis,
+                      boundaryGap: echartSeries.some((s) => s.chartType === 'bar'),
+                      axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+                      axisTick: { show: echartShowXAxis },
+                      axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
+                      splitLine: { show: false },
+                  },
             yAxis: [leftAxis, rightAxis],
             series: jsonSeriesList,
         };

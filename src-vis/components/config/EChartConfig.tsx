@@ -47,6 +47,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
     const isComparison = echartMode === 'comparison';
     const isJson = echartMode === 'json';
+    const jsonTimeAxis = (o.echartJsonTimeAxis as boolean | undefined) ?? false;
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
@@ -208,9 +209,25 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     ))}
                 </div>
                 {isJson && (
-                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                        {t('echart.jsonHint')}
-                    </p>
+                    <>
+                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            {t('echart.jsonHint')}
+                        </p>
+                        <label className="flex items-center gap-2 mt-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={jsonTimeAxis}
+                                onChange={(e) => setO({ echartJsonTimeAxis: e.target.checked })}
+                                className="accent-[var(--accent)]"
+                            />
+                            <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.jsonTimeAxis')}
+                            </span>
+                        </label>
+                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            {t('echart.jsonTimeAxisHint')}
+                        </p>
+                    </>
                 )}
             </div>
 
