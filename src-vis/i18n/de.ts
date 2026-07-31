@@ -206,6 +206,8 @@ export const de = {
     'settings.grid.mobileOff': 'Aus',
     'settings.grid.hideScrollbar': 'Scrollbalken ausblenden',
     'settings.grid.hideScrollbarHint': 'Blendet den ziehbaren Scrollbalken über dem Dashboard auf Touch-Geräten aus.',
+    'settings.grid.reset': 'Auf Standard',
+    'settings.grid.resetHint': 'Setzt diese Einstellungen auf die Auslieferungswerte zurück.',
 
     'settings.pin.title': 'Admin-PIN',
     'settings.pin.newPin': 'Neuer PIN (min. 4 Zeichen)',

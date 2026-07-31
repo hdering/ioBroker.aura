@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 Static list - statistics are shown on the same line as the title instead of a second header row
+Settings - Grid & Mobile can be reset to the default values (removes the layout/section overrides in scoped views)
