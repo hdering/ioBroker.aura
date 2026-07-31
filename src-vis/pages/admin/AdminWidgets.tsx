@@ -649,7 +649,7 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
                                     <input
                                         type="number"
                                         min={1}
-                                        max={12}
+                                        max={96}
                                         value={d.w}
                                         onChange={(e) => setWidgetDefault(w.type, Number(e.target.value), d.h)}
                                         className="w-12 text-xs text-center rounded px-1 py-1 focus:outline-none"
@@ -661,7 +661,7 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
                                     <input
                                         type="number"
                                         min={1}
-                                        max={12}
+                                        max={48}
                                         value={d.h}
                                         onChange={(e) => setWidgetDefault(w.type, d.w, Number(e.target.value))}
                                         className="w-12 text-xs text-center rounded px-1 py-1 focus:outline-none"
