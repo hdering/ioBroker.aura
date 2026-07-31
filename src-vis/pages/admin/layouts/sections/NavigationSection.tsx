@@ -1,15 +1,18 @@
 import { useT } from '../../../../i18n';
 import { ToggleRow } from '../shared/SettingControls';
+import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
+import type { LayoutSettings } from '../../../../store/dashboardStore';
+
+const NAV_KEYS: (keyof LayoutSettings)[] = ['idleReturnEnabled', 'idleReturnDelay'];
 
 // Frontend navigation behavior (auto-return to the layout default after
 // inactivity). Scope-aware: global or per layout (contextId = null | layout id).
 export function NavigationSection({ contextId }: { contextId: string | null }) {
     const t = useT();
-    const { eff, set, clear } = useLayoutSetting(contextId);
-    const [enabled, enabledOv] = eff('idleReturnEnabled');
-    const [delay, delayOv] = eff('idleReturnDelay');
-    const overridden = enabledOv || delayOv;
+    const { eff, set, resetKeys, isDirty, level } = useLayoutSetting(contextId);
+    const [enabled] = eff('idleReturnEnabled');
+    const [delay] = eff('idleReturnDelay');
 
     return (
         <div
@@ -20,19 +23,11 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
                 <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {t('layouts.subtab.nav')}
                 </h2>
-                {overridden && (
-                    <button
-                        onClick={() => {
-                            clear('idleReturnEnabled');
-                            clear('idleReturnDelay');
-                        }}
-                        className="text-[10px] px-2 py-0.5 rounded-full hover:opacity-80"
-                        style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
-                        title={t('layouts.scope.resetHint')}
-                    >
-                        {t('layouts.scope.reset')}
-                    </button>
-                )}
+                <ResetDefaultsButton
+                    onReset={() => resetKeys(NAV_KEYS)}
+                    disabled={!isDirty(NAV_KEYS)}
+                    scoped={level !== 'global'}
+                />
             </div>
             <p className="text-xs -mt-1" style={{ color: 'var(--text-secondary)' }}>
                 {t('design.nav.hint')}

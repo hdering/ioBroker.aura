@@ -196,7 +196,6 @@ export const de = {
     'settings.tabBar.position': 'Position',
     'settings.tabBar.positionTop': 'Oben',
     'settings.tabBar.positionBottom': 'Unten (Footer)',
-    'settings.tabBar.clearAll': '↩ Alles zurücksetzen',
 
     'settings.grid.title': 'Grid & Mobil',
     'settings.grid.rowHeight': 'Rastergröße (Zeile)',
@@ -206,8 +205,8 @@ export const de = {
     'settings.grid.mobileOff': 'Aus',
     'settings.grid.hideScrollbar': 'Scrollbalken ausblenden',
     'settings.grid.hideScrollbarHint': 'Blendet den ziehbaren Scrollbalken über dem Dashboard auf Touch-Geräten aus.',
-    'settings.grid.reset': 'Auf Standard',
-    'settings.grid.resetHint': 'Setzt diese Einstellungen auf die Auslieferungswerte zurück.',
+    'design.reset.toDefaults': 'Auf Standard',
+    'design.reset.hint': 'Setzt diese Einstellungen auf die Auslieferungswerte zurück.',
 
     'settings.pin.title': 'Admin-PIN',
     'settings.pin.newPin': 'Neuer PIN (min. 4 Zeichen)',
@@ -430,7 +429,6 @@ export const de = {
     'layouts.scope.global': 'Global',
     'layouts.scope.globalHint': 'Voreinstellungen für alle Bereiche',
     'layouts.scope.layoutHint': 'Überschreibt globale Werte',
-    'layouts.scope.resetToGlobal': 'Auf Global zurücksetzen',
     'layouts.scope.reset': 'Zurücksetzen',
     'layouts.scope.resetHint': 'Overrides dieses Bereichs entfernen und wieder erben.',
 
@@ -507,7 +505,6 @@ export const de = {
         'Ein Preset setzt alle Design-Variablen auf einmal: Seiten- und Karten-Hintergründe, Rahmen, Schatten, Eckenradius, Textfarben sowie die Akzentfarben (Blau/Grün/Gelb/Rot) der Widgets. Die farbigen Punkte zeigen die Karten- und Akzentfarben des jeweiligen Themes. Nach der Auswahl eines Presets kannst du einzelne Variablen unten weiter anpassen.',
 
     'theme.vars.title': 'CSS-Variablen anpassen',
-    'theme.vars.resetAll': 'Alle zurücksetzen',
     'theme.vars.app': 'App',
     'theme.vars.widget': 'Widget-Karte',
     'theme.vars.text': 'Text',

@@ -6,4 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 
 Static list - statistics are shown on the same line as the title instead of a second header row
-Settings - Grid & Mobile can be reset to the default values (removes the layout/section overrides in scoped views)
+Settings - every Design card (theme, CSS variables, typography and spacing, grid and mobile, guidelines and resolution, header, section menu, navigation, tab bar) has a "Reset" button that restores the default values, or removes the layout/section overrides in scoped views

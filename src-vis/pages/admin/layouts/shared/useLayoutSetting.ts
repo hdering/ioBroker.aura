@@ -1,8 +1,13 @@
 import { useDashboardStore, type LayoutSettings } from '../../../../store/dashboardStore';
-import { useConfigStore, type FrontendSettings } from '../../../../store/configStore';
+import { useConfigStore, DEFAULT_FRONTEND, type FrontendSettings } from '../../../../store/configStore';
 import { useEffectiveSettings } from '../../../../hooks/useEffectiveSettings';
 
 type SharedKey = keyof LayoutSettings & keyof FrontendSettings;
+
+/** Structural compare — settings values are plain JSON (numbers, strings, objects, arrays). */
+function sameValue(a: unknown, b: unknown) {
+    return a === b || JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+}
 
 /**
  * Reads/writes a design setting at one of three scopes, chosen by `contextId`:
@@ -73,5 +78,31 @@ export function useLayoutSetting(contextId: string | null) {
         else if (level === 'layout' && layoutId) clearLayoutSettings(layoutId, key);
     }
 
-    return { eff, set, setPatch, clear, ls, layoutId, sectionId, level, frontend, updateFrontend };
+    /**
+     * "Auf Standard" for a group of keys: at global scope the shipped defaults are
+     * written back, at layout/section scope this scope's overrides are dropped so
+     * the values inherit again.
+     */
+    function resetKeys(keys: readonly (keyof LayoutSettings)[]) {
+        if (level !== 'global') {
+            keys.forEach((k) => clear(k));
+            return;
+        }
+        const defaults = DEFAULT_FRONTEND as unknown as Record<string, unknown>;
+        const patch: Record<string, unknown> = {};
+        for (const k of keys) {
+            if (k in defaults) patch[k] = defaults[k];
+        }
+        updateFrontend(patch as Partial<FrontendSettings>);
+    }
+
+    /** True when `resetKeys` would actually change something (drives the button's disabled state). */
+    function isDirty(keys: readonly (keyof LayoutSettings)[]) {
+        if (level !== 'global') return keys.some((k) => ls?.[k] !== undefined);
+        const defaults = DEFAULT_FRONTEND as unknown as Record<string, unknown>;
+        const current = frontend as unknown as Record<string, unknown>;
+        return keys.some((k) => k in defaults && !sameValue(current[k], defaults[k]));
+    }
+
+    return { eff, set, setPatch, clear, resetKeys, isDirty, ls, layoutId, sectionId, level, frontend, updateFrontend };
 }

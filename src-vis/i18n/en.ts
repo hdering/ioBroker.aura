@@ -197,7 +197,6 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.position': 'Position',
     'settings.tabBar.positionTop': 'Top',
     'settings.tabBar.positionBottom': 'Bottom (footer)',
-    'settings.tabBar.clearAll': '↩ Reset all',
 
     'settings.grid.title': 'Grid & Mobile',
     'settings.grid.rowHeight': 'Grid size (row)',
@@ -207,8 +206,8 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.mobileOff': 'Off',
     'settings.grid.hideScrollbar': 'Hide scroll bar',
     'settings.grid.hideScrollbarHint': 'Hides the draggable scroll bar over the dashboard on touch devices.',
-    'settings.grid.reset': 'Reset',
-    'settings.grid.resetHint': 'Restores these settings to their shipped defaults.',
+    'design.reset.toDefaults': 'Reset',
+    'design.reset.hint': 'Restores these settings to their shipped defaults.',
 
     'settings.pin.title': 'Admin PIN',
     'settings.pin.newPin': 'New PIN (min. 4 chars)',
@@ -429,7 +428,6 @@ export const en: Record<TranslationKey, string> = {
     'layouts.scope.global': 'Global',
     'layouts.scope.globalHint': 'Defaults for all sections',
     'layouts.scope.layoutHint': 'Overrides global values',
-    'layouts.scope.resetToGlobal': 'Reset to global',
     'layouts.scope.reset': 'Reset',
     'layouts.scope.resetHint': 'Clear this scope’s overrides and inherit again.',
 
@@ -506,7 +504,6 @@ export const en: Record<TranslationKey, string> = {
         'A preset sets all design variables at once: page and card backgrounds, borders, shadows, corner radius, text colors and the accent colors (blue/green/yellow/red) used by widgets. The colored dots show each theme’s card and accent colors. After picking a preset you can fine-tune individual variables below.',
 
     'theme.vars.title': 'Customize CSS Variables',
-    'theme.vars.resetAll': 'Reset All',
     'theme.vars.app': 'App',
     'theme.vars.widget': 'Widget Card',
     'theme.vars.text': 'Text',

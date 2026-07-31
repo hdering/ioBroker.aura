@@ -3,6 +3,7 @@ import { Plus, X, Search } from 'lucide-react';
 import type { LayoutMenuItem, LayoutSettings } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 import { ToggleRow, SubGroup } from '../shared/SettingControls';
+import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { DatapointPicker } from '../../../../components/config/DatapointPicker';
 
@@ -307,7 +308,7 @@ function LayoutMenuItemRow({
 // the top and all options render directly below it (no nested SubGroup).
 export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
     const t = useT();
-    const { eff, setPatch, clear, level } = useLayoutSetting(contextId);
+    const { eff, setPatch, resetKeys, isDirty, level } = useLayoutSetting(contextId);
 
     // Effective view + patch-writer so the existing markup keeps working while
     // reads/writes route to the active scope (global or per layout).
@@ -335,7 +336,6 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         showHeader: eff('showHeader')[0],
     };
     const updateFrontend = (patch: Partial<LayoutSettings>) => setPatch(patch);
-    const overridden = level !== 'global' && DRAWER_KEYS.some((k) => eff(k as 'layoutDrawerEnabled')[1]);
 
     const items = frontend.layoutDrawerItems ?? [];
     const updateItem = (id: string, patch: Partial<LayoutMenuItem>) => {
@@ -363,16 +363,11 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                 <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {t('layouts.subtab.menu')}
                 </h2>
-                {overridden && (
-                    <button
-                        onClick={() => DRAWER_KEYS.forEach((k) => clear(k))}
-                        className="text-[10px] px-2 py-0.5 rounded-full hover:opacity-80"
-                        style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
-                        title={t('layouts.scope.resetHint')}
-                    >
-                        {t('layouts.scope.reset')}
-                    </button>
-                )}
+                <ResetDefaultsButton
+                    onReset={() => resetKeys(DRAWER_KEYS)}
+                    disabled={!isDirty(DRAWER_KEYS)}
+                    scoped={level !== 'global'}
+                />
             </div>
             <p className="text-xs -mt-1" style={{ color: 'var(--text-secondary)' }}>
                 {t('design.menu.hint')}

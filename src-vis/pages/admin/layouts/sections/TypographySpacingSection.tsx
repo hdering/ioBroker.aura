@@ -1,6 +1,10 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
+import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useT } from '../../../../i18n';
+import type { LayoutSettings } from '../../../../store/dashboardStore';
+
+const TYPO_KEYS: (keyof LayoutSettings)[] = ['fontScale', 'gridGap', 'widgetPadding'];
 
 const FONT_SCALE_PRESETS = [
     { label: 'XS', value: 0.8 },
@@ -25,7 +29,7 @@ interface TypographySpacingSectionProps {
 
 export function TypographySpacingSection({ contextId }: TypographySpacingSectionProps) {
     const t = useT();
-    const { eff, set, clear, ls } = useLayoutSetting(contextId);
+    const { eff, set, clear, resetKeys, isDirty, level, ls } = useLayoutSetting(contextId);
 
     const [fontScale] = eff('fontScale');
     const [gridGap] = eff('gridGap');
@@ -49,6 +53,11 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                         {t('theme.typography.subtitle')}
                     </p>
                 </div>
+                <ResetDefaultsButton
+                    onReset={() => resetKeys(TYPO_KEYS)}
+                    disabled={!isDirty(TYPO_KEYS)}
+                    scoped={level !== 'global'}
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

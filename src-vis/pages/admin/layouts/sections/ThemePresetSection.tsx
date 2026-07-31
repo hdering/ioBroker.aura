@@ -1,6 +1,7 @@
 import { useThemeStore } from '../../../../store/themeStore';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
-import { THEMES } from '../../../../themes';
+import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
+import { THEMES, DEFAULT_THEME_ID } from '../../../../themes';
 import { useT } from '../../../../i18n';
 
 interface ThemePresetSectionProps {
@@ -13,6 +14,7 @@ export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
     const { ls, setPatch, clear } = useLayoutSetting(contextId);
 
     const effectiveThemeId = ls?.themeId ?? themeId;
+    const canReset = contextId ? ls?.themeId !== undefined : themeId !== DEFAULT_THEME_ID;
 
     return (
         <div
@@ -23,6 +25,11 @@ export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
                 <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {t('theme.preset.title')}
                 </h2>
+                <ResetDefaultsButton
+                    onReset={() => (contextId ? clear('themeId') : applyThemePreset(DEFAULT_THEME_ID))}
+                    disabled={!canReset}
+                    scoped={contextId !== null}
+                />
             </div>
             <p className="text-xs mb-4 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {t('theme.preset.desc')}
@@ -77,15 +84,6 @@ export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
                     </button>
                 ))}
             </div>
-            {contextId && ls?.themeId && (
-                <button
-                    onClick={() => clear('themeId')}
-                    className="mt-3 text-xs hover:opacity-70"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    ↩ Auf Global zurücksetzen
-                </button>
-            )}
         </div>
     );
 }

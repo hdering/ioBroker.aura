@@ -1,5 +1,6 @@
 import { useThemeStore } from '../../../../store/themeStore';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
+import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { getTheme, ELEMENT_VAR_FALLBACKS, type ThemeVars, type AllVars } from '../../../../themes';
 import { useT } from '../../../../i18n';
 import { ColorPicker } from '../../../../components/common/ColorPicker';
@@ -179,18 +180,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                     {t('theme.vars.title')}
                 </h2>
                 <div className="flex items-center gap-3 flex-wrap">
-                    <button
-                        onClick={resetAllVars}
-                        disabled={!hasCustomVars}
-                        className="text-xs px-3 py-1.5 rounded-lg hover:opacity-80 disabled:opacity-30 disabled:cursor-not-allowed"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--accent-red)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        {t('theme.vars.resetAll')}
-                    </button>
+                    <ResetDefaultsButton onReset={resetAllVars} disabled={!hasCustomVars} scoped={contextId !== null} />
                 </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-5">

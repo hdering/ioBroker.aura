@@ -1,5 +1,15 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
+import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
+import type { LayoutSettings } from '../../../../store/dashboardStore';
+
+const GUIDELINE_KEYS: (keyof LayoutSettings)[] = [
+    'guidelinesEnabled',
+    'guidelinesShowInFrontend',
+    'guidelinesWidth',
+    'guidelinesHeight',
+];
+const RESOLUTION_KEYS: (keyof LayoutSettings)[] = ['guidelinesShowResolution'];
 
 interface GuidelinesSectionProps {
     contextId: string | null;
@@ -73,7 +83,7 @@ function ToggleRow({
 }
 
 export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
-    const { eff, set, clear } = useLayoutSetting(contextId);
+    const { eff, set, clear, resetKeys, isDirty, level } = useLayoutSetting(contextId);
 
     const [w, wOv] = eff('guidelinesWidth');
     const [h, hOv] = eff('guidelinesHeight');
@@ -93,15 +103,22 @@ export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
         <div className="space-y-4">
             {/* ── Guidelines ─────────────────────────────────────────────── */}
             <div className="rounded-xl p-6 space-y-4" style={cardStyle}>
-                <div>
-                    <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        Hilfslinien
-                    </h2>
-                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        Rote gestrichelte Linien für die Ziel-Bildschirmgröße. Breite und Höhe sind das ganze Gerät; die
-                        waagerechte Linie berücksichtigt Header und Tab-/Bereichs-Leiste, damit Editor und Frontend
-                        übereinstimmen.
-                    </p>
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                            Hilfslinien
+                        </h2>
+                        <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                            Rote gestrichelte Linien für die Ziel-Bildschirmgröße. Breite und Höhe sind das ganze Gerät;
+                            die waagerechte Linie berücksichtigt Header und Tab-/Bereichs-Leiste, damit Editor und
+                            Frontend übereinstimmen.
+                        </p>
+                    </div>
+                    <ResetDefaultsButton
+                        onReset={() => resetKeys(GUIDELINE_KEYS)}
+                        disabled={!isDirty(GUIDELINE_KEYS)}
+                        scoped={level !== 'global'}
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
@@ -163,14 +180,21 @@ export function GuidelinesSection({ contextId }: GuidelinesSectionProps) {
 
             {/* ── Resolution ─────────────────────────────────────────────── */}
             <div className="rounded-xl p-6 space-y-4" style={cardStyle}>
-                <div>
-                    <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-                        Auflösung
-                    </h2>
-                    <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        Blendet die aktuelle Bildschirmauflösung des Geräts als Badge ein — unabhängig von den
-                        Hilfslinien.
-                    </p>
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                            Auflösung
+                        </h2>
+                        <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                            Blendet die aktuelle Bildschirmauflösung des Geräts als Badge ein — unabhängig von den
+                            Hilfslinien.
+                        </p>
+                    </div>
+                    <ResetDefaultsButton
+                        onReset={() => resetKeys(RESOLUTION_KEYS)}
+                        disabled={!isDirty(RESOLUTION_KEYS)}
+                        scoped={level !== 'global'}
+                    />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">

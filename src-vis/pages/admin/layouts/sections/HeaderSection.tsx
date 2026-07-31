@@ -1,5 +1,6 @@
 import { useT } from '../../../../i18n';
 import { ToggleRow, SubGroup, AutoGrowTextarea } from '../shared/SettingControls';
+import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import type { LayoutSettings } from '../../../../store/dashboardStore';
 
@@ -22,7 +23,7 @@ const HEADER_KEYS: (keyof LayoutSettings)[] = [
 // (contextId = null | layout id).
 export function HeaderSection({ contextId }: { contextId: string | null }) {
     const t = useT();
-    const { eff, set, clear, level } = useLayoutSetting(contextId);
+    const { eff, set, resetKeys, isDirty, level } = useLayoutSetting(contextId);
 
     const [showHeader] = eff('showHeader');
     const [headerTitle] = eff('headerTitle');
@@ -36,8 +37,6 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
     const [headerDatapoint] = eff('headerDatapoint');
     const [headerDatapointTemplate] = eff('headerDatapointTemplate');
 
-    const overridden = level !== 'global' && HEADER_KEYS.some((k) => eff(k as 'showHeader')[1]);
-
     return (
         <div
             className="rounded-xl p-6 space-y-3"
@@ -47,16 +46,11 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                 <h2 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
                     {t('layouts.subtab.header')}
                 </h2>
-                {overridden && (
-                    <button
-                        onClick={() => HEADER_KEYS.forEach((k) => clear(k))}
-                        className="text-[10px] px-2 py-0.5 rounded-full hover:opacity-80"
-                        style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
-                        title={t('layouts.scope.resetHint')}
-                    >
-                        {t('layouts.scope.reset')}
-                    </button>
-                )}
+                <ResetDefaultsButton
+                    onReset={() => resetKeys(HEADER_KEYS)}
+                    disabled={!isDirty(HEADER_KEYS)}
+                    scoped={level !== 'global'}
+                />
             </div>
             <p className="text-xs -mt-1" style={{ color: 'var(--text-secondary)' }}>
                 {t('design.header.hint')}

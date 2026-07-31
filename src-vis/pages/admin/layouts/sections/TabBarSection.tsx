@@ -11,6 +11,7 @@ import { useT } from '../../../../i18n';
 import { ColorPicker } from '../../../../components/common/ColorPicker';
 import { DatapointPicker } from '../../../../components/config/DatapointPicker';
 import { AutoGrowTextarea } from '../shared/SettingControls';
+import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 
 // ── OverrideDot ───────────────────────────────────────────────────────────────
 // Small marker shown next to a field that overrides the global value (layout scope).
@@ -427,15 +428,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         {isGlobal ? t('layouts.context.hintGlobal') : t('layouts.context.hintLayout')}
                     </p>
                 </div>
-                {hasOverride && (
-                    <button
-                        onClick={clearAll}
-                        className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70 shrink-0"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        {isGlobal ? t('settings.tabBar.clearAll') : t('layouts.scope.resetToGlobal')}
-                    </button>
-                )}
+                <ResetDefaultsButton onReset={clearAll} disabled={!hasOverride} scoped={!isGlobal} />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
