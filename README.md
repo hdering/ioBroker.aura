@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.38.9 (2026-07-31)
+- 🌟 **New feature:** Chart (Advanced) - new JSON mode: chart a JSON datapoint holding label/value entries, no history adapter needed
+- 🌟 **New feature:** Chart (Advanced) - JSON mode can read the label as a timestamp (epoch ms/s or ISO) and draw a real time axis
+- 🌟 **New feature:** Chart (Advanced) - JSON mode detects the label and value fields on its own and offers the datapoint's actual keys for picking
+
+
 ### 0.38.8 (2026-07-30)
 - Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100
 - Calendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually
@@ -208,10 +214,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices
 
 
-### 0.36.0 (2026-07-25)
-- 🌟 **New feature:** Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles
-
-
 ## License
 
 MIT License
@@ -223,6 +225,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

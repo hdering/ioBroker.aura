@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.36.0 (2026-07-25)
+- 🌟 **New feature:** Menu - new freely positionable navigation widget: shows the sections or the tabs as a menu, with per-widget de-selection of entries, four layouts (horizontal bar, vertical list, grid, pills) and four active styles
+
 ## 0.35.3 (2026-07-25)
 - Universal widget - string datapoints are no longer coerced to numbers when no value factor/offset is set, so values like "0x004" display as-is instead of being parsed as hex
 

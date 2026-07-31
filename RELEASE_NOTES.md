@@ -4,7 +4,3 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
-
-- Chart (Advanced) - new JSON mode: chart a JSON datapoint holding label/value entries, no history adapter needed
-- Chart (Advanced) - JSON mode can read the label as a timestamp (epoch ms/s or ISO) and draw a real time axis
-- Chart (Advanced) - JSON mode detects the label and value fields on its own and offers the datapoint's actual keys for picking
