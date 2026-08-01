@@ -259,6 +259,7 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'sunset', label: '🌇 Sonnenuntergang' },
         { key: 'week', label: 'Kalenderwoche (Nr.)' },
         { key: 'kw', label: 'Kalenderwoche (KW xx)' },
+        { key: 'relative', label: '⏳ Relativ (in 3 h 12 min)' },
     ],
     value: [
         { key: 'unit', label: 'Einheit' },

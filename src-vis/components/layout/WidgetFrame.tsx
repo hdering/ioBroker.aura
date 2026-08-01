@@ -8491,6 +8491,44 @@ export function WidgetFrame({
                                                 className="text-[11px] mb-1 block"
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
+                                                {t('wf.clock.sourceDp')}
+                                            </label>
+                                            <div className="flex gap-1">
+                                                <input
+                                                    type="text"
+                                                    value={config.datapoint ?? ''}
+                                                    onChange={(e) =>
+                                                        onConfigChange({ ...config, datapoint: e.target.value })
+                                                    }
+                                                    placeholder="z.B. evcc.0.status.full"
+                                                    className={`${inputCls} font-mono flex-1 min-w-0`}
+                                                    style={inputStyle}
+                                                />
+                                                <button
+                                                    onClick={() => setPickerTarget('datapoint')}
+                                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                    style={inputStyle}
+                                                    title={t('wf.edit.fromIoBroker')}
+                                                >
+                                                    <Database size={13} />
+                                                </button>
+                                                <JsonPathButton
+                                                    value={config.datapoint ?? ''}
+                                                    onChange={(ref) => onConfigChange({ ...config, datapoint: ref })}
+                                                />
+                                            </div>
+                                            <p
+                                                className="text-[10px] mt-1 leading-tight"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {t('wf.clock.sourceDpHint')}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
                                                 {t('wf.clock.display')}
                                             </label>
                                             <select
@@ -8566,7 +8604,7 @@ export function WidgetFrame({
                                                 className="text-[10px] mt-1 leading-tight"
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
-                                                Tokens: HH mm ss dd MM yyyy EE EEEE MMMM ww SR SS CT
+                                                Tokens: HH mm ss dd MM yyyy EE EEEE MMMM ww SR SS CT REL
                                             </p>
                                         </div>
                                         {(o.customFormat as string)?.trim() ? (
@@ -17002,6 +17040,12 @@ export function WidgetFrame({
                                                                                                               '')
                     }
                     onSelect={(id, unit, name, role, dpType) => {
+                        if (pickerTarget === 'datapoint' && config.type === 'clock') {
+                            // Clock: the DP is only an optional time source — never run type
+                            // auto-detection or secondary-DP discovery on it.
+                            onConfigChange({ ...config, datapoint: id });
+                            return;
+                        }
                         if (pickerTarget === 'datapoint') {
                             const detected =
                                 role || dpType

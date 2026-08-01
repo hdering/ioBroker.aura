@@ -805,6 +805,10 @@ export const de = {
     'wf.clock.showSunrise': 'Sonnenaufgang anzeigen',
     'wf.clock.showSunset': 'Sonnenuntergang anzeigen',
     'wf.clock.extrasFontSize': 'Schriftgröße Zusatzinfo (px)',
+    'wf.clock.sourceDp': 'Quell-Datenpunkt (optional)',
+    'wf.clock.sourceDpHint':
+        'Leer = aktuelle Uhrzeit. Sonst wird der Zeitwert aus dem Datenpunkt formatiert (ISO-Zeitstempel, HH:mm oder Unix-Zeit).',
+    'wf.clock.sourceDpInvalid': 'Wert nicht als Zeit lesbar',
     'wf.value.fontSize': 'Schriftgröße Wert (px)',
 
     // History (chart)
@@ -1340,6 +1344,13 @@ export const de = {
     'clock.month.10': 'November',
     'clock.month.11': 'Dezember',
     'clock.kw': 'KW ',
+    'clock.rel.now': 'jetzt',
+    'clock.rel.in': 'in {span}',
+    'clock.rel.ago': 'vor {span}',
+    'clock.rel.sec': 's',
+    'clock.rel.min': 'min',
+    'clock.rel.hour': 'h',
+    'clock.rel.day': 'd',
 
     // ── AutoListConfig ────────────────────────────────────────────────────────────
     'autolist.trueText': 'Text für AN / true / 1',

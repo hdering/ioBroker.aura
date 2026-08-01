@@ -110,10 +110,10 @@ function InlineEditForm({
                         </select>
                     </div>
 
-                    {needsDatapoint && (
+                    {(needsDatapoint || isClock) && (
                         <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                {t('wf.edit.datapointId')}
+                                {isClock ? t('wf.clock.sourceDp') : t('wf.edit.datapointId')}
                             </label>
                             <div className="flex gap-1">
                                 <input

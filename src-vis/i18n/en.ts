@@ -804,6 +804,10 @@ export const en: Record<TranslationKey, string> = {
     'wf.clock.showSunrise': 'Show sunrise',
     'wf.clock.showSunset': 'Show sunset',
     'wf.clock.extrasFontSize': 'Extras font size (px)',
+    'wf.clock.sourceDp': 'Source datapoint (optional)',
+    'wf.clock.sourceDpHint':
+        'Empty = current time. Otherwise the time value from the datapoint is formatted (ISO timestamp, HH:mm or Unix time).',
+    'wf.clock.sourceDpInvalid': 'Value cannot be read as a time',
     'wf.value.fontSize': 'Value font size (px)',
 
     // History (chart)
@@ -1336,6 +1340,13 @@ export const en: Record<TranslationKey, string> = {
     'clock.month.10': 'November',
     'clock.month.11': 'December',
     'clock.kw': 'CW ',
+    'clock.rel.now': 'now',
+    'clock.rel.in': 'in {span}',
+    'clock.rel.ago': '{span} ago',
+    'clock.rel.sec': 's',
+    'clock.rel.min': 'min',
+    'clock.rel.hour': 'h',
+    'clock.rel.day': 'd',
 
     // ── AutoListConfig ────────────────────────────────────────────────────────────
     'autolist.trueText': 'Text for ON / true / 1',

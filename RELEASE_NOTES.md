@@ -4,4 +4,5 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
+- Clock - optional source datapoint: formats a time value from a datapoint (ISO timestamp, HH:mm or Unix time) instead of the current time, with a new REL token for relative output ("in 3 h 12 min")
 - Section menu - separate placement for mobile; a docked sidebar no longer forces the tab bar to stay visible with a single tab

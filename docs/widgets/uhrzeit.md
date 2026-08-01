@@ -2,6 +2,8 @@
 
 Zeigt die aktuelle Uhrzeit und/oder das Datum an — ohne Datenpunkt. Optional mit Wochentag, Monatsname, freiem Format-String sowie Zusatz-Chips für Kalenderwoche, Ort, Sonnenauf- und -untergang.
 
+Mit einem **Quell-Datenpunkt** wird stattdessen ein fremder Zeitwert formatiert (z. B. `evcc.0.…full` mit `2026-07-31T20:15:30+02:00` → `31.07.2026 20:15`).
+
 ![](./assets/uhrzeit/runtime.png)
 
 ## Layouts
@@ -23,6 +25,18 @@ Uhrzeit, Datum, Format und Extra-Felder frei in einer Zellenmatrix platzieren �
 Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ![](./assets/uhrzeit/config.png)
+
+### Quell-Datenpunkt
+
+Leer = aktuelle Uhrzeit. Sonst wird der Wert des Datenpunkts als Zeit gelesen und mit denselben Optionen formatiert. JSON-Pfad (`…#pfad`) wird unterstützt.
+
+| Wert im Datenpunkt | Beispiel |
+| --- | --- |
+| ISO-Zeitstempel | `2026-07-31T20:15:30+02:00` · `2026-07-31 20:15:30` · `2026-07-31` |
+| Uhrzeit (heutiges Datum) | `20:15` · `20:15:30` |
+| Unix-Zeit (s oder ms) | `1785528196` · `1785528196311` |
+
+Nicht lesbare oder leere Werte zeigen `–`.
 
 ### Anzeige
 
@@ -48,6 +62,7 @@ Tokens für `customFormat` — werden durch die aktuellen Werte ersetzt.
 | `ww` | Kalenderwoche (ISO-8601) |
 | `SR` / `SS` | Sonnenaufgang / -untergang |
 | `CT` | Ort aus der System-Konfiguration |
+| `REL` | Abstand zu jetzt (`in 3 h 12 min` / `vor 5 min`) — nur mit Quell-Datenpunkt |
 
 ### Titel & Icon
 
