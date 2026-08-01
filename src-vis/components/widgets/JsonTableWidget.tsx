@@ -174,8 +174,12 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const opts = config.options ?? {};
     const { value } = useDatapoint(config.datapoint);
 
+    const transparent = !!opts.transparent;
     const headerBg = (opts.headerBg as string) ?? 'var(--accent)';
-    const headerColor = (opts.headerColor as string) ?? '#ffffff';
+    // Transparency drops the accent-coloured header background, so the default
+    // white header text would vanish on a light theme — fall back to the theme
+    // text colour instead. An explicitly configured colour always wins.
+    const headerColor = (opts.headerColor as string) ?? (transparent ? 'var(--text-primary)' : '#ffffff');
     const firstColHeader = (opts.firstColHeader as boolean) ?? false;
     const firstColBg = (opts.firstColBg as string) ?? 'var(--app-bg)';
     const firstColColor = (opts.firstColColor as string) ?? 'var(--text-secondary)';
@@ -186,7 +190,6 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const autoHeight = (opts.autoHeight as boolean) ?? false;
     const sortable = (opts.sortable as boolean) ?? false;
     const maxRows = (opts.maxRows as number) ?? 0;
-    const transparent = !!opts.transparent;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
