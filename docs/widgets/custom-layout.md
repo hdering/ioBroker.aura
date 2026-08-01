@@ -2,6 +2,8 @@
 
 Jedes Widget mit Layout-Auswahl kennt den Layout-Typ **Custom**: ein freies Zellenraster, in dem Titel, Wert, Icon, Bild, Bedien-Element oder Freitext beliebig platziert werden.
 
+Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
+
 ## Raster
 
 Größe per Spinner. Zellen werden zeilenweise gelesen (oben links → unten rechts).

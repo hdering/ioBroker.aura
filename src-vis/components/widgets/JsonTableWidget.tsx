@@ -6,7 +6,7 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { resolveAssetUrl, proxifyIfMixed, resolveHtmlAssets } from '../../utils/assetUrl';
+import { resolveAssetUrl, proxifyIfMixed, resolveHtmlAssets, resolveImageSource } from '../../utils/assetUrl';
 
 // ── Column definition (stored in options.columns) ─────────────────────────────
 export interface JsonColumnDef {
@@ -86,31 +86,57 @@ function effectiveAdminBaseUrl(adminBaseUrl: string | undefined): string {
 }
 
 /** Resolve image URL for a cell.
- *  - http(s)://, //, data: → as-is (http proxied on HTTPS pages, see proxifyIfMixed)
- *  - aura-file:… → fs/read endpoint
- *  - /<adapter>.admin/… → prepend adminBaseUrl (global) or columnPrefix (override)
- *  - everything else → fall back to aura-file: (legacy behaviour) */
+ *  - http(s)://, //, data:, aura-file:… → handled by the shared resolver
+ *  - a per-column prefix, when set, wins over every automatic rewrite
+ *  - /<adapter>.admin/… → prepend adminBaseUrl
+ *  - everything else → shared resolver, i.e. web-adapter paths such as
+ *    `/adapter/pirate-weather/icons/…` go through /webfs (issue #519) */
 function resolveImageSrc(v: unknown, adminBaseUrl: string, columnPrefix?: string): string {
     if (typeof v !== 'string' || !v) return '';
-    if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:')) return proxifyIfMixed(v);
-    if (v.startsWith('aura-file:')) return resolveAssetUrl(v);
+    if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:') || v.startsWith('aura-file:')) {
+        return resolveImageSource(v);
+    }
     // Per-column prefix overrides global handling
     if (columnPrefix && columnPrefix.trim()) {
         const prefix = columnPrefix.trim().replace(/\/+$/, '');
         const path = v.startsWith('/') ? v : `/${v}`;
-        const combined = prefix + path;
         // An `aura-file:` prefix must still be routed to the /fs/read endpoint —
         // proxifyIfMixed only handles http(s), so it would leave the raw
         // `aura-file:…` string in the <img src> and the browser can't load it
         // (issue #469).
-        if (combined.startsWith('aura-file:')) return resolveAssetUrl(combined);
-        return proxifyIfMixed(combined);
+        return resolveImageSource(prefix + path);
     }
     // ioBroker admin asset path: /<adapter>.admin/...
     if (/^\/[^/]+\.admin\//.test(v) && adminBaseUrl) {
         return proxifyIfMixed(adminBaseUrl + v);
     }
+    return resolveImageSource(v);
+}
+
+/** Until #519 every unprefixed path was read from aura's local file system.
+ *  Kept as an onError fallback so tables configured against a local path keep
+ *  working now that such values are routed to the web adapter first. */
+function legacyImageSrc(v: unknown): string {
+    if (typeof v !== 'string' || !v) return '';
+    if (/^(https?:)?\/\//i.test(v) || v.startsWith('data:') || v.startsWith('aura-file:')) return '';
     return resolveAssetUrl(`aura-file:${v.replace(/^\/+/, '')}`);
+}
+
+/** Image cell that retries with the legacy local-file URL when the primary
+ *  (web-adapter) URL fails to load. */
+function TableImage({ src, fallback, size }: { src: string; fallback: string; size: number }) {
+    const [current, setCurrent] = useState(src);
+    useEffect(() => setCurrent(src), [src]);
+    return (
+        <img
+            src={current}
+            alt=""
+            onError={() => {
+                if (fallback && current !== fallback) setCurrent(fallback);
+            }}
+            style={{ width: size, height: size, objectFit: 'contain', display: 'block' }}
+        />
+    );
 }
 
 // ── Raw table shape after parsing ─────────────────────────────────────────────
@@ -548,6 +574,9 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                         const isLabel = firstColHeader && ci === 0;
                                         const raw = row[col.key];
                                         const isImage = col.image ?? false;
+                                        const imgSrc = isImage
+                                            ? resolveImageSrc(raw, adminBaseUrl, col.imagePathPrefix)
+                                            : '';
                                         const isHtml = !isImage && (col.html ?? false);
                                         const useIconify = !isImage && !isHtml && (col.iconify ?? false);
                                         const imgSize =
@@ -581,20 +610,11 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                 }}
                                             >
                                                 {isImage ? (
-                                                    resolveImageSrc(raw, adminBaseUrl, col.imagePathPrefix) ? (
-                                                        <img
-                                                            src={resolveImageSrc(
-                                                                raw,
-                                                                adminBaseUrl,
-                                                                col.imagePathPrefix,
-                                                            )}
-                                                            alt=""
-                                                            style={{
-                                                                width: imgSize,
-                                                                height: imgSize,
-                                                                objectFit: 'contain',
-                                                                display: 'block',
-                                                            }}
+                                                    imgSrc ? (
+                                                        <TableImage
+                                                            src={imgSrc}
+                                                            fallback={col.imagePathPrefix ? '' : legacyImageSrc(raw)}
+                                                            size={imgSize}
                                                         />
                                                     ) : (
                                                         <span style={{ opacity: 0.5 }}>–</span>

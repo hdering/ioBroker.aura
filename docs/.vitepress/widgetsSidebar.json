@@ -8,6 +8,10 @@
     "link": "/widgets/referenz"
   },
   {
+    "text": "Bildpfade",
+    "link": "/widgets/bildpfade"
+  },
+  {
     "text": "Steuerung & Anzeige",
     "collapsed": false,
     "items": [

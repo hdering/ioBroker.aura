@@ -13,8 +13,9 @@ export function resolveAssetUrl(value: string): string {
  * image picker — no IP/port dependency. (issue #465)
  */
 export function resolveHtmlAssets(html: string): string {
-    return html.replace(/(\ssrc\s*=\s*)(["'])(aura-file:[^"']+)\2/gi, (_m, pre, q, url) => {
-        return `${pre}${q}${resolveAssetUrl(url)}${q}`;
+    return html.replace(/(\ssrc\s*=\s*)(["'])([^"']+)\2/gi, (m, pre, q, url) => {
+        const resolved = resolveImageSource(url);
+        return resolved ? `${pre}${q}${resolved}${q}` : m;
     });
 }
 

@@ -5,7 +5,7 @@ import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { resolveAssetUrl } from '../../utils/assetUrl';
+import { resolveImageSource } from '../../utils/assetUrl';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -81,7 +81,7 @@ export function SwitchWidget({ config }: WidgetProps) {
         >
             {isImageMode && stateImage ? (
                 <img
-                    src={resolveAssetUrl(stateImage)}
+                    src={resolveImageSource(stateImage)}
                     style={{ width: controlIconSize, height: controlIconSize, objectFit: 'contain' }}
                     alt=""
                 />

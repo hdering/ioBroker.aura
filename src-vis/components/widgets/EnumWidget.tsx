@@ -4,7 +4,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { resolveAssetUrl } from '../../utils/assetUrl';
+import { resolveImageSource } from '../../utils/assetUrl';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { SafeHtml } from '../common/SafeHtml';
@@ -52,7 +52,7 @@ export function EnumEntryLabel({
         const px = entry.size ?? 28;
         return (
             <img
-                src={resolveAssetUrl(entry.image)}
+                src={resolveImageSource(entry.image)}
                 alt={entry.label}
                 title={entry.label}
                 className={className}

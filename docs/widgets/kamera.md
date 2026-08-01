@@ -2,6 +2,8 @@
 
 Zeigt ein Kamera-Livebild als MJPEG-/Snapshot-Stream oder eine HTML-Seite im iframe. RTSP wird nicht unterstützt — stattdessen go2rtc als MJPEG-URL einbinden. Zusätzliche Info-Kacheln (Akku, Temperatur, Scharf-Status, Bewegung …) lassen sich neben dem Stream anordnen. Optional weckt ein Wake-up-Datenpunkt die Kamera erst bei Bedarf.
 
+Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
+
 ## Datenpunkt
 
 Kein Pflicht-Datenpunkt; die Stream-URL kann statisch oder aus einem Datenpunkt kommen.

@@ -66,6 +66,7 @@ import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { CellConditionEditor } from '../config/CellConditionEditor';
 import { BadgeEditor } from '../config/BadgeEditor';
+import { ImagePathHint } from '../config/ImagePathHint';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
@@ -3547,6 +3548,7 @@ function MediaplayerEditPanel({
                     {dpRow('mp.dp.artist', 'artistDp')}
                     {dpRow('mp.dp.album', 'albumDp')}
                     {dpRow('mp.dp.cover', 'coverDp')}
+                    <ImagePathHint className="pl-1" />
                     {dpRow('mp.dp.source', 'sourceDp')}
                     {dpRow('mp.dp.playState', 'playStateDp')}
                     {dpRow('mp.dp.volume', 'volumeDp')}
@@ -9085,6 +9087,7 @@ export function WidgetFrame({
                                             }
                                         </code>
                                     </p>
+                                    <ImagePathHint />
                                 </div>
                             </div>
                         )}
@@ -9330,7 +9333,7 @@ export function WidgetFrame({
                                                                         [optKey]: e.target.value.trim() || undefined,
                                                                     })
                                                                 }
-                                                                placeholder="https://…/bild.png oder data:image/…"
+                                                                placeholder="https://…/bild.png · /adapter/… · data:image/…"
                                                                 className="w-full text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none resize-none font-mono"
                                                                 style={{
                                                                     background: 'var(--app-bg)',
@@ -9338,6 +9341,7 @@ export function WidgetFrame({
                                                                     border: '1px solid var(--app-border)',
                                                                 }}
                                                             />
+                                                            <ImagePathHint />
                                                             {img && (
                                                                 <div className="flex items-center gap-2">
                                                                     <img
@@ -10601,6 +10605,7 @@ export function WidgetFrame({
                                                         </p>
                                                     );
                                                 })()}
+                                                <ImagePathHint className="mt-1.5" />
                                             </div>
                                         )}
                                         {camUrlMode === 'datapoint' && (
@@ -11038,6 +11043,7 @@ export function WidgetFrame({
                                                     <Database size={13} />
                                                 </button>
                                             </div>
+                                            <ImagePathHint className="mt-1.5" />
                                         </div>
                                         <div>
                                             <label
@@ -14396,7 +14402,7 @@ export function WidgetFrame({
                                                                 const v = e.target.value.trim();
                                                                 setO({ [`${st}Base64`]: v || undefined });
                                                             }}
-                                                            placeholder="oder data:image/… einfügen"
+                                                            placeholder="oder data:image/… bzw. Pfad einfügen"
                                                             className="w-full text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none resize-none font-mono"
                                                             style={{
                                                                 background: 'var(--app-bg)',
@@ -14405,6 +14411,8 @@ export function WidgetFrame({
                                                             }}
                                                         />
                                                     )}
+                                                    <ImagePathHint />
+
                                                     {currentBase64 && (
                                                         <div className="flex items-center gap-2">
                                                             {!currentBase64.startsWith('aura-file:') && (
@@ -14761,7 +14769,7 @@ export function WidgetFrame({
                                                                 const v = e.target.value.trim();
                                                                 setO({ [`${prefix}Base64`]: v || undefined });
                                                             }}
-                                                            placeholder="oder data:image/… einfügen"
+                                                            placeholder="oder data:image/… bzw. Pfad einfügen"
                                                             className="w-full text-[10px] rounded-lg px-2.5 py-1.5 focus:outline-none resize-none font-mono"
                                                             style={{
                                                                 background: 'var(--app-bg)',
@@ -14770,6 +14778,8 @@ export function WidgetFrame({
                                                             }}
                                                         />
                                                     )}
+                                                    <ImagePathHint />
+
                                                     {currentBase64 && (
                                                         <div className="flex items-center gap-2">
                                                             {!currentBase64.startsWith('aura-file:') && (

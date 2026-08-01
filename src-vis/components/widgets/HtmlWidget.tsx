@@ -2,6 +2,7 @@ import { Code2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
+import { resolveHtmlAssets } from '../../utils/assetUrl';
 import type { WidgetProps } from '../../types';
 
 export function HtmlWidget({ config }: WidgetProps) {
@@ -20,9 +21,12 @@ export function HtmlWidget({ config }: WidgetProps) {
 
     const { value: dpValue } = useDatapoint(htmlDatapoint);
 
+    // srcDoc has no base URL of its own, so `<img src="/adapter/…">` inside the
+    // sandbox would resolve against aura's own server and 404 — rewrite every
+    // src the same way as the standalone image widget does. (issue #519)
     const html = (() => {
-        if (htmlDatapoint && dpValue != null && dpValue !== '') return String(dpValue);
-        return htmlContent;
+        const raw = htmlDatapoint && dpValue != null && dpValue !== '' ? String(dpValue) : htmlContent;
+        return raw ? resolveHtmlAssets(raw) : raw;
     })();
 
     if (!html) {

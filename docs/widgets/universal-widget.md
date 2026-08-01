@@ -2,6 +2,8 @@
 
 Freies Raster – Zellen einzeln mit Schaltern, Reglern, Werten und Bildern belegen. Das Widget hat keinen eigenen Datenpunkt; jede Zelle bindet ihren Datenpunkt über den Custom-Grid-Editor. Über dem Raster steht optional eine Kopfzeile mit Icon und Titel.
 
+Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
+
 ## Datenpunkt
 
 Kein Haupt-Datenpunkt — die Bindung erfolgt pro Zelle im Raster.

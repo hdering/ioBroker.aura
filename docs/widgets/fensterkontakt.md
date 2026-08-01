@@ -2,6 +2,8 @@
 
 Zeigt den Status eines Fenster- oder Türkontakts an (geschlossen / gekippt / offen). Die Zustände werden über Wert-Presets (z. B. HmIP, Boolean) oder eigene Wertlisten ermittelt, jeweils mit eigenem Icon, Farbe und Beschriftung.
 
+Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
+
 ![](./assets/fensterkontakt/runtime.png)
 
 ## Datenpunkt

@@ -13,6 +13,7 @@ import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
+import { ImagePathHint } from '../config/ImagePathHint';
 import { ValueTransformButton } from '../config/ValueTransformButton';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { ColorPicker } from '../common/ColorPicker';
@@ -597,7 +598,7 @@ export function CustomCellEditor({
                                 type="text"
                                 value={cell.imageUrl ?? ''}
                                 onChange={(e) => onChange({ imageUrl: e.target.value || undefined })}
-                                placeholder="https://… oder data:image/png;base64,…"
+                                placeholder="https://… · /adapter/… · data:image/png;base64,…"
                                 className={`flex-1 ${inputCls}`}
                                 style={inputSty}
                             />
@@ -625,6 +626,7 @@ export function CustomCellEditor({
                                 Logos ohne externen Server. Bei gesetztem Datenpunkt dient dies als Fallback.
                             </p>
                         )}
+                        <ImagePathHint className="mt-1.5" />
                     </div>
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>

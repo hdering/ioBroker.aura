@@ -2,6 +2,8 @@
 
 Schaltet einen `boolean`-Datenpunkt. Wahlweise als Schiebeschalter oder Icon-Taster, mit optionalem Impuls-Modus und Sicherheitsabfrage. Für dimmbare oder farbige Lampen ist das [Lampen-Widget](./) besser.
 
+Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
+
 ![](./assets/schalter/uebersicht.png)
 
 ## Datenpunkt

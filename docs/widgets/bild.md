@@ -2,6 +2,8 @@
 
 Zeigt ein statisches Bild aus einer URL, einer lokalen Datei oder einem Datenpunkt (URL oder Base64). Optional wird das Bild in einem Intervall neu geladen.
 
+Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
+
 ## Datenpunkt
 
 Kein Pflicht-Datenpunkt; die Quelle kann eine feste URL oder ein Datenpunkt sein.

@@ -4,7 +4,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { resolveAssetUrl } from '../../utils/assetUrl';
+import { resolveImageSource } from '../../utils/assetUrl';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -46,7 +46,7 @@ function StateDisplay({
     if (cfg.type === 'base64' && cfg.base64) {
         return (
             <img
-                src={resolveAssetUrl(cfg.base64)}
+                src={resolveImageSource(cfg.base64)}
                 className={className}
                 style={{ width: size, height: size, objectFit: 'contain', flexShrink: 0 }}
                 alt=""

@@ -2,6 +2,8 @@
 
 Steuert einen Mediaplayer (Sonos, Squeezeserver, Spotify u. a.) über getrennte Datenpunkte für Wiedergabe, Lautstärke, Titel und Cover. Mit Fortschrittsbalken, Lautstärke-Schnellwahl und frei belegbaren Schnellzugriff-Chips. Auf Mobilgeräten erscheint ein vertikaler Aufbau.
 
+Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
+
 ## Datenpunkt
 
 Kein Pflicht-Datenpunkt — jede Funktion wird über einen eigenen DP angebunden. Steuer-DPs (Play/Pause/Prev/Next/Shuffle/Repeat) werden beim Klick mit `true` gepulst.

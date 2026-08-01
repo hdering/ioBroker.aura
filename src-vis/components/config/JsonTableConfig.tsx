@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, RefreshCw, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import type { JsonColumnDef } from '../widgets/JsonTableWidget';
 import { ColorPicker } from '../common/ColorPicker';
+import { ImagePathHint } from './ImagePathHint';
 import { getStateDirect } from '../../hooks/useIoBroker';
 
 interface Props {
@@ -604,9 +605,9 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                             className="text-[9px] mt-0.5"
                                             style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                         >
-                                            Datei aus dem ioBroker-Dateisystem:{' '}
-                                            <code>aura-file:/opt/iobroker/iobroker-data/files/vis.0/Aura/icon.png</code>
+                                            Leer lassen, wenn die Zellwerte schon vollständige Pfade enthalten.
                                         </p>
+                                        <ImagePathHint className="mt-1.5" />
                                     </div>
                                 </>
                             )}

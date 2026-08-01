@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { Camera, BatteryMedium, Thermometer, Shield, Activity, Building2, RefreshCw, Maximize2, X } from 'lucide-react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { resolveImageSource } from '../../utils/assetUrl';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { setStateDirect, subscribeDpValue } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -748,8 +749,11 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     // ── Image refresh loop ─────────────────────────────────────────────────────────
     const buildSrc = (url: string) => {
         if (!url || mode !== 'img') return url;
-        if (refreshInterval === 0) return url;
-        return url.includes('?') ? `${url}&_t=${Date.now()}` : `${url}?_t=${Date.now()}`;
+        // Resolve after mode detection so an adapter path / base64 snapshot from a
+        // datapoint loads too, without changing how the mode itself is derived.
+        const resolved = resolveImageSource(url);
+        if (refreshInterval === 0 || resolved.startsWith('data:')) return resolved;
+        return resolved.includes('?') ? `${resolved}&_t=${Date.now()}` : `${resolved}?_t=${Date.now()}`;
     };
 
     useEffect(() => {

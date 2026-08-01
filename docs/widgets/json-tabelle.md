@@ -2,6 +2,8 @@
 
 Zeigt einen Datenpunkt mit JSON-Daten als formatierte Tabelle. Erkennt automatisch ein Array von Objekten, ein Array von Arrays oder ein `{headers, rows}`-Objekt. Spalten lassen sich umbenennen, ausblenden, sortieren und als Bild, HTML oder Iconify-Icon rendern.
 
+Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
+
 ![](./assets/json-tabelle/runtime.png)
 
 ## Datenpunkt

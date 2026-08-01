@@ -4,6 +4,7 @@ import type { WidgetConfig, ClickAction } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { DatapointPicker } from './DatapointPicker';
+import { ImagePathHint } from './ImagePathHint';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 
 function normalizeAction(action: ClickAction): ClickAction {
@@ -326,7 +327,7 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                             type="text"
                             value={action.url ?? ''}
                             onChange={(e) => setAction({ ...action, url: e.target.value })}
-                            placeholder="https://… oder leer lassen für Datenpunkt"
+                            placeholder="https://… · /adapter/… · leer lassen für Datenpunkt"
                             className={inputCls}
                             style={inputStyle}
                         />
@@ -356,6 +357,7 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                                 <Database size={13} />
                             </button>
                         </div>
+                        <ImagePathHint className="mt-1.5" />
                     </div>
                     <div>
                         <label className={labelCls} style={labelStyle}>
