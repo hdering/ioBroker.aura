@@ -30,14 +30,16 @@ function fmtSoc(v: number): string {
 // gridPower/batteryPower/batterySoc as flat number states — grid/battery arrive
 // only as JSON objects like {"power":-9.2,...}. Extract the numeric power from a
 // value that may be a plain number, a JSON object string, or a numeric string.
+// Since adapter 0.2.9 the JSON keys are capitalized (`Power`), so accept both.
 function parsePower(raw: unknown): number | null {
     if (raw == null) return null;
     if (typeof raw === 'number') return Number.isFinite(raw) ? raw : null;
     const str = String(raw).trim();
     if (str.startsWith('{')) {
         try {
-            const o = JSON.parse(str) as { power?: number };
-            return typeof o.power === 'number' ? o.power : null;
+            const o = JSON.parse(str) as { power?: number; Power?: number };
+            const p = o.power ?? o.Power;
+            return typeof p === 'number' ? p : null;
         } catch {
             return null;
         }
@@ -1110,10 +1112,20 @@ export function EvccWidget({ config }: WidgetProps) {
     const { value: extSoc } = useDatapoint(effectiveBattDp);
     const { value: extPower } = useDatapoint(batteryPowerDp);
 
-    // Grid power fallback: adapters with resolved nodes only publish the JSON
-    // object `status.grid` ({power,…}) instead of the flat `status.gridPower`.
+    // Grid power fallback chain — the evcc adapter reshaped the grid states
+    // several times:
+    //   • `status.gridPower`      flat number (old adapters, read in useEvccData)
+    //   • `status.grid`           JSON object {"power":…} (resolved nodes off)
+    //   • `status.Grid.power`     resolved nodes, adapter ≤ 0.2.8
+    //   • `status.Grid.Power`     resolved nodes, adapter ≥ 0.2.9 (issue #516)
+    // First source with a finite number wins; a manual datapoint beats them all.
+    const gridPowerDp = (o.gridPowerDatapoint as string) ?? '';
+    const { value: gridManual } = useDatapoint(gridPowerDp);
     const { value: gridRaw } = useDatapoint(prefix ? `${prefix}.status.grid` : '');
-    const gridPowerOverride = parsePower(gridRaw);
+    const { value: gridNodeUpper } = useDatapoint(prefix ? `${prefix}.status.Grid.Power` : '');
+    const { value: gridNodeLower } = useDatapoint(prefix ? `${prefix}.status.Grid.power` : '');
+    const gridPowerOverride =
+        parsePower(gridManual) ?? parsePower(gridNodeUpper) ?? parsePower(gridNodeLower) ?? parsePower(gridRaw);
 
     const { site: rawSite, loadpoints } = useEvccData(prefix, loadpointCount);
 
@@ -1461,6 +1473,20 @@ export function EvccConfig({
                     </div>
                 </div>
             )}
+
+            <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    {t('evcc.gridPowerDp')} <span style={{ opacity: 0.6 }}>{t('evcc.gridPowerDpHint')}</span>
+                </label>
+                <input
+                    type="text"
+                    value={(o.gridPowerDatapoint as string) ?? ''}
+                    onChange={(e) => set({ gridPowerDatapoint: e.target.value || undefined })}
+                    placeholder="z.B. evcc.0.status.Grid.Power"
+                    className={`${inputCls} font-mono`}
+                    style={inputSty}
+                />
+            </div>
 
             <div className="flex items-center justify-between">
                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

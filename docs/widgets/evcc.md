@@ -11,6 +11,9 @@ Kein Haupt-Datenpunkt. Das Widget liest alle Werte unter dem Adapter-Präfix (`s
 | `evccPrefix` | ja | — | Adapter-Instanz, Standard `evcc.0` |
 | `batterySocDatapoint` | nein | — | eigener SoC-DP, falls evcc die Batterie nicht kennt (Prozent oder JSON `{soc,power}`) |
 | `batteryPowerDatapoint` | nein | `number` | eigener Batterie-Leistungs-DP in Watt (negativ = laden) |
+| `gridPowerDatapoint` | nein | `number` | eigener Netzleistungs-DP in Watt (negativ = Einspeisung) |
+
+Die Netzleistung wird automatisch aus der ersten passenden Quelle gelesen: `status.gridPower` · `status.grid` (JSON) · `status.Grid.power` (evcc-Adapter ≤ 0.2.8) · `status.Grid.Power` (evcc-Adapter ≥ 0.2.9). `gridPowerDatapoint` überschreibt alle.
 
 ## Layouts
 
@@ -58,6 +61,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showBattery` | `true` | Hausbatterie anzeigen |
 | `batterySocDatapoint` | — | eigener SoC-Datenpunkt |
 | `batteryPowerDatapoint` | — | eigener Leistungs-Datenpunkt |
+| `gridPowerDatapoint` | — | eigener Netzleistungs-Datenpunkt |
 
 ### Anzeige
 

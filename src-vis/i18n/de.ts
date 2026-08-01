@@ -1548,6 +1548,8 @@ export const de = {
     'evcc.noConnection': 'Keine Verbindung',
     'evcc.prefix': 'evcc Präfix',
     'evcc.loadpoints': 'Ladepunkte',
+    'evcc.gridPowerDp': 'Netzleistung – eigener Datenpunkt',
+    'evcc.gridPowerDpHint': '(optional, Watt, negativ = Einspeisung)',
     'evcc.showBattery': 'Batterie anzeigen',
     'evcc.showLoadpoints': 'Ladepunkte anzeigen',
 

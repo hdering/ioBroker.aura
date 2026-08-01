@@ -1544,6 +1544,8 @@ export const en: Record<TranslationKey, string> = {
     'evcc.noConnection': 'No connection',
     'evcc.prefix': 'evcc Prefix',
     'evcc.loadpoints': 'Loadpoints',
+    'evcc.gridPowerDp': 'Grid power – custom datapoint',
+    'evcc.gridPowerDpHint': '(optional, watts, negative = feed-in)',
     'evcc.showBattery': 'Show Battery',
     'evcc.showLoadpoints': 'Show Loadpoints',
 
