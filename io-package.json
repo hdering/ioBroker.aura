@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.38.12",
+    "version": "0.39.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.39.0": {
+        "en": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "de": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "ru": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "pt": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "nl": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "fr": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "it": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "es": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "pl": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "uk": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
+        "zh-cn": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list"
+      },
       "0.38.12": {
         "en": "Image - datapoint values holding an adapter asset path (e.g. /adapter/pirate-weather/icons/...) now render instead of staying blank; same path handling in universal widget cells, JSON table image columns, image popups, state images, switch/window contact images, camera and HTML img tags\nEvery image field now lists the accepted path formats (URL, adapter path, ioBroker file, local file, base64) - see the new \"Bildpfade\" doc page",
         "de": "Image - datapoint values holding an adapter asset path (e.g. /adapter/pirate-weather/icons/...) now render instead of staying blank; same path handling in universal widget cells, JSON table image columns, image popups, state images, switch/window contact images, camera and HTML img tags\nEvery image field now lists the accepted path formats (URL, adapter path, ioBroker file, local file, base64) - see the new \"Bildpfade\" doc page",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
         "uk": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
         "zh-cn": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off"
-      },
-      "0.38.6": {
-        "en": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "de": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "ru": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "pt": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "nl": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "fr": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "it": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "es": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "pl": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "uk": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling",
-        "zh-cn": "Mirror - a mirrored group now shows its full content on mobile instead of only scrolling"
       }
     }
   },
