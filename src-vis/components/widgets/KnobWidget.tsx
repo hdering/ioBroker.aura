@@ -4,7 +4,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, CustomGrid, CustomGridDef } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { CustomGridView } from './CustomGridView';
 
@@ -95,13 +95,14 @@ function angleFromPointArc(
 export function KnobWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
     const { setState } = useIoBroker();
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
 
     const min = (o.minValue as number) ?? 0;
     const max = (o.maxValue as number) ?? 100;
     const step = (o.step as number) ?? 1;
     const decimalsOpt = o.decimals as number | undefined;
     const decimals = decimalsOpt ?? defaultDecimals;
+    const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     const unit = (o.unit as string) ?? '';
     const pointerStyle = (o.pointerStyle as KnobPointerStyle) || 'line';
     const showValue = o.showValue !== false;
@@ -251,7 +252,7 @@ export function KnobWidget({ config }: WidgetProps) {
     const cx = 100,
         cy = 100;
     const currentAngle = valueToAngle(displayVal, min, max, startAngle, endAngle, infinite);
-    const valueStr = isNaN(displayVal) ? '–' : `${formatNum(displayVal, decimals)}${unit}`;
+    const valueStr = isNaN(displayVal) ? '–' : `${formatNum(displayVal, decimals, numFmt)}${unit}`;
 
     const idSuffix = config.id.replace(/[^a-zA-Z0-9_-]/g, '');
     const bodyGradId = `knob-body-${idSuffix}`;
@@ -794,7 +795,7 @@ export function KnobWidget({ config }: WidgetProps) {
                                     fill="var(--text-secondary)"
                                     style={{ pointerEvents: 'none' }}
                                 >
-                                    {formatNum(min, decimals)}
+                                    {formatNum(min, decimals, numFmt)}
                                 </text>
                                 <text
                                     x={maxP.x}
@@ -805,7 +806,7 @@ export function KnobWidget({ config }: WidgetProps) {
                                     fill="var(--text-secondary)"
                                     style={{ pointerEvents: 'none' }}
                                 >
-                                    {formatNum(max, decimals)}
+                                    {formatNum(max, decimals, numFmt)}
                                 </text>
                             </>
                         );
@@ -861,7 +862,7 @@ export function KnobWidget({ config }: WidgetProps) {
                 rawValue={displayVal}
                 unit={unit}
                 extraFields={{
-                    value: isNaN(displayVal) ? '–' : `${formatNum(displayVal, decimals)}${unit}`,
+                    value: isNaN(displayVal) ? '–' : `${formatNum(displayVal, decimals, numFmt)}${unit}`,
                     unit,
                     min: String(min),
                     max: String(max),

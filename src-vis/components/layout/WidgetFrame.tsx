@@ -44,7 +44,6 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { baseDpId } from '../../utils/dpRef';
 import { JsonPathButton } from '../config/JsonPathButton';
 import { ColorPicker } from '../common/ColorPicker';
-import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { useDashboardStore, useActiveSection, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
@@ -165,6 +164,8 @@ import { StateImageWidget } from '../widgets/StateImageWidget';
 import { EChartsPresetConfig } from '../config/EChartsPresetConfig';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { ValueTransformButton } from '../config/ValueTransformButton';
+import { NumberFormatSetting } from '../config/NumberFormatSetting';
+import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlWidget } from '../widgets/HtmlWidget';
 import { HtmlConfig } from '../config/HtmlConfig';
 import { MapConfig } from '../config/MapConfig';
@@ -1319,7 +1320,6 @@ function ClimateConfig({
 
     const o = config.options ?? {};
     const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
-    const { defaultDecimals } = useGlobalSettingsStore();
     const inputCls = 'flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0';
     const inputStyle = {
         background: 'var(--app-bg)',
@@ -1539,43 +1539,13 @@ function ClimateConfig({
                 </div>
             </div>
 
-            {/* Dezimalstellen */}
+            {/* Dezimalstellen + 1000er-Trennzeichen */}
             <div className="mb-2">
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    Dezimalstellen
-                </label>
-                <div className="flex gap-1">
-                    <input
-                        type="number"
-                        min={0}
-                        max={4}
-                        disabled={o.decimals === undefined}
-                        value={(o.decimals as number) ?? defaultDecimals}
-                        onChange={(e) => set({ decimals: Number(e.target.value) })}
-                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--app-border)',
-                            opacity: o.decimals === undefined ? 0.5 : 1,
-                        }}
-                    />
-                    <button
-                        onClick={() => set({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
-                        title={
-                            o.decimals === undefined
-                                ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                : 'Auf globale Einstellung zurücksetzen'
-                        }
-                        className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                        style={{
-                            background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
-                            color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)',
-                        }}
-                    >
-                        Global
-                    </button>
-                </div>
+                <NumberFormatSetting
+                    decimals={o.decimals as number | undefined}
+                    numberFormat={o.numberFormat as NumberFormat | undefined}
+                    onChange={set}
+                />
             </div>
 
             {/* Diagrammfarbe */}
@@ -5620,7 +5590,6 @@ export function WidgetFrame({
     inGroup,
 }: WidgetFrameProps) {
     const t = useT();
-    const { defaultDecimals } = useGlobalSettingsStore();
     const focusedWidgetId = useFocusedWidgetId();
     const isFocused = focusedWidgetId === config.id;
     const focusRef = useRef<HTMLDivElement>(null);
@@ -8969,65 +8938,13 @@ export function WidgetFrame({
                             </div>
                         )}
                         {(config.type === 'value' || config.type === 'chart') && (
-                            <div>
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    Dezimalstellen
-                                </label>
-                                <div className="flex gap-1">
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        max={4}
-                                        disabled={config.options?.decimals === undefined}
-                                        value={(config.options?.decimals as number) ?? defaultDecimals}
-                                        onChange={(e) =>
-                                            onConfigChange({
-                                                ...config,
-                                                options: { ...config.options, decimals: Number(e.target.value) },
-                                            })
-                                        }
-                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-primary)',
-                                            border: '1px solid var(--app-border)',
-                                            opacity: config.options?.decimals === undefined ? 0.5 : 1,
-                                        }}
-                                    />
-                                    <button
-                                        onClick={() =>
-                                            onConfigChange({
-                                                ...config,
-                                                options: {
-                                                    ...config.options,
-                                                    decimals:
-                                                        config.options?.decimals === undefined
-                                                            ? defaultDecimals
-                                                            : undefined,
-                                                },
-                                            })
-                                        }
-                                        title={
-                                            config.options?.decimals === undefined
-                                                ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                                : 'Auf globale Einstellung zurücksetzen'
-                                        }
-                                        className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                                        style={{
-                                            background:
-                                                config.options?.decimals === undefined
-                                                    ? 'var(--accent)'
-                                                    : 'var(--app-border)',
-                                            color:
-                                                config.options?.decimals === undefined
-                                                    ? '#fff'
-                                                    : 'var(--text-secondary)',
-                                        }}
-                                    >
-                                        Global
-                                    </button>
-                                </div>
-                            </div>
+                            <NumberFormatSetting
+                                decimals={config.options?.decimals as number | undefined}
+                                numberFormat={config.options?.numberFormat as NumberFormat | undefined}
+                                onChange={(patch) =>
+                                    onConfigChange({ ...config, options: { ...config.options, ...patch } })
+                                }
+                            />
                         )}
                         {config.type === 'value' && (
                             <div>
@@ -9611,52 +9528,12 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                             <div className="flex-1">
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Dezimalstellen
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={4}
-                                                        disabled={o.decimals === undefined}
-                                                        value={(o.decimals as number) ?? defaultDecimals}
-                                                        onChange={(e) => set({ decimals: Number(e.target.value) })}
-                                                        className={gCls}
-                                                        style={{ ...gSty, opacity: o.decimals === undefined ? 0.5 : 1 }}
-                                                    />
-                                                    <button
-                                                        onClick={() =>
-                                                            set({
-                                                                decimals:
-                                                                    o.decimals === undefined
-                                                                        ? defaultDecimals
-                                                                        : undefined,
-                                                            })
-                                                        }
-                                                        title={
-                                                            o.decimals === undefined
-                                                                ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                                                : 'Auf globale Einstellung zurücksetzen'
-                                                        }
-                                                        className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                                                        style={{
-                                                            background:
-                                                                o.decimals === undefined
-                                                                    ? 'var(--accent)'
-                                                                    : 'var(--app-border)',
-                                                            color:
-                                                                o.decimals === undefined
-                                                                    ? '#fff'
-                                                                    : 'var(--text-secondary)',
-                                                        }}
-                                                    >
-                                                        Global
-                                                    </button>
-                                                </div>
+                                                <NumberFormatSetting
+                                                    decimals={o.decimals as number | undefined}
+                                                    numberFormat={o.numberFormat as NumberFormat | undefined}
+                                                    onChange={set}
+                                                    inputStyle={gSty}
+                                                />
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
@@ -10159,52 +10036,12 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                             <div className="flex-1">
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Dezimalstellen
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={4}
-                                                        disabled={o.decimals === undefined}
-                                                        value={(o.decimals as number) ?? defaultDecimals}
-                                                        onChange={(e) => set({ decimals: Number(e.target.value) })}
-                                                        className={kCls}
-                                                        style={{ ...kSty, opacity: o.decimals === undefined ? 0.5 : 1 }}
-                                                    />
-                                                    <button
-                                                        onClick={() =>
-                                                            set({
-                                                                decimals:
-                                                                    o.decimals === undefined
-                                                                        ? defaultDecimals
-                                                                        : undefined,
-                                                            })
-                                                        }
-                                                        title={
-                                                            o.decimals === undefined
-                                                                ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                                                : 'Auf globale Einstellung zurücksetzen'
-                                                        }
-                                                        className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                                                        style={{
-                                                            background:
-                                                                o.decimals === undefined
-                                                                    ? 'var(--accent)'
-                                                                    : 'var(--app-border)',
-                                                            color:
-                                                                o.decimals === undefined
-                                                                    ? '#fff'
-                                                                    : 'var(--text-secondary)',
-                                                        }}
-                                                    >
-                                                        Global
-                                                    </button>
-                                                </div>
+                                                <NumberFormatSetting
+                                                    decimals={o.decimals as number | undefined}
+                                                    numberFormat={o.numberFormat as NumberFormat | undefined}
+                                                    onChange={set}
+                                                    inputStyle={kSty}
+                                                />
                                             </div>
                                         </div>
 
@@ -11731,52 +11568,12 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                             <div className="flex-1">
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Dezimalstellen
-                                                </label>
-                                                <div className="flex gap-1">
-                                                    <input
-                                                        type="number"
-                                                        min={0}
-                                                        max={4}
-                                                        disabled={o.decimals === undefined}
-                                                        value={(o.decimals as number) ?? defaultDecimals}
-                                                        onChange={(e) => set({ decimals: Number(e.target.value) })}
-                                                        className={fCls}
-                                                        style={{ ...fSty, opacity: o.decimals === undefined ? 0.5 : 1 }}
-                                                    />
-                                                    <button
-                                                        onClick={() =>
-                                                            set({
-                                                                decimals:
-                                                                    o.decimals === undefined
-                                                                        ? defaultDecimals
-                                                                        : undefined,
-                                                            })
-                                                        }
-                                                        title={
-                                                            o.decimals === undefined
-                                                                ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                                                : 'Auf globale Einstellung zurücksetzen'
-                                                        }
-                                                        className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                                                        style={{
-                                                            background:
-                                                                o.decimals === undefined
-                                                                    ? 'var(--accent)'
-                                                                    : 'var(--app-border)',
-                                                            color:
-                                                                o.decimals === undefined
-                                                                    ? '#fff'
-                                                                    : 'var(--text-secondary)',
-                                                        }}
-                                                    >
-                                                        Global
-                                                    </button>
-                                                </div>
+                                                <NumberFormatSetting
+                                                    decimals={o.decimals as number | undefined}
+                                                    numberFormat={o.numberFormat as NumberFormat | undefined}
+                                                    onChange={set}
+                                                    inputStyle={fSty}
+                                                />
                                             </div>
                                         </div>
 
@@ -15121,53 +14918,12 @@ export function WidgetFrame({
                                                 style={tInputStyle}
                                             />
                                         </div>
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Dezimalstellen
-                                            </label>
-                                            <div className="flex gap-1">
-                                                <input
-                                                    type="number"
-                                                    min={0}
-                                                    max={4}
-                                                    disabled={o.decimals === undefined}
-                                                    value={(o.decimals as number) ?? defaultDecimals}
-                                                    onChange={(e) => setO({ decimals: Number(e.target.value) })}
-                                                    className={tInputCls}
-                                                    style={{
-                                                        ...tInputStyle,
-                                                        opacity: o.decimals === undefined ? 0.5 : 1,
-                                                    }}
-                                                />
-                                                <button
-                                                    onClick={() =>
-                                                        setO({
-                                                            decimals:
-                                                                o.decimals === undefined ? defaultDecimals : undefined,
-                                                        })
-                                                    }
-                                                    title={
-                                                        o.decimals === undefined
-                                                            ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                                            : 'Auf globale Einstellung zurücksetzen'
-                                                    }
-                                                    className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                                                    style={{
-                                                        background:
-                                                            o.decimals === undefined
-                                                                ? 'var(--accent)'
-                                                                : 'var(--app-border)',
-                                                        color:
-                                                            o.decimals === undefined ? '#fff' : 'var(--text-secondary)',
-                                                    }}
-                                                >
-                                                    Global
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <NumberFormatSetting
+                                            decimals={o.decimals as number | undefined}
+                                            numberFormat={o.numberFormat as NumberFormat | undefined}
+                                            onChange={setO}
+                                            inputStyle={tInputStyle}
+                                        />
 
                                         {/* Sichtbare Felder */}
                                         <div className="h-px" style={{ background: 'var(--app-border)' }} />
@@ -16251,7 +16007,6 @@ export function WidgetFrame({
                                                         rows={rows}
                                                         widgetType={config.type}
                                                         isUniversal={isUniversal}
-                                                        defaultDecimals={defaultDecimals}
                                                         onChange={(patch) => setCell(sel, patch)}
                                                         onOpenIconPicker={setCustomCellIconPicker}
                                                         onOpenDpPicker={() => setCustomCellPickerOpen(true)}

@@ -1,4 +1,4 @@
-import { formatNum } from './formatValue';
+import { formatNum, type NumberFormat } from './formatValue';
 
 export type ListStat = 'sum' | 'avg' | 'min' | 'max';
 
@@ -65,12 +65,13 @@ export function getStatParts(
     icons: Partial<Record<ListStat, string>> | undefined,
     sumLabel: string | undefined,
     decimals: number,
+    format?: NumberFormat,
 ): StatPart[] {
     const active = selected && selected.length > 0 ? selected : (['sum'] as ListStat[]);
     return STAT_ORDER.filter((s) => active.includes(s)).map((s) => {
         const icon = icons?.[s] || undefined;
         let text = labels?.[s] ?? (s === 'sum' ? sumLabel : undefined);
         if (!icon && !text) text = STAT_SYMBOL[s];
-        return { key: s, icon, text: text || undefined, value: formatNum(stats[s], decimals) };
+        return { key: s, icon, text: text || undefined, value: formatNum(stats[s], decimals, format) };
     });
 }

@@ -1,8 +1,8 @@
-import { formatNum } from './formatValue';
+import { formatNum, type NumberFormat } from './formatValue';
 
 /** Format a Y-axis tick value, optionally using compact notation (K/M/B). */
-export function formatYTick(value: number, decimals: number, compact: boolean): string {
-    if (!compact) return formatNum(value, decimals);
+export function formatYTick(value: number, decimals: number, compact: boolean, format?: NumberFormat): string {
+    if (!compact) return formatNum(value, decimals, format);
     const abs = Math.abs(value);
     const sign = value < 0 ? '-' : '';
     if (abs >= 1e9) {
@@ -17,5 +17,5 @@ export function formatYTick(value: number, decimals: number, compact: boolean): 
         const n = abs / 1e3;
         return `${sign}${n >= 10 ? Math.round(n) : n.toFixed(1).replace(/\.0$/, '')}K`;
     }
-    return formatNum(value, decimals);
+    return formatNum(value, decimals, format);
 }

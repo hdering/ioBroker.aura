@@ -3,7 +3,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
     const rad = (angleDeg * Math.PI) / 180;
@@ -40,6 +40,7 @@ interface GaugeSVGProps {
     max: number;
     unit: string;
     decimals: number;
+    numFmt?: NumberFormat;
     strokeWidth: number;
     colorZones: boolean;
     zones: ColorZone[];
@@ -53,6 +54,7 @@ function GaugeSVG({
     max,
     unit,
     decimals,
+    numFmt,
     strokeWidth,
     colorZones,
     zones,
@@ -71,7 +73,7 @@ function GaugeSVG({
         primaryColor = match ? match.color : zones[zones.length - 1].color;
     }
 
-    const displayVal = isNaN(primary.value) ? '–' : formatNum(primary.value, decimals);
+    const displayVal = isNaN(primary.value) ? '–' : formatNum(primary.value, decimals, numFmt);
 
     // Needle lengths: primary longest, secondary progressively shorter
     const needleLengths = [r - 8, r - 16, r - 24];
@@ -211,9 +213,10 @@ export function GaugeWidget({ config }: WidgetProps) {
     const resolvedMax =
         maxDp && maxDpVal !== undefined && maxDpVal !== null ? tx(parseFloat(String(maxDpVal))) : staticMax;
 
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const unit = (opts.unit as string) ?? '';
     const decimals = (opts.decimals as number) ?? defaultDecimals;
+    const numFmt = (opts.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     const strokeWidth = (opts.strokeWidth as number) ?? 12;
     const colorZones = (opts.colorZones as boolean) ?? false;
     const showMinMax = (opts.showMinMax as boolean) ?? true;
@@ -272,6 +275,7 @@ export function GaugeWidget({ config }: WidgetProps) {
         max: effectiveMax,
         unit,
         decimals,
+        numFmt,
         strokeWidth,
         colorZones,
         zones,
@@ -280,7 +284,7 @@ export function GaugeWidget({ config }: WidgetProps) {
 
     // Secondary pointer badges
     const secondaryBadges = pointers.slice(1).map((ptr, i) => {
-        const dispVal = isNaN(ptr.value) ? '–' : formatNum(ptr.value, decimals);
+        const dispVal = isNaN(ptr.value) ? '–' : formatNum(ptr.value, decimals, numFmt);
         return (
             <span
                 key={i}

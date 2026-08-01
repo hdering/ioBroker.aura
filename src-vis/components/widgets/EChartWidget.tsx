@@ -13,7 +13,7 @@ import {
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
 import { useT } from '../../i18n';
@@ -58,8 +58,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, BarChart2);
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
+    const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
@@ -377,7 +378,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     if (!items?.length) return '';
                     return items
                         .map((p) => {
-                            const dispVal = typeof p.value === 'number' ? formatNum(p.value, decimals) : p.value;
+                            const dispVal =
+                                typeof p.value === 'number' ? formatNum(p.value, decimals, numFmt) : p.value;
                             return `${p.marker} ${p.name}: <b>${dispVal}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}</b>`;
                         })
                         .join('<br/>');
@@ -425,7 +427,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         fontSize: 10,
                         formatter: (p: { value: number | null }) => {
                             if (p.value === null || p.value === undefined) return '';
-                            return `${formatNum(p.value, decimals)}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`;
+                            return `${formatNum(p.value, decimals, numFmt)}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`;
                         },
                     },
                 },
@@ -588,7 +590,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         .map((p) => {
                             const seriesCfg = echartSeries[p.seriesIndex];
                             const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
-                            return `${p.marker} ${p.seriesName}: <b>${formatNum(p.num as number, decimals)}${
+                            return `${p.marker} ${p.seriesName}: <b>${formatNum(p.num as number, decimals, numFmt)}${
                                 unit ? `\u202F${unit}` : ''
                             }</b>`;
                         });
@@ -672,7 +674,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             <div className="flex items-center gap-2 shrink-0 ml-auto">
                                 {jsonCurrentValues.map((c, i) => (
                                     <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
-                                        {formatNum(c.value as number, decimals)}
+                                        {formatNum(c.value as number, decimals, numFmt)}
                                         {c.unit ? ` ${c.unit}` : ''}
                                     </span>
                                 ))}
@@ -750,7 +752,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     const seriesCfg = echartSeries[p.seriesIndex];
                     const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
                     const raw = p.value[1];
-                    const dispVal = typeof raw === 'number' ? formatNum(raw, decimals) : raw;
+                    const dispVal = typeof raw === 'number' ? formatNum(raw, decimals, numFmt) : raw;
                     return `${p.marker} ${p.seriesName}: <b>${dispVal}${unit ? `\u202F${unit}` : ''}</b>`;
                 });
                 return `${timeStr}<br/>${lines.join('<br/>')}`;
@@ -909,7 +911,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         <div className="flex items-center gap-2 shrink-0 ml-auto">
                             {currentValues.map((c, i) => (
                                 <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
-                                    {formatNum(c.value as number, decimals)}
+                                    {formatNum(c.value as number, decimals, numFmt)}
                                     {c.unit ? ` ${c.unit}` : ''}
                                 </span>
                             ))}

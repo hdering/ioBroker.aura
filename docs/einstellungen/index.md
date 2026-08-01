@@ -8,7 +8,7 @@ Der Adminbereich liegt unter `/#/admin` und konfiguriert das gesamte Dashboard. 
 | [Dashboard-Editor](./editor) | Tabs und Widgets per Drag & Drop bearbeiten |
 | [Popups](./popups) | Popup-Views und Widget-Typ-Standards |
 | [Widget-Verwaltung](./widgets) | Alle Widgets eines Layouts suchen und bearbeiten |
-| [Layouts & Theme](./layouts) | Layouts, Theme, Typografie, Grid, Hilfslinien, Tab-Leiste |
+| [Layouts & Theme](./layouts) | Layouts, Theme, Typografie, Grid, Hilfslinien, Tab-Leiste, Werte & Formatierung |
 | [Frontend](./frontend) | Anzeige-Verhalten des Frontends |
 | [CSS & JS](./css-js) | Eigenes CSS/JavaScript einbinden |
 | [Einstellungen](./settings) | Sprache, PIN, Backup, Geräte, Reset |

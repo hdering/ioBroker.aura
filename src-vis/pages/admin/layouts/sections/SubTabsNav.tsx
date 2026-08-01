@@ -1,8 +1,18 @@
 import { Fragment } from 'react';
-import { Palette, Type, LayoutGrid, SlidersHorizontal, AlignJustify, PanelTop, Menu, Compass } from 'lucide-react';
+import {
+    Palette,
+    Type,
+    LayoutGrid,
+    SlidersHorizontal,
+    AlignJustify,
+    PanelTop,
+    Menu,
+    Compass,
+    Hash,
+} from 'lucide-react';
 import { useT } from '../../../../i18n';
 
-export type SubTab = 'theme' | 'typo' | 'grid' | 'guidelines' | 'tabbar' | 'header' | 'menu' | 'nav';
+export type SubTab = 'theme' | 'typo' | 'grid' | 'guidelines' | 'tabbar' | 'header' | 'menu' | 'nav' | 'values';
 
 // Frame tabs (whole-layout chrome) come first and are visually set apart from the
 // per-scope content tabs that follow.
@@ -18,6 +28,7 @@ const ALL_TABS: { id: SubTab; labelKey: string; icon: React.ElementType }[] = [
     { id: 'typo', labelKey: 'layouts.subtab.typo', icon: Type },
     { id: 'grid', labelKey: 'layouts.subtab.grid', icon: LayoutGrid },
     { id: 'guidelines', labelKey: 'layouts.subtab.guidelines', icon: SlidersHorizontal },
+    { id: 'values', labelKey: 'layouts.subtab.values', icon: Hash },
 ];
 
 interface SubTabsNavProps {

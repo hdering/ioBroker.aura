@@ -405,7 +405,7 @@ export const de = {
     'sections.makeDefault': 'Als Standard',
 
     'design.title': 'Frontend-Design',
-    'design.subtitle': 'Theme, Typografie, Grid und Tab-Leiste — global oder pro Layout.',
+    'design.subtitle': 'Theme, Typografie, Grid, Tab-Leiste und Werte-Formatierung — global oder pro Layout.',
     'design.frameGroup': 'Globaler Rahmen',
     'design.header.hint':
         'Kopfleiste des Frontends: Titel, Uhr, Status-Badge und ein optionaler Datenpunkt. Global oder pro Layout konfigurierbar.',
@@ -428,6 +428,27 @@ export const de = {
     'layouts.subtab.header': 'Header',
     'layouts.subtab.menu': 'Bereichs-Menü',
     'layouts.subtab.nav': 'Navigation',
+    'layouts.subtab.values': 'Werte & Formatierung',
+
+    'values.hint': 'Standard-Formatierung für Zahlen und Datenpunkt-Namen. Gilt für alle Layouts und Widgets.',
+    'values.decimals.title': 'Dezimalstellen (global)',
+    'values.decimals.hint': 'Standardwert für alle Widgets. Einzelne Widgets können diesen Wert überschreiben.',
+    'values.thousands.title': '1000er-Trennzeichen',
+    'values.thousands.hint':
+        'Gruppiert Zahlen ab vier Stellen. Das Dezimaltrennzeichen wechselt passend mit. Pro Widget überschreibbar.',
+    'values.thousands.plain': 'Aus',
+    'values.dpNames.title': 'DP-Namen bereinigen',
+    'values.dpNames.hint': 'Gilt global überall wo DP-Namen angezeigt werden.',
+    'values.dpNames.suffixes': 'Suffixe entfernen (kommagetrennt)',
+    'values.dpNames.suffixesHint': 'Wird am Ende des Namens abgeschnitten (Groß-/Kleinschreibung egal)',
+    'values.dpNames.replaceDots': 'Punkte durch Leerzeichen ersetzen',
+
+    'config.decimals.label': 'Dezimalstellen',
+    'config.decimals.global': 'Global',
+    'config.decimals.globalActive': 'Globale Einstellung aktiv – klicken für eigenen Wert',
+    'config.decimals.resetToGlobal': 'Auf globale Einstellung zurücksetzen',
+    'config.numberFormat.label': '1000er-Trennzeichen',
+    'config.numberFormat.global': 'Global',
 
     'layouts.scope.title': 'Geltungsbereich',
     'layouts.scope.global': 'Global',

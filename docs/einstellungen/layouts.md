@@ -44,3 +44,15 @@ Rote gestrichelte Linien im Editor zur Orientierung an einer Zielgröße (Breite
 ![](./assets/layouts-tabbar.png)
 
 Darstellung der Tab-Leiste im Frontend.
+
+## Werte & Formatierung
+
+Nur im Geltungsbereich **Global** — gilt für alle Layouts und Widgets.
+
+| Option | |
+| --- | --- |
+| Dezimalstellen (global) | Standard-Nachkommastellen; pro Widget überschreibbar |
+| 1000er-Trennzeichen | `Aus` · `1.234,5` · `1,234.5` · `1 234,5` · `1'234.5`; das Dezimaltrennzeichen wechselt passend mit; pro Widget überschreibbar |
+| DP-Namen bereinigen | Suffixe entfernen (z. B. `.STATE`, `.LEVEL`); optional Punkte durch Leerzeichen ersetzen |
+
+Beide Zahlen-Optionen lassen sich überall dort einzeln überschreiben, wo im Widget die Dezimalstellen einstellbar sind (`Global`-Knopf bzw. Auswahl `Global`).

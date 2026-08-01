@@ -13,13 +13,13 @@ import type { EnergyBalanceOptions, EnergyBar, LegendFormat } from '../widgets/E
 import type { EnergyAggregate, EnergyEntry } from '../../hooks/useEnergyBalanceValues';
 import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
+import { NumberFormatSetting } from './NumberFormatSetting';
 import { IconPickerModal } from './IconPickerModal';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
 import type { EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
-import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 // Presets offered for the configured (default) time range.
 const DEFAULT_RANGES: EChartTimeRange[] = ['1h', '24h', '7d', '30d', 'custom'];
@@ -78,7 +78,6 @@ function EntryRow({
     onRemove,
     onMove,
     onRefreshAdapters,
-    defaultDecimals,
     canMoveUp,
     canMoveDown,
 }: {
@@ -88,7 +87,6 @@ function EntryRow({
     onRemove: () => void;
     onMove: (dir: -1 | 1) => void;
     onRefreshAdapters: () => void;
-    defaultDecimals: number;
     canMoveUp: boolean;
     canMoveDown: boolean;
 }) {
@@ -226,45 +224,16 @@ function EntryRow({
                         </div>
                     </div>
 
-                    {/* Row 3: Dezimalstellen (Global), Aggregation */}
+                    {/* Row 3: Dezimalstellen + 1000er-Trennzeichen */}
+                    <NumberFormatSetting
+                        decimals={entry.decimals}
+                        numberFormat={entry.numberFormat}
+                        onChange={onUpdate}
+                        inputStyle={inputStyle}
+                    />
+
+                    {/* Row 4: Aggregation */}
                     <div className="grid grid-cols-2 gap-1.5">
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Dezimalstellen
-                            </label>
-                            <div className="flex items-center gap-1.5">
-                                <input
-                                    type="number"
-                                    min={0}
-                                    max={5}
-                                    disabled={entry.decimals === undefined}
-                                    value={entry.decimals ?? defaultDecimals}
-                                    onChange={(e) => onUpdate({ decimals: Number(e.target.value) })}
-                                    className={`${inputCls} flex-1 min-w-0`}
-                                    style={{ ...inputStyle, opacity: entry.decimals === undefined ? 0.5 : 1 }}
-                                />
-                                <button
-                                    onClick={() =>
-                                        onUpdate({
-                                            decimals: entry.decimals === undefined ? defaultDecimals : undefined,
-                                        })
-                                    }
-                                    title={
-                                        entry.decimals === undefined
-                                            ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                            : 'Auf globale Einstellung zurücksetzen'
-                                    }
-                                    className="px-1.5 py-1 rounded text-[10px] font-bold shrink-0"
-                                    style={{
-                                        background:
-                                            entry.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
-                                        color: entry.decimals === undefined ? '#fff' : 'var(--text-secondary)',
-                                    }}
-                                >
-                                    Global
-                                </button>
-                            </div>
-                        </div>
                         <div>
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 Aggregation
@@ -365,7 +334,6 @@ function BarSection({
     onRemove,
     onMove,
     onRefreshAdapters,
-    defaultDecimals,
 }: {
     bar: EnergyBar;
     index: number;
@@ -375,7 +343,6 @@ function BarSection({
     onRemove: () => void;
     onMove: (dir: -1 | 1) => void;
     onRefreshAdapters: (entryId: string, datapointId: string) => void;
-    defaultDecimals: number;
 }) {
     const entries = bar.entries ?? [];
 
@@ -456,7 +423,6 @@ function BarSection({
                         onRemove={() => removeEntry(e.id)}
                         onMove={(dir) => moveEntry(idx, dir)}
                         onRefreshAdapters={() => onRefreshAdapters(e.id, e.datapointId)}
-                        defaultDecimals={defaultDecimals}
                         canMoveUp={idx > 0}
                         canMoveDown={idx < entries.length - 1}
                     />
@@ -479,7 +445,6 @@ function BarSection({
 export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
     const o = (config.options ?? {}) as unknown as EnergyBalanceOptions;
     const bars = o.bars ?? [];
-    const { defaultDecimals } = useGlobalSettingsStore();
     const [adapterStates, setAdapterStates] = useState<Record<string, AdapterState>>({});
 
     // Always-current snapshot of bars so async auto-detection (which resolves out of render
@@ -585,7 +550,6 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                     onRemove={() => removeBar(b.id)}
                     onMove={(dir) => moveBar(idx, dir)}
                     onRefreshAdapters={(entryId, dp) => detect(entryId, dp, true)}
-                    defaultDecimals={defaultDecimals}
                 />
             ))}
             <button
@@ -664,20 +628,13 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                         style={inputStyle}
                     />
                 </div>
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Nachkommastellen
-                    </label>
-                    <input
-                        type="number"
-                        min={0}
-                        max={5}
-                        value={o.decimals ?? defaultDecimals}
-                        onChange={(e) => setO({ decimals: Number(e.target.value) })}
-                        className={inputCls}
-                        style={inputStyle}
-                    />
-                </div>
+                <NumberFormatSetting
+                    decimals={o.decimals}
+                    numberFormat={o.numberFormat}
+                    onChange={setO}
+                    inputStyle={inputStyle}
+                    decimalsLabel="Nachkommastellen"
+                />
             </div>
 
             {/* range */}

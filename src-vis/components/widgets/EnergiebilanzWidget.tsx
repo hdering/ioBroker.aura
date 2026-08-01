@@ -13,7 +13,7 @@ import { Icon } from '@iconify/react';
 import type { WidgetProps } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
@@ -49,6 +49,7 @@ export interface EnergyBalanceOptions {
     /** Default unit shown after each value + total (per-entry unit overrides). */
     unit?: string;
     decimals?: number;
+    numberFormat?: NumberFormat;
     range?: EChartTimeRange;
     rangeCustomValue?: number;
     rangeCustomUnit?: 'h' | 'd';
@@ -127,7 +128,7 @@ interface Computed {
 
 export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const { subscribe, connected } = useIoBroker();
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
 
     const o = (config.options ?? {}) as unknown as EnergyBalanceOptions;
     const showTitle = o.showTitle !== false;
@@ -145,6 +146,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const legendAlign = o.legendAlign;
     const unit = o.unit ?? 'kWh';
     const decimals = o.decimals ?? defaultDecimals ?? 2;
+    const numFmt = o.numberFormat ?? globalNumFmt;
 
     // ── Time range — configured window, frontend-switchable unless locked ──
     const cfgRange = o.range ?? '24h';
@@ -189,7 +191,8 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const getValue = (entryId: string): number | null =>
         usingSample ? (SAMPLE_VALUES[entryId] ?? null) : (valueMap.get(entryId)?.value ?? null);
 
-    const fmt = (v: number, e: EnergyEntry) => `${formatNum(v, e.decimals ?? decimals)} ${e.unit ?? unit}`;
+    const fmt = (v: number, e: EnergyEntry) =>
+        `${formatNum(v, e.decimals ?? decimals, e.numberFormat ?? numFmt)} ${e.unit ?? unit}`;
 
     if (bars.length === 0) {
         return (
@@ -284,7 +287,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                 size={pieSize}
                                 center={
                                     chartStyle === 'donut' && showTotals
-                                        ? { value: formatNum(total, decimals), unit }
+                                        ? { value: formatNum(total, decimals, numFmt), unit }
                                         : null
                                 }
                             />
@@ -301,7 +304,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                     )}
                                     {showTotals && (
                                         <div style={{ fontSize: 14, fontWeight: 700 }}>
-                                            {formatNum(total, decimals)} {unit}
+                                            {formatNum(total, decimals, numFmt)} {unit}
                                         </div>
                                     )}
                                 </div>

@@ -18,6 +18,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { useT } from '../../i18n';
 import { formatTimeDisplay } from '../../utils/timeDisplay';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import {
     type ContactState,
@@ -226,12 +227,14 @@ export function StepperControl({
     val,
     setState,
     decimals = 0,
+    numFmt,
     size = 24,
 }: {
     entry: EntryControlConfig & { id: string; unit?: string };
     val: ioBrokerState['val'];
     setState: SetState;
     decimals?: number;
+    numFmt?: NumberFormat;
     size?: number;
 }) {
     const cur = typeof val === 'number' ? val : Number(val) || 0;
@@ -259,7 +262,7 @@ export function StepperControl({
                 <Minus size={Math.round(size * 0.55)} />
             </button>
             <span className="text-xs font-semibold tabular-nums min-w-[2.5ch] text-center">
-                {typeof val === 'number' ? cur.toFixed(decimals) : '–'}
+                {typeof val === 'number' ? formatNum(cur, decimals, numFmt) : '–'}
                 {entry.unit ? ` ${entry.unit}` : ''}
             </span>
             <button

@@ -12,11 +12,11 @@ import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import type { ListStat } from '../../utils/listStats';
 import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
+import { NumberFormatSetting } from './NumberFormatSetting';
 import { EntryControlsConfig } from './EntryControlsConfig';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
-import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { NS } from '../../utils/namespace';
 import { useT } from '../../i18n';
 
@@ -83,7 +83,6 @@ function EntryRow({
     onUpdate,
     onChangeId,
     onRemove,
-    defaultDecimals,
     index,
     isDragging,
     isDragTarget,
@@ -97,7 +96,6 @@ function EntryRow({
     onUpdate: (patch: Partial<StaticListEntry>) => void;
     onChangeId: (newId: string, unit?: string, role?: string, writable?: boolean) => void;
     onRemove: () => void;
-    defaultDecimals: number;
     index: number;
     isDragging: boolean;
     isDragTarget: boolean;
@@ -293,42 +291,13 @@ function EntryRow({
                         </div>
                     </div>
                     <div className="flex items-end gap-1.5">
-                        <div className="shrink-0">
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Dezimalstellen
-                            </label>
-                            <div className="flex gap-1">
-                                <input
-                                    type="number"
-                                    min={0}
-                                    max={4}
-                                    disabled={entry.decimals === undefined}
-                                    value={entry.decimals ?? defaultDecimals}
-                                    onChange={(e) => onUpdate({ decimals: Number(e.target.value) })}
-                                    className="w-10 text-[10px] rounded px-2 py-0.5 focus:outline-none text-center"
-                                    style={{ ...iSty, opacity: entry.decimals === undefined ? 0.5 : 1 }}
-                                />
-                                <button
-                                    onClick={() =>
-                                        onUpdate({
-                                            decimals: entry.decimals === undefined ? defaultDecimals : undefined,
-                                        })
-                                    }
-                                    title={
-                                        entry.decimals === undefined
-                                            ? 'Globale Einstellung aktiv – klicken für eigenen Wert'
-                                            : 'Auf globale Einstellung zurücksetzen'
-                                    }
-                                    className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                                    style={{
-                                        background:
-                                            entry.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
-                                        color: entry.decimals === undefined ? '#fff' : 'var(--text-secondary)',
-                                    }}
-                                >
-                                    Global
-                                </button>
-                            </div>
+                        <div className="flex-1 min-w-0">
+                            <NumberFormatSetting
+                                decimals={entry.decimals}
+                                numberFormat={entry.numberFormat}
+                                onChange={onUpdate}
+                                inputStyle={iSty}
+                            />
                         </div>
                         <div className="flex-1 min-w-0">
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
@@ -716,7 +685,6 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
     const [dragIdx, setDragIdx] = useState<number | null>(null);
     const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
-    const { defaultDecimals } = useGlobalSettingsStore();
 
     useEffect(() => {
         ensureDatapointCache().then((cache) => {
@@ -809,7 +777,6 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                                         changeEntryId(e.id, newId, unit, role, writable)
                                     }
                                     onRemove={() => removeEntry(e.id)}
-                                    defaultDecimals={defaultDecimals}
                                     index={idx}
                                     isDragging={dragIdx === idx}
                                     isDragTarget={dragOverIdx === idx && dragIdx !== null && dragIdx !== idx}

@@ -7,7 +7,7 @@ import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
 import { samplePreviewHistory } from '../../utils/sampleChartData';
 
@@ -41,8 +41,9 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
     const iconSize = (o.iconSize as number) || 20;
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
+    const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     const unit = o.unit as string | undefined;
     const historyInstance = o.historyInstance as string | undefined;
     // Set on popup charts opened from a value-display widget that had no history instance to
@@ -271,7 +272,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                     className="aura-widget-value text-xl font-bold leading-tight"
                                     style={{ color: 'var(--text-primary)' }}
                                 >
-                                    {formatNum(current, decimals)}
+                                    {formatNum(current, decimals, numFmt)}
                                     {unit && (
                                         <span className="text-lg ml-1 font-medium" style={{ color: unitColor }}>
                                             {unit}
@@ -281,7 +282,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                             )}
                             {showAverageAsValue && avg !== null && (
                                 <p className="text-xs leading-tight mt-0.5" style={{ color: avgColor }}>
-                                    Ø {formatNum(avg, decimals)}
+                                    Ø {formatNum(avg, decimals, numFmt)}
                                     {unit ? ` ${unit}` : ''}
                                 </p>
                             )}
@@ -312,7 +313,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                         tickLine={false}
                                         axisLine={false}
                                         width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
-                                        tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
+                                        tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact, numFmt)}
                                     />
                                     <XAxis
                                         dataKey="t"
@@ -324,7 +325,9 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                     <Tooltip
                                         contentStyle={tooltipStyle}
                                         labelFormatter={(label) => formatLabel(Number(label))}
-                                        formatter={(v) => `${formatNum(Number(v), decimals)}${unit ? ` ${unit}` : ''}`}
+                                        formatter={(v) =>
+                                            `${formatNum(Number(v), decimals, numFmt)}${unit ? ` ${unit}` : ''}`
+                                        }
                                     />
                                     <Area
                                         type="monotone"
@@ -342,7 +345,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                             strokeDasharray="4 3"
                                             strokeWidth={1.5}
                                             label={{
-                                                value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`,
+                                                value: `Ø ${formatNum(avg, decimals, numFmt)}${unit ? ` ${unit}` : ''}`,
                                                 position: 'insideTopRight',
                                                 fill: avgColor,
                                                 fontSize: 10,
@@ -391,12 +394,12 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                 {current !== null && (
                     <div className="aura-widget-value flex flex-col items-end shrink-0 ml-2">
                         <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-                            {formatNum(current, decimals)}
+                            {formatNum(current, decimals, numFmt)}
                             {unit ? ` ${unit}` : ''}
                         </span>
                         {showAverageAsValue && avg !== null && (
                             <span className="text-[10px] leading-tight" style={{ color: avgColor }}>
-                                Ø {formatNum(avg, decimals)}
+                                Ø {formatNum(avg, decimals, numFmt)}
                                 {unit ? ` ${unit}` : ''}
                             </span>
                         )}
@@ -421,7 +424,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                     tickLine={false}
                                     axisLine={false}
                                     width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
-                                    tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
+                                    tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact, numFmt)}
                                 />
                                 <XAxis
                                     dataKey="t"
@@ -438,7 +441,9 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                 <Tooltip
                                     contentStyle={tooltipStyle}
                                     labelFormatter={(label) => formatLabel(Number(label))}
-                                    formatter={(v) => `${formatNum(Number(v), decimals)}${unit ? ` ${unit}` : ''}`}
+                                    formatter={(v) =>
+                                        `${formatNum(Number(v), decimals, numFmt)}${unit ? ` ${unit}` : ''}`
+                                    }
                                 />
                                 <Line
                                     type="monotone"
@@ -455,7 +460,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                         strokeDasharray="4 3"
                                         strokeWidth={1.5}
                                         label={{
-                                            value: `Ø ${formatNum(avg, decimals)}${unit ? ` ${unit}` : ''}`,
+                                            value: `Ø ${formatNum(avg, decimals, numFmt)}${unit ? ` ${unit}` : ''}`,
                                             position: 'insideTopRight',
                                             fill: avgColor,
                                             fontSize: 10,

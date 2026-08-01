@@ -23,7 +23,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker, getObjectDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointName } from '../../hooks/useDatapointList';
 import { useT } from '../../i18n';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import type { WidgetProps, WidgetConfig } from '../../types';
@@ -189,8 +189,9 @@ export function AirControlWidget({ config }: WidgetProps) {
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const Icon = getWidgetIcon(o.icon as string | undefined, AirVent);
     const iconSize = (o.iconSize as number) || 20;
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
+    const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
 
     const minTemp = (o.tempMin as number) ?? profile?.tempRange.min ?? 16;
     const maxTemp = (o.tempMax as number) ?? profile?.tempRange.max ?? 31;
@@ -277,7 +278,7 @@ export function AirControlWidget({ config }: WidgetProps) {
                 <div className="aura-widget-value min-w-0">
                     {current !== null && (
                         <p className="text-2xl font-bold leading-none" style={{ color: accent }}>
-                            {formatNum(current, decimals)}
+                            {formatNum(current, decimals, numFmt)}
                             <span className="text-sm font-normal" style={{ color: 'var(--text-secondary)' }}>
                                 °C
                             </span>
@@ -285,7 +286,7 @@ export function AirControlWidget({ config }: WidgetProps) {
                     )}
                     {target !== null && (
                         <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
-                            {t('aircontrol.targetTemp')}: {formatNum(target, decimals)}°C
+                            {t('aircontrol.targetTemp')}: {formatNum(target, decimals, numFmt)}°C
                         </p>
                     )}
                 </div>
@@ -305,7 +306,7 @@ export function AirControlWidget({ config }: WidgetProps) {
                             className="text-lg font-bold tabular-nums min-w-[3ch] text-center"
                             style={{ color: accent }}
                         >
-                            {formatNum(target, decimals)}°
+                            {formatNum(target, decimals, numFmt)}°
                         </span>
                         <button
                             onClick={() => setTarget(target + step)}
@@ -387,7 +388,7 @@ export function AirControlWidget({ config }: WidgetProps) {
                     )}
                     {showOutside && outside !== null && (
                         <span className="flex items-center gap-1">
-                            <Thermometer size={11} /> {formatNum(outside, decimals)}°C
+                            <Thermometer size={11} /> {formatNum(outside, decimals, numFmt)}°C
                         </span>
                     )}
                 </div>

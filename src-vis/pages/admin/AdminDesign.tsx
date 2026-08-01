@@ -18,11 +18,15 @@ import { TabBarSection } from './layouts/sections/TabBarSection';
 import { HeaderSection } from './layouts/sections/HeaderSection';
 import { LayoutMenuSection } from './layouts/sections/LayoutMenuSection';
 import { NavigationSection } from './layouts/sections/NavigationSection';
+import { ValueFormatSection } from './layouts/sections/ValueFormatSection';
 
 // Content (3-level) tabs are available at every scope; frame (2-level) tabs
 // only at global & layout scope — a section never overrides header/menu/nav.
 const APPEARANCE_TABS: SubTab[] = ['theme', 'typo', 'grid', 'guidelines', 'tabbar'];
 const FRAME_TABS: SubTab[] = ['header', 'menu', 'nav'];
+// Global only — these settings live in the globalSettingsStore and have no
+// layout/section override.
+const GLOBAL_TABS: SubTab[] = ['values'];
 
 // ── ActiveSection ─────────────────────────────────────────────────────────────
 
@@ -55,6 +59,8 @@ function ActiveSection({ subTab, contextId }: { subTab: SubTab; contextId: strin
             return <LayoutMenuSection contextId={contextId} />;
         case 'nav':
             return <NavigationSection contextId={contextId} />;
+        case 'values':
+            return <ValueFormatSection />;
         default:
             return null;
     }
@@ -132,7 +138,12 @@ export function AdminDesign() {
         }
     }, [rawContextId, scopeLevel, searchParams, setSearchParams]);
 
-    const allowedTabs = scopeLevel === 'section' ? APPEARANCE_TABS : [...APPEARANCE_TABS, ...FRAME_TABS];
+    const allowedTabs =
+        scopeLevel === 'section'
+            ? APPEARANCE_TABS
+            : scopeLevel === 'layout'
+              ? [...APPEARANCE_TABS, ...FRAME_TABS]
+              : [...APPEARANCE_TABS, ...FRAME_TABS, ...GLOBAL_TABS];
     const subTab: SubTab = tabParam && allowedTabs.includes(tabParam) ? tabParam : 'theme';
 
     const setContext = (id: string | null) => {

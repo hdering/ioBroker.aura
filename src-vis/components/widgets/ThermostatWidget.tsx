@@ -10,7 +10,7 @@ import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -46,8 +46,9 @@ export function ThermostatWidget({ config }: WidgetProps) {
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const ThermoIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
     const iconSize = (o.iconSize as number) || 20;
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
+    const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
 
     const target = typeof rawTarget === 'number' ? rawTarget : 20;
     const actual = typeof rawActual === 'number' ? rawActual : null;
@@ -152,11 +153,11 @@ export function ThermostatWidget({ config }: WidgetProps) {
         return (
             <CustomGridView
                 config={config}
-                value={typeof rawTarget === 'number' ? formatNum(rawTarget, decimals) : '–'}
+                value={typeof rawTarget === 'number' ? formatNum(rawTarget, decimals, numFmt) : '–'}
                 rawValue={typeof rawTarget === 'number' ? rawTarget : null}
                 extraFields={{
-                    setpoint: typeof rawTarget === 'number' ? formatNum(rawTarget, decimals) : '–',
-                    actual: actual !== null ? formatNum(actual, decimals) : '–',
+                    setpoint: typeof rawTarget === 'number' ? formatNum(rawTarget, decimals, numFmt) : '–',
+                    actual: actual !== null ? formatNum(actual, decimals, numFmt) : '–',
                     status: isHeating ? 'Heizend' : isCooling ? 'Kühlend' : 'Inaktiv',
                     battery,
                     reach,
@@ -221,13 +222,13 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     {!showTitle && <span className="flex-1" />}
                     {showSetpoint && (
                         <span className="aura-widget-value text-xl font-bold shrink-0" style={{ color: accentColor }}>
-                            {formatNum(target, decimals)}°C
+                            {formatNum(target, decimals, numFmt)}°C
                             {showActualTemp && actual !== null && (
                                 <span
                                     className="font-normal text-xs ml-1"
                                     style={{ color: thresholdColor ?? 'var(--text-secondary)' }}
                                 >
-                                    / {formatNum(actual, decimals)}°C
+                                    / {formatNum(actual, decimals, numFmt)}°C
                                 </span>
                             )}
                         </span>
@@ -272,12 +273,12 @@ export function ThermostatWidget({ config }: WidgetProps) {
                             className="aura-widget-value text-xl font-bold"
                             style={{ color: accentColor, lineHeight: 1 }}
                         >
-                            {formatNum(target, decimals)}°C
+                            {formatNum(target, decimals, numFmt)}°C
                         </span>
                     )}
                     {showActualTemp && actual !== null && (
                         <span className="text-xs" style={{ color: thresholdColor ?? 'var(--text-secondary)' }}>
-                            {t('thermo.actual')} {formatNum(actual, decimals)}°C
+                            {t('thermo.actual')} {formatNum(actual, decimals, numFmt)}°C
                         </span>
                     )}
                     {showControls && (
@@ -345,14 +346,14 @@ export function ThermostatWidget({ config }: WidgetProps) {
                     <div className="aura-widget-value">
                         {showSetpoint && (
                             <p className="text-xl font-bold leading-none" style={{ color: accentColor }}>
-                                {formatNum(target, decimals)}°C
+                                {formatNum(target, decimals, numFmt)}°C
                             </p>
                         )}
                         {showActualTemp && actual !== null && (
                             <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
                                 {t('thermo.actual')}:{' '}
                                 <span style={{ color: thresholdColor ?? 'var(--text-primary)' }}>
-                                    {formatNum(actual, decimals)}°C
+                                    {formatNum(actual, decimals, numFmt)}°C
                                 </span>
                             </p>
                         )}

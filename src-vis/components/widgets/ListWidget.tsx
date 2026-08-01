@@ -12,7 +12,7 @@ import { useT } from '../../i18n';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
 import { StatLine } from './StatLine';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
@@ -48,6 +48,7 @@ export interface StaticListEntry extends EntryControlConfig {
     label?: string;
     unit?: string;
     decimals?: number;
+    numberFormat?: NumberFormat;
     role?: string;
     trueLabel?: string;
     falseLabel?: string;
@@ -170,6 +171,7 @@ function EntryValue({
     setState,
     globalThresholds,
     decimals,
+    numFmt,
     activeColor,
     inactiveColor,
     trueText,
@@ -183,6 +185,7 @@ function EntryValue({
     setState: (id: string, v: boolean | number | string) => void;
     globalThresholds?: [number, string][];
     decimals: number;
+    numFmt?: NumberFormat;
     activeColor: string;
     inactiveColor: string;
     trueText?: string;
@@ -258,7 +261,7 @@ function EntryValue({
     // Rich control types — rendered by the shared entry-control components.
     if (displayType === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
     if (displayType === 'stepper')
-        return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} />;
+        return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} numFmt={numFmt} />;
     if (displayType === 'buttons')
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (displayType === 'momentary') return <MomentaryButton entry={entry} setState={setState} icon={entry.icon} />;
@@ -277,7 +280,7 @@ function EntryValue({
     // Forced "Nur Wert" — skip role/switch/slider, render text only
     if (displayType === 'value') {
         const active = isActive(val);
-        const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
+        const displayVal = typeof val === 'number' ? formatNum(val, decimals, numFmt) : String(val);
         return (
             <span
                 className={textValueCls}
@@ -484,7 +487,7 @@ function EntryValue({
     }
 
     const active = isActive(val);
-    const displayVal = typeof val === 'number' ? formatNum(val, decimals) : String(val);
+    const displayVal = typeof val === 'number' ? formatNum(val, decimals, numFmt) : String(val);
     return (
         <span
             className={textValueCls}
@@ -507,7 +510,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const autoHeight = usePopupAutoHeight();
     const entries = useMemo<StaticListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
     const t = useT();
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const { subscribe, setState, getState } = useIoBroker();
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
@@ -804,6 +807,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     icons={opts.statIcons}
                                     sumLabel={opts.sumLabel}
                                     decimals={defaultDecimals}
+                                    numFmt={globalNumFmt}
                                     align={statsAlign}
                                     fontSize={opts.sumFontSize ?? 10}
                                 />
@@ -932,6 +936,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             setState={setState}
                                             globalThresholds={globalThresholds}
                                             decimals={entry.decimals ?? defaultDecimals}
+                                            numFmt={entry.numberFormat ?? globalNumFmt}
                                             activeColor={entryActiveColor}
                                             inactiveColor={entryInactiveColor}
                                             trueText={opts.trueText}
@@ -1033,6 +1038,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         setState={setState}
                                         globalThresholds={globalThresholds}
                                         decimals={entry.decimals ?? defaultDecimals}
+                                        numFmt={entry.numberFormat ?? globalNumFmt}
                                         activeColor={entryActiveColor}
                                         inactiveColor={entryInactiveColor}
                                         trueText={opts.trueText}
@@ -1275,6 +1281,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     setState={setState}
                                     globalThresholds={globalThresholds}
                                     decimals={entry.decimals ?? defaultDecimals}
+                                    numFmt={entry.numberFormat ?? globalNumFmt}
                                     activeColor={entryActiveColor}
                                     inactiveColor={entryInactiveColor}
                                     trueText={opts.trueText}

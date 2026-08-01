@@ -17,6 +17,7 @@ import { getHistoryDirect, getObjectDirect, getStateDirect, getStateFromCache, t
 import { detectHistoryAdapters } from './useChartHistory';
 import type { EChartTimeRange } from './useMultiSeriesData';
 import type { ioBrokerState } from '../types';
+import type { NumberFormat } from '../utils/formatValue';
 
 export type EnergyAggregate = 'last' | 'delta' | 'sum' | 'average' | 'max' | 'min';
 
@@ -28,6 +29,7 @@ export interface EnergyEntry {
     color?: string;
     unit?: string;
     decimals?: number;
+    numberFormat?: NumberFormat;
     historyInstance?: string;
     aggregate?: EnergyAggregate;
 }

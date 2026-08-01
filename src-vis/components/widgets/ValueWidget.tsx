@@ -9,7 +9,7 @@ import { CustomGridView } from './CustomGridView';
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
@@ -36,8 +36,9 @@ export function ValueWidget({ config }: WidgetProps) {
     const valueFontSize = Number(o.valueFontSize) || 0;
     const valueSizeStyle = valueFontSize > 0 ? { fontSize: `${valueFontSize}px`, lineHeight: 1.1 } : undefined;
     const valueSizeCls = valueFontSize > 0 ? '' : 'text-xl';
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
+    const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
 
     // Display-only transform: rawValue * factor + offset. Datapoint itself is untouched.
     const tValue = applyValueTransform(value, Number(o.valueFactor ?? 1), Number(o.valueOffset ?? 0));
@@ -50,7 +51,8 @@ export function ValueWidget({ config }: WidgetProps) {
         : null;
 
     const displayValue =
-        timeStr ?? (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals) : String(tValue));
+        timeStr ??
+        (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals, numFmt) : String(tValue));
 
     // Threshold-based color: [[maxExclusive, color], …] sorted ascending.
     // Applied to the transformed (displayed) value so thresholds are configured in display units.
@@ -86,7 +88,7 @@ export function ValueWidget({ config }: WidgetProps) {
                             (ref) => {
                                 const v = extraValues[ref];
                                 if (v === null || v === undefined) return '–';
-                                return typeof v === 'number' ? formatNum(v, decimals) : String(v);
+                                return typeof v === 'number' ? formatNum(v, decimals, numFmt) : String(v);
                             },
                         ),
                     ),

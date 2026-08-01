@@ -4,7 +4,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 export interface ColorZone {
@@ -21,6 +21,7 @@ interface TankProps {
     max: number;
     unit: string;
     decimals: number;
+    numFmt?: NumberFormat;
     fillColor: string;
     zones: ColorZone[];
     colorZones: boolean;
@@ -37,6 +38,7 @@ function TankVertical({
     max,
     unit,
     decimals,
+    numFmt,
     fillColor,
     zones,
     colorZones,
@@ -55,7 +57,7 @@ function TankVertical({
     const clipId = `fv-${uid}`;
     const labelY = Math.max(fillY + 4, by + 12); // clamp so label stays inside viewBox
 
-    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
+    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
 
     const TICKS = [0, 0.25, 0.5, 0.75, 1.0];
 
@@ -159,7 +161,7 @@ function TankVertical({
                                 fill="var(--text-secondary)"
                                 opacity={0.75}
                             >
-                                {decimals === 0 ? Math.round(v) : v.toFixed(1)}
+                                {formatNum(v, decimals === 0 ? 0 : 1, numFmt)}
                             </text>
                         </g>
                     );
@@ -208,6 +210,7 @@ function TankHorizontal({
     max,
     unit,
     decimals,
+    numFmt,
     fillColor,
     zones,
     colorZones,
@@ -224,7 +227,7 @@ function TankHorizontal({
     const fillW = Math.max(0, (pct / 100) * bw);
     const clipId = `fh-${uid}`;
 
-    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
+    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
 
     const TICKS = [0, 0.25, 0.5, 0.75, 1.0];
 
@@ -328,7 +331,7 @@ function TankHorizontal({
                                 fill="var(--text-secondary)"
                                 opacity={0.75}
                             >
-                                {decimals === 0 ? Math.round(v) : v.toFixed(1)}
+                                {formatNum(v, decimals === 0 ? 0 : 1, numFmt)}
                             </text>
                         </g>
                     );
@@ -387,6 +390,7 @@ function SegmentsViz({
     max,
     unit,
     decimals,
+    numFmt,
     fillColor,
     zones,
     colorZones,
@@ -394,13 +398,23 @@ function SegmentsViz({
     orientation,
 }: Pick<
     TankProps,
-    'pct' | 'value' | 'min' | 'max' | 'unit' | 'decimals' | 'fillColor' | 'zones' | 'colorZones' | 'showValue'
+    | 'pct'
+    | 'value'
+    | 'min'
+    | 'max'
+    | 'unit'
+    | 'decimals'
+    | 'numFmt'
+    | 'fillColor'
+    | 'zones'
+    | 'colorZones'
+    | 'showValue'
 > & { orientation: Orientation }) {
     const SEGS = 12;
     const gap = 3;
     const lit = Math.round((pct / 100) * SEGS);
 
-    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
+    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
 
     const zoneColor = (frac: number) => {
         if (colorZones && zones.length > 0) {
@@ -506,10 +520,11 @@ function WaveViz({
     value,
     unit,
     decimals,
+    numFmt,
     fillColor,
     showValue,
     uid,
-}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'fillColor' | 'showValue' | 'uid'>) {
+}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'numFmt' | 'fillColor' | 'showValue' | 'uid'>) {
     const clipId = `wave-${uid}`;
     const aboveId = `wave-above-${uid}`;
     const belowId = `wave-below-${uid}`;
@@ -517,7 +532,7 @@ function WaveViz({
     const amp = 5;
     const waveColor = fillColor;
 
-    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
+    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
 
     // Split the value at the waterline: dark on the empty background, white on the fill,
     // so it stays readable even when the line crosses the middle of the number.
@@ -612,14 +627,15 @@ function BatteryViz({
     value,
     unit,
     decimals,
+    numFmt,
     fillColor,
     showValue,
     uid,
     orientation,
-}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'fillColor' | 'showValue' | 'uid'> & {
+}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'numFmt' | 'fillColor' | 'showValue' | 'uid'> & {
     orientation: Orientation;
 }) {
-    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals);
+    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
 
     if (orientation === 'vertical') {
         const bx = 12,
@@ -845,13 +861,14 @@ export function FillWidget({ config }: WidgetProps) {
     const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
 
     const { value } = useDatapoint(config.datapoint);
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
 
     const orientation = (opts.orientation as Orientation) ?? 'vertical';
     const min = (opts.minValue as number) ?? 0;
     const max = (opts.maxValue as number) ?? 100;
     const unit = (opts.unit as string) ?? '%';
     const decimals = (opts.decimals as number) ?? defaultDecimals;
+    const numFmt = (opts.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     const colorZones = (opts.colorZones as boolean) ?? false;
     const showTicks = (opts.showTicks as boolean) ?? true;
     const showValue = (opts.showValue as boolean) ?? true;
@@ -894,6 +911,7 @@ export function FillWidget({ config }: WidgetProps) {
         max,
         unit,
         decimals,
+        numFmt,
         fillColor,
         zones,
         colorZones,
@@ -912,7 +930,7 @@ export function FillWidget({ config }: WidgetProps) {
         return (
             <CustomGridView
                 config={config}
-                value={value !== null ? formatNum(safeVal, decimals) : '–'}
+                value={value !== null ? formatNum(safeVal, decimals, numFmt) : '–'}
                 rawValue={value !== null ? safeVal : null}
                 unit={unit}
             />
@@ -962,6 +980,7 @@ export function FillWidget({ config }: WidgetProps) {
                             value={safeVal}
                             unit={unit}
                             decimals={decimals}
+                            numFmt={numFmt}
                             fillColor={fillColor}
                             showValue={showValue}
                             uid={uid}
@@ -1013,6 +1032,7 @@ export function FillWidget({ config }: WidgetProps) {
                             max={max}
                             unit={unit}
                             decimals={decimals}
+                            numFmt={numFmt}
                             fillColor={fillColor}
                             zones={zones}
                             colorZones={colorZones}
@@ -1063,6 +1083,7 @@ export function FillWidget({ config }: WidgetProps) {
                             value={safeVal}
                             unit={unit}
                             decimals={decimals}
+                            numFmt={numFmt}
                             fillColor={fillColor}
                             showValue={showValue}
                             uid={uid}

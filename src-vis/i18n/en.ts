@@ -404,7 +404,7 @@ export const en: Record<TranslationKey, string> = {
     'sections.makeDefault': 'Set default',
 
     'design.title': 'Frontend Design',
-    'design.subtitle': 'Theme, typography, grid and tab bar — global or per layout.',
+    'design.subtitle': 'Theme, typography, grid, tab bar and value formatting — global or per layout.',
     'design.frameGroup': 'Global frame',
     'design.header.hint':
         'Frontend header bar: title, clock, status badge and an optional datapoint. Configurable globally or per layout.',
@@ -427,6 +427,27 @@ export const en: Record<TranslationKey, string> = {
     'layouts.subtab.header': 'Header',
     'layouts.subtab.menu': 'Section menu',
     'layouts.subtab.nav': 'Navigation',
+    'layouts.subtab.values': 'Values & Formatting',
+
+    'values.hint': 'Default formatting for numbers and datapoint names. Applies to all layouts and widgets.',
+    'values.decimals.title': 'Decimals (global)',
+    'values.decimals.hint': 'Default for all widgets. Individual widgets can override this value.',
+    'values.thousands.title': 'Thousands separator',
+    'values.thousands.hint':
+        'Groups numbers from four digits on. The decimal separator changes accordingly. Can be overridden per widget.',
+    'values.thousands.plain': 'Off',
+    'values.dpNames.title': 'Clean up DP names',
+    'values.dpNames.hint': 'Applies globally wherever DP names are shown.',
+    'values.dpNames.suffixes': 'Remove suffixes (comma-separated)',
+    'values.dpNames.suffixesHint': 'Trimmed from the end of the name (case-insensitive)',
+    'values.dpNames.replaceDots': 'Replace dots with spaces',
+
+    'config.decimals.label': 'Decimals',
+    'config.decimals.global': 'Global',
+    'config.decimals.globalActive': 'Global setting active – click for a custom value',
+    'config.decimals.resetToGlobal': 'Reset to the global setting',
+    'config.numberFormat.label': 'Thousands separator',
+    'config.numberFormat.global': 'Global',
 
     'layouts.scope.title': 'Scope',
     'layouts.scope.global': 'Global',

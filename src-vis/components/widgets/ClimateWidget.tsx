@@ -8,7 +8,7 @@ import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
 import { StatusBadges } from './StatusBadges';
 
@@ -61,8 +61,9 @@ export function ClimateWidget({ config }: WidgetProps) {
     const showComfort = o.showComfort === true;
     const showChart = o.showChart !== false;
 
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
+    const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     const unit = (o.unit as string | undefined) ?? '°C';
     const humidityUnit = (o.humidityUnit as string | undefined) ?? '%';
     const lineColor = (o.lineColor as string | undefined) ?? 'var(--accent)';
@@ -225,7 +226,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                                 className="font-black"
                                 style={{ fontSize: Math.round(30 * fontScale), color: 'var(--text-primary)' }}
                             >
-                                {actualTemp !== null ? formatNum(actualTemp, decimals) : '–'}
+                                {actualTemp !== null ? formatNum(actualTemp, decimals, numFmt) : '–'}
                                 <span
                                     className="ml-0.5 font-medium"
                                     style={{ fontSize: Math.round(16 * fontScale), color: 'var(--text-secondary)' }}
@@ -238,7 +239,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                                     className="mt-0.5"
                                     style={{ fontSize: Math.round(11 * fontScale), color: avgColor }}
                                 >
-                                    Ø {formatNum(avg, decimals)} {unit}
+                                    Ø {formatNum(avg, decimals, numFmt)} {unit}
                                 </span>
                             )}
                         </div>
@@ -249,7 +250,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                                 className="text-[11px] px-1.5 py-0.5 rounded-full"
                                 style={{ background: 'var(--app-border)', color: 'var(--text-secondary)' }}
                             >
-                                ↑ {formatNum(targetTemp, decimals)}
+                                ↑ {formatNum(targetTemp, decimals, numFmt)}
                                 {unit}
                             </span>
                         )}
@@ -259,7 +260,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                                 style={{ fontSize: Math.round(14 * fontScale), color: 'var(--text-secondary)' }}
                             >
                                 <HumidityIcon size={Math.round(14 * fontScale)} strokeWidth={1.5} />
-                                {humidity !== null ? formatNum(humidity, decimals) : '–'}
+                                {humidity !== null ? formatNum(humidity, decimals, numFmt) : '–'}
                                 {humidityUnit}
                             </span>
                         )}
@@ -293,7 +294,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                                         tickLine={false}
                                         axisLine={false}
                                         width={showYAxis ? (yAxisCompact ? 22 : 36) : 0}
-                                        tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact)}
+                                        tickFormatter={(v: number) => formatYTick(v, decimals, yAxisCompact, numFmt)}
                                     />
                                     <XAxis
                                         dataKey="t"
@@ -305,7 +306,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                                     <Tooltip
                                         contentStyle={tooltipStyle}
                                         labelFormatter={(label) => formatLabel(Number(label))}
-                                        formatter={(v) => `${formatNum(Number(v), decimals)} ${unit}`}
+                                        formatter={(v) => `${formatNum(Number(v), decimals, numFmt)} ${unit}`}
                                     />
                                     <Area
                                         type="monotone"
@@ -323,7 +324,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                                             strokeDasharray="4 3"
                                             strokeWidth={1.5}
                                             label={{
-                                                value: `Ø ${formatNum(avg, decimals)} ${unit}`,
+                                                value: `Ø ${formatNum(avg, decimals, numFmt)} ${unit}`,
                                                 position: 'insideTopRight',
                                                 fill: avgColor,
                                                 fontSize: 10,

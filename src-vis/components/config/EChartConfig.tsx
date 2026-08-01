@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, Database, Plus, Trash2, ChevronUp } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
+import { NumberFormatSetting } from './NumberFormatSetting';
+import type { NumberFormat } from '../../utils/formatValue';
 import { getObjectDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
 import {
@@ -12,7 +14,6 @@ import {
     type EChartTimeRange,
 } from '../../hooks/useMultiSeriesData';
 import { useT, t } from '../../i18n';
-import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { ColorPicker } from '../common/ColorPicker';
 
 interface EChartConfigProps {
@@ -115,7 +116,6 @@ function JsonKeySelect({
 export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const t = useT();
     const o = config.options ?? {};
-    const { defaultDecimals } = useGlobalSettingsStore();
     const series = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
     const isComparison = echartMode === 'comparison';
@@ -1142,39 +1142,14 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     </div>
                 )}
 
-                {/* Decimal places */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.decimals')}
-                    </label>
-                    <div className="flex gap-1">
-                        <input
-                            type="number"
-                            min={0}
-                            max={4}
-                            disabled={o.decimals === undefined}
-                            value={(o.decimals as number) ?? defaultDecimals}
-                            onChange={(e) => setO({ decimals: Number(e.target.value) })}
-                            className="w-14 text-center text-xs rounded-lg px-2 py-1 focus:outline-none"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-primary)',
-                                border: '1px solid var(--app-border)',
-                                opacity: o.decimals === undefined ? 0.5 : 1,
-                            }}
-                        />
-                        <button
-                            onClick={() => setO({ decimals: o.decimals === undefined ? defaultDecimals : undefined })}
-                            title={o.decimals === undefined ? t('echart.globalActive') : t('echart.resetToGlobal')}
-                            className="px-1.5 rounded text-[10px] font-bold shrink-0"
-                            style={{
-                                background: o.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
-                                color: o.decimals === undefined ? '#fff' : 'var(--text-secondary)',
-                            }}
-                        >
-                            Global
-                        </button>
-                    </div>
+                {/* Decimal places + thousands separator */}
+                <div className="mb-2">
+                    <NumberFormatSetting
+                        decimals={o.decimals as number | undefined}
+                        numberFormat={o.numberFormat as NumberFormat | undefined}
+                        onChange={setO}
+                        decimalsLabel={t('echart.decimals')}
+                    />
                 </div>
 
                 {/* Left Y-Axis */}

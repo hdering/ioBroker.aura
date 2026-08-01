@@ -9,7 +9,7 @@ import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../types';
 import { resolveImageSource } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum } from '../../utils/formatValue';
+import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { useT } from '../../i18n';
@@ -194,17 +194,20 @@ function DpCellView({
     cols,
     rows,
     defaultDecimals,
+    globalNumFmt,
 }: {
     cell: CustomCell;
     index: number;
     cols: number;
     rows: number;
     defaultDecimals: number;
+    globalNumFmt?: NumberFormat;
 }) {
     const t = useT();
     const { state, value } = useDatapoint(cell.dpId ?? '');
     const cond = useCellConditionStyle(cell, value);
     const decimals = cell.decimals ?? defaultDecimals;
+    const numFmt = cell.numberFormat ?? globalNumFmt;
     const tValue = applyValueTransform(value, cell.valueFactor, cell.valueOffset);
     // Time datapoints (epoch s/ms, ISO string, HH:mm) are rendered as time/date when
     // configured; unreadable values show the placeholder instead of "Invalid Date".
@@ -212,7 +215,8 @@ function DpCellView({
         ? (formatTimeDisplay(tValue, cell.valueTimeFormat, t, cell.valueTimePattern) ?? '–')
         : null;
     const formatted =
-        timeStr ?? (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals) : String(tValue));
+        timeStr ??
+        (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals, numFmt) : String(tValue));
     const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
     const textSty = cellTextStyle(cell, 'var(--text-primary)', cond);
@@ -350,6 +354,7 @@ function StaticCellView({
     extraFields,
     valueColor,
     mainDpId,
+    globalNumFmt,
 }: {
     cell: CustomCell;
     index: number;
@@ -364,6 +369,8 @@ function StaticCellView({
     valueColor?: string;
     /** Main DP id for 'value' cells wanting to show last-change timestamp. */
     mainDpId?: string;
+    /** Global thousands-separator default; per-cell numberFormat overrides it. */
+    globalNumFmt?: NumberFormat;
 }) {
     const { state: mainState } = useDatapoint(mainDpId ?? '');
     const cond = useCellConditionStyle(cell, mainState?.val, mainDpId);
@@ -373,7 +380,9 @@ function StaticCellView({
                 return title;
             case 'value': {
                 const displayVal =
-                    cell.decimals !== undefined && rawValue != null ? formatNum(rawValue, cell.decimals) : value;
+                    cell.decimals !== undefined && rawValue != null
+                        ? formatNum(rawValue, cell.decimals, cell.numberFormat ?? globalNumFmt)
+                        : value;
                 return `${cell.prefix ?? ''}${displayVal}${cell.suffix ?? ''}`;
             }
             case 'unit':
@@ -581,12 +590,14 @@ function SliderCellView({
     cols,
     rows,
     defaultDecimals,
+    globalNumFmt,
 }: {
     cell: CustomCell;
     index: number;
     cols: number;
     rows: number;
     defaultDecimals: number;
+    globalNumFmt?: NumberFormat;
 }) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
     const [pending, setPending] = useState<number | null>(null);
@@ -603,7 +614,8 @@ function SliderCellView({
     const fillRatio = Math.max(0, Math.min(1, (displayVal - min) / (max - min)));
     const valuePos = cell.valuePosition ?? 'none';
     const decimals = cell.decimals ?? defaultDecimals;
-    const valueLabel = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(displayVal, decimals) : '–'}${cell.suffix ?? ''}`;
+    const numFmt = cell.numberFormat ?? globalNumFmt;
+    const valueLabel = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(displayVal, decimals, numFmt) : '–'}${cell.suffix ?? ''}`;
 
     const writeStepped = (v: number) => {
         const stepped = Math.round(v / step) * step;
@@ -894,12 +906,14 @@ function StepperCellView({
     cols,
     rows,
     defaultDecimals,
+    globalNumFmt,
 }: {
     cell: CustomCell;
     index: number;
     cols: number;
     rows: number;
     defaultDecimals: number;
+    globalNumFmt?: NumberFormat;
 }) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
     const cond = useCellConditionStyle(cell, value);
@@ -910,7 +924,8 @@ function StepperCellView({
     const num = typeof value === 'number' ? value : Number(value ?? 0);
     const cur = Number.isFinite(num) ? num : 0;
     const decimals = cell.decimals ?? defaultDecimals;
-    const display = Number.isFinite(num) ? formatNum(num, decimals) : '–';
+    const numFmt = cell.numberFormat ?? globalNumFmt;
+    const display = Number.isFinite(num) ? formatNum(num, decimals, numFmt) : '–';
     const color = cell.color || 'var(--accent)';
     const btnSize = cell.fontSize ?? 14;
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
@@ -1145,12 +1160,14 @@ function ProgressCellView({
     cols,
     rows,
     defaultDecimals,
+    globalNumFmt,
 }: {
     cell: CustomCell;
     index: number;
     cols: number;
     rows: number;
     defaultDecimals: number;
+    globalNumFmt?: NumberFormat;
 }) {
     const { state, value } = useDatapoint(cell.dpId ?? '');
     const cond = useCellConditionStyle(cell, value);
@@ -1166,7 +1183,8 @@ function ProgressCellView({
     const cur = Number.isFinite(num) ? num : min;
     const ratio = Math.max(0, Math.min(1, (cur - min) / (max - min)));
     const decimals = cell.decimals ?? defaultDecimals;
-    const label = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(num, decimals) : '–'}${cell.suffix ?? ''}`;
+    const numFmt = cell.numberFormat ?? globalNumFmt;
+    const label = `${cell.prefix ?? ''}${Number.isFinite(num) ? formatNum(num, decimals, numFmt) : '–'}${cell.suffix ?? ''}`;
     const wrapSty = withCondBg(
         cell.showLastChange
             ? { ...cellWrapStyle(cell, index, cols, rows), padding: '4px', flexDirection: 'column' as const, gap: 2 }
@@ -1528,7 +1546,7 @@ export function CustomGridView({
 }: CustomGridViewProps) {
     const grid = normalizeGrid(config.options?.customGrid, fallback);
     const { cols, rows, cells, colSizes, rowSizes } = grid;
-    const { defaultDecimals } = useGlobalSettingsStore();
+    const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     // minmax(0, 1fr) — ohne die 0-Untergrenze würde CSS-Grid die Spalten/Zeilen am min-content
     // der Zellinhalte ausrichten; ein langer Freitext in einer Außenzelle macht dann die Spalte
     // breiter und verschiebt z.B. den Drehregler in der Mittenzelle aus der Mitte.
@@ -1569,6 +1587,7 @@ export function CustomGridView({
                                 cols={cols}
                                 rows={rows}
                                 defaultDecimals={defaultDecimals}
+                                globalNumFmt={globalNumFmt}
                             />
                         );
                     case 'image':
@@ -1604,6 +1623,7 @@ export function CustomGridView({
                                 cols={cols}
                                 rows={rows}
                                 defaultDecimals={defaultDecimals}
+                                globalNumFmt={globalNumFmt}
                             />
                         );
                     case 'button':
@@ -1623,6 +1643,7 @@ export function CustomGridView({
                                 cols={cols}
                                 rows={rows}
                                 defaultDecimals={defaultDecimals}
+                                globalNumFmt={globalNumFmt}
                             />
                         );
                     case 'input':
@@ -1636,6 +1657,7 @@ export function CustomGridView({
                                 cols={cols}
                                 rows={rows}
                                 defaultDecimals={defaultDecimals}
+                                globalNumFmt={globalNumFmt}
                             />
                         );
                     case 'state-text':
@@ -1659,6 +1681,7 @@ export function CustomGridView({
                                 extraFields={extraFields}
                                 valueColor={valueColor}
                                 mainDpId={config.datapoint}
+                                globalNumFmt={globalNumFmt}
                             />
                         );
                 }

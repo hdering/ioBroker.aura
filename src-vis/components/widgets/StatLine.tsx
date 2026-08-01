@@ -1,5 +1,6 @@
 import { Fragment } from 'react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import type { NumberFormat } from '../../utils/formatValue';
 import { getStatParts, type ListStat, type ListStatsResult } from '../../utils/listStats';
 
 /**
@@ -14,6 +15,7 @@ export function StatLine({
     icons,
     sumLabel,
     decimals,
+    numFmt,
     align = 'left',
     fontSize = 10,
 }: {
@@ -23,10 +25,11 @@ export function StatLine({
     icons?: Partial<Record<ListStat, string>>;
     sumLabel?: string;
     decimals: number;
+    numFmt?: NumberFormat;
     align?: 'left' | 'center' | 'right';
     fontSize?: number;
 }) {
-    const parts = getStatParts(stats, selected, labels, icons, sumLabel, decimals);
+    const parts = getStatParts(stats, selected, labels, icons, sumLabel, decimals, numFmt);
     const justify = align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start';
     const iconSize = Math.round(fontSize * 1.1);
     return (

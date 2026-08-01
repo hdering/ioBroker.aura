@@ -14,13 +14,13 @@ import {
 } from 'lucide-react';
 import { MultiSelect } from './MultiSelect';
 import { DatapointPicker } from './DatapointPicker';
+import { NumberFormatSetting } from './NumberFormatSetting';
 import { EntryControlsConfig } from './EntryControlsConfig';
 import type { WidgetConfig } from '../../types';
 import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
-import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { NS } from '../../utils/namespace';
 import { ColorPicker } from '../common/ColorPicker';
 import { Icon } from '@iconify/react';
@@ -298,7 +298,6 @@ function toCsv(arr: string[]): string | undefined {
 export function AutoListConfig({ config, onConfigChange }: Props) {
     const t = useT();
     const opts = (config.options ?? { entries: [] }) as unknown as AutoListOptions;
-    const { defaultDecimals } = useGlobalSettingsStore();
 
     // Filter options loaded from ioBroker
     const [availRoles, setAvailRoles] = useState<string[]>([]);
@@ -769,35 +768,12 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     onChange={(e) => setOpts({ syncIntervalMin: Number(e.target.value) })}
                 />
             </div>
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    Kommastellen
-                </label>
-                <div className="flex items-center gap-2">
-                    <input
-                        type="number"
-                        min={0}
-                        max={6}
-                        step={1}
-                        className={iCls}
-                        style={{ ...iSty, opacity: opts.decimals === undefined ? 0.4 : 1 }}
-                        disabled={opts.decimals === undefined}
-                        value={opts.decimals ?? defaultDecimals}
-                        onChange={(e) => setOpts({ decimals: Number(e.target.value) })}
-                    />
-                    <button
-                        onClick={() => setOpts({ decimals: opts.decimals === undefined ? defaultDecimals : undefined })}
-                        className="shrink-0 px-2 py-1 rounded text-[10px] font-bold transition-colors"
-                        style={{
-                            background: opts.decimals === undefined ? 'var(--accent)' : 'var(--app-border)',
-                            color: opts.decimals === undefined ? '#fff' : 'var(--text-secondary)',
-                        }}
-                        title="Globale Einstellung verwenden"
-                    >
-                        Global
-                    </button>
-                </div>
-            </div>
+            <NumberFormatSetting
+                decimals={opts.decimals}
+                numberFormat={opts.numberFormat}
+                onChange={setOpts}
+                inputStyle={iSty}
+            />
             <div className="flex items-center justify-between">
                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                     Anzahl anzeigen

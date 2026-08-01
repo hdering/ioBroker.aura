@@ -1,3 +1,5 @@
+import type { NumberFormat } from '../utils/formatValue';
+
 export interface WidgetConfig {
     id: string;
     type: WidgetType;
@@ -215,6 +217,7 @@ export interface CustomCell {
     prefix?: string; // 'value' / 'dp' type: text prepended to value
     suffix?: string; // 'value' / 'dp' type: text appended to value
     decimals?: number; // 'value' / 'dp' type: decimal places override (undefined = use global)
+    numberFormat?: NumberFormat; // 'value' / 'dp' type: thousands separator override (undefined = use global)
     valueFactor?: number; // 'dp' / 'progress' type: display-only multiplier (default 1)
     valueOffset?: number; // 'dp' / 'progress' type: display-only additive offset (default 0)
     valueTransform?: string; // 'dp' / 'progress' type: selected transform preset id (editor only; disambiguates presets sharing factor/offset)
