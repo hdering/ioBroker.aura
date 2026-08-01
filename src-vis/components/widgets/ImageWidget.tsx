@@ -3,7 +3,7 @@ import { ImageIcon } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { CustomGridView } from './CustomGridView';
-import { resolveAssetUrl } from '../../utils/assetUrl';
+import { resolveAssetUrl, resolveImageSource } from '../../utils/assetUrl';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 type FitMode = 'none' | 'contain' | 'width' | 'height';
@@ -51,23 +51,15 @@ export function ImageWidget({ config }: WidgetProps) {
             />
         );
 
-    // Build src from datapoint value (base64 or URL) or from static URL
+    // Build src from datapoint value (base64, URL or web-adapter path) or from static URL
     const src = (() => {
-        if (datapointId && dpValue != null) {
-            const str = String(dpValue);
-            if (!str) return '';
-            if (str.startsWith('data:') || str.startsWith('http://') || str.startsWith('https://')) return str;
-            return `data:image/jpeg;base64,${str}`;
-        }
+        if (datapointId && dpValue != null) return resolveImageSource(String(dpValue));
         if (!imageUrl) return '';
-        // base64 or data URI in URL field – use as-is, no cache-bust
-        if (imageUrl.startsWith('data:')) return imageUrl;
-        // Relative paths (e.g. /fs/read?path=…) are real URLs, not base64
-        if (!imageUrl.startsWith('http') && !imageUrl.startsWith('/') && imageUrl.length > 64) {
-            return `data:image/jpeg;base64,${imageUrl}`;
-        }
-        const sep = imageUrl.includes('?') ? '&' : '?';
-        return tick > 0 ? `${imageUrl}${sep}_t=${tick}` : imageUrl;
+        const resolved = resolveImageSource(imageUrl);
+        // data: URIs carry the payload inline – no cache-bust
+        if (!resolved || resolved.startsWith('data:')) return resolved;
+        const sep = resolved.includes('?') ? '&' : '?';
+        return tick > 0 ? `${resolved}${sep}_t=${tick}` : resolved;
     })();
 
     if (!src) {

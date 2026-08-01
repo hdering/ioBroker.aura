@@ -1,5 +1,6 @@
 import { ImageIcon } from 'lucide-react';
 import { useDatapoint } from '../../../hooks/useDatapoint';
+import { resolveImageSource } from '../../../utils/assetUrl';
 import type { ClickAction } from '../../../types';
 
 interface Props {
@@ -10,19 +11,8 @@ export function ImagePopupBody({ action }: Props) {
     const { value: dpValue } = useDatapoint(action.dp ?? '');
 
     const src = (() => {
-        if (action.dp && dpValue != null) {
-            const str = String(dpValue);
-            if (!str) return '';
-            if (
-                str.startsWith('data:') ||
-                str.startsWith('http://') ||
-                str.startsWith('https://') ||
-                str.startsWith('/')
-            )
-                return str;
-            return `data:image/jpeg;base64,${str}`;
-        }
-        return action.url ?? '';
+        if (action.dp && dpValue != null) return resolveImageSource(String(dpValue));
+        return resolveImageSource(action.url ?? '');
     })();
 
     if (!src) {

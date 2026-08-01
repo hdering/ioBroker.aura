@@ -7,7 +7,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../types';
-import { resolveAssetUrl, proxifyIfMixed } from '../../utils/assetUrl';
+import { resolveImageSource } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
@@ -259,16 +259,8 @@ function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
     const { value: dpValue } = useDatapoint(cell.dpId ?? '');
     // A configured datapoint takes precedence; its value carries the image (URL / path / base64).
     const src = (() => {
-        if (cell.dpId && dpValue != null) {
-            const str = String(dpValue).trim();
-            if (!str) return '';
-            if (str.startsWith('data:') || str.startsWith('http://') || str.startsWith('https://')) return str;
-            if (str.startsWith('/') || str.startsWith('aura-file:')) return proxifyIfMixed(resolveAssetUrl(str));
-            // Long bare string with no path/URL markers → assume raw base64 payload.
-            if (str.length > 64) return `data:image/jpeg;base64,${str}`;
-            return proxifyIfMixed(resolveAssetUrl(str));
-        }
-        return cell.imageUrl ? proxifyIfMixed(resolveAssetUrl(cell.imageUrl)) : '';
+        if (cell.dpId && dpValue != null) return resolveImageSource(String(dpValue));
+        return cell.imageUrl ? resolveImageSource(cell.imageUrl) : '';
     })();
     if (!src) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 

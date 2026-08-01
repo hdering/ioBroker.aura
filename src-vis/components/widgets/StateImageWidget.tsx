@@ -3,7 +3,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { evaluateClause } from '../../utils/conditionEval';
 import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { resolveAssetUrl } from '../../utils/assetUrl';
+import { resolveImageSource } from '../../utils/assetUrl';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
@@ -25,7 +25,7 @@ function StateDisplay({ cfg, size, className }: { cfg: StateCfg; size: number; c
     if (cfg.type === 'base64' && cfg.base64) {
         return (
             <img
-                src={resolveAssetUrl(cfg.base64)}
+                src={resolveImageSource(cfg.base64)}
                 className={className}
                 style={{ width: size, height: size, objectFit: 'contain', flexShrink: 0 }}
                 alt=""

@@ -8,6 +8,7 @@ import { CustomGridView } from './CustomGridView';
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
+import { resolveImageSource } from '../../utils/assetUrl';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -32,13 +33,8 @@ type MediaChip = {
  *  relative covers so the image refreshes on track change even when the adapter
  *  keeps writing the same filename (Sonos reuses `<ip>.png` per device). */
 function resolveCoverUrl(raw: string, title: string, artist: string): string {
-    const v = raw.trim();
-    if (!v) return '';
-    if (v.startsWith('data:') || /^(https?:)?\/\//i.test(v)) return v;
-    // Long token with no scheme and no path separator → raw base64 image data
-    if (!v.includes('/') && v.length > 64) return `data:image/jpeg;base64,${v}`;
-    const path = v.startsWith('/') ? v : `/${v}`;
-    const url = `/webfs${path}`;
+    const url = resolveImageSource(raw);
+    if (!url || url.startsWith('data:')) return url;
     const bust = `${title}|${artist}`.trim();
     if (!bust) return url;
     const sep = url.includes('?') ? '&' : '?';
