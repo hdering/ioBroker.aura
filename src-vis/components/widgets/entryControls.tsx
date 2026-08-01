@@ -9,12 +9,15 @@
  *   - stepper   → −/+ buttons stepping a numeric DP (min/max/step)
  *   - buttons   → fixed value presets (Off/Eco/Comfort, 0/50/100 …)
  *   - momentary → single push button writing a pulse value (scene/reset)
+ *   - time      → a time value (epoch s/ms, ISO string, HH:mm) as time and/or date
  */
 import { useRef } from 'react';
 import { ChevronUp, ChevronDown, Square, Minus, Plus } from 'lucide-react';
 import type { ioBrokerState } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
+import { useT } from '../../i18n';
+import { formatTimeDisplay } from '../../utils/timeDisplay';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import {
     type ContactState,
@@ -34,7 +37,8 @@ export type EntryDisplayType =
     | 'buttons'
     | 'momentary'
     | 'states'
-    | 'contact';
+    | 'contact'
+    | 'time';
 
 /** Control types that are not a simple on/off and must be excluded from the
  *  group master switch. */
@@ -45,6 +49,7 @@ export const NON_TOGGLE_DISPLAY_TYPES: ReadonlySet<string> = new Set([
     'momentary',
     'states',
     'contact',
+    'time',
 ]);
 
 export interface EntryPreset {
@@ -109,6 +114,11 @@ export interface EntryControlConfig {
         tilted?: { label?: string; color?: string; icon?: string };
         open?: { label?: string; color?: string; icon?: string };
     };
+    // ── time (date/time read display) ──────────────────────────────────────────
+    /** Output shape for the 'time' display (see TIME_DISPLAY_PRESETS); default 'time'. */
+    timeFormat?: string;
+    /** Token pattern, only used when `timeFormat` is 'custom'. */
+    timePattern?: string;
     // ── momentary (push / pulse) ───────────────────────────────────────────────
     /** Value written on press. Default true. */
     pulseValue?: string | number | boolean;
@@ -374,6 +384,39 @@ export function ContactDisplay({ entry, val }: { entry: EntryControlConfig; val:
         >
             {Icon && <Icon size={14} />}
             {label}
+        </span>
+    );
+}
+
+// ── Date/time read display ───────────────────────────────────────────────────
+// For entries whose datapoint holds a point in time (epoch seconds/milliseconds,
+// ISO string, HH:mm, yyyy-MM-dd). The shape is picked per entry (time / date /
+// both / own token pattern); values that are no readable time show the dash.
+
+/** Formatted time text of an entry, or the dash placeholder when unreadable. */
+export function formatEntryTime(
+    entry: EntryControlConfig,
+    val: ioBrokerState['val'],
+    t: ReturnType<typeof useT>,
+): string {
+    return formatTimeDisplay(val, entry.timeFormat || 'time', t, entry.timePattern) ?? '–';
+}
+
+export function TimeDisplay({
+    entry,
+    val,
+    className = 'shrink-0 text-xs font-medium tabular-nums',
+    style,
+}: {
+    entry: EntryControlConfig;
+    val: ioBrokerState['val'];
+    className?: string;
+    style?: React.CSSProperties;
+}) {
+    const t = useT();
+    return (
+        <span className={className} style={style}>
+            {formatEntryTime(entry, val, t)}
         </span>
     );
 }

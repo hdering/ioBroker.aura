@@ -135,9 +135,9 @@ export function listEntryTarget(
             : null;
 
     const dt = entry.displayType ?? 'auto';
-    // Rich controls (shutter/stepper/buttons/momentary) are not simple on/off —
-    // never include them in the group master switch.
-    if (dt === 'shutter' || dt === 'stepper' || dt === 'buttons' || dt === 'momentary') return null;
+    // Rich controls (shutter/stepper/buttons/momentary) are not simple on/off, and
+    // a date/time display is read-only — never include them in the group master switch.
+    if (dt === 'shutter' || dt === 'stepper' || dt === 'buttons' || dt === 'momentary' || dt === 'time') return null;
     if (dt === 'switch') {
         const isBool = typeof val === 'boolean';
         return { id: entry.id, active: isActiveVal(val), onWrite: isBool ? true : 1, offWrite: isBool ? false : 0 };

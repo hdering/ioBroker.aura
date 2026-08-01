@@ -11,6 +11,9 @@ import { IconPickerModal } from './IconPickerModal';
 import { ColorPicker } from '../common/ColorPicker';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { getObjectDirect } from '../../hooks/useIoBroker';
+import { useDatapoint } from '../../hooks/useDatapoint';
+import { useT } from '../../i18n';
+import { TIME_DISPLAY_PRESETS, formatTimeDisplay } from '../../utils/timeDisplay';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import type { EntryControlConfig, EntryDisplayType, EntryPreset, EntryStateMap } from '../widgets/entryControls';
 import {
@@ -112,6 +115,7 @@ const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
     { value: 'switch', label: 'Schalter' },
     { value: 'slider', label: 'Schieberegler' },
     { value: 'value', label: 'Wert' },
+    { value: 'time', label: 'Datum/Zeit' },
     { value: 'shutter', label: 'Rollladen' },
     { value: 'stepper', label: '+/−' },
     { value: 'buttons', label: 'Tasten' },
@@ -153,7 +157,13 @@ function DpRow({ label, value, onPick }: { label: string; value?: string; onPick
 }
 
 export function EntryControlsConfig({ entry, onUpdate }: Props) {
+    const t = useT();
     const dt = entry.displayType ?? 'auto';
+    // Live value of the entry's datapoint, so the automatic time detection is
+    // verifiable while configuring. Only subscribed for the date/time display.
+    const { value: timeVal } = useDatapoint(dt === 'time' ? (entry.id ?? '') : '');
+    const timePreview =
+        dt === 'time' ? formatTimeDisplay(timeVal, entry.timeFormat || 'time', t, entry.timePattern) : null;
     const sMode = entry.shutterMode ?? 'commands';
     const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp'>(null);
     const [statePickFor, setStatePickFor] = useState<number | null>(null);
@@ -246,7 +256,14 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                         return (
                             <button
                                 key={o.value}
-                                onClick={() => onUpdate({ displayType: o.value === 'auto' ? undefined : o.value })}
+                                onClick={() =>
+                                    onUpdate(
+                                        o.value === 'time'
+                                            ? // Seed a concrete format so the entry renders something meaningful at once.
+                                              { displayType: 'time', timeFormat: entry.timeFormat ?? 'time' }
+                                            : { displayType: o.value === 'auto' ? undefined : o.value },
+                                    )
+                                }
                                 className="text-[10px] px-2 py-1 rounded transition-colors"
                                 style={{
                                     background: active ? 'var(--accent)' : 'var(--app-bg)',
@@ -260,6 +277,56 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
                     })}
                 </div>
             </div>
+
+            {/* ── Datum/Zeit ── */}
+            {dt === 'time' && (
+                <div className="space-y-1.5">
+                    <div>
+                        <Label>Format</Label>
+                        <select
+                            value={entry.timeFormat || 'time'}
+                            onChange={(e) =>
+                                onUpdate({
+                                    timeFormat: e.target.value,
+                                    timePattern:
+                                        e.target.value === 'custom'
+                                            ? (entry.timePattern ?? 'dd.MM.yyyy HH:mm')
+                                            : undefined,
+                                })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            {TIME_DISPLAY_PRESETS.filter((p) => p.id !== 'none').map((p) => (
+                                <option key={p.id} value={p.id}>
+                                    {p.label}
+                                </option>
+                            ))}
+                            <option value="custom">Eigenes Format…</option>
+                        </select>
+                    </div>
+                    {entry.timeFormat === 'custom' && (
+                        <div>
+                            <Label>Muster</Label>
+                            <input
+                                className={`${iCls} font-mono`}
+                                style={iSty}
+                                value={entry.timePattern ?? ''}
+                                onChange={(e) => onUpdate({ timePattern: e.target.value || undefined })}
+                                placeholder="dd.MM.yyyy HH:mm"
+                            />
+                            <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                Tokens: HH mm ss · dd MM yyyy yy · EEEE (Wochentag) · EE · MMMM (Monat) · ww (KW)
+                            </p>
+                        </div>
+                    )}
+                    <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.75 }}>
+                        {timePreview
+                            ? `Vorschau: ${timePreview}`
+                            : 'Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und HH:mm werden automatisch erkannt.'}
+                    </p>
+                </div>
+            )}
 
             {/* ── Rollladen (shutter) ── */}
             {dt === 'shutter' && (

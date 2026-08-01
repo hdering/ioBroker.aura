@@ -34,6 +34,8 @@ import {
     MomentaryButton,
     StateDisplay,
     ContactDisplay,
+    TimeDisplay,
+    formatEntryTime,
     resolveContactDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
@@ -439,6 +441,15 @@ function EntryValue({
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
     if (dt === 'contact') return <ContactDisplay entry={entry} val={val} />;
+    if (dt === 'time')
+        return (
+            <TimeDisplay
+                entry={entry}
+                val={val}
+                className={textValueCls}
+                style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
+            />
+        );
 
     // Role-based display for sensors (window, door, motion, smoke, …)
     if (isBoolLike && !hasLabels) {
@@ -591,6 +602,15 @@ function CardEntryValue({
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
     if (dt === 'contact') return <ContactDisplay entry={entry} val={val} />;
+    if (dt === 'time')
+        return (
+            <TimeDisplay
+                entry={entry}
+                val={val}
+                className={`text-xl font-bold tabular-nums text-center leading-none ${cardTextWrap}`}
+                style={{ color: 'var(--text-primary)' }}
+            />
+        );
 
     // Role-based display for sensors
     if (isBoolLike && !hasLabels) {
@@ -1422,23 +1442,28 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
                                     const contactMatch =
                                         entry.displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
+                                    // Time datapoint rendered as time/date instead of the raw value.
+                                    const timeText =
+                                        entry.displayType === 'time' ? formatEntryTime(entry, val, t) : null;
                                     const roleDisplay =
                                         !stateMatch && !contactMatch && isBoolLike && !hasLabels
                                             ? getRoleDisplay(entry.role, val)
                                             : null;
-                                    const valueStr = contactMatch
-                                        ? contactMatch.label
-                                        : stateMatch
-                                          ? (stateMatch.label ?? String(stateMatch.value))
-                                          : roleDisplay
-                                            ? roleDisplay.label
-                                            : isBoolLike && hasLabels
-                                              ? on
-                                                  ? trueLabel || 'AN'
-                                                  : falseLabel || 'AUS'
-                                              : val != null
-                                                ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
-                                                : '–';
+                                    const valueStr =
+                                        timeText ??
+                                        (contactMatch
+                                            ? contactMatch.label
+                                            : stateMatch
+                                              ? (stateMatch.label ?? String(stateMatch.value))
+                                              : roleDisplay
+                                                ? roleDisplay.label
+                                                : isBoolLike && hasLabels
+                                                  ? on
+                                                      ? trueLabel || 'AN'
+                                                      : falseLabel || 'AUS'
+                                                  : val != null
+                                                    ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                                    : '–');
                                     const entryActiveColor = entry.activeColor || globalActiveColor;
                                     const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
                                     const eOn = isActive(val);

@@ -33,6 +33,8 @@ import {
     MomentaryButton,
     StateDisplay,
     ContactDisplay,
+    TimeDisplay,
+    formatEntryTime,
     resolveContactDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
@@ -262,6 +264,15 @@ function EntryValue({
     if (displayType === 'momentary') return <MomentaryButton entry={entry} setState={setState} icon={entry.icon} />;
     if (displayType === 'states') return <StateDisplay entry={entry} val={val} />;
     if (displayType === 'contact') return <ContactDisplay entry={entry} val={val} />;
+    if (displayType === 'time')
+        return (
+            <TimeDisplay
+                entry={entry}
+                val={val}
+                className={textValueCls}
+                style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
+            />
+        );
 
     // Forced "Nur Wert" — skip role/switch/slider, render text only
     if (displayType === 'value') {
@@ -1072,23 +1083,27 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
                             const contactMatch =
                                 displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
+                            // Time datapoint rendered as time/date instead of the raw value.
+                            const timeText = displayType === 'time' ? formatEntryTime(entry, val, t) : null;
                             const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
                             const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
                             const truthy = on || (typeof val === 'number' && val > 0);
                             const switchActive = forceSwitch ? truthy : isBoolLike && on;
-                            const valueStr = contactMatch
-                                ? contactMatch.label
-                                : stateMatch
-                                  ? (stateMatch.label ?? String(stateMatch.value))
-                                  : roleDisplay
-                                    ? roleDisplay.label
-                                    : forceSwitch || (isBoolLike && hasLabels)
-                                      ? switchActive
-                                          ? trueLabel || 'AN'
-                                          : falseLabel || 'AUS'
-                                      : val != null
-                                        ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
-                                        : '–';
+                            const valueStr =
+                                timeText ??
+                                (contactMatch
+                                    ? contactMatch.label
+                                    : stateMatch
+                                      ? (stateMatch.label ?? String(stateMatch.value))
+                                      : roleDisplay
+                                        ? roleDisplay.label
+                                        : forceSwitch || (isBoolLike && hasLabels)
+                                          ? switchActive
+                                              ? trueLabel || 'AN'
+                                              : falseLabel || 'AUS'
+                                          : val != null
+                                            ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                            : '–');
                             const threshColor =
                                 !switchActive && !roleDisplay
                                     ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds)

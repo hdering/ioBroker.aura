@@ -4,7 +4,18 @@ Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. Jeder Eintra
 
 ## Datenpunkt
 
-Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `momentary` · `switch` · `slider` · `value` · `auto`) erzwingt die Darstellung pro Eintrag.
+Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `momentary` · `switch` · `slider` · `value` · `time` · `auto`) erzwingt die Darstellung pro Eintrag.
+
+### Darstellung Datum/Zeit
+
+`displayType: 'time'` zeigt einen Zeit-Datenpunkt als Uhrzeit und/oder Datum. Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und `HH:mm` werden automatisch erkannt; nicht lesbare Werte zeigen `–`. Gilt auch für die [dynamische Liste](./dynamische-liste).
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `timeFormat` | `time` | `time` (14:32) · `time-sec` · `date` (01.08.2026) · `date-long` (Samstag, 1. August 2026) · `datetime` · `datetime-sec` · `custom` |
+| `timePattern` | — | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm` |
+
+Tokens: `HH` `mm` `ss` · `hh` · `dd` `MM` `yyyy` `yy` · `EEEE` (Wochentag) · `EE` · `MMMM` (Monat) · `ww` (KW)
 
 ## Layouts
 
