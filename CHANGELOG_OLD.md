@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.36.2 (2026-07-25)
+- Timer - astro events now show the resolved sunrise/sunset time next to the symbol
+- Timer - all events are now shown in a scrollable list instead of being cut off at 4
+
 ## 0.36.1 (2026-07-25)
 - Settings - Grid & Mobile can now hide the draggable dashboard scroll bar on touch devices
 

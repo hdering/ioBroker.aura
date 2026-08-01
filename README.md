@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.38.11 (2026-08-01)
+- 🌟 **New feature:** Clock - optional source datapoint: formats a time value from a datapoint (ISO timestamp, HH:mm or Unix time) instead of the current time, with a new REL token for relative output ("in 3 h 12 min")
+- evcc - grid power is read again with evcc adapter 0.2.9+ (renamed states status.Grid.Power); optional custom grid power datapoint added
+- JSON table - table header stays readable in light mode when the widget is set to transparent
+- 🌟 **New feature:** Section menu - separate placement for mobile; a docked sidebar no longer forces the tab bar to stay visible with a single tab
+
+
 ### 0.38.10 (2026-07-31)
 - Static list - statistics are shown on the same line as the title instead of a second header row
 - Group - the editor now shows the same spacing as the frontend and never shows an inner scrollbar, at any grid row height or gap: children fill the group box in both views, grid settings, header height and fitted height are resolved identically, and a child too small for its own content is clipped the same way in both views
@@ -213,11 +220,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Group - resizing a child in the editor no longer rescales the other children (fixed-grid pitch while editing)
 
 
-### 0.36.2 (2026-07-25)
-- Timer - astro events now show the resolved sunrise/sunset time next to the symbol
-- Timer - all events are now shown in a scrollable list instead of being cut off at 4
-
-
 ## License
 
 MIT License
@@ -229,6 +231,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
