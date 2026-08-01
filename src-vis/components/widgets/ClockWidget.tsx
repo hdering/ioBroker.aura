@@ -8,53 +8,12 @@ import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { parseTimeValue, formatRelative } from '../../utils/parseTimeValue';
+import { pad, isoWeek, formatHM, applyTimeFormat, TIME_DASH } from '../../utils/timeDisplay';
 
 type TFn = ReturnType<typeof useT>;
 
 /** Shown instead of a formatted value when the source datapoint holds no readable time. */
-const DASH = '–';
-
-function pad(n: number) {
-    return String(n).padStart(2, '0');
-}
-
-/** ISO-8601 calendar week (week starts Monday; week 1 contains the first Thursday). */
-function isoWeek(d: Date): number {
-    const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
-    const yearStart = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
-    return Math.ceil(((+t - +yearStart) / 86400000 + 1) / 7);
-}
-
-function formatHM(d: Date | null): string {
-    if (!d || isNaN(d.getTime())) return '–';
-    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function applyCustomFormat(
-    date: Date,
-    fmt: string,
-    t: TFn,
-    ctx: { city: string; sunrise: Date | null; sunset: Date | null; rel: string },
-): string {
-    return fmt
-        .replace('REL', ctx.rel)
-        .replace('EEEE', t(`clock.day.${date.getDay()}` as Parameters<TFn>[0]))
-        .replace('EE', t(`cal.day.${date.getDay()}` as Parameters<TFn>[0]))
-        .replace('MMMM', t(`clock.month.${date.getMonth()}` as Parameters<TFn>[0]))
-        .replace('yyyy', String(date.getFullYear()))
-        .replace('yy', String(date.getFullYear()).slice(-2))
-        .replace('MM', pad(date.getMonth() + 1))
-        .replace('dd', pad(date.getDate()))
-        .replace('HH', pad(date.getHours()))
-        .replace('hh', pad(date.getHours() % 12 || 12))
-        .replace('mm', pad(date.getMinutes()))
-        .replace('ss', pad(date.getSeconds()))
-        .replace('ww', String(isoWeek(date)))
-        .replace('SR', formatHM(ctx.sunrise))
-        .replace('SS', formatHM(ctx.sunset))
-        .replace('CT', ctx.city);
-}
+const DASH = TIME_DASH;
 
 function formatTime(date: Date, showSeconds: boolean): string {
     return `${pad(date.getHours())}:${pad(date.getMinutes())}${showSeconds ? `:${pad(date.getSeconds())}` : ''}`;
@@ -143,7 +102,7 @@ export function ClockWidget({ config }: WidgetProps) {
     const customStr = customFormat
         ? unreadable
             ? DASH
-            : applyCustomFormat(base, customFormat, t, { city: cityStr, sunrise, sunset, rel: relStr })
+            : applyTimeFormat(base, customFormat, t, { city: cityStr, sunrise, sunset, rel: relStr })
         : '';
     // Date output as a node so every layout can render either the formatted date or
     // the placeholder without repeating the branch.

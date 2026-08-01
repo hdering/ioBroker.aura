@@ -30,6 +30,19 @@ Klick auf eine Zelle öffnet den Zell-Editor (Schriftgröße, Farbe, Ausrichtung
 | `switch` · `slider` · `button` · `stepper` | Bedien-Element für einen Datenpunkt |
 | `component` | Widget-Komponente (z. B. Temperatur-Balken bei Wetter) |
 
+### Umrechnung & Zeit-Formatierung (`dp`)
+
+Der Button neben dem Datenpunkt-Feld öffnet beide Anzeige-Optionen — der Datenpunkt bleibt unverändert.
+
+| Feld | |
+| --- | --- |
+| `valueFactor` / `valueOffset` | Anzeige = Wert × Faktor + Offset (auch bei `progress`) |
+| `valueTimeFormat` | Zeitwert als Uhrzeit und/oder Datum: `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom` |
+| `valueTimePattern` | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm` |
+
+Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und `HH:mm` werden automatisch erkannt; nicht lesbare
+Werte zeigen `–`. Tokens siehe [Wert-Anzeige](./wert-anzeige.md#zeit-formatierung).
+
 ## Zellen verschieben & kopieren
 
 ### Mit der Maus

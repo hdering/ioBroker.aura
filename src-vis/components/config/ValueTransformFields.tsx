@@ -1,4 +1,7 @@
-import { VALUE_TRANSFORM_PRESETS, matchValueTransformPreset } from '../../utils/valueTransform';
+import { useT } from '../../i18n';
+import { useDatapoint } from '../../hooks/useDatapoint';
+import { VALUE_TRANSFORM_PRESETS, applyValueTransform, matchValueTransformPreset } from '../../utils/valueTransform';
+import { TIME_DISPLAY_PRESETS, formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 
 export interface ValueTransformPatch {
     valueFactor?: number;
@@ -7,6 +10,10 @@ export interface ValueTransformPatch {
     valueTransform?: string;
     /** Only emitted when `fillUnit` is set and the chosen preset suggests a unit. */
     unit?: string;
+    /** Time output preset id (or 'custom'); undefined / 'none' = plain value. */
+    valueTimeFormat?: string;
+    /** Token pattern, only used when `valueTimeFormat` is 'custom'. */
+    valueTimePattern?: string;
 }
 
 /**
@@ -18,6 +25,10 @@ export function ValueTransformFields({
     factor,
     offset,
     presetId,
+    timeFormat,
+    timePattern,
+    allowTimeFormat = false,
+    dpId,
     onPatch,
     fillUnit = false,
     inputStyle,
@@ -27,12 +38,24 @@ export function ValueTransformFields({
     offset?: number;
     /** Stored selection id; takes precedence over factor/offset matching. */
     presetId?: string;
+    /** Stored time output preset id (or 'custom'). */
+    timeFormat?: string;
+    /** Stored token pattern for the 'custom' time format. */
+    timePattern?: string;
+    /** Show the time-formatting section — only for targets that render the value as text. */
+    allowTimeFormat?: boolean;
+    /** Datapoint reference of the edited target; drives the live preview. */
+    dpId?: string;
     onPatch: (patch: ValueTransformPatch) => void;
     /** When true, selecting a preset also fills the `unit` field. */
     fillUnit?: boolean;
     inputStyle?: React.CSSProperties;
     inputClassName?: string;
 }) {
+    const t = useT();
+    // Live value of the edited datapoint so the automatic time detection is verifiable
+    // right here. Passing an empty ref is a no-op in the hook.
+    const { value: previewVal } = useDatapoint(allowTimeFormat ? (dpId ?? '') : '');
     // The stored preset id wins (several presets share a factor, e.g. Wh→kWh and W→kW are both ×0.001).
     // Fall back to factor/offset matching only for configs saved before the id was stored.
     const selected =
@@ -67,6 +90,27 @@ export function ValueTransformFields({
         if (fillUnit && p.unit) patch.unit = p.unit;
         onPatch(patch);
     };
+
+    const selectedTime = hasTimeDisplay(timeFormat) ? (timeFormat as string) : 'none';
+    const chooseTime = (id: string) => {
+        if (id === 'none') {
+            onPatch({ valueTimeFormat: undefined, valueTimePattern: undefined });
+            return;
+        }
+        onPatch({
+            valueTimeFormat: id,
+            valueTimePattern: id === 'custom' ? (timePattern ?? 'dd.MM.yyyy HH:mm') : undefined,
+        });
+    };
+
+    // Preview runs the same order as the renderers: factor/offset first, then time format.
+    const previewText = (() => {
+        if (!allowTimeFormat || selectedTime === 'none') return null;
+        if (!dpId?.trim()) return 'Kein Datenpunkt gewählt';
+        const transformed = applyValueTransform(previewVal, factor, offset);
+        const formatted = formatTimeDisplay(transformed, selectedTime, t, timePattern);
+        return formatted ?? 'Wert ist keine Zeit';
+    })();
 
     return (
         <div className="flex flex-col gap-2">
@@ -133,6 +177,56 @@ export function ValueTransformFields({
             <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                 Nur für die Anzeige. Der Datenpunktwert wird nicht verändert. Anzeige = Wert × Faktor + Offset
             </p>
+            {allowTimeFormat && (
+                <div className="flex flex-col gap-2 pt-2" style={{ borderTop: '1px solid var(--app-border)' }}>
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={labelSty}>
+                            Zeit-Formatierung
+                        </label>
+                        <select
+                            value={selectedTime}
+                            onChange={(e) => chooseTime(e.target.value)}
+                            className={inputClassName}
+                            style={sty}
+                        >
+                            {TIME_DISPLAY_PRESETS.map((p) => (
+                                <option key={p.id} value={p.id}>
+                                    {p.label}
+                                </option>
+                            ))}
+                            <option value="custom">Eigenes Format…</option>
+                        </select>
+                    </div>
+                    {selectedTime === 'custom' && (
+                        <div>
+                            <input
+                                type="text"
+                                value={timePattern ?? ''}
+                                onChange={(e) =>
+                                    onPatch({
+                                        valueTimeFormat: 'custom',
+                                        valueTimePattern: e.target.value || undefined,
+                                    })
+                                }
+                                placeholder="dd.MM.yyyy HH:mm"
+                                className={`${inputClassName} font-mono`}
+                                style={sty}
+                            />
+                            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                                Tokens: HH mm ss · dd MM yyyy yy · EEEE (Wochentag) · EE · MMMM (Monat) · ww (KW)
+                            </p>
+                        </div>
+                    )}
+                    {previewText && (
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                            Vorschau: <span style={{ color: 'var(--text-primary)' }}>{previewText}</span>
+                        </p>
+                    )}
+                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                        Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und HH:mm werden automatisch erkannt.
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

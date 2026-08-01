@@ -11,6 +11,8 @@ import { resolveImageSource } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
+import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
+import { useT } from '../../i18n';
 import { baseDpId } from '../../utils/dpRef';
 import { evaluateClause } from '../../utils/conditionEval';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
@@ -199,11 +201,18 @@ function DpCellView({
     rows: number;
     defaultDecimals: number;
 }) {
+    const t = useT();
     const { state, value } = useDatapoint(cell.dpId ?? '');
     const cond = useCellConditionStyle(cell, value);
     const decimals = cell.decimals ?? defaultDecimals;
     const tValue = applyValueTransform(value, cell.valueFactor, cell.valueOffset);
-    const formatted = tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals) : String(tValue);
+    // Time datapoints (epoch s/ms, ISO string, HH:mm) are rendered as time/date when
+    // configured; unreadable values show the placeholder instead of "Invalid Date".
+    const timeStr = hasTimeDisplay(cell.valueTimeFormat)
+        ? (formatTimeDisplay(tValue, cell.valueTimeFormat, t, cell.valueTimePattern) ?? '–')
+        : null;
+    const formatted =
+        timeStr ?? (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals) : String(tValue));
     const content = `${cell.prefix ?? ''}${formatted}${cell.suffix ?? ''}`;
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
     const textSty = cellTextStyle(cell, 'var(--text-primary)', cond);

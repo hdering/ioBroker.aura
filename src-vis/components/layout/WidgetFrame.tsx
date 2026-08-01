@@ -8879,6 +8879,10 @@ export function WidgetFrame({
                                                 factor={config.options?.valueFactor as number | undefined}
                                                 offset={config.options?.valueOffset as number | undefined}
                                                 presetId={config.options?.valueTransform as string | undefined}
+                                                timeFormat={config.options?.valueTimeFormat as string | undefined}
+                                                timePattern={config.options?.valueTimePattern as string | undefined}
+                                                allowTimeFormat={config.type === 'value'}
+                                                dpId={config.datapoint}
                                                 fillUnit
                                                 onPatch={(patch) =>
                                                     onConfigChange({

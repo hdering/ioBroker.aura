@@ -846,13 +846,11 @@ export function CustomCellEditor({
                                 factor={cell.valueFactor}
                                 offset={cell.valueOffset}
                                 presetId={cell.valueTransform}
-                                onPatch={(patch) =>
-                                    onChange({
-                                        valueFactor: patch.valueFactor,
-                                        valueOffset: patch.valueOffset,
-                                        valueTransform: patch.valueTransform,
-                                    })
-                                }
+                                timeFormat={cell.valueTimeFormat}
+                                timePattern={cell.valueTimePattern}
+                                allowTimeFormat={cell.type === 'dp'}
+                                dpId={cell.dpId}
+                                onPatch={({ unit: _unit, ...cellPatch }) => onChange(cellPatch)}
                                 size={12}
                             />
                         )}

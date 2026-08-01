@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Activity, TrendingUp, Hash } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -10,11 +11,13 @@ import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
+import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
 import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
 import { useTemplateValues } from '../../hooks/useTemplateValues';
 
 export function ValueWidget({ config }: WidgetProps) {
+    const t = useT();
     const { value } = useDatapoint(config.datapoint);
     const unit = config.options?.unit as string | undefined;
     const htmlTemplate = config.options?.htmlTemplate as string | undefined;
@@ -39,8 +42,15 @@ export function ValueWidget({ config }: WidgetProps) {
     // Display-only transform: rawValue * factor + offset. Datapoint itself is untouched.
     const tValue = applyValueTransform(value, Number(o.valueFactor ?? 1), Number(o.valueOffset ?? 0));
 
+    // Time datapoints (epoch s/ms, ISO string, HH:mm) are rendered as time/date when
+    // configured; unreadable values show the placeholder instead of "Invalid Date".
+    const timeFormat = o.valueTimeFormat as string | undefined;
+    const timeStr = hasTimeDisplay(timeFormat)
+        ? (formatTimeDisplay(tValue, timeFormat, t, o.valueTimePattern as string | undefined) ?? '–')
+        : null;
+
     const displayValue =
-        tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals) : String(tValue);
+        timeStr ?? (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals) : String(tValue));
 
     // Threshold-based color: [[maxExclusive, color], …] sorted ascending.
     // Applied to the transformed (displayed) value so thresholds are configured in display units.

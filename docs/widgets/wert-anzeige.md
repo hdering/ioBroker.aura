@@ -59,6 +59,20 @@ Reine Anzeige-Umrechnung `Wert × Faktor + Offset`; der Datenpunkt selbst bleibt
 | `valueFactor` | `1` | Multiplikator |
 | `valueOffset` | `0` | Summand |
 
+### Zeit-Formatierung
+
+Zeigt einen Zeit-Datenpunkt als Uhrzeit und/oder Datum. Zeitstempel (Sekunden/Millisekunden),
+ISO-Zeitangaben (`2026-08-01T14:32:07+02:00`) und `HH:mm` werden automatisch erkannt; nicht lesbare Werte
+zeigen `–`. Wird nach Faktor/Offset angewendet und gilt auch für `{dp}` im HTML-Template.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `valueTimeFormat` | — | `time` (14:32) · `time-sec` · `date` (01.08.2026) · `date-long` (Samstag, 1. August 2026) · `datetime` · `datetime-sec` · `custom` |
+| `valueTimePattern` | — | Token-Muster, nur bei `custom` |
+
+Tokens für `valueTimePattern`: `HH` `mm` `ss` · `hh` · `dd` `MM` `yyyy` `yy` · `EEEE` (Wochentag) · `EE` ·
+`MMMM` (Monat) · `ww` (KW). Beispiel: `EEEE, dd.MM. HH:mm` → `Samstag, 01.08. 14:32`
+
 ### HTML-Template
 
 | Option | Standard | |

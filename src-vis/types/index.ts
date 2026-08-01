@@ -218,6 +218,8 @@ export interface CustomCell {
     valueFactor?: number; // 'dp' / 'progress' type: display-only multiplier (default 1)
     valueOffset?: number; // 'dp' / 'progress' type: display-only additive offset (default 0)
     valueTransform?: string; // 'dp' / 'progress' type: selected transform preset id (editor only; disambiguates presets sharing factor/offset)
+    valueTimeFormat?: string; // 'dp' type: render the value as time/date (see TIME_DISPLAY_PRESETS); undefined = plain value
+    valueTimePattern?: string; // 'dp' type: token pattern, only used when valueTimeFormat is 'custom'
     fontSize?: number; // px; undefined = auto
     bold?: boolean;
     italic?: boolean;
