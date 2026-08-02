@@ -13,7 +13,7 @@ import type { EnergyBalanceOptions, EnergyBar, LegendFormat } from '../widgets/E
 import type { EnergyAggregate, EnergyEntry } from '../../hooks/useEnergyBalanceValues';
 import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
-import { NumberFormatButton } from './NumberFormatButton';
+import { ValueFormatRow } from './ValueFormatRow';
 import { IconPickerModal } from './IconPickerModal';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
@@ -225,12 +225,7 @@ function EntryRow({
                     </div>
 
                     {/* Row 3: Dezimalstellen + 1000er-Trennzeichen */}
-                    <NumberFormatButton
-                        label="Zahlenformat"
-                        decimals={entry.decimals}
-                        numberFormat={entry.numberFormat}
-                        onChange={onUpdate}
-                    />
+                    <ValueFormatRow decimals={entry.decimals} numberFormat={entry.numberFormat} onChange={onUpdate} />
 
                     {/* Row 4: Aggregation */}
                     <div className="grid grid-cols-2 gap-1.5">
@@ -615,27 +610,16 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                 </div>
             )}
 
-            <div className="grid grid-cols-2 gap-2">
-                <div>
-                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Einheit
-                    </label>
-                    <input
-                        value={o.unit ?? ''}
-                        placeholder="kWh"
-                        onChange={(e) => setO({ unit: e.target.value || undefined })}
-                        className={inputCls}
-                        style={inputStyle}
-                    />
-                </div>
-                <NumberFormatButton
-                    label="Zahlenformat"
-                    decimals={o.decimals}
-                    numberFormat={o.numberFormat}
-                    onChange={setO}
-                    decimalsLabel="Nachkommastellen"
-                />
-            </div>
+            <ValueFormatRow
+                unit={o.unit}
+                unitPlaceholder="kWh"
+                onUnitChange={(v) => setO({ unit: v })}
+                decimals={o.decimals}
+                numberFormat={o.numberFormat}
+                onChange={setO}
+                inputClassName={inputCls}
+                inputStyle={inputStyle}
+            />
 
             {/* range */}
             <div>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, Database, Plus, Trash2, ChevronUp } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
-import { NumberFormatButton } from './NumberFormatButton';
+import { ValueFormatRow } from './ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { getObjectDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
@@ -1144,12 +1144,10 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
                 {/* Decimal places + thousands separator */}
                 <div className="mb-2">
-                    <NumberFormatButton
-                        label={t('config.numberFormat.rowLabel')}
+                    <ValueFormatRow
                         decimals={o.decimals as number | undefined}
                         numberFormat={o.numberFormat as NumberFormat | undefined}
                         onChange={setO}
-                        decimalsLabel={t('echart.decimals')}
                     />
                 </div>
 

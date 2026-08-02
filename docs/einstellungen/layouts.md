@@ -55,4 +55,4 @@ Nur im Geltungsbereich **Global** — gilt für alle Layouts und Widgets.
 | 1000er-Trennzeichen | `Aus` · `1.234,5` · `1,234.5` · `1 234,5` · `1'234.5`; das Dezimaltrennzeichen wechselt passend mit; pro Widget überschreibbar |
 | DP-Namen bereinigen | Suffixe entfernen (z. B. `.STATE`, `.LEVEL`); optional Punkte durch Leerzeichen ersetzen |
 
-Beide Zahlen-Optionen lassen sich pro Widget, Zelle und Listen-Eintrag überschreiben — über den Knopf **Zahlenformat** in den Widget-Optionen. Der Knopf zeigt den aktiven Wert an (`Global`, sonst z. B. `2 · 1.234,5`) und ist farbig hervorgehoben, sobald ein Override gesetzt ist.
+Beide Zahlen-Optionen lassen sich pro Widget, Zelle und Listen-Eintrag überschreiben. In den Widget-Optionen stehen sie zusammen mit der Einheit in einer Reihe: **Einheit · Dezimalstellen · 1000er**. Leeres Dezimalstellen-Feld bzw. Auswahl `Global` = globale Vorgabe (der Platzhalter zeigt, welcher Wert dann greift).

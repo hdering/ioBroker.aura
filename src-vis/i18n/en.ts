@@ -447,10 +447,9 @@ export const en: Record<TranslationKey, string> = {
     'config.decimals.globalActive': 'Global setting active – click for a custom value',
     'config.decimals.resetToGlobal': 'Reset to the global setting',
     'config.numberFormat.label': 'Thousands separator',
+    'config.numberFormat.labelShort': '1000s',
     'config.numberFormat.global': 'Global',
-    'config.numberFormat.buttonTitle': 'Number format: decimals / thousands separator',
-    'config.numberFormat.popoverTitle': 'Number format',
-    'config.numberFormat.rowLabel': 'Number format',
+    'config.unit.label': 'Unit',
 
     'layouts.scope.title': 'Scope',
     'layouts.scope.global': 'Global',

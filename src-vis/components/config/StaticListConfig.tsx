@@ -12,7 +12,7 @@ import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import type { ListStat } from '../../utils/listStats';
 import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
-import { NumberFormatButton } from './NumberFormatButton';
+import { ValueFormatRow } from './ValueFormatRow';
 import { EntryControlsConfig } from './EntryControlsConfig';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -277,26 +277,19 @@ function EntryRow({
                                 onChange={(e) => onUpdate({ label: e.target.value || undefined })}
                             />
                         </div>
-                        <div className="w-16 shrink-0">
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Einheit
-                            </label>
-                            <input
-                                className={iCls}
-                                style={iSty}
-                                placeholder="°C"
-                                value={entry.unit ?? ''}
-                                onChange={(e) => onUpdate({ unit: e.target.value || undefined })}
-                            />
-                        </div>
                     </div>
                     <div className="flex items-end gap-1.5">
                         <div className="flex-1 min-w-0">
-                            <NumberFormatButton
-                                label={t('config.numberFormat.rowLabel')}
+                            <ValueFormatRow
+                                unit={entry.unit}
+                                unitPlaceholder="°C"
+                                onUnitChange={(v) => onUpdate({ unit: v })}
                                 decimals={entry.decimals}
                                 numberFormat={entry.numberFormat}
                                 onChange={onUpdate}
+                                inputClassName={iCls}
+                                inputStyle={iSty}
+                                compact
                             />
                         </div>
                         <div className="flex-1 min-w-0">

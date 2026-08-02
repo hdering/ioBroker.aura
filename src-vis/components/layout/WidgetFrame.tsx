@@ -164,7 +164,7 @@ import { StateImageWidget } from '../widgets/StateImageWidget';
 import { EChartsPresetConfig } from '../config/EChartsPresetConfig';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { ValueTransformButton } from '../config/ValueTransformButton';
-import { NumberFormatButton } from '../config/NumberFormatButton';
+import { ValueFormatRow } from '../config/ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlWidget } from '../widgets/HtmlWidget';
 import { HtmlConfig } from '../config/HtmlConfig';
@@ -1541,8 +1541,7 @@ function ClimateConfig({
 
             {/* Dezimalstellen + 1000er-Trennzeichen */}
             <div className="mb-2">
-                <NumberFormatButton
-                    label={t('config.numberFormat.rowLabel')}
+                <ValueFormatRow
                     decimals={o.decimals as number | undefined}
                     numberFormat={o.numberFormat as NumberFormat | undefined}
                     onChange={set}
@@ -8915,32 +8914,12 @@ export function WidgetFrame({
                             </div>
                         )}
                         {(config.type === 'value' || config.type === 'chart') && (
-                            <div>
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('wf.edit.unit')}
-                                </label>
-                                <input
-                                    type="text"
-                                    value={(config.options?.unit as string) ?? ''}
-                                    onChange={(e) =>
-                                        onConfigChange({
-                                            ...config,
-                                            options: { ...config.options, unit: e.target.value || undefined },
-                                        })
-                                    }
-                                    placeholder="z.B. °C, %, W"
-                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-primary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                />
-                            </div>
-                        )}
-                        {(config.type === 'value' || config.type === 'chart') && (
-                            <NumberFormatButton
-                                label={t('config.numberFormat.rowLabel')}
+                            <ValueFormatRow
+                                unit={config.options?.unit as string | undefined}
+                                unitPlaceholder="z.B. °C, %, W"
+                                onUnitChange={(v) =>
+                                    onConfigChange({ ...config, options: { ...config.options, unit: v } })
+                                }
                                 decimals={config.options?.decimals as number | undefined}
                                 numberFormat={config.options?.numberFormat as NumberFormat | undefined}
                                 onChange={(patch) =>
@@ -9512,32 +9491,16 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <div className="flex-1">
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Einheit
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={(o.unit as string) ?? ''}
-                                                    onChange={(e) => set({ unit: e.target.value || undefined })}
-                                                    placeholder="°C, %, W"
-                                                    className={gCls}
-                                                    style={gSty}
-                                                />
-                                            </div>
-                                            <div className="flex-1">
-                                                <NumberFormatButton
-                                                    label={t('config.numberFormat.rowLabel')}
-                                                    decimals={o.decimals as number | undefined}
-                                                    numberFormat={o.numberFormat as NumberFormat | undefined}
-                                                    onChange={set}
-                                                />
-                                            </div>
-                                        </div>
+                                        <ValueFormatRow
+                                            unit={o.unit as string | undefined}
+                                            unitPlaceholder="°C, %, W"
+                                            onUnitChange={(v) => set({ unit: v })}
+                                            decimals={o.decimals as number | undefined}
+                                            numberFormat={o.numberFormat as NumberFormat | undefined}
+                                            onChange={set}
+                                            inputClassName={gCls}
+                                            inputStyle={gSty}
+                                        />
                                         <div className="flex gap-2">
                                             <div className="flex-1">
                                                 <label
@@ -10020,32 +9983,16 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <div className="flex-1">
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Einheit
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={(o.unit as string) ?? ''}
-                                                    onChange={(e) => set({ unit: e.target.value || undefined })}
-                                                    placeholder="°C, %, W"
-                                                    className={kCls}
-                                                    style={kSty}
-                                                />
-                                            </div>
-                                            <div className="flex-1">
-                                                <NumberFormatButton
-                                                    label={t('config.numberFormat.rowLabel')}
-                                                    decimals={o.decimals as number | undefined}
-                                                    numberFormat={o.numberFormat as NumberFormat | undefined}
-                                                    onChange={set}
-                                                />
-                                            </div>
-                                        </div>
+                                        <ValueFormatRow
+                                            unit={o.unit as string | undefined}
+                                            unitPlaceholder="°C, %, W"
+                                            onUnitChange={(v) => set({ unit: v })}
+                                            decimals={o.decimals as number | undefined}
+                                            numberFormat={o.numberFormat as NumberFormat | undefined}
+                                            onChange={set}
+                                            inputClassName={kCls}
+                                            inputStyle={kSty}
+                                        />
 
                                         {sectionHdr('Darstellung')}
                                         {isCustom && (
@@ -11552,32 +11499,16 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
-                                        <div className="flex gap-2">
-                                            <div className="flex-1">
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Einheit
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={(o.unit as string) ?? ''}
-                                                    onChange={(e) => set({ unit: e.target.value || undefined })}
-                                                    placeholder="%, L, m³"
-                                                    className={fCls}
-                                                    style={fSty}
-                                                />
-                                            </div>
-                                            <div className="flex-1">
-                                                <NumberFormatButton
-                                                    label={t('config.numberFormat.rowLabel')}
-                                                    decimals={o.decimals as number | undefined}
-                                                    numberFormat={o.numberFormat as NumberFormat | undefined}
-                                                    onChange={set}
-                                                />
-                                            </div>
-                                        </div>
+                                        <ValueFormatRow
+                                            unit={o.unit as string | undefined}
+                                            unitPlaceholder="%, L, m³"
+                                            onUnitChange={(v) => set({ unit: v })}
+                                            decimals={o.decimals as number | undefined}
+                                            numberFormat={o.numberFormat as NumberFormat | undefined}
+                                            onChange={set}
+                                            inputClassName={fCls}
+                                            inputStyle={fSty}
+                                        />
 
                                         {hdr('Farbzonen')}
                                         <div className="flex items-center justify-between">
@@ -14920,8 +14851,7 @@ export function WidgetFrame({
                                                 style={tInputStyle}
                                             />
                                         </div>
-                                        <NumberFormatButton
-                                            label={t('config.numberFormat.rowLabel')}
+                                        <ValueFormatRow
                                             decimals={o.decimals as number | undefined}
                                             numberFormat={o.numberFormat as NumberFormat | undefined}
                                             onChange={setO}
