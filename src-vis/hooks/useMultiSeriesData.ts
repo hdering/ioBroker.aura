@@ -164,26 +164,39 @@ export interface DeltaSeries {
  * showing a false zero. Negative differences (meter swap, counter rollover, adapter restart)
  * are clamped to 0 — a negative consumption bar would be pure noise.
  *
+ * A bucket with no predecessor at all differences against its OWN lowest reading instead. Without
+ * that fallback a counter whose logging just started (a fresh test datapoint, the first day after
+ * enabling history) would render nothing at all until its second bucket exists.
+ *
  * `windowStart` drops the leading baseline bucket, which only exists to difference against.
  */
 export function bucketDeltas(data: [number, number][], bucket: DeltaBucket, windowStart: number): DeltaSeries {
     const maxByBucket = new Map<number, number>();
+    const minByBucket = new Map<number, number>();
     for (const [ts, val] of data) {
         const b = bucketStart(ts, bucket);
-        const cur = maxByBucket.get(b);
-        if (cur === undefined || val > cur) maxByBucket.set(b, val);
+        const hi = maxByBucket.get(b);
+        if (hi === undefined || val > hi) maxByBucket.set(b, val);
+        const lo = minByBucket.get(b);
+        if (lo === undefined || val < lo) minByBucket.set(b, val);
     }
     const buckets = [...maxByBucket.keys()].sort((a, b) => a - b);
+    /** Reading the bucket at `idx` differences against. */
+    const baseAt = (idx: number): number =>
+        idx > 0 ? maxByBucket.get(buckets[idx - 1])! : minByBucket.get(buckets[idx])!;
     const points: [number, number][] = [];
-    for (let i = 1; i < buckets.length; i++) {
+    for (let i = 0; i < buckets.length; i++) {
         const b = buckets[i];
         if (b < windowStart) continue;
-        const diff = maxByBucket.get(b)! - maxByBucket.get(buckets[i - 1])!;
+        const diff = maxByBucket.get(b)! - baseAt(i);
         points.push([b, diff < 0 ? 0 : diff]);
     }
-    const lastBucket = buckets.length > 1 ? buckets[buckets.length - 1] : null;
-    const lastBase = buckets.length > 1 ? (maxByBucket.get(buckets[buckets.length - 2]) ?? null) : null;
-    return { points, lastBucket, lastBase };
+    const lastIdx = buckets.length - 1;
+    return {
+        points,
+        lastBucket: lastIdx >= 0 ? buckets[lastIdx] : null,
+        lastBase: lastIdx >= 0 ? baseAt(lastIdx) : null,
+    };
 }
 
 /** Key names commonly used for the y value, best guess first. */

@@ -227,8 +227,14 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         if (dayWindow && current === null && !seriesDataMap.get(id)?.loading) return 0;
         return current;
     };
+    // Delta series draw no synthetic flat line, so "has history" alone doesn't mean there is
+    // anything to render — an all-delta widget without bars must say "no data" rather than
+    // show an empty axis frame.
+    const allDelta = echartSeries.length > 0 && echartSeries.every((s) => s.aggregate === 'delta');
     const effHasData =
-        isPreview || hasAnyData || (echartSeries.length > 0 && !allLoading && (dayWindow !== null || hasHistory));
+        isPreview ||
+        hasAnyData ||
+        (echartSeries.length > 0 && !allLoading && !allDelta && (dayWindow !== null || hasHistory));
     const effLoading = !isPreview && allLoading;
 
     // ── Shared y axes and current-value block (used by the timeseries and JSON branches) ──
