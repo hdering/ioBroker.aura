@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.37.0 (2026-07-26)
+- 🌟 **New feature:** AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first
+
 ## 0.36.6 (2026-07-26)
 - 🌟 **New feature:** Calendar - multi-day events now show their end date as a range and an optional "ongoing / N days left" badge (configurable: span / badge / both / off)
 
