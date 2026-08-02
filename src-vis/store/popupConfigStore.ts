@@ -13,6 +13,20 @@ export interface PopupView {
     // ensureBuiltins() then overwrites any persisted copy with a lower version.
     // Only meaningful for entries with an id from BUILTIN_VIEW_IDS.
     version?: number;
+    // Creation timestamp (ms epoch) for user-created/imported/copied views.
+    // Absent on built-ins and on views persisted before this field existed —
+    // use viewCreatedAt() instead of reading it directly.
+    createdAt?: number;
+}
+
+/**
+ * Creation time of a view for sorting purposes. Falls back to the timestamp
+ * embedded in legacy `pv-<ms>` ids; built-ins sort as oldest.
+ */
+export function viewCreatedAt(view: PopupView): number {
+    if (typeof view.createdAt === 'number') return view.createdAt;
+    const m = /^pv-(\d+)$/.exec(view.id);
+    return m ? Number(m[1]) : 0;
 }
 
 // ── Builtin predefined views ──────────────────────────────────────────────────
@@ -122,7 +136,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
 
             addView: (name) => {
                 const id = `pv-${Date.now()}`;
-                set((s) => ({ views: [...s.views, { id, name, widgets: [] }] }));
+                set((s) => ({ views: [...s.views, { id, name, widgets: [], createdAt: Date.now() }] }));
                 return id;
             },
 
@@ -134,6 +148,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                     id,
                     // Custom views never carry a version; that field is reserved for built-ins.
                     version: undefined,
+                    createdAt: Date.now(),
                 };
                 set((s) => ({ views: [...s.views, next] }));
                 return id;
@@ -194,6 +209,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                         id: newId,
                         name: `${source.name} (Kopie)`,
                         widgets: source.widgets.map((w, i) => ({ ...w, id: `pw-${Date.now()}-${i}` })),
+                        createdAt: Date.now(),
                     };
                     return { views: [...s.views, copy] };
                 });

@@ -1,9 +1,15 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
-import { Plus, Trash2, Check, Pencil, Layers, RotateCcw, Download, Upload } from 'lucide-react';
-import { usePopupConfigStore, BUILTIN_VIEW_IDS, BUILTIN_VIEWS, type PopupView } from '../../store/popupConfigStore';
+import { Plus, Trash2, Check, Pencil, Layers, RotateCcw, Download, Upload, Search, X } from 'lucide-react';
+import {
+    usePopupConfigStore,
+    viewCreatedAt,
+    BUILTIN_VIEW_IDS,
+    BUILTIN_VIEWS,
+    type PopupView,
+} from '../../store/popupConfigStore';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
@@ -20,6 +26,78 @@ const inputStyle: React.CSSProperties = {
     border: '1px solid var(--app-border)',
 };
 const labelStyle: React.CSSProperties = { color: 'var(--text-secondary)' };
+
+// ── List sorting / filtering ──────────────────────────────────────────────────
+
+type SortMode = 'alpha' | 'newest' | 'oldest';
+
+const byLabel = (a: string, b: string) => a.localeCompare(b, 'de', { sensitivity: 'base' });
+
+function ListToolbar({
+    filter,
+    onFilterChange,
+    sort,
+    onSortChange,
+    placeholder,
+}: {
+    filter: string;
+    onFilterChange: (v: string) => void;
+    sort: SortMode;
+    onSortChange: (v: SortMode) => void;
+    placeholder: string;
+}) {
+    return (
+        <div className="flex items-center gap-2 mb-2">
+            <div className="relative flex-1 min-w-0">
+                <Search
+                    size={12}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"
+                    style={{ color: 'var(--text-secondary)' }}
+                />
+                <input
+                    type="text"
+                    value={filter}
+                    onChange={(e) => onFilterChange(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Escape') onFilterChange('');
+                    }}
+                    placeholder={placeholder}
+                    className="w-full text-xs rounded-lg pl-7 pr-7 py-2 focus:outline-none"
+                    style={inputStyle}
+                />
+                {filter && (
+                    <button
+                        onClick={() => onFilterChange('')}
+                        className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center justify-center w-5 h-5 rounded hover:opacity-70 transition-opacity"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title="Filter zurücksetzen"
+                    >
+                        <X size={11} />
+                    </button>
+                )}
+            </div>
+            <select
+                value={sort}
+                onChange={(e) => onSortChange(e.target.value as SortMode)}
+                className="text-xs rounded-lg px-2 py-2 shrink-0 focus:outline-none"
+                style={inputStyle}
+                title="Sortierung"
+            >
+                <option value="alpha">Alphabetisch</option>
+                <option value="newest">Neuste zuerst</option>
+                <option value="oldest">Älteste zuerst</option>
+            </select>
+        </div>
+    );
+}
+
+function NoMatches() {
+    return (
+        <div className="px-4 py-6 text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
+            Keine Treffer für den Filter.
+        </div>
+    );
+}
 
 // ── Layout labels ─────────────────────────────────────────────────────────────
 
@@ -164,10 +242,11 @@ function LayoutPicker({
 
 function ViewSelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     const views = usePopupConfigStore((s) => s.views);
+    const sorted = useMemo(() => [...views].sort((a, b) => byLabel(a.name, b.name)), [views]);
     return (
         <select value={value} onChange={(e) => onChange(e.target.value)} className={inputCls} style={inputStyle}>
             <option value="">— keine View —</option>
-            {views.map((v) => (
+            {sorted.map((v) => (
                 <option key={v.id} value={v.id}>
                     {v.name}
                 </option>
@@ -198,7 +277,27 @@ function PopupViewsSection() {
     const [editingNameId, setEditingNameId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState('');
     const [exportTarget, setExportTarget] = useState<PopupView | null>(null);
+    const [filter, setFilter] = useState('');
+    const [sort, setSort] = useState<SortMode>('alpha');
     const importInputRef = useRef<HTMLInputElement>(null);
+
+    const query = filter.trim().toLowerCase();
+
+    const visibleViews = useMemo(() => {
+        const list = query ? views.filter((v) => v.name.toLowerCase().includes(query)) : [...views];
+        if (sort === 'alpha') return list.sort((a, b) => byLabel(a.name, b.name));
+        const dir = sort === 'newest' ? -1 : 1;
+        return list.sort((a, b) => (viewCreatedAt(a) - viewCreatedAt(b)) * dir || byLabel(a.name, b.name));
+    }, [views, query, sort]);
+
+    const visibleDeletedBuiltins = useMemo(() => {
+        const list = deletedBuiltinIds
+            .map((id) => BUILTIN_VIEWS.find((v) => v.id === id))
+            .filter((v): v is PopupView => !!v);
+        return (query ? list.filter((v) => v.name.toLowerCase().includes(query)) : list).sort((a, b) =>
+            byLabel(a.name, b.name),
+        );
+    }, [deletedBuiltinIds, query]);
 
     const handleAddView = () => {
         if (!newViewName.trim()) return;
@@ -276,6 +375,16 @@ function PopupViewsSection() {
                 )}
             </div>
 
+            {views.length > 0 && (
+                <ListToolbar
+                    filter={filter}
+                    onFilterChange={setFilter}
+                    sort={sort}
+                    onSortChange={setSort}
+                    placeholder="Views filtern…"
+                />
+            )}
+
             <div className="space-y-2">
                 {/* Add-view form */}
                 {addingView && (
@@ -331,7 +440,16 @@ function PopupViewsSection() {
                     </div>
                 )}
 
-                {views.map((view) => {
+                {views.length > 0 && visibleViews.length === 0 && visibleDeletedBuiltins.length === 0 && (
+                    <div
+                        className="rounded-xl"
+                        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+                    >
+                        <NoMatches />
+                    </div>
+                )}
+
+                {visibleViews.map((view) => {
                     const isBuiltin = BUILTIN_VIEW_IDS.has(view.id);
                     return (
                         <div
@@ -493,14 +611,13 @@ function PopupViewsSection() {
                 )}
 
                 {/* Deleted builtins — only visible in super-admin mode */}
-                {isSuperAdmin && deletedBuiltinIds.length > 0 && (
+                {isSuperAdmin && visibleDeletedBuiltins.length > 0 && (
                     <div className="mt-3 space-y-1.5">
                         <p className="text-[11px] px-1" style={{ color: 'var(--text-secondary)' }}>
                             Gelöschte Standard-Views
                         </p>
-                        {deletedBuiltinIds.map((id) => {
-                            const builtin = BUILTIN_VIEWS.find((v) => v.id === id);
-                            if (!builtin) return null;
+                        {visibleDeletedBuiltins.map((builtin) => {
+                            const id = builtin.id;
                             return (
                                 <div
                                     key={id}
@@ -543,9 +660,32 @@ function TypeDefaultsSection() {
     const [adding, setAdding] = useState(false);
     const [newType, setNewType] = useState('');
     const [newViewId, setNewViewId] = useState('');
+    const [filter, setFilter] = useState('');
+    const [sort, setSort] = useState<SortMode>('alpha');
 
     const configuredTypes = Object.keys(typeDefaults);
-    const availableTypes = WIDGET_REGISTRY.filter((m) => !configuredTypes.includes(m.type));
+    const availableTypes = useMemo(
+        () => WIDGET_REGISTRY.filter((m) => !(m.type in typeDefaults)).sort((a, b) => byLabel(a.label, b.label)),
+        [typeDefaults],
+    );
+
+    // Object key order is insertion order, so the index doubles as "age" for
+    // the newest/oldest sort — no extra timestamp needed.
+    const visibleTypes = useMemo(() => {
+        const q = filter.trim().toLowerCase();
+        const rows = configuredTypes.map((type, idx) => ({
+            type,
+            idx,
+            label: WIDGET_REGISTRY.find((m) => m.type === type)?.label ?? type,
+        }));
+        const list = q
+            ? rows.filter((r) => r.label.toLowerCase().includes(q) || r.type.toLowerCase().includes(q))
+            : rows;
+        if (sort === 'alpha') return list.sort((a, b) => byLabel(a.label, b.label));
+        const dir = sort === 'newest' ? -1 : 1;
+        return list.sort((a, b) => (a.idx - b.idx) * dir);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [typeDefaults, filter, sort]);
 
     const handleAdd = () => {
         if (!newType) return;
@@ -576,6 +716,16 @@ function TypeDefaultsSection() {
                 )}
             </div>
 
+            {configuredTypes.length > 0 && (
+                <ListToolbar
+                    filter={filter}
+                    onFilterChange={setFilter}
+                    sort={sort}
+                    onSortChange={setSort}
+                    placeholder="Widget-Typen filtern…"
+                />
+            )}
+
             <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
                 <div
                     className="grid gap-3 px-4 py-2 text-[11px] font-medium"
@@ -598,8 +748,9 @@ function TypeDefaultsSection() {
                     </div>
                 )}
 
-                {configuredTypes.map((wType) => {
-                    const meta = WIDGET_REGISTRY.find((m) => m.type === wType);
+                {configuredTypes.length > 0 && visibleTypes.length === 0 && <NoMatches />}
+
+                {visibleTypes.map(({ type: wType, label }) => {
                     return (
                         <div
                             key={wType}
@@ -611,7 +762,7 @@ function TypeDefaultsSection() {
                             }}
                         >
                             <span className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
-                                {meta?.label ?? wType}
+                                {label}
                             </span>
                             <ViewSelect value={typeDefaults[wType]} onChange={(v) => setTypeDefault(wType, v)} />
                             <LayoutPicker

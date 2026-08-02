@@ -4,3 +4,5 @@
 #   <Widget type> - <what changed>          e.g.  Thermostat - target temperature now shown inline
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
+
+- Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first)
