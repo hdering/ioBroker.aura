@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.39.1",
+    "version": "0.39.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.39.2": {
+        "en": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "de": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "ru": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "pt": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "nl": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "fr": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "it": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "es": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "pl": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "uk": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
+        "zh-cn": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)"
+      },
       "0.39.1": {
         "en": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
         "de": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Chart (Advanced) - new JSON mode: chart a JSON datapoint holding label/value entries, no history adapter needed\n🌟 New feature: Chart (Advanced) - JSON mode can read the label as a timestamp (epoch ms/s or ISO) and draw a real time axis\n🌟 New feature: Chart (Advanced) - JSON mode detects the label and value fields on its own and offers the datapoint's actual keys for picking",
         "uk": "🌟 New feature: Chart (Advanced) - new JSON mode: chart a JSON datapoint holding label/value entries, no history adapter needed\n🌟 New feature: Chart (Advanced) - JSON mode can read the label as a timestamp (epoch ms/s or ISO) and draw a real time axis\n🌟 New feature: Chart (Advanced) - JSON mode detects the label and value fields on its own and offers the datapoint's actual keys for picking",
         "zh-cn": "🌟 New feature: Chart (Advanced) - new JSON mode: chart a JSON datapoint holding label/value entries, no history adapter needed\n🌟 New feature: Chart (Advanced) - JSON mode can read the label as a timestamp (epoch ms/s or ISO) and draw a real time axis\n🌟 New feature: Chart (Advanced) - JSON mode detects the label and value fields on its own and offers the datapoint's actual keys for picking"
-      },
-      "0.38.8": {
-        "en": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "de": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "ru": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "pt": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "nl": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "fr": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "it": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "es": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "pl": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "uk": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
-        "zh-cn": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually"
       }
     }
   },

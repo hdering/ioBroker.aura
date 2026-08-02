@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.39.2 (2026-08-02)
+- 🌟 **New feature:** Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) ([#520](https://github.com/hdering/ioBroker.aura/issues/520))
+
+
 ### 0.39.1 (2026-08-02)
 - 🌟 **New feature:** Frontend Design - new "Values & Formatting" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings
 - 🌟 **New feature:** Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry
@@ -216,10 +220,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first
 
 
-### 0.36.6 (2026-07-26)
-- 🌟 **New feature:** Calendar - multi-day events now show their end date as a range and an optional "ongoing / N days left" badge (configurable: span / badge / both / off)
-
-
 ## License
 
 MIT License
@@ -231,6 +231,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

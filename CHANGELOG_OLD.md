@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.36.6 (2026-07-26)
+- 🌟 **New feature:** Calendar - multi-day events now show their end date as a range and an optional "ongoing / N days left" badge (configurable: span / badge / both / off)
+
 ## 0.36.5 (2026-07-26)
 - Design - resetting per-layout header overrides now activates Save and persists after reload
 
