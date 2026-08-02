@@ -12,7 +12,7 @@ import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
 import type { ListStat } from '../../utils/listStats';
 import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
-import { NumberFormatSetting } from './NumberFormatSetting';
+import { NumberFormatButton } from './NumberFormatButton';
 import { EntryControlsConfig } from './EntryControlsConfig';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
@@ -292,11 +292,11 @@ function EntryRow({
                     </div>
                     <div className="flex items-end gap-1.5">
                         <div className="flex-1 min-w-0">
-                            <NumberFormatSetting
+                            <NumberFormatButton
+                                label={t('config.numberFormat.rowLabel')}
                                 decimals={entry.decimals}
                                 numberFormat={entry.numberFormat}
                                 onChange={onUpdate}
-                                inputStyle={iSty}
                             />
                         </div>
                         <div className="flex-1 min-w-0">

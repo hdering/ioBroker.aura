@@ -15,7 +15,7 @@ import { FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidge
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ImagePathHint } from '../config/ImagePathHint';
 import { ValueTransformButton } from '../config/ValueTransformButton';
-import { NumberFormatSetting } from '../config/NumberFormatSetting';
+import { NumberFormatButton } from '../config/NumberFormatButton';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { ColorPicker } from '../common/ColorPicker';
 
@@ -1451,11 +1451,11 @@ export function CustomCellEditor({
                     </div>
                     {/* Dezimalstellen / 1000er-Trennzeichen — only relevant when the value display is on */}
                     {(cell.valuePosition ?? 'none') !== 'none' && (
-                        <NumberFormatSetting
+                        <NumberFormatButton
+                            label="Zahlenformat"
                             decimals={cell.decimals}
                             numberFormat={cell.numberFormat}
                             onChange={onChange}
-                            inputStyle={inputSty}
                         />
                     )}
                 </div>
@@ -2445,11 +2445,11 @@ export function CustomCellEditor({
 
             {/* Dezimalstellen / 1000er-Trennzeichen for value / dp / stepper / progress */}
             {(cell.type === 'value' || cell.type === 'dp' || cell.type === 'stepper' || cell.type === 'progress') && (
-                <NumberFormatSetting
+                <NumberFormatButton
+                    label="Zahlenformat"
                     decimals={cell.decimals}
                     numberFormat={cell.numberFormat}
                     onChange={onChange}
-                    inputStyle={inputSty}
                 />
             )}
 

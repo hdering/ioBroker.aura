@@ -13,7 +13,7 @@ import type { EnergyBalanceOptions, EnergyBar, LegendFormat } from '../widgets/E
 import type { EnergyAggregate, EnergyEntry } from '../../hooks/useEnergyBalanceValues';
 import { ColorPicker } from '../common/ColorPicker';
 import { DatapointPicker } from './DatapointPicker';
-import { NumberFormatSetting } from './NumberFormatSetting';
+import { NumberFormatButton } from './NumberFormatButton';
 import { IconPickerModal } from './IconPickerModal';
 import { getObjectDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
@@ -225,11 +225,11 @@ function EntryRow({
                     </div>
 
                     {/* Row 3: Dezimalstellen + 1000er-Trennzeichen */}
-                    <NumberFormatSetting
+                    <NumberFormatButton
+                        label="Zahlenformat"
                         decimals={entry.decimals}
                         numberFormat={entry.numberFormat}
                         onChange={onUpdate}
-                        inputStyle={inputStyle}
                     />
 
                     {/* Row 4: Aggregation */}
@@ -628,11 +628,11 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                         style={inputStyle}
                     />
                 </div>
-                <NumberFormatSetting
+                <NumberFormatButton
+                    label="Zahlenformat"
                     decimals={o.decimals}
                     numberFormat={o.numberFormat}
                     onChange={setO}
-                    inputStyle={inputStyle}
                     decimalsLabel="Nachkommastellen"
                 />
             </div>

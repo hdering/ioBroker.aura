@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { MultiSelect } from './MultiSelect';
 import { DatapointPicker } from './DatapointPicker';
-import { NumberFormatSetting } from './NumberFormatSetting';
+import { NumberFormatButton } from './NumberFormatButton';
 import { EntryControlsConfig } from './EntryControlsConfig';
 import type { WidgetConfig } from '../../types';
 import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget';
@@ -768,11 +768,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     onChange={(e) => setOpts({ syncIntervalMin: Number(e.target.value) })}
                 />
             </div>
-            <NumberFormatSetting
+            <NumberFormatButton
+                label={t('config.numberFormat.rowLabel')}
                 decimals={opts.decimals}
                 numberFormat={opts.numberFormat}
                 onChange={setOpts}
-                inputStyle={iSty}
             />
             <div className="flex items-center justify-between">
                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

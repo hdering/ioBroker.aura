@@ -36,8 +36,8 @@ export function NumberFormatSetting({
     };
 
     return (
-        <div className="flex gap-1.5 items-end">
-            <div className="shrink-0" style={{ width: 108 }}>
+        <div className="flex flex-col gap-2">
+            <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {decimalsLabel ?? t('config.decimals.label')}
                 </label>
@@ -67,8 +67,8 @@ export function NumberFormatSetting({
                     </button>
                 </div>
             </div>
-            <div className="flex-1 min-w-0">
-                <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
+            <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {t('config.numberFormat.label')}
                 </label>
                 <select

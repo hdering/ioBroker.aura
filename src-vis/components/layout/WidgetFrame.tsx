@@ -164,7 +164,7 @@ import { StateImageWidget } from '../widgets/StateImageWidget';
 import { EChartsPresetConfig } from '../config/EChartsPresetConfig';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { ValueTransformButton } from '../config/ValueTransformButton';
-import { NumberFormatSetting } from '../config/NumberFormatSetting';
+import { NumberFormatButton } from '../config/NumberFormatButton';
 import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlWidget } from '../widgets/HtmlWidget';
 import { HtmlConfig } from '../config/HtmlConfig';
@@ -1541,7 +1541,8 @@ function ClimateConfig({
 
             {/* Dezimalstellen + 1000er-Trennzeichen */}
             <div className="mb-2">
-                <NumberFormatSetting
+                <NumberFormatButton
+                    label={t('config.numberFormat.rowLabel')}
                     decimals={o.decimals as number | undefined}
                     numberFormat={o.numberFormat as NumberFormat | undefined}
                     onChange={set}
@@ -8938,7 +8939,8 @@ export function WidgetFrame({
                             </div>
                         )}
                         {(config.type === 'value' || config.type === 'chart') && (
-                            <NumberFormatSetting
+                            <NumberFormatButton
+                                label={t('config.numberFormat.rowLabel')}
                                 decimals={config.options?.decimals as number | undefined}
                                 numberFormat={config.options?.numberFormat as NumberFormat | undefined}
                                 onChange={(patch) =>
@@ -9528,11 +9530,11 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                             <div className="flex-1">
-                                                <NumberFormatSetting
+                                                <NumberFormatButton
+                                                    label={t('config.numberFormat.rowLabel')}
                                                     decimals={o.decimals as number | undefined}
                                                     numberFormat={o.numberFormat as NumberFormat | undefined}
                                                     onChange={set}
-                                                    inputStyle={gSty}
                                                 />
                                             </div>
                                         </div>
@@ -10036,11 +10038,11 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                             <div className="flex-1">
-                                                <NumberFormatSetting
+                                                <NumberFormatButton
+                                                    label={t('config.numberFormat.rowLabel')}
                                                     decimals={o.decimals as number | undefined}
                                                     numberFormat={o.numberFormat as NumberFormat | undefined}
                                                     onChange={set}
-                                                    inputStyle={kSty}
                                                 />
                                             </div>
                                         </div>
@@ -11568,11 +11570,11 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                             <div className="flex-1">
-                                                <NumberFormatSetting
+                                                <NumberFormatButton
+                                                    label={t('config.numberFormat.rowLabel')}
                                                     decimals={o.decimals as number | undefined}
                                                     numberFormat={o.numberFormat as NumberFormat | undefined}
                                                     onChange={set}
-                                                    inputStyle={fSty}
                                                 />
                                             </div>
                                         </div>
@@ -14918,11 +14920,11 @@ export function WidgetFrame({
                                                 style={tInputStyle}
                                             />
                                         </div>
-                                        <NumberFormatSetting
+                                        <NumberFormatButton
+                                            label={t('config.numberFormat.rowLabel')}
                                             decimals={o.decimals as number | undefined}
                                             numberFormat={o.numberFormat as NumberFormat | undefined}
                                             onChange={setO}
-                                            inputStyle={tInputStyle}
                                         />
 
                                         {/* Sichtbare Felder */}

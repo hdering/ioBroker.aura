@@ -449,6 +449,9 @@ export const de = {
     'config.decimals.resetToGlobal': 'Auf globale Einstellung zurücksetzen',
     'config.numberFormat.label': '1000er-Trennzeichen',
     'config.numberFormat.global': 'Global',
+    'config.numberFormat.buttonTitle': 'Zahlenformat: Dezimalstellen / 1000er-Trennzeichen',
+    'config.numberFormat.popoverTitle': 'Zahlenformat',
+    'config.numberFormat.rowLabel': 'Zahlenformat',
 
     'layouts.scope.title': 'Geltungsbereich',
     'layouts.scope.global': 'Global',

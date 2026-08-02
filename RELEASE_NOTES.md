@@ -5,4 +5,4 @@
 #   <General / widget-independent change>    e.g.  Tabs can be hidden from the tab bar
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 - Frontend Design - new "Values & Formatting" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings
-- Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry wherever decimals can be changed
+- Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry via the new "Number format" button, which replaces the inline decimals field in the widget options
