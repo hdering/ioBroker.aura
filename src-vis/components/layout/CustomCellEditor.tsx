@@ -11,7 +11,12 @@ import { Database, FolderOpen, HelpCircle, Plus, SlidersHorizontal, type LucideI
 import { JsonPathButton } from '../config/JsonPathButton';
 import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidget';
+import {
+    FORMAT_LABELS,
+    DATE_PATTERN_TOKENS,
+    DEFAULT_DATE_PATTERN,
+    type DateOutputFormat,
+} from '../widgets/DatePickerWidget';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ImagePathHint } from '../config/ImagePathHint';
 import { ValueTransformButton } from '../config/ValueTransformButton';
@@ -2402,6 +2407,62 @@ export function CustomCellEditor({
                                     )}
                                 </select>
                             </div>
+                            {fmt === 'custom' && (
+                                <div>
+                                    <label
+                                        className="text-[11px] mb-1 block"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Ausgabe-Muster
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={cell.datePattern ?? ''}
+                                        onChange={(e) => onChange({ datePattern: e.target.value || undefined })}
+                                        placeholder={DEFAULT_DATE_PATTERN}
+                                        className={`${inputCls} font-mono`}
+                                        style={inputSty}
+                                    />
+                                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                        Tokens: {DATE_PATTERN_TOKENS}
+                                    </p>
+                                </div>
+                            )}
+                            <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    Eingabe
+                                </label>
+                                <select
+                                    value={cell.dateInput ?? 'picker'}
+                                    onChange={(e) => onChange({ dateInput: e.target.value as 'picker' | 'custom' })}
+                                    className={inputCls}
+                                    style={inputSty}
+                                >
+                                    <option value="picker">Datums-/Zeitwähler</option>
+                                    <option value="custom">Eigenes Format…</option>
+                                </select>
+                            </div>
+                            {cell.dateInput === 'custom' && (
+                                <div>
+                                    <label
+                                        className="text-[11px] mb-1 block"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Eingabe-Muster
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={cell.dateInputPattern ?? ''}
+                                        onChange={(e) => onChange({ dateInputPattern: e.target.value || undefined })}
+                                        placeholder="z.B. MM.yyyy"
+                                        className={`${inputCls} font-mono`}
+                                        style={inputSty}
+                                    />
+                                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                        Tokens: {DATE_PATTERN_TOKENS} — fehlender Tag = 1.
+                                    </p>
+                                </div>
+                            )}
                         </>
                     );
                 })()}

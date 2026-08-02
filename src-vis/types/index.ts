@@ -272,6 +272,9 @@ export interface CustomCell {
     falseValue?: string; // 'switch' cell: payload written when switching OFF (parsed as bool/number/string; default false)
     // 'datepicker' type
     dateFormat?: string; // DateOutputFormat string: how to encode the picked date when writing to dpId
+    datePattern?: string; // token pattern used when dateFormat === 'custom' (e.g. 'MM.yyyy')
+    dateInput?: 'picker' | 'custom'; // 'datepicker' cell: native pickers (default) or a free-text pattern field
+    dateInputPattern?: string; // token pattern typed into the field when dateInput === 'custom'
     showTime?: boolean; // show time-of-day picker alongside date input
     timeOnly?: boolean; // hide date input, only edit/write time-of-day
     // 'input' type

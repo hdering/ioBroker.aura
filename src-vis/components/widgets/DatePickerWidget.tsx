@@ -16,7 +16,8 @@ export type DateOutputFormat =
     | 'de_date'
     | 'de_datetime'
     | 'time_hhmm'
-    | 'time_hhmmss';
+    | 'time_hhmmss'
+    | 'custom';
 
 export const FORMAT_LABELS: Record<DateOutputFormat, string> = {
     timestamp_ms: 'Timestamp (ms)',
@@ -28,20 +29,135 @@ export const FORMAT_LABELS: Record<DateOutputFormat, string> = {
     de_datetime: 'Datum+Zeit (15.01.2025 13:30)',
     time_hhmm: 'Uhrzeit (13:30)',
     time_hhmmss: 'Uhrzeit (13:30:00)',
+    custom: 'Eigenes Format…',
 };
+
+/** Placeholder pattern used whenever a custom format is selected but left empty. */
+export const DEFAULT_DATE_PATTERN = 'dd.MM.yyyy';
+/** Tokens understood by custom patterns — shown as a hint in the option panels. */
+export const DATE_PATTERN_TOKENS = 'dd MM yyyy yy HH hh mm ss';
+
+/** Fresh instance per call so `exec` loops never inherit a stale `lastIndex`. */
+function tokenRe() {
+    return /yyyy|yy|MM|dd|HH|hh|mm|ss/g;
+}
 
 function pad(n: number) {
     return String(n).padStart(2, '0');
 }
 
-/** Parse any supported format back to a local Date */
-export function parseValue(val: unknown): Date | null {
+/** Render a date with a user-supplied token pattern (e.g. `MM.yyyy`). */
+export function formatCustom(d: Date, pattern: string): string {
+    return pattern.replace(tokenRe(), (tok) => {
+        switch (tok) {
+            case 'yyyy':
+                return String(d.getFullYear());
+            case 'yy':
+                return String(d.getFullYear()).slice(-2);
+            case 'MM':
+                return pad(d.getMonth() + 1);
+            case 'dd':
+                return pad(d.getDate());
+            case 'HH':
+                return pad(d.getHours());
+            case 'hh':
+                return pad(d.getHours() % 12 || 12);
+            case 'mm':
+                return pad(d.getMinutes());
+            case 'ss':
+                return pad(d.getSeconds());
+            default:
+                return tok;
+        }
+    });
+}
+
+function escapeRe(s: string) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Parse `str` against a token pattern. Parts the pattern does not mention fall
+ * back to `base` (or "now"): a pattern without any date token keeps the base
+ * date, one without any time token keeps the base time. A missing day becomes
+ * the 1st, so `MM.yyyy` means "that month".
+ */
+export function parseCustom(str: string, pattern: string, base?: Date | null): Date | null {
+    const tokens: string[] = [];
+    const re = tokenRe();
+    let src = '';
+    let last = 0;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(pattern)) !== null) {
+        src += escapeRe(pattern.slice(last, m.index));
+        last = m.index + m[0].length;
+        tokens.push(m[0]);
+        src += m[0] === 'yyyy' ? '(\\d{4})' : '(\\d{1,2})';
+    }
+    if (!tokens.length) return null;
+    src += escapeRe(pattern.slice(last));
+    const hit = str.trim().match(new RegExp(`^${src}$`));
+    if (!hit) return null;
+
+    const b = base && !isNaN(base.getTime()) ? base : new Date();
+    const hasDate = tokens.some((tk) => tk === 'yyyy' || tk === 'yy' || tk === 'MM' || tk === 'dd');
+    const hasTime = tokens.some((tk) => tk === 'HH' || tk === 'hh' || tk === 'mm' || tk === 'ss');
+    let year = b.getFullYear();
+    let month = b.getMonth();
+    let day = hasDate ? 1 : b.getDate();
+    let hours = hasTime ? 0 : b.getHours();
+    let minutes = hasTime ? 0 : b.getMinutes();
+    let seconds = hasTime ? 0 : b.getSeconds();
+
+    tokens.forEach((tok, i) => {
+        const n = Number(hit[i + 1]);
+        switch (tok) {
+            case 'yyyy':
+                year = n;
+                break;
+            case 'yy':
+                year = 2000 + n;
+                break;
+            case 'MM':
+                month = n - 1;
+                break;
+            case 'dd':
+                day = n;
+                break;
+            case 'HH':
+            case 'hh':
+                hours = n;
+                break;
+            case 'mm':
+                minutes = n;
+                break;
+            case 'ss':
+                seconds = n;
+                break;
+        }
+    });
+    if (month < 0 || month > 11 || day < 1 || day > 31 || hours > 23 || minutes > 59 || seconds > 59) return null;
+    const d = new Date(year, month, day, hours, minutes, seconds, 0);
+    // Reject overflow like 31.02 — JS would silently roll into the next month.
+    if (isNaN(d.getTime()) || d.getMonth() !== month || d.getDate() !== day) return null;
+    return d;
+}
+
+/**
+ * Parse any supported format back to a local Date. When `pattern` is given it is
+ * tried first, so values written with a custom output format read back correctly.
+ */
+export function parseValue(val: unknown, pattern?: string): Date | null {
     if (val == null || val === '') return null;
     if (typeof val === 'number') {
         const d = new Date(val > 1e10 ? val : val * 1000);
         return isNaN(d.getTime()) ? null : d;
     }
     if (typeof val === 'string') {
+        if (pattern?.trim()) {
+            const custom = parseCustom(val, pattern.trim());
+            if (custom) return custom;
+        }
         // German format DD.MM.YYYY or DD.MM.YYYY HH:mm
         const m = val.match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2}))?$/);
         if (m) {
@@ -54,7 +170,7 @@ export function parseValue(val: unknown): Date | null {
     return null;
 }
 
-export function formatDate(d: Date, fmt: DateOutputFormat): string | number {
+export function formatDate(d: Date, fmt: DateOutputFormat, pattern?: string): string | number {
     switch (fmt) {
         case 'timestamp_ms':
             return d.getTime();
@@ -74,6 +190,8 @@ export function formatDate(d: Date, fmt: DateOutputFormat): string | number {
             return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
         case 'time_hhmmss':
             return `${pad(d.getHours())}:${pad(d.getMinutes())}:00`;
+        case 'custom':
+            return formatCustom(d, pattern?.trim() || DEFAULT_DATE_PATTERN);
     }
 }
 
@@ -90,6 +208,10 @@ export function DatePickerWidget({ config }: WidgetProps) {
     const timeOnly = o.timeOnly === true;
     const showTime = timeOnly || o.showTime === true;
     const outputFmt = (o.outputFormat as DateOutputFormat) ?? 'timestamp_ms';
+    const outPattern = ((o.outputPattern as string) ?? '').trim() || DEFAULT_DATE_PATTERN;
+    const customInput = o.inputFormat === 'custom';
+    const inPattern =
+        ((o.inputPattern as string) ?? '').trim() || (outputFmt === 'custom' ? outPattern : DEFAULT_DATE_PATTERN);
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
     const titleAlign = (o.titleAlign as string) ?? 'left';
@@ -102,7 +224,9 @@ export function DatePickerWidget({ config }: WidgetProps) {
     const { value } = useDatapoint(config.datapoint);
     const { setState } = useIoBroker();
 
-    const currentDate = parseValue(value);
+    const currentDate =
+        parseValue(value, outputFmt === 'custom' ? outPattern : undefined) ??
+        (customInput && typeof value === 'string' ? parseCustom(value, inPattern) : null);
 
     const [dateVal, setDateVal] = useState(() => (currentDate ? toDateInputValue(currentDate) : ''));
     const [timeVal, setTimeVal] = useState(() => {
@@ -111,9 +235,17 @@ export function DatePickerWidget({ config }: WidgetProps) {
         if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
         return '00:00';
     });
+    // Free-text state for the custom input format (parsed on Enter/blur)
+    const [textVal, setTextVal] = useState(() => (currentDate ? formatCustom(currentDate, inPattern) : ''));
+    const [textErr, setTextErr] = useState(false);
 
     // Sync when DP value changes externally
     useEffect(() => {
+        if (customInput) {
+            setTextVal(currentDate ? formatCustom(currentDate, inPattern) : '');
+            setTextErr(false);
+            return;
+        }
         if (timeOnly) {
             // timeOnly: value may be "HH:mm" or "HH:mm:ss" string
             if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) {
@@ -126,7 +258,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
         if (!currentDate) return;
         setDateVal(toDateInputValue(currentDate));
         setTimeVal(toTimeInputValue(currentDate));
-    }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [value, customInput, inPattern]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const writeValue = (date: string, time: string) => {
         if (timeOnly) {
@@ -134,7 +266,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
             if (!time) return;
             const [h, mi] = time.split(':').map(Number);
             const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
-            setState(config.datapoint, formatDate(dt, outputFmt));
+            setState(config.datapoint, formatDate(dt, outputFmt, outPattern));
             return;
         }
         if (!date) return;
@@ -142,7 +274,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
         const [h, mi] = time.split(':').map(Number);
         const dt = showTime ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0) : new Date(y, mo - 1, d, 0, 0, 0, 0);
         if (isNaN(dt.getTime())) return;
-        setState(config.datapoint, formatDate(dt, outputFmt));
+        setState(config.datapoint, formatDate(dt, outputFmt, outPattern));
     };
 
     const handleDate = (v: string) => {
@@ -153,10 +285,27 @@ export function DatePickerWidget({ config }: WidgetProps) {
         setTimeVal(v);
         writeValue(dateVal, v);
     };
+    /** Custom input: parse the typed text against the pattern, write only when valid. */
+    const commitText = (raw: string) => {
+        if (!raw.trim()) {
+            setTextErr(false);
+            return;
+        }
+        const dt = parseCustom(raw, inPattern, currentDate);
+        if (!dt) {
+            setTextErr(true);
+            return;
+        }
+        setTextErr(false);
+        setTextVal(formatCustom(dt, inPattern));
+        setState(config.datapoint, formatDate(dt, outputFmt, outPattern));
+    };
 
     const currentDisplay = (() => {
+        if (customInput) return textVal || '–';
         if (timeOnly) return timeVal || '–';
         if (!currentDate) return '–';
+        if (outputFmt === 'custom') return formatCustom(currentDate, outPattern);
         return showTime
             ? currentDate.toLocaleString('de-DE', {
                   day: '2-digit',
@@ -179,7 +328,27 @@ export function DatePickerWidget({ config }: WidgetProps) {
         flexShrink: 0,
     };
 
-    const dateInput = !timeOnly ? (
+    // The custom text field replaces both native pickers, so the layouts below
+    // keep rendering the same two slots.
+    const dateInput = customInput ? (
+        <input
+            type="text"
+            value={textVal}
+            onChange={(e) => setTextVal(e.target.value)}
+            onBlur={(e) => commitText(e.target.value)}
+            onKeyDown={(e) => {
+                if (e.key === 'Enter') commitText((e.target as HTMLInputElement).value);
+            }}
+            placeholder={inPattern}
+            title={`Format: ${inPattern}`}
+            className="aura-widget-action nodrag focus:outline-none font-mono"
+            style={{
+                ...inputSty,
+                width: `${Math.max(8, inPattern.length + 2)}ch`,
+                borderColor: textErr ? '#ef4444' : undefined,
+            }}
+        />
+    ) : !timeOnly ? (
         <input
             type="date"
             value={dateVal}
@@ -189,15 +358,16 @@ export function DatePickerWidget({ config }: WidgetProps) {
         />
     ) : null;
 
-    const timeInput = showTime ? (
-        <input
-            type="time"
-            value={timeVal}
-            onChange={(e) => handleTime(e.target.value)}
-            className="aura-widget-action nodrag focus:outline-none"
-            style={inputSty}
-        />
-    ) : null;
+    const timeInput =
+        showTime && !customInput ? (
+            <input
+                type="time"
+                value={timeVal}
+                onChange={(e) => handleTime(e.target.value)}
+                className="aura-widget-action nodrag focus:outline-none"
+                style={inputSty}
+            />
+        ) : null;
 
     // ── CARD ─────────────────────────────────────────────────────────────────
     if (layout === 'card') {

@@ -169,7 +169,13 @@ import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlWidget } from '../widgets/HtmlWidget';
 import { HtmlConfig } from '../config/HtmlConfig';
 import { MapConfig } from '../config/MapConfig';
-import { DatePickerWidget, FORMAT_LABELS, type DateOutputFormat } from '../widgets/DatePickerWidget';
+import {
+    DatePickerWidget,
+    FORMAT_LABELS,
+    DATE_PATTERN_TOKENS,
+    DEFAULT_DATE_PATTERN,
+    type DateOutputFormat,
+} from '../widgets/DatePickerWidget';
 import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
 import { MediaplayerWidget } from '../widgets/MediaplayerWidget';
 import { SliderWidget } from '../widgets/SliderWidget';
@@ -16066,6 +16072,75 @@ export function WidgetFrame({
                                                 )}
                                             </select>
                                         </div>
+                                        {fmt === 'custom' && (
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Ausgabe-Muster
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={(o.outputPattern as string) ?? ''}
+                                                    onChange={(e) =>
+                                                        set({ outputPattern: e.target.value || undefined })
+                                                    }
+                                                    placeholder={DEFAULT_DATE_PATTERN}
+                                                    className={`${inputCls2} font-mono`}
+                                                    style={inputSty2}
+                                                />
+                                                <p
+                                                    className="text-[10px] mt-1 leading-tight"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Tokens: {DATE_PATTERN_TOKENS}
+                                                </p>
+                                            </div>
+                                        )}
+                                        {/* Eingabeformat */}
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Eingabe
+                                            </label>
+                                            <select
+                                                value={(o.inputFormat as string) ?? 'picker'}
+                                                onChange={(e) => set({ inputFormat: e.target.value })}
+                                                className={inputCls2}
+                                                style={inputSty2}
+                                            >
+                                                <option value="picker">Datums-/Zeitwähler</option>
+                                                <option value="custom">Eigenes Format…</option>
+                                            </select>
+                                        </div>
+                                        {o.inputFormat === 'custom' && (
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Eingabe-Muster
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={(o.inputPattern as string) ?? ''}
+                                                    onChange={(e) => set({ inputPattern: e.target.value || undefined })}
+                                                    placeholder="z.B. MM.yyyy"
+                                                    className={`${inputCls2} font-mono`}
+                                                    style={inputSty2}
+                                                />
+                                                <p
+                                                    className="text-[10px] mt-1 leading-tight"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Tokens: {DATE_PATTERN_TOKENS} — nicht genannte Teile bleiben
+                                                    erhalten, fehlender Tag = 1.
+                                                </p>
+                                            </div>
+                                        )}
                                     </>
                                 );
                             })()}

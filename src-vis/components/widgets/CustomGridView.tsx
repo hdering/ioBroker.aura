@@ -18,7 +18,16 @@ import { evaluateClause } from '../../utils/conditionEval';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, ChevronDown, Send } from 'lucide-react';
-import { parseValue, formatDate, toDateInputValue, toTimeInputValue, type DateOutputFormat } from './DatePickerWidget';
+import {
+    parseValue,
+    formatDate,
+    formatCustom,
+    parseCustom,
+    toDateInputValue,
+    toTimeInputValue,
+    DEFAULT_DATE_PATTERN,
+    type DateOutputFormat,
+} from './DatePickerWidget';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
@@ -1419,16 +1428,29 @@ function DatePickerCellView({
     const timeOnly = cell.timeOnly === true;
     const showTime = timeOnly || cell.showTime === true;
     const outputFmt = (cell.dateFormat as DateOutputFormat) ?? 'timestamp_ms';
+    const outPattern = (cell.datePattern ?? '').trim() || DEFAULT_DATE_PATTERN;
+    const customInput = cell.dateInput === 'custom';
+    const inPattern =
+        (cell.dateInputPattern ?? '').trim() || (outputFmt === 'custom' ? outPattern : DEFAULT_DATE_PATTERN);
 
-    const currentDate = parseValue(value);
+    const currentDate =
+        parseValue(value, outputFmt === 'custom' ? outPattern : undefined) ??
+        (customInput && typeof value === 'string' ? parseCustom(value, inPattern) : null);
     const [dateVal, setDateVal] = useState(() => (currentDate ? toDateInputValue(currentDate) : ''));
     const [timeVal, setTimeVal] = useState(() => {
         if (currentDate) return toTimeInputValue(currentDate);
         if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
         return '00:00';
     });
+    const [textVal, setTextVal] = useState(() => (currentDate ? formatCustom(currentDate, inPattern) : ''));
+    const [textErr, setTextErr] = useState(false);
 
     useEffect(() => {
+        if (customInput) {
+            setTextVal(currentDate ? formatCustom(currentDate, inPattern) : '');
+            setTextErr(false);
+            return;
+        }
         if (timeOnly) {
             if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) setTimeVal(value.slice(0, 5));
             else if (currentDate) setTimeVal(toTimeInputValue(currentDate));
@@ -1437,7 +1459,7 @@ function DatePickerCellView({
         if (!currentDate) return;
         setDateVal(toDateInputValue(currentDate));
         setTimeVal(toTimeInputValue(currentDate));
-    }, [value]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [value, customInput, inPattern]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const writeValue = (date: string, time: string) => {
         if (!cell.dpId) return;
@@ -1445,7 +1467,7 @@ function DatePickerCellView({
             if (!time) return;
             const [h, mi] = time.split(':').map(Number);
             const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
-            setState(baseDpId(cell.dpId), formatDate(dt, outputFmt));
+            setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
             return;
         }
         if (!date) return;
@@ -1453,7 +1475,24 @@ function DatePickerCellView({
         const [h, mi] = time.split(':').map(Number);
         const dt = showTime ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0) : new Date(y, mo - 1, d, 0, 0, 0, 0);
         if (isNaN(dt.getTime())) return;
-        setState(baseDpId(cell.dpId), formatDate(dt, outputFmt));
+        setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
+    };
+
+    /** Custom input: parse the typed text against the pattern, write only when valid. */
+    const commitText = (raw: string) => {
+        if (!cell.dpId) return;
+        if (!raw.trim()) {
+            setTextErr(false);
+            return;
+        }
+        const dt = parseCustom(raw, inPattern, currentDate);
+        if (!dt) {
+            setTextErr(true);
+            return;
+        }
+        setTextErr(false);
+        setTextVal(formatCustom(dt, inPattern));
+        setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
     };
 
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
@@ -1477,7 +1516,22 @@ function DatePickerCellView({
             style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
         >
             <div className="flex flex-wrap gap-1 items-center w-full">
-                {!timeOnly && (
+                {customInput && (
+                    <input
+                        type="text"
+                        value={textVal}
+                        onChange={(e) => setTextVal(e.target.value)}
+                        onBlur={(e) => commitText(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter') commitText((e.target as HTMLInputElement).value);
+                        }}
+                        placeholder={inPattern}
+                        title={`Format: ${inPattern}`}
+                        className="nodrag focus:outline-none flex-1 min-w-0 font-mono"
+                        style={{ ...inputSty, borderColor: textErr ? '#ef4444' : undefined }}
+                    />
+                )}
+                {!timeOnly && !customInput && (
                     <input
                         type="date"
                         value={dateVal}
@@ -1489,7 +1543,7 @@ function DatePickerCellView({
                         style={inputSty}
                     />
                 )}
-                {showTime && (
+                {showTime && !customInput && (
                     <input
                         type="time"
                         value={timeVal}

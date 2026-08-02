@@ -38,7 +38,13 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | --- | --- | --- |
 | `timeOnly` | `false` | nur Uhrzeit, ohne Datum |
 | `showTime` | `false` | zusätzliches Uhrzeit-Feld zum Datum |
-| `outputFormat` | `timestamp_ms` | `timestamp_ms` · `timestamp_s` · `iso` · `date` · `datetime_local` · `de_date` · `de_datetime` · `time_hhmm` · `time_hhmmss` |
+| `outputFormat` | `timestamp_ms` | `timestamp_ms` · `timestamp_s` · `iso` · `date` · `datetime_local` · `de_date` · `de_datetime` · `time_hhmm` · `time_hhmmss` · `custom` |
+| `outputPattern` | `dd.MM.yyyy` | Muster bei `outputFormat: custom` |
+| `inputFormat` | `picker` | `picker` (native Felder) · `custom` (Textfeld mit Muster) |
+| `inputPattern` | wie `outputPattern` | Muster bei `inputFormat: custom`, z.B. `MM.yyyy` |
+
+Muster-Tokens: `dd` `MM` `yyyy` `yy` `HH` `hh` `mm` `ss`; alles andere bleibt Literal (`KW MM/yyyy`).
+Bei der Eingabe bleiben nicht genannte Bestandteile erhalten (Muster ohne Zeit-Token behält die gespeicherte Uhrzeit), ein fehlender Tag wird zum 1. — `MM.yyyy` meint also den Monat. Geschrieben wird beim Verlassen des Felds oder mit Enter; ungültige Eingaben bleiben stehen und werden rot umrandet.
 
 ### Anzeige
 
