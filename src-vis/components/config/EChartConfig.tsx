@@ -907,15 +907,22 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 </label>
                                                                 <select
                                                                     value={s.aggregate ?? 'average'}
-                                                                    onChange={(e) =>
+                                                                    onChange={(e) => {
+                                                                        const agg =
+                                                                            e.target.value === 'average'
+                                                                                ? undefined
+                                                                                : (e.target
+                                                                                      .value as EChartSeriesConfig['aggregate']);
                                                                         updateSeries(s.id, {
-                                                                            aggregate:
-                                                                                e.target.value === 'average'
-                                                                                    ? undefined
-                                                                                    : (e.target
-                                                                                          .value as EChartSeriesConfig['aggregate']),
-                                                                        })
-                                                                    }
+                                                                            aggregate: agg,
+                                                                            // Per-bucket consumption reads as bars, not
+                                                                            // as a connected line — switch the type along
+                                                                            // unless one was deliberately chosen.
+                                                                            ...(agg === 'delta' && s.chartType !== 'bar'
+                                                                                ? { chartType: 'bar' as const }
+                                                                                : {}),
+                                                                        });
+                                                                    }}
                                                                     className={inputCls}
                                                                     style={inputStyle}
                                                                 >
@@ -930,10 +937,55 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                     <option value="total">
                                                                         {t('echart.aggTotal')}
                                                                     </option>
+                                                                    <option value="delta">
+                                                                        {t('echart.aggDelta')}
+                                                                    </option>
                                                                     <option value="none">{t('echart.aggNone')}</option>
                                                                 </select>
                                                             </div>
                                                         )}
+                                                        {s.datapointId &&
+                                                            s.historyInstance &&
+                                                            s.aggregate === 'delta' && (
+                                                                <div className="mt-1.5">
+                                                                    <label
+                                                                        className="text-[11px] mb-1 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.deltaBucket')}
+                                                                    </label>
+                                                                    <select
+                                                                        value={s.deltaBucket ?? 'hour'}
+                                                                        onChange={(e) =>
+                                                                            updateSeries(s.id, {
+                                                                                deltaBucket: e.target
+                                                                                    .value as EChartSeriesConfig['deltaBucket'],
+                                                                            })
+                                                                        }
+                                                                        className={inputCls}
+                                                                        style={inputStyle}
+                                                                    >
+                                                                        <option value="hour">
+                                                                            {t('echart.bucketHour')}
+                                                                        </option>
+                                                                        <option value="day">
+                                                                            {t('echart.bucketDay')}
+                                                                        </option>
+                                                                        <option value="week">
+                                                                            {t('echart.bucketWeek')}
+                                                                        </option>
+                                                                        <option value="month">
+                                                                            {t('echart.bucketMonth')}
+                                                                        </option>
+                                                                    </select>
+                                                                    <p
+                                                                        className="text-[10px] mt-1"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.deltaHint')}
+                                                                    </p>
+                                                                </div>
+                                                            )}
                                                     </div>
                                                 )}
                                             </>

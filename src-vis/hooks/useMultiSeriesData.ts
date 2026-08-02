@@ -5,6 +5,9 @@ import type { ioBrokerState } from '../types';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | 'custom';
 
+/** Calendar bucket the `delta` aggregation differences a rising counter over. */
+export type DeltaBucket = 'hour' | 'day' | 'week' | 'month';
+
 export interface EChartSeriesConfig {
     id: string;
     name: string;
@@ -27,8 +30,12 @@ export interface EChartSeriesConfig {
      * (e.g. daily rain counters), where bucket averages smear resets and dropped empty buckets
      * let the chart interpolate across days. `none` disables bucketing entirely and returns the
      * raw logged points — no server-side averaging that could smear a value across a gap.
+     * `delta` is for ever-rising totalisers (electricity/water meters): instead of the counter
+     * reading it plots the consumption per calendar bucket — see `deltaBucket` (issue #521).
      */
-    aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total' | 'none';
+    aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total' | 'none' | 'delta';
+    /** Calendar bucket the `delta` aggregation differences over (default `hour`). */
+    deltaBucket?: DeltaBucket;
     /**
      * Where the series gets its points from. `history` (default) queries a history adapter;
      * `json` reads a JSON array straight out of the datapoint's value — for datapoints that
@@ -91,6 +98,92 @@ function getStepForMs(rangeMs: number): number | undefined {
     if (rangeMs <= 48 * 3_600_000) return 900_000;
     if (rangeMs <= 14 * 86_400_000) return 3_600_000;
     return 21_600_000;
+}
+
+// ── Counter deltas (issue #521) ───────────────────────────────────────────────
+// A totaliser (electricity/water meter) logs an ever-rising reading. Plotting it raw gives a
+// flat-looking line, because the absolute value (12345 kWh) dwarfs the swings (1.4 kWh). The
+// `delta` aggregation instead differences the reading per calendar bucket, so the chart shows
+// consumption per hour/day/week/month.
+
+/** Start of the local calendar bucket `ts` falls into. */
+export function bucketStart(ts: number, bucket: DeltaBucket): number {
+    const d = new Date(ts);
+    d.setMinutes(0, 0, 0);
+    if (bucket === 'hour') return d.getTime();
+    // setHours(0,…) rather than subtracting 24 h — keeps DST switch days intact.
+    d.setHours(0, 0, 0, 0);
+    if (bucket === 'day') return d.getTime();
+    if (bucket === 'week') {
+        // ISO weeks start on Monday; getDay() is Sunday-based.
+        d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+        return d.getTime();
+    }
+    d.setDate(1);
+    return d.getTime();
+}
+
+/** Start of the bucket immediately preceding the one `ts` falls into. */
+export function prevBucketStart(ts: number, bucket: DeltaBucket): number {
+    const d = new Date(bucketStart(ts, bucket));
+    if (bucket === 'hour') d.setHours(d.getHours() - 1);
+    else if (bucket === 'day') d.setDate(d.getDate() - 1);
+    else if (bucket === 'week') d.setDate(d.getDate() - 7);
+    else d.setMonth(d.getMonth() - 1);
+    return d.getTime();
+}
+
+/**
+ * getHistory step for a delta fetch. Hour buckets are fetched hourly; larger buckets are also
+ * fetched hourly and re-bucketed locally, because adapters align their own buckets to UTC —
+ * a server-side day bucket would cut the local day at the wrong hour. Only very long windows
+ * drop to a daily step so the row count stays sane.
+ */
+export function deltaFetchStep(bucket: DeltaBucket, rangeMs: number): number {
+    if (bucket === 'hour') return 3_600_000;
+    return rangeMs > 125 * 86_400_000 ? 86_400_000 : 3_600_000;
+}
+
+export interface DeltaSeries {
+    /** One point per bucket: [bucket start, consumption within the bucket]. */
+    points: [number, number][];
+    /**
+     * Counter reading at the end of the bucket before the last one, plus that last bucket's
+     * start — lets a live state update recompute the still-open trailing bar without refetching.
+     */
+    lastBucket: number | null;
+    lastBase: number | null;
+}
+
+/**
+ * Difference a rising counter series into per-bucket consumption.
+ *
+ * Each bucket keeps the highest reading seen in it (a monotonic counter's reading at the bucket's
+ * end), and the bucket's value becomes `max(bucket) − max(previous bucket)`. Buckets without any
+ * record are skipped, so their consumption folds into the next bucket that has one rather than
+ * showing a false zero. Negative differences (meter swap, counter rollover, adapter restart)
+ * are clamped to 0 — a negative consumption bar would be pure noise.
+ *
+ * `windowStart` drops the leading baseline bucket, which only exists to difference against.
+ */
+export function bucketDeltas(data: [number, number][], bucket: DeltaBucket, windowStart: number): DeltaSeries {
+    const maxByBucket = new Map<number, number>();
+    for (const [ts, val] of data) {
+        const b = bucketStart(ts, bucket);
+        const cur = maxByBucket.get(b);
+        if (cur === undefined || val > cur) maxByBucket.set(b, val);
+    }
+    const buckets = [...maxByBucket.keys()].sort((a, b) => a - b);
+    const points: [number, number][] = [];
+    for (let i = 1; i < buckets.length; i++) {
+        const b = buckets[i];
+        if (b < windowStart) continue;
+        const diff = maxByBucket.get(b)! - maxByBucket.get(buckets[i - 1])!;
+        points.push([b, diff < 0 ? 0 : diff]);
+    }
+    const lastBucket = buckets.length > 1 ? buckets[buckets.length - 1] : null;
+    const lastBase = buckets.length > 1 ? (maxByBucket.get(buckets[buckets.length - 2]) ?? null) : null;
+    return { points, lastBucket, lastBase };
 }
 
 /** Key names commonly used for the y value, best guess first. */
@@ -296,6 +389,7 @@ export function useMultiSeriesData(
             s.historyStart,
             s.historyEnd,
             s.aggregate,
+            s.aggregate === 'delta' ? (s.deltaBucket ?? 'hour') : undefined,
             s.source,
             s.jsonPath,
             s.jsonLabelKey,
@@ -306,6 +400,10 @@ export function useMultiSeriesData(
     // Last raw value seen per JSON series — lets the live subscription bail out of a re-render
     // when an adapter re-writes the identical payload (same flicker guard as numeric series).
     const lastRawRef = useRef<Map<string, string>>(new Map());
+
+    // Per delta series: the still-open trailing bucket and the counter reading it differences
+    // against — lets a live state update grow the current bar without a refetch.
+    const deltaBaseRef = useRef<Map<string, { bucket: number; base: number }>>(new Map());
 
     // Fetch history for all series
     useEffect(() => {
@@ -397,21 +495,31 @@ export function useMultiSeriesData(
             // `none` = raw points: skip bucketing so the adapter returns the actual logged
             // values instead of per-bucket averages.
             const wantRaw = s.aggregate === 'none';
-            const step = wantRaw
-                ? undefined
-                : hasAbsWindow
-                  ? getStepForMs(rangeMs)
-                  : range === 'custom'
+            const isDelta = s.aggregate === 'delta';
+            const bucket = s.deltaBucket ?? 'hour';
+            const step = isDelta
+                ? deltaFetchStep(bucket, rangeMs)
+                : wantRaw
+                  ? undefined
+                  : hasAbsWindow
                     ? getStepForMs(rangeMs)
-                    : RANGE_STEP[range];
+                    : range === 'custom'
+                      ? getStepForMs(rangeMs)
+                      : RANGE_STEP[range];
+            // Delta needs one bucket of run-up before the window: the first visible bar is the
+            // difference against the reading the counter had when the window opened.
+            const deltaWindowStart = isDelta ? bucketStart(start, bucket) : start;
+            const fetchStart = isDelta ? prevBucketStart(start, bucket) : start;
 
             getHistoryDirect(s.datapointId, {
                 instance: s.historyInstance,
-                start,
+                start: fetchStart,
                 end,
                 step,
-                aggregate: step ? (s.aggregate ?? 'average') : 'none',
-                count: 1000,
+                // `delta` never reaches the adapter — it is differenced client-side from the
+                // highest reading per bucket, i.e. a monotonic counter's value at the bucket's end.
+                aggregate: s.aggregate === 'delta' ? 'max' : step ? (s.aggregate ?? 'average') : 'none',
+                count: isDelta ? 3000 : 1000,
             })
                 .then((entries: HistoryEntry[]) => {
                     if (!mountedRef.current) return;
@@ -422,6 +530,34 @@ export function useMultiSeriesData(
                         )
                         .map((e): [number, number] => [e.ts, e.val as number])
                         .sort((a, b) => a[0] - b[0]);
+
+                    if (isDelta) {
+                        const { points, lastBucket, lastBase } = bucketDeltas(data, bucket, deltaWindowStart);
+                        // Same edge trim as below, but applied to the finished bars: the run-up
+                        // bucket has already served its purpose as the difference baseline.
+                        const bars = hasAbsWindow
+                            ? points.filter(
+                                  (p) => p[0] >= (s.historyStart as number) && p[0] < (s.historyEnd as number),
+                              )
+                            : points;
+                        if (lastBucket !== null && lastBase !== null) {
+                            deltaBaseRef.current.set(s.id, { bucket: lastBucket, base: lastBase });
+                        } else {
+                            deltaBaseRef.current.delete(s.id);
+                        }
+                        setResultsMap((prev) => {
+                            const next = new Map(prev);
+                            // "Current" is the latest bucket's consumption, not the counter reading.
+                            next.set(s.id, {
+                                data: bars,
+                                current: bars.length > 0 ? bars[bars.length - 1][1] : null,
+                                loading: false,
+                            });
+                            return next;
+                        });
+                        return;
+                    }
+
                     if (hasAbsWindow) {
                         // History adapters append border values at the window edges (last value
                         // before start, first value after end). For a pinned calendar-day window
@@ -517,6 +653,31 @@ export function useMultiSeriesData(
                                 current: points.length > 0 ? points[points.length - 1].value : null,
                                 loading: false,
                             });
+                            return next;
+                        });
+                    });
+                }
+                if (s.aggregate === 'delta') {
+                    // A delta series' points are per-bucket differences — appending the raw counter
+                    // reading would spike the chart. Only the still-open trailing bar can grow, and
+                    // only while the update still falls into its bucket; once the counter rolls into
+                    // the next bucket the base is stale and the next refetch takes over.
+                    const bucket = s.deltaBucket ?? 'hour';
+                    return subscribe(s.datapointId, (state: ioBrokerState) => {
+                        if (typeof state.val !== 'number') return;
+                        const info = deltaBaseRef.current.get(s.id);
+                        if (!info || bucketStart(state.ts, bucket) !== info.bucket) return;
+                        const diff = Math.max(0, (state.val as number) - info.base);
+                        setResultsMap((prev) => {
+                            const existing = prev.get(s.id);
+                            if (!existing || existing.loading || existing.data.length === 0) return prev;
+                            const last = existing.data[existing.data.length - 1];
+                            // Adapters re-write unchanged values on every poll — bail out of the
+                            // re-render when the bar wouldn't move.
+                            if (last[0] !== info.bucket || last[1] === diff) return prev;
+                            const data: [number, number][] = [...existing.data.slice(0, -1), [info.bucket, diff]];
+                            const next = new Map(prev);
+                            next.set(s.id, { data, current: diff, loading: false });
                             return next;
                         });
                     });

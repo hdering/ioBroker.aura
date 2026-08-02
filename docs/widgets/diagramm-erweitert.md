@@ -85,8 +85,22 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].color` | Palette | Linien-/Balkenfarbe |
 | `echartSeries[].yAxisIndex` | `0` | `0` = links, `1` = rechte Y-Achse |
 | `echartSeries[].smooth` | `true` | geglättete Linie (nur Linie/Fläche) |
-| `echartSeries[].aggregate` | `average` | `average` · `minmax` · `max` · `min` · `total` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen) |
+| `echartSeries[].aggregate` | `average` | `average` · `minmax` · `max` · `min` · `total` · `delta` · `none` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen), `delta` siehe unten |
+| `echartSeries[].deltaBucket` | `hour` | `hour` · `day` · `week` · `month` — Zeiteinheit für `aggregate: delta` |
 | `echartSeries[].lineWidth` | `2` | Linienstärke 1–4 (nur Linie/Fläche) |
+
+### Verbrauch aus Zählerständen
+
+`aggregate: delta` für fortlaufende Gesamtzähler (Strom, Wasser, Gas). Statt des Zählerstands wird die Differenz je Zeiteinheit gezeichnet — also der Verbrauch pro Stunde, Tag, Woche oder Monat.
+
+| | |
+| --- | --- |
+| Datenquelle | Verlaufs-Adapter (history, influxdb, sql) |
+| Zeiteinheit | `deltaBucket` — Kalendergrenzen in lokaler Zeit |
+| Chart-Typ | beim Umschalten automatisch `bar` |
+| Zählerwechsel / Überlauf | negative Differenz wird auf `0` gesetzt |
+| Buckets ohne Datensatz | übersprungen; ihr Verbrauch fällt in den nächsten Bucket mit Daten |
+| Aktueller Wert oben rechts | Verbrauch des laufenden Buckets, nicht der Zählerstand |
 
 ### JSON-Quelle
 

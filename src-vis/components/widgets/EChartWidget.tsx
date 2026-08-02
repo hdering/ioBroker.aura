@@ -213,6 +213,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         if (previewData) return previewData[idx];
         const r = seriesDataMap.get(id);
         const data = r?.data ?? [];
+        // A delta series has no "constant since the last log" reading to draw flat — an empty
+        // window simply means nothing was consumed, and no bars is the honest picture.
+        if (echartSeries[idx]?.aggregate === 'delta') return data;
         if (data.length === 0 && r && !r.loading && (dayWindow !== null || !!effectiveSeries[idx]?.historyInstance)) {
             return flatLineData(r.current);
         }
@@ -721,6 +724,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             data,
             yAxisIndex: s.yAxisIndex ?? 0,
             showSymbol: false,
+            // A lone delta bar (one bucket logged so far) would otherwise be stretched across
+            // the whole plot area, since echarts derives bar width from the point spacing.
+            ...(s.aggregate === 'delta' ? { barMaxWidth: 40 } : {}),
         };
     });
 
