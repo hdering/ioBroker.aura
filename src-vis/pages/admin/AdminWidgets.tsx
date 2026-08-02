@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useT } from '../../i18n';
 import { ChevronDown, ChevronRight, Trash2, Database, X, Check, RotateCcw, Download, ExternalLink } from 'lucide-react';
-import { useDashboardStore, useActiveSection, type Tab } from '../../store/dashboardStore';
+import { useDashboardStore, type DashboardLayout, type Section, type Tab } from '../../store/dashboardStore';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import { NumberListInput } from '../../components/config/NumberListInput';
 import { WidgetPreview } from '../../components/config/WidgetPreview';
@@ -33,9 +33,17 @@ const inputStyle: React.CSSProperties = {
 
 // ── Shared helpers ────────────────────────────────────────────────────────────
 
+/**
+ * One widget of the whole dashboard config. The page lists every layout, so an
+ * entry carries its full location (layout → section → tab); `pathLabel` is the
+ * pre-rendered breadcrumb shown on the row.
+ */
 interface WidgetEntry {
     config: WidgetConfig;
+    layout: DashboardLayout;
+    section: Section;
     tab: Tab;
+    pathLabel: string;
 }
 
 // ── Inline edit form ──────────────────────────────────────────────────────────
@@ -375,7 +383,6 @@ function WidgetRow({
         setDraft(entry.config);
         queueMicrotask(() => rowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
     }, [focused]); // eslint-disable-line react-hooks/exhaustive-deps
-    const { activeLayoutId } = useDashboardStore();
     const navigate = useNavigate();
 
     const handleSave = (c: WidgetConfig) => {
@@ -417,8 +424,9 @@ function WidgetRow({
                                 color: 'var(--text-secondary)',
                                 border: '1px solid var(--app-border)',
                             }}
+                            title={`${entry.layout.name} / ${entry.section.name} / ${entry.tab.name}`}
                         >
-                            {entry.tab.name}
+                            {entry.pathLabel}
                         </span>
                     </div>
                     <p className="text-xs font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
@@ -435,7 +443,7 @@ function WidgetRow({
                     <button
                         onClick={() =>
                             navigate(
-                                `/admin/editor?layout=${encodeURIComponent(activeLayoutId)}&tab=${encodeURIComponent(
+                                `/admin/editor?layout=${encodeURIComponent(entry.layout.id)}&tab=${encodeURIComponent(
                                     entry.tab.id,
                                 )}&focus=${encodeURIComponent(entry.config.id)}`,
                             )
@@ -533,8 +541,8 @@ function TypeSection({
 }: {
     type: WidgetType;
     entries: WidgetEntry[];
-    onUpdate: (tabId: string, widgetId: string, config: WidgetConfig) => void;
-    onDelete: (tabId: string, widgetId: string) => void;
+    onUpdate: (entry: WidgetEntry, config: WidgetConfig) => void;
+    onDelete: (entry: WidgetEntry) => void;
     defaultOpen: boolean;
     focusedId?: string;
     scrollSignal?: number;
@@ -584,11 +592,13 @@ function TypeSection({
             {open && (
                 <div className="p-3 space-y-2" style={{ background: 'var(--app-bg)' }}>
                     {entries.map((entry) => (
+                        // Duplicated layouts can carry identical widget ids, so the key
+                        // has to include the layout/tab the entry came from.
                         <WidgetRow
-                            key={entry.config.id}
+                            key={`${entry.layout.id}:${entry.tab.id}:${entry.config.id}`}
                             entry={entry}
-                            onUpdate={(config) => onUpdate(entry.tab.id, entry.config.id, config)}
-                            onDelete={() => onDelete(entry.tab.id, entry.config.id)}
+                            onUpdate={(config) => onUpdate(entry, config)}
+                            onDelete={() => onDelete(entry)}
                             focused={focusedId === entry.config.id}
                         />
                     ))}
@@ -688,8 +698,8 @@ function DefaultSizesDialog({ onClose }: { onClose: () => void }) {
 
 export function AdminWidgets() {
     const t = useT();
-    const { updateWidgetInTab, removeWidgetInTab, activeLayoutId, setActiveLayoutAndTab } = useDashboardStore();
-    const tabs = useActiveSection().tabs;
+    const { updateWidgetInLayoutTab, removeWidgetFromLayoutTab } = useDashboardStore();
+    const layouts = useDashboardStore((s) => s.layouts);
     const [showSizes, setShowSizes] = useState(false);
     const [search, setSearch] = useState('');
     // Bumped on each summary-chip click so the matching TypeSection opens + scrolls.
@@ -697,34 +707,53 @@ export function AdminWidgets() {
     const [searchParams] = useSearchParams();
     const focusId = searchParams.get('focus') || undefined;
     const focusLayout = searchParams.get('layout') || undefined;
-    const focusTab = searchParams.get('tab') || undefined;
+    // 'all' or a layout id. A deep link from the editor pre-selects its layout.
+    const [layoutFilter, setLayoutFilter] = useState<string>(focusLayout ?? 'all');
 
-    // Switch to the layout/tab that holds the focused widget so it shows up in
-    // the list (AdminWidgets only renders widgets from the active layout).
-    useEffect(() => {
-        if (focusLayout && focusTab && focusLayout !== activeLayoutId) {
-            setActiveLayoutAndTab(focusLayout, focusTab);
+    // Flatten every widget of every layout → section → tab.
+    const allEntries = useMemo<WidgetEntry[]>(() => {
+        const out: WidgetEntry[] = [];
+        const multiLayout = layouts.length > 1;
+        for (const layout of layouts) {
+            const multiSection = layout.sections.length > 1;
+            for (const section of layout.sections) {
+                for (const tab of section.tabs) {
+                    // Only show the levels that actually disambiguate the location.
+                    const pathLabel = [multiLayout ? layout.name : null, multiSection ? section.name : null, tab.name]
+                        .filter(Boolean)
+                        .join(' / ');
+                    for (const config of tab.widgets) out.push({ config, layout, section, tab, pathLabel });
+                }
+            }
         }
-    }, [focusLayout, focusTab, activeLayoutId, setActiveLayoutAndTab]);
+        return out;
+    }, [layouts]);
 
-    // Flatten all widgets with their tab
-    const allEntries = useMemo<WidgetEntry[]>(
-        () => tabs.flatMap((tab) => tab.widgets.map((config) => ({ config, tab }))),
-        [tabs],
+    // Scope of the counters and the list: all layouts or a single one.
+    const scopedEntries = useMemo(
+        () => (layoutFilter === 'all' ? allEntries : allEntries.filter((e) => e.layout.id === layoutFilter)),
+        [allEntries, layoutFilter],
     );
+
+    const tabCount = useMemo(() => {
+        const inScope = layoutFilter === 'all' ? layouts : layouts.filter((l) => l.id === layoutFilter);
+        return inScope.reduce((n, l) => n + l.sections.reduce((m, sec) => m + sec.tabs.length, 0), 0);
+    }, [layouts, layoutFilter]);
 
     // Apply search filter
     const filteredEntries = useMemo(() => {
-        if (!search.trim()) return allEntries;
+        if (!search.trim()) return scopedEntries;
         const q = search.toLowerCase();
-        return allEntries.filter(
+        return scopedEntries.filter(
             (e) =>
                 e.config.title.toLowerCase().includes(q) ||
                 e.config.datapoint.toLowerCase().includes(q) ||
                 e.tab.name.toLowerCase().includes(q) ||
+                e.section.name.toLowerCase().includes(q) ||
+                e.layout.name.toLowerCase().includes(q) ||
                 e.config.type.toLowerCase().includes(q),
         );
-    }, [allEntries, search]);
+    }, [scopedEntries, search]);
 
     // Group by type (preserve TYPE_ORDER)
     const byType = useMemo(() => {
@@ -747,10 +776,32 @@ export function AdminWidgets() {
                         {t('widgets.title')}
                     </h1>
                     <p className="text-sm mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        {t('widgets.subtitle', { widgets: allEntries.length, tabs: tabs.length })}
+                        {layoutFilter === 'all' && layouts.length > 1
+                            ? t('widgets.subtitleAll', {
+                                  widgets: scopedEntries.length,
+                                  tabs: tabCount,
+                                  layouts: layouts.length,
+                              })
+                            : t('widgets.subtitle', { widgets: scopedEntries.length, tabs: tabCount })}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    {layouts.length > 1 && (
+                        <select
+                            value={layoutFilter}
+                            onChange={(e) => setLayoutFilter(e.target.value)}
+                            className="px-3 py-2 text-sm rounded-xl focus:outline-none"
+                            style={inputStyle}
+                            title={t('widgets.layoutFilter')}
+                        >
+                            <option value="all">{t('widgets.allLayouts')}</option>
+                            {layouts.map((l) => (
+                                <option key={l.id} value={l.id}>
+                                    {l.name}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                     <button
                         onClick={() => setShowSizes(true)}
                         className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-xl hover:opacity-80"
@@ -799,7 +850,7 @@ export function AdminWidgets() {
             </div>
 
             {/* Sections */}
-            {allEntries.length === 0 ? (
+            {scopedEntries.length === 0 ? (
                 <div
                     className="text-center py-16 rounded-xl"
                     style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
@@ -822,13 +873,12 @@ export function AdminWidgets() {
                             key={type}
                             type={type}
                             entries={byType.get(type) ?? []}
-                            onUpdate={(tabId, widgetId, config) => updateWidgetInTab(tabId, widgetId, config)}
-                            onDelete={(tabId, widgetId) => {
-                                const widget = tabs
-                                    .find((tb) => tb.id === tabId)
-                                    ?.widgets.find((w) => w.id === widgetId);
-                                unpublishTimerForWidget(widget);
-                                removeWidgetInTab(tabId, widgetId);
+                            onUpdate={(entry, config) =>
+                                updateWidgetInLayoutTab(entry.layout.id, entry.tab.id, entry.config.id, config)
+                            }
+                            onDelete={(entry) => {
+                                unpublishTimerForWidget(entry.config);
+                                removeWidgetFromLayoutTab(entry.layout.id, entry.tab.id, entry.config.id);
                             }}
                             defaultOpen={false}
                             focusedId={focusId}
