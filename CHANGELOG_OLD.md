@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.37.1 (2026-07-27)
+- Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)
+
 ## 0.37.0 (2026-07-26)
 - 🌟 **New feature:** AC Control - new widget to control air conditioners (power, mode, fan speed, vanes, eco) with per-manufacturer profiles and automatic datapoint filling; Mitsubishi (mitsubishi-local-control) supported first
 
