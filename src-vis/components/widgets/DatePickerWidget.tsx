@@ -78,9 +78,8 @@ function escapeRe(s: string) {
 
 /**
  * Parse `str` against a token pattern. Parts the pattern does not mention fall
- * back to `base` (or "now"): a pattern without any date token keeps the base
- * date, one without any time token keeps the base time. A missing day becomes
- * the 1st, so `MM.yyyy` means "that month".
+ * back to `base` (or "now"): `MM.yyyy` moves the stored date to that month and
+ * leaves day and time-of-day alone (clamped when the new month is shorter).
  */
 export function parseCustom(str: string, pattern: string, base?: Date | null): Date | null {
     const tokens: string[] = [];
@@ -100,11 +99,10 @@ export function parseCustom(str: string, pattern: string, base?: Date | null): D
     if (!hit) return null;
 
     const b = base && !isNaN(base.getTime()) ? base : new Date();
-    const hasDate = tokens.some((tk) => tk === 'yyyy' || tk === 'yy' || tk === 'MM' || tk === 'dd');
     const hasTime = tokens.some((tk) => tk === 'HH' || tk === 'hh' || tk === 'mm' || tk === 'ss');
     let year = b.getFullYear();
     let month = b.getMonth();
-    let day = hasDate ? 1 : b.getDate();
+    let day = b.getDate();
     let hours = hasTime ? 0 : b.getHours();
     let minutes = hasTime ? 0 : b.getMinutes();
     let seconds = hasTime ? 0 : b.getSeconds();
@@ -137,6 +135,8 @@ export function parseCustom(str: string, pattern: string, base?: Date | null): D
         }
     });
     if (month < 0 || month > 11 || day < 1 || day > 31 || hours > 23 || minutes > 59 || seconds > 59) return null;
+    // Only a day carried over from `base` may be clamped; a typed one must be valid.
+    if (!tokens.includes('dd')) day = Math.min(day, new Date(year, month + 1, 0).getDate());
     const d = new Date(year, month, day, hours, minutes, seconds, 0);
     // Reject overflow like 31.02 — JS would silently roll into the next month.
     if (isNaN(d.getTime()) || d.getMonth() !== month || d.getDate() !== day) return null;
@@ -203,6 +203,73 @@ export function toTimeInputValue(d: Date) {
     return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
+/** Native field that matches a pattern's granularity; 'text' = free entry, no picker. */
+export type DateInputKind = 'datetime-local' | 'date' | 'month' | 'time' | 'text';
+
+/**
+ * Pick the native input that covers exactly the parts a custom pattern names, so
+ * `MM.yyyy` still opens a month picker instead of forcing the user to type.
+ */
+export function inputKindFor(pattern: string): DateInputKind {
+    const toks: string[] = pattern.match(tokenRe()) ?? [];
+    const day = toks.includes('dd');
+    const month = toks.includes('MM');
+    const year = toks.includes('yyyy') || toks.includes('yy');
+    const time = toks.some((tk) => tk === 'HH' || tk === 'hh' || tk === 'mm' || tk === 'ss');
+    if (day && month && year) return time ? 'datetime-local' : 'date';
+    if (month && year && !day && !time) return 'month';
+    if (time && !day && !month && !year) return 'time';
+    return 'text';
+}
+
+/** Current date as the value string the native field of `kind` expects. */
+export function toInputValue(kind: DateInputKind, d: Date, pattern: string): string {
+    switch (kind) {
+        case 'datetime-local':
+            return `${toDateInputValue(d)}T${toTimeInputValue(d)}`;
+        case 'date':
+            return toDateInputValue(d);
+        case 'month':
+            return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+        case 'time':
+            return toTimeInputValue(d);
+        default:
+            return formatCustom(d, pattern);
+    }
+}
+
+/**
+ * Read a native field back into a Date. Parts the field does not cover keep their
+ * value from `base` — a month field never touches the stored day or time.
+ */
+export function fromInputValue(kind: DateInputKind, raw: string, base?: Date | null): Date | null {
+    const b = base && !isNaN(base.getTime()) ? base : new Date();
+    const m = raw.match(/^(\d{4})-(\d{2})(?:-(\d{2}))?(?:T(\d{2}):(\d{2}))?$/);
+    if (kind === 'time') {
+        const t = raw.match(/^(\d{2}):(\d{2})/);
+        if (!t) return null;
+        return new Date(b.getFullYear(), b.getMonth(), b.getDate(), +t[1], +t[2], 0, 0);
+    }
+    if (!m) return null;
+    const year = +m[1];
+    const month = +m[2] - 1;
+    const day = kind === 'month' ? b.getDate() : +(m[3] ?? 1);
+    const hasTime = m[4] !== undefined;
+    const d = new Date(
+        year,
+        month,
+        day,
+        hasTime ? +m[4] : b.getHours(),
+        hasTime ? +m[5] : b.getMinutes(),
+        hasTime ? 0 : b.getSeconds(),
+        0,
+    );
+    if (isNaN(d.getTime())) return null;
+    // A month field keeps the stored day — clamp when the new month is shorter.
+    if (kind === 'month' && d.getMonth() !== month) return new Date(year, month + 1, 0, d.getHours(), d.getMinutes());
+    return d;
+}
+
 export function DatePickerWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
     const timeOnly = o.timeOnly === true;
@@ -235,14 +302,18 @@ export function DatePickerWidget({ config }: WidgetProps) {
         if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
         return '00:00';
     });
-    // Free-text state for the custom input format (parsed on Enter/blur)
-    const [textVal, setTextVal] = useState(() => (currentDate ? formatCustom(currentDate, inPattern) : ''));
+    // Custom input format: the pattern picks the matching native field (month picker
+    // for `MM.yyyy`, …); patterns no native field covers fall back to free text.
+    const inputKind = inputKindFor(inPattern);
+    const [customVal, setCustomVal] = useState(() =>
+        currentDate ? toInputValue(inputKind, currentDate, inPattern) : '',
+    );
     const [textErr, setTextErr] = useState(false);
 
     // Sync when DP value changes externally
     useEffect(() => {
         if (customInput) {
-            setTextVal(currentDate ? formatCustom(currentDate, inPattern) : '');
+            setCustomVal(currentDate ? toInputValue(inputKind, currentDate, inPattern) : '');
             setTextErr(false);
             return;
         }
@@ -285,7 +356,13 @@ export function DatePickerWidget({ config }: WidgetProps) {
         setTimeVal(v);
         writeValue(dateVal, v);
     };
-    /** Custom input: parse the typed text against the pattern, write only when valid. */
+    /** Custom input, native field: write straight away, like the standard pickers. */
+    const handleCustomNative = (raw: string) => {
+        setCustomVal(raw);
+        const dt = fromInputValue(inputKind, raw, currentDate);
+        if (dt) setState(config.datapoint, formatDate(dt, outputFmt, outPattern));
+    };
+    /** Custom input, free text: parse against the pattern, write only when valid. */
     const commitText = (raw: string) => {
         if (!raw.trim()) {
             setTextErr(false);
@@ -297,12 +374,12 @@ export function DatePickerWidget({ config }: WidgetProps) {
             return;
         }
         setTextErr(false);
-        setTextVal(formatCustom(dt, inPattern));
+        setCustomVal(formatCustom(dt, inPattern));
         setState(config.datapoint, formatDate(dt, outputFmt, outPattern));
     };
 
     const currentDisplay = (() => {
-        if (customInput) return textVal || '–';
+        if (customInput) return currentDate ? formatCustom(currentDate, inPattern) : '–';
         if (timeOnly) return timeVal || '–';
         if (!currentDate) return '–';
         if (outputFmt === 'custom') return formatCustom(currentDate, outPattern);
@@ -331,23 +408,34 @@ export function DatePickerWidget({ config }: WidgetProps) {
     // The custom text field replaces both native pickers, so the layouts below
     // keep rendering the same two slots.
     const dateInput = customInput ? (
-        <input
-            type="text"
-            value={textVal}
-            onChange={(e) => setTextVal(e.target.value)}
-            onBlur={(e) => commitText(e.target.value)}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter') commitText((e.target as HTMLInputElement).value);
-            }}
-            placeholder={inPattern}
-            title={`Format: ${inPattern}`}
-            className="aura-widget-action nodrag focus:outline-none font-mono"
-            style={{
-                ...inputSty,
-                width: `${Math.max(8, inPattern.length + 2)}ch`,
-                borderColor: textErr ? '#ef4444' : undefined,
-            }}
-        />
+        inputKind === 'text' ? (
+            <input
+                type="text"
+                value={customVal}
+                onChange={(e) => setCustomVal(e.target.value)}
+                onBlur={(e) => commitText(e.target.value)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') commitText((e.target as HTMLInputElement).value);
+                }}
+                placeholder={inPattern}
+                title={`Format: ${inPattern}`}
+                className="aura-widget-action nodrag focus:outline-none font-mono"
+                style={{
+                    ...inputSty,
+                    width: `${Math.max(8, inPattern.length + 2)}ch`,
+                    borderColor: textErr ? '#ef4444' : undefined,
+                }}
+            />
+        ) : (
+            <input
+                type={inputKind}
+                value={customVal}
+                onChange={(e) => handleCustomNative(e.target.value)}
+                title={`Format: ${inPattern}`}
+                className="aura-widget-action nodrag focus:outline-none"
+                style={inputSty}
+            />
+        )
     ) : !timeOnly ? (
         <input
             type="date"

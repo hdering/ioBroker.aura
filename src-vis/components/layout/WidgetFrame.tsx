@@ -16003,51 +16003,107 @@ export function WidgetFrame({
                                 };
                                 return (
                                     <>
-                                        {/* Nur Uhrzeit */}
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                                Nur Uhrzeit (kein Datum)
-                                            </label>
-                                            <button
-                                                onClick={() =>
-                                                    set({
-                                                        timeOnly: !o.timeOnly,
-                                                        showTime: !o.timeOnly ? true : o.showTime,
-                                                    })
-                                                }
-                                                className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                style={{
-                                                    background: o.timeOnly ? 'var(--accent)' : 'var(--app-border)',
-                                                }}
+                                        {/* Eingabeformat */}
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
                                             >
-                                                <span
-                                                    className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: o.timeOnly ? '14px' : '2px' }}
-                                                />
-                                            </button>
+                                                Eingabeformat
+                                            </label>
+                                            <select
+                                                value={(o.inputFormat as string) ?? 'picker'}
+                                                onChange={(e) => set({ inputFormat: e.target.value })}
+                                                className={inputCls2}
+                                                style={inputSty2}
+                                            >
+                                                <option value="picker">Datums-/Zeitwähler</option>
+                                                <option value="custom">Eigenes Format…</option>
+                                            </select>
                                         </div>
-                                        {/* Uhrzeit anzeigen — nur wenn nicht timeOnly */}
-                                        {!o.timeOnly && (
-                                            <div className="flex items-center justify-between">
+                                        {o.inputFormat === 'custom' && (
+                                            <div>
                                                 <label
-                                                    className="text-[11px]"
+                                                    className="text-[11px] mb-1 block"
                                                     style={{ color: 'var(--text-secondary)' }}
                                                 >
-                                                    Uhrzeit-Eingabe anzeigen
+                                                    Eingabe-Muster
                                                 </label>
-                                                <button
-                                                    onClick={() => set({ showTime: !o.showTime })}
-                                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background: o.showTime ? 'var(--accent)' : 'var(--app-border)',
-                                                    }}
+                                                <input
+                                                    type="text"
+                                                    value={(o.inputPattern as string) ?? ''}
+                                                    onChange={(e) => set({ inputPattern: e.target.value || undefined })}
+                                                    placeholder="z.B. MM.yyyy"
+                                                    className={`${inputCls2} font-mono`}
+                                                    style={inputSty2}
+                                                />
+                                                <p
+                                                    className="text-[10px] mt-1 leading-tight"
+                                                    style={{ color: 'var(--text-secondary)' }}
                                                 >
-                                                    <span
-                                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: o.showTime ? '14px' : '2px' }}
-                                                    />
-                                                </button>
+                                                    Das Muster bestimmt die Auswahl: <code>MM.yyyy</code> →
+                                                    Monatswähler, <code>dd.MM.yyyy</code> → Kalender, <code>HH:mm</code>{' '}
+                                                    → Uhrzeit; sonst freies Textfeld. Nicht genannte Teile bleiben
+                                                    erhalten. Tokens: {DATE_PATTERN_TOKENS}
+                                                </p>
                                             </div>
+                                        )}
+                                        {/* Picker-Modus: Nur Uhrzeit / Uhrzeit-Eingabe — beim eigenen Format
+                                            legt stattdessen das Muster fest, welche Felder erscheinen. */}
+                                        {o.inputFormat !== 'custom' && (
+                                            <>
+                                                <div className="flex items-center justify-between">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Nur Uhrzeit (kein Datum)
+                                                    </label>
+                                                    <button
+                                                        onClick={() =>
+                                                            set({
+                                                                timeOnly: !o.timeOnly,
+                                                                showTime: !o.timeOnly ? true : o.showTime,
+                                                            })
+                                                        }
+                                                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                                        style={{
+                                                            background: o.timeOnly
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: o.timeOnly ? '14px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                                {!o.timeOnly && (
+                                                    <div className="flex items-center justify-between">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Uhrzeit-Eingabe anzeigen
+                                                        </label>
+                                                        <button
+                                                            onClick={() => set({ showTime: !o.showTime })}
+                                                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                                            style={{
+                                                                background: o.showTime
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                                style={{ left: o.showTime ? '14px' : '2px' }}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                         {/* Ausgabeformat */}
                                         <div>
@@ -16095,49 +16151,6 @@ export function WidgetFrame({
                                                     style={{ color: 'var(--text-secondary)' }}
                                                 >
                                                     Tokens: {DATE_PATTERN_TOKENS}
-                                                </p>
-                                            </div>
-                                        )}
-                                        {/* Eingabeformat */}
-                                        <div>
-                                            <label
-                                                className="text-[11px] mb-1 block"
-                                                style={{ color: 'var(--text-secondary)' }}
-                                            >
-                                                Eingabe
-                                            </label>
-                                            <select
-                                                value={(o.inputFormat as string) ?? 'picker'}
-                                                onChange={(e) => set({ inputFormat: e.target.value })}
-                                                className={inputCls2}
-                                                style={inputSty2}
-                                            >
-                                                <option value="picker">Datums-/Zeitwähler</option>
-                                                <option value="custom">Eigenes Format…</option>
-                                            </select>
-                                        </div>
-                                        {o.inputFormat === 'custom' && (
-                                            <div>
-                                                <label
-                                                    className="text-[11px] mb-1 block"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Eingabe-Muster
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={(o.inputPattern as string) ?? ''}
-                                                    onChange={(e) => set({ inputPattern: e.target.value || undefined })}
-                                                    placeholder="z.B. MM.yyyy"
-                                                    className={`${inputCls2} font-mono`}
-                                                    style={inputSty2}
-                                                />
-                                                <p
-                                                    className="text-[10px] mt-1 leading-tight"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    Tokens: {DATE_PATTERN_TOKENS} — nicht genannte Teile bleiben
-                                                    erhalten, fehlender Tag = 1.
                                                 </p>
                                             </div>
                                         )}

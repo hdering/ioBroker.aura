@@ -23,6 +23,9 @@ import {
     formatDate,
     formatCustom,
     parseCustom,
+    inputKindFor,
+    toInputValue,
+    fromInputValue,
     toDateInputValue,
     toTimeInputValue,
     DEFAULT_DATE_PATTERN,
@@ -1442,12 +1445,17 @@ function DatePickerCellView({
         if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
         return '00:00';
     });
-    const [textVal, setTextVal] = useState(() => (currentDate ? formatCustom(currentDate, inPattern) : ''));
+    // The pattern picks the matching native field (month picker for `MM.yyyy`, …);
+    // patterns no native field covers fall back to free text.
+    const inputKind = inputKindFor(inPattern);
+    const [customVal, setCustomVal] = useState(() =>
+        currentDate ? toInputValue(inputKind, currentDate, inPattern) : '',
+    );
     const [textErr, setTextErr] = useState(false);
 
     useEffect(() => {
         if (customInput) {
-            setTextVal(currentDate ? formatCustom(currentDate, inPattern) : '');
+            setCustomVal(currentDate ? toInputValue(inputKind, currentDate, inPattern) : '');
             setTextErr(false);
             return;
         }
@@ -1478,7 +1486,14 @@ function DatePickerCellView({
         setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
     };
 
-    /** Custom input: parse the typed text against the pattern, write only when valid. */
+    /** Custom input, native field: write straight away, like the standard pickers. */
+    const handleCustomNative = (raw: string) => {
+        setCustomVal(raw);
+        if (!cell.dpId) return;
+        const dt = fromInputValue(inputKind, raw, currentDate);
+        if (dt) setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
+    };
+    /** Custom input, free text: parse against the pattern, write only when valid. */
     const commitText = (raw: string) => {
         if (!cell.dpId) return;
         if (!raw.trim()) {
@@ -1491,7 +1506,7 @@ function DatePickerCellView({
             return;
         }
         setTextErr(false);
-        setTextVal(formatCustom(dt, inPattern));
+        setCustomVal(formatCustom(dt, inPattern));
         setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
     };
 
@@ -1516,21 +1531,31 @@ function DatePickerCellView({
             style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
         >
             <div className="flex flex-wrap gap-1 items-center w-full">
-                {customInput && (
-                    <input
-                        type="text"
-                        value={textVal}
-                        onChange={(e) => setTextVal(e.target.value)}
-                        onBlur={(e) => commitText(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') commitText((e.target as HTMLInputElement).value);
-                        }}
-                        placeholder={inPattern}
-                        title={`Format: ${inPattern}`}
-                        className="nodrag focus:outline-none flex-1 min-w-0 font-mono"
-                        style={{ ...inputSty, borderColor: textErr ? '#ef4444' : undefined }}
-                    />
-                )}
+                {customInput &&
+                    (inputKind === 'text' ? (
+                        <input
+                            type="text"
+                            value={customVal}
+                            onChange={(e) => setCustomVal(e.target.value)}
+                            onBlur={(e) => commitText(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') commitText((e.target as HTMLInputElement).value);
+                            }}
+                            placeholder={inPattern}
+                            title={`Format: ${inPattern}`}
+                            className="nodrag focus:outline-none flex-1 min-w-0 font-mono"
+                            style={{ ...inputSty, borderColor: textErr ? '#ef4444' : undefined }}
+                        />
+                    ) : (
+                        <input
+                            type={inputKind}
+                            value={customVal}
+                            onChange={(e) => handleCustomNative(e.target.value)}
+                            title={`Format: ${inPattern}`}
+                            className="nodrag focus:outline-none flex-1 min-w-0"
+                            style={inputSty}
+                        />
+                    ))}
                 {!timeOnly && !customInput && (
                     <input
                         type="date"
