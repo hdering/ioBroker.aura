@@ -23,8 +23,9 @@ interface ValueFormatRowProps {
 /**
  * One row combining the three settings that describe how a numeric value reads:
  * unit, decimal places and thousands separator. Decimals and separator both fall
- * back to the global default (Frontend-Design → Werte & Formatierung) while empty
- * / "Global" is selected, so an untouched widget simply follows the global setting.
+ * back to the global default (Frontend-Design → Werte & Formatierung): the
+ * decimals "Global" button toggles the override off, the separator select has a
+ * matching "Global" entry. So an untouched widget follows the global setting.
  */
 export function ValueFormatRow({
     unit,
@@ -47,6 +48,7 @@ export function ValueFormatRow({
     };
     const labelCls = compact ? 'text-[9px] block mb-0.5 truncate' : 'text-[11px] mb-1 block truncate';
     const labelSty = { color: 'var(--text-secondary)' };
+    const isGlobalDecimals = decimals === undefined;
 
     return (
         <div className="flex gap-1.5 items-end">
@@ -65,22 +67,35 @@ export function ValueFormatRow({
                     />
                 </div>
             )}
-            <div className="shrink-0" style={{ width: 62 }}>
+            <div className="shrink-0" style={{ width: 96 }}>
                 <label className={labelCls} style={labelSty} title={t('config.decimals.label')}>
                     {t('config.decimals.label')}
                 </label>
-                {/* Empty = inherit; the placeholder shows the global value that applies then. */}
-                <input
-                    type="number"
-                    min={0}
-                    max={6}
-                    value={decimals ?? ''}
-                    placeholder={String(defaultDecimals)}
-                    title={decimals === undefined ? t('config.decimals.globalActive') : undefined}
-                    onChange={(e) => onChange({ decimals: e.target.value === '' ? undefined : Number(e.target.value) })}
-                    className={`${inputClassName} text-center`}
-                    style={sty}
-                />
+                <div className="flex gap-1">
+                    <input
+                        type="number"
+                        min={0}
+                        max={6}
+                        disabled={isGlobalDecimals}
+                        value={decimals ?? defaultDecimals}
+                        onChange={(e) => onChange({ decimals: Number(e.target.value) })}
+                        className={`${inputClassName} text-center`}
+                        style={{ ...sty, opacity: isGlobalDecimals ? 0.5 : 1 }}
+                    />
+                    <button
+                        onClick={() => onChange({ decimals: isGlobalDecimals ? defaultDecimals : undefined })}
+                        title={
+                            isGlobalDecimals ? t('config.decimals.globalActive') : t('config.decimals.resetToGlobal')
+                        }
+                        className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                        style={{
+                            background: isGlobalDecimals ? 'var(--accent)' : 'var(--app-border)',
+                            color: isGlobalDecimals ? '#fff' : 'var(--text-secondary)',
+                        }}
+                    >
+                        {t('config.decimals.global')}
+                    </button>
+                </div>
             </div>
             <div className="flex-1 min-w-0">
                 <label className={labelCls} style={labelSty} title={t('config.numberFormat.label')}>
