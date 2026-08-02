@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.36.5 (2026-07-26)
+- Design - resetting per-layout header overrides now activates Save and persists after reload
+
 ## 0.36.4 (2026-07-26)
 - Guidelines - horizontal guide line now lines up between the editor and the frontend (it accounts for the header and tab/section bar, so it marks the target device's bottom edge in both)
 

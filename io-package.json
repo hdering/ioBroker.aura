@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.39.0",
+    "version": "0.39.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.39.1": {
+        "en": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "de": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "ru": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "pt": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "nl": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "fr": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "it": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "es": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "pl": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "uk": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
+        "zh-cn": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row"
+      },
       "0.39.0": {
         "en": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
         "de": "🌟 New feature: Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list",
@@ -184,19 +197,6 @@
         "pl": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
         "uk": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually",
         "zh-cn": "Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100\nCalendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually"
-      },
-      "0.38.7": {
-        "en": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "de": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "ru": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "pt": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "nl": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "fr": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "it": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "es": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "pl": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "uk": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off",
-        "zh-cn": "🌟 New feature: Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget\nCalendar - agenda layout shows the full calendar name instead of cutting it off"
       }
     }
   },
