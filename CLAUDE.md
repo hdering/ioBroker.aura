@@ -88,6 +88,8 @@ Whenever you make a decision, identify a task, note a next step, fact, or blocke
 
 When the user requests a **user-facing change** (a feature, fix, or visible behavior change), append one short **English** bullet describing it to `RELEASE_NOTES.md` in the project root — in addition to the code commit. `release.ps1` turns these bullets into the ioBroker changelog (admin news + README) at release time and resets the file after the next stable release. If `RELEASE_NOTES.md` holds only `#`-comment lines, the release falls back to filtered feat/fix commit subjects. English only (the release linter rejects German). Skip purely internal changes (refactors, build/CI, dep bumps).
 
+**Issue-Referenz:** Nennt der Nutzer zu einer Aufgabe eine GitHub-Issue-Nummer oder einen Issue-Link (auch nur der Link allein, z.B. `https://github.com/hdering/ioBroker.aura/issues/519`), IMMER die ID am Ende des Bullets ergänzen — `... (#519)`. `release.ps1` löst die ID zum Markdown-Link auf (README + GitHub-Release-Notes) und schreibt in die Admin-News nur `(#519)`. Die komplette URL darf auch direkt im Bullet stehen, wird aber vom Release auf `(#519)` normalisiert. Beim Release fragt das Script zusätzlich pro Eintrag nach einem Issue-Link.
+
 ## Session End
 
 When the user signals they are done (e.g. "bye", "done", "wrap up", "end session"), proactively update `CONTEXT.md` in the project root with:
