@@ -1064,7 +1064,6 @@ export const de = {
     'cond.fromIoBroker': 'Aus ioBroker wählen',
     'cond.source': 'Wertquelle',
     'cond.srcDatapoint': 'Datenpunkt',
-    'cond.srcOwn': 'Haupt-DP',
     'cond.srcListAny': 'Liste: ein Eintrag',
     'cond.srcListAll': 'Liste: alle Einträge',
     'cond.srcListNone': 'Liste: kein Eintrag',

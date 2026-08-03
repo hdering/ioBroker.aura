@@ -1061,7 +1061,6 @@ export const en: Record<TranslationKey, string> = {
     'cond.fromIoBroker': 'Select from ioBroker',
     'cond.source': 'Value source',
     'cond.srcDatapoint': 'Datapoint',
-    'cond.srcOwn': 'Main DP',
     'cond.srcListAny': 'List: any entry',
     'cond.srcListAll': 'List: all entries',
     'cond.srcListNone': 'List: no entry',

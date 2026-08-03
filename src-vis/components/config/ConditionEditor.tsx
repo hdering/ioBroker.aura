@@ -5,6 +5,7 @@ import { JsonPathButton } from './JsonPathButton';
 import type { WidgetCondition, ConditionClause, ConditionOperator, ConditionStyle } from '../../types';
 import {
     clauseSourceOptions,
+    dropOwnDpToken,
     normalizeSourceToken,
     type DpSourceCtx,
     type SourceOption,
@@ -97,7 +98,7 @@ export function DpSourceSelect({
 // ── Clause row ────────────────────────────────────────────────────────────────
 
 export function ClauseRow({
-    clause,
+    clause: rawClause,
     isFirst,
     logic,
     onLogicToggle,
@@ -117,6 +118,10 @@ export function ClauseRow({
     /** Widget value sources (main DP / list entries) offered as a source select. */
     sourceCtx?: DpSourceCtx;
 }) {
+    // In a widget/badge clause '{dp}' and an empty field are the same thing, so only
+    // the empty field is offered. Cell clauses (ownToken set) keep the token — there
+    // it means the cell's own value.
+    const clause = ownToken ? rawClause : { ...rawClause, datapoint: dropOwnDpToken(rawClause.datapoint) };
     const t = useT();
     const [showPicker, setShowPicker] = useState(false);
     const [showValuePicker, setShowValuePicker] = useState(false);

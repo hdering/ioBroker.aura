@@ -29,12 +29,11 @@ Auswahl im Datenpunkt-Feld einer Klausel bzw. eines Markers. Bleibt das Feld lee
 | Quelle | Wert |
 | --- | --- |
 | Datenpunkt | Angegebene State-ID (leer = Haupt-Datenpunkt) |
-| Haupt-DP | Haupt-Datenpunkt des Widgets |
 | Liste: ein Eintrag / alle Einträge / kein Eintrag | Klausel gegen jeden Listeneintrag geprüft |
 | Liste: Anzahl / Anzahl aktiv | Einträge gesamt / aktive Einträge (> 0, true, nicht leer) |
 | Liste: Summe / Durchschnitt / Minimum / Maximum | Zahl-Aggregat über die Listenwerte |
 
-Listen-Quellen stehen bei `Liste` und `Dynamische Liste` zur Verfügung.
+Listen-Quellen stehen bei `Liste` und `Dynamische Liste` zur Verfügung. Das Quellen-Auswahlfeld erscheint nur dort — bei allen anderen Widgets gibt es nur das Datenpunkt-Feld, dessen leerer Zustand den Haupt-Datenpunkt bedeutet. Gruppen, Tabs und Bereiche haben keinen Haupt-Datenpunkt; dort muss die Klausel einen Datenpunkt nennen.
 
 ## Bedingungen & Marker: Operatoren
 

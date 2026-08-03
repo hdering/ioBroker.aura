@@ -6,7 +6,12 @@ import { JsonPathButton } from './JsonPathButton';
 import { IconPickerModal } from './IconPickerModal';
 import { ClauseRow, ColorField, DpSourceSelect, newClause } from './ConditionEditor';
 import { Badge, badgeDotPx, badgeTextPx } from '../common/Badge';
-import { normalizeSourceToken, valueSourceOptions, type DpSourceCtx } from '../../utils/conditionSources';
+import {
+    dropOwnDpToken,
+    normalizeSourceToken,
+    valueSourceOptions,
+    type DpSourceCtx,
+} from '../../utils/conditionSources';
 import type { BadgeDef, BadgeStyle, BadgeCorner, ConditionClause } from '../../types';
 import { useT } from '../../i18n';
 
@@ -37,12 +42,14 @@ export function newBadge(): BadgeDef {
 // equivalent clause ('active' on the same datapoint) and are rewritten on the
 // first edit; the runtime keeps evaluating unmigrated ones (see useBadges).
 function badgeForEdit(b: BadgeDef): BadgeDef {
-    if (b.visibility !== 'nonzero') return b;
+    // '{dp}' is no longer offered separately — an empty field is the main DP.
+    const base = b.dp === undefined ? b : { ...b, dp: dropOwnDpToken(b.dp) };
+    if (base.visibility !== 'nonzero') return base;
     return {
-        ...b,
+        ...base,
         visibility: 'condition',
-        logic: b.logic ?? 'AND',
-        clauses: [{ datapoint: b.dp ?? '', operator: 'active', value: '' }],
+        logic: base.logic ?? 'AND',
+        clauses: [{ datapoint: base.dp ?? '', operator: 'active', value: '' }],
     };
 }
 

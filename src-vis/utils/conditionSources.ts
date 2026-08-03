@@ -238,10 +238,14 @@ const LIST_VALUE_OPTIONS: SourceOption[] = [
     { value: listToken('max'), labelKey: 'cond.srcListMax' },
 ];
 
+// The main DP is NOT offered as its own option: an empty datapoint field already
+// means exactly that (parseSourceRef maps both to kind 'own'), so a '{dp}' entry
+// would be a second name for the same thing. Stored '{dp}' refs keep resolving;
+// the editors show them as the equivalent empty field.
+
 /** Source options for a clause (quantifiers + value aggregates). */
 export function clauseSourceOptions(ctx: DpSourceCtx | undefined): SourceOption[] {
     const out: SourceOption[] = [{ value: '', labelKey: 'cond.srcDatapoint' }];
-    if (ctx?.ownDp) out.push({ value: OWN_DP_TOKEN, labelKey: 'cond.srcOwn' });
     if (ctx?.listRefs?.length) {
         out.push(
             { value: listToken('any'), labelKey: 'cond.srcListAny' },
@@ -256,7 +260,16 @@ export function clauseSourceOptions(ctx: DpSourceCtx | undefined): SourceOption[
 /** Source options for a plain value field (badge datapoint) — no quantifiers. */
 export function valueSourceOptions(ctx: DpSourceCtx | undefined): SourceOption[] {
     const out: SourceOption[] = [{ value: '', labelKey: 'cond.srcDatapoint' }];
-    if (ctx?.ownDp) out.push({ value: OWN_DP_TOKEN, labelKey: 'cond.srcOwn' });
     if (ctx?.listRefs?.length) out.push(...LIST_VALUE_OPTIONS);
     return out;
+}
+
+/**
+ * Editor view of a datapoint ref: the legacy explicit main-DP token collapses to
+ * the empty field that now stands for it. Cell conditions use the very same
+ * token for "own cell value" — never pass their refs through here.
+ */
+export function dropOwnDpToken(ref: string | undefined | null): string {
+    const r = ref ?? '';
+    return r.trim() === OWN_DP_TOKEN ? '' : r;
 }
