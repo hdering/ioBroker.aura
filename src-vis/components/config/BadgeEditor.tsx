@@ -67,6 +67,61 @@ function BadgeRule({
     const toggleLogic = () => update({ logic: (badge.logic ?? 'AND') === 'AND' ? 'OR' : 'AND' });
 
     const condVisible = badge.visibility === 'condition';
+    // 'count' shows the DP value, so its picker belongs to the value section at the
+    // top. For 'nonzero' the very same DP is only the visibility test — render it
+    // below the visibility select, where the condition clauses also live, so both
+    // visibility modes configure themselves in the same place.
+    const valueDp = badge.style === 'count';
+    const nonzeroDp = badge.visibility === 'nonzero' && !valueDp;
+
+    const renderDpField = () => (
+        <div className="flex items-center gap-2">
+            <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                {t('badge.datapoint')}
+            </label>
+            <div className="flex gap-0.5 flex-1 min-w-0">
+                {hasSources && (
+                    <DpSourceSelect
+                        value={badge.dp ?? ''}
+                        options={srcOptions}
+                        onChange={(token) => update({ dp: token })}
+                    />
+                )}
+                {srcToken ? (
+                    <span
+                        className={`${cls} flex-1 min-w-0 flex items-center`}
+                        style={{ ...inputStyle, color: 'var(--text-secondary)' }}
+                    >
+                        {srcLabel}
+                    </span>
+                ) : (
+                    <>
+                        <input
+                            type="text"
+                            value={badge.dp ?? ''}
+                            onChange={(e) => update({ dp: e.target.value })}
+                            placeholder={sourceCtx?.ownDp ? t('cond.dpEmptyMain') : t('cond.datapointId')}
+                            className={`${cls} flex-1 font-mono min-w-0`}
+                            style={inputStyle}
+                        />
+                        <button
+                            onClick={() => setShowPicker(true)}
+                            className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            title={t('cond.fromIoBroker')}
+                        >
+                            <Database size={11} />
+                        </button>
+                        <JsonPathButton value={badge.dp ?? ''} onChange={(ref) => update({ dp: ref })} size={11} />
+                    </>
+                )}
+            </div>
+        </div>
+    );
 
     return (
         <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
@@ -160,61 +215,8 @@ function BadgeRule({
                     {/* Colour */}
                     <ColorField label={t('badge.color')} value={badge.color} onChange={(v) => update({ color: v })} />
 
-                    {/* Datapoint — drives the count value and/or the 'nonzero' visibility test */}
-                    {(badge.style === 'count' || badge.visibility === 'nonzero') && (
-                        <div className="flex items-center gap-2">
-                            <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                {t('badge.datapoint')}
-                            </label>
-                            <div className="flex gap-0.5 flex-1 min-w-0">
-                                {hasSources && (
-                                    <DpSourceSelect
-                                        value={badge.dp ?? ''}
-                                        options={srcOptions}
-                                        onChange={(token) => update({ dp: token })}
-                                    />
-                                )}
-                                {srcToken ? (
-                                    <span
-                                        className={`${cls} flex-1 min-w-0 flex items-center`}
-                                        style={{ ...inputStyle, color: 'var(--text-secondary)' }}
-                                    >
-                                        {srcLabel}
-                                    </span>
-                                ) : (
-                                    <>
-                                        <input
-                                            type="text"
-                                            value={badge.dp ?? ''}
-                                            onChange={(e) => update({ dp: e.target.value })}
-                                            placeholder={
-                                                sourceCtx?.ownDp ? t('cond.dpEmptyMain') : t('cond.datapointId')
-                                            }
-                                            className={`${cls} flex-1 font-mono min-w-0`}
-                                            style={inputStyle}
-                                        />
-                                        <button
-                                            onClick={() => setShowPicker(true)}
-                                            className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-secondary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                            title={t('cond.fromIoBroker')}
-                                        >
-                                            <Database size={11} />
-                                        </button>
-                                        <JsonPathButton
-                                            value={badge.dp ?? ''}
-                                            onChange={(ref) => update({ dp: ref })}
-                                            size={11}
-                                        />
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    )}
+                    {/* Datapoint of the displayed count value */}
+                    {valueDp && renderDpField()}
 
                     {/* Label: text + icon */}
                     {badge.style === 'label' && (
@@ -283,13 +285,19 @@ function BadgeRule({
                     </div>
 
                     {badge.visibility === 'nonzero' && (
-                        <p className="text-[9px] pl-3" style={{ color: 'var(--text-secondary)' }}>
-                            {t('badge.visNonzeroHint')}
-                        </p>
+                        <div className="space-y-1.5 pl-3 border-l-2" style={{ borderColor: 'var(--accent)44' }}>
+                            {nonzeroDp && renderDpField()}
+                            <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                                {valueDp ? t('badge.visNonzeroUsesValueDp') : t('badge.visNonzeroHint')}
+                            </p>
+                        </div>
                     )}
 
                     {condVisible && (
                         <div className="space-y-1.5 pl-3 border-l-2" style={{ borderColor: 'var(--accent)44' }}>
+                            <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                                {t('badge.visConditionHint')}
+                            </p>
                             {clauses.map((clause, i) => (
                                 <ClauseRow
                                     key={i}
