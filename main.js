@@ -1421,6 +1421,11 @@ class Aura extends utils.Adapter {
             common: { name: 'Zeitschaltuhren (timer widgets)' },
             native: {},
         });
+        await this.setObjectNotExistsAsync('panels', {
+            type: 'channel',
+            common: { name: 'Panels widget slide selectors' },
+            native: {},
+        });
 
         await this.setObjectNotExistsAsync('config.dashboard', {
             type: 'state',
@@ -2294,8 +2299,8 @@ class Aura extends utils.Adapter {
                 return;
             }
 
-            if (msg.command === 'listTimers' || msg.command === 'listLists') {
-                const ns = msg.command === 'listTimers' ? 'timers' : 'lists';
+            if (msg.command === 'listTimers' || msg.command === 'listLists' || msg.command === 'listPanels') {
+                const ns = msg.command === 'listTimers' ? 'timers' : msg.command === 'listLists' ? 'lists' : 'panels';
                 try {
                     const channels = await this.getChannelsOfAsync(ns);
                     const prefix = `${this.namespace}.${ns}.`;
@@ -2351,6 +2356,31 @@ class Aura extends utils.Adapter {
                     results.channel = e?.message || String(e);
                 }
                 this.log.info(`[lists] deleteList ${this.namespace}.${base} → ${JSON.stringify(results)}`);
+                reply({ ok: true, results });
+                return;
+            }
+
+            if (msg.command === 'deletePanel') {
+                const widgetId = String(msg.message?.widgetId || '').trim();
+                if (!/^[a-zA-Z0-9_-]+$/.test(widgetId)) {
+                    reply({ ok: false, error: `Invalid widgetId: ${widgetId}` });
+                    return;
+                }
+                const base = `panels.${widgetId}`;
+                const results = {};
+                try {
+                    await this.delObjectAsync(`${base}.activeSlide`);
+                    results.activeSlide = 'ok';
+                } catch (e) {
+                    results.activeSlide = e?.message || String(e);
+                }
+                try {
+                    await this.delObjectAsync(base);
+                    results.channel = 'ok';
+                } catch (e) {
+                    results.channel = e?.message || String(e);
+                }
+                this.log.info(`[panels] deletePanel ${this.namespace}.${base} → ${JSON.stringify(results)}`);
                 reply({ ok: true, results });
                 return;
             }

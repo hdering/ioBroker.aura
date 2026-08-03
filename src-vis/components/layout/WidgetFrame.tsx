@@ -36,6 +36,7 @@ import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { SavePresetDialog } from '../config/SavePresetDialog';
 import { FEATURES } from '../../featureFlags';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
+import { panelActiveStateId } from '../../utils/publishPanelState';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -5814,6 +5815,7 @@ export function WidgetFrame({
         | 'chips_checkDp'
         | 'carousel_item'
         | 'carousel_checkDp'
+        | 'panels_activeDp'
         | 'http_response_dp'
         | 'climate_humidityDp'
         | 'climate_targetDp'
@@ -10955,8 +10957,101 @@ export function WidgetFrame({
                                         </button>
                                     </div>
                                 );
+                                const activeDp = ((o.activeDp as string | undefined) ?? '').trim();
+                                const autoDp = panelActiveStateId(config.id);
+                                const activeDpBase = (o.activeDpBase as number | undefined) === 1 ? 1 : 0;
+                                const activeDpWrite = o.activeDpWrite !== false;
                                 return (
                                     <>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {t('panels.opt.activeDp')}
+                                            </label>
+                                            {/* Auto-provisioned datapoint — shown so the user can wire
+                                                buttons to it without hunting through the object tree. */}
+                                            <div
+                                                className="flex items-center gap-1.5 mb-1.5 px-2 py-1.5 rounded-lg"
+                                                style={{ background: 'var(--app-bg)' }}
+                                            >
+                                                <span
+                                                    className="flex-1 min-w-0 font-mono text-[10px] break-all"
+                                                    style={{
+                                                        color: activeDp ? 'var(--text-secondary)' : 'var(--accent)',
+                                                        opacity: activeDp ? 0.55 : 1,
+                                                    }}
+                                                >
+                                                    {autoDp}
+                                                </span>
+                                                <button
+                                                    onClick={() => copyToClipboard(autoDp)}
+                                                    className="shrink-0 p-1 rounded hover:opacity-70"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                    title={t('common.copy')}
+                                                >
+                                                    <Copy size={11} />
+                                                </button>
+                                            </div>
+                                            <div className="flex gap-1">
+                                                <input
+                                                    type="text"
+                                                    value={activeDp}
+                                                    onChange={(e) => set({ activeDp: e.target.value || undefined })}
+                                                    placeholder={t('panels.opt.activeDpPlaceholder')}
+                                                    className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-primary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                />
+                                                <button
+                                                    onClick={() => setPickerTarget('panels_activeDp')}
+                                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-secondary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                >
+                                                    <Database size={13} />
+                                                </button>
+                                            </div>
+                                            <p
+                                                className="text-[10px] mt-1 leading-snug"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.65 }}
+                                            >
+                                                {t('panels.opt.activeDpHint')}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {t('panels.opt.activeDpBase')}
+                                            </label>
+                                            <select
+                                                value={activeDpBase}
+                                                onChange={(e) => set({ activeDpBase: Number(e.target.value) })}
+                                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                style={{
+                                                    background: 'var(--app-bg)',
+                                                    color: 'var(--text-primary)',
+                                                    border: '1px solid var(--app-border)',
+                                                }}
+                                            >
+                                                <option value={0}>0</option>
+                                                <option value={1}>1</option>
+                                            </select>
+                                        </div>
+                                        <Toggle
+                                            label={t('panels.opt.activeDpWrite')}
+                                            value={activeDpWrite}
+                                            onToggle={() => set({ activeDpWrite: !activeDpWrite })}
+                                        />
                                         <Toggle
                                             label={t('panels.opt.loop')}
                                             value={loop}
@@ -17092,6 +17187,8 @@ export function WidgetFrame({
                             onConfigChange({ ...config, options: { ...config.options, items } });
                         } else if (pickerTarget === 'carousel_checkDp') {
                             onConfigChange({ ...config, options: { ...config.options, checkDp: id } });
+                        } else if (pickerTarget === 'panels_activeDp') {
+                            onConfigChange({ ...config, options: { ...config.options, activeDp: id } });
                         } else if (pickerTarget === 'map_marker') {
                             const mk = [...((config.options?.markers as Array<Record<string, unknown>>) ?? [])];
                             if (mk[mapMarkerPicker.idx]) {

@@ -74,7 +74,7 @@ function CopyButton({ text }: { text: string }) {
     );
 }
 
-function OrphanRow({ label, ns, items }: { label: string; ns: 'timers' | 'lists'; items: OrphanItem[] }) {
+function OrphanRow({ label, ns, items }: { label: string; ns: 'timers' | 'lists' | 'panels'; items: OrphanItem[] }) {
     const clean = items.length === 0;
     return (
         <div className="space-y-1.5">
@@ -117,11 +117,11 @@ function OrphanRow({ label, ns, items }: { label: string; ns: 'timers' | 'lists'
 
 function TimerOrphansSection() {
     const t = useT();
-    const { timer, list, loading, refresh, cleanup } = useTimerOrphans();
+    const { timer, list, panel, loading, refresh, cleanup } = useTimerOrphans();
     const [busy, setBusy] = useState(false);
     const [confirm, setConfirm] = useState(false);
 
-    const total = timer.length + list.length;
+    const total = timer.length + list.length + panel.length;
     const clean = total === 0;
     const accent = clean ? 'var(--accent-green)' : 'var(--accent-yellow)';
 
@@ -209,6 +209,7 @@ function TimerOrphansSection() {
             <div className="space-y-3 pt-1">
                 <OrphanRow label={t('dashboard.orphans.timerLabel')} ns="timers" items={timer} />
                 <OrphanRow label={t('dashboard.orphans.listLabel')} ns="lists" items={list} />
+                <OrphanRow label={t('dashboard.orphans.panelLabel')} ns="panels" items={panel} />
             </div>
         </div>
     );

@@ -20,6 +20,7 @@ export const de = {
     'common.confirm': 'Bestätigen',
     'widget.confirm.defaultPrompt': 'Wirklich schalten?',
     'common.duplicate': 'Duplizieren',
+    'common.copy': 'Kopieren',
     'common.export': 'Exportieren',
     'common.move': 'Verschieben',
     'common.reset': 'Zurücksetzen',
@@ -334,6 +335,7 @@ export const de = {
         'Jeder {ns}.timers.* und {ns}.lists.* Datenpunkt gehört zu einem existierenden Widget.',
     'dashboard.orphans.timerLabel': 'Zeitschaltuhr-DPs ohne Widget',
     'dashboard.orphans.listLabel': 'Listen-DPs ohne Widget',
+    'dashboard.orphans.panelLabel': 'Panels-DPs ohne Widget',
     'dashboard.orphans.refresh': 'Aktualisieren',
     'dashboard.orphans.cleanup': 'Aufräumen',
 
@@ -1531,6 +1533,12 @@ export const de = {
     'panels.opt.showArrows': 'Pfeil-Buttons',
     'panels.opt.autoplay': 'Automatisch weiterblättern',
     'panels.opt.interval': 'Intervall',
+    'panels.opt.activeDp': 'Steuer-Datenpunkt',
+    'panels.opt.activeDpPlaceholder': 'eigener Datenpunkt (optional)',
+    'panels.opt.activeDpHint':
+        'Der Datenpunkt oben wird automatisch angelegt und wählt das sichtbare Panel. Leer lassen oder eigenen Datenpunkt eintragen.',
+    'panels.opt.activeDpBase': 'Erstes Panel entspricht Wert',
+    'panels.opt.activeDpWrite': 'Wert zurückschreiben',
 
     // ── Carousel Widget (Chip-Streifen) ───────────────────────────────────────────
     'carousel.items.title': 'Elemente',

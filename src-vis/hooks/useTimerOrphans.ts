@@ -26,7 +26,7 @@ export interface OrphanItem {
     name: string;
 }
 
-async function fetchRemoteItems(command: 'listTimers' | 'listLists'): Promise<OrphanItem[]> {
+async function fetchRemoteItems(command: 'listTimers' | 'listLists' | 'listPanels'): Promise<OrphanItem[]> {
     const r = await sendToDirect<{ ok: boolean; items?: OrphanItem[]; widgetIds?: string[] }>(NS, command, {});
     if (r && typeof r === 'object') {
         const items = (r as { items?: OrphanItem[] }).items;
@@ -42,6 +42,7 @@ async function fetchRemoteItems(command: 'listTimers' | 'listLists'): Promise<Or
 export interface OrphansState {
     timer: OrphanItem[];
     list: OrphanItem[];
+    panel: OrphanItem[];
     loading: boolean;
     refresh: () => Promise<void>;
     cleanup: () => Promise<{ ok: number; fail: number }>;
@@ -50,29 +51,35 @@ export interface OrphansState {
 export function useTimerOrphans(): OrphansState {
     const [timer, setTimer] = useState<OrphanItem[]>([]);
     const [list, setList] = useState<OrphanItem[]>([]);
+    const [panel, setPanel] = useState<OrphanItem[]>([]);
     const [loading, setLoading] = useState(false);
 
     const refresh = useCallback(async () => {
         if (isScreenshotMode()) {
             setTimer([]);
             setList([]);
+            setPanel([]);
             return;
         }
         setLoading(true);
         try {
             const knownTimer = new Set<string>();
             const knownList = new Set<string>();
+            const knownPanel = new Set<string>();
             visitAllWidgets((w) => {
                 const tKey = timerBackendKey(w);
                 if (tKey) knownTimer.add(tKey);
                 if (w.type === 'list' || w.type === 'autolist') knownList.add(w.id);
+                if (w.type === 'panels') knownPanel.add(w.id);
             });
-            const [remoteTimer, remoteList] = await Promise.all([
+            const [remoteTimer, remoteList, remotePanel] = await Promise.all([
                 fetchRemoteItems('listTimers'),
                 fetchRemoteItems('listLists'),
+                fetchRemoteItems('listPanels'),
             ]);
             setTimer(remoteTimer.filter((it) => !knownTimer.has(it.id)));
             setList(remoteList.filter((it) => !knownList.has(it.id)));
+            setPanel(remotePanel.filter((it) => !knownPanel.has(it.id)));
         } finally {
             setLoading(false);
         }
@@ -81,16 +88,17 @@ export function useTimerOrphans(): OrphansState {
     const cleanup = useCallback(async () => {
         let ok = 0;
         let fail = 0;
-        const send = async (command: 'deleteTimer' | 'deleteList', widgetId: string) => {
+        const send = async (command: 'deleteTimer' | 'deleteList' | 'deletePanel', widgetId: string) => {
             const r = await sendToDirect<{ ok: boolean }>(NS, command, { widgetId });
             if (r && typeof r === 'object' && 'ok' in r && (r as { ok: boolean }).ok) ok++;
             else fail++;
         };
         for (const it of timer) await send('deleteTimer', it.id);
         for (const it of list) await send('deleteList', it.id);
+        for (const it of panel) await send('deletePanel', it.id);
         await refresh();
         return { ok, fail };
-    }, [timer, list, refresh]);
+    }, [timer, list, panel, refresh]);
 
     useEffect(() => {
         void refresh();
@@ -106,5 +114,5 @@ export function useTimerOrphans(): OrphansState {
         });
     }, [refresh]);
 
-    return { timer, list, loading, refresh, cleanup };
+    return { timer, list, panel, loading, refresh, cleanup };
 }

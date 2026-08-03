@@ -22,6 +22,7 @@ export const en: Record<TranslationKey, string> = {
     'common.confirm': 'Confirm',
     'widget.confirm.defaultPrompt': 'Really switch?',
     'common.duplicate': 'Duplicate',
+    'common.copy': 'Copy',
     'common.export': 'Export',
     'common.move': 'Move',
     'common.reset': 'Reset',
@@ -334,6 +335,7 @@ export const en: Record<TranslationKey, string> = {
     'dashboard.orphans.hintClean': 'Every {ns}.timers.* and {ns}.lists.* datapoint belongs to an existing widget.',
     'dashboard.orphans.timerLabel': 'Timer DPs without a widget',
     'dashboard.orphans.listLabel': 'List DPs without a widget',
+    'dashboard.orphans.panelLabel': 'Panels DPs without a widget',
     'dashboard.orphans.refresh': 'Refresh',
     'dashboard.orphans.cleanup': 'Clean up',
 
@@ -1527,6 +1529,12 @@ export const en: Record<TranslationKey, string> = {
     'panels.opt.showArrows': 'Arrow buttons',
     'panels.opt.autoplay': 'Autoplay',
     'panels.opt.interval': 'Interval',
+    'panels.opt.activeDp': 'Control datapoint',
+    'panels.opt.activeDpPlaceholder': 'own datapoint (optional)',
+    'panels.opt.activeDpHint':
+        'The datapoint above is created automatically and selects the visible panel. Leave empty or enter your own datapoint.',
+    'panels.opt.activeDpBase': 'First panel matches value',
+    'panels.opt.activeDpWrite': 'Write value back',
 
     // ── Carousel Widget (chip strip) ──────────────────────────────────────────────
     'carousel.items.title': 'Items',
