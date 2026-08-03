@@ -6,5 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-Conditions and badges - an empty datapoint field now falls back to the widget's main datapoint, and a badge's visibility datapoint is now configured right below the visibility mode
+Conditions and badges - an empty datapoint field now falls back to the widget's main datapoint, new "is active" / "is inactive" operators test a datapoint for > 0, true or non-empty, and a badge's visibility is now configured in one place through conditions
 Conditions and badges - list and dynamic list widgets can match any/all/no list entry or use the entry count, active count, sum, average, min or max

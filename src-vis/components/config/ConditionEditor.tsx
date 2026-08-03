@@ -24,6 +24,8 @@ const OPERATORS: { value: ConditionOperator; label: () => string; noValue?: bool
     { value: 'contains', label: () => t('cond.contains') },
     { value: 'true', label: () => t('cond.isTrue'), noValue: true },
     { value: 'false', label: () => t('cond.isFalse'), noValue: true },
+    { value: 'active', label: () => t('cond.isActive'), noValue: true },
+    { value: 'inactive', label: () => t('cond.isInactive'), noValue: true },
 ];
 
 const STYLE_FIELDS: { key: keyof ConditionStyle; labelKey: string }[] = [

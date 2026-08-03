@@ -1,3 +1,4 @@
+import { isActiveVal } from './groupTargets';
 import type { WidgetCondition, ConditionClause } from '../types';
 
 // Shared condition-evaluation logic. Used by useConditionStyle (widgets),
@@ -31,6 +32,10 @@ export function evaluateClause(clause: ConditionClause, raw: unknown, values: Ma
             return raw === true || raw === 1 || str === 'true' || str === '1';
         case 'false':
             return raw === false || raw === 0 || str === 'false' || str === '0';
+        case 'active':
+            return isActiveVal(raw as never);
+        case 'inactive':
+            return !isActiveVal(raw as never);
         case 'contains':
             return str.includes(cmpStr);
         default:

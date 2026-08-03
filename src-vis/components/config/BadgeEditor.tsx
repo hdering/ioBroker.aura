@@ -32,10 +32,24 @@ export function newBadge(): BadgeDef {
     return { id: `badge-${Date.now()}`, style: 'dot', corner: 'top-right', visibility: 'always' };
 }
 
+// The legacy 'nonzero' mode was just a condition with a truthiness test, so the
+// editor only offers 'always' | 'condition' now. Old badges are shown as the
+// equivalent clause ('active' on the same datapoint) and are rewritten on the
+// first edit; the runtime keeps evaluating unmigrated ones (see useBadges).
+function badgeForEdit(b: BadgeDef): BadgeDef {
+    if (b.visibility !== 'nonzero') return b;
+    return {
+        ...b,
+        visibility: 'condition',
+        logic: b.logic ?? 'AND',
+        clauses: [{ datapoint: b.dp ?? '', operator: 'active', value: '' }],
+    };
+}
+
 // ── Single badge rule ─────────────────────────────────────────────────────────
 
 function BadgeRule({
-    badge,
+    badge: rawBadge,
     onChange,
     onDelete,
     sourceCtx,
@@ -45,13 +59,14 @@ function BadgeRule({
     onDelete: () => void;
     sourceCtx?: DpSourceCtx;
 }) {
+    const badge = badgeForEdit(rawBadge);
     const t = useT();
     const [open, setOpen] = useState(true);
     const [showPicker, setShowPicker] = useState(false);
     const [showIcon, setShowIcon] = useState(false);
 
-    // Where the badge value / 'nonzero' test comes from: a plain datapoint, the
-    // widget's main DP or a list aggregate.
+    // Where the badge's count value comes from: a plain datapoint, the widget's
+    // main DP or a list aggregate.
     const srcOptions = valueSourceOptions(sourceCtx);
     const hasSources = srcOptions.length > 1;
     const srcToken = hasSources ? normalizeSourceToken(badge.dp) : '';
@@ -67,12 +82,9 @@ function BadgeRule({
     const toggleLogic = () => update({ logic: (badge.logic ?? 'AND') === 'AND' ? 'OR' : 'AND' });
 
     const condVisible = badge.visibility === 'condition';
-    // 'count' shows the DP value, so its picker belongs to the value section at the
-    // top. For 'nonzero' the very same DP is only the visibility test — render it
-    // below the visibility select, where the condition clauses also live, so both
-    // visibility modes configure themselves in the same place.
+    // Only the 'count' style needs a datapoint of its own (the number it shows).
+    // Visibility datapoints live in the clause rows below the visibility select.
     const valueDp = badge.style === 'count';
-    const nonzeroDp = badge.visibility === 'nonzero' && !valueDp;
 
     const renderDpField = () => (
         <div className="flex items-center gap-2">
@@ -269,9 +281,11 @@ function BadgeRule({
                             onChange={(e) =>
                                 update({
                                     visibility: e.target.value as BadgeDef['visibility'],
+                                    // Seed with the former 'nonzero' shortcut: the widget's own
+                                    // datapoint (empty = main DP) has to be active.
                                     clauses:
                                         e.target.value === 'condition' && !clauses.length
-                                            ? [newClause()]
+                                            ? [{ datapoint: '', operator: 'active', value: '' }]
                                             : badge.clauses,
                                 })
                             }
@@ -279,19 +293,9 @@ function BadgeRule({
                             style={inputStyle}
                         >
                             <option value="always">{t('badge.visAlways')}</option>
-                            <option value="nonzero">{t('badge.visNonzero')}</option>
                             <option value="condition">{t('badge.visCondition')}</option>
                         </select>
                     </div>
-
-                    {badge.visibility === 'nonzero' && (
-                        <div className="space-y-1.5 pl-3 border-l-2" style={{ borderColor: 'var(--accent)44' }}>
-                            {nonzeroDp && renderDpField()}
-                            <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
-                                {valueDp ? t('badge.visNonzeroUsesValueDp') : t('badge.visNonzeroHint')}
-                            </p>
-                        </div>
-                    )}
 
                     {condVisible && (
                         <div className="space-y-1.5 pl-3 border-l-2" style={{ borderColor: 'var(--accent)44' }}>

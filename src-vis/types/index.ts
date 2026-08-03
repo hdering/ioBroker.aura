@@ -392,7 +392,21 @@ export type ClickAction =
 
 // ── Conditional widget styling ────────────────────────────────────────────────
 
-export type ConditionOperator = '==' | '!=' | '>' | '>=' | '<' | '<=' | 'true' | 'false' | 'contains';
+// 'active'/'inactive' are the truthiness test (isActiveVal): > 0, true or a
+// non-empty string. Distinct from 'true'/'false', which only match true/1 resp.
+// false/0 — a dimmer at 42 is 'active' but not 'true'.
+export type ConditionOperator =
+    | '=='
+    | '!='
+    | '>'
+    | '>='
+    | '<'
+    | '<='
+    | 'true'
+    | 'false'
+    | 'active'
+    | 'inactive'
+    | 'contains';
 
 export interface ConditionClause {
     datapoint: string;
@@ -463,7 +477,10 @@ export interface BadgeDef {
     dp?: string; // 'count': datapoint ref (supports JSON path) whose live value is shown
     label?: string; // 'label': fixed text
     icon?: string; // 'label': optional Iconify id
-    visibility?: 'always' | 'nonzero' | 'condition'; // default 'always'; 'nonzero' = show when dp is active (>0 / true / non-empty)
+    // default 'always'. 'nonzero' is legacy — the editor no longer offers it and
+    // rewrites it to a 'condition' with an 'active' clause on the same dp; the
+    // runtime still evaluates stored ones (show while dp is >0 / true / non-empty).
+    visibility?: 'always' | 'nonzero' | 'condition';
     logic?: 'AND' | 'OR'; // combine clauses when visibility === 'condition'
     clauses?: ConditionClause[]; // visibility clauses (reuses the condition shape)
 }

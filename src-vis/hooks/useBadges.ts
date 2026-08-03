@@ -33,7 +33,7 @@ const EMPTY: ResolvedBadge[] = [];
 function badgeDpRefs(badges: BadgeDef[], ctx?: DpSourceCtx): string[] {
     const ids = new Set<string>();
     for (const b of badges) {
-        // The count value and the 'nonzero' visibility test both read b.dp.
+        // The count value and the legacy 'nonzero' visibility test both read b.dp.
         if (b.style === 'count' || b.visibility === 'nonzero') {
             sourceRefs(b.dp, ctx).forEach((r) => ids.add(r));
         }
@@ -61,6 +61,7 @@ function seedFromCache(refs: string[], values: Map<string, unknown>): void {
 
 function badgeVisible(b: BadgeDef, values: Map<string, unknown>, ctx?: DpSourceCtx): boolean {
     if (b.visibility === 'nonzero') {
+        // Legacy mode, kept for stored configs — see BadgeDef.visibility.
         // An empty datapoint falls back to the widget's main DP; without one
         // (and without a list token) there is nothing to test → stay hidden.
         const val = resolveRefValue(b.dp, values, ctx);
