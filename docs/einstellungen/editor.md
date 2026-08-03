@@ -21,3 +21,17 @@ Zweistufiger Assistent: Datenpunkt wählen (Widget-Typ wird automatisch erkannt)
 ![](./assets/editor-neues-widget.png)
 
 Jedes Widget bietet über sein Menü (Chevron) `Bearbeiten`, `Bedingungen`, `Klick-Aktion`, `Exportieren`, `Kopieren` und `Löschen`.
+
+## Bedingungen & Marker: Wertquelle
+
+Auswahl im Datenpunkt-Feld einer Klausel bzw. eines Markers. Bleibt das Feld leer, gilt der Haupt-Datenpunkt des Widgets.
+
+| Quelle | Wert |
+| --- | --- |
+| Datenpunkt | Angegebene State-ID (leer = Haupt-Datenpunkt) |
+| Haupt-DP | Haupt-Datenpunkt des Widgets |
+| Liste: ein Eintrag / alle Einträge / kein Eintrag | Klausel gegen jeden Listeneintrag geprüft |
+| Liste: Anzahl / Anzahl aktiv | Einträge gesamt / aktive Einträge (> 0, true, nicht leer) |
+| Liste: Summe / Durchschnitt / Minimum / Maximum | Zahl-Aggregat über die Listenwerte |
+
+Listen-Quellen stehen bei `Liste` und `Dynamische Liste` zur Verfügung.

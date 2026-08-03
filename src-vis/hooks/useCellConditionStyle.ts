@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import { evaluateClause } from '../utils/conditionEval';
+import { OWN_DP_TOKEN } from '../utils/conditionSources';
 import type { CustomCell, CellConditionRule } from '../types';
 
 // Per-cell conditional formatting for the Universal Widget's custom grid.
@@ -30,9 +31,10 @@ const EMPTY: CellCondResult = {};
  * Token that stands for the cell's own datapoint inside a clause, so the user
  * doesn't have to re-enter the DP that's already configured on the cell. An
  * empty datapoint (legacy) and a ref equal to the cell's own DP are treated the
- * same way.
+ * same way. Shared with the widget-level sources (`utils/conditionSources.ts`),
+ * where the same token means the widget's main datapoint.
  */
-export const OWN_VALUE_TOKEN = '{dp}';
+export const OWN_VALUE_TOKEN = OWN_DP_TOKEN;
 
 function isOwnRef(ref: string | undefined, ownDp: string): boolean {
     return !ref || ref === OWN_VALUE_TOKEN || ref === ownDp;

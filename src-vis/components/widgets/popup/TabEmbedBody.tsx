@@ -4,6 +4,7 @@ import { AlertTriangle } from 'lucide-react';
 import { usePopupConfigStore } from '../../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../../hooks/useEffectiveSettings';
 import { useConditionStyle, type ConditionResult } from '../../../hooks/useConditionStyle';
+import { widgetSourceCtx } from '../../../utils/conditionSources';
 import { getWidgetMap } from '../widgetMap';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import type { WidgetConfig, WidgetCondition } from '../../../types';
@@ -200,7 +201,8 @@ function cardStyleFor(w: WidgetConfig, widgetPadding: number): CSSProperties {
  */
 function ConditionProbe({ w, onResult }: { w: WidgetConfig; onResult: (id: string, r: ConditionResult) => void }) {
     const conditions = (w.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
-    const cond = useConditionStyle(conditions, w.id);
+    const srcCtx = useMemo(() => widgetSourceCtx(w), [w]);
+    const cond = useConditionStyle(conditions, w.id, srcCtx);
     useEffect(() => {
         onResult(w.id, cond);
     }, [w.id, cond, onResult]);

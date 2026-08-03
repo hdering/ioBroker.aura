@@ -1,7 +1,14 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
-import { evaluateCondition, conditionHides } from '../utils/conditionEval';
+import { conditionHides } from '../utils/conditionEval';
+import {
+    applySourceValues,
+    clauseSourceRefs,
+    evaluateConditionWithSource,
+    sourceCtxKey,
+    type DpSourceCtx,
+} from '../utils/conditionSources';
 import type { WidgetCondition, ConditionStyle } from '../types';
 
 // ── Debug logging ─────────────────────────────────────────────────────────────
@@ -170,29 +177,26 @@ export interface ConditionResult {
 // Module-level constant – same reference every time, lets React bail out of re-renders
 const EMPTY_RESULT: ConditionResult = { cssVars: {}, effect: null, hidden: false, reflow: false };
 
-function collectUniqueIds(conditions: WidgetCondition[]): string[] {
+// Real state IDs behind all clauses — token refs ('{dp}', '{list:…}') are
+// expanded to the widget's own / list datapoints via the source context.
+function collectUniqueIds(conditions: WidgetCondition[], ctx?: DpSourceCtx): string[] {
     return [
-        ...new Set(
-            conditions
-                .flatMap((c) =>
-                    c.clauses.flatMap((cl) => {
-                        const ids = [cl.datapoint];
-                        if (cl.valueType === 'datapoint' && cl.value) ids.push(cl.value);
-                        return ids;
-                    }),
-                )
-                .filter(Boolean),
-        ),
+        ...new Set(conditions.flatMap((c) => c.clauses.flatMap((cl) => clauseSourceRefs(cl, ctx))).filter(Boolean)),
     ];
 }
 
-function computeResult(conditions: WidgetCondition[], values: Map<string, unknown>): ConditionResult {
+function computeResult(
+    conditions: WidgetCondition[],
+    values: Map<string, unknown>,
+    ctx?: DpSourceCtx,
+): ConditionResult {
     const merged: Record<string, string> = {};
     let effect: 'pulse' | 'blink' | null = null;
     let hidden = false;
     let reflow = false;
+    applySourceValues(values, ctx);
     for (const cond of conditions) {
-        const matched = evaluateCondition(cond, values);
+        const matched = evaluateConditionWithSource(cond, values, ctx);
         if (matched) {
             Object.assign(merged, styleToVars(cond.style));
             if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
@@ -205,9 +209,18 @@ function computeResult(conditions: WidgetCondition[], values: Map<string, unknow
     return { cssVars: merged, effect, hidden, reflow };
 }
 
-export function useConditionStyle(conditions: WidgetCondition[], widgetId?: string): ConditionResult {
+export function useConditionStyle(
+    conditions: WidgetCondition[],
+    widgetId?: string,
+    ctx?: DpSourceCtx,
+): ConditionResult {
     const { subscribe, getState } = useIoBroker();
     const valuesRef = useRef<Map<string, unknown>>(new Map());
+    // The context object identity is up to the caller — key the effect on its
+    // content instead and read the latest object through a ref.
+    const ctxRef = useRef<DpSourceCtx | undefined>(ctx);
+    ctxRef.current = ctx;
+    const ctxKey = sourceCtxKey(ctx);
     const mountedAtRef = useRef<number>(typeof performance !== 'undefined' ? performance.now() : 0);
     const mountCountRef = useRef<number>(0);
     // Cache-aware initial state: on remount (e.g. when a widget moves between the
@@ -217,7 +230,7 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
     // On the very first page load nothing is cached yet, so we fall back to the
     // pessimistic "hidden=true" state to avoid a flash.
     const [result, setResult] = useState<ConditionResult>(() => {
-        const uniqueIds = collectUniqueIds(conditions);
+        const uniqueIds = collectUniqueIds(conditions, ctx);
         // Populate valuesRef from whatever the cache already has (even partial).
         // The cache check below decides whether we can compute synchronously.
         let cacheHits = 0;
@@ -232,7 +245,7 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
             }
         });
         if (uniqueIds.length > 0 && cacheHits === uniqueIds.length) {
-            const r = computeResult(conditions, valuesRef.current);
+            const r = computeResult(conditions, valuesRef.current, ctx);
             condLog('init (cache hit)', {
                 widgetId,
                 dps: uniqueIds,
@@ -274,7 +287,7 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
             return;
         }
 
-        const uniqueIds = collectUniqueIds(conditions);
+        const uniqueIds = collectUniqueIds(conditions, ctxRef.current);
 
         if (!uniqueIds.length) {
             setResult(EMPTY_RESULT);
@@ -310,7 +323,7 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
 
         const recompute = (trigger: string, dp?: string) => {
             const allKnown = uniqueIds.every((id) => loadedIds.has(id));
-            const next = allKnown ? computeResult(conditions, valuesRef.current) : pessimistic();
+            const next = allKnown ? computeResult(conditions, valuesRef.current, ctxRef.current) : pessimistic();
             setResult((prev) => {
                 if (
                     prev.effect === next.effect &&
@@ -380,7 +393,7 @@ export function useConditionStyle(conditions: WidgetCondition[], widgetId?: stri
             });
             unsubscribers.forEach((fn) => fn());
         };
-    }, [conditions, subscribe, getState, widgetId]);
+    }, [conditions, subscribe, getState, widgetId, ctxKey]);
 
     return result;
 }

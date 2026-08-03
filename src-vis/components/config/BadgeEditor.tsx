@@ -4,8 +4,9 @@ import { Icon } from '@iconify/react';
 import { DatapointPicker } from './DatapointPicker';
 import { JsonPathButton } from './JsonPathButton';
 import { IconPickerModal } from './IconPickerModal';
-import { ClauseRow, ColorField, newClause } from './ConditionEditor';
+import { ClauseRow, ColorField, DpSourceSelect, newClause } from './ConditionEditor';
 import { Badge, badgeDotPx, badgeTextPx } from '../common/Badge';
+import { normalizeSourceToken, valueSourceOptions, type DpSourceCtx } from '../../utils/conditionSources';
 import type { BadgeDef, BadgeStyle, BadgeCorner, ConditionClause } from '../../types';
 import { useT } from '../../i18n';
 
@@ -37,15 +38,24 @@ function BadgeRule({
     badge,
     onChange,
     onDelete,
+    sourceCtx,
 }: {
     badge: BadgeDef;
     onChange: (b: BadgeDef) => void;
     onDelete: () => void;
+    sourceCtx?: DpSourceCtx;
 }) {
     const t = useT();
     const [open, setOpen] = useState(true);
     const [showPicker, setShowPicker] = useState(false);
     const [showIcon, setShowIcon] = useState(false);
+
+    // Where the badge value / 'nonzero' test comes from: a plain datapoint, the
+    // widget's main DP or a list aggregate.
+    const srcOptions = valueSourceOptions(sourceCtx);
+    const hasSources = srcOptions.length > 1;
+    const srcToken = hasSources ? normalizeSourceToken(badge.dp) : '';
+    const srcLabel = srcToken ? t(srcOptions.find((o) => o.value === srcToken)?.labelKey ?? 'cond.srcDatapoint') : '';
 
     const update = (patch: Partial<BadgeDef>) => onChange({ ...badge, ...patch });
 
@@ -157,31 +167,51 @@ function BadgeRule({
                                 {t('badge.datapoint')}
                             </label>
                             <div className="flex gap-0.5 flex-1 min-w-0">
-                                <input
-                                    type="text"
-                                    value={badge.dp ?? ''}
-                                    onChange={(e) => update({ dp: e.target.value })}
-                                    placeholder={t('cond.datapointId')}
-                                    className={`${cls} flex-1 font-mono min-w-0`}
-                                    style={inputStyle}
-                                />
-                                <button
-                                    onClick={() => setShowPicker(true)}
-                                    className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-secondary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                    title={t('cond.fromIoBroker')}
-                                >
-                                    <Database size={11} />
-                                </button>
-                                <JsonPathButton
-                                    value={badge.dp ?? ''}
-                                    onChange={(ref) => update({ dp: ref })}
-                                    size={11}
-                                />
+                                {hasSources && (
+                                    <DpSourceSelect
+                                        value={badge.dp ?? ''}
+                                        options={srcOptions}
+                                        onChange={(token) => update({ dp: token })}
+                                    />
+                                )}
+                                {srcToken ? (
+                                    <span
+                                        className={`${cls} flex-1 min-w-0 flex items-center`}
+                                        style={{ ...inputStyle, color: 'var(--text-secondary)' }}
+                                    >
+                                        {srcLabel}
+                                    </span>
+                                ) : (
+                                    <>
+                                        <input
+                                            type="text"
+                                            value={badge.dp ?? ''}
+                                            onChange={(e) => update({ dp: e.target.value })}
+                                            placeholder={
+                                                sourceCtx?.ownDp ? t('cond.dpEmptyMain') : t('cond.datapointId')
+                                            }
+                                            className={`${cls} flex-1 font-mono min-w-0`}
+                                            style={inputStyle}
+                                        />
+                                        <button
+                                            onClick={() => setShowPicker(true)}
+                                            className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                            title={t('cond.fromIoBroker')}
+                                        >
+                                            <Database size={11} />
+                                        </button>
+                                        <JsonPathButton
+                                            value={badge.dp ?? ''}
+                                            onChange={(ref) => update({ dp: ref })}
+                                            size={11}
+                                        />
+                                    </>
+                                )}
                             </div>
                         </div>
                     )}
@@ -269,6 +299,7 @@ function BadgeRule({
                                     onLogicToggle={toggleLogic}
                                     onChange={(c) => updateClause(i, c)}
                                     onDelete={() => deleteClause(i)}
+                                    sourceCtx={sourceCtx}
                                 />
                             ))}
                             <button
@@ -309,10 +340,12 @@ function BadgeRule({
 interface BadgeEditorProps {
     badges: BadgeDef[];
     onChange: (badges: BadgeDef[]) => void;
+    /** Value sources of the owning widget (main DP / list entries). Omitted for tabs/sections. */
+    sourceCtx?: DpSourceCtx;
     style?: React.CSSProperties;
 }
 
-export function BadgeEditor({ badges, onChange, style }: BadgeEditorProps) {
+export function BadgeEditor({ badges, onChange, sourceCtx, style }: BadgeEditorProps) {
     const t = useT();
     const update = (i: number, b: BadgeDef) => onChange(badges.map((x, j) => (j === i ? b : x)));
     const remove = (i: number) => onChange(badges.filter((_, j) => j !== i));
@@ -335,7 +368,13 @@ export function BadgeEditor({ badges, onChange, style }: BadgeEditorProps) {
             )}
 
             {badges.map((b, i) => (
-                <BadgeRule key={b.id} badge={b} onChange={(nb) => update(i, nb)} onDelete={() => remove(i)} />
+                <BadgeRule
+                    key={b.id}
+                    badge={b}
+                    onChange={(nb) => update(i, nb)}
+                    onDelete={() => remove(i)}
+                    sourceCtx={sourceCtx}
+                />
             ))}
 
             <button

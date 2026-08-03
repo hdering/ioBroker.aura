@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useSyncExternalStore, Suspense } from 'react';
+import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useSyncExternalStore, Suspense } from 'react';
 import { lazyWithReload } from '../../utils/lazyWithReload';
 import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '../../utils/perfBreakdown';
 import { createPortal } from 'react-dom';
@@ -101,6 +101,7 @@ import {
     type DetectedAdapter,
 } from '../../hooks/useChartHistory';
 import { useConditionStyle, notifyHiddenState } from '../../hooks/useConditionStyle';
+import { widgetSourceCtx } from '../../utils/conditionSources';
 import { SwitchWidget } from '../widgets/SwitchWidget';
 import { ValueWidget } from '../widgets/ValueWidget';
 import { DimmerWidget } from '../widgets/DimmerWidget';
@@ -5720,6 +5721,10 @@ export function WidgetFrame({
     // Stable reference: never create a new [] on every render (would cause infinite effect loop)
     const conditions = (config.options?.conditions as WidgetCondition[] | undefined) ?? NO_CONDITIONS;
 
+    // Value sources conditions / badges may reference without naming a DP:
+    // the widget's main datapoint and — for list widgets — its entries.
+    const sourceCtx = useMemo(() => widgetSourceCtx(config), [config]);
+
     // GROUP widgets: create a fresh defId + clone children so copies are independent
     function copyConfig(src: WidgetConfig): WidgetConfig {
         if ((src.type === 'group' || src.type === 'panels') && src.options?.defId) {
@@ -5744,11 +5749,11 @@ export function WidgetFrame({
     }
 
     // Evaluate conditions against live ioBroker values
-    const conditionResult = useConditionStyle(conditions, config.id);
+    const conditionResult = useConditionStyle(conditions, config.id, sourceCtx);
 
     // Badges (overlay indicators) — stable reference like conditions above
     const badges = (config.options?.badges as BadgeDef[] | undefined) ?? NO_BADGES;
-    const resolvedBadges = useBadges(badges);
+    const resolvedBadges = useBadges(badges, sourceCtx);
 
     // Register/release this widget in the panel coordinator.
     // NOTE: do NOT clean the reflow-hidden registry here — when a widget moves
@@ -17688,6 +17693,7 @@ export function WidgetFrame({
                 <CenteredModal title="Bedingungen" onClose={() => openPanelFor(null)} wide>
                     <ConditionEditor
                         conditions={conditions}
+                        sourceCtx={sourceCtx}
                         onChange={(next) =>
                             onConfigChange({ ...config, options: { ...config.options, conditions: next } })
                         }
@@ -17699,6 +17705,7 @@ export function WidgetFrame({
                 <CenteredModal title={t('wf.menu.badges')} onClose={() => openPanelFor(null)} wide>
                     <BadgeEditor
                         badges={badges}
+                        sourceCtx={sourceCtx}
                         onChange={(next) => onConfigChange({ ...config, options: { ...config.options, badges: next } })}
                     />
                 </CenteredModal>

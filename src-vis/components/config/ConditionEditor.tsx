@@ -3,6 +3,12 @@ import { Plus, Trash2, ChevronDown, ChevronRight, Database } from 'lucide-react'
 import { DatapointPicker } from './DatapointPicker';
 import { JsonPathButton } from './JsonPathButton';
 import type { WidgetCondition, ConditionClause, ConditionOperator, ConditionStyle } from '../../types';
+import {
+    clauseSourceOptions,
+    normalizeSourceToken,
+    type DpSourceCtx,
+    type SourceOption,
+} from '../../utils/conditionSources';
 import { useT, t } from '../../i18n';
 import { ColorPicker } from '../common/ColorPicker';
 
@@ -50,6 +56,42 @@ function newCondition(): WidgetCondition {
     };
 }
 
+// ── Source select ─────────────────────────────────────────────────────────────
+
+/**
+ * Picks where a datapoint field takes its value from: a plain state id (default),
+ * the widget's main datapoint or — on list widgets — an aggregate over the list
+ * entries. The choice is stored as a token inside the datapoint string itself.
+ */
+export function DpSourceSelect({
+    value,
+    options,
+    onChange,
+    width = '108px',
+}: {
+    value: string;
+    options: SourceOption[];
+    onChange: (token: string) => void;
+    width?: string;
+}) {
+    const t = useT();
+    return (
+        <select
+            value={normalizeSourceToken(value)}
+            onChange={(e) => onChange(e.target.value)}
+            className={`${cls} shrink-0`}
+            style={{ ...inputStyle, width }}
+            title={t('cond.source')}
+        >
+            {options.map((o) => (
+                <option key={o.value} value={o.value}>
+                    {t(o.labelKey)}
+                </option>
+            ))}
+        </select>
+    );
+}
+
 // ── Clause row ────────────────────────────────────────────────────────────────
 
 export function ClauseRow({
@@ -60,6 +102,7 @@ export function ClauseRow({
     onChange,
     onDelete,
     ownToken,
+    sourceCtx,
 }: {
     clause: ConditionClause;
     isFirst: boolean;
@@ -69,6 +112,8 @@ export function ClauseRow({
     onDelete: () => void;
     /** When set (e.g. '{dp}'), a pill lets the clause reference the cell's own DP instead of typing it. */
     ownToken?: string;
+    /** Widget value sources (main DP / list entries) offered as a source select. */
+    sourceCtx?: DpSourceCtx;
 }) {
     const t = useT();
     const [showPicker, setShowPicker] = useState(false);
@@ -76,6 +121,12 @@ export function ClauseRow({
     const op = OPERATORS.find((o) => o.value === clause.operator)!;
     const isDpValue = clause.valueType === 'datapoint';
     const isOwn = !!ownToken && clause.datapoint === ownToken;
+
+    // Widget context (conditions + badges): offer the main DP / list aggregates.
+    const srcOptions = ownToken ? [] : clauseSourceOptions(sourceCtx);
+    const hasSources = srcOptions.length > 1;
+    const srcToken = hasSources ? normalizeSourceToken(clause.datapoint) : '';
+    const srcLabel = srcToken ? t(srcOptions.find((o) => o.value === srcToken)?.labelKey ?? 'cond.srcDatapoint') : '';
 
     return (
         <div className="flex items-center gap-1.5">
@@ -117,6 +168,13 @@ export function ClauseRow({
                         {ownToken}
                     </button>
                 )}
+                {hasSources && (
+                    <DpSourceSelect
+                        value={clause.datapoint}
+                        options={srcOptions}
+                        onChange={(token) => onChange({ ...clause, datapoint: token })}
+                    />
+                )}
                 {isOwn ? (
                     <span
                         className={`${cls} flex-1 min-w-0 flex items-center`}
@@ -124,13 +182,20 @@ export function ClauseRow({
                     >
                         Eigener Zellwert
                     </span>
+                ) : srcToken ? (
+                    <span
+                        className={`${cls} flex-1 min-w-0 flex items-center`}
+                        style={{ ...inputStyle, color: 'var(--text-secondary)' }}
+                    >
+                        {srcLabel}
+                    </span>
                 ) : (
                     <>
                         <input
                             type="text"
                             value={clause.datapoint}
                             onChange={(e) => onChange({ ...clause, datapoint: e.target.value })}
-                            placeholder={t('cond.datapointId')}
+                            placeholder={sourceCtx?.ownDp ? t('cond.dpEmptyMain') : t('cond.datapointId')}
                             className={`${cls} flex-1 font-mono min-w-0`}
                             style={inputStyle}
                         />
@@ -302,11 +367,13 @@ function ConditionRule({
     onChange,
     onDelete,
     context = 'widget',
+    sourceCtx,
 }: {
     condition: WidgetCondition;
     onChange: (c: WidgetCondition) => void;
     onDelete: () => void;
     context?: 'widget' | 'tab';
+    sourceCtx?: DpSourceCtx;
 }) {
     const t = useT();
     const [open, setOpen] = useState(true);
@@ -384,6 +451,7 @@ function ConditionRule({
                                 onLogicToggle={toggleLogic}
                                 onChange={(c) => updateClause(i, c)}
                                 onDelete={() => deleteClause(i)}
+                                sourceCtx={sourceCtx}
                             />
                         ))}
                     </div>
@@ -534,10 +602,12 @@ interface ConditionEditorProps {
     conditions: WidgetCondition[];
     onChange: (conditions: WidgetCondition[]) => void;
     context?: 'widget' | 'tab';
+    /** Value sources of the owning widget (main DP / list entries). Omitted for tabs. */
+    sourceCtx?: DpSourceCtx;
     style?: React.CSSProperties;
 }
 
-export function ConditionEditor({ conditions, onChange, context = 'widget', style }: ConditionEditorProps) {
+export function ConditionEditor({ conditions, onChange, context = 'widget', sourceCtx, style }: ConditionEditorProps) {
     const t = useT();
     const update = (i: number, c: WidgetCondition) => onChange(conditions.map((x, j) => (j === i ? c : x)));
 
@@ -567,6 +637,7 @@ export function ConditionEditor({ conditions, onChange, context = 'widget', styl
                     onChange={(c) => update(i, c)}
                     onDelete={() => remove(i)}
                     context={context}
+                    sourceCtx={sourceCtx}
                 />
             ))}
 
