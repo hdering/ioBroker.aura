@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.37.2 (2026-07-27)
+- Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges
+
 ## 0.37.1 (2026-07-27)
 - Import - tab/section/layout imports now keep their original size: exports record the source grid geometry and imports rescale widgets (and group children) to your grid, so a tab built on a larger grid no longer imports tiny and squeezed (legacy files without geometry are auto-fitted)
 
