@@ -565,9 +565,31 @@ export function subscribeDpValue(
     callback: (value: ioBrokerState['val'], state: ioBrokerState) => void,
 ): () => void {
     const { id, path } = splitDpRef(ref);
-    return subscribeStateDirect(id, (state) => {
+    const deliver = (state: ioBrokerState): void => {
         callback(resolveDpValue(state?.val, path) as ioBrokerState['val'], state);
-    });
+    };
+    const unsubscribe = subscribeStateDirect(id, deliver);
+    // Prime with the current value. A bare `subscribe` only yields *changes*: the
+    // connect handler's getState pass covers subscriptions that already existed
+    // when the socket connected, but a consumer mounting later (e.g. the section
+    // menu opened from the mobile hamburger — its content is portal-mounted on
+    // open) would otherwise render its placeholder until the DP happens to change.
+    if (isValidStateId(id)) {
+        const cached = stateCache.get(id);
+        if (cached) {
+            deliver(cached);
+        } else {
+            let disposed = false;
+            void getStateDirect(id).then((state) => {
+                if (!disposed && state) deliver(state);
+            });
+            return () => {
+                disposed = true;
+                unsubscribe();
+            };
+        }
+    }
+    return unsubscribe;
 }
 
 /** Get the current state of a datapoint without a React hook. */
