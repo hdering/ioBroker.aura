@@ -1125,6 +1125,7 @@ export const en: Record<TranslationKey, string> = {
     'badge.visAlways': 'Always',
     'badge.visCondition': 'When condition met',
     'badge.visConditionHint': "Empty datapoint = the widget's main datapoint",
+    'badge.visConditionHintNoMain': 'This element has no main datapoint — name one in the clause',
     'badge.tabAggregate': 'Aggregate count',
     'badge.tabAggregateHint': 'Show how many widgets on this tab currently have a badge',
     'badge.sectionAggregate': 'Aggregate count',

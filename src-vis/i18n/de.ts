@@ -1128,6 +1128,7 @@ export const de = {
     'badge.visAlways': 'Immer',
     'badge.visCondition': 'Wenn Bedingung erfüllt',
     'badge.visConditionHint': 'Leerer Datenpunkt = Haupt-Datenpunkt des Widgets',
+    'badge.visConditionHintNoMain': 'Dieses Element hat keinen Haupt-Datenpunkt — Datenpunkt in der Klausel angeben',
     'badge.tabAggregate': 'Aggregat-Anzahl',
     'badge.tabAggregateHint': 'Zeigt, wie viele Widgets in diesem Tab gerade einen Marker haben',
     'badge.sectionAggregate': 'Aggregat-Anzahl',

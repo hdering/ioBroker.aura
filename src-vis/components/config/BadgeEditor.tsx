@@ -299,8 +299,11 @@ function BadgeRule({
 
                     {condVisible && (
                         <div className="space-y-1.5 pl-3 border-l-2" style={{ borderColor: 'var(--accent)44' }}>
+                            {/* Groups, tabs and sections have no main DP, so an empty clause
+                                datapoint resolves to nothing there — say so instead of
+                                promising a fallback that cannot happen. */}
                             <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('badge.visConditionHint')}
+                                {sourceCtx?.ownDp ? t('badge.visConditionHint') : t('badge.visConditionHintNoMain')}
                             </p>
                             {clauses.map((clause, i) => (
                                 <ClauseRow
