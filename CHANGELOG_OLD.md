@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.37.3 (2026-07-27)
+- Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start
+- Mirror - the editor now marks a mirror widget with a badge showing which widget it reflects
+
 ## 0.37.2 (2026-07-27)
 - Mirror - a mirrored group now renders full-bleed like the original instead of shrinking and clipping child badges
 

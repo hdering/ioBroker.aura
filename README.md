@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.40.0 (2026-08-03)
+- 🌟 **New feature:** Conditions and badges - an empty datapoint field now falls back to the widget's main datapoint and replaces the separate "main DP" source, new "is active" / "is inactive" operators test a datapoint for > 0, true or non-empty, and a badge's visibility is now configured in one place through conditions
+- 🌟 **New feature:** Conditions and badges - list and dynamic list widgets can match any/all/no list entry or use the entry count, active count, sum, average, min or max
+
+
 ### 0.39.5 (2026-08-03)
 - 🌟 **New feature:** Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead ([#504](https://github.com/hdering/ioBroker.aura/issues/504))
 
@@ -216,11 +221,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget
 
 
-### 0.37.3 (2026-07-27)
-- Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start
-- Mirror - the editor now marks a mirror widget with a badge showing which widget it reflects
-
-
 ## License
 
 MIT License
@@ -232,6 +232,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
