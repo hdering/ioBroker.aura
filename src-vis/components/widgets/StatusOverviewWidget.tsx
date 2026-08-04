@@ -271,7 +271,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // fixed-box fill (h-full/flex-1/overflow) so the widget grows with its content.
     const autoHeight = opts.autoHeight === true;
     const rootCls = autoHeight ? 'w-full flex flex-col' : 'h-full w-full flex flex-col min-h-0';
-    const scrollCls = autoHeight ? 'overflow-visible' : 'flex-1 min-h-0 overflow-y-auto';
+    // overflow-x-hidden is required, not cosmetic: with only overflow-y set, CSS
+    // promotes the other axis from `visible` to `auto`, so the rows' -mx-1 bleed
+    // (and a wide card minmax) produced a stray horizontal scrollbar.
+    const scrollCls = autoHeight ? 'overflow-visible' : 'flex-1 min-h-0 overflow-y-auto overflow-x-hidden';
 
     // Auto-height: measure the rendered content and publish it so the Dashboard can
     // size the grid item to fit (desktop grid) instead of using the stored height.
@@ -404,7 +407,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                     className={scrollCls}
                     style={{
                         display: 'grid',
-                        gridTemplateColumns: `repeat(auto-fill, minmax(${opts.cardMinWidth ?? 96}px, 1fr))`,
+                        // min(…, 100%) so a card minimum wider than the widget shrinks
+                        // instead of overflowing the row horizontally.
+                        gridTemplateColumns: `repeat(auto-fill, minmax(min(${opts.cardMinWidth ?? 96}px, 100%), 1fr))`,
                         gap: 6,
                         alignContent: 'start',
                     }}
