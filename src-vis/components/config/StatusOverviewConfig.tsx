@@ -1,8 +1,9 @@
 import { lazy, Suspense, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, ChevronDown } from 'lucide-react';
+import { X, ChevronDown, SlidersHorizontal } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import type { StatusOverviewOptions, CategoryKey } from '../../utils/statusOverview';
+import type { NameFilterRule } from '../../utils/nameFilter';
 import { useConfigStore } from '../../store/configStore';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { ColorPicker } from '../common/ColorPicker';
@@ -11,9 +12,30 @@ import { ColorPicker } from '../common/ColorPicker';
 const AdminBatteries = lazy(() =>
     import('../../pages/admin/AdminBatteries').then((m) => ({ default: m.AdminBatteries })),
 );
+// Same for the name-filter editor — only needed once the sub-editor is opened.
+const NameFilterEditor = lazy(() => import('./NameFilterEditor').then((m) => ({ default: m.NameFilterEditor })));
 
-/** Near-fullscreen popup that hosts the battery-type assignment page. */
-function BatteryAssignModal({ onClose }: { onClose: () => void }) {
+const EMPTY_RULES: NameFilterRule[] = [];
+
+/**
+ * Popup for the sub-editors of this panel (battery assignment, name filters). Portals into
+ * the app's portal target so it also works inside the fullscreen dashboard container;
+ * CenteredModal from WidgetFrame is private, hence this local variant.
+ */
+function ConfigModal({
+    title,
+    maxWidth,
+    padded,
+    onClose,
+    children,
+}: {
+    title?: string;
+    maxWidth?: number;
+    /** Adds inner padding — needed for plain content, not for pages that pad themselves. */
+    padded?: boolean;
+    onClose: () => void;
+    children: React.ReactNode;
+}) {
     const portalTarget = usePortalTarget();
     return createPortal(
         <div
@@ -24,16 +46,19 @@ function BatteryAssignModal({ onClose }: { onClose: () => void }) {
             <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.6)' }} />
             <div
                 className="relative w-full h-full rounded-xl shadow-2xl flex flex-col overflow-hidden"
-                style={{ maxWidth: 1100, maxHeight: '94vh', background: 'var(--app-surface)' }}
+                style={{ maxWidth: maxWidth ?? 1100, maxHeight: '94vh', background: 'var(--app-surface)' }}
             >
                 {/* Fixed top bar — the close button stays visible while the content scrolls. */}
                 <div
-                    className="shrink-0 flex items-center justify-end px-3 py-2"
+                    className="shrink-0 flex items-center justify-between gap-2 px-3 py-2"
                     style={{ borderBottom: '1px solid var(--app-border)' }}
                 >
+                    <span className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                        {title ?? ''}
+                    </span>
                     <button
                         onClick={onClose}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80"
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80 shrink-0"
                         style={{
                             background: 'var(--app-bg)',
                             border: '1px solid var(--app-border)',
@@ -44,20 +69,27 @@ function BatteryAssignModal({ onClose }: { onClose: () => void }) {
                         <X size={16} />
                     </button>
                 </div>
-                <div className="flex-1 min-h-0 overflow-auto">
-                    <Suspense
-                        fallback={
-                            <div className="p-8 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                                Lädt …
-                            </div>
-                        }
-                    >
-                        <AdminBatteries />
-                    </Suspense>
-                </div>
+                <div className={`flex-1 min-h-0 overflow-auto${padded ? ' p-3' : ''}`}>{children}</div>
             </div>
         </div>,
         portalTarget ?? document.body,
+    );
+}
+
+/** Near-fullscreen popup that hosts the battery-type assignment page. */
+function BatteryAssignModal({ onClose }: { onClose: () => void }) {
+    return (
+        <ConfigModal title="Batterietypen zuordnen" onClose={onClose}>
+            <Suspense
+                fallback={
+                    <div className="p-8 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                        Lädt …
+                    </div>
+                }
+            >
+                <AdminBatteries />
+            </Suspense>
+        </ConfigModal>
     );
 }
 
@@ -134,6 +166,8 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
         onConfigChange({ ...config, options: { ...config.options, ...patch } });
 
     const [showBatteries, setShowBatteries] = useState(false);
+    const [showNameFilters, setShowNameFilters] = useState(false);
+    const nameFilterCount = o.nameFilters?.length ?? 0;
 
     // Reachability escape hatch is global (device-level), not per-widget.
     const offlineExtraPatterns = useConfigStore((s) => s.frontend.offlineExtraPatterns);
@@ -484,6 +518,56 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             Platzhalter: &lt;Raum&gt;, &lt;Gerät&gt;, &lt;DPName&gt;, &lt;Name&gt;, &lt;ID&gt;.
                             Beispiel: {'„<Raum> <Gerät>“'}.
                         </p>
+                        <button
+                            onClick={() => setShowNameFilters(true)}
+                            className="mt-1.5 w-full flex items-center justify-between gap-2 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                            style={{
+                                background: nameFilterCount ? 'var(--accent)' : 'var(--app-bg)',
+                                border: `1px solid ${nameFilterCount ? 'transparent' : 'var(--app-border)'}`,
+                                color: nameFilterCount ? '#fff' : 'var(--text-primary)',
+                            }}
+                        >
+                            <span className="flex items-center gap-1.5">
+                                <SlidersHorizontal size={13} /> Namens-Filter
+                            </span>
+                            <span
+                                className="text-[10px] px-1.5 py-0.5 rounded-full"
+                                style={{
+                                    background: nameFilterCount ? 'rgba(255,255,255,0.25)' : 'var(--app-border)',
+                                    color: nameFilterCount ? '#fff' : 'var(--text-secondary)',
+                                }}
+                            >
+                                {nameFilterCount}
+                            </span>
+                        </button>
+                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            Schneidet die Platzhalter-Texte zurecht (z. B. {'„ACTUAL_TEMPERATURE“'} → {'„Temperatur“'})
+                            — in Klartext oder per Regex, mit Vorschau. Ohne eigenes Muster wird &lt;Name&gt;
+                            angenommen.
+                        </p>
+                        {showNameFilters && (
+                            <ConfigModal
+                                title="Namens-Filter"
+                                maxWidth={640}
+                                padded
+                                onClose={() => setShowNameFilters(false)}
+                            >
+                                <Suspense
+                                    fallback={
+                                        <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                            Lädt …
+                                        </div>
+                                    }
+                                >
+                                    <NameFilterEditor
+                                        rules={o.nameFilters ?? EMPTY_RULES}
+                                        pattern={o.namePattern}
+                                        opts={{ ...o, offlineExtraPatterns, offlineInvert }}
+                                        onChange={(next) => set({ nameFilters: next.length ? next : undefined })}
+                                    />
+                                </Suspense>
+                            </ConfigModal>
+                        )}
                     </div>
                     <Toggle
                         checked={o.showCount !== false}

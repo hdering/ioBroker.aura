@@ -13,6 +13,7 @@
  */
 import type { DatapointEntry } from '../hooks/useDatapointList';
 import { getRoleDisplay } from './listEntryDisplay';
+import type { NameFilterRule } from './nameFilter';
 
 export type Severity = 'crit' | 'warn' | 'ok';
 export type CategoryKey = 'battery' | 'window' | 'light' | 'unreach' | 'alarm';
@@ -101,6 +102,7 @@ export interface StatusOverviewOptions {
     categoryBgColors?: Partial<Record<CategoryKey, string>>;
     cardMinWidth?: number; // card layout: min tile width in px (default 96)
     namePattern?: string; // device label template, tokens <Raum> <Gerät> <DPName> <Name> <ID>
+    nameFilters?: NameFilterRule[]; // text rules applied to the token values before substitution
     showTitle?: boolean; // show the widget title in the header (default true)
     showCount?: boolean; // show the hint-count chip in the header top-right (default true)
     autoHeight?: boolean; // size the widget to its content in the stacked/mobile view (default false)

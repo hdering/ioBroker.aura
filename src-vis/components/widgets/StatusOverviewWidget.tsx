@@ -35,6 +35,7 @@ import {
     type StatusItem,
     type StatusOverviewOptions,
 } from '../../utils/statusOverview';
+import { formatItemName } from '../../utils/nameFilter';
 
 /** Per-category icon + label used in section headers and rows. */
 const CATEGORY_META: Record<CategoryKey, { Icon: LucideIcon; label: string }> = {
@@ -55,28 +56,6 @@ function formatSince(lc: number): string {
     if (h < 24) return `seit ${h} h`;
     const d = Math.round(h / 24);
     return `seit ${d} d`;
-}
-
-/**
- * Format a device label from a per-widget template. Tokens (case-insensitive):
- *   <Raum> room · <Gerät>/<Geraet> device part (before " › ") · <DPName> datapoint leaf ·
- *   <Name> full composed name · <ID> full datapoint id.
- * Empty pattern → the composed name unchanged.
- */
-function formatItemName(item: StatusItem, pattern?: string): string {
-    if (!pattern) return item.name;
-    const parts = item.name.split(' › ');
-    const device = parts[0] || item.name;
-    const dpName = item.id.split('.').pop() || (parts.length > 1 ? parts[parts.length - 1] : item.name);
-    const out = pattern
-        .replace(/<Raum>/gi, item.room ?? '')
-        .replace(/<Ger(?:ä|ae)t>/gi, device)
-        .replace(/<DPName>/gi, dpName)
-        .replace(/<Name>/gi, item.name)
-        .replace(/<ID>/gi, item.id)
-        .replace(/\s+/g, ' ')
-        .trim();
-    return out || item.name;
 }
 
 /** Candidate = a datapoint that structurally belongs to a category; alert state is decided live. */
@@ -367,7 +346,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             >
                 <Icon size={14} style={{ color }} />
                 <span className="flex-1 min-w-0 truncate text-xs" style={{ color: 'var(--text-primary)' }}>
-                    {formatItemName(item, opts.namePattern)}
+                    {formatItemName(item, opts.namePattern, opts.nameFilters)}
                     {sub && <span className="ml-1 opacity-50">· {sub}</span>}
                 </span>
                 <span className="text-xs font-semibold shrink-0" style={{ color }}>
@@ -437,7 +416,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
                                     <Icon size={11} className="shrink-0" style={{ color }} />
-                                    <span className="truncate">{formatItemName(item, opts.namePattern)}</span>
+                                    <span className="truncate">
+                                        {formatItemName(item, opts.namePattern, opts.nameFilters)}
+                                    </span>
                                 </span>
                                 <span className="text-sm font-bold leading-none" style={{ color }}>
                                     {item.label}
@@ -480,7 +461,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 }}
                             >
                                 <Icon size={11} className="shrink-0" style={{ color }} />
-                                <span className="truncate max-w-[120px]">{formatItemName(item, opts.namePattern)}</span>
+                                <span className="truncate max-w-[120px]">
+                                    {formatItemName(item, opts.namePattern, opts.nameFilters)}
+                                </span>
                                 <span className="font-semibold" style={{ color }}>
                                     {item.label}
                                     {batteryLabel ? ` · ${batteryLabel}` : ''}

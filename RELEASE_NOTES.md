@@ -9,3 +9,4 @@
 
 - Section menu - datapoint elements now show their value right away when the menu is opened (mobile hamburger no longer stuck on a placeholder)
 - Status overview - no more stray horizontal scrollbar when there is enough space
+- Status overview - new name filter: reshape the name-pattern placeholders with plain-language rules (remove/replace text, keep a segment, first/last words, upper/lower case) or regex, with one-click templates and a live preview of real datapoints
