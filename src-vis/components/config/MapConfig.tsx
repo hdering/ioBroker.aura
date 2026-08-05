@@ -337,7 +337,7 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
 
                 {quickViews.length === 0 ? (
                     <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                        Chips springen per Klick zu einer festen Position auf der Karte (z.B. „Zuhause“, „Büro“).
+                        Chips springen per Klick zu einer festen Position auf der Karte (z.B. {'„Zuhause“, „Büro“'}).
                     </p>
                 ) : (
                     <>

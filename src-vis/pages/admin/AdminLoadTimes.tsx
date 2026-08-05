@@ -25,7 +25,7 @@ export function AdminLoadTimes() {
                 <p className="text-base mt-1" style={{ color: 'var(--text-secondary)' }}>
                     Backend hier offen lassen und das Frontend in einem zweiten Browser-Tab bedienen — die Werte
                     aktualisieren sich hier live, ohne die Messung zu stören. Für die Pro-Widget-Details muss in den
-                    Aura-Adapter-Einstellungen „Timing pro Widget aufzeichnen“ aktiv sein.
+                    Aura-Adapter-Einstellungen {'„Timing pro Widget aufzeichnen“'} aktiv sein.
                 </p>
                 <p
                     className="text-sm mt-2 rounded-lg px-3 py-2"

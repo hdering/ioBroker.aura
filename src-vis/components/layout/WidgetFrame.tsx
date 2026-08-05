@@ -839,7 +839,7 @@ function CalendarEditPanel({
                     })}
                 </div>
                 <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                    Spanne = Start – Ende, Badge = „läuft“ / „noch N T“ bei laufenden Terminen.
+                    Spanne = Start – Ende, Badge = {'„läuft“'} / {'„noch N T“'} bei laufenden Terminen.
                 </p>
             </div>
 
@@ -8987,7 +8987,8 @@ export function WidgetFrame({
                                     </p>
                                     <p>
                                         JSON-Pfad-Suffix möglich: <code>{'{0_userdata.0.batterie?soc}'}</code> · Zahlen
-                                        werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte als „–“
+                                        werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte als{' '}
+                                        {'„–“'}
                                     </p>
                                     <p>
                                         Beispiel:{' '}
@@ -12474,11 +12475,11 @@ export function WidgetFrame({
                                                 color: 'var(--text-secondary)',
                                             }}
                                         >
-                                            💡 Für mehr Details gibt es in den <b>Aura-Adapter-Einstellungen</b> unter
-                                            „Performance-Diagnose“ zwei Schalter: <b>Ladezeiten-Metriken aufzeichnen</b>{' '}
-                                            (Standard an) und <b>Timing pro Widget aufzeichnen</b> (Standard aus).
-                                            Letzteren aktivieren, damit die „Details“-Ansicht zeigt, welches Widget
-                                            langsam ist.
+                                            💡 Für mehr Details gibt es in den <b>Aura-Adapter-Einstellungen</b> unter{' '}
+                                            {'„Performance-Diagnose“'} zwei Schalter:{' '}
+                                            <b>Ladezeiten-Metriken aufzeichnen</b> (Standard an) und{' '}
+                                            <b>Timing pro Widget aufzeichnen</b> (Standard aus). Letzteren aktivieren,
+                                            damit die {'„Details“'}-Ansicht zeigt, welches Widget langsam ist.
                                         </div>
                                     </>
                                 );
