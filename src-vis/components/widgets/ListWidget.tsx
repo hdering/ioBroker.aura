@@ -3,6 +3,7 @@ import { Filter, List, Power } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import { formatItemName, type NameFilterRule } from '../../utils/nameFilter';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay, getThresholdColor } from '../../utils/listEntryDisplay';
@@ -87,6 +88,10 @@ export interface StaticListOptions extends GroupActionConfigOpts {
     showRoom?: boolean;
     showTitle?: boolean;
     showCount?: boolean;
+    /** Entry label template, tokens <Raum> <Gerät> <DPName> <Name> <ID>. Empty = the plain name. */
+    namePattern?: string;
+    /** Text rules applied to the token values before substitution (see utils/nameFilter). */
+    nameFilters?: NameFilterRule[];
     sortBy?: 'none' | 'label' | 'value';
     sortOrder?: 'asc' | 'desc';
     sortBy2?: 'none' | 'label' | 'value';
@@ -553,9 +558,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         return () => unsubs.forEach((u) => u());
     }, [entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Resolve rooms for showRoom display
+    // Resolve rooms for showRoom display — and for a <Raum> token in the name pattern.
+    const patternNeedsRoom = /<Raum>/i.test(opts.namePattern ?? '');
     useEffect(() => {
-        if (!opts.showRoom || entries.length === 0) return;
+        if ((!opts.showRoom && !patternNeedsRoom) || entries.length === 0) return;
         getObjectViewDirect('enum', 'enum.rooms.', 'enum.rooms.\u9999').then((result) => {
             const memberRooms = new Map<string, string[]>();
             for (const { value: obj } of result.rows) {
@@ -580,10 +586,16 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             }
             setResolvedRooms(map);
         });
-    }, [opts.showRoom, entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [opts.showRoom, patternNeedsRoom, entryKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const getLabel = (entry: StaticListEntry) =>
-        applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
+    const getLabel = (entry: StaticListEntry) => {
+        const base = applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
+        return formatItemName(
+            { id: entry.id, name: base, room: resolvedRooms[entry.id]?.[0] },
+            opts.namePattern,
+            opts.nameFilters,
+        );
+    };
 
     // Value filter (same logic as AutoListWidget) — driven by local state so
     // frontend clicks take effect immediately, not only after the config sync.

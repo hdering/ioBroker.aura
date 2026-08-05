@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
     RefreshCw,
     Search,
@@ -21,6 +21,9 @@ import { discoverDatapoints, loadFilterOptions } from '../widgets/AutoListWidget
 import type { AutoListOptions, AutoListEntry, DiscoveredDp } from '../widgets/AutoListWidget';
 import { useT } from '../../i18n';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
+import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import type { NameSource } from '../../utils/nameFilter';
+import { NameDisplayFields } from './NameDisplayFields';
 import { NS } from '../../utils/namespace';
 import { ColorPicker } from '../common/ColorPicker';
 import { Icon } from '@iconify/react';
@@ -356,6 +359,21 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     const setOpts = (patch: Partial<AutoListOptions>) => {
         onConfigChange({ ...config, options: { ...opts, ...patch } });
     };
+
+    // Name-filter preview examples — built exactly like AutoListWidget's getLabel, so the
+    // preview in the sub-editor matches what the widget will render.
+    const nameEntries = opts.entries ?? [];
+    const nameEntryKey = nameEntries.map((e) => `${e.id}|${e.label ?? ''}`).join(',');
+    const nameSamples: NameSource[] = useMemo(
+        () =>
+            nameEntries.slice(0, 6).map((e) => ({
+                id: e.id,
+                name: applyDpNameFilter(e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id),
+                room: e.rooms?.[0],
+            })),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [nameEntryKey, resolvedNames],
+    );
 
     const search = async () => {
         setLoading(true);
@@ -752,6 +770,15 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     </div>
                 )}
             </div>
+
+            {/* ── Name display (pattern + name filters) ── */}
+            <NameDisplayFields
+                pattern={opts.namePattern}
+                rules={opts.nameFilters}
+                samples={nameSamples}
+                sampleTotal={(opts.entries ?? []).length}
+                onChange={setOpts}
+            />
 
             {/* ── Settings ── */}
             <div style={{ height: 1, background: 'var(--app-border)' }} />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, TriangleAlert } from 'lucide-react';
 import {
     formatItemName,
@@ -9,23 +9,15 @@ import {
     type NameFilterRule,
     type NameSource,
 } from '../../utils/nameFilter';
-import {
-    categoryOf,
-    collectHmBatterySerials,
-    passesScope,
-    CATEGORY_ORDER,
-    type StatusOverviewOptions,
-} from '../../utils/statusOverview';
-import { ensureDatapointCache } from '../../hooks/useDatapointList';
 
 /**
- * Rule-list editor for the status-overview name pattern. Each rule reshapes one token value
+ * Rule-list editor for a widget's name pattern. Each rule reshapes one token value
  * (<Raum>, <Gerät>, …) before it is substituted into the pattern; rules on "Ergebnis" run on
  * the finished label. Order matters — rules on the same field chain.
  *
- * The preview calls the very same formatItemName the widget uses, on real datapoints from
- * the shared cache, so it cannot drift from what the widget renders. Labels are hard-coded
- * German to match StatusOverviewConfig (that panel is not internationalised).
+ * The preview calls the very same formatItemName the widget uses, on real datapoints the
+ * owning panel passes in, so it cannot drift from what the widget renders. Labels are
+ * hard-coded German to match the list/status panels (none of them is internationalised).
  */
 
 interface OpMeta {
@@ -197,63 +189,23 @@ function IconBtn({
 interface Props {
     rules: NameFilterRule[];
     pattern?: string;
-    /** Effective widget options — used to pick preview datapoints exactly like the widget does. */
-    opts: StatusOverviewOptions;
+    /** Real datapoints of the owning widget, already sliced to a handful of examples. */
+    samples: NameSource[];
+    /** How many datapoints exist in total, for the "x von y" hint. */
+    sampleTotal: number;
     onChange: (rules: NameFilterRule[]) => void;
 }
 
-export function NameFilterEditor({ rules, pattern, opts, onChange }: Props) {
-    const [samples, setSamples] = useState<NameSource[]>([]);
-    const [total, setTotal] = useState(0);
-
-    // Same discovery the widget runs (StatusOverviewWidget), so the preview shows datapoints
-    // that this widget will actually list. The cache is module-level (5 min TTL) → cheap.
-    const scopeKey = JSON.stringify([
-        opts.catBattery,
-        opts.catWindow,
-        opts.catLight,
-        opts.catUnreach,
-        opts.catAlarm,
-        opts.includeLowbatBoolean,
-        opts.lightRoleScope,
-        opts.lightsOnlyFunction,
-        opts.filterRooms,
-        opts.filterFuncs,
-        opts.filterAdapters,
-        opts.excludeIds,
-        opts.excludeIdPatterns,
-        opts.offlineExtraPatterns,
-        opts.offlineInvert,
-    ]);
-    useEffect(() => {
-        let cancelled = false;
-        ensureDatapointCache().then((cache) => {
-            if (cancelled) return;
-            const hm = collectHmBatterySerials(cache);
-            const byCat = new Map<string, NameSource[]>();
-            let count = 0;
-            for (const dp of cache) {
-                const cat = categoryOf(dp, opts, hm);
-                if (!cat) continue;
-                if (!passesScope(dp, opts)) continue;
-                count++;
-                const list = byCat.get(cat) ?? [];
-                if (list.length < 2) list.push({ id: dp.id, name: dp.name, room: dp.rooms[0] });
-                byCat.set(cat, list);
-            }
-            // Spread the examples over the active categories instead of showing six batteries.
-            const spread: NameSource[] = [];
-            for (const cat of CATEGORY_ORDER) spread.push(...(byCat.get(cat) ?? []));
-            setSamples(spread.slice(0, 6));
-            setTotal(count);
-        });
-        return () => {
-            cancelled = true;
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [scopeKey]);
-
+export function NameFilterEditor({ rules, pattern, samples, sampleTotal, onChange }: Props) {
     const rulesKey = JSON.stringify(rules);
+    // Effective template — formatItemName assumes <Name> when no pattern is set.
+    const effectivePattern = pattern || '<Name>';
+    /** A rule on a token the pattern never uses can't do anything — that needs its own message. */
+    const fieldMissing = (field: NameFilterField) => {
+        if (field === 'Ergebnis') return false;
+        const token = field === 'Gerät' ? 'Ger(?:ä|ae)t' : field;
+        return !new RegExp(`<${token}>`, 'i').test(effectivePattern);
+    };
     const preview = useMemo(
         () => samples.map((s) => ({ id: s.id, before: s.name, after: formatItemName(s, pattern, rules) })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -448,17 +400,29 @@ export function NameFilterEditor({ rules, pattern, opts, onChange }: Props) {
                                             {meta.hint}
                                         </p>
                                     )}
-                                    {ineffective[i] && (
+                                    {fieldMissing(rule.field) ? (
                                         <span
-                                            className="text-[10px] px-1.5 py-0.5 rounded-full"
-                                            style={{
-                                                background:
-                                                    'color-mix(in srgb, var(--text-secondary) 15%, transparent)',
-                                                color: 'var(--text-secondary)',
-                                            }}
+                                            className="text-[10px] flex items-center gap-1"
+                                            style={{ color: '#f59e0b' }}
                                         >
-                                            ohne Wirkung
+                                            <TriangleAlert size={11} />
+                                            {FIELD_LABEL[rule.field]} kommt im Namensmuster {'„'}
+                                            {effectivePattern}
+                                            {'“'} nicht vor — Muster ergänzen, sonst wirkt die Regel nicht.
                                         </span>
+                                    ) : (
+                                        ineffective[i] && (
+                                            <span
+                                                className="text-[10px] px-1.5 py-0.5 rounded-full"
+                                                style={{
+                                                    background:
+                                                        'color-mix(in srgb, var(--text-secondary) 15%, transparent)',
+                                                    color: 'var(--text-secondary)',
+                                                }}
+                                            >
+                                                ohne Wirkung
+                                            </span>
+                                        )
                                     )}
                                 </div>
                             )}
@@ -506,7 +470,7 @@ export function NameFilterEditor({ rules, pattern, opts, onChange }: Props) {
                 <p className="text-[11px] font-semibold mb-1" style={{ color: 'var(--text-secondary)' }}>
                     Vorschau{' '}
                     <span className="font-normal opacity-70">
-                        {total > 0 ? `(${preview.length} von ${total} Datenpunkten)` : ''}
+                        {sampleTotal > 0 ? `(${preview.length} von ${sampleTotal} Datenpunkten)` : ''}
                     </span>
                 </p>
                 {preview.length === 0 ? (

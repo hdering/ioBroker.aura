@@ -8,6 +8,7 @@ import { isRelevantDp } from '../../utils/dpRelevance';
 import { getRoleDisplay, getThresholdColor } from '../../utils/listEntryDisplay';
 import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import { formatItemName, type NameFilterRule } from '../../utils/nameFilter';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
@@ -87,6 +88,10 @@ export interface AutoListOptions extends GroupActionConfigOpts {
     /** Background color of room section headings. Default a faint tint. */
     roomHeaderBg?: string;
     filterRelevant?: boolean;
+    /** Entry label template, tokens <Raum> <Gerät> <DPName> <Name> <ID>. Empty = the plain name. */
+    namePattern?: string;
+    /** Text rules applied to the token values before substitution (see utils/nameFilter). */
+    nameFilters?: NameFilterRule[];
     /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
     valueFilter?: 'all' | 'active' | 'inactive';
     filterActiveLabel?: string;
@@ -850,8 +855,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         return () => clearInterval(timer);
     }, [runSync, syncMs]);
 
-    const getLabel = (entry: AutoListEntry) =>
-        applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
+    const getLabel = (entry: AutoListEntry) => {
+        const base = applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
+        return formatItemName({ id: entry.id, name: base, room: entry.rooms?.[0] }, opts.namePattern, opts.nameFilters);
+    };
 
     // ── Value filter ───────────────────────────────────────────────────────────
     // Driven by local state so frontend clicks take effect immediately, not

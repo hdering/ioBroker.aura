@@ -4,7 +4,7 @@
  * Unlike AutoListConfig (filter-based discovery), entries are added
  * manually one at a time via the DatapointPicker (object browser).
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Database, X, ChevronRight, Settings2, GripVertical, Plus } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
@@ -16,6 +16,9 @@ import { ValueFormatRow } from './ValueFormatRow';
 import { EntryControlsConfig } from './EntryControlsConfig';
 import { IconPickerModal } from './IconPickerModal';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
+import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import type { NameSource } from '../../utils/nameFilter';
+import { NameDisplayFields } from './NameDisplayFields';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { NS } from '../../utils/namespace';
 import { useT } from '../../i18n';
@@ -691,6 +694,20 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
         onConfigChange({ ...config, options: { ...opts, ...patch } });
     };
 
+    // Name-filter preview examples — built exactly like ListWidget's getLabel, so the
+    // preview in the sub-editor matches what the widget will render.
+    const entryKey = entries.map((e) => `${e.id}|${e.label ?? ''}`).join(',');
+    const nameSamples: NameSource[] = useMemo(
+        () =>
+            entries.slice(0, 6).map((e) => ({
+                id: e.id,
+                name: applyDpNameFilter(e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id),
+                room: lookupDatapointEntry(e.id)?.rooms[0],
+            })),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [entryKey, resolvedNames],
+    );
+
     const addEntry = (id: string, _name?: string, unit?: string) => {
         if (!id || entries.find((e) => e.id === id)) return;
         const dp = lookupDatapointEntry(id);
@@ -789,6 +806,13 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                             </p>
                         )}
                     </div>
+                    <NameDisplayFields
+                        pattern={opts.namePattern}
+                        rules={opts.nameFilters}
+                        samples={nameSamples}
+                        sampleTotal={entries.length}
+                        onChange={setOpts}
+                    />
                     <div style={{ height: 1, background: 'var(--app-border)' }} />
                 </>
             )}
