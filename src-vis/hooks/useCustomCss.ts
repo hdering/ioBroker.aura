@@ -6,6 +6,7 @@ import { useConfigStore } from '../store/configStore';
  * Apply user-defined custom CSS to the page.
  *
  * @param layoutId  Active layout for per-layout overrides.
+ * @param sectionId Active section for per-section overrides.
  * @param inEditor  When true, the caller is the admin editor — execution is
  *                  gated additionally on `customCSSInEditor`.
  */

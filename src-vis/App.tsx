@@ -657,12 +657,15 @@ export default function App() {
     // override is active, we snap back so the DP truly wins. Without this guard
     // the frontend briefly flashes to the DP value, then reverts to the saved
     // theme once the config arrives.
+    const layoutId = layout?.id;
+    const sectionId = section?.id;
+    const sectionThemeId = section?.settings?.themeId;
     useEffect(() => {
         const applyOverride = () => {
             const v = themeModeOverride.value;
             if (!v) return;
             if (useThemeStore.getState().themeId !== v) setTheme(v);
-            if (layout && section?.settings?.themeId) clearSectionSettings(layout.id, section.id, 'themeId');
+            if (layoutId && sectionId && sectionThemeId) clearSectionSettings(layoutId, sectionId, 'themeId');
         };
         const unsubDP = subscribeStateDirect(`${NS}.config.themeMode.frontend`, (state) => {
             if (state?.val == null) return;
@@ -684,7 +687,7 @@ export default function App() {
             unsubDP();
             unsubStore();
         };
-    }, [setTheme, layout?.id, section?.id, section?.settings?.themeId, clearSectionSettings]);
+    }, [setTheme, layoutId, sectionId, sectionThemeId, clearSectionSettings]);
 
     // Activate tab when URL slug changes
     useEffect(() => {
