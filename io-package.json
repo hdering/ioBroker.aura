@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.41.1",
+    "version": "0.41.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.41.2": {
+        "en": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "de": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "ru": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "pt": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "nl": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "fr": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "it": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "es": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "pl": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "uk": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
+        "zh-cn": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions"
+      },
       "0.41.1": {
         "en": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
         "de": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
         "uk": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
         "zh-cn": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)"
-      },
-      "0.39.2": {
-        "en": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "de": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "ru": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "pt": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "nl": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "fr": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "it": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "es": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "pl": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "uk": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
-        "zh-cn": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)"
       }
     }
   },
