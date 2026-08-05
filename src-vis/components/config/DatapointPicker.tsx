@@ -1125,8 +1125,11 @@ export function DatapointPicker({
     };
 
     return createPortal(
+        // Above every other overlay tier: the 9999 layer (CenteredModal, dropdowns)
+        // and the 10000 one (ConfigModal, JsonPathButton). The picker is always
+        // opened *from* one of those, so it must never end up behind its opener.
         <div
-            className="fixed inset-0 bg-black/70 z-[9999]"
+            className="fixed inset-0 bg-black/70 z-[10050]"
             style={themeVars}
             onMouseDown={(e) => e.stopPropagation()}
             onMouseMove={(e) => e.stopPropagation()}
