@@ -1191,6 +1191,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
         const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
         return l.activeSectionId;
     });
+    const layoutId = useDashboardStore((s) => (s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0]).id);
     const setActiveSection = useDashboardStore((s) => s.setActiveSection);
     const addSection = useDashboardStore((s) => s.addSection);
     const updateSection = useDashboardStore((s) => s.updateSection);
@@ -1227,9 +1228,15 @@ const SectionSwitcher = memo(function SectionSwitcher() {
             className="flex items-center gap-1.5 px-3 py-1.5 overflow-x-auto"
             style={{ background: 'var(--app-bg)', borderBottom: '1px solid var(--app-border)' }}
         >
-            <span className="text-[10px] font-semibold shrink-0 mr-1" style={{ color: 'var(--text-secondary)' }}>
+            <a
+                href={`#/admin/layouts?expand=${layoutId}`}
+                title={t('sections.manage')}
+                className="text-[10px] font-semibold shrink-0 mr-1 inline-flex items-center gap-0.5 hover:underline"
+                style={{ color: 'var(--text-secondary)' }}
+            >
                 {t('sections.title')}:
-            </span>
+                <ExternalLink size={9} />
+            </a>
             {sections.map((sec) => {
                 const isActive = sec.id === activeSectionId;
                 return (

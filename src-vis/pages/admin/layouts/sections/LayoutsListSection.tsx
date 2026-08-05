@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -801,6 +801,8 @@ interface LayoutRowProps {
     layout: DashboardLayout;
     isOnly: boolean;
     isFirst: boolean;
+    /** Deep-linked via `?expand=<layoutId>` — start with the section list open. */
+    autoExpand: boolean;
     index: number;
     dragIdx: number | null;
     dragOverIdx: number | null;
@@ -814,6 +816,7 @@ function LayoutRow({
     layout,
     isOnly,
     isFirst,
+    autoExpand,
     index,
     dragIdx,
     dragOverIdx,
@@ -834,7 +837,15 @@ function LayoutRow({
     const [dupName, setDupName] = useState(`${layout.name} (Kopie)`);
     const [showDup, setShowDup] = useState(false);
     const [showExport, setShowExport] = useState(false);
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(autoExpand);
+    const rowRef = useRef<HTMLSpanElement>(null);
+
+    // Deep link (`?expand=…`) — open the section list and bring the row into view.
+    useEffect(() => {
+        if (!autoExpand) return;
+        setExpanded(true);
+        rowRef.current?.scrollIntoView({ block: 'nearest' });
+    }, [autoExpand]);
 
     const hash = isFirst ? '#/' : `#/view/${layout.slug}`;
 
@@ -893,6 +904,7 @@ function LayoutRow({
                     <GripVertical size={14} />
                 </span>
                 <span
+                    ref={rowRef}
                     className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                     style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
                 >
@@ -1178,6 +1190,8 @@ interface LayoutsListSectionProps {
     onNewNameChange: (v: string) => void;
     onCreate: () => void;
     onCancelNew: () => void;
+    /** From `?expand=<layoutId>` — that layout starts with its section list open. */
+    expandLayoutId?: string | null;
 }
 
 export function LayoutsListSection({
@@ -1187,6 +1201,7 @@ export function LayoutsListSection({
     onNewNameChange,
     onCreate,
     onCancelNew,
+    expandLayoutId,
 }: LayoutsListSectionProps) {
     const t = useT();
     const { layouts, reorderLayouts, addLayoutFromImport } = useDashboardStore();
@@ -1319,6 +1334,7 @@ export function LayoutsListSection({
                         layout={layout}
                         isOnly={layouts.length === 1}
                         isFirst={layouts[0]?.id === layout.id}
+                        autoExpand={!!expandLayoutId && layout.id === expandLayoutId}
                         index={idx}
                         dragIdx={dragIdx}
                         dragOverIdx={dragOverIdx}
