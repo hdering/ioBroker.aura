@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.38.0 (2026-07-28)
+- 🌟 **New feature:** Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget
+
 ## 0.37.3 (2026-07-27)
 - Mirror - picking a source now adopts its size and frame look, and a mirrored group hugs its children exactly like the original, so the mirror matches the source 1:1 from the start
 - Mirror - the editor now marks a mirror widget with a badge showing which widget it reflects

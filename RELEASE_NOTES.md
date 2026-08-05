@@ -6,7 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-
-- Section menu - datapoint elements now show their value right away when the menu is opened (mobile hamburger no longer stuck on a placeholder)
-- Status overview - no more stray horizontal scrollbar when there is enough space
-- Status overview, static list and dynamic list - new name pattern with name filter: reshape the placeholder texts with plain-language rules (remove/replace text, keep a segment, first/last words, upper/lower case) or regex, with one-click templates and a live preview of real datapoints; the filter dialog can be moved and resized

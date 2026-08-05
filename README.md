@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.41.0 (2026-08-05)
+- Section menu - datapoint elements now show their value right away when the menu is opened (mobile hamburger no longer stuck on a placeholder)
+- Status overview - no more stray horizontal scrollbar when there is enough space
+- 🌟 **New feature:** Status overview, static list and dynamic list - new name pattern with name filter: reshape the placeholder texts with plain-language rules (remove/replace text, keep a segment, first/last words, upper/lower case) or regex, with one-click templates and a live preview of real datapoints; the filter dialog can be moved and resized ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
+
+
 ### 0.40.0 (2026-08-03)
 - 🌟 **New feature:** Conditions and badges - an empty datapoint field now falls back to the widget's main datapoint and replaces the separate "main DP" source, new "is active" / "is inactive" operators test a datapoint for > 0, true or non-empty, and a badge's visibility is now configured in one place through conditions
 - 🌟 **New feature:** Conditions and badges - list and dynamic list widgets can match any/all/no list entry or use the entry count, active count, sum, average, min or max
@@ -217,10 +223,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Popup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered
 
 
-### 0.38.0 (2026-07-28)
-- 🌟 **New feature:** Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget
-
-
 ## License
 
 MIT License
@@ -232,6 +234,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
