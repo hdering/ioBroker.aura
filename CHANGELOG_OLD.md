@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.38.3 (2026-07-28)
+- 🌟 **New feature:** Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels
+
 ## 0.38.2 (2026-07-28)
 - Copy/Move widget - target list is now grouped per section, so tabs with the same name (e.g. Dashboard) in different sections are no longer ambiguous
 - Copy/Move widget - the target menu now scrolls when it has more entries than fit on the screen

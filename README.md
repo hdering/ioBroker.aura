@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.42.0 (2026-08-05)
+- 🌟 **New feature:** Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger ([#523](https://github.com/hdering/ioBroker.aura/issues/523))
+- 🌟 **New feature:** Popups - scripts can open a popup view via aura.0.popup.open or per client ([#523](https://github.com/hdering/ioBroker.aura/issues/523))
+
+
 ### 0.41.2 (2026-08-05)
 - fix(lint): resolve remaining eslint warnings
 - fix(ui): wrap German typographic quotes in JSX expressions
@@ -216,10 +221,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Room Climate - now supports the standard status datapoints (battery/UNREACH), auto-detected on insert and shown as badges like other sensor widgets
 
 
-### 0.38.3 (2026-07-28)
-- 🌟 **New feature:** Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels
-
-
 ## License
 
 MIT License
@@ -231,6 +232,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

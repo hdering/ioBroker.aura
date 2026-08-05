@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.41.2",
+    "version": "0.42.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.42.0": {
+        "en": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "de": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "ru": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "pt": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "nl": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "fr": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "it": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "es": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "pl": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "uk": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
+        "zh-cn": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)"
+      },
       "0.41.2": {
         "en": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
         "de": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
         "uk": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
         "zh-cn": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)"
-      },
-      "0.39.3": {
-        "en": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "de": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "ru": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "pt": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "nl": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "fr": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "it": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "es": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "pl": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "uk": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)",
-        "zh-cn": "🌟 New feature: Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget\n🌟 New feature: Chart (advanced) - new \"Consumption (difference)\" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero (#521)"
       }
     }
   },
