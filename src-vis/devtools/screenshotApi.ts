@@ -22,6 +22,8 @@ import {
 } from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
 import { useGroupDefsStore } from '../store/groupDefsStore';
+import { usePopupConfigStore, type PopupTrigger } from '../store/popupConfigStore';
+import { __devForceDpTriggers } from '../components/widgets/popup/DpPopupTriggers';
 import { useThemeStore } from '../store/themeStore';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
 import type { WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
@@ -168,6 +170,14 @@ function installScreenshotApi(): void {
          *  Unlisted commands fall through to the real socket. */
         mockSendTo(byCommand: Record<string, unknown>): void {
             __devSetSendTo((_t, command) => (command in byCommand ? byCommand[command] : undefined));
+        },
+
+        /** Seed datapoint popup triggers and arm them (screenshot mode disables
+         *  them by default so a real trigger can't pop into a shot). `false`
+         *  clears and disarms. Reset writes stay blocked in screenshot mode. */
+        dpTriggers(triggers: PopupTrigger[] | false): void {
+            __devForceDpTriggers(triggers !== false);
+            withSuppressedDirty(() => usePopupConfigStore.setState({ triggers: triggers === false ? [] : triggers }));
         },
     };
 

@@ -42,7 +42,9 @@ import type { FrontendSettings } from './store/configStore';
 import { discardPending } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { markWidgetPresetsHydrated } from './store/widgetPresetsStore';
-import { usePopupConfigStore } from './store/popupConfigStore';
+import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
+import { usePopupRuntimeStore } from './store/popupRuntimeStore';
+import { DpPopupTriggers } from './components/widgets/popup/DpPopupTriggers';
 import { NS } from './utils/namespace';
 import { baseDpId } from './utils/dpRef';
 import { initPerfMetrics, setPerfTracking, reportBackendPing } from './utils/perfMetrics';
@@ -727,6 +729,46 @@ export default function App() {
         [tabs, navigate],
     );
 
+    // Shared popup.open handler (global + per-client). Accepts a popup-view id or
+    // name, or a JSON payload {view, dp, title} where `dp` becomes the view's
+    // {{dp}} context. Clears the datapoint afterwards, like handleNavigate.
+    const handlePopupOpen = useCallback((val: string, clearId: string) => {
+        if (!val) return;
+        let viewRef = val;
+        let dp: string | undefined;
+        let title: string | undefined;
+        if (val.startsWith('{')) {
+            try {
+                const payload = JSON.parse(val) as { view?: string; dp?: string; title?: string };
+                viewRef = String(payload.view ?? '').trim();
+                dp = payload.dp ? String(payload.dp) : undefined;
+                title = payload.title ? String(payload.title) : undefined;
+            } catch {
+                console.warn('[aura] popup.open: invalid JSON payload', val);
+                setStateDirect(clearId, '');
+                return;
+            }
+        }
+        const views = usePopupConfigStore.getState().views;
+        const view =
+            views.find((v) => v.id === viewRef) ?? views.find((v) => v.name.toLowerCase() === viewRef.toLowerCase());
+        if (!view) {
+            console.warn('[aura] popup.open: unknown popup view', viewRef);
+            setStateDirect(clearId, '');
+            return;
+        }
+        usePopupRuntimeStore.getState().openPopup({
+            key: `dp:${clearId}`,
+            widget: {
+                ...newTriggerHost(),
+                title: title ?? view.name,
+                datapoint: dp ?? '',
+            },
+            action: { kind: 'popup-view', viewId: view.id, dp },
+        });
+        setStateDirect(clearId, '');
+    }, []);
+
     // Subscribe to global navigate datapoint (affects all clients)
     useEffect(() => {
         const dp = `${NS}.navigate.url`;
@@ -808,6 +850,24 @@ export default function App() {
             handleNavigate(String(state.val ?? '').trim(), dpId);
         });
     }, [subscribe, clientId, layout?.id, handleNavigate]);
+
+    // Subscribe to the popup.open datapoints (global + per client). Same
+    // write-then-self-clear contract as navigate.url above.
+    // Payload: a popup-view name or id, or JSON {"view":"…","dp":"…","title":"…"}.
+    useEffect(() => {
+        const globalId = `${NS}.popup.open`;
+        const clientDpId = `${NS}.clients.${clientId}.popup.open`;
+        const unsubGlobal = subscribe(globalId, (state) => {
+            handlePopupOpen(String(state.val ?? '').trim(), globalId);
+        });
+        const unsubClient = subscribe(clientDpId, (state) => {
+            handlePopupOpen(String(state.val ?? '').trim(), clientDpId);
+        });
+        return () => {
+            unsubGlobal();
+            unsubClient();
+        };
+    }, [subscribe, clientId, handlePopupOpen]);
 
     const layoutUrlBase = viewBase;
 
@@ -946,6 +1006,7 @@ export default function App() {
         >
             <ConnectionIndicator showBadge={showBadge} />
             {showClientIdBadge && <ClientIdBadge />}
+            <DpPopupTriggers layoutId={layout?.id} tabId={activeTabId} />
             {drawerFloating && (
                 <LayoutDrawer
                     activeLayoutId={layout?.id}

@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
-import type { WidgetConfig, WidgetLayout } from '../types';
+import type { ClickAction, ConditionClause, WidgetConfig, WidgetLayout } from '../types';
 
 export interface PopupView {
     id: string;
@@ -17,6 +17,48 @@ export interface PopupView {
     // Absent on built-ins and on views persisted before this field existed —
     // use viewCreatedAt() instead of reading it directly.
     createdAt?: number;
+}
+
+/**
+ * A datapoint-driven popup rule: when `clause` turns true, the popup described by
+ * `host.options.clickAction` opens — no widget click involved (issue #523).
+ *
+ * `host` is a *headless* WidgetConfig. Keeping the whole config (instead of just a
+ * ClickAction) means ClickActionEditor edits it unchanged and WidgetClickPopup
+ * renders it unchanged, so popupTitle / popupWidth / popupHeight /
+ * popupAutoCloseSec and the `{{dp}}` substitution in popup views all work for
+ * free. `host.datapoint` mirrors `clause.datapoint` so a single popup view can
+ * serve many triggers via its `{{dp}}` placeholders.
+ */
+export interface PopupTrigger {
+    id: string;
+    name: string;
+    enabled: boolean;
+    clause: ConditionClause;
+    host: WidgetConfig;
+    /** Write `resetValue` back to the trigger DP after opening ("button mode"). */
+    resetDp: boolean;
+    /** Value written on reset. Empty/undefined = boolean false. */
+    resetValue?: string;
+    /** Close an open popup again as soon as the clause no longer matches. */
+    closeOnFalse?: boolean;
+    /** Restrict to these client ids (aura.0.clients.<id>). Empty/undefined = all clients. */
+    clientIds?: string[];
+    /** Restrict to one layout — and optionally one tab inside it. */
+    layoutId?: string;
+    tabId?: string;
+    createdAt?: number;
+}
+
+export function newTriggerHost(): WidgetConfig {
+    return {
+        id: `ptw-${Date.now()}`,
+        type: 'value',
+        title: '',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 1, h: 1 },
+        options: { clickAction: { kind: 'none' } satisfies ClickAction },
+    };
 }
 
 /**
@@ -75,6 +117,8 @@ interface PopupConfigState {
     removedBuiltinTypeDefaults: string[]; // builtin widget types whose default was explicitly removed
     // Global auto-close fallback: undefined = no auto-close, >0 = seconds
     globalAutoCloseSec?: number;
+    // Datapoint-driven popups (issue #523)
+    triggers: PopupTrigger[];
 
     // Type defaults
     setTypeDefault: (widgetType: string, viewId: string) => void;
@@ -94,6 +138,12 @@ interface PopupConfigState {
     // Global
     setGlobalAutoCloseSec: (sec: number | undefined) => void;
 
+    // DP triggers
+    addTrigger: (name: string) => string;
+    updateTrigger: (triggerId: string, patch: Partial<PopupTrigger>) => void;
+    removeTrigger: (triggerId: string) => void;
+    copyTrigger: (triggerId: string) => string;
+
     // Builtins
     ensureBuiltins: () => void;
     restoreBuiltin: (viewId: string) => void;
@@ -110,6 +160,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             deletedBuiltinIds: [],
             removedBuiltinTypeDefaults: [],
             globalAutoCloseSec: undefined,
+            triggers: [],
 
             setTypeDefault: (widgetType, viewId) =>
                 set((s) => ({ typeDefaults: { ...s.typeDefaults, [widgetType]: viewId } })),
@@ -177,6 +228,56 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                 })),
 
             setGlobalAutoCloseSec: (sec) => set({ globalAutoCloseSec: sec }),
+
+            addTrigger: (name) => {
+                const id = `pt-${Date.now()}`;
+                set((s) => ({
+                    triggers: [
+                        ...s.triggers,
+                        {
+                            id,
+                            name,
+                            enabled: true,
+                            // 'true' is the operator the issue asks for: DP goes true → popup opens.
+                            clause: { datapoint: '', operator: 'true', value: '' },
+                            host: newTriggerHost(),
+                            resetDp: true,
+                            createdAt: Date.now(),
+                        },
+                    ],
+                }));
+                return id;
+            },
+
+            updateTrigger: (triggerId, patch) =>
+                set((s) => ({
+                    triggers: s.triggers.map((t) => (t.id === triggerId ? { ...t, ...patch } : t)),
+                })),
+
+            removeTrigger: (triggerId) => set((s) => ({ triggers: s.triggers.filter((t) => t.id !== triggerId) })),
+
+            copyTrigger: (triggerId) => {
+                const newId = `pt-${Date.now()}`;
+                set((s) => {
+                    const source = s.triggers.find((t) => t.id === triggerId);
+                    if (!source) return s;
+                    return {
+                        triggers: [
+                            ...s.triggers,
+                            {
+                                ...source,
+                                id: newId,
+                                name: `${source.name} (Kopie)`,
+                                clause: { ...source.clause },
+                                host: { ...source.host, id: `ptw-${Date.now()}`, options: { ...source.host.options } },
+                                clientIds: source.clientIds ? [...source.clientIds] : undefined,
+                                createdAt: Date.now(),
+                            },
+                        ],
+                    };
+                });
+                return newId;
+            },
 
             addWidgetToView: (viewId, widget) =>
                 set((s) => ({

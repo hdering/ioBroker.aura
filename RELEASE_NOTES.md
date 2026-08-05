@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)
+Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)

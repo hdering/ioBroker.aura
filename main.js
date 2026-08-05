@@ -599,6 +599,24 @@ class Aura extends utils.Adapter {
             // Populate the freshly-created selector with the current view/tab list.
             await this._syncNavigateTargets();
 
+            await this.setObjectNotExistsAsync(`clients.${cId}.popup`, {
+                type: 'channel',
+                common: { name: 'Popups' },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync(`clients.${cId}.popup.open`, {
+                type: 'state',
+                common: {
+                    name: 'Open a popup view (name, id or JSON {view,dp,title})',
+                    type: 'string',
+                    role: 'text',
+                    read: true,
+                    write: true,
+                    def: '',
+                },
+                native: {},
+            });
+
             await this.setStateAsync(`clients.${cId}.info.name`, { val: displayName, ack: true });
             await this.setStateAsync(`clients.${cId}.info.lastSeen`, { val: Date.now(), ack: true });
             if (reg.userAgent) {
@@ -1374,6 +1392,48 @@ class Aura extends utils.Adapter {
         }
     }
 
+    /**
+     * Backfill `clients.<id>.popup.open` for clients that registered before that DP
+     * existed. New clients get it from the register relay; the frontend only
+     * re-registers on first contact, so existing ones would never see it.
+     * Enumerated via navigate.url, which every client has.
+     */
+    async _ensureClientPopupStates() {
+        try {
+            const view = await this.getObjectViewAsync('system', 'state', {
+                startkey: `${this.namespace}.clients.`,
+                endkey: `${this.namespace}.clients.￿`,
+            });
+            for (const row of (view && view.rows) || []) {
+                if (!row.id.endsWith('.navigate.url')) continue;
+                const base = row.id.slice(this.namespace.length + 1).replace(/\.navigate\.url$/, '');
+                try {
+                    await this.setObjectNotExistsAsync(`${base}.popup`, {
+                        type: 'channel',
+                        common: { name: 'Popups' },
+                        native: {},
+                    });
+                    await this.setObjectNotExistsAsync(`${base}.popup.open`, {
+                        type: 'state',
+                        common: {
+                            name: 'Open a popup view (name, id or JSON {view,dp,title})',
+                            type: 'string',
+                            role: 'text',
+                            read: true,
+                            write: true,
+                            def: '',
+                        },
+                        native: {},
+                    });
+                } catch {
+                    /* ignore a client object that vanished mid-sync */
+                }
+            }
+        } catch (e) {
+            this.log.warn(`[popup] ensure client popup states failed: ${e.message}`);
+        }
+    }
+
     async onReady() {
         this.log.info('aura adapter started');
 
@@ -1794,6 +1854,7 @@ class Aura extends utils.Adapter {
         this.subscribeStates('clients.*.navigate.target');
         this.subscribeStates('config.dashboard');
         await this._syncNavigateTargets();
+        await this._ensureClientPopupStates();
 
         // ── Timer widget scheduler ─────────────────────────────────────────────
         // Subscribe to per-widget config/enabled DPs and run a tick to evaluate

@@ -9,13 +9,20 @@ import {
     BUILTIN_VIEW_IDS,
     BUILTIN_VIEWS,
     type PopupView,
+    type PopupTrigger,
 } from '../../store/popupConfigStore';
+import { useDashboardStore } from '../../store/dashboardStore';
+import { getObjectViewDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { NS } from '../../utils/namespace';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
+import { ClickActionEditor } from '../../components/config/ClickActionEditor';
+import { ClauseRow, newClause } from '../../components/config/ConditionEditor';
+import { ConfigModal } from '../../components/config/ConfigModal';
 import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { getAvailableLayouts } from '../../utils/widgetLayouts';
 import { exportPopupView, importPopupView } from '../../utils/widgetExportImport';
-import type { WidgetLayout } from '../../types';
+import type { ClickAction, WidgetLayout } from '../../types';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
 
@@ -866,6 +873,452 @@ function GlobalSettingsSection() {
     );
 }
 
+// ── DP triggers section ───────────────────────────────────────────────────────
+
+/** Known clients (id + display name) for the per-trigger scope filter. */
+function useClientList(): { clientId: string; name: string }[] {
+    const [clients, setClients] = useState<{ clientId: string; name: string }[]>([]);
+    useEffect(() => {
+        let cancelled = false;
+        void (async () => {
+            const result = await getObjectViewDirect('channel', `${NS}.clients.`, `${NS}.clients.香`);
+            // Only direct client channels: aura.0.clients.<clientId> → exactly 4 dot-segments
+            const rows = result.rows.filter((r) => r.id.split('.').length === 4);
+            const data = await Promise.all(
+                rows.map(async (row) => {
+                    const cId = row.id.split('.')[3];
+                    const nameState = await getStateDirect(`${row.id}.info.name`);
+                    return { clientId: cId, name: nameState?.val ? String(nameState.val) : cId.slice(0, 8) };
+                }),
+            );
+            if (!cancelled) setClients(data.sort((a, b) => byLabel(a.name, b.name)));
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+    return clients;
+}
+
+/** Short human label for a trigger's popup target, shown in the list row. */
+function actionLabel(action: ClickAction | undefined): string {
+    if (!action || action.kind === 'none') return 'kein Ziel';
+    switch (action.kind) {
+        case 'popup-view':
+            return 'Popup-View';
+        case 'popup-image':
+            return 'Bild';
+        case 'popup-iframe':
+            return 'Webseite';
+        case 'popup-json':
+            return 'JSON';
+        case 'popup-html':
+            return 'HTML';
+        case 'popup-widget':
+            return 'Widget-Inhalt';
+        default:
+            return action.kind.startsWith('popup-') ? 'Popup' : 'Sprung';
+    }
+}
+
+function TriggerEditModal({ trigger, onClose }: { trigger: PopupTrigger; onClose: () => void }) {
+    const updateTrigger = usePopupConfigStore((s) => s.updateTrigger);
+    const layouts = useDashboardStore((s) => s.layouts);
+    const clients = useClientList();
+
+    const patch = (p: Partial<PopupTrigger>) => updateTrigger(trigger.id, p);
+
+    const tabsForLayout = (layouts.find((l) => l.id === trigger.layoutId)?.sections ?? []).flatMap((sec) =>
+        sec.tabs.map((tab) => ({ tab, sectionName: sec.name })),
+    );
+
+    const toggleClient = (clientId: string) => {
+        const cur = trigger.clientIds ?? [];
+        patch({ clientIds: cur.includes(clientId) ? cur.filter((c) => c !== clientId) : [...cur, clientId] });
+    };
+
+    return (
+        <ConfigModal title={`Trigger: ${trigger.name}`} maxWidth={720} padded onClose={onClose}>
+            <div className="space-y-4">
+                <div>
+                    <label className="text-[11px] mb-1 block" style={labelStyle}>
+                        Name
+                    </label>
+                    <input
+                        type="text"
+                        value={trigger.name}
+                        onChange={(e) => patch({ name: e.target.value })}
+                        className={inputCls}
+                        style={inputStyle}
+                    />
+                </div>
+
+                <div>
+                    <label className="text-[11px] mb-1 block" style={labelStyle}>
+                        Bedingung
+                    </label>
+                    <ClauseRow
+                        clause={trigger.clause}
+                        isFirst
+                        logic="AND"
+                        onLogicToggle={() => {}}
+                        onChange={(clause) => patch({ clause })}
+                        onDelete={() => patch({ clause: newClause() })}
+                    />
+                    <p className="text-[11px] mt-1.5" style={labelStyle}>
+                        Das Popup öffnet bei der Flanke — also erst, wenn die Bedingung von „nicht erfüllt" auf
+                        „erfüllt" wechselt. Steht der Datenpunkt beim Laden der Seite schon auf dem Trigger-Wert,
+                        passiert nichts.
+                    </p>
+                </div>
+
+                <div>
+                    <label className="text-[11px] mb-1 block" style={labelStyle}>
+                        Ziel
+                    </label>
+                    <div
+                        className="rounded-xl px-3 py-3"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    >
+                        <ClickActionEditor config={trigger.host} onConfigChange={(host) => patch({ host })} />
+                    </div>
+                    <p className="text-[11px] mt-1.5" style={labelStyle}>
+                        Der Trigger-Datenpunkt ist im Popup als <span className="font-mono">{'{{dp}}'}</span> verfügbar
+                        — eine Popup-View lässt sich so für mehrere Trigger wiederverwenden.
+                    </p>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={trigger.resetDp}
+                            onChange={(e) => patch({ resetDp: e.target.checked })}
+                        />
+                        <span style={{ color: 'var(--text-primary)' }}>
+                            Datenpunkt nach dem Öffnen zurücksetzen (Tastermodus)
+                        </span>
+                    </label>
+                    {trigger.resetDp && (
+                        <div className="pl-6">
+                            <input
+                                type="text"
+                                value={trigger.resetValue ?? ''}
+                                onChange={(e) => patch({ resetValue: e.target.value })}
+                                placeholder="false"
+                                className={inputCls}
+                                style={{ ...inputStyle, maxWidth: 200 }}
+                            />
+                            <p className="text-[11px] mt-1" style={labelStyle}>
+                                Leer = <span className="font-mono">false</span>. Zahlen werden als Zahl geschrieben,
+                                alles andere als Text.
+                            </p>
+                        </div>
+                    )}
+                    <label className="flex items-center gap-2 text-xs cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={!!trigger.closeOnFalse}
+                            onChange={(e) => patch({ closeOnFalse: e.target.checked })}
+                        />
+                        <span style={{ color: 'var(--text-primary)' }}>
+                            Popup schließen, wenn die Bedingung nicht mehr erfüllt ist
+                        </span>
+                    </label>
+                    {trigger.closeOnFalse && trigger.resetDp && (
+                        <p className="text-[11px] pl-6" style={{ color: 'var(--accent-red)' }}>
+                            Zusammen mit dem Zurücksetzen schließt sich das Popup sofort wieder — nur eines von beiden
+                            aktivieren.
+                        </p>
+                    )}
+                </div>
+
+                <div>
+                    <label className="text-[11px] mb-1 block" style={labelStyle}>
+                        Gültig auf Geräten (leer = alle)
+                    </label>
+                    {clients.length === 0 ? (
+                        <p className="text-[11px]" style={labelStyle}>
+                            Noch keine Geräte registriert.
+                        </p>
+                    ) : (
+                        // Installations accumulate a lot of clients whose name is just the
+                        // user-agent fallback, so the list is capped and scrolls, and every
+                        // entry carries its short id to stay distinguishable.
+                        <div
+                            className="flex flex-wrap gap-1.5 overflow-y-auto rounded-lg p-1.5"
+                            style={{ maxHeight: 110, border: '1px solid var(--app-border)' }}
+                        >
+                            {clients.map((c) => {
+                                const on = !!trigger.clientIds?.includes(c.clientId);
+                                return (
+                                    <button
+                                        key={c.clientId}
+                                        onClick={() => toggleClient(c.clientId)}
+                                        className="flex items-center gap-1.5 text-[11px] px-2 py-1 rounded-lg hover:opacity-80"
+                                        style={{
+                                            background: on
+                                                ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                                : 'var(--app-bg)',
+                                            color: on ? 'var(--accent)' : 'var(--text-primary)',
+                                            border: `1px solid ${on ? 'var(--accent)44' : 'var(--app-border)'}`,
+                                        }}
+                                        title={c.clientId}
+                                    >
+                                        {on && <Check size={9} strokeWidth={3} />}
+                                        {c.name}
+                                        <span className="font-mono opacity-50">{c.clientId.slice(0, 6)}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={labelStyle}>
+                            Nur in Layout
+                        </label>
+                        <select
+                            value={trigger.layoutId ?? ''}
+                            onChange={(e) => patch({ layoutId: e.target.value || undefined, tabId: undefined })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="">— alle Layouts —</option>
+                            {layouts.map((l) => (
+                                <option key={l.id} value={l.id}>
+                                    {l.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={labelStyle}>
+                            Nur auf Tab
+                        </label>
+                        <select
+                            value={trigger.tabId ?? ''}
+                            onChange={(e) => patch({ tabId: e.target.value || undefined })}
+                            disabled={!trigger.layoutId}
+                            className={inputCls}
+                            style={{ ...inputStyle, opacity: trigger.layoutId ? 1 : 0.5 }}
+                        >
+                            <option value="">— alle Tabs —</option>
+                            {tabsForLayout.map(({ tab, sectionName }) => (
+                                <option key={tab.id} value={tab.id}>
+                                    {sectionName} › {tab.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </ConfigModal>
+    );
+}
+
+function PopupTriggersSection() {
+    const triggers = usePopupConfigStore((s) => s.triggers);
+    const addTrigger = usePopupConfigStore((s) => s.addTrigger);
+    const updateTrigger = usePopupConfigStore((s) => s.updateTrigger);
+    const removeTrigger = usePopupConfigStore((s) => s.removeTrigger);
+    const copyTrigger = usePopupConfigStore((s) => s.copyTrigger);
+
+    const [adding, setAdding] = useState(false);
+    const [newName, setNewName] = useState('');
+    const [editingId, setEditingId] = useState<string | null>(null);
+
+    const list = triggers ?? [];
+    const editing = list.find((t) => t.id === editingId) ?? null;
+
+    const handleAdd = () => {
+        if (!newName.trim()) return;
+        const id = addTrigger(newName.trim());
+        setNewName('');
+        setAdding(false);
+        setEditingId(id);
+    };
+
+    return (
+        <section>
+            <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    Popup per Datenpunkt
+                </h2>
+                {!adding && (
+                    <button
+                        onClick={() => {
+                            setAdding(true);
+                            setNewName('');
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                    >
+                        <Plus size={13} /> Trigger hinzufügen
+                    </button>
+                )}
+            </div>
+
+            <div className="space-y-2">
+                {adding && (
+                    <div
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+                    >
+                        <input
+                            autoFocus
+                            type="text"
+                            value={newName}
+                            onChange={(e) => setNewName(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleAdd();
+                                if (e.key === 'Escape') setAdding(false);
+                            }}
+                            placeholder="Trigger-Name"
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                        <button
+                            onClick={handleAdd}
+                            disabled={!newName.trim()}
+                            className="flex items-center justify-center w-7 h-7 shrink-0 rounded-lg hover:opacity-80 disabled:opacity-40 transition-opacity"
+                            style={{ background: 'var(--accent)', color: '#fff' }}
+                        >
+                            <Check size={13} />
+                        </button>
+                        <button
+                            onClick={() => setAdding(false)}
+                            className="flex items-center justify-center w-7 h-7 shrink-0 rounded-lg hover:opacity-80 transition-opacity"
+                            style={{
+                                color: 'var(--text-secondary)',
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <X size={13} />
+                        </button>
+                    </div>
+                )}
+
+                {list.length === 0 && !adding && (
+                    <div
+                        className="px-4 py-6 text-xs text-center rounded-xl"
+                        style={{
+                            color: 'var(--text-secondary)',
+                            background: 'var(--app-surface)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        Noch kein Trigger angelegt. Ein Trigger öffnet ein Popup, sobald ein beliebiger Datenpunkt seine
+                        Bedingung erfüllt — ohne Klick auf ein Widget.
+                    </div>
+                )}
+
+                {list.map((trigger) => (
+                    <div
+                        key={trigger.id}
+                        className="flex items-center gap-2 px-4 py-3 rounded-xl"
+                        style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+                    >
+                        <button
+                            onClick={() => updateTrigger(trigger.id, { enabled: !trigger.enabled })}
+                            className="relative w-8 h-4 rounded-full shrink-0 transition-colors"
+                            style={{ background: trigger.enabled ? 'var(--accent)' : 'var(--app-border)' }}
+                            title={trigger.enabled ? 'Aktiv — klicken zum Deaktivieren' : 'Inaktiv'}
+                        >
+                            <span
+                                className="absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform shadow"
+                                style={{ left: trigger.enabled ? 'calc(100% - 14px)' : '2px' }}
+                            />
+                        </button>
+
+                        <div className="flex-1 min-w-0">
+                            <div className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                                {trigger.name}
+                            </div>
+                            <div
+                                className="text-[10px] font-mono truncate"
+                                style={{ color: 'var(--text-secondary)' }}
+                                title={trigger.clause.datapoint}
+                            >
+                                {trigger.clause.datapoint || '— kein Datenpunkt —'}
+                            </div>
+                        </div>
+
+                        <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            {actionLabel(trigger.host.options?.clickAction as ClickAction | undefined)}
+                        </span>
+                        {trigger.resetDp && (
+                            <span
+                                className="text-[9px] px-1.5 py-0.5 rounded shrink-0 font-medium"
+                                style={{
+                                    background: 'var(--accent)22',
+                                    color: 'var(--accent)',
+                                    border: '1px solid var(--accent)44',
+                                }}
+                                title="Datenpunkt wird nach dem Öffnen zurückgesetzt"
+                            >
+                                Reset
+                            </span>
+                        )}
+
+                        <button
+                            onClick={() => setEditingId(trigger.id)}
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity shrink-0"
+                            style={{
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                                color: 'var(--text-primary)',
+                            }}
+                        >
+                            <Pencil size={11} /> Bearbeiten
+                        </button>
+                        <button
+                            onClick={() => setEditingId(copyTrigger(trigger.id))}
+                            className="flex items-center justify-center w-7 h-7 shrink-0 rounded-lg hover:opacity-80 transition-opacity"
+                            style={{
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                                color: 'var(--text-secondary)',
+                            }}
+                            title="Kopieren"
+                        >
+                            <Plus size={11} />
+                        </button>
+                        <button
+                            onClick={() => {
+                                if (confirm(`Trigger "${trigger.name}" löschen?`)) removeTrigger(trigger.id);
+                            }}
+                            className="flex items-center justify-center w-7 h-7 shrink-0 rounded-lg hover:opacity-80 transition-opacity"
+                            style={{
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                                color: 'var(--accent-red)',
+                            }}
+                            title="Löschen"
+                        >
+                            <Trash2 size={11} />
+                        </button>
+                    </div>
+                ))}
+            </div>
+
+            <p className="text-[11px] mt-2" style={labelStyle}>
+                Zusätzlich kann ein Skript ein Popup direkt anstoßen: <span className="font-mono">{NS}.popup.open</span>{' '}
+                (alle Geräte) oder{' '}
+                <span className="font-mono">
+                    {NS}.clients.{'<clientId>'}.popup.open
+                </span>{' '}
+                — Wert ist der Name oder die ID einer Popup-View.
+            </p>
+
+            {editing && <TriggerEditModal trigger={editing} onClose={() => setEditingId(null)} />}
+        </section>
+    );
+}
+
 // ── AdminPopups ───────────────────────────────────────────────────────────────
 
 export function AdminPopups() {
@@ -880,6 +1333,7 @@ export function AdminPopups() {
                 </p>
             </div>
             <GlobalSettingsSection />
+            <PopupTriggersSection />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 items-start">
                 <PopupViewsSection />
                 <TypeDefaultsSection />

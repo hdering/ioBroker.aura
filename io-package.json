@@ -368,6 +368,27 @@
       "native": {}
     },
     {
+      "_id": "popup",
+      "type": "channel",
+      "common": {
+        "name": "Popups"
+      },
+      "native": {}
+    },
+    {
+      "_id": "popup.open",
+      "type": "state",
+      "common": {
+        "name": "Open a popup view (name, id or JSON {view,dp,title})",
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": true,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
       "_id": "admin",
       "type": "channel",
       "common": {

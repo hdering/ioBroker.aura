@@ -45,6 +45,7 @@
     "format:check": "prettier --check src-vis main.js",
     "test": "node test/adapter.test.js",
     "test:group-fit": "node tools/tests/group-fit.mjs",
+    "test:dp-popup": "node tools/tests/dp-popup-trigger.mjs",
     "test:package": "node test/adapter.test.js",
     "test:integration": "node test/adapter.test.js",
     "release": "release-script",
