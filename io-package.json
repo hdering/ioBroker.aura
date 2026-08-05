@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.41.0",
+    "version": "0.41.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.41.1": {
+        "en": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "de": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "ru": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "pt": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "nl": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "fr": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "it": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "es": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "pl": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "uk": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
+        "zh-cn": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded"
+      },
       "0.41.0": {
         "en": "Section menu - datapoint elements now show their value right away when the menu is opened (mobile hamburger no longer stuck on a placeholder)\nStatus overview - no more stray horizontal scrollbar when there is enough space\n🌟 New feature: Status overview, static list and dynamic list - new name pattern with name filter: reshape the placeholder texts with plain-language rules (remove/replace text, keep a segment, first/last words, upper/lower case) or regex, with one-click templates and a live preview of real datapoints; the filter dialog can be moved and resized (#524)",
         "de": "Section menu - datapoint elements now show their value right away when the menu is opened (mobile hamburger no longer stuck on a placeholder)\nStatus overview - no more stray horizontal scrollbar when there is enough space\n🌟 New feature: Status overview, static list and dynamic list - new name pattern with name filter: reshape the placeholder texts with plain-language rules (remove/replace text, keep a segment, first/last words, upper/lower case) or regex, with one-click templates and a live preview of real datapoints; the filter dialog can be moved and resized (#524)",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
         "uk": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)",
         "zh-cn": "🌟 New feature: Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) (#520)"
-      },
-      "0.39.1": {
-        "en": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "de": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "ru": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "pt": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "nl": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "fr": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "it": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "es": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "pl": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "uk": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row",
-        "zh-cn": "🌟 New feature: Frontend Design - new \"Values & Formatting\" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings\n🌟 New feature: Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry\n🌟 New feature: Widget options - unit, decimals and thousands separator now sit together in one row"
       }
     }
   },

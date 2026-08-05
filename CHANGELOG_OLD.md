@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.38.1 (2026-07-28)
+- Room climate - the show/hide toggles (actual/target temperature, humidity, comfort zone, temperature chart) moved from the generic Display section into the Room climate settings
+- Popup views - with popup height set to auto, a list widget now grows the popup to fit all its rows instead of scrolling inside a fixed box
+- Popup views - a widget placed away from the left edge in the editor is no longer stuck at the right edge of the popup; the used content is now centered
+
 ## 0.38.0 (2026-07-28)
 - 🌟 **New feature:** Universal Widget - per-cell conditions: each grid cell can now react to its own or another datapoint and change text color, background, bold/italic, icon or hide itself — configured in a separate popup so only that cell is affected, not the whole widget
 
