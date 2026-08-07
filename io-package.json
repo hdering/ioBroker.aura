@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.42.0",
+    "version": "0.42.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.42.1": {
+        "en": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "de": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "ru": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "pt": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "nl": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "fr": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "it": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "es": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "pl": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "uk": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
+        "zh-cn": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)"
+      },
       "0.42.0": {
         "en": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
         "de": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
         "uk": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
         "zh-cn": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)"
-      },
-      "0.39.4": {
-        "en": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "de": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "ru": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "pt": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "nl": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "fr": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "it": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "es": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "pl": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "uk": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)",
-        "zh-cn": "🌟 New feature: Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker (#518)"
       }
     }
   },

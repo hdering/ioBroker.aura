@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.38.4 (2026-07-29)
+- 🌟 **New feature:** Waste Collection Schedule - new compact layout showing a colored dot, bin name and pickup countdown on one line, each part individually hideable with optional date
+- Calendar - recurring events (RRULE) are now expanded, so calendars built from repeating entries (e.g. waste-collection feeds) no longer appear empty
+- Advanced Chart - the shown current value now follows the live datapoint (drops to 0 when the value does) instead of holding the last logged value, and a new "None (raw data)" aggregation option skips server-side bucket averaging
+- 🌟 **New feature:** Room Climate - now supports the standard status datapoints (battery/UNREACH), auto-detected on insert and shown as badges like other sensor widgets
+
 ## 0.38.3 (2026-07-28)
 - 🌟 **New feature:** Universal Widget - image cells can now take their source from a datapoint (URL / path / base64) and be sized in pixels
 
