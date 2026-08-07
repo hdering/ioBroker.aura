@@ -336,7 +336,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         const customBg = alertBgFor(item);
         const alert = item.severity !== 'ok';
         const { Icon } = CATEGORY_META[item.category];
-        const sub = [item.room, item.category === 'window' && item.lc ? formatSince(item.lc) : null]
+        const sub = [
+            opts.showRoom !== false ? item.room : null,
+            opts.showSince !== false && item.category === 'window' && item.lc ? formatSince(item.lc) : null,
+        ]
             .filter(Boolean)
             .join(' · ');
         return (

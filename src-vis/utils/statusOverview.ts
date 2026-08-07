@@ -105,6 +105,8 @@ export interface StatusOverviewOptions {
     nameFilters?: NameFilterRule[]; // text rules applied to the token values before substitution
     showTitle?: boolean; // show the widget title in the header (default true)
     showCount?: boolean; // show the hint-count chip in the header top-right (default true)
+    showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt)
+    showSince?: boolean; // show how long a window/door has been open ("seit 5 min", default true)
     autoHeight?: boolean; // size the widget to its content in the stacked/mobile view (default false)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
     allClearText?: string;

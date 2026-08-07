@@ -508,6 +508,19 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         label="Anzahl der Hinweise anzeigen (oben rechts)"
                     />
                     <Toggle
+                        checked={o.showRoom !== false}
+                        onChange={(v) => set({ showRoom: v })}
+                        label="Raum des Geräts anzeigen"
+                    />
+                    <Toggle
+                        checked={o.showSince !== false}
+                        onChange={(v) => set({ showSince: v })}
+                        label={'Bei Fenster/Türen „seit …“ anzeigen'}
+                    />
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        Raum und Öffnungsdauer stehen hinter dem Gerätenamen (nur Layout Standard und Kompakt).
+                    </p>
+                    <Toggle
                         checked={!!o.autoHeight}
                         onChange={(v) => set({ autoHeight: v })}
                         label="Höhe automatisch an Inhalt anpassen"
