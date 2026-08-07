@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.42.1",
+    "version": "0.42.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.42.2": {
+        "en": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "de": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "ru": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "pt": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "nl": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "fr": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "it": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "es": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "pl": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "uk": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
+        "zh-cn": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)"
+      },
       "0.42.1": {
         "en": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
         "de": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Conditions and badges - an empty datapoint field now falls back to the widget's main datapoint and replaces the separate \"main DP\" source, new \"is active\" / \"is inactive\" operators test a datapoint for > 0, true or non-empty, and a badge's visibility is now configured in one place through conditions\n🌟 New feature: Conditions and badges - list and dynamic list widgets can match any/all/no list entry or use the entry count, active count, sum, average, min or max",
         "uk": "🌟 New feature: Conditions and badges - an empty datapoint field now falls back to the widget's main datapoint and replaces the separate \"main DP\" source, new \"is active\" / \"is inactive\" operators test a datapoint for > 0, true or non-empty, and a badge's visibility is now configured in one place through conditions\n🌟 New feature: Conditions and badges - list and dynamic list widgets can match any/all/no list entry or use the entry count, active count, sum, average, min or max",
         "zh-cn": "🌟 New feature: Conditions and badges - an empty datapoint field now falls back to the widget's main datapoint and replaces the separate \"main DP\" source, new \"is active\" / \"is inactive\" operators test a datapoint for > 0, true or non-empty, and a badge's visibility is now configured in one place through conditions\n🌟 New feature: Conditions and badges - list and dynamic list widgets can match any/all/no list entry or use the entry count, active count, sum, average, min or max"
-      },
-      "0.39.5": {
-        "en": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "de": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "ru": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "pt": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "nl": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "fr": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "it": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "es": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "pl": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "uk": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)",
-        "zh-cn": "🌟 New feature: Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead (#504)"
       }
     }
   },

@@ -6,5 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Status overview - room and the "open since ..." duration can each be hidden
-- Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)

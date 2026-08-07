@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.38.5 (2026-07-30)
+- 🌟 **New feature:** @ feat(climate): add UNREACH/LOWBAT status datapoints to Raumklima widget
+- fix(echart): current value follows live state; add raw aggregation
+- @ fix(calendar): expand recurring RRULE events so repeating feeds show up
+- 🌟 **New feature:** feat(trashSchedule): add compact single-line layout
+
 ## 0.38.4 (2026-07-29)
 - 🌟 **New feature:** Waste Collection Schedule - new compact layout showing a colored dot, bin name and pickup countdown on one line, each part individually hideable with optional date
 - Calendar - recurring events (RRULE) are now expanded, so calendars built from repeating entries (e.g. waste-collection feeds) no longer appear empty
