@@ -22,6 +22,11 @@ export function InputWidget({ config }: WidgetProps) {
     const numMax = o.max as number | undefined;
     const numStep = o.step as number | undefined;
     const submitMode = (o.submitMode as SubmitMode) ?? 'submit';
+    // Command-field mode: the input is a pure entry box — it never mirrors the DP and
+    // empties itself after each send so the next entry can be typed right away. The DP
+    // itself is deliberately left untouched: resetting it would be a second state change
+    // and consumers (scripts, notifications) would act on the empty value.
+    const clearAfterSubmit = !!o.clearAfterSubmit && submitMode === 'submit' && !o.readOnly;
     const placeholder = (o.placeholder as string) ?? '';
     const readOnly = !!o.readOnly;
     const confirmAction = !!o.confirmAction;
@@ -47,17 +52,18 @@ export function InputWidget({ config }: WidgetProps) {
     // In submit mode we keep a local draft so the user can type without
     // every keystroke being written. In live mode we still keep a local
     // draft to avoid input-lag (controlled-component round-trip).
-    const [draft, setDraft] = useState<string>(dpString);
+    const [draft, setDraft] = useState<string>(clearAfterSubmit ? '' : dpString);
     const [dirty, setDirty] = useState(false);
     const lastSeenDp = useRef<string>(dpString);
 
     // Sync local draft when DP changes externally (unless the user is currently editing).
     useEffect(() => {
+        if (clearAfterSubmit) return; // command field: never show the DP value
         if (dpString !== lastSeenDp.current) {
             lastSeenDp.current = dpString;
             if (!dirty) setDraft(dpString);
         }
-    }, [dpString, dirty]);
+    }, [dpString, dirty, clearAfterSubmit]);
 
     const writeValue = (v: string) => {
         lastSeenDp.current = v;
@@ -75,6 +81,7 @@ export function InputWidget({ config }: WidgetProps) {
 
     const doCommit = () => {
         writeValue(draft);
+        if (clearAfterSubmit) setDraft('');
         setDirty(false);
     };
 
@@ -87,6 +94,16 @@ export function InputWidget({ config }: WidgetProps) {
     } = useConfirmAction(doCommit, confirmAction && submitMode === 'submit');
 
     const commit = () => {
+        if (clearAfterSubmit) {
+            // Resending the same text must write again (the receiver expects a new
+            // trigger), so the "unchanged value" shortcut below is skipped here.
+            if (draft === '') {
+                setDirty(false);
+                return;
+            }
+            runCommit();
+            return;
+        }
         if (draft === lastSeenDp.current) {
             setDirty(false);
             return;
@@ -100,7 +117,7 @@ export function InputWidget({ config }: WidgetProps) {
             writeValue(v);
             setDirty(false);
         } else {
-            setDirty(v !== lastSeenDp.current);
+            setDirty(clearAfterSubmit ? v !== '' : v !== lastSeenDp.current);
         }
     };
 
@@ -112,11 +129,15 @@ export function InputWidget({ config }: WidgetProps) {
             commit();
         } else if (e.key === 'Escape') {
             e.preventDefault();
-            setDraft(lastSeenDp.current);
+            setDraft(clearAfterSubmit ? '' : lastSeenDp.current);
             setDirty(false);
             (e.currentTarget as HTMLElement).blur();
         }
     };
+
+    // Blur commits the draft — except for a command field, where an accidental tap next
+    // to the field would fire off the message. There the send is always explicit.
+    const onBlurCommit = submitMode === 'submit' && !clearAfterSubmit ? commit : undefined;
 
     const inputClass = 'nodrag w-full text-sm rounded-lg px-2.5 py-1.5 focus:outline-none';
     const inputStyle: React.CSSProperties = {
@@ -140,7 +161,7 @@ export function InputWidget({ config }: WidgetProps) {
             readOnly={readOnly}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={onKeyDown}
-            onBlur={submitMode === 'submit' ? commit : undefined}
+            onBlur={onBlurCommit}
         />
     ) : (
         <input
@@ -155,7 +176,7 @@ export function InputWidget({ config }: WidgetProps) {
             step={numericInput ? numStep : undefined}
             onChange={(e) => onChange(e.target.value)}
             onKeyDown={onKeyDown}
-            onBlur={submitMode === 'submit' ? commit : undefined}
+            onBlur={onBlurCommit}
         />
     );
 

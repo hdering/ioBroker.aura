@@ -39,6 +39,7 @@ Im Modus `submit` wird der Wert per Senden-Button, Enter (einzeilig) bzw. Strg/C
 | `placeholder` | — | Platzhaltertext |
 | `maxLength` | — | maximale Zeichenzahl (begrenzt einzeilig auch die Breite) |
 | `showSubmit` | `true` | Senden-Button anzeigen (nur bei `submit`) |
+| `clearAfterSubmit` | `false` | Kommandofeld: leert sich nach dem Senden, zeigt den DP-Wert nicht an, sendet nur per Enter/Button (nur bei `submit`) |
 
 ### Anzeige
 

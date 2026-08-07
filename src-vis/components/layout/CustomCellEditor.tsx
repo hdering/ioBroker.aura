@@ -1966,6 +1966,33 @@ export function CustomCellEditor({
                                     />
                                 </button>
                             </div>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <label
+                                        className="text-[11px] font-medium"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Feld nach dem Senden leeren
+                                    </label>
+                                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                        Kommandofeld: zeigt den Datenpunkt-Wert nicht an
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() =>
+                                        onChange({ clearAfterSubmit: cell.clearAfterSubmit ? undefined : true })
+                                    }
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{
+                                        background: cell.clearAfterSubmit ? 'var(--accent)' : 'var(--app-border)',
+                                    }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: cell.clearAfterSubmit ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
                             <div>
                                 <div className="flex items-center justify-between">
                                     <div>

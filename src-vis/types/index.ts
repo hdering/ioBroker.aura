@@ -282,6 +282,7 @@ export interface CustomCell {
     multiline?: boolean; // 'input' cell: render a multi-line textarea instead of a single-line input
     submitMode?: 'submit' | 'live'; // 'input' cell: write on Enter/Send/blur ('submit', default) or on every keystroke ('live')
     showSubmit?: boolean; // 'input' cell: show the Send button in submit mode (default true)
+    clearAfterSubmit?: boolean; // 'input' cell: command field — clear the field after sending and never show the DP value
     // 'progress' type
     showValue?: boolean; // 'progress' cell: overlay current value/percentage on top of bar
     // 'state-text' type — reuses trueColor/falseColor + color/text styling

@@ -1004,19 +1004,24 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
     const numericInput = isNumber && !multiline;
     const submitMode = (cell.submitMode as 'submit' | 'live' | undefined) ?? 'submit';
     const showSubmit = cell.showSubmit !== false;
+    // Command-field mode: pure entry box that never mirrors the DP and empties itself
+    // after each send. The DP is left untouched — clearing it would be a second state
+    // change that consumers (scripts, notifications) would act on.
+    const clearAfterSubmit = !!cell.clearAfterSubmit && submitMode === 'submit';
     const externalStr = value == null ? '' : String(value);
-    const [draft, setDraft] = useState(externalStr);
+    const [draft, setDraft] = useState(clearAfterSubmit ? '' : externalStr);
     const [dirty, setDirty] = useState(false);
     const lastSeen = useRef(externalStr);
 
     // Sync local draft when the DP changes externally (unless the user is editing
     // or a confirmation is pending — in which case dirty stays true).
     useEffect(() => {
+        if (clearAfterSubmit) return; // command field: never show the DP value
         if (externalStr !== lastSeen.current) {
             lastSeen.current = externalStr;
             if (!dirty) setDraft(externalStr);
         }
-    }, [externalStr, dirty]);
+    }, [externalStr, dirty, clearAfterSubmit]);
 
     const writeValue = (v: string) => {
         lastSeen.current = v;
@@ -1034,6 +1039,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
 
     const doCommit = () => {
         writeValue(draft);
+        if (clearAfterSubmit) setDraft('');
         setDirty(false);
     };
     // Optional security confirmation before writing (only meaningful in submit mode).
@@ -1045,6 +1051,16 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
     } = useConfirmAction(doCommit, !!cell.confirmAction && submitMode === 'submit');
 
     const commit = () => {
+        if (clearAfterSubmit) {
+            // Resending the same text must write again, so the "unchanged value"
+            // shortcut below is skipped for command fields.
+            if (draft === '') {
+                setDirty(false);
+                return;
+            }
+            runCommit();
+            return;
+        }
         if (draft === lastSeen.current) {
             setDirty(false);
             return;
@@ -1058,7 +1074,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
             writeValue(v);
             setDirty(false);
         } else {
-            setDirty(v !== lastSeen.current);
+            setDirty(clearAfterSubmit ? v !== '' : v !== lastSeen.current);
         }
     };
 
@@ -1086,11 +1102,15 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
             commit();
         } else if (e.key === 'Escape') {
             e.preventDefault();
-            setDraft(lastSeen.current);
+            setDraft(clearAfterSubmit ? '' : lastSeen.current);
             setDirty(false);
             (e.currentTarget as HTMLElement).blur();
         }
     };
+
+    // Blur commits the draft — except for a command field, where an accidental tap next
+    // to the field would fire off the message. There the send is always explicit.
+    const onBlurCommit = submitMode === 'submit' && !clearAfterSubmit ? commit : undefined;
 
     const submitBtn =
         submitMode === 'submit' && showSubmit ? (
@@ -1125,7 +1145,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
                     <textarea
                         value={draft}
                         onChange={(e) => onChange(e.target.value)}
-                        onBlur={submitMode === 'submit' ? commit : undefined}
+                        onBlur={onBlurCommit}
                         onKeyDown={onKeyDown}
                         placeholder={cell.text || ''}
                         className="nodrag focus:outline-none resize-none flex-1 w-full min-h-0"
@@ -1139,7 +1159,7 @@ function InputCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
                         type={numericInput ? 'number' : 'text'}
                         value={draft}
                         onChange={(e) => onChange(e.target.value)}
-                        onBlur={submitMode === 'submit' ? commit : undefined}
+                        onBlur={onBlurCommit}
                         onKeyDown={onKeyDown}
                         min={numericInput ? cell.min : undefined}
                         max={numericInput ? cell.max : undefined}

@@ -16484,6 +16484,26 @@ export function WidgetFrame({
                                                             className="text-[11px] font-medium"
                                                             style={{ color: 'var(--text-secondary)' }}
                                                         >
+                                                            Feld nach dem Senden leeren
+                                                        </label>
+                                                        <p
+                                                            className="text-[10px]"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                        >
+                                                            Kommandofeld: zeigt den Datenpunkt-Wert nicht an
+                                                        </p>
+                                                    </div>
+                                                    <Toggle
+                                                        on={!!o.clearAfterSubmit}
+                                                        onClick={() => set({ clearAfterSubmit: !o.clearAfterSubmit })}
+                                                    />
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] font-medium"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
                                                             Sicherheitsabfrage
                                                         </label>
                                                         <p
