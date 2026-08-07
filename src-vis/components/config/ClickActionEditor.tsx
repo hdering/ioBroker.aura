@@ -46,6 +46,9 @@ export function defaultActionForConfig(config: WidgetConfig): ClickAction | null
 interface Props {
     config: WidgetConfig;
     onConfigChange: (c: WidgetConfig) => void;
+    /** Offer only the popup modes — for callers that have no click to navigate away
+     *  from, e.g. the datapoint-driven popup triggers in Admin → Popups. */
+    popupOnly?: boolean;
 }
 
 const MODE_GROUPS: { label: string; modes: ClickAction['kind'][] }[] = [
@@ -128,7 +131,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     );
 }
 
-export function ClickActionEditor({ config, onConfigChange }: Props) {
+export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) {
     const o = config.options ?? {};
     const rawStoredAction = o.clickAction as ClickAction | undefined;
     const storedAction = rawStoredAction ? normalizeAction(rawStoredAction) : undefined;
@@ -277,7 +280,7 @@ export function ClickActionEditor({ config, onConfigChange }: Props) {
                     className={inputCls}
                     style={inputStyle}
                 >
-                    {MODE_GROUPS.map((g) => (
+                    {(popupOnly ? MODE_GROUPS.filter((g) => g.label === 'Popup') : MODE_GROUPS).map((g) => (
                         <optgroup key={g.label} label={g.label}>
                             {g.modes.map((m) => (
                                 <option key={m} value={m}>

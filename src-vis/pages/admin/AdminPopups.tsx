@@ -902,8 +902,7 @@ function useClientList(): { clientId: string; name: string }[] {
 
 /** Short human label for a trigger's popup target, shown in the list row. */
 function actionLabel(action: ClickAction | undefined): string {
-    if (!action || action.kind === 'none') return 'kein Ziel';
-    switch (action.kind) {
+    switch (action?.kind) {
         case 'popup-view':
             return 'Popup-View';
         case 'popup-image':
@@ -917,7 +916,7 @@ function actionLabel(action: ClickAction | undefined): string {
         case 'popup-widget':
             return 'Widget-Inhalt';
         default:
-            return action.kind.startsWith('popup-') ? 'Popup' : 'Sprung';
+            return 'kein Ziel';
     }
 }
 
@@ -927,6 +926,21 @@ function TriggerEditModal({ trigger, onClose }: { trigger: PopupTrigger; onClose
     const clients = useClientList();
 
     const patch = (p: Partial<PopupTrigger>) => updateTrigger(trigger.id, p);
+
+    // A trigger can only open a popup — there is no click to navigate away from.
+    // Rules stored before that restriction (or with the old 'none' placeholder)
+    // are normalized on open so the mode dropdown shows a valid selection.
+    const storedAction = trigger.host.options?.clickAction as ClickAction | undefined;
+    useEffect(() => {
+        if (storedAction?.kind.startsWith('popup-')) return;
+        patch({
+            host: {
+                ...trigger.host,
+                options: { ...trigger.host.options, clickAction: { kind: 'popup-view', viewId: '' } },
+            },
+        });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const tabsForLayout = (layouts.find((l) => l.id === trigger.layoutId)?.sections ?? []).flatMap((sec) =>
         sec.tabs.map((tab) => ({ tab, sectionName: sec.name })),
@@ -980,7 +994,7 @@ function TriggerEditModal({ trigger, onClose }: { trigger: PopupTrigger; onClose
                         className="rounded-xl px-3 py-3"
                         style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                     >
-                        <ClickActionEditor config={trigger.host} onConfigChange={(host) => patch({ host })} />
+                        <ClickActionEditor config={trigger.host} onConfigChange={(host) => patch({ host })} popupOnly />
                     </div>
                     <p className="text-[11px] mt-1.5" style={labelStyle}>
                         Der Trigger-Datenpunkt ist im Popup als <span className="font-mono">{'{{dp}}'}</span> verfügbar

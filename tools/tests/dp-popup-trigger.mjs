@@ -123,6 +123,31 @@ await page.evaluate((dp) => window.__auraShot.mock({ [dp]: true }), DP);
 await settle();
 check('disabled rule never opens a popup', !(await popupVisible()));
 
+// ── 7. Non-popup actions are ignored ─────────────────────────────────────────
+// A navigation action has no click to act on here; before it was filtered out
+// it rendered as a bare backdrop over the dashboard and swallowed clicks.
+for (const action of [
+    { kind: 'link-tab', layoutId: 'l1', tabId: 't1' },
+    { kind: 'popup-view', viewId: '' },
+]) {
+    await page.evaluate(
+        ([dp, rule]) => {
+            window.__auraShot.dpTriggers(false);
+            window.__auraShot.mock({ [dp]: false });
+            window.__auraShot.dpTriggers([rule]);
+        },
+        [DP, trigger({ host: { ...trigger().host, options: { clickAction: action } } })],
+    );
+    await settle();
+    await page.evaluate((dp) => window.__auraShot.mock({ [dp]: true }), DP);
+    await settle();
+    const backdrop = await page.locator('div.fixed.inset-0.z-\\[300\\]').count();
+    check(
+        `no overlay for an unusable action (${action.kind}${action.viewId === '' ? ', no view' : ''})`,
+        backdrop === 0,
+    );
+}
+
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

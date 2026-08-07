@@ -57,7 +57,10 @@ export function newTriggerHost(): WidgetConfig {
         title: '',
         datapoint: '',
         gridPos: { x: 0, y: 0, w: 1, h: 1 },
-        options: { clickAction: { kind: 'none' } satisfies ClickAction },
+        // A trigger only ever opens a popup; the navigation kinds need a click to
+        // act on and would just render an empty overlay. Starts unconfigured
+        // (no viewId) — the runtime skips a rule until a target is picked.
+        options: { clickAction: { kind: 'popup-view', viewId: '' } satisfies ClickAction },
     };
 }
 

@@ -109,7 +109,10 @@ export function DpPopupTriggers({ layoutId, tabId }: Props) {
             }
 
             const action = trigger.host.options?.clickAction as ClickAction | undefined;
-            if (!action || action.kind === 'none') return;
+            // Popups only. A navigation kind has no click to act on here and would
+            // render as a bare backdrop; an unpicked view is simply not configured yet.
+            if (!action?.kind.startsWith('popup-')) return;
+            if (action.kind === 'popup-view' && !action.viewId) return;
 
             // The trigger DP is the popup's `{{dp}}` context.
             const host: WidgetConfig = { ...trigger.host, datapoint: trigger.clause.datapoint };
