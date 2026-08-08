@@ -6,5 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)
-- Widgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)

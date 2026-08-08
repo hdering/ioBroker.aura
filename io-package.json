@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.42.5",
+    "version": "0.42.6",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.42.6": {
+        "en": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "de": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "ru": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "pt": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "nl": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "fr": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "it": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "es": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "pl": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "uk": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)",
+        "zh-cn": "Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again (#528)\nWidgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear (#528)"
+      },
       "0.42.5": {
         "en": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
         "de": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
         "uk": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)",
         "zh-cn": "🌟 New feature: Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger (#523)\n🌟 New feature: Popups - scripts can open a popup view via aura.0.popup.open or per client (#523)"
-      },
-      "0.41.2": {
-        "en": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "de": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "ru": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "pt": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "nl": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "fr": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "it": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "es": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "pl": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "uk": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
-        "zh-cn": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions"
       }
     }
   },

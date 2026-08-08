@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.38.9 (2026-07-31)
+- 🌟 **New feature:** Chart (Advanced) - new JSON mode: chart a JSON datapoint holding label/value entries, no history adapter needed
+- 🌟 **New feature:** Chart (Advanced) - JSON mode can read the label as a timestamp (epoch ms/s or ISO) and draw a real time axis
+- 🌟 **New feature:** Chart (Advanced) - JSON mode detects the label and value fields on its own and offers the datapoint's actual keys for picking
+
 ## 0.38.8 (2026-07-30)
 - Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100
 - Calendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually
