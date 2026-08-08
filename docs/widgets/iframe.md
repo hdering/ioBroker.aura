@@ -26,7 +26,12 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 | `interactionMode` | `content` | `action` · `content` · `contentOnly` — siehe unten |
 | `keepAlive` | `false` | iFrame beim Tabwechsel nicht neu laden |
 | `refreshInterval` | `0` | automatisches Neuladen in Sekunden (`0` = aus; bei `keepAlive` ignoriert) |
+| `reloadOnWake` | `false` | nach Display-Standby neu laden (hebt `keepAlive` auf) |
 | `fullscreenButton` | `false` | Vollbild-Button beim Hover einblenden |
+
+`reloadOnWake` ist für eingebettete Videos/Streams gedacht: Der Browser bricht sie im
+Standby ab, und ohne Nutzer-Tipp startet der Player nicht wieder. Für Seiten mit
+Eingaben ausgelassen lassen — der Reload verwirft deren Zustand.
 
 #### Interaktion vs. Klick-Aktion
 

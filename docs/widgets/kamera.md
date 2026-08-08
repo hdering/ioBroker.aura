@@ -44,9 +44,14 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `refreshInterval` | `5` | Sekunden pro Snapshot (`0` = LIVE/MJPEG) |
 | `fitMode` | `cover` | `cover` · `contain` |
 | `showTimestamp` | `true` | Zeitstempel einblenden |
+| `reloadOnWake` | `true` | Stream nach Display-Standby neu laden |
 | `transparent` | `false` | transparenter Hintergrund |
 
 Stream-Typ wird aus der URL erkannt: `.html`/`.htm` → iframe, `rtsp://` → Hinweis, sonst Bild.
+
+Geht das Display in den Standby, bricht der Browser den Stream ab; der eingebettete
+Player darf ihn ohne Nutzer-Tipp nicht selbst neu starten und zeigt stattdessen einen
+Play-Button. `reloadOnWake` lädt den Stream beim Aufwachen neu und umgeht das.
 
 ### Wake-up
 

@@ -13,6 +13,7 @@ import { WidgetFrame } from './WidgetFrame';
 import { TouchScrollbar } from './TouchScrollbar';
 import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useConditionStyle';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
+import { useWakeReload } from '../../hooks/useWakeReload';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { DashboardMobileContext } from '../../contexts/DashboardMobileContext';
 import type { WidgetConfig } from '../../types';
@@ -1108,10 +1109,14 @@ function GuidelinesHint() {
 
 // ── iFrame fullscreen overlay ─────────────────────────────────────────────
 function IframeOverlay({ data, onClose }: { data: IframeFullscreenData; onClose: () => void }) {
+    // `data.iframeKey` is a snapshot taken when fullscreen was opened, so a wall
+    // tablet parked on a fullscreen stream would never reload it after standby.
+    // Reload unconditionally here — an overlay holds no state worth keeping. (#526)
+    const wakeNonce = useWakeReload(true);
     return (
         <div className="fixed inset-0 z-[900] flex flex-col" style={{ background: '#000' }}>
             <iframe
-                key={data.iframeKey}
+                key={`${data.iframeKey}#${wakeNonce}`}
                 src={data.url}
                 sandbox={data.sandboxAttr}
                 allow="autoplay; fullscreen; picture-in-picture; web-share"

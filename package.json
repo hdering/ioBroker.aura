@@ -47,6 +47,7 @@
     "test:group-fit": "node tools/tests/group-fit.mjs",
     "test:dp-popup": "node tools/tests/dp-popup-trigger.mjs",
     "test:dp-cache": "node tools/tests/dp-cache-freshness.mjs",
+    "test:wake-reload": "node tools/tests/wake-reload.mjs",
     "test:package": "node test/adapter.test.js",
     "test:integration": "node test/adapter.test.js",
     "release": "release-script",

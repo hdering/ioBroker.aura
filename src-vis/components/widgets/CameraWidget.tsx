@@ -6,6 +6,7 @@ import { resolveImageSource } from '../../utils/assetUrl';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { setStateDirect, subscribeDpValue } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useWakeReload } from '../../hooks/useWakeReload';
 
 // ── Exported types (used by WidgetFrame config) ───────────────────────────────
 
@@ -294,6 +295,8 @@ interface StreamViewProps {
     streamSecondsLeft: number | null;
     onFullscreen?: () => void;
     transparent?: boolean;
+    /** Bumped on wake-up from standby — folded into the element key to force a reload. */
+    wakeNonce: number;
 }
 
 function StreamView(p: StreamViewProps) {
@@ -338,13 +341,17 @@ function StreamView(p: StreamViewProps) {
         <div className="relative h-full w-full overflow-hidden">
             {p.mode === 'iframe' ? (
                 <iframe
+                    key={`${p.streamUrl}#${p.wakeNonce}`}
                     src={p.streamUrl}
                     title={p.title || 'Kamera'}
-                    allow="autoplay"
+                    allow="autoplay; fullscreen; picture-in-picture"
                     style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                 />
             ) : (
+                // An MJPEG connection dropped during standby never re-opens on its
+                // own — the src is unchanged, so only a remount re-requests it.
                 <img
+                    key={`${p.imgSrc}#${p.wakeNonce}`}
                     src={p.imgSrc}
                     alt={p.title || 'Kamera'}
                     onError={p.onError}
@@ -577,6 +584,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const _rawWakeUpMode = opts.wakeUpMode as WakeUpMode | undefined;
     const wakeUpMode: WakeUpMode = wakeUpDp ? (_rawWakeUpMode === 'onView' ? 'onView' : 'onClick') : 'auto';
     const streamTimeout = (opts.streamTimeout as number) ?? 60;
+    const reloadOnWake = (opts.reloadOnWake as boolean) ?? true;
     const videoRatio = (opts.videoRatio as number) ?? 60;
     const infoItems = (opts.infoItems as CameraSlot[]) ?? [];
     const cameraTemplate = (opts.cameraTemplate as CameraTemplateId) ?? 'stream-left';
@@ -590,6 +598,10 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const transparent = !!opts.transparent;
 
     const mode = detectMode(streamUrl);
+
+    // A stream torn down while the display slept only comes back on a fresh load
+    // (issue #526). The editor is exempt — no live stream to save there.
+    const wakeNonce = useWakeReload(reloadOnWake && !editMode && !!streamUrl && mode !== 'rtsp-hint');
 
     // An .html stream renders in an iframe: clicks stay inside that document and
     // never reach the frame's click action, so ask for a host-side action button.
@@ -818,6 +830,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         streamSecondsLeft,
         onFullscreen: editMode ? undefined : () => setFullscreen(true),
         transparent,
+        wakeNonce,
     };
 
     const scProps: StreamCellProps = {

@@ -10578,6 +10578,37 @@ export function WidgetFrame({
                                                 />
                                             </button>
                                         </div>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <label
+                                                    className="text-[11px] block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Nach Standby neu laden
+                                                </label>
+                                                <p
+                                                    className="text-[10px]"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                >
+                                                    Holt den Stream nach Display-Standby zurück
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => set({ reloadOnWake: !(o.reloadOnWake ?? true) })}
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background:
+                                                        (o.reloadOnWake ?? true)
+                                                            ? 'var(--accent)'
+                                                            : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: (o.reloadOnWake ?? true) ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
                                         <div>
                                             <label
                                                 className="text-[11px] mb-1 block"
@@ -11325,6 +11356,37 @@ export function WidgetFrame({
                                                 <span
                                                     className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                                                     style={{ left: (o.keepAlive ?? false) ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <label
+                                                    className="text-[11px] block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Nach Standby neu laden
+                                                </label>
+                                                <p
+                                                    className="text-[10px]"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                >
+                                                    Startet Videos/Streams nach Display-Standby wieder
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => set({ reloadOnWake: !(o.reloadOnWake ?? false) })}
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background:
+                                                        (o.reloadOnWake ?? false)
+                                                            ? 'var(--accent)'
+                                                            : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: (o.reloadOnWake ?? false) ? '18px' : '2px' }}
                                                 />
                                             </button>
                                         </div>
