@@ -1,5 +1,12 @@
 # Changelog (older entries)
 
+## 0.38.10 (2026-07-31)
+- Static list - statistics are shown on the same line as the title instead of a second header row
+- Group - the editor now shows the same spacing as the frontend and never shows an inner scrollbar, at any grid row height or gap: children fill the group box in both views, grid settings, header height and fitted height are resolved identically, and a child too small for its own content is clipped the same way in both views
+- Group - an empty group no longer collapses to a single grid row in the editor: it keeps its configured height and can be resized until the first child is added
+- Group - new groups start wider and taller instead of as a narrow strip; default sizes dialog no longer caps width/height at 12
+- 🌟 **New feature:** Settings - every Design card (theme, CSS variables, typography and spacing, grid and mobile, guidelines and resolution, header, section menu, navigation, tab bar) has a "Reset" button that restores the default values, or removes the layout/section overrides in scoped views
+
 ## 0.38.9 (2026-07-31)
 - 🌟 **New feature:** Chart (Advanced) - new JSON mode: chart a JSON datapoint holding label/value entries, no history adapter needed
 - 🌟 **New feature:** Chart (Advanced) - JSON mode can read the label as a timestamp (epoch ms/s or ISO) and draw a real time axis

@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.42.7 (2026-08-08)
+- Camera - embedded streams (go2rtc and friends) reload when the device wakes from display standby instead of stopping on a play button; new "Reload after standby" option, on by default ([#526](https://github.com/hdering/ioBroker.aura/issues/526))
+- iFrame - new "Reload after standby" option reloads embedded videos and streams after display standby, overriding "Keep alive" ([#526](https://github.com/hdering/ioBroker.aura/issues/526))
+
+
 ### 0.42.6 (2026-08-08)
 - Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
 - Widgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
@@ -206,14 +211,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Section menu - separate placement for mobile; a docked sidebar no longer forces the tab bar to stay visible with a single tab
 
 
-### 0.38.10 (2026-07-31)
-- Static list - statistics are shown on the same line as the title instead of a second header row
-- Group - the editor now shows the same spacing as the frontend and never shows an inner scrollbar, at any grid row height or gap: children fill the group box in both views, grid settings, header height and fitted height are resolved identically, and a child too small for its own content is clipped the same way in both views
-- Group - an empty group no longer collapses to a single grid row in the editor: it keeps its configured height and can be resized until the first child is added
-- Group - new groups start wider and taller instead of as a narrow strip; default sizes dialog no longer caps width/height at 12
-- 🌟 **New feature:** Settings - every Design card (theme, CSS variables, typography and spacing, grid and mobile, guidelines and resolution, header, section menu, navigation, tab bar) has a "Reset" button that restores the default values, or removes the layout/section overrides in scoped views
-
-
 ## License
 
 MIT License
@@ -225,6 +222,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
