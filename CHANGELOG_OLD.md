@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.38.7 (2026-07-30)
+- 🌟 **New feature:** Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget
+- Calendar - agenda layout shows the full calendar name instead of cutting it off
+
 ## 0.38.6 (2026-07-30)
 - Mirror - a mirrored group now shows its full content on mobile instead of only scrolling
 
