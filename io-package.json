@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.42.4",
+    "version": "0.42.5",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.42.5": {
+        "en": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "de": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "ru": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "pt": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "nl": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "fr": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "it": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "es": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "pl": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "uk": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)",
+        "zh-cn": "iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and \"Allow interaction\" became a three-way \"Interaction\" setting (#527)\nGeneral - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)"
+      },
       "0.42.4": {
         "en": "A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome (#528)",
         "de": "A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome (#528)",
@@ -184,19 +197,6 @@
         "pl": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
         "uk": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions",
         "zh-cn": "fix(lint): resolve remaining eslint warnings\nfix(ui): wrap German typographic quotes in JSX expressions"
-      },
-      "0.41.1": {
-        "en": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "de": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "ru": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "pt": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "nl": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "fr": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "it": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "es": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "pl": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "uk": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded",
-        "zh-cn": "Editor - the \"Sections:\" label now links to Layout settings and opens the current layout expanded"
       }
     }
   },

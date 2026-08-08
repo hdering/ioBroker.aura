@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.38.8 (2026-07-30)
+- Calendar - event list scrolls when more entries are shown than fit the cell; max entries raised to 100
+- Calendar - agenda layout aligns all event titles on one edge, whatever the calendar names are; the calendar column width can be set manually
+
 ## 0.38.7 (2026-07-30)
 - 🌟 **New feature:** Calendar - calendar sources can now come from an ioBroker ical adapter instance or an iCal URL; no URL is required when adding the widget
 - Calendar - agenda layout shows the full calendar name instead of cutting it off
