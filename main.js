@@ -323,10 +323,31 @@ function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true) 
             lines.push(`Sec-WebSocket-Protocol: ${proxyRes.headers['sec-websocket-protocol']}`);
         socket.write(`${lines.join('\r\n')}\r\n\r\n`);
         if (proxyHead && proxyHead.length) proxySocket.unshift(proxyHead);
+        // Upgraded sockets carry a long-lived, mostly idle WebSocket: disable any
+        // inherited inactivity timeout, send frames immediately, and let TCP
+        // keepalive reap a leg whose peer vanished without a FIN (router/NAT drop
+        // while the browser tab was suspended).
+        for (const sock of [socket, proxySocket]) {
+            sock.setTimeout(0);
+            sock.setNoDelay(true);
+            sock.setKeepAlive(true, 30000);
+        }
         proxySocket.pipe(socket);
         socket.pipe(proxySocket);
-        proxySocket.on('error', () => socket.destroy());
-        socket.on('error', () => proxySocket.destroy());
+        // Tear down BOTH legs whenever either one ends. `pipe` alone only
+        // forwards a clean FIN — an abruptly destroyed upstream (web adapter
+        // restart, dropped route) emits 'close' without 'end' or 'error', which
+        // used to leave the browser leg open forever. The client then believed it
+        // was still connected, never reconnected, and every datapoint silently
+        // froze until a full page reload. (issue #528)
+        const closeBoth = () => {
+            socket.destroy();
+            proxySocket.destroy();
+        };
+        proxySocket.on('error', closeBoth);
+        socket.on('error', closeBoth);
+        proxySocket.on('close', closeBoth);
+        socket.on('close', closeBoth);
     });
     proxyReq.on('error', (e) => {
         log.debug(`aura: WS proxy error for ${targetWsUrl}: ${e.message}`);

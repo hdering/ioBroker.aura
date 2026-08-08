@@ -163,6 +163,90 @@ function getInitialUrl(): string {
 
 let currentUrl = getInitialUrl();
 
+/**
+ * Re-fetch every state we have ever cached and push the fresh value into the
+ * cache + any live subscribers.
+ *
+ * Why the *cache* and not just the current subscriptions: a `disconnect` flips
+ * `connected` to false, which tears down every useDatapoint effect, which
+ * unsubscribes — so by the time we reconnect, `subscribers` is empty and a pass
+ * over it would be a no-op. React then re-mounts the effects, but they skip
+ * their `getState` round-trip whenever `stateCache` already holds a value
+ * (that's the no-null-flash optimisation) — so any datapoint that changed while
+ * we were offline stays visibly stale until it happens to change again. Only a
+ * full page reload cleared it, because the cache is module state. (issue #528)
+ *
+ * Emitted in chunks so a dashboard with hundreds of datapoints doesn't fire one
+ * giant burst at a socket that has just come up.
+ */
+function revalidateStates(s: IoBrokerSocket): void {
+    const ids = [...new Set([...subscribers.keys(), ...stateCache.keys()])].filter(isValidStateId);
+    if (ids.length === 0) return;
+    const CHUNK = 50;
+    const emitChunk = (from: number): void => {
+        // A socket swapped out mid-pass (reconnect / bounce) makes the rest of
+        // the chunks meaningless — the new socket runs its own pass.
+        if (socket !== s) return;
+        for (const id of ids.slice(from, from + CHUNK)) {
+            s.emit('getState', id, (_err: unknown, state: unknown) => {
+                if (!state) return;
+                const next = state as ioBrokerState;
+                const prev = stateCache.get(id);
+                stateCache.set(id, next);
+                // Only wake subscribers on an actual change — a reconnect on a
+                // large dashboard would otherwise re-render every widget.
+                if (prev && prev.val === next.val && prev.ts === next.ts && prev.ack === next.ack) return;
+                subscribers.get(id)?.forEach((fn) => fn(next));
+            });
+        }
+        if (from + CHUNK < ids.length) globalThis.setTimeout(() => emitChunk(from + CHUNK), 25);
+    };
+    emitChunk(0);
+}
+
+// ── Wake-up liveness check ────────────────────────────────────────────────────
+// A tab parked in the background for hours (Edge "sleeping tabs", OS suspend)
+// comes back with a socket that may be dead in one of two ways: the library
+// noticed and is reconnecting (handled by handleConnected), or the TCP leg to
+// the aura WS proxy is still open while the upstream to the web adapter is gone
+// — a zombie that reports `connected` and never delivers another stateChange.
+// Probe it on wake-up: no answer in time means bounce, an answer means we are
+// live and only need fresh values.
+let livenessProbeAt = 0;
+
+function checkConnectionAlive(): void {
+    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+    const now = Date.now();
+    if (now - livenessProbeAt < 5000) return;
+    livenessProbeAt = now;
+
+    const s = socket;
+    if (!s) return; // nothing mounted yet — getSocket() will connect on demand
+    if (!s.connected) {
+        bounceSocket();
+        return;
+    }
+
+    let answered = false;
+    const probeId = subscribers.keys().next().value ?? 'system.config';
+    s.emit('getState', probeId, () => {
+        answered = true;
+        if (socket === s) revalidateStates(s);
+    });
+    globalThis.setTimeout(() => {
+        // Still the same socket, still "connected", but no reply: zombie.
+        if (!answered && socket === s) bounceSocket();
+    }, 4000);
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') checkConnectionAlive();
+    });
+    window.addEventListener('online', checkConnectionAlive);
+    window.addEventListener('focus', checkConnectionAlive);
+}
+
 function createSocket(url: string): IoBrokerSocket {
     const io = getIo();
     if (!io) {
@@ -218,12 +302,8 @@ function createSocket(url: string): IoBrokerSocket {
                 subscribers.delete(id);
             }
         });
-        subscribers.forEach((callbacks, id) => {
-            s.emit('subscribe', id);
-            s.emit('getState', id, (_err: unknown, state: unknown) => {
-                if (state) callbacks.forEach((fn) => fn(state as ioBrokerState));
-            });
-        });
+        subscribers.forEach((_callbacks, id) => s.emit('subscribe', id));
+        revalidateStates(s);
     };
 
     s.on('connect', () => handleConnected(false));
