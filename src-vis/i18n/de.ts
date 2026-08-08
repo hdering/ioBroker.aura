@@ -1792,6 +1792,16 @@ export const de = {
     'preview.device': 'Gerät',
     'preview.cal.dentist': 'Zahnarzt',
     'preview.cal.birthday': 'Geburtstag Lisa',
+
+    // ── Tab-Standby-Hinweis ───────────────────────────────────────────────────────
+    'tabSleep.title': 'Browser hat diesen Tab schlafen gelegt',
+    'tabSleep.body':
+        'Die Werte wurden gerade aktualisiert. Damit das Dashboard dauerhaft live bleibt, kannst du den Standby für diese Seite abschalten:',
+    'tabSleep.pathEdge':
+        'Edge: Einstellungen → System und Leistung → „Ressourcen sparen" → Aura-Adresse zu „Diese Websites nie in den Standbymodus versetzen" hinzufügen',
+    'tabSleep.pathChrome':
+        'Chrome: Einstellungen → Leistung → Speichersparmodus → Aura-Adresse unter „Diese Websites immer aktiv lassen" eintragen',
+    'tabSleep.dismiss': 'Verstanden',
 } as const;
 
 export type TranslationKey = keyof typeof de;

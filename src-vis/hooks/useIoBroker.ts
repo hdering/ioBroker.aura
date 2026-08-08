@@ -214,8 +214,10 @@ function revalidateStates(s: IoBrokerSocket): void {
 // live and only need fresh values.
 let livenessProbeAt = 0;
 
-function checkConnectionAlive(): void {
-    if (typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
+function checkConnectionAlive(opts?: { ignoreVisibility?: boolean }): void {
+    // Hidden tabs are normally left alone — but a detected freeze/long gap wants
+    // the probe regardless, since that is exactly when the socket went stale.
+    if (!opts?.ignoreVisibility && typeof document !== 'undefined' && document.visibilityState !== 'visible') return;
     const now = Date.now();
     if (now - livenessProbeAt < 5000) return;
     livenessProbeAt = now;
@@ -239,12 +241,72 @@ function checkConnectionAlive(): void {
     }, 4000);
 }
 
+// ── Tab-suspend detection ─────────────────────────────────────────────────────
+// Edge's "put tabs to sleep" (and Chrome's tab freezing) suspend a background
+// tab through the Page Lifecycle API: the document goes `frozen` and emits
+// `resume` when it wakes. That event is the only *unambiguous* signal that the
+// BROWSER suspended us — a plain long gap between timer ticks would equally fit
+// a laptop that was asleep, which no browser setting can change. So the `resume`
+// event drives the user-facing hint, while the coarse gap check below only
+// triggers a data refresh.
+let tabWasSuspended = false;
+const suspendListeners = new Set<(suspended: boolean) => void>();
+
+/** True once the browser has frozen and resumed this tab at least once. */
+export function wasTabSuspended(): boolean {
+    return tabWasSuspended;
+}
+
+export function onTabSuspended(fn: (suspended: boolean) => void): () => void {
+    suspendListeners.add(fn);
+    return () => {
+        suspendListeners.delete(fn);
+    };
+}
+
+/** True for Chromium browsers, whose sleeping-tab setting the hint can point at. */
+export function isChromiumBrowser(): boolean {
+    const brands = (navigator as { userAgentData?: { brands?: Array<{ brand: string }> } }).userAgentData?.brands;
+    if (brands?.length) return brands.some((b) => /Chromium/i.test(b.brand));
+    return /Chrome|Edg\//.test(navigator.userAgent);
+}
+
+/** 'edge' | 'chrome' | null — decides which settings path the hint names. */
+export function chromiumFlavour(): 'edge' | 'chrome' | null {
+    if (!isChromiumBrowser()) return null;
+    return /Edg\//.test(navigator.userAgent) ? 'edge' : 'chrome';
+}
+
 if (typeof document !== 'undefined') {
     document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') checkConnectionAlive();
     });
-    window.addEventListener('online', checkConnectionAlive);
-    window.addEventListener('focus', checkConnectionAlive);
+    window.addEventListener('online', () => checkConnectionAlive({ ignoreVisibility: true }));
+    window.addEventListener('focus', () => checkConnectionAlive());
+
+    // Page Lifecycle API — not in the TS DOM lib, hence the string event names.
+    document.addEventListener('resume', () => {
+        if (!tabWasSuspended) {
+            tabWasSuspended = true;
+            suspendListeners.forEach((fn) => fn(true));
+        }
+        console.warn('[Aura] the browser suspended this tab (sleeping tabs / tab freezing) — refreshing datapoints');
+        checkConnectionAlive({ ignoreVisibility: true });
+    });
+
+    // Coarse fallback: a wall-clock gap far beyond the worst-case background
+    // throttling (browsers clamp hidden-tab timers to ~1/min, never minutes)
+    // means we were frozen or the device slept. Ambiguous, so it only refreshes
+    // data — it never raises the hint.
+    const HEARTBEAT_MS = 30000;
+    const GAP_THRESHOLD_MS = 5 * 60 * 1000;
+    let lastBeat = Date.now();
+    globalThis.setInterval(() => {
+        const now = Date.now();
+        const gap = now - lastBeat;
+        lastBeat = now;
+        if (gap > GAP_THRESHOLD_MS) checkConnectionAlive({ ignoreVisibility: true });
+    }, HEARTBEAT_MS);
 }
 
 function createSocket(url: string): IoBrokerSocket {

@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome (#528)

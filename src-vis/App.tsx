@@ -12,6 +12,9 @@ import {
     setOptimisticEcho,
     getObjectViewDirect,
     setBackendTimingSink,
+    wasTabSuspended,
+    onTabSuspended,
+    chromiumFlavour,
 } from './hooks/useIoBroker';
 import { useCustomJs } from './hooks/useCustomJs';
 import { useCustomCss } from './hooks/useCustomCss';
@@ -202,6 +205,71 @@ function ConnectionIndicator({ showBadge }: { showBadge: boolean }) {
                 className={`block w-3 h-3 rounded-full ${connected ? 'animate-pulse' : ''}`}
                 style={{ background: color, boxShadow: `0 0 6px ${color}` }}
             />
+        </div>
+    );
+}
+
+// ── TabSleepHint ────────────────────────────────────────────────────────────
+// Chromium's "sleeping tabs" (Edge) / tab freezing (Chrome) suspends a tab that
+// sat idle in the background for hours. Waking it now revalidates every
+// datapoint (issue #528), so this notice is informational rather than an error —
+// it just tells the user why the dashboard stood still and how to opt this page
+// out. Only shown on Chromium, where that setting exists, and only after a
+// freeze actually happened. Dismissal is permanent per browser profile.
+
+const TAB_SLEEP_DISMISSED_KEY = 'aura-tabsleep-hint-dismissed';
+
+function TabSleepHint() {
+    const t = useT();
+    const flavour = useMemo(() => chromiumFlavour(), []);
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        if (!flavour) return;
+        try {
+            if (localStorage.getItem(TAB_SLEEP_DISMISSED_KEY)) return;
+        } catch {
+            /* storage blocked — show the hint anyway */
+        }
+        // A freeze that happened before this component mounted still counts.
+        if (wasTabSuspended()) setVisible(true);
+        return onTabSuspended(() => setVisible(true));
+    }, [flavour]);
+
+    if (!visible) return null;
+
+    const dismiss = (): void => {
+        try {
+            localStorage.setItem(TAB_SLEEP_DISMISSED_KEY, '1');
+        } catch {
+            /* ignore */
+        }
+        setVisible(false);
+    };
+
+    // Top-right, clearing the connection dot above it — the bottom edge is already
+    // taken by the client-ID badge (left) and the guidelines hint (centre).
+    return (
+        <div
+            className="fixed top-12 right-3 z-50 max-w-sm rounded-xl px-4 py-3 shadow-lg text-sm"
+            style={{
+                background: 'var(--app-surface)',
+                color: 'var(--text-primary)',
+                border: '1px solid var(--app-border)',
+            }}
+        >
+            <div className="font-medium mb-1">{t('tabSleep.title')}</div>
+            <div style={{ color: 'var(--text-secondary)' }}>{t('tabSleep.body')}</div>
+            <div className="mt-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {flavour === 'edge' ? t('tabSleep.pathEdge') : t('tabSleep.pathChrome')}
+            </div>
+            <button
+                onClick={dismiss}
+                className="mt-3 px-3 py-1 rounded-lg text-xs font-medium hover:opacity-90"
+                style={{ background: 'var(--accent)', color: '#fff' }}
+            >
+                {t('tabSleep.dismiss')}
+            </button>
         </div>
     );
 }
@@ -1005,6 +1073,7 @@ export default function App() {
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}
         >
             <ConnectionIndicator showBadge={showBadge} />
+            <TabSleepHint />
             {showClientIdBadge && <ClientIdBadge />}
             <DpPopupTriggers layoutId={layout?.id} tabId={activeTabId} />
             {drawerFloating && (

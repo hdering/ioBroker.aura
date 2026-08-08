@@ -1788,4 +1788,14 @@ export const en: Record<TranslationKey, string> = {
     'preview.device': 'Device',
     'preview.cal.dentist': 'Dentist',
     'preview.cal.birthday': 'Birthday Lisa',
+
+    // ── Tab sleep hint ────────────────────────────────────────────────────────────
+    'tabSleep.title': 'The browser put this tab to sleep',
+    'tabSleep.body':
+        'The values have just been refreshed. To keep the dashboard live permanently, exclude this page from tab sleeping:',
+    'tabSleep.pathEdge':
+        'Edge: Settings → System and performance → "Save resources" → add the Aura address to "Never put these sites to sleep"',
+    'tabSleep.pathChrome':
+        'Chrome: Settings → Performance → Memory Saver → add the Aura address under "Always keep these sites active"',
+    'tabSleep.dismiss': 'Got it',
 };
