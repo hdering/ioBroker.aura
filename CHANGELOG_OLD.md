@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.38.6 (2026-07-30)
+- Mirror - a mirrored group now shows its full content on mobile instead of only scrolling
+
 ## 0.38.5 (2026-07-30)
 - 🌟 **New feature:** @ feat(climate): add UNREACH/LOWBAT status datapoints to Raumklima widget
 - fix(echart): current value follows live state; add raw aggregation
