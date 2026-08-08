@@ -16,7 +16,7 @@ function getIoBrokerBase(): string {
     return window.location.origin;
 }
 
-export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
+export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: WidgetProps) {
     const opts = config.options ?? {};
     const presetId = (opts.presetId as string) ?? '';
     const darkMode = (opts.darkMode as boolean) ?? true;
@@ -41,6 +41,12 @@ export function EChartsPresetWidget({ config, editMode }: WidgetProps) {
         document.addEventListener('keydown', handler);
         return () => document.removeEventListener('keydown', handler);
     }, [fullscreen, closeFullscreen]);
+
+    // The chart renders in an iframe on the ioBroker origin — clicks stay inside
+    // that document, so the frame's click action needs a host-side button.
+    useEffect(() => {
+        onNeedsActionButton?.(!!presetId);
+    }, [onNeedsActionButton, presetId]);
 
     if (!presetId) {
         return (

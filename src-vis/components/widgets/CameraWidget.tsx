@@ -558,7 +558,7 @@ function StreamCell({
 
 // ── Main CameraWidget ─────────────────────────────────────────────────────────
 
-export function CameraWidget({ config, editMode }: WidgetProps) {
+export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetProps) {
     const opts = config.options ?? {};
     const streamUrlMode = (opts.streamUrlMode as string) ?? 'static';
     const rawStreamUrlDp = (opts.streamUrlDp as string) ?? '';
@@ -590,6 +590,13 @@ export function CameraWidget({ config, editMode }: WidgetProps) {
     const transparent = !!opts.transparent;
 
     const mode = detectMode(streamUrl);
+
+    // An .html stream renders in an iframe: clicks stay inside that document and
+    // never reach the frame's click action, so ask for a host-side action button.
+    // The img/rtsp-hint modes are plain host DOM and need nothing. (issue #527)
+    useEffect(() => {
+        onNeedsActionButton?.(mode === 'iframe');
+    }, [onNeedsActionButton, mode]);
 
     // ── Stream state ─────────────────────────────────────────────────────────────
     const [imgSrc, setImgSrc] = useState('');

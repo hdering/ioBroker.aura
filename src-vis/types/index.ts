@@ -331,6 +331,13 @@ export interface WidgetProps {
      * generic "Letzte Änderung anzeigen" overlay in WidgetFrame can render it.
      */
     onLastChange?: (ts: number) => void;
+    /**
+     * Widgets whose body is a cross-document iframe report `true` here. Clicks
+     * inside such a frame never enter the host document's event path, so the
+     * widget's click action would be unreachable — WidgetFrame answers this by
+     * rendering a small host-side action button over the widget. (issue #527)
+     */
+    onNeedsActionButton?: (needs: boolean) => void;
 }
 
 export interface ioBrokerObject {

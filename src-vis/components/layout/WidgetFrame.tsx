@@ -1,4 +1,13 @@
-import React, { useState, useRef, useEffect, useLayoutEffect, useMemo, useSyncExternalStore, Suspense } from 'react';
+import React, {
+    useState,
+    useRef,
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useCallback,
+    useSyncExternalStore,
+    Suspense,
+} from 'react';
 import { lazyWithReload } from '../../utils/lazyWithReload';
 import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '../../utils/perfBreakdown';
 import { createPortal } from 'react-dom';
@@ -21,6 +30,8 @@ import {
     Smartphone,
     GripVertical,
     MousePointerClick,
+    ExternalLink,
+    ArrowUpRight,
     FolderOpen,
     BadgeCheck,
     Shapes,
@@ -41,6 +52,7 @@ import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
+import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { baseDpId } from '../../utils/dpRef';
 import { JsonPathButton } from '../config/JsonPathButton';
@@ -6034,6 +6046,17 @@ export function WidgetFrame({
     const [lastChangedTs, setLastChangedTs] = useState<number>(0);
     const [, forceRedraw] = useState(0);
 
+    // Widgets whose body is a foreign document (iframe) report that the frame click
+    // can never reach them, so the click action needs its own button. The reported
+    // type is stored alongside the flag: switching a widget's type keeps the same
+    // frame mounted, and a stale `true` would leave a button with nothing behind it.
+    const [actionButtonReq, setActionButtonReq] = useState<{ type: string; needs: boolean } | null>(null);
+    const requestActionButton = useCallback(
+        (needs: boolean) => setActionButtonReq({ type: config.type, needs }),
+        [config.type],
+    );
+    const needsActionButton = actionButtonReq?.type === config.type && actionButtonReq.needs;
+
     useEffect(() => {
         const id = baseDpId((lcConfig.options?.lastChangeDatapoint as string | undefined) || lcConfig.datapoint);
         if (!id) return;
@@ -6104,24 +6127,9 @@ export function WidgetFrame({
     })();
     const hasClickAction = clickAction.kind !== 'none';
 
-    const handleWidgetClick = (e: React.MouseEvent) => {
-        if (editMode || !hasClickAction) return;
-        // Portal backdrop clicks bubble through the React tree back here — ignore while popup is open
-        if (popupOpen) return;
-        // Walk up from target — closest match wins. Interactive controls (button, input, …)
-        // suppress the popup so their own onClick can act alone. `data-allow-popup` is an
-        // explicit escape hatch to re-enable popup-on-click inside an interactive subtree.
-        {
-            let el: HTMLElement | null = e.target as HTMLElement;
-            const container = e.currentTarget as HTMLElement;
-            while (el && el !== container) {
-                if (el.matches('[data-allow-popup]')) break;
-                if (el.matches('button, input, select, textarea, a, [data-widget-interactive], [data-no-popup]'))
-                    return;
-                el = el.parentElement;
-            }
-        }
-        e.stopPropagation();
+    // Shared by the frame click and the action button that iframe-bodied widgets
+    // need (a click inside a foreign document never reaches us — issue #527).
+    const runClickAction = () => {
         switch (clickAction.kind) {
             case 'link-external':
                 if (clickAction.newTab) window.open(clickAction.url, '_blank', 'noopener');
@@ -6147,6 +6155,27 @@ export function WidgetFrame({
             default:
                 setPopupOpen(true);
         }
+    };
+
+    const handleWidgetClick = (e: React.MouseEvent) => {
+        if (editMode || !hasClickAction) return;
+        // Portal backdrop clicks bubble through the React tree back here — ignore while popup is open
+        if (popupOpen) return;
+        // Walk up from target — closest match wins. Interactive controls (button, input, …)
+        // suppress the popup so their own onClick can act alone. `data-allow-popup` is an
+        // explicit escape hatch to re-enable popup-on-click inside an interactive subtree.
+        {
+            let el: HTMLElement | null = e.target as HTMLElement;
+            const container = e.currentTarget as HTMLElement;
+            while (el && el !== container) {
+                if (el.matches('[data-allow-popup]')) break;
+                if (el.matches('button, input, select, textarea, a, [data-widget-interactive], [data-no-popup]'))
+                    return;
+                el = el.parentElement;
+            }
+        }
+        e.stopPropagation();
+        runClickAction();
     };
 
     // Verhindert Drag bei Klick auf Controls
@@ -6500,6 +6529,7 @@ export function WidgetFrame({
                             editMode={editMode}
                             onConfigChange={onConfigChange}
                             onLastChange={setLastChangedTs}
+                            onNeedsActionButton={requestActionButton}
                         />
                     </ProfiledWidget>
                 </Suspense>
@@ -6542,6 +6572,53 @@ export function WidgetFrame({
                         >
                             {text}
                         </div>
+                    );
+                })()}
+
+            {/* Action button for iframe-bodied widgets. Their content is a separate
+                document, so a click on it never enters this document's event path —
+                no z-index or capture trick changes that. This button is the only
+                host-side surface left for the click action. Deliberately always
+                visible (not hover-revealed): wall tablets have no hover. (issue #527) */}
+            {needsActionButton &&
+                hasClickAction &&
+                !editMode &&
+                (() => {
+                    const ActionIcon =
+                        clickAction.kind === 'link-external'
+                            ? ExternalLink
+                            : clickAction.kind === 'link-tab' || clickAction.kind === 'link-widget'
+                              ? ArrowUpRight
+                              : MousePointerClick;
+                    // The iframe widget's own fullscreen button sits top-right of the
+                    // frame BODY, i.e. below the title row — no collision while that
+                    // row exists. With title and icon both off there is no row, so the
+                    // two would stack: step aside in that case only.
+                    const shifted =
+                        config.type === 'iframe' &&
+                        !!config.options?.fullscreenButton &&
+                        config.options?.showTitle === false &&
+                        config.options?.showIcon === false;
+                    return (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                runClickAction();
+                            }}
+                            className="nodrag absolute top-1.5 w-7 h-7 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
+                            style={{
+                                right: shifted ? 38 : 6,
+                                zIndex: 4,
+                                background: 'rgba(0,0,0,0.55)',
+                                color: '#fff',
+                                backdropFilter: 'blur(4px)',
+                            }}
+                            title={t('wf.embedAction')}
+                            aria-label={t('wf.embedAction')}
+                            data-embed-action=""
+                        >
+                            <ActionIcon size={13} />
+                        </button>
                     );
                 })()}
 
@@ -11251,26 +11328,56 @@ export function WidgetFrame({
                                                 />
                                             </button>
                                         </div>
-                                        <div className="flex items-center justify-between">
-                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                                Interaktion erlauben
-                                            </label>
-                                            <button
-                                                onClick={() => set({ allowInteraction: !(o.allowInteraction ?? true) })}
-                                                className="relative w-9 h-5 rounded-full transition-colors"
-                                                style={{
-                                                    background:
-                                                        (o.allowInteraction ?? true)
-                                                            ? 'var(--accent)'
-                                                            : 'var(--app-border)',
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{ left: (o.allowInteraction ?? true) ? '18px' : '2px' }}
-                                                />
-                                            </button>
-                                        </div>
+                                        {/* Interaction vs. click action is a genuine either/or: a click
+                                            inside the embedded document never reaches Aura. Spelling the
+                                            three outcomes out beats a boolean that silently disables the
+                                            configured click action. (issue #527) */}
+                                        {(() => {
+                                            const mode = resolveIframeInteractionMode(o);
+                                            return (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Interaktion
+                                                    </label>
+                                                    <select
+                                                        value={mode}
+                                                        onChange={(e) =>
+                                                            set({
+                                                                interactionMode: e.target.value,
+                                                                // Kept in sync so exports, backups and older
+                                                                // docs referring to allowInteraction stay valid.
+                                                                allowInteraction: e.target.value !== 'action',
+                                                            })
+                                                        }
+                                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                        style={iSty}
+                                                    >
+                                                        {IFRAME_INTERACTION_MODES.map((m) => (
+                                                            <option key={m.value} value={m.value}>
+                                                                {m.label}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    {mode === 'contentOnly' && hasClickAction && (
+                                                        <p className="text-[10px] mt-1" style={{ color: '#f59e0b' }}>
+                                                            Klicks gehen in den iFrame — die Klick-Aktion wird nicht
+                                                            ausgelöst.
+                                                        </p>
+                                                    )}
+                                                    {mode === 'content' && !hasClickAction && (
+                                                        <p
+                                                            className="text-[10px] mt-1"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                        >
+                                                            Ohne Klick-Aktion wird kein Aktions-Button eingeblendet.
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                         {!(o.keepAlive ?? false) && (
                                             <div>
                                                 <label

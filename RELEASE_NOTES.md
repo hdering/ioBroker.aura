@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and "Allow interaction" became a three-way "Interaction" setting (#527)
+- General - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action (#527)

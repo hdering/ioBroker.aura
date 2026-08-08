@@ -712,6 +712,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.menu.edit': 'Edit',
     'wf.menu.conditions': 'Conditions',
     'wf.menu.badges': 'Badges',
+    'wf.embedAction': 'Run action',
     'wf.mirrorBadge': 'Mirror',
     'wf.mirrorBadgeOf': 'Mirror: {title}',
     'wf.menu.export': 'Export',

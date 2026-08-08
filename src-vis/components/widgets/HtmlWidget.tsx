@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Code2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -5,7 +6,7 @@ import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbo
 import { resolveHtmlAssets } from '../../utils/assetUrl';
 import type { WidgetProps } from '../../types';
 
-export function HtmlWidget({ config }: WidgetProps) {
+export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     const opts = config.options ?? {};
     const htmlContent = (opts.htmlContent as string) ?? '';
     const htmlDatapoint = (opts.htmlDatapoint as string) ?? '';
@@ -28,6 +29,12 @@ export function HtmlWidget({ config }: WidgetProps) {
         const raw = htmlDatapoint && dpValue != null && dpValue !== '' ? String(dpValue) : htmlContent;
         return raw ? resolveHtmlAssets(raw) : raw;
     })();
+
+    // The sandboxed srcDoc frame is its own document, so clicks in the rendered
+    // HTML never reach the frame's click action — ask for the action button.
+    useEffect(() => {
+        onNeedsActionButton?.(!!html);
+    }, [onNeedsActionButton, html]);
 
     if (!html) {
         return (

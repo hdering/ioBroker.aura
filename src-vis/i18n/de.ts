@@ -713,6 +713,7 @@ export const de = {
     'wf.menu.edit': 'Bearbeiten',
     'wf.menu.conditions': 'Bedingungen',
     'wf.menu.badges': 'Marker',
+    'wf.embedAction': 'Aktion ausführen',
     'wf.mirrorBadge': 'Spiegel',
     'wf.mirrorBadgeOf': 'Spiegel: {title}',
     'wf.menu.export': 'Exportieren',

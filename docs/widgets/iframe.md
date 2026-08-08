@@ -23,10 +23,26 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 
 | Option | Standard | |
 | --- | --- | --- |
-| `allowInteraction` | `true` | Klicks im iFrame zulassen (sonst transparente Sperrschicht) |
+| `interactionMode` | `content` | `action` · `content` · `contentOnly` — siehe unten |
 | `keepAlive` | `false` | iFrame beim Tabwechsel nicht neu laden |
 | `refreshInterval` | `0` | automatisches Neuladen in Sekunden (`0` = aus; bei `keepAlive` ignoriert) |
 | `fullscreenButton` | `false` | Vollbild-Button beim Hover einblenden |
+
+#### Interaktion vs. Klick-Aktion
+
+Ein Klick in die eingebettete Seite erreicht Aura nicht — das Fremd-Dokument behält
+das Ereignis. Bedienbarer Inhalt und Klick-Aktion auf derselben Fläche sind darum
+nicht möglich; `interactionMode` legt fest, was gilt.
+
+| Wert | Inhalt bedienbar | Klick-Aktion |
+| --- | --- | --- |
+| `action` | nein (transparente Sperrschicht) | Klick aufs Widget |
+| `content` | ja | Aktions-Button oben rechts |
+| `contentOnly` | ja | inaktiv |
+
+Der Aktions-Button erscheint nur, wenn eine Klick-Aktion konfiguriert ist — auch bei
+den anderen Widgets mit eingebettetem Dokument (HTML, eCharts-Preset, Kamera mit
+`.html`-Stream).
 
 ### Anzeige
 
