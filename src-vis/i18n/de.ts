@@ -1798,9 +1798,9 @@ export const de = {
     'tabSleep.body':
         'Die Werte wurden gerade aktualisiert. Damit das Dashboard dauerhaft live bleibt, kannst du den Standby für diese Seite abschalten:',
     'tabSleep.pathEdge':
-        'Edge: Einstellungen → System und Leistung → „Ressourcen sparen" → Aura-Adresse zu „Diese Websites nie in den Standbymodus versetzen" hinzufügen',
+        'Edge: Einstellungen → System und Leistung → „Ressourcen sparen“ → Aura-Adresse zu „Diese Websites nie in den Standbymodus versetzen“ hinzufügen',
     'tabSleep.pathChrome':
-        'Chrome: Einstellungen → Leistung → Speichersparmodus → Aura-Adresse unter „Diese Websites immer aktiv lassen" eintragen',
+        'Chrome: Einstellungen → Leistung → Speichersparmodus → Aura-Adresse unter „Diese Websites immer aktiv lassen“ eintragen',
     'tabSleep.dismiss': 'Verstanden',
 } as const;
 
