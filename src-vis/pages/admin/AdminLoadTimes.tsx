@@ -35,7 +35,7 @@ export function AdminLoadTimes() {
                         border: '1px solid color-mix(in srgb, var(--accent-yellow, #f59e0b) 40%, transparent)',
                     }}
                 >
-                    ⚠️ Tipp: „Timing pro Widget aufzeichnen“ nach der Fehlersuche wieder <b>deaktivieren</b> — die
+                    ⚠️ Tipp: {'„Timing pro Widget aufzeichnen“'} nach der Fehlersuche wieder <b>deaktivieren</b> — die
                     Instrumentierung jedes Widgets bei jedem Render kostet selbst Performance.
                 </p>
             </div>

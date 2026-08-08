@@ -980,8 +980,8 @@ function TriggerEditModal({ trigger, onClose }: { trigger: PopupTrigger; onClose
                         onDelete={() => patch({ clause: newClause() })}
                     />
                     <p className="text-[11px] mt-1.5" style={labelStyle}>
-                        Das Popup öffnet bei der Flanke — also erst, wenn die Bedingung von „nicht erfüllt“ auf
-                        „erfüllt“ wechselt. Steht der Datenpunkt beim Laden der Seite schon auf dem Trigger-Wert,
+                        Das Popup öffnet bei der Flanke — also erst, wenn die Bedingung von {'„nicht erfüllt“'} auf{' '}
+                        {'„erfüllt“'} wechselt. Steht der Datenpunkt beim Laden der Seite schon auf dem Trigger-Wert,
                         passiert nichts.
                     </p>
                 </div>

@@ -195,8 +195,8 @@ export function GroupActionConfig({ opts, setOpts, candidates }: Props) {
                     {/* ── Rollladen ── */}
                     {type === 'shutter' && (
                         <Info>
-                            ▲ ■ ▼ steuern alle Rollläden. Auf/Stop/Ab werden automatisch aus den Einträgen (Darstellung
-                            „Rollladen“) bzw. den Rollladen-Widgets der Gruppe übernommen.
+                            ▲ ■ ▼ steuern alle Rollläden. Auf/Stop/Ab werden automatisch aus den Einträgen (Darstellung{' '}
+                            {'„Rollladen“'}) bzw. den Rollladen-Widgets der Gruppe übernommen.
                         </Info>
                     )}
 
