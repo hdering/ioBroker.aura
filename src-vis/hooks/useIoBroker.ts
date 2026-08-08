@@ -60,12 +60,57 @@ export function getStateFromCache(id: string): ioBrokerState | null {
     return stateCache.get(id) ?? null;
 }
 
+// IDs with at least one live subscription right now, i.e. the ones whose cache
+// entry is actually being kept current by inbound stateChange events.
+//
+// The cache alone says nothing about freshness: an entry survives after its last
+// subscriber goes away, and from that moment on it silently rots, because a
+// `stateChange` only arrives for IDs we are subscribed to. That is what made a
+// popup show stale values — it subscribes on open and unsubscribes on close, so
+// a datapoint that changed while the popup was closed kept its old cached value,
+// and the mount-time `getState` was skipped precisely because the cache had an
+// entry. Reopening showed the value from the previous open. (issue #528)
+const maintained = new Set<string>();
+
+// When each cache entry was last confirmed against the server. Lets a value that
+// was fetched moments ago (the load-time prefetch, whose whole point is to batch
+// those round-trips) count as fresh even before anything subscribes to it, while
+// an entry nobody has maintained since then goes stale on its own.
+//
+// Kept deliberately short: this window is the one place a missed change can still
+// slip through (value confirmed at T, changed at T+1s with nobody subscribed,
+// consumer mounts at T+2s and trusts the cache). It only has to span
+// prefetch → first mount, which is well under a second in practice.
+const verifiedAt = new Map<string, number>();
+const FRESH_TTL_MS = 3000;
+
+/** Record an authoritative value: from a fetch, or pushed live by the server. */
+function cacheState(id: string, state: ioBrokerState): void {
+    stateCache.set(id, state);
+    verifiedAt.set(id, Date.now());
+}
+
+/** True when the cached value for `id` can be trusted without a round-trip: either a
+ *  live subscription is keeping it current, or it was confirmed within FRESH_TTL_MS.
+ *  A stale cached value is still worth rendering immediately (no null-flash), but has
+ *  to be re-fetched to confirm. */
+export function isStateFresh(id: string): boolean {
+    if (!stateCache.has(id)) return false;
+    if (maintained.has(id)) return true;
+    const at = verifiedAt.get(id);
+    return at !== undefined && Date.now() - at < FRESH_TTL_MS;
+}
+
 /** DEV-only: push a fabricated state into the cache and notify live subscribers,
  *  exactly like an inbound `stateChange` — but without any socket round-trip or
  *  write to ioBroker. Used by the screenshot harness to render widgets against
  *  controlled, side-effect-free values. Not wired up in production builds. */
 export function __devInjectState(id: string, state: ioBrokerState): void {
-    stateCache.set(id, state);
+    cacheState(id, state);
+    // The harness IS the authority for injected IDs — mark them permanently fresh so
+    // no consumer re-fetches them and overwrites the fabricated value with the real
+    // one mid-screenshot.
+    maintained.add(id);
     subscribers.get(id)?.forEach((fn) => fn(state));
 }
 
@@ -77,6 +122,11 @@ export function __devInjectState(id: string, state: ioBrokerState): void {
 let devHistoryGen: ((id: string, opts: { start: number; end: number; count?: number }) => HistoryEntry[]) | null = null;
 let devObjectView: ((type: string, startkey: string, endkey: string) => ObjectViewResult | undefined) | null = null;
 let devSendTo: ((target: string, command: string, payload: unknown) => unknown) | null = null;
+// Stands in for what the server would answer to `getState`. Lets a test model a
+// datapoint that changed while the frontend held no subscription — the situation
+// the cache-freshness logic exists for, and which is otherwise unreachable
+// without writing to a real ioBroker instance.
+let devGetState: ((id: string) => ioBrokerState | null | undefined) | null = null;
 
 export function __devSetHistoryGen(fn: typeof devHistoryGen): void {
     devHistoryGen = fn;
@@ -86,6 +136,9 @@ export function __devSetObjectView(fn: typeof devObjectView): void {
 }
 export function __devSetSendTo(fn: typeof devSendTo): void {
     devSendTo = fn;
+}
+export function __devSetGetState(fn: typeof devGetState): void {
+    devGetState = fn;
 }
 
 // Optimistic writes: when enabled, setState reflects the written value locally
@@ -119,8 +172,20 @@ export function prefetchStates(ids: string[], onProgress?: (loaded: number, tota
     const fetches = unique.map(
         (id) =>
             new Promise<void>((resolve) => {
+                // Route through the dev stub as well, so the harness controls every
+                // getState path. Otherwise the prefetch reaches the real socket for a
+                // fictional demo ID and caches whatever it answers.
+                if (devGetState) {
+                    const handled = devGetState(id);
+                    if (handled !== undefined) {
+                        if (handled) cacheState(id, handled);
+                        onProgress?.(++loaded, total);
+                        resolve();
+                        return;
+                    }
+                }
                 getSocket().emit('getState', id, (_err: unknown, state: ioBrokerState | null) => {
-                    if (state) stateCache.set(id, state);
+                    if (state) cacheState(id, state);
                     onProgress?.(++loaded, total);
                     resolve();
                 });
@@ -192,7 +257,7 @@ function revalidateStates(s: IoBrokerSocket): void {
                 if (!state) return;
                 const next = state as ioBrokerState;
                 const prev = stateCache.get(id);
-                stateCache.set(id, next);
+                cacheState(id, next);
                 // Only wake subscribers on an actual change — a reconnect on a
                 // large dashboard would otherwise re-render every widget.
                 if (prev && prev.val === next.val && prev.ts === next.ts && prev.ack === next.ack) return;
@@ -364,7 +429,10 @@ function createSocket(url: string): IoBrokerSocket {
                 subscribers.delete(id);
             }
         });
-        subscribers.forEach((_callbacks, id) => s.emit('subscribe', id));
+        subscribers.forEach((_callbacks, id) => {
+            s.emit('subscribe', id);
+            maintained.add(id);
+        });
         revalidateStates(s);
     };
 
@@ -372,6 +440,10 @@ function createSocket(url: string): IoBrokerSocket {
     s.on('reconnect', () => handleConnected(true));
     s.on('disconnect', () => {
         connectionActive = false;
+        // Nothing is being kept current while we are offline, so every cached value
+        // now needs confirming — even for subscriptions that outlive the drop (the
+        // non-hook `subscribeStateDirect` consumers, which don't watch `connected`).
+        maintained.clear();
         console.log(
             '%c Aura %c disconnected ',
             'background:#6366f1;color:#fff;font-weight:bold;border-radius:3px 0 0 3px;padding:2px 6px;',
@@ -382,7 +454,7 @@ function createSocket(url: string): IoBrokerSocket {
     s.on('stateChange', (...args: unknown[]) => {
         const id = args[0] as string;
         const state = args[1] as ioBrokerState;
-        if (state) stateCache.set(id, state);
+        if (state) cacheState(id, state);
         subscribers.get(id)?.forEach((fn) => fn(state));
         // Perf: first live data after connect. Reported inline (rather than via
         // perfMetrics) to avoid an import cycle back into this module.
@@ -512,6 +584,7 @@ export function useIoBroker() {
         if (!subscribers.has(id)) {
             subscribers.set(id, new Set());
             getSocket().emit('subscribe', id);
+            maintained.add(id);
         }
         subscribers.get(id)!.add(callback);
         return () => {
@@ -520,6 +593,7 @@ export function useIoBroker() {
                 subs.delete(callback);
                 if (subs.size === 0) {
                     subscribers.delete(id);
+                    maintained.delete(id);
                     getSocket().emit('unsubscribe', id);
                 }
             }
@@ -546,20 +620,10 @@ export function useIoBroker() {
         }
     }, []);
 
-    const getState = useCallback((id: string): Promise<ioBrokerState | null> => {
-        return new Promise((resolve) => {
-            getSocket().emit('getState', id, (_err: unknown, state: ioBrokerState | null) => {
-                // Mirror getStateDirect — cache the result so remounts (e.g. when a
-                // widget moves between the grid and the off-screen reflow container)
-                // can see the value synchronously instead of starting cold and
-                // flipping back out of the reflow set. Without this the
-                // useConditionStyle remount loop in issue #281 keeps the widget
-                // bouncing in-place and other widgets never reflow up.
-                if (state) stateCache.set(id, state);
-                resolve(state);
-            });
-        });
-    }, []);
+    // Delegates to getStateDirect: identical behaviour (fetch, then cache the result
+    // so a remount sees it synchronously — see issue #281), and this way the dev
+    // getState stub covers the hook path too.
+    const getState = useCallback((id: string): Promise<ioBrokerState | null> => getStateDirect(id), []);
 
     const getObjectView = useCallback((type: 'state' | 'channel' | 'device'): Promise<ObjectViewResult> => {
         return new Promise((resolve) => {
@@ -681,6 +745,7 @@ export function subscribeStateDirect(id: string, callback: (state: ioBrokerState
     if (!subscribers.has(id)) {
         subscribers.set(id, new Set());
         getSocket().emit('subscribe', id);
+        maintained.add(id);
     }
     subscribers.get(id)!.add(callback);
     return () => {
@@ -689,6 +754,7 @@ export function subscribeStateDirect(id: string, callback: (state: ioBrokerState
             subs.delete(callback);
             if (subs.size === 0) {
                 subscribers.delete(id);
+                maintained.delete(id);
                 getSocket().emit('unsubscribe', id);
             }
         }
@@ -710,6 +776,9 @@ export function subscribeDpValue(
     const deliver = (state: ioBrokerState): void => {
         callback(resolveDpValue(state?.val, path) as ioBrokerState['val'], state);
     };
+    // Capture freshness BEFORE subscribing — subscribing is what marks the ID as
+    // maintained, so asking afterwards would always say "fresh".
+    const fresh = isStateFresh(id);
     const unsubscribe = subscribeStateDirect(id, deliver);
     // Prime with the current value. A bare `subscribe` only yields *changes*: the
     // connect handler's getState pass covers subscriptions that already existed
@@ -717,10 +786,12 @@ export function subscribeDpValue(
     // menu opened from the mobile hamburger — its content is portal-mounted on
     // open) would otherwise render its placeholder until the DP happens to change.
     if (isValidStateId(id)) {
+        // Paint the cached value straight away when there is one (avoids a
+        // placeholder flash), then confirm it unless a live subscription was already
+        // keeping it current — an unmaintained cache entry can be arbitrarily old.
         const cached = stateCache.get(id);
-        if (cached) {
-            deliver(cached);
-        } else {
+        if (cached) deliver(cached);
+        if (!fresh) {
             let disposed = false;
             void getStateDirect(id).then((state) => {
                 if (!disposed && state) deliver(state);
@@ -736,9 +807,16 @@ export function subscribeDpValue(
 
 /** Get the current state of a datapoint without a React hook. */
 export function getStateDirect(id: string): Promise<ioBrokerState | null> {
+    if (devGetState) {
+        const handled = devGetState(id);
+        if (handled !== undefined) {
+            if (handled) cacheState(id, handled);
+            return Promise.resolve(handled);
+        }
+    }
     return new Promise((resolve) => {
         getSocket().emit('getState', id, (_err: unknown, state: ioBrokerState | null) => {
-            if (state) stateCache.set(id, state);
+            if (state) cacheState(id, state);
             resolve(state ?? null);
         });
     });

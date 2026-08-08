@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useIoBroker, getStateFromCache } from './useIoBroker';
+import { useIoBroker, getStateFromCache, isStateFresh } from './useIoBroker';
 import type { ioBrokerState } from '../types';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 
@@ -21,9 +21,21 @@ export function useDatapoint(ref: string) {
     useEffect(() => {
         if (!id || !connected) return;
 
-        // Skip the socket round-trip when the prefetch already populated the cache.
-        // The subscribe callback below delivers any subsequent value changes.
-        if (!getStateFromCache(id)) {
+        // Adopt whatever the cache holds now: it may have been filled AFTER this
+        // component mounted (the load-time prefetch resolves independently), in which
+        // case the initializer above saw nothing and the fetch below is skipped as
+        // redundant — leaving the widget on its placeholder with a perfectly good
+        // value sitting in the cache. Keep an existing local value, it is never older.
+        const cached = getStateFromCache(id);
+        if (cached) setDatapointState((prev) => prev ?? cached);
+
+        // Skip the socket round-trip only when the cached value is backed by a live
+        // subscription (another mounted consumer of the same DP). A cached value with
+        // no subscription behind it may be arbitrarily old — it stopped being updated
+        // the moment the last subscriber went away, which is what left popups showing
+        // the value from their previous open. Checked BEFORE subscribing below, since
+        // subscribing is what marks the ID as maintained.
+        if (!isStateFresh(id)) {
             getState(id).then((initialState) => {
                 if (initialState) setDatapointState(initialState);
             });

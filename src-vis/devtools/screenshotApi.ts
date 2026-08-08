@@ -17,7 +17,9 @@ import {
     __devSetHistoryGen,
     __devSetObjectView,
     __devSetSendTo,
+    __devSetGetState,
     getStateFromCache,
+    isStateFresh,
     type HistoryEntry,
 } from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
@@ -170,6 +172,21 @@ function installScreenshotApi(): void {
          *  Unlisted commands fall through to the real socket. */
         mockSendTo(byCommand: Record<string, unknown>): void {
             __devSetSendTo((_t, command) => (command in byCommand ? byCommand[command] : undefined));
+        },
+
+        /** Define what `getState` returns, i.e. the value the SERVER holds, without
+         *  touching the local cache or emitting a stateChange. That models a datapoint
+         *  which changed while the frontend held no subscription — the case the cache
+         *  freshness check exists for (issue #528). Unlisted IDs fall through to the
+         *  real socket. Pass false to restore it. */
+        mockServerState(byId: Record<string, MockValue> | false): void {
+            __devSetGetState(byId === false ? null : (id) => (id in byId ? toState(byId[id]) : undefined));
+        },
+
+        /** Whether the cached value for `id` is currently considered trustworthy
+         *  without a round-trip (live subscription, or confirmed very recently). */
+        isFresh(id: string): boolean {
+            return isStateFresh(id);
         },
 
         /** Seed datapoint popup triggers and arm them (screenshot mode disables
