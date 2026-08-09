@@ -36,6 +36,7 @@ import {
     type StatusOverviewOptions,
 } from '../../utils/statusOverview';
 import { formatItemName } from '../../utils/nameFilter';
+import { useRowPopup } from '../../hooks/useRowPopup';
 
 /** Per-category icon + label used in section headers and rows. */
 const CATEGORY_META: Record<CategoryKey, { Icon: LucideIcon; label: string }> = {
@@ -76,6 +77,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         [config.options, offlineExtraPatterns, offlineInvert],
     );
     const layout = config.layout ?? 'default';
+    // Row click -> detail popup for that datapoint (issue #524). StatusItem carries no
+    // role, so the resolver looks it up in the datapoint cache this widget already loads.
+    const rowPopup = useRowPopup(config, opts, editMode);
     const hiddenKey = hiddenDevices.join(',');
     const hiddenSet = useMemo(() => new Set(hiddenDevices), [hiddenKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -342,10 +346,17 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         ]
             .filter(Boolean)
             .join(' · ');
+        const rowProps = rowPopup.row(item.id, formatItemName(item, opts.namePattern, opts.nameFilters));
         return (
             <div
                 className="flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0"
-                style={alert ? { background: customBg ?? `color-mix(in srgb, ${color} 12%, transparent)` } : undefined}
+                style={{
+                    ...(alert
+                        ? { background: customBg ?? `color-mix(in srgb, ${color} 12%, transparent)` }
+                        : undefined),
+                    cursor: rowProps ? 'pointer' : undefined,
+                }}
+                {...rowProps}
             >
                 <Icon size={14} style={{ color }} />
                 <span className="flex-1 min-w-0 truncate text-xs" style={{ color: 'var(--text-primary)' }}>
@@ -385,6 +396,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         return (
             <div ref={measureRef} className={rootCls}>
                 {header}
+                {rowPopup.node}
                 <div
                     className={scrollCls}
                     style={{
@@ -402,6 +414,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         const alert = item.severity !== 'ok';
                         const { Icon } = CATEGORY_META[item.category];
                         const batteryLabel = batteryLabelFor(item);
+                        const rowProps = rowPopup.row(
+                            item.id,
+                            formatItemName(item, opts.namePattern, opts.nameFilters),
+                        );
                         return (
                             <div
                                 key={item.id}
@@ -412,7 +428,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                           `color-mix(in srgb, ${color} 14%, var(--widget-bg, var(--app-surface)))`)
                                         : 'var(--app-bg)',
                                     border: `1px solid ${alert ? `color-mix(in srgb, ${color} 40%, transparent)` : 'var(--widget-border)'}`,
+                                    cursor: rowProps ? 'pointer' : undefined,
                                 }}
+                                {...rowProps}
                             >
                                 <span
                                     className="flex items-center gap-1 text-[10px] leading-tight"
@@ -444,6 +462,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         return (
             <div ref={measureRef} className={rootCls}>
                 {header}
+                {rowPopup.node}
                 <div className={`${scrollCls} flex flex-wrap gap-1.5 content-start`}>
                     {items.map((item) => {
                         const color = alertColorFor(item);
@@ -451,6 +470,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         const alert = item.severity !== 'ok';
                         const { Icon } = CATEGORY_META[item.category];
                         const batteryLabel = batteryLabelFor(item);
+                        const rowProps = rowPopup.row(
+                            item.id,
+                            formatItemName(item, opts.namePattern, opts.nameFilters),
+                        );
                         return (
                             <span
                                 key={item.id}
@@ -461,7 +484,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                         : 'var(--app-bg)',
                                     color: alert ? color : 'var(--text-primary)',
                                     border: `1px solid ${alert ? `color-mix(in srgb, ${color} 34%, transparent)` : 'var(--widget-border)'}`,
+                                    cursor: rowProps ? 'pointer' : undefined,
                                 }}
+                                {...rowProps}
                             >
                                 <Icon size={11} className="shrink-0" style={{ color }} />
                                 <span className="truncate max-w-[120px]">
@@ -485,6 +510,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     return (
         <div ref={measureRef} className={rootCls}>
             {header}
+            {rowPopup.node}
 
             {allClear ? (
                 <div

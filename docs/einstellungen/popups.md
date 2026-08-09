@@ -17,7 +17,7 @@ Eigene Popup-Views erstellen und als Standard für Widget-Typen zuweisen. Ein Po
 | Option | |
 | --- | --- |
 | Bedingung | Datenpunkt + Operator + Wert; ausgelöst wird nur die Flanke (nicht erfüllt → erfüllt) |
-| Ziel | Vollständige Klick-Aktion: Popup-View, Bild, Webseite, JSON, HTML, Widget-Inhalt |
+| Ziel | Vollständige Klick-Aktion: Popup-View, alle Datenpunkte des Geräts, Bild, Webseite, JSON, HTML, Widget-Inhalt |
 | Datenpunkt zurücksetzen | Schreibt nach dem Öffnen einen Wert zurück (Tastermodus); leer = `false` |
 | Popup schließen, wenn … | Schließt das Popup, sobald die Bedingung nicht mehr erfüllt ist |
 | Gültig auf Geräten | Optionaler Client-Filter; leer = alle Geräte |
@@ -44,6 +44,24 @@ setState('aura.0.popup.open', '{"view":"Gerät","dp":"hm-rpc.0.ABC.1.STATE"}');
 ```
 
 ## Popup-Views
+
+Mitgeliefert werden `Standard: Dimmer`, `Standard: Thermostat`, `Standard: Schalter`, `Standard: Rolladen`, `Standard: Mediaplayer` und `Standard: Datenpunkt`.
+
+`Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung) ist bewusst **kein** Widget-Typ-Standard — sie dient nur als Rückfallebene für den [Klick auf eine Listenzeile](../widgets/dynamische-liste#klick-auf-zeile) und ändert das Verhalten bestehender Widgets nicht.
+
+## Klick-Aktion „Alle Datenpunkte des Geräts"
+
+Listet alle Datenpunkte, die unter demselben Elternobjekt, Kanal oder Gerät liegen wie der geklickte — als bedienbare Liste.
+
+| Option | Standard | |
+| --- | --- | --- |
+| Umfang | Gleicher Strang | `parent` (Elternobjekt) · `channel` · `device` |
+| Nur relevante Datenpunkte | aus | filtert auf bedienbare/anzeigbare Rollen |
+| Datenpunkt | Widget-/Zeilen-Datenpunkt | überschreibt die Quelle |
+
+`Gleicher Strang` funktioniert immer, auch ohne Kanal-/Geräteobjekte (z. B. bei Aliassen).
+
+## Views verwalten
 
 Liste aus mitgelieferten (`Standard: …`) und eigenen Views. Pro View: `Bearbeiten`, `Kopieren`, `Exportieren`; eigene zusätzlich umbenennen/löschen. Über `View hinzufügen` bzw. `Import` neue Views anlegen.
 

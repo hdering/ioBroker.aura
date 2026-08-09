@@ -19,6 +19,7 @@ import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatap
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import type { NameSource } from '../../utils/nameFilter';
 import { NameDisplayFields } from './NameDisplayFields';
+import { RowClickSection, RowClickEntryField } from './RowClickSection';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { NS } from '../../utils/namespace';
 import { useT } from '../../i18n';
@@ -543,6 +544,19 @@ function EntryRow({
                         </button>
                     </div>
 
+                    {/* Klick auf Zeile (Override) */}
+                    <div className="flex items-center justify-between gap-2">
+                        <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            Klick auf Zeile
+                        </label>
+                        <div style={{ width: 120 }}>
+                            <RowClickEntryField
+                                value={entry.clickAction}
+                                onChange={(next) => onUpdate({ clickAction: next })}
+                            />
+                        </div>
+                    </div>
+
                     {/* Farbschwellen */}
                     <div style={{ borderTop: '1px solid var(--app-border)', paddingTop: 6, marginTop: 2 }}>
                         <div className="flex items-center justify-between mb-1">
@@ -816,6 +830,9 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     <div style={{ height: 1, background: 'var(--app-border)' }} />
                 </>
             )}
+
+            {/* ── Row click action ── */}
+            <RowClickSection config={config} opts={opts} onChange={setOpts} />
 
             {/* ── Settings ── */}
             <div className="flex items-center justify-between">

@@ -47,6 +47,28 @@ function adapterPrefix(id: string): string {
     return parts.length >= 2 ? `${parts[0]}.${parts[1]}` : parts[0];
 }
 
+/**
+ * ioBroker's plain object view omits the `alias.*` namespace, so a dashboard built
+ * on aliases would see no devices at all. A second range query over `alias.` fills
+ * them in (same fix as hooks/useDatapointList, issue #524).
+ */
+async function aliasRows(type: 'state' | 'channel' | 'device'): Promise<{ value: ioBrokerObject }[]> {
+    const res = await getObjectViewDirect(type, 'alias.', 'alias.香');
+    return res.rows;
+}
+
+function mergeRows<T extends { value: ioBrokerObject }>(base: T[], extra: T[]): T[] {
+    const seen = new Set(base.map((r) => r.value?._id).filter(Boolean));
+    const out = [...base];
+    for (const row of extra) {
+        const id = row.value?._id;
+        if (!id || seen.has(id)) continue;
+        seen.add(id);
+        out.push(row);
+    }
+    return out;
+}
+
 export function useIoBrokerDevices() {
     const { getObjectView } = useIoBroker();
     const [devices, setDevices] = useState<Device[]>([]);
@@ -56,12 +78,18 @@ export function useIoBrokerDevices() {
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const [devResult, chResult, stResult, enumResult] = await Promise.all([
+            const [devPlain, chPlain, stPlain, devAlias, chAlias, stAlias, enumResult] = await Promise.all([
                 getObjectView('device'),
                 getObjectView('channel'),
                 getObjectView('state'),
+                aliasRows('device'),
+                aliasRows('channel'),
+                aliasRows('state'),
                 getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
             ]);
+            const devRows = mergeRows(devPlain.rows, devAlias);
+            const chRows = mergeRows(chPlain.rows, chAlias);
+            const stRows = mergeRows(stPlain.rows, stAlias);
 
             // Build memberId → { rooms, funcs } map from enums
             const enumMap = new Map<string, { rooms: string[]; funcs: string[] }>();
@@ -82,7 +110,7 @@ export function useIoBrokerDevices() {
 
             // States nach Parent-ID gruppieren
             const statesByParent = new Map<string, DeviceState[]>();
-            for (const { value: obj } of stResult.rows) {
+            for (const { value: obj } of stRows) {
                 if (!obj) continue;
                 const parts = obj._id.split('.');
                 const parent = parts.slice(0, -1).join('.');
@@ -118,7 +146,7 @@ export function useIoBrokerDevices() {
             const result: Device[] = [];
 
             // Geräte (device-Objekte)
-            for (const { value: obj } of devResult.rows) {
+            for (const { value: obj } of devRows) {
                 if (!obj) continue;
                 const states: DeviceState[] = [];
                 // Direkte States + States aus untergeordneten Kanälen sammeln
@@ -139,7 +167,7 @@ export function useIoBrokerDevices() {
 
             // Kanäle ohne übergeordnetes Gerät
             const deviceIds = new Set(result.map((d) => d.id));
-            for (const { value: obj } of chResult.rows) {
+            for (const { value: obj } of chRows) {
                 if (!obj) continue;
                 const parts = obj._id.split('.');
                 const parentDevice = parts.slice(0, -1).join('.');

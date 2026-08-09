@@ -58,7 +58,7 @@ const MODE_GROUPS: { label: string; modes: ClickAction['kind'][] }[] = [
     },
     {
         label: 'Popup',
-        modes: ['popup-view', 'popup-image', 'popup-iframe', 'popup-json', 'popup-html', 'popup-widget'],
+        modes: ['popup-view', 'popup-dps', 'popup-image', 'popup-iframe', 'popup-json', 'popup-html', 'popup-widget'],
     },
     {
         label: 'Navigation',
@@ -91,6 +91,8 @@ function modeLabel(kind: ClickAction['kind']): string {
             return 'Popup: HTML';
         case 'popup-widget':
             return 'Popup: Widget-Inhalt';
+        case 'popup-dps':
+            return 'Popup: Alle Datenpunkte des Geräts';
         case 'link-tab':
             return 'Sprung: Tab';
         case 'link-external':
@@ -144,7 +146,7 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) 
     const layouts = useDashboardStore((s) => s.layouts);
 
     const [dpPickerTarget, setDpPickerTarget] = useState<
-        'image-dp' | 'json-dp' | 'html-dp' | 'thermo-setpoint' | 'thermo-mode' | 'view-dp' | null
+        'image-dp' | 'json-dp' | 'html-dp' | 'thermo-setpoint' | 'thermo-mode' | 'view-dp' | 'dps-dp' | null
     >(null);
     const [widgetSearch, setWidgetSearch] = useState('');
 
@@ -193,6 +195,9 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) 
                 break;
             case 'popup-widget':
                 setAction({ kind: 'popup-widget' });
+                break;
+            case 'popup-dps':
+                setAction({ kind: 'popup-dps', scope: 'parent' });
                 break;
             case 'link-tab': {
                 const firstLayout = layouts[0];
@@ -690,6 +695,66 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) 
                     );
                 })()}
 
+            {action.kind === 'popup-dps' && (
+                <div className="space-y-3">
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Umfang
+                        </label>
+                        <select
+                            value={action.scope ?? 'parent'}
+                            onChange={(e) =>
+                                setAction({ ...action, scope: e.target.value as 'parent' | 'channel' | 'device' })
+                            }
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="parent">Gleicher Strang (Elternobjekt)</option>
+                            <option value="channel">Kanal</option>
+                            <option value="device">Ganzes Gerät</option>
+                        </select>
+                        <p
+                            className="text-[10px] mt-1 leading-tight"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                        >
+                            {'„Gleicher Strang“'} funktioniert immer, auch ohne Kanal-/Geräteobjekte (z. B. bei
+                            Aliassen). Kanal und Gerät laufen die Objekt-Hierarchie aufwärts.
+                        </p>
+                    </div>
+                    <Toggle
+                        checked={!!action.relevantOnly}
+                        onChange={(v) => setAction({ ...action, relevantOnly: v || undefined })}
+                        label="Nur relevante Datenpunkte"
+                    />
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Datenpunkt (leer = Widget-/Zeilen-Datenpunkt)
+                        </label>
+                        <div className="flex gap-1">
+                            <input
+                                type="text"
+                                value={action.dp ?? ''}
+                                onChange={(e) => setAction({ ...action, dp: e.target.value || undefined })}
+                                placeholder={config.datapoint || 'z. B. hm-rpc.0.ABC.1.STATE'}
+                                className={inputCls}
+                                style={{ ...inputStyle, flex: 1 }}
+                            />
+                            <button
+                                onClick={() => setDpPickerTarget('dps-dp')}
+                                className="px-2 rounded-lg"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    border: '1px solid var(--app-border)',
+                                    color: 'var(--text-secondary)',
+                                }}
+                            >
+                                <Database size={13} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {action.kind === 'popup-view' && (
                 <div>
                     <label className={labelCls} style={labelStyle}>
@@ -1009,6 +1074,7 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) 
                         if (dpPickerTarget === 'thermo-mode')
                             return action.kind === 'popup-thermostat' ? (action.modeDp ?? '') : '';
                         if (dpPickerTarget === 'view-dp') return action.kind === 'popup-view' ? (action.dp ?? '') : '';
+                        if (dpPickerTarget === 'dps-dp') return action.kind === 'popup-dps' ? (action.dp ?? '') : '';
                         return '';
                     })()}
                     onSelect={(id) => {
@@ -1023,6 +1089,8 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) 
                         if (dpPickerTarget === 'thermo-mode' && action.kind === 'popup-thermostat')
                             setAction({ ...action, modeDp: id });
                         if (dpPickerTarget === 'view-dp' && action.kind === 'popup-view')
+                            setAction({ ...action, dp: id });
+                        if (dpPickerTarget === 'dps-dp' && action.kind === 'popup-dps')
                             setAction({ ...action, dp: id });
                         setDpPickerTarget(null);
                     }}

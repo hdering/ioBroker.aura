@@ -31,14 +31,40 @@ Zweispaltiges, dichtes Gitter — für viele Einträge auf wenig Platz.
 ### Minimal
 Inline-Pills mit Label und Wert, umbrechend — für kompakte Status-Anzeigen.
 
-### Custom
-Einträge frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
-
 ## Einstellungen
 
 Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ![](./assets/liste/config.png)
+
+### Klick auf Zeile
+
+Ein Klick auf eine Listenzeile öffnet ein Detail-Popup zu genau diesem Datenpunkt. Klicks auf Schalter, Regler oder Buttons in der Zeile schalten weiterhin direkt.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `rowClickAction` | automatisch | `auto` · `{ "kind": "none" }` (aus) · vollständige Klick-Aktion |
+| `rowPopupTitle` | Zeilenname | Titel des Popups |
+| `rowPopupWidth` / `rowPopupHeight` | auto | px |
+| `rowPopupAutoCloseSec` | View/Global | Sekunden, `0` = aus |
+| `entries[].clickAction` | wie Liste | Override pro Eintrag: `auto` · `{ "kind": "none" }` (aus) |
+
+Automatik nach Rolle des Datenpunkts:
+
+| Rolle | Popup |
+| --- | --- |
+| `level.dimmer` · `level.*` · `*dimmer*` · `*brightness*` | Dimmer |
+| `switch` · `switch.*` · `sensor.*` · `indicator.*` · `button` | Schalter |
+| `level.blind` · `*shutter*` · `*cover*` · `*awning*` | Rollladen |
+| `level.temperature` · `heating*` | Thermostat |
+| `media.*` (außer `media.volume`) | Schalter |
+| sonst | `Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung) |
+
+Zugewiesene [Widget-Typ-Standards](../einstellungen/popups#widget-typ-standards) gelten auch hier — wer dem Typ `switch` eine eigene View zuweist, bekommt sie auch in der Liste.
+
+::: tip Badges-Layout
+Ein Badge ist die ganze Zeile. Schaltbare Badges schalten weiterhin, das Popup übernimmt nur Badges ohne eigenen Schalter (Sensoren, schreibgeschützte und numerische Werte).
+:::
 
 ### Anzeige
 

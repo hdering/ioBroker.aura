@@ -27,6 +27,8 @@ import {
     type GroupActionConfigOpts,
 } from '../../utils/groupTargets';
 import { GroupActionControl } from './GroupActionControl';
+import { useRowPopup } from '../../hooks/useRowPopup';
+import type { RowClickSetting, RowPopupOptions } from '../../utils/rowClickAction';
 import {
     ShutterControl,
     StepperControl,
@@ -76,9 +78,11 @@ export interface StaticListEntry extends EntryControlConfig {
     falseIcon?: string;
     /** Show last-change timestamp under this entry. */
     showLastChange?: boolean;
+    /** Per-row click action. Overrides the list-wide setting; undefined = inherit. */
+    clickAction?: RowClickSetting;
 }
 
-export interface StaticListOptions extends GroupActionConfigOpts {
+export interface StaticListOptions extends GroupActionConfigOpts, RowPopupOptions {
     entries: StaticListEntry[];
     /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
     valueFilter?: 'all' | 'active' | 'inactive';
@@ -514,6 +518,8 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // so the popup grid (and dialog) can grow to fit every row. Off elsewhere.
     const autoHeight = usePopupAutoHeight();
     const entries = useMemo<StaticListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
+    // Row click -> detail popup for that datapoint (issue #524).
+    const rowPopup = useRowPopup(config, opts, editMode);
     const t = useT();
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const { subscribe, setState, getState } = useIoBroker();
@@ -749,6 +755,8 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             : null;
 
     const layout = config.layout ?? 'default';
+    // 'custom' is no longer offered for lists (utils/widgetLayouts NO_CUSTOM) and is
+    // undocumented - the branch stays so dashboards that stored it keep rendering.
     if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
     const wrap = !!opts.wrapText;
@@ -904,6 +912,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
+                {rowPopup.node}
                 {visibleEntries.length > 0 && (
                     <div
                         className={`${fillCls} p-2`}
@@ -927,11 +936,17 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const entryIconSize = entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
                             const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                            const rowProps = rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
                             return (
                                 <div
                                     key={entry.id}
                                     className="rounded-xl p-2.5 flex flex-col gap-2 relative"
-                                    style={{ background: stateBg, border: '1px solid var(--widget-border)' }}
+                                    style={{
+                                        background: stateBg,
+                                        border: '1px solid var(--widget-border)',
+                                        cursor: rowProps ? 'pointer' : undefined,
+                                    }}
+                                    {...rowProps}
                                 >
                                     <span
                                         className={`flex items-center gap-1 leading-tight ${labelWrapCls}${entryFontSize ? '' : ' text-[10px]'}`}
@@ -984,6 +999,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
+                {rowPopup.node}
                 {visibleEntries.length > 0 && (
                     <div
                         className={fillCls}
@@ -1003,6 +1019,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const entryIconSize = entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
                             const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                            const rowProps = rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
                             return (
                                 <div
                                     key={entry.id}
@@ -1012,7 +1029,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
                                         borderLeft:
                                             showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
+                                        cursor: rowProps ? 'pointer' : undefined,
                                     }}
+                                    {...rowProps}
                                 >
                                     {EntryIcon && (
                                         <EntryIcon
@@ -1074,6 +1093,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
+                {rowPopup.node}
                 {visibleEntries.length > 0 && (
                     <div className={`${fillCls} p-2 flex flex-wrap gap-1.5 content-start`}>
                         {visibleEntries.map((entry) => {
@@ -1161,11 +1181,18 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                           lcTs,
                                       )
                                     : '';
+                            // A badge is the whole row, so toggling and opening a popup would
+                            // collide: the popup only takes over badges without a toggle of
+                            // their own (sensors, read-only, numeric).
+                            const rowProps = clickable
+                                ? undefined
+                                : rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
                             return (
                                 <button
                                     key={entry.id}
-                                    onClick={() => {
-                                        if (!clickable) return;
+                                    {...rowProps}
+                                    onClick={(e) => {
+                                        if (!clickable) return rowProps?.onClick(e);
                                         if (forceSwitch) {
                                             if (isBool) setState(entry.id, !truthy);
                                             else if (typeof val === 'number') setState(entry.id, truthy ? 0 : 1);
@@ -1187,7 +1214,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                 : 'var(--app-bg)'),
                                         color: pillColor ?? 'var(--text-secondary)',
                                         border: `1px solid ${stateBg ? 'transparent' : pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)'}`,
-                                        cursor: clickable ? 'pointer' : 'default',
+                                        cursor: clickable || rowProps ? 'pointer' : 'default',
                                         fontSize: entryFontSize ?? undefined,
                                     }}
                                 >
@@ -1221,6 +1248,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         <div className={`relative flex flex-col ${rootHCls}`}>
             {header}
             {empty}
+            {rowPopup.node}
             {visibleEntries.length > 0 && (
                 <div className={fillClsY}>
                     {visibleEntries.map((entry) => {
@@ -1235,6 +1263,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         const entryIconSize = entry.iconSize ?? 13;
                         const entryFontSize = entry.fontSize;
                         const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
+                        const rowProps = rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
                         return (
                             <div
                                 key={entry.id}
@@ -1242,7 +1271,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 style={{
                                     background: stateBg,
                                     borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
+                                    cursor: rowProps ? 'pointer' : undefined,
                                 }}
+                                {...rowProps}
                             >
                                 {EntryIcon && (
                                     <EntryIcon

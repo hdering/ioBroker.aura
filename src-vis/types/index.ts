@@ -390,7 +390,13 @@ export type ClickAction =
     | { kind: 'link-tab'; layoutId: string; tabId: string; sectionId?: string }
     | { kind: 'link-external'; url: string; newTab?: boolean }
     | { kind: 'link-widget'; layoutId: string; tabId: string; widgetId: string; sectionId?: string }
-    | { kind: 'popup-view'; viewId: string; dp?: string };
+    | { kind: 'popup-view'; viewId: string; dp?: string }
+    /**
+     * Lists every datapoint that sits under the same parent / channel / device as
+     * the clicked one. `dp` overrides the source datapoint (default: the widget's
+     * own, or the clicked list row's).
+     */
+    | { kind: 'popup-dps'; scope?: 'parent' | 'channel' | 'device'; dp?: string; relevantOnly?: boolean };
 
 // options.clickAction?: ClickAction
 // options.popupTitle?: string      – override header title in popup

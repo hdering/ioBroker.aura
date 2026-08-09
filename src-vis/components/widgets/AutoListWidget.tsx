@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState, useCallback } from 'react';
 import { RefreshCw, Filter, List } from 'lucide-react';
-import type { WidgetProps, ioBrokerState } from '../../types';
+import type { WidgetProps, ioBrokerObject, ioBrokerState } from '../../types';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
@@ -28,6 +28,8 @@ import {
     type GroupActionConfigOpts,
 } from '../../utils/groupTargets';
 import { GroupActionControl } from './GroupActionControl';
+import { useRowPopup } from '../../hooks/useRowPopup';
+import type { RowPopupOptions } from '../../utils/rowClickAction';
 import {
     ShutterControl,
     StepperControl,
@@ -63,7 +65,7 @@ export interface AutoListEntry extends EntryControlConfig {
     inactiveBg?: string;
 }
 
-export interface AutoListOptions extends GroupActionConfigOpts {
+export interface AutoListOptions extends GroupActionConfigOpts, RowPopupOptions {
     entries: AutoListEntry[];
     filterRoles?: string;
     filterIdPattern?: string;
@@ -205,6 +207,29 @@ export function resolveName(name: string | Record<string, string> | undefined, f
     return name.de ?? name.en ?? Object.values(name)[0] ?? fallback;
 }
 
+type ViewRow = { id: string; value: ioBrokerObject };
+
+/**
+ * ioBroker's plain `state`/`channel`/`device` object view does not return the
+ * `alias.*` namespace - a second range query over `alias.` is required, exactly
+ * as in hooks/useDatapointList. Without it a dashboard built purely on aliases
+ * finds nothing in the datapoint search (issue #524).
+ */
+async function viewWithAliases(type: 'state' | 'channel' | 'device'): Promise<ViewRow[]> {
+    const [plain, aliases] = await Promise.all([
+        getObjectViewDirect(type),
+        getObjectViewDirect(type, 'alias.', 'alias.\u9999'),
+    ]);
+    const seen = new Set(plain.rows.map((r) => r.id));
+    const out = [...plain.rows];
+    for (const row of aliases.rows) {
+        if (seen.has(row.id)) continue;
+        seen.add(row.id);
+        out.push(row);
+    }
+    return out;
+}
+
 export async function loadFilterOptions(): Promise<{
     roles: string[];
     rooms: string[];
@@ -212,14 +237,14 @@ export async function loadFilterOptions(): Promise<{
     types: string[];
     adapters: string[];
 }> {
-    const [stateResult, enumResult] = await Promise.all([
-        getObjectViewDirect('state'),
+    const [stateRows, enumResult] = await Promise.all([
+        viewWithAliases('state'),
         getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
     ]);
     const rolesSet = new Set<string>();
     const typesSet = new Set<string>();
     const adaptersSet = new Set<string>();
-    for (const { id, value: obj } of stateResult.rows) {
+    for (const { id, value: obj } of stateRows) {
         if (obj?.common?.role) rolesSet.add(obj.common.role);
         if (obj?.common?.type) typesSet.add(obj.common.type);
         const parts = id.split('.');
@@ -255,16 +280,16 @@ export async function discoverDatapoints(
         | 'filterAdapters'
     >,
 ): Promise<DiscoveredDp[]> {
-    const [stateResult, channelResult, deviceResult, enumResult] = await Promise.all([
-        getObjectViewDirect('state'),
-        getObjectViewDirect('channel'),
-        getObjectViewDirect('device'),
+    const [stateRows, channelRows, deviceRows, enumResult] = await Promise.all([
+        viewWithAliases('state'),
+        viewWithAliases('channel'),
+        viewWithAliases('device'),
         getObjectViewDirect('enum', 'enum.', 'enum.\u9999'),
     ]);
 
     // Build parent name map (channels override devices when both exist)
     const parentNames = new Map<string, string>();
-    for (const { id, value: obj } of [...deviceResult.rows, ...channelResult.rows]) {
+    for (const { id, value: obj } of [...deviceRows, ...channelRows]) {
         if (!obj?.common?.name) continue;
         const n = resolveName(obj.common.name as string | Record<string, string>, '');
         if (n) parentNames.set(id, n);
@@ -321,8 +346,11 @@ export async function discoverDatapoints(
         .filter(Boolean);
     const excludeIdsSet = new Set<string>(opts.excludeIds ?? []);
 
-    return stateResult.rows
+    return stateRows
         .filter(({ id, value: obj }) => {
+            // Malformed rows (missing common) exist in some user DBs - drop them so
+            // the mapper below can dereference common safely.
+            if (!obj?.common) return false;
             const role = obj.common.role ?? '';
             if (roleFilter.length > 0 && !roleFilter.includes(role)) return false;
             if (idPatterns.length > 0 && !idPatterns.some((p) => matchesIdPattern(id, p))) return false;
@@ -777,6 +805,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     }, [opts.valueFilter]);
     const syncMs = (opts.syncIntervalMin ?? 5) * 60_000;
     const layout = config.layout ?? 'default';
+    // Row click -> detail popup for that datapoint (issue #524).
+    const rowPopup = useRowPopup(config, opts, editMode);
 
     const saveOpts = useCallback(
         (patch: Partial<AutoListOptions>) => {
@@ -1180,6 +1210,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         </div>
     );
 
+    // 'custom' is no longer offered for lists (utils/widgetLayouts NO_CUSTOM) and is
+    // undocumented - the branch stays so dashboards that stored it keep rendering.
     if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
     const wrap = !!opts.wrapText;
@@ -1235,6 +1267,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
+                {rowPopup.node}
                 {visibleEntries.length > 0 && (
                     <div className={`${fillCls} p-2 flex flex-col gap-2`}>
                         {sections.map((sec) => (
@@ -1262,6 +1295,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 ? entry.activeBg || globalActiveBg
                                                 : entry.inactiveBg || globalInactiveBg) || 'var(--app-bg)';
                                         const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                        const rowProps = rowPopup.row(entry.id, label, { role: entry.role });
                                         return (
                                             <div
                                                 key={entry.id}
@@ -1269,7 +1303,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 style={{
                                                     background: stateBg,
                                                     border: '1px solid var(--widget-border)',
+                                                    cursor: rowProps ? 'pointer' : undefined,
                                                 }}
+                                                {...rowProps}
                                             >
                                                 <span
                                                     className={`text-[10px] leading-tight ${labelWrapCls}`}
@@ -1335,6 +1371,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
+                {rowPopup.node}
                 {visibleEntries.length > 0 && (
                     <div
                         className={fillCls}
@@ -1357,6 +1394,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         ? entry.activeBg || globalActiveBg
                                         : entry.inactiveBg || globalInactiveBg;
                                     const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                    const rowProps = rowPopup.row(entry.id, label, { role: entry.role });
                                     return (
                                         <div
                                             key={entry.id}
@@ -1370,7 +1408,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     showDividers && isRight
                                                         ? '1px solid var(--widget-border)'
                                                         : undefined,
+                                                cursor: rowProps ? 'pointer' : undefined,
                                             }}
+                                            {...rowProps}
                                         >
                                             <div className="flex-1 min-w-0" style={labelContainerStyle}>
                                                 <span
@@ -1427,6 +1467,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             <div className={`aura-widget-row relative flex flex-col ${rootHCls}`}>
                 {header}
                 {empty}
+                {rowPopup.node}
                 {visibleEntries.length > 0 && (
                     <div className={`${fillCls} p-2 flex flex-wrap gap-1.5 content-start`}>
                         {sections.map((sec) => (
@@ -1513,13 +1554,24 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                               )
                                             : '';
 
+                                    // A badge is the whole row, so toggling and opening a popup
+                                    // would collide: the popup only takes over badges that have
+                                    // no toggle of their own (sensors, read-only, numeric).
+                                    const togglable = writable && !roleDisplay && !lockValue && isBoolLike;
+                                    const rowProps = togglable
+                                        ? undefined
+                                        : rowPopup.row(entry.id, label, { role: entry.role });
                                     return (
                                         <button
                                             key={entry.id}
-                                            onClick={() => {
-                                                if (!writable || roleDisplay || lockValue) return;
-                                                if (isBool) setState(entry.id, !on);
-                                                else if (isBoolLike) setState(entry.id, on ? 0 : 1);
+                                            {...rowProps}
+                                            onClick={(e) => {
+                                                if (togglable) {
+                                                    if (isBool) setState(entry.id, !on);
+                                                    else setState(entry.id, on ? 0 : 1);
+                                                    return;
+                                                }
+                                                rowProps?.onClick(e);
                                             }}
                                             title={lcText || undefined}
                                             className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium transition-colors hover:opacity-80"
@@ -1531,10 +1583,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         : 'var(--app-bg)'),
                                                 color: pillColor ?? 'var(--text-secondary)',
                                                 border: `1px solid ${stateBg ? 'transparent' : pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)'}`,
-                                                cursor:
-                                                    isBoolLike && writable && !roleDisplay && !lockValue
-                                                        ? 'pointer'
-                                                        : 'default',
+                                                cursor: togglable || rowProps ? 'pointer' : 'default',
                                             }}
                                         >
                                             {BadgeIcon && <BadgeIcon size={13} className="shrink-0 opacity-70" />}
@@ -1569,6 +1618,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         <div className={`relative flex flex-col ${rootHCls}`}>
             {header}
             {empty}
+            {rowPopup.node}
             {visibleEntries.length > 0 && (
                 <div className={fillCls}>
                     {sections.map((sec) => (
@@ -1586,6 +1636,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     ? entry.activeBg || globalActiveBg
                                     : entry.inactiveBg || globalInactiveBg;
                                 const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
+                                const rowProps = rowPopup.row(entry.id, label, { role: entry.role });
                                 return (
                                     <div
                                         key={entry.id}
@@ -1593,7 +1644,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         style={{
                                             background: stateBg,
                                             borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
+                                            cursor: rowProps ? 'pointer' : undefined,
                                         }}
+                                        {...rowProps}
                                     >
                                         <div className="flex-1 min-w-0" style={labelContainerStyle}>
                                             <div

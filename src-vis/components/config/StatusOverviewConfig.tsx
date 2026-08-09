@@ -15,6 +15,7 @@ import { useConfigStore } from '../../store/configStore';
 import { ColorPicker } from '../common/ColorPicker';
 import { ConfigModal } from './ConfigModal';
 import { NameDisplayFields } from './NameDisplayFields';
+import { RowClickSection } from './RowClickSection';
 
 // Lazy so the ~battery admin page stays out of the config chunk until opened.
 const AdminBatteries = lazy(() =>
@@ -572,6 +573,9 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     </div>
                 </div>
             </details>
+
+            {/* ── Row click action ── */}
+            <RowClickSection config={config} opts={o} onChange={set} />
         </div>
     );
 }

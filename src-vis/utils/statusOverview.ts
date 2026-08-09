@@ -14,6 +14,7 @@
 import type { DatapointEntry } from '../hooks/useDatapointList';
 import { getRoleDisplay } from './listEntryDisplay';
 import type { NameFilterRule } from './nameFilter';
+import type { RowPopupOptions } from './rowClickAction';
 
 export type Severity = 'crit' | 'warn' | 'ok';
 export type CategoryKey = 'battery' | 'window' | 'light' | 'unreach' | 'alarm';
@@ -70,7 +71,7 @@ function isLightFunc(label: string): boolean {
     return f.includes('licht') || f.includes('light') || f.includes('lamp');
 }
 
-export interface StatusOverviewOptions {
+export interface StatusOverviewOptions extends RowPopupOptions {
     // Categories (default: all on)
     catBattery?: boolean;
     catWindow?: boolean;

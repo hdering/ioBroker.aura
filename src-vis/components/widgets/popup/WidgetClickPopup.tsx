@@ -13,6 +13,7 @@ import { IframePopupBody } from './IframePopupBody';
 import { JsonPopupBody } from './JsonPopupBody';
 import { HtmlPopupBody } from './HtmlPopupBody';
 import { WidgetEmbedBody } from './WidgetEmbedBody';
+import { DeviceDpsBody } from './DeviceDpsBody';
 import { TabEmbedBody } from './TabEmbedBody';
 
 function normalizeAction(action: ClickAction): ClickAction {
@@ -69,6 +70,8 @@ function getTitle(widget: WidgetConfig, action: ClickAction, titleOverride?: str
             return 'HTML';
         case 'popup-widget':
             return 'Widget';
+        case 'popup-dps':
+            return 'Datenpunkte';
         case 'popup-view':
             return widget.title || '';
         default:
@@ -142,6 +145,8 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                 return <HtmlPopupBody action={action} />;
             case 'popup-widget':
                 return <WidgetEmbedBody widget={widget} action={action} allWidgets={allWidgets} />;
+            case 'popup-dps':
+                return <DeviceDpsBody widget={widget} action={action} />;
             case 'popup-view':
                 return <TabEmbedBody viewId={action.viewId} triggerWidget={widget} dpOverride={action.dp} />;
             default:

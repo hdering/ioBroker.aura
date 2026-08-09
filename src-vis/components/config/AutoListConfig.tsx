@@ -24,6 +24,7 @@ import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import type { NameSource } from '../../utils/nameFilter';
 import { NameDisplayFields } from './NameDisplayFields';
+import { RowClickSection } from './RowClickSection';
 import { NS } from '../../utils/namespace';
 import { ColorPicker } from '../common/ColorPicker';
 import { Icon } from '@iconify/react';
@@ -779,6 +780,9 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 sampleTotal={(opts.entries ?? []).length}
                 onChange={setOpts}
             />
+
+            {/* ── Row click action ── */}
+            <RowClickSection config={config} opts={opts} onChange={setOpts} />
 
             {/* ── Settings ── */}
             <div style={{ height: 1, background: 'var(--app-border)' }} />

@@ -55,6 +55,7 @@ import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { baseDpId } from '../../utils/dpRef';
+import { isInteractiveTarget } from '../../utils/interactiveTargets';
 import { JsonPathButton } from '../config/JsonPathButton';
 import { ColorPicker } from '../common/ColorPicker';
 import { useDashboardStore, useActiveSection, useActiveLayout } from '../../store/dashboardStore';
@@ -6161,19 +6162,9 @@ export function WidgetFrame({
         if (editMode || !hasClickAction) return;
         // Portal backdrop clicks bubble through the React tree back here — ignore while popup is open
         if (popupOpen) return;
-        // Walk up from target — closest match wins. Interactive controls (button, input, …)
-        // suppress the popup so their own onClick can act alone. `data-allow-popup` is an
-        // explicit escape hatch to re-enable popup-on-click inside an interactive subtree.
-        {
-            let el: HTMLElement | null = e.target as HTMLElement;
-            const container = e.currentTarget as HTMLElement;
-            while (el && el !== container) {
-                if (el.matches('[data-allow-popup]')) break;
-                if (el.matches('button, input, select, textarea, a, [data-widget-interactive], [data-no-popup]'))
-                    return;
-                el = el.parentElement;
-            }
-        }
+        // Interactive controls (button, input, …) and rows that open their own popup
+        // (data-no-popup) suppress the widget popup so their own onClick acts alone.
+        if (isInteractiveTarget(e.target, e.currentTarget as HTMLElement)) return;
         e.stopPropagation();
         runClickAction();
     };

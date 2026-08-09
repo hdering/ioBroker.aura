@@ -1,0 +1,31 @@
+{
+    "id": "pv-builtin-datapoint",
+    "name": "Standard: Datenpunkt",
+    "version": 1,
+    "widgets": [
+        {
+            "id": "pw-bi-dp-1",
+            "type": "value",
+            "title": "",
+            "datapoint": "{{dp}}",
+            "gridPos": { "x": 0, "y": 0, "w": 12, "h": 4 },
+            "options": {}
+        },
+        {
+            "id": "pw-bi-dp-2",
+            "type": "list",
+            "title": "",
+            "datapoint": "",
+            "gridPos": { "x": 0, "y": 4, "w": 12, "h": 3 },
+            "options": {
+                "showTitle": false,
+                "showIcon": false,
+                "showCount": false,
+                "showId": true,
+                "showDividers": false,
+                "hideFilterButton": true,
+                "entries": [{ "id": "{{dp}}", "showLastChange": true }]
+            }
+        }
+    ]
+}
