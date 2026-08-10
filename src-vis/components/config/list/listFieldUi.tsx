@@ -1,0 +1,100 @@
+import type { ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
+import { ColorPicker } from '../../common/ColorPicker';
+
+/**
+ * Small field primitives shared by the static and the dynamic list config.
+ * Both panels carried byte-identical copies of these before.
+ */
+
+/** Compact input styling used throughout the per-entry editors. */
+export const ENTRY_INPUT_CLS = 'w-full text-[10px] rounded px-2 py-0.5 focus:outline-none';
+export const ENTRY_INPUT_STYLE: React.CSSProperties = {
+    background: 'var(--app-bg)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--app-border)',
+};
+
+/**
+ * Collapsible group for the list config panels. Both used to be flat walls of ~20
+ * equal-weight blocks; this is the repo's usual `<details>`/`<summary>` pattern
+ * (see StatusOverviewConfig) so the panel opens as a short, scannable outline.
+ */
+export function ConfigSection({
+    title,
+    defaultOpen,
+    children,
+}: {
+    title: string;
+    defaultOpen?: boolean;
+    children: ReactNode;
+}) {
+    return (
+        <details className="group pt-2" open={defaultOpen} style={{ borderTop: '1px solid var(--app-border)' }}>
+            <summary className="flex items-center justify-between cursor-pointer list-none select-none">
+                <span
+                    className="text-[11px] font-semibold uppercase tracking-wide"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    {title}
+                </span>
+                <ChevronDown
+                    size={13}
+                    className="transition-transform group-open:rotate-180"
+                    style={{ color: 'var(--text-secondary)' }}
+                />
+            </summary>
+            <div className="space-y-2.5 mt-2.5">{children}</div>
+        </details>
+    );
+}
+
+/**
+ * Colour swatch with a reset affordance. An unset value shows a dash and falls
+ * back to `fallback` in the picker, so "not configured" stays visible as such.
+ */
+export function ColorField({
+    label,
+    value,
+    fallback,
+    onChange,
+}: {
+    label: string;
+    value: string | undefined;
+    fallback: string;
+    onChange: (v: string | undefined) => void;
+}) {
+    return (
+        <div>
+            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </label>
+            <div className="flex items-center gap-1">
+                <ColorPicker
+                    value={value?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? fallback}
+                    onChange={(v) => onChange(v)}
+                    className="w-7 h-6 rounded cursor-pointer shrink-0"
+                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                />
+                {value ? (
+                    <button
+                        onClick={() => onChange(undefined)}
+                        title="Zurücksetzen"
+                        className="text-[9px] px-1.5 py-0.5 rounded hover:opacity-70"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        Reset
+                    </button>
+                ) : (
+                    <span className="text-[9px] opacity-60" style={{ color: 'var(--text-secondary)' }}>
+                        —
+                    </span>
+                )}
+            </div>
+        </div>
+    );
+}

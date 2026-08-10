@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
+import { OverlayZContext } from '../../contexts/OverlayZContext';
 
 /**
  * Popup for sub-editors of a widget's options panel (battery assignment, name filters, …).
@@ -58,12 +59,17 @@ export function ConfigModal({
         }
     }, [storageKey, size]);
 
+    // Capture phase + stopPropagation: CenteredModal (the widget edit dialog that
+    // usually sits below us) listens for Escape on `document` in the bubble phase.
+    // Without this, one Escape closes both layers at once.
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+            if (e.key !== 'Escape') return;
+            e.stopPropagation();
+            onClose();
         };
-        document.addEventListener('keydown', handler);
-        return () => document.removeEventListener('keydown', handler);
+        document.addEventListener('keydown', handler, true);
+        return () => document.removeEventListener('keydown', handler, true);
     }, [onClose]);
 
     const onHeaderMouseDown = (e: React.MouseEvent) => {
@@ -167,7 +173,11 @@ export function ConfigModal({
                         <X size={16} />
                     </button>
                 </div>
-                <div className={`aura-scroll flex-1 min-h-0 overflow-auto${padded ? ' p-3' : ''}`}>{children}</div>
+                {/* Leaf pickers (colour, icon) opened from this content must clear our
+                    backdrop - see contexts/OverlayZContext for the tier map. */}
+                <div className={`aura-scroll flex-1 min-h-0 overflow-auto${padded ? ' p-3' : ''}`}>
+                    <OverlayZContext.Provider value={10040}>{children}</OverlayZContext.Provider>
+                </div>
                 {storageKey && (
                     <div
                         onMouseDown={onResizeMouseDown}

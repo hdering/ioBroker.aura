@@ -22,6 +22,7 @@ export function NameDisplayFields({
     samples,
     sampleTotal,
     onChange,
+    inline,
 }: {
     pattern?: string;
     rules?: NameFilterRule[];
@@ -29,6 +30,10 @@ export function NameDisplayFields({
     /** How many datapoints exist in total (samples is a slice of them). */
     sampleTotal: number;
     onChange: (patch: { namePattern?: string; nameFilters?: NameFilterRule[] }) => void;
+    /** Render the rule editor right here instead of behind a button. Used inside the
+     *  datapoint dialog, where there is room and a second ConfigModal on the same
+     *  z-tier would only stack overlays for no gain. */
+    inline?: boolean;
 }) {
     const [open, setOpen] = useState(false);
     const count = rules?.length ?? 0;
@@ -54,41 +59,8 @@ export function NameDisplayFields({
                 Platzhalter: &lt;Raum&gt;, &lt;Gerät&gt;, &lt;DPName&gt;, &lt;Name&gt;, &lt;ID&gt;. Beispiel:{' '}
                 {'„<Raum> <Gerät>“'}.
             </p>
-            <button
-                onClick={() => setOpen(true)}
-                className="mt-1.5 w-full flex items-center justify-between gap-2 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
-                style={{
-                    background: count ? 'var(--accent)' : 'var(--app-bg)',
-                    border: `1px solid ${count ? 'transparent' : 'var(--app-border)'}`,
-                    color: count ? '#fff' : 'var(--text-primary)',
-                }}
-            >
-                <span className="flex items-center gap-1.5">
-                    <SlidersHorizontal size={13} /> Namens-Filter
-                </span>
-                <span
-                    className="text-[10px] px-1.5 py-0.5 rounded-full"
-                    style={{
-                        background: count ? 'rgba(255,255,255,0.25)' : 'var(--app-border)',
-                        color: count ? '#fff' : 'var(--text-secondary)',
-                    }}
-                >
-                    {count}
-                </span>
-            </button>
-            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                Schneidet die Platzhalter-Texte zurecht (z. B. {'„ACTUAL_TEMPERATURE“'} → {'„Temperatur“'}) — in
-                Klartext oder per Regex, mit Vorschau. Ohne eigenes Muster wird &lt;Name&gt; angenommen.
-            </p>
-            {open && (
-                <ConfigModal
-                    title="Namens-Filter"
-                    maxWidth={640}
-                    maxHeight={700}
-                    padded
-                    storageKey="aura-name-filter-modal"
-                    onClose={() => setOpen(false)}
-                >
+            {inline ? (
+                <div className="mt-3">
                     <Suspense
                         fallback={
                             <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -104,7 +76,62 @@ export function NameDisplayFields({
                             onChange={(next) => onChange({ nameFilters: next.length ? next : undefined })}
                         />
                     </Suspense>
-                </ConfigModal>
+                </div>
+            ) : (
+                <>
+                    <button
+                        onClick={() => setOpen(true)}
+                        className="mt-1.5 w-full flex items-center justify-between gap-2 text-xs rounded-lg px-2.5 py-2 hover:opacity-80 transition-opacity"
+                        style={{
+                            background: count ? 'var(--accent)' : 'var(--app-bg)',
+                            border: `1px solid ${count ? 'transparent' : 'var(--app-border)'}`,
+                            color: count ? '#fff' : 'var(--text-primary)',
+                        }}
+                    >
+                        <span className="flex items-center gap-1.5">
+                            <SlidersHorizontal size={13} /> Namens-Filter
+                        </span>
+                        <span
+                            className="text-[10px] px-1.5 py-0.5 rounded-full"
+                            style={{
+                                background: count ? 'rgba(255,255,255,0.25)' : 'var(--app-border)',
+                                color: count ? '#fff' : 'var(--text-secondary)',
+                            }}
+                        >
+                            {count}
+                        </span>
+                    </button>
+                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        Schneidet die Platzhalter-Texte zurecht (z. B. {'„ACTUAL_TEMPERATURE“'} → {'„Temperatur“'}) — in
+                        Klartext oder per Regex, mit Vorschau. Ohne eigenes Muster wird &lt;Name&gt; angenommen.
+                    </p>
+                    {open && (
+                        <ConfigModal
+                            title="Namens-Filter"
+                            maxWidth={640}
+                            maxHeight={700}
+                            padded
+                            storageKey="aura-name-filter-modal"
+                            onClose={() => setOpen(false)}
+                        >
+                            <Suspense
+                                fallback={
+                                    <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                        Lädt …
+                                    </div>
+                                }
+                            >
+                                <NameFilterEditor
+                                    rules={rules ?? EMPTY_RULES}
+                                    pattern={pattern}
+                                    samples={samples}
+                                    sampleTotal={sampleTotal}
+                                    onChange={(next) => onChange({ nameFilters: next.length ? next : undefined })}
+                                />
+                            </Suspense>
+                        </ConfigModal>
+                    )}
+                </>
             )}
         </div>
     );

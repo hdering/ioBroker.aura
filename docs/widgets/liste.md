@@ -33,13 +33,25 @@ Inline-Pills mit Label und Wert, umbrechend — für kompakte Status-Anzeigen.
 
 ## Einstellungen
 
-Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
+Im Editor unter **Widget bearbeiten**. Die Datenpunkte selbst liegen dahinter im eigenen Dialog **Datenpunkte verwalten**; im Panel bleiben nur die Optionen der Liste als Ganzes, in aufklappbaren Abschnitten.
 
 ![](./assets/liste/config.png)
 
+### Datenpunkte verwalten
+
+Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. Der Dialog ist verschiebbar, größenveränderbar und merkt sich seine Größe.
+
+![](./assets/liste/datenpunkte-dialog.png)
+
+| Tab | |
+| --- | --- |
+| Einträge | Datenpunkte hinzufügen, per Drag & Drop sortieren, löschen; rechts der Detail-Editor (ID, Icon, Bezeichnung, Format, Darstellung, Farben, Schwellen). Ab 8 Einträgen mit Filterfeld |
+| Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
+| Namen | Namensmuster und Namens-Filter |
+
 ### Klick auf Zeile
 
-Ein Klick auf eine Listenzeile öffnet ein Detail-Popup zu genau diesem Datenpunkt. Klicks auf Schalter, Regler oder Buttons in der Zeile schalten weiterhin direkt.
+Dialog **Datenpunkte verwalten** → Tab **Klick auf Zeile**. Ein Klick auf eine Listenzeile öffnet ein Detail-Popup zu genau diesem Datenpunkt. Klicks auf Schalter, Regler oder Buttons in der Zeile schalten weiterhin direkt.
 
 | Option | Standard | |
 | --- | --- | --- |

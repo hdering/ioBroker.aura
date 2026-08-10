@@ -27,13 +27,26 @@ Nur die Anzahl der (gefilterten) Einträge groß zentriert mit Icon und Titel.
 
 ## Einstellungen
 
-Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
+Im Editor unter **Widget bearbeiten**. Die Datenpunkte selbst liegen dahinter im eigenen Dialog **Datenpunkte verwalten**; im Panel bleiben nur die Optionen der Liste als Ganzes, in aufklappbaren Abschnitten.
 
 ![](./assets/dynamische-liste/config.png)
 
+### Datenpunkte verwalten
+
+Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. Der Dialog ist verschiebbar, größenveränderbar und merkt sich seine Größe.
+
+![](./assets/dynamische-liste/datenpunkte-dialog.png)
+
+| Tab | |
+| --- | --- |
+| Suchen & Filter | Datenpunkt-Suche, Ausschlüsse, Trefferliste, Übernehmen — dazu Sync-Intervall und „Nur relevante DPs" |
+| Einträge | Gefundene Datenpunkte; rechts der Detail-Editor (Bezeichnung, Einheit, Darstellung, Farben) |
+| Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
+| Namen | Namensmuster und Namens-Filter |
+
 ### Datenpunkt-Suche
 
-Mehrere Werte je Feld kommagetrennt; ID-Muster akzeptiert Text (Teilstring) oder `/regex/`.
+Dialog **Datenpunkte verwalten** → Tab **Suchen & Filter**. Mehrere Werte je Feld kommagetrennt; ID-Muster akzeptiert Text (Teilstring) oder `/regex/`.
 
 | Option | Standard | |
 | --- | --- | --- |
@@ -50,7 +63,7 @@ Mehrere Werte je Feld kommagetrennt; ID-Muster akzeptiert Text (Teilstring) oder
 
 ### Klick auf Zeile
 
-Ein Klick auf eine Listenzeile öffnet ein Detail-Popup zu genau diesem Datenpunkt. Klicks auf Schalter, Regler oder Buttons in der Zeile schalten weiterhin direkt.
+Dialog **Datenpunkte verwalten** → Tab **Klick auf Zeile**. Ein Klick auf eine Listenzeile öffnet ein Detail-Popup zu genau diesem Datenpunkt. Klicks auf Schalter, Regler oder Buttons in der Zeile schalten weiterhin direkt.
 
 | Option | Standard | |
 | --- | --- | --- |

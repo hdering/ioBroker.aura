@@ -10,3 +10,4 @@
 - Status overview - clicking an entry opens the detail popup of that datapoint (#524)
 - New click action "all datapoints of this device" - lists every sibling datapoint of the clicked one (#524)
 - Dynamic list - the datapoint search now finds alias.0.* datapoints (#524)
+- List widgets - datapoints are now managed in a dedicated, resizable dialog with an entry list next to a full per-entry editor; the options panel is grouped into collapsible sections

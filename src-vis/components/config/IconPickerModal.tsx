@@ -5,6 +5,7 @@ import { Icon, iconLoaded, loadIcons } from '@iconify/react';
 import { ICON_CATEGORIES } from '../../utils/iconCategories';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
+import { useOverlayZ } from '../../contexts/OverlayZContext';
 
 // ── Props ──────────────────────────────────────────────────────────────────────
 interface IconPickerModalProps {
@@ -58,6 +59,7 @@ function CategoryBtn({ label, active, onClick }: { label: string; active: boolea
 // ── Modal ──────────────────────────────────────────────────────────────────────
 export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalProps) {
     const portalTarget = usePortalTarget();
+    const overlayZ = useOverlayZ();
     const [query, setQuery] = useState('');
     const [categoryId, setCategoryId] = useState('all');
     const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
@@ -181,7 +183,9 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const modal = (
         <div
             className="fixed inset-0 flex items-center justify-center"
-            style={{ zIndex: 9999 }}
+            // Tier comes from the surrounding overlay - inside a ConfigModal the picker
+            // has to clear that dialog's backdrop (see contexts/OverlayZContext).
+            style={{ zIndex: overlayZ }}
             onMouseDown={(e) => e.target === e.currentTarget && onClose()}
         >
             {/* Backdrop */}

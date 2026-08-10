@@ -17,6 +17,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
+import { useOverlayZ } from '../../contexts/OverlayZContext';
 
 interface Props {
     /** Current color: `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()/rgba()` or a CSS var. */
@@ -211,6 +212,7 @@ function ColorPopover({
     onClose: () => void;
 }) {
     const portalTarget = usePortalTarget();
+    const overlayZ = useOverlayZ();
     const panelRef = useRef<HTMLDivElement>(null);
 
     useLayoutEffect(() => {
@@ -285,8 +287,11 @@ function ColorPopover({
     return createPortal(
         <div
             ref={panelRef}
-            className="nodrag fixed z-[9999] rounded-lg shadow-2xl p-3"
+            className="nodrag fixed rounded-lg shadow-2xl p-3"
             style={{
+                // Tier comes from the surrounding overlay - inside a ConfigModal the
+                // popover has to clear that dialog's backdrop (see OverlayZContext).
+                zIndex: overlayZ,
                 top: -9999,
                 left: -9999,
                 width: 220,
