@@ -7,6 +7,11 @@ import type { WidgetProps, ioBrokerState } from '../../types';
 import { setStateDirect, subscribeDpValue } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useWakeReload } from '../../hooks/useWakeReload';
+import {
+    iframeScrollingAttr,
+    resolveIframeInteractionMode,
+    type IframeInteractionMode,
+} from '../../utils/iframeInteraction';
 
 // ── Exported types (used by WidgetFrame config) ───────────────────────────────
 
@@ -297,6 +302,8 @@ interface StreamViewProps {
     transparent?: boolean;
     /** Bumped on wake-up from standby — folded into the element key to force a reload. */
     wakeNonce: number;
+    /** Only relevant for `.html` streams, which render in an iframe. (issues #527/#529) */
+    interactionMode: IframeInteractionMode;
 }
 
 function StreamView(p: StreamViewProps) {
@@ -340,13 +347,21 @@ function StreamView(p: StreamViewProps) {
     return (
         <div className="relative h-full w-full overflow-hidden">
             {p.mode === 'iframe' ? (
-                <iframe
-                    key={`${p.streamUrl}#${p.wakeNonce}`}
-                    src={p.streamUrl}
-                    title={p.title || 'Kamera'}
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
-                />
+                <>
+                    <iframe
+                        key={`${p.streamUrl}#${p.wakeNonce}`}
+                        src={p.streamUrl}
+                        title={p.title || 'Kamera'}
+                        allow="autoplay; fullscreen; picture-in-picture"
+                        scrolling={iframeScrollingAttr(p.interactionMode)}
+                        style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                    />
+                    {/* Interaction blocker — clicks land on the widget frame and run its
+                        click action instead of disappearing into the stream page. (#527) */}
+                    {p.interactionMode === 'action' && (
+                        <div className="absolute inset-0 z-[1]" style={{ pointerEvents: 'all', cursor: 'default' }} />
+                    )}
+                </>
             ) : (
                 // An MJPEG connection dropped during standby never re-opens on its
                 // own — the src is unchanged, so only a remount re-requests it.
@@ -420,6 +435,9 @@ function StreamView(p: StreamViewProps) {
                         cursor: 'pointer',
                         color: '#fff',
                         lineHeight: 0,
+                        // Above the `action`-mode interaction blocker, which would
+                        // otherwise swallow the click. (mirrors IframeWidget)
+                        zIndex: 2,
                     }}
                 >
                     <Maximize2 size={13} />
@@ -461,7 +479,9 @@ function FullscreenPortal({ svProps, onClose }: { svProps: StreamViewProps; onCl
                 <X size={22} />
             </button>
             <div className="w-full h-full" onClick={(e) => e.stopPropagation()}>
-                <StreamView {...svProps} onFullscreen={undefined} />
+                {/* Fullscreen has no click action to protect, so the stream page stays
+                    operable here even when the tile blocks interaction. */}
+                <StreamView {...svProps} onFullscreen={undefined} interactionMode="contentOnly" />
             </div>
         </div>,
         document.body,
@@ -598,6 +618,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     const transparent = !!opts.transparent;
 
     const mode = detectMode(streamUrl);
+    const interactionMode = resolveIframeInteractionMode(opts);
 
     // A stream torn down while the display slept only comes back on a fresh load
     // (issue #526). The editor is exempt — no live stream to save there.
@@ -606,9 +627,11 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
     // An .html stream renders in an iframe: clicks stay inside that document and
     // never reach the frame's click action, so ask for a host-side action button.
     // The img/rtsp-hint modes are plain host DOM and need nothing. (issue #527)
+    // In `action` mode the whole frame is clickable already, in `contentOnly` the
+    // click action is deliberately inert — neither wants a button.
     useEffect(() => {
-        onNeedsActionButton?.(mode === 'iframe');
-    }, [onNeedsActionButton, mode]);
+        onNeedsActionButton?.(mode === 'iframe' && interactionMode === 'content');
+    }, [onNeedsActionButton, mode, interactionMode]);
 
     // ── Stream state ─────────────────────────────────────────────────────────────
     const [imgSrc, setImgSrc] = useState('');
@@ -831,6 +854,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
         onFullscreen: editMode ? undefined : () => setFullscreen(true),
         transparent,
         wakeNonce,
+        interactionMode,
     };
 
     const scProps: StreamCellProps = {

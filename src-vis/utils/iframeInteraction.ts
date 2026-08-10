@@ -32,3 +32,21 @@ export function resolveIframeInteractionMode(opts: Record<string, unknown> | und
     if (stored === 'action' || stored === 'content' || stored === 'contentOnly') return stored;
     return opts?.allowInteraction === false ? 'action' : 'content';
 }
+
+/**
+ * Scrollbar policy for an embedded frame, derived from the interaction mode.
+ *
+ * An embedded document owns its scrollbars: cross-origin CSS cannot reach them, so
+ * the frame's `scrolling` attribute is the only lever the host has. Windows/Chrome
+ * desktop paints classic, space-taking scrollbars, so a page that overflows its frame
+ * by a few pixels shows a permanent bar at every widget size — while tablets hide the
+ * same overflow behind auto-fading overlay scrollbars, which is why this only ever
+ * gets reported from desktops. (issue #529)
+ *
+ * In `action` mode a blocker swallows every pointer event, so the bar is dead chrome
+ * and gets suppressed. Both content modes keep the page operable, and scrolling it is
+ * part of operating it.
+ */
+export function iframeScrollingAttr(mode: IframeInteractionMode): 'auto' | 'no' {
+    return mode === 'action' ? 'no' : 'auto';
+}

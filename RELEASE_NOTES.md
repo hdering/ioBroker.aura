@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- iFrame/Camera - embedded pages no longer show a permanent scrollbar on desktop when interaction is set to "click action only" (#529)
+- Camera - HTML streams now offer the same interaction setting as the iFrame widget (click action / operable content) (#529)

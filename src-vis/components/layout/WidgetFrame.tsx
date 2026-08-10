@@ -2656,6 +2656,71 @@ function formatLastChange(ts: number): string {
     return diffYear === 1 ? t('lc.1Year') : t('lc.nYears', { n: diffYear });
 }
 
+// ── iFrame interaction selector (iFrame + camera config) ─────────────────────
+/**
+ * Interaction vs. click action is a genuine either/or: a click inside the embedded
+ * document never reaches Aura. Spelling the three outcomes out beats a boolean that
+ * silently disables the configured click action. (issue #527)
+ *
+ * The same mode decides whether the embedded page keeps its own scrollbars — a page
+ * nobody can operate has no use for them (see `iframeScrollingAttr`, issue #529).
+ */
+function IframeInteractionSelect({
+    o,
+    set,
+    sty,
+    hasClickAction,
+}: {
+    o: Record<string, unknown>;
+    set: (patch: Record<string, unknown>) => void;
+    sty: React.CSSProperties;
+    hasClickAction: boolean;
+}) {
+    const mode = resolveIframeInteractionMode(o);
+    return (
+        <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                Interaktion
+            </label>
+            <select
+                value={mode}
+                onChange={(e) =>
+                    set({
+                        interactionMode: e.target.value,
+                        // Kept in sync so exports, backups and older docs referring to
+                        // allowInteraction stay valid.
+                        allowInteraction: e.target.value !== 'action',
+                    })
+                }
+                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                style={sty}
+            >
+                {IFRAME_INTERACTION_MODES.map((m) => (
+                    <option key={m.value} value={m.value}>
+                        {m.label}
+                    </option>
+                ))}
+            </select>
+            {mode === 'contentOnly' && hasClickAction && (
+                <p className="text-[10px] mt-1" style={{ color: '#f59e0b' }}>
+                    Klicks gehen in die eingebettete Seite — die Klick-Aktion wird nicht ausgelöst.
+                </p>
+            )}
+            {mode === 'content' && !hasClickAction && (
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    Ohne Klick-Aktion wird kein Aktions-Button eingeblendet.
+                </p>
+            )}
+            {mode !== 'action' && (
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    Bedienbarer Inhalt darf scrollen — passt die Seite nicht exakt, zeigt der Desktop-Browser dafür eine
+                    Scrollleiste. „Nur Klick-Aktion“ blendet sie aus.
+                </p>
+            )}
+        </div>
+    );
+}
+
 // ── Camera slot editor row (used in Standard and Custom Grid config) ──────────
 
 interface CameraSlotEditorRowProps {
@@ -10549,6 +10614,22 @@ export function WidgetFrame({
                                                 <option value="contain">Contain (einpassen)</option>
                                             </select>
                                         </div>
+                                        {/* Only .html/.htm streams render in an iframe (see detectMode) — an
+                                            MJPEG image has no embedded document to hand interaction to. A
+                                            datapoint URL is unknown at config time, so offer it there too. */}
+                                        {(() => {
+                                            const camPath = ((o.streamUrl as string) ?? '').split('?')[0].toLowerCase();
+                                            const isHtmlStream = camPath.endsWith('.html') || camPath.endsWith('.htm');
+                                            if (camUrlMode !== 'datapoint' && !isHtmlStream) return null;
+                                            return (
+                                                <IframeInteractionSelect
+                                                    o={o}
+                                                    set={set}
+                                                    sty={cSty}
+                                                    hasClickAction={hasClickAction}
+                                                />
+                                            );
+                                        })()}
                                         <div className="flex items-center justify-between">
                                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                                 Zeitstempel anzeigen
@@ -11381,56 +11462,12 @@ export function WidgetFrame({
                                                 />
                                             </button>
                                         </div>
-                                        {/* Interaction vs. click action is a genuine either/or: a click
-                                            inside the embedded document never reaches Aura. Spelling the
-                                            three outcomes out beats a boolean that silently disables the
-                                            configured click action. (issue #527) */}
-                                        {(() => {
-                                            const mode = resolveIframeInteractionMode(o);
-                                            return (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Interaktion
-                                                    </label>
-                                                    <select
-                                                        value={mode}
-                                                        onChange={(e) =>
-                                                            set({
-                                                                interactionMode: e.target.value,
-                                                                // Kept in sync so exports, backups and older
-                                                                // docs referring to allowInteraction stay valid.
-                                                                allowInteraction: e.target.value !== 'action',
-                                                            })
-                                                        }
-                                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
-                                                        style={iSty}
-                                                    >
-                                                        {IFRAME_INTERACTION_MODES.map((m) => (
-                                                            <option key={m.value} value={m.value}>
-                                                                {m.label}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    {mode === 'contentOnly' && hasClickAction && (
-                                                        <p className="text-[10px] mt-1" style={{ color: '#f59e0b' }}>
-                                                            Klicks gehen in den iFrame — die Klick-Aktion wird nicht
-                                                            ausgelöst.
-                                                        </p>
-                                                    )}
-                                                    {mode === 'content' && !hasClickAction && (
-                                                        <p
-                                                            className="text-[10px] mt-1"
-                                                            style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
-                                                        >
-                                                            Ohne Klick-Aktion wird kein Aktions-Button eingeblendet.
-                                                        </p>
-                                                    )}
-                                                </div>
-                                            );
-                                        })()}
+                                        <IframeInteractionSelect
+                                            o={o}
+                                            set={set}
+                                            sty={iSty}
+                                            hasClickAction={hasClickAction}
+                                        />
                                         {!(o.keepAlive ?? false) && (
                                             <div>
                                                 <label

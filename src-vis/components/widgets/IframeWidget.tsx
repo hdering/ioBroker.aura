@@ -5,7 +5,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
-import { resolveIframeInteractionMode } from '../../utils/iframeInteraction';
+import { iframeScrollingAttr, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { useWakeReload } from '../../hooks/useWakeReload';
 
 const LOAD_TIMEOUT_MS = 8000;
@@ -159,6 +159,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                     sandbox={sandboxAttr}
                     allow="autoplay; fullscreen; picture-in-picture; web-share"
                     title={config.title || 'iFrame'}
+                    scrolling={iframeScrollingAttr(interactionMode)}
                     onLoad={() => {
                         setLoaded(true);
                         if (timeoutRef.current) clearTimeout(timeoutRef.current);

@@ -46,8 +46,13 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showTimestamp` | `true` | Zeitstempel einblenden |
 | `reloadOnWake` | `true` | Stream nach Display-Standby neu laden |
 | `transparent` | `false` | transparenter Hintergrund |
+| `interactionMode` | `content` | nur bei `.html`-Stream: `action` · `content` · `contentOnly` — siehe [iFrame](./iframe#interaktion-vs-klick-aktion) |
 
 Stream-Typ wird aus der URL erkannt: `.html`/`.htm` → iframe, `rtsp://` → Hinweis, sonst Bild.
+
+Scrollleiste im Widget: Passt die eingebettete Stream-Seite nicht exakt in die Kachel,
+zeigt sie ihre eigene Scrollleiste — auf dem Desktop dauerhaft, auf Tablets unsichtbar
+(Overlay-Scrollleiste). `interactionMode: action` blendet sie aus.
 
 Geht das Display in den Standby, bricht der Browser den Stream ab; der eingebettete
 Player darf ihn ohne Nutzer-Tipp nicht selbst neu starten und zeigt stattdessen einen

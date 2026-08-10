@@ -39,11 +39,15 @@ Ein Klick in die eingebettete Seite erreicht Aura nicht — das Fremd-Dokument b
 das Ereignis. Bedienbarer Inhalt und Klick-Aktion auf derselben Fläche sind darum
 nicht möglich; `interactionMode` legt fest, was gilt.
 
-| Wert | Inhalt bedienbar | Klick-Aktion |
-| --- | --- | --- |
-| `action` | nein (transparente Sperrschicht) | Klick aufs Widget |
-| `content` | ja | Aktions-Button oben rechts |
-| `contentOnly` | ja | inaktiv |
+| Wert | Inhalt bedienbar | Klick-Aktion | Scrollleiste der Seite |
+| --- | --- | --- | --- |
+| `action` | nein (transparente Sperrschicht) | Klick aufs Widget | aus |
+| `content` | ja | Aktions-Button oben rechts | an |
+| `contentOnly` | ja | inaktiv | an |
+
+Die Scrollleiste gehört der eingebetteten Seite, nicht Aura: Passt sie nicht exakt in
+das Widget, zeigt der Desktop-Browser sie dauerhaft (Tablets blenden sie als Overlay
+aus). Bei `action` ist die Seite ohnehin gesperrt — dort wird sie unterdrückt.
 
 Der Aktions-Button erscheint nur, wenn eine Klick-Aktion konfiguriert ist — auch bei
 den anderen Widgets mit eingebettetem Dokument (HTML, eCharts-Preset, Kamera mit
