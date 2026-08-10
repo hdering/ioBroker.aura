@@ -100,6 +100,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 renderDetail={(id) => (
                     <AutoEntryDetail
                         entry={(opts.entries ?? []).find((e) => e.id === id)!}
+                        listConfig={config}
                         onUpdate={(patch) => updateEntry(id, patch)}
                     />
                 )}

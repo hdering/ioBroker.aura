@@ -1182,9 +1182,11 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                       )
                                     : '';
                             // A badge is the whole row, so toggling and opening a popup would
-                            // collide: the popup only takes over badges without a toggle of
-                            // their own (sensors, read-only, numeric).
-                            const rowProps = clickable
+                            // collide: automatic mode only takes over badges without a toggle
+                            // of their own (sensors, read-only, numeric). An explicitly
+                            // configured action beats the toggle.
+                            const togglable = clickable && !rowPopup.explicit(entry.clickAction);
+                            const rowProps = togglable
                                 ? undefined
                                 : rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
                             return (
@@ -1192,7 +1194,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     key={entry.id}
                                     {...rowProps}
                                     onClick={(e) => {
-                                        if (!clickable) return rowProps?.onClick(e);
+                                        if (!togglable) return rowProps?.onClick(e);
                                         if (forceSwitch) {
                                             if (isBool) setState(entry.id, !truthy);
                                             else if (typeof val === 'number') setState(entry.id, truthy ? 0 : 1);
@@ -1214,7 +1216,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                 : 'var(--app-bg)'),
                                         color: pillColor ?? 'var(--text-secondary)',
                                         border: `1px solid ${stateBg ? 'transparent' : pillColor ? `color-mix(in srgb, ${pillColor} 34%, transparent)` : 'var(--widget-border)'}`,
-                                        cursor: clickable || rowProps ? 'pointer' : 'default',
+                                        cursor: togglable || rowProps ? 'pointer' : 'default',
                                         fontSize: entryFontSize ?? undefined,
                                     }}
                                 >

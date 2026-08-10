@@ -4,40 +4,81 @@ import { ClickActionEditor } from './ClickActionEditor';
 
 type Mode = 'auto' | 'off' | 'custom';
 
+const ENTRY_MODE_HINT: Record<string, string> = {
+    inherit: 'Übernimmt, was im Tab „Klick auf Zeile" für die ganze Liste eingestellt ist.',
+    auto: 'Leitet das Popup aus der Rolle dieses Datenpunkts ab – auch wenn die Liste auf „Aus" oder eine eigene Aktion steht.',
+    off: 'Diese Zeile reagiert nicht auf Klicks.',
+    own: 'Gilt nur für diese Zeile. Popup-Titel und -Größe kommen weiterhin aus der Listen-Einstellung.',
+};
+
 /**
- * Per-entry override for the static list. Only the three meaningful choices are
- * offered here - a fully custom action stays a list-wide setting so the row editor
- * does not grow a nested popup editor.
+ * Per-entry click action. Beyond inherit/auto/off it offers a fully custom action
+ * through the regular ClickActionEditor, so one row can open a widget popup while
+ * the next jumps to another tab. The popup title/size block is hidden - those stay
+ * list-wide and would be dead controls here.
  */
 export function RowClickEntryField({
+    config,
     value,
     onChange,
 }: {
+    /** The list widget's config - the editor uses it for layout/widget pickers. */
+    config: WidgetConfig;
     value: RowClickSetting | undefined;
     onChange: (next: RowClickSetting | undefined) => void;
 }) {
     const current = value === undefined ? 'inherit' : value === 'auto' ? 'auto' : value.kind === 'none' ? 'off' : 'own';
+    const custom = current === 'own' ? (value as ClickAction) : undefined;
+
     return (
-        <select
-            value={current}
-            onChange={(e) => {
-                const v = e.target.value;
-                if (v === 'inherit') onChange(undefined);
-                else if (v === 'auto') onChange('auto');
-                else if (v === 'off') onChange({ kind: 'none' });
-            }}
-            className="w-full text-[10px] rounded px-2 py-0.5 focus:outline-none"
-            style={{
-                background: 'var(--app-bg)',
-                color: 'var(--text-primary)',
-                border: '1px solid var(--app-border)',
-            }}
-        >
-            <option value="inherit">Wie Liste</option>
-            <option value="auto">Automatisch</option>
-            <option value="off">Aus</option>
-            {current === 'own' && <option value="own">Eigene Aktion</option>}
-        </select>
+        <div className="space-y-1">
+            <div className="flex items-center justify-between gap-2">
+                <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                    Klick auf Zeile
+                </label>
+                <select
+                    value={current}
+                    onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === 'inherit') onChange(undefined);
+                        else if (v === 'auto') onChange('auto');
+                        else if (v === 'off') onChange({ kind: 'none' });
+                        else onChange({ kind: 'popup-view', viewId: '' });
+                    }}
+                    className="text-[10px] rounded px-2 py-0.5 focus:outline-none"
+                    style={{
+                        width: 150,
+                        background: 'var(--app-bg)',
+                        color: 'var(--text-primary)',
+                        border: '1px solid var(--app-border)',
+                    }}
+                >
+                    <option value="inherit">Wie Liste</option>
+                    <option value="auto">Automatisch</option>
+                    <option value="off">Aus</option>
+                    <option value="own">Eigene Aktion</option>
+                </select>
+            </div>
+            <p className="text-[9px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                {ENTRY_MODE_HINT[current]}
+            </p>
+            {current === 'own' && (
+                <div
+                    className="rounded-lg p-2 mt-1"
+                    style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+                >
+                    <ClickActionEditor
+                        config={{ ...config, options: { clickAction: custom } }}
+                        onConfigChange={(next) => {
+                            const action = next.options?.clickAction as ClickAction | undefined;
+                            onChange(action ?? { kind: 'none' });
+                        }}
+                        hidePopupOptions
+                        hideNone
+                    />
+                </div>
+            )}
+        </div>
     );
 }
 
@@ -111,6 +152,7 @@ export function RowClickSection({
                         options: {
                             clickAction: typeof stored === 'object' ? stored : undefined,
                             popupTitle: opts.rowPopupTitle,
+                            popupHideTitle: opts.rowPopupHideTitle,
                             popupWidth: opts.rowPopupWidth,
                             popupHeight: opts.rowPopupHeight,
                             popupAutoCloseSec: opts.rowPopupAutoCloseSec,
@@ -121,11 +163,13 @@ export function RowClickSection({
                         onChange({
                             rowClickAction: (o.clickAction as ClickAction | undefined) ?? { kind: 'none' },
                             rowPopupTitle: o.popupTitle as string | undefined,
+                            rowPopupHideTitle: o.popupHideTitle as boolean | undefined,
                             rowPopupWidth: o.popupWidth as number | undefined,
                             rowPopupHeight: o.popupHeight as number | undefined,
                             rowPopupAutoCloseSec: o.popupAutoCloseSec as number | undefined,
                         });
                     }}
+                    hideNone
                 />
             )}
         </div>

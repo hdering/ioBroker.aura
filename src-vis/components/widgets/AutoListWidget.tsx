@@ -29,7 +29,7 @@ import {
 } from '../../utils/groupTargets';
 import { GroupActionControl } from './GroupActionControl';
 import { useRowPopup } from '../../hooks/useRowPopup';
-import type { RowPopupOptions } from '../../utils/rowClickAction';
+import type { RowClickSetting, RowPopupOptions } from '../../utils/rowClickAction';
 import {
     ShutterControl,
     StepperControl,
@@ -63,6 +63,8 @@ export interface AutoListEntry extends EntryControlConfig {
     activeBg?: string;
     /** Per-DP entry background when off/false/0. Overrides global inactiveBg. */
     inactiveBg?: string;
+    /** Per-row click action. Overrides the list-wide setting; undefined = inherit. */
+    clickAction?: RowClickSetting;
 }
 
 export interface AutoListOptions extends GroupActionConfigOpts, RowPopupOptions {
@@ -1295,7 +1297,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 ? entry.activeBg || globalActiveBg
                                                 : entry.inactiveBg || globalInactiveBg) || 'var(--app-bg)';
                                         const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
-                                        const rowProps = rowPopup.row(entry.id, label, { role: entry.role });
+                                        const rowProps = rowPopup.row(
+                                            entry.id,
+                                            label,
+                                            { role: entry.role },
+                                            entry.clickAction,
+                                        );
                                         return (
                                             <div
                                                 key={entry.id}
@@ -1394,7 +1401,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         ? entry.activeBg || globalActiveBg
                                         : entry.inactiveBg || globalInactiveBg;
                                     const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
-                                    const rowProps = rowPopup.row(entry.id, label, { role: entry.role });
+                                    const rowProps = rowPopup.row(
+                                        entry.id,
+                                        label,
+                                        { role: entry.role },
+                                        entry.clickAction,
+                                    );
                                     return (
                                         <div
                                             key={entry.id}
@@ -1555,12 +1567,18 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             : '';
 
                                     // A badge is the whole row, so toggling and opening a popup
-                                    // would collide: the popup only takes over badges that have
-                                    // no toggle of their own (sensors, read-only, numeric).
-                                    const togglable = writable && !roleDisplay && !lockValue && isBoolLike;
+                                    // would collide: automatic mode only takes over badges that
+                                    // have no toggle of their own (sensors, read-only, numeric).
+                                    // An explicitly configured action beats the toggle.
+                                    const togglable =
+                                        writable &&
+                                        !roleDisplay &&
+                                        !lockValue &&
+                                        isBoolLike &&
+                                        !rowPopup.explicit(entry.clickAction);
                                     const rowProps = togglable
                                         ? undefined
-                                        : rowPopup.row(entry.id, label, { role: entry.role });
+                                        : rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
                                     return (
                                         <button
                                             key={entry.id}
@@ -1636,7 +1654,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     ? entry.activeBg || globalActiveBg
                                     : entry.inactiveBg || globalInactiveBg;
                                 const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
-                                const rowProps = rowPopup.row(entry.id, label, { role: entry.role });
+                                const rowProps = rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
                                 return (
                                     <div
                                         key={entry.id}

@@ -53,6 +53,26 @@ export const NON_TOGGLE_DISPLAY_TYPES: ReadonlySet<string> = new Set([
     'time',
 ]);
 
+/**
+ * Whether the entry's on/off label pair (trueLabel/falseLabel) can ever show up.
+ *
+ * Both list widgets only use those labels for a boolean-ish value: `isBoolLike`
+ * (true/false or 0/1) with a non-numeric role, or an entry explicitly rendered as a
+ * switch. Conservative on purpose - anything we cannot rule out at config time still
+ * shows the fields, so an unknown datapoint never loses them.
+ */
+export function usesOnOffLabels(entry: { displayType?: EntryDisplayType; role?: string }, dpType?: string): boolean {
+    const dt = entry.displayType ?? 'auto';
+    if (dt === 'switch') return true;
+    // Rich controls carry their own labels (states/contact) or none at all.
+    if (dt !== 'auto') return false;
+    const r = (entry.role ?? '').toLowerCase();
+    // Roles that describe a measurement or a level are never rendered as on/off.
+    if (r.startsWith('value.') || r === 'value' || r.startsWith('level.') || r === 'level') return false;
+    if (dpType === 'number' || dpType === 'string') return false;
+    return true;
+}
+
 export interface EntryPreset {
     value: string | number;
     label?: string;

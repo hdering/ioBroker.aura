@@ -1,6 +1,10 @@
+import type { WidgetConfig } from '../../../types';
 import type { AutoListEntry } from '../../widgets/AutoListWidget';
 import { ColorField } from './listFieldUi';
 import { EntryControlsConfig } from '../EntryControlsConfig';
+import { usesOnOffLabels } from '../../widgets/entryControls';
+import { RowClickEntryField } from '../RowClickSection';
+import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { useT } from '../../../i18n';
 
 /**
@@ -12,14 +16,19 @@ import { useT } from '../../../i18n';
  */
 export function AutoEntryDetail({
     entry,
+    listConfig,
     onUpdate,
 }: {
     entry: AutoListEntry;
+    /** The list widget itself - the per-row action editor needs it for its pickers. */
+    listConfig: WidgetConfig;
     onUpdate: (patch: Partial<AutoListEntry>) => void;
 }) {
     const t = useT();
     // AN/AUS colors only apply to an explicit switch entry; hide for Auto/slider/value/shutter/…
     const isSwitch = (entry.displayType ?? 'auto') === 'switch';
+    // The on/off label pair is only ever read for boolean-ish entries.
+    const showOnOffLabels = usesOnOffLabels(entry, lookupDatapointEntry(entry.id)?.type);
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -59,33 +68,35 @@ export function AutoEntryDetail({
                     />
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
-                <div>
-                    <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        {t('autolist.trueText')}
-                    </label>
-                    <input
-                        className={iCls}
-                        style={iSty}
-                        placeholder="AN"
-                        value={entry.trueLabel ?? ''}
-                        onChange={(e) => onUpdate({ trueLabel: e.target.value || undefined })}
-                    />
-                </div>
-                <div>
-                    <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        {t('autolist.falseText')}
-                    </label>
-                    <input
-                        className={iCls}
-                        style={iSty}
-                        placeholder="AUS"
-                        value={entry.falseLabel ?? ''}
-                        onChange={(e) => onUpdate({ falseLabel: e.target.value || undefined })}
-                    />
-                </div>
-            </div>
             <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
+            {showOnOffLabels && (
+                <div className="grid grid-cols-2 gap-1.5">
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            {t('autolist.trueText')}
+                        </label>
+                        <input
+                            className={iCls}
+                            style={iSty}
+                            placeholder="AN"
+                            value={entry.trueLabel ?? ''}
+                            onChange={(e) => onUpdate({ trueLabel: e.target.value || undefined })}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            {t('autolist.falseText')}
+                        </label>
+                        <input
+                            className={iCls}
+                            style={iSty}
+                            placeholder="AUS"
+                            value={entry.falseLabel ?? ''}
+                            onChange={(e) => onUpdate({ falseLabel: e.target.value || undefined })}
+                        />
+                    </div>
+                </div>
+            )}
             {isSwitch && (
                 <div className="grid grid-cols-2 gap-1.5">
                     <ColorField
@@ -114,6 +125,11 @@ export function AutoEntryDetail({
                     />
                 </div>
             )}
+            <RowClickEntryField
+                config={listConfig}
+                value={entry.clickAction}
+                onChange={(next) => onUpdate({ clickAction: next })}
+            />
         </>
     );
 }

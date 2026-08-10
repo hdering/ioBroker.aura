@@ -18,9 +18,25 @@ export interface RowPopupOptions {
     /** undefined = 'auto' (derive from the role). `{kind:'none'}` switches it off. */
     rowClickAction?: RowClickSetting;
     rowPopupTitle?: string;
+    rowPopupHideTitle?: boolean;
     rowPopupWidth?: number;
     rowPopupHeight?: number;
     rowPopupAutoCloseSec?: number;
+}
+
+/**
+ * True when the row carries a deliberately configured action (not 'auto', not off).
+ *
+ * The badge layouts need this: a badge IS the whole row, so toggling and opening
+ * something would collide. Automatic mode therefore leaves toggleable badges alone -
+ * but an action the user explicitly picked for that row wins over the toggle.
+ */
+export function isExplicitRowAction(
+    override: RowClickSetting | undefined,
+    listWide: RowClickSetting | undefined,
+): boolean {
+    const setting = override ?? listWide;
+    return !!setting && setting !== 'auto' && setting.kind !== 'none';
 }
 
 export interface RowActionCtx {

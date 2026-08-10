@@ -49,6 +49,12 @@ interface Props {
     /** Offer only the popup modes — for callers that have no click to navigate away
      *  from, e.g. the datapoint-driven popup triggers in Admin → Popups. */
     popupOnly?: boolean;
+    /** Hide the popup title/size/auto-close block. Used by the per-entry row action,
+     *  where those come from the list-wide setting and would be dead controls. */
+    hidePopupOptions?: boolean;
+    /** Drop the "Aus" mode. For callers that already offer switching off one level
+     *  up (the row action modes), where it would be a second way to say the same. */
+    hideNone?: boolean;
 }
 
 const MODE_GROUPS: { label: string; modes: ClickAction['kind'][] }[] = [
@@ -133,7 +139,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
     );
 }
 
-export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) {
+export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopupOptions, hideNone }: Props) {
     const o = config.options ?? {};
     const rawStoredAction = o.clickAction as ClickAction | undefined;
     const storedAction = rawStoredAction ? normalizeAction(rawStoredAction) : undefined;
@@ -285,7 +291,12 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) 
                     className={inputCls}
                     style={inputStyle}
                 >
-                    {(popupOnly ? MODE_GROUPS.filter((g) => g.label === 'Popup') : MODE_GROUPS).map((g) => (
+                    {(popupOnly
+                        ? MODE_GROUPS.filter((g) => g.label === 'Popup')
+                        : hideNone
+                          ? MODE_GROUPS.filter((g) => g.label !== 'Aus')
+                          : MODE_GROUPS
+                    ).map((g) => (
                         <optgroup key={g.label} label={g.label}>
                             {g.modes.map((m) => (
                                 <option key={m} value={m}>
@@ -977,7 +988,7 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly }: Props) 
             )}
 
             {/* ── Popup-wide options (for all popup-* modes) ── */}
-            {isPopup && (
+            {isPopup && !hidePopupOptions && (
                 <div className="space-y-3 pt-2" style={{ borderTop: '1px solid var(--app-border)' }}>
                     <Toggle
                         checked={popupHideTitle}

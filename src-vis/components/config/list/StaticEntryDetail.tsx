@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Database, X, Plus } from 'lucide-react';
 import { Icon } from '@iconify/react';
+import type { WidgetConfig } from '../../../types';
 import type { StaticListEntry } from '../../widgets/ListWidget';
 import { ColorPicker } from '../../common/ColorPicker';
 import { ColorField } from './listFieldUi';
 import { DatapointPicker } from '../DatapointPicker';
 import { ValueFormatRow } from '../ValueFormatRow';
 import { EntryControlsConfig } from '../EntryControlsConfig';
+import { usesOnOffLabels } from '../../widgets/entryControls';
 import { IconPickerModal } from '../IconPickerModal';
 import { RowClickEntryField } from '../RowClickSection';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
@@ -28,10 +30,13 @@ function toIconifyId(name: string): string {
  */
 export function StaticEntryDetail({
     entry,
+    listConfig,
     onUpdate,
     onChangeId,
 }: {
     entry: StaticListEntry;
+    /** The list widget itself - the per-row action editor needs it for its pickers. */
+    listConfig: WidgetConfig;
     onUpdate: (patch: Partial<StaticListEntry>) => void;
     onChangeId: (newId: string, unit?: string, role?: string, writable?: boolean) => void;
 }) {
@@ -61,6 +66,8 @@ export function StaticEntryDetail({
     const isSwitch = (entry.displayType ?? 'auto') === 'switch';
     // Confirmation prompt is offered for switch-like controls (switch, momentary).
     const isSwitchLike = isSwitch || entry.displayType === 'momentary';
+    // The on/off label pair is only ever read for boolean-ish entries.
+    const showOnOffLabels = usesOnOffLabels(entry, lookupDatapointEntry(entry.id)?.type);
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -180,33 +187,35 @@ export function StaticEntryDetail({
                     />
                 </div>
             </div>
-            <div className="grid grid-cols-2 gap-1.5">
-                <div>
-                    <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Text aktiv
-                    </label>
-                    <input
-                        className={iCls}
-                        style={iSty}
-                        placeholder="AN"
-                        value={entry.trueLabel ?? ''}
-                        onChange={(e) => onUpdate({ trueLabel: e.target.value || undefined })}
-                    />
-                </div>
-                <div>
-                    <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        Text inaktiv
-                    </label>
-                    <input
-                        className={iCls}
-                        style={iSty}
-                        placeholder="AUS"
-                        value={entry.falseLabel ?? ''}
-                        onChange={(e) => onUpdate({ falseLabel: e.target.value || undefined })}
-                    />
-                </div>
-            </div>
             <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
+            {showOnOffLabels && (
+                <div className="grid grid-cols-2 gap-1.5">
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Text aktiv
+                        </label>
+                        <input
+                            className={iCls}
+                            style={iSty}
+                            placeholder="AN"
+                            value={entry.trueLabel ?? ''}
+                            onChange={(e) => onUpdate({ trueLabel: e.target.value || undefined })}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Text inaktiv
+                        </label>
+                        <input
+                            className={iCls}
+                            style={iSty}
+                            placeholder="AUS"
+                            value={entry.falseLabel ?? ''}
+                            onChange={(e) => onUpdate({ falseLabel: e.target.value || undefined })}
+                        />
+                    </div>
+                </div>
+            )}
 
             {/* Schalter-Stil (nur wenn Darstellung Schalter oder Auto bool) */}
             {isSwitch && (
@@ -410,17 +419,11 @@ export function StaticEntryDetail({
             </div>
 
             {/* Klick auf Zeile (Override) */}
-            <div className="flex items-center justify-between gap-2">
-                <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                    Klick auf Zeile
-                </label>
-                <div style={{ width: 120 }}>
-                    <RowClickEntryField
-                        value={entry.clickAction}
-                        onChange={(next) => onUpdate({ clickAction: next })}
-                    />
-                </div>
-            </div>
+            <RowClickEntryField
+                config={listConfig}
+                value={entry.clickAction}
+                onChange={(next) => onUpdate({ clickAction: next })}
+            />
 
             {/* Farbschwellen */}
             <div style={{ borderTop: '1px solid var(--app-border)', paddingTop: 6, marginTop: 2 }}>

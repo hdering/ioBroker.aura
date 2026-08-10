@@ -124,6 +124,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                 renderDetail={(id, api) => (
                     <StaticEntryDetail
                         entry={entries.find((e) => e.id === id)!}
+                        listConfig={config}
                         onUpdate={(patch) => updateEntry(id, patch)}
                         onChangeId={(newId, unit, role, writable) => {
                             changeEntryId(id, newId, unit, role, writable);

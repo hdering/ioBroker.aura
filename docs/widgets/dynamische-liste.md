@@ -85,8 +85,19 @@ Automatik nach Rolle des Datenpunkts:
 
 Zugewiesene [Widget-Typ-Standards](../einstellungen/popups#widget-typ-standards) gelten auch hier — wer dem Typ `switch` eine eigene View zuweist, bekommt sie auch in der Liste.
 
+Pro Datenpunkt lässt sich das im Detail-Editor überschreiben (`entries[].clickAction`):
+
+| Modus | |
+| --- | --- |
+| Wie Liste | Übernimmt die Listen-Einstellung — der Normalfall |
+| Automatisch | Erzwingt die Ableitung aus der Rolle, auch wenn die Liste auf `Aus` oder eine eigene Aktion steht |
+| Aus | Diese Zeile reagiert nicht auf Klicks |
+| Eigene Aktion | Vollständige Klick-Aktion nur für diese Zeile — eine Zeile öffnet ein Widget-Popup, die nächste springt in einen anderen Tab. Popup-Titel und -Größe kommen weiterhin aus der Listen-Einstellung |
+
+Navigations-Aktionen (`Sprung: Tab` · `Externe URL` · `Widget`) springen direkt, statt ein Popup zu öffnen.
+
 ::: tip Badges-Layout
-Ein Badge ist die ganze Zeile. Schaltbare Badges schalten weiterhin, das Popup übernimmt nur Badges ohne eigenen Schalter (Sensoren, schreibgeschützte und numerische Werte).
+Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weiterhin, das Popup übernimmt nur Badges ohne eigenen Schalter (Sensoren, schreibgeschützte und numerische Werte). Eine ausdrücklich gesetzte Aktion gewinnt dagegen auch bei schaltbaren Badges.
 :::
 
 ### Anzeige
