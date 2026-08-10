@@ -50,6 +50,55 @@ export function ConfigSection({
 }
 
 /**
+ * One labelled block of the entry detail pane. The pane used to be a flat run of
+ * fields where it was impossible to tell which settings belonged to the chosen
+ * display type and where the next topic started - these cards draw that line.
+ *
+ * Not collapsible on purpose: the point is to make things visible, not to hide them.
+ */
+export function DetailSection({
+    title,
+    badge,
+    children,
+}: {
+    title: string;
+    /** Small accent pill on the right, e.g. the currently chosen display type. */
+    badge?: string;
+    children: ReactNode;
+}) {
+    return (
+        <section
+            className="rounded-lg overflow-hidden"
+            style={{ border: '1px solid var(--app-border)', background: 'var(--app-surface)' }}
+        >
+            <div
+                className="flex items-center justify-between gap-2 px-2.5 py-1.5"
+                style={{ borderBottom: '1px solid var(--app-border)' }}
+            >
+                <span
+                    className="text-[10px] font-semibold uppercase tracking-wide"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    {title}
+                </span>
+                {badge && (
+                    <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0"
+                        style={{
+                            background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+                            color: 'var(--accent)',
+                        }}
+                    >
+                        {badge}
+                    </span>
+                )}
+            </div>
+            <div className="p-2.5 space-y-1.5">{children}</div>
+        </section>
+    );
+}
+
+/**
  * Colour swatch with a reset affordance. An unset value shows a dash and falls
  * back to `fallback` in the picker, so "not configured" stays visible as such.
  */

@@ -49,6 +49,8 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
 | Namen | Namensmuster und Namens-Filter |
 
+Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Farbschwellen** · **Verhalten** (letzte Änderung, Klick auf Zeile).
+
 ### Klick auf Zeile
 
 Dialog **Datenpunkte verwalten** → Tab **Klick auf Zeile**. Ein Klick auf eine Listenzeile öffnet ein Detail-Popup zu genau diesem Datenpunkt. Klicks auf Schalter, Regler oder Buttons in der Zeile schalten weiterhin direkt.

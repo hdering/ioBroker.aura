@@ -1,7 +1,7 @@
 import type { WidgetConfig } from '../../../types';
 import type { AutoListEntry } from '../../widgets/AutoListWidget';
-import { ColorField } from './listFieldUi';
-import { EntryControlsConfig } from '../EntryControlsConfig';
+import { ColorField, DetailSection } from './listFieldUi';
+import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConfig';
 import { usesOnOffLabels } from '../../widgets/entryControls';
 import { RowClickEntryField } from '../RowClickSection';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
@@ -38,98 +38,109 @@ export function AutoEntryDetail({
 
     return (
         <>
-            <div className="text-[9px] font-mono truncate mb-1" style={{ color: 'var(--text-secondary)' }}>
-                {entry.id}
-            </div>
-            {/* Bezeichnung breit + Einheit schmal nebeneinander */}
-            <div className="flex items-end gap-1.5">
-                <div className="flex-1 min-w-0">
-                    <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        {t('endpoints.dp.label')}
-                    </label>
-                    <input
-                        className={iCls}
-                        style={iSty}
-                        placeholder={t('autolist.auto')}
-                        value={entry.label ?? ''}
-                        onChange={(e) => onUpdate({ label: e.target.value || undefined })}
-                    />
+            <DetailSection title="Datenpunkt">
+                <div className="text-[10px] font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
+                    {entry.id}
                 </div>
-                <div className="w-16 shrink-0">
-                    <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                        {t('endpoints.dp.unit')}
-                    </label>
-                    <input
-                        className={iCls}
-                        style={iSty}
-                        placeholder={t('endpoints.dp.unitPh')}
-                        value={entry.unit ?? ''}
-                        onChange={(e) => onUpdate({ unit: e.target.value || undefined })}
-                    />
-                </div>
-            </div>
-            <EntryControlsConfig entry={entry} onUpdate={onUpdate} />
-            {showOnOffLabels && (
-                <div className="grid grid-cols-2 gap-1.5">
-                    <div>
+            </DetailSection>
+
+            <DetailSection title="Beschriftung">
+                {/* Bezeichnung breit + Einheit schmal nebeneinander */}
+                <div className="flex items-end gap-1.5">
+                    <div className="flex-1 min-w-0">
                         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            {t('autolist.trueText')}
+                            {t('endpoints.dp.label')}
                         </label>
                         <input
                             className={iCls}
                             style={iSty}
-                            placeholder="AN"
-                            value={entry.trueLabel ?? ''}
-                            onChange={(e) => onUpdate({ trueLabel: e.target.value || undefined })}
+                            placeholder={t('autolist.auto')}
+                            value={entry.label ?? ''}
+                            onChange={(e) => onUpdate({ label: e.target.value || undefined })}
                         />
                     </div>
-                    <div>
+                    <div className="w-16 shrink-0">
                         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            {t('autolist.falseText')}
+                            {t('endpoints.dp.unit')}
                         </label>
                         <input
                             className={iCls}
                             style={iSty}
-                            placeholder="AUS"
-                            value={entry.falseLabel ?? ''}
-                            onChange={(e) => onUpdate({ falseLabel: e.target.value || undefined })}
+                            placeholder={t('endpoints.dp.unitPh')}
+                            value={entry.unit ?? ''}
+                            onChange={(e) => onUpdate({ unit: e.target.value || undefined })}
                         />
                     </div>
                 </div>
-            )}
-            {isSwitch && (
-                <div className="grid grid-cols-2 gap-1.5">
-                    <ColorField
-                        label="Textfarbe AN"
-                        value={entry.activeColor}
-                        fallback="#22c55e"
-                        onChange={(v) => onUpdate({ activeColor: v })}
-                    />
-                    <ColorField
-                        label="Textfarbe AUS"
-                        value={entry.inactiveColor}
-                        fallback="#94a3b8"
-                        onChange={(v) => onUpdate({ inactiveColor: v })}
-                    />
-                    <ColorField
-                        label="Hintergrund AN"
-                        value={entry.activeBg}
-                        fallback="#22c55e"
-                        onChange={(v) => onUpdate({ activeBg: v })}
-                    />
-                    <ColorField
-                        label="Hintergrund AUS"
-                        value={entry.inactiveBg}
-                        fallback="#1f2937"
-                        onChange={(v) => onUpdate({ inactiveBg: v })}
-                    />
-                </div>
-            )}
-            <RowClickEntryField
-                config={listConfig}
-                value={entry.clickAction}
-                onChange={(next) => onUpdate({ clickAction: next })}
-            />
+            </DetailSection>
+
+            <DetailSection title="Darstellung" badge={entryDisplayTypeLabel(entry.displayType)}>
+                <EntryControlsConfig entry={entry} onUpdate={onUpdate} hideLabel />
+                {showOnOffLabels && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                {t('autolist.trueText')}
+                            </label>
+                            <input
+                                className={iCls}
+                                style={iSty}
+                                placeholder="AN"
+                                value={entry.trueLabel ?? ''}
+                                onChange={(e) => onUpdate({ trueLabel: e.target.value || undefined })}
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                {t('autolist.falseText')}
+                            </label>
+                            <input
+                                className={iCls}
+                                style={iSty}
+                                placeholder="AUS"
+                                value={entry.falseLabel ?? ''}
+                                onChange={(e) => onUpdate({ falseLabel: e.target.value || undefined })}
+                            />
+                        </div>
+                    </div>
+                )}
+                {isSwitch && (
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <ColorField
+                            label="Textfarbe AN"
+                            value={entry.activeColor}
+                            fallback="#22c55e"
+                            onChange={(v) => onUpdate({ activeColor: v })}
+                        />
+                        <ColorField
+                            label="Textfarbe AUS"
+                            value={entry.inactiveColor}
+                            fallback="#94a3b8"
+                            onChange={(v) => onUpdate({ inactiveColor: v })}
+                        />
+                        <ColorField
+                            label="Hintergrund AN"
+                            value={entry.activeBg}
+                            fallback="#22c55e"
+                            onChange={(v) => onUpdate({ activeBg: v })}
+                        />
+                        <ColorField
+                            label="Hintergrund AUS"
+                            value={entry.inactiveBg}
+                            fallback="#1f2937"
+                            onChange={(v) => onUpdate({ inactiveBg: v })}
+                        />
+                    </div>
+                )}
+            </DetailSection>
+
+            <DetailSection title="Verhalten">
+                <RowClickEntryField
+                    config={listConfig}
+                    value={entry.clickAction}
+                    onChange={(next) => onUpdate({ clickAction: next })}
+                />
+            </DetailSection>
         </>
     );
 }

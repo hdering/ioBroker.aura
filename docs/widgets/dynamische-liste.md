@@ -44,6 +44,8 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
 | Namen | Namensmuster und Namens-Filter |
 
+Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Verhalten** (letzte Änderung, Klick auf Zeile).
+
 ### Datenpunkt-Suche
 
 Dialog **Datenpunkte verwalten** → Tab **Suchen & Filter**. Mehrere Werte je Feld kommagetrennt; ID-Muster akzeptiert Text (Teilstring) oder `/regex/`.

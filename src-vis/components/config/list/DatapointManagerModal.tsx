@@ -140,7 +140,7 @@ export function DatapointManagerModal({
                         {selected ? (
                             // key resets the detail's local state (open pickers, id draft)
                             // when the selection moves to another entry.
-                            <div key={selected.id} className="space-y-1">
+                            <div key={selected.id} className="space-y-2.5">
                                 {renderDetail(selected.id, { select: setSelectedId })}
                             </div>
                         ) : (

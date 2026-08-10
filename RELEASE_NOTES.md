@@ -13,3 +13,4 @@
 - List widgets - datapoints are now managed in a dedicated, resizable dialog with an entry list next to a full per-entry editor; the options panel is grouped into collapsible sections
 - Lists - every row can now get its own click action, so one row opens a widget popup while the next jumps to another tab; navigation actions on a row now navigate instead of opening an empty popup (#524)
 - Lists - the on/off label fields are only shown for entries that can actually be on or off, and sit below the display type that reveals them
+- Lists - the per-entry editor is grouped into labelled sections, with all display-type settings collected under the chosen type

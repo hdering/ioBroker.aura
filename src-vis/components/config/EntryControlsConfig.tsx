@@ -61,6 +61,9 @@ interface Props {
     // needed to scope sibling lookup for shutter auto-detection.
     entry: EntryControlConfig & { id?: string };
     onUpdate: (patch: Partial<EntryControlConfig>) => void;
+    /** Drop the internal "Darstellung" caption - for callers whose own section
+     *  heading already says it (the datapoint dialog's detail pane). */
+    hideLabel?: boolean;
 }
 
 // ── Shutter auto-detection ────────────────────────────────────────────────────
@@ -110,7 +113,7 @@ function detectShutterDps(
     return { mode: 'position', stop: res.stop };
 }
 
-const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
+export const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
     { value: 'auto', label: 'Auto' },
     { value: 'switch', label: 'Schalter' },
     { value: 'slider', label: 'Schieberegler' },
@@ -123,6 +126,11 @@ const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
     { value: 'states', label: 'Wertzuordnung' },
     { value: 'contact', label: 'Fenster-/Türkontakt' },
 ];
+
+/** Human label of a display type, e.g. 'switch' -> 'Schalter'. */
+export function entryDisplayTypeLabel(dt: EntryDisplayType | undefined): string {
+    return TYPE_OPTIONS.find((o) => o.value === (dt ?? 'auto'))?.label ?? 'Auto';
+}
 
 const iSty = {
     background: 'var(--app-bg)',
@@ -156,7 +164,7 @@ function DpRow({ label, value, onPick }: { label: string; value?: string; onPick
     );
 }
 
-export function EntryControlsConfig({ entry, onUpdate }: Props) {
+export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
     const t = useT();
     const dt = entry.displayType ?? 'auto';
     // Live value of the entry's datapoint, so the automatic time detection is
@@ -249,7 +257,7 @@ export function EntryControlsConfig({ entry, onUpdate }: Props) {
     return (
         <div className="space-y-1.5">
             <div>
-                <Label>Darstellung</Label>
+                {!hideLabel && <Label>Darstellung</Label>}
                 <div className="flex flex-wrap gap-1">
                     {TYPE_OPTIONS.map((o) => {
                         const active = dt === o.value;
