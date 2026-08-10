@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.42.7",
+    "version": "0.43.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.43.0": {
+        "en": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "de": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "ru": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "pt": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "nl": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "fr": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "it": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "es": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "pl": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "uk": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)",
+        "zh-cn": "🌟 New feature: Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints (#524)"
+      },
       "0.42.7": {
         "en": "Camera - embedded streams (go2rtc and friends) reload when the device wakes from display standby instead of stopping on a play button; new \"Reload after standby\" option, on by default (#526)\niFrame - new \"Reload after standby\" option reloads embedded videos and streams after display standby, overriding \"Keep alive\" (#526)",
         "de": "Camera - embedded streams (go2rtc and friends) reload when the device wakes from display standby instead of stopping on a play button; new \"Reload after standby\" option, on by default (#526)\niFrame - new \"Reload after standby\" option reloads embedded videos and streams after display standby, overriding \"Keep alive\" (#526)",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
         "uk": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)",
         "zh-cn": "🌟 New feature: Status overview - room and the \"open since ...\" duration can each be hidden\n🌟 New feature: Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button (#525)"
-      },
-      "0.42.1": {
-        "en": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "de": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "ru": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "pt": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "nl": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "fr": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "it": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "es": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "pl": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "uk": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)",
-        "zh-cn": "Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen (#523)"
       }
     }
   },

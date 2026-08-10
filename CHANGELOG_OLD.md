@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.38.11 (2026-08-01)
+- 🌟 **New feature:** Clock - optional source datapoint: formats a time value from a datapoint (ISO timestamp, HH:mm or Unix time) instead of the current time, with a new REL token for relative output ("in 3 h 12 min")
+- evcc - grid power is read again with evcc adapter 0.2.9+ (renamed states status.Grid.Power); optional custom grid power datapoint added
+- JSON table - table header stays readable in light mode when the widget is set to transparent
+- 🌟 **New feature:** Section menu - separate placement for mobile; a docked sidebar no longer forces the tab bar to stay visible with a single tab
+
 ## 0.38.10 (2026-07-31)
 - Static list - statistics are shown on the same line as the title instead of a second header row
 - Group - the editor now shows the same spacing as the frontend and never shows an inner scrollbar, at any grid row height or gap: children fill the group box in both views, grid settings, header height and fitted height are resolved identically, and a child too small for its own content is clipped the same way in both views
