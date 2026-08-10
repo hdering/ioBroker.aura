@@ -5,8 +5,8 @@ import { ClickActionEditor } from './ClickActionEditor';
 type Mode = 'auto' | 'off' | 'custom';
 
 const ENTRY_MODE_HINT: Record<string, string> = {
-    inherit: 'Übernimmt, was im Tab „Klick auf Zeile" für die ganze Liste eingestellt ist.',
-    auto: 'Leitet das Popup aus der Rolle dieses Datenpunkts ab – auch wenn die Liste auf „Aus" oder eine eigene Aktion steht.',
+    inherit: 'Übernimmt, was im Tab „Klick auf Zeile“ für die ganze Liste eingestellt ist.',
+    auto: 'Leitet das Popup aus der Rolle dieses Datenpunkts ab – auch wenn die Liste auf „Aus“ oder eine eigene Aktion steht.',
     off: 'Diese Zeile reagiert nicht auf Klicks.',
     own: 'Gilt nur für diese Zeile. Popup-Titel und -Größe kommen weiterhin aus der Listen-Einstellung.',
 };
