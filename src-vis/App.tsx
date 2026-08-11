@@ -854,7 +854,10 @@ export default function App() {
     // We therefore only register — with the local name or the UA fallback — on FIRST
     // contact, when no server name exists yet.
     // `connected` toggles on every websocket reconnect (~10 min); the ref guards against
-    // re-running the check on every reconnect within a session.
+    // re-running the check on every reconnect within a session — but only once a name
+    // actually exists on the server. Latching it on the write itself meant a register
+    // that never landed (socket just came up, tab suspended mid-write) was never retried
+    // for the lifetime of the page, which on a kiosk tablet is weeks (#532).
     const registeredRef = useRef(false);
     useEffect(() => {
         if (!connected || registeredRef.current) return;
@@ -863,10 +866,12 @@ export default function App() {
         void (async () => {
             const existing = await getStateDirect(`${NS}.clients.${clientId}.info.name`);
             if (cancelled) return;
-            registeredRef.current = true;
             // Already registered → server name wins; leave it untouched. The userAgent /
             // resolution are still refreshed via the resolution relay on every connect.
-            if (existing && String(existing.val ?? '').length > 0) return;
+            if (existing && String(existing.val ?? '').length > 0) {
+                registeredRef.current = true;
+                return;
+            }
 
             // First registration: seed the name from this device's stored name, else the
             // UA fallback. Register via relay state (direct setObject is admin-only).

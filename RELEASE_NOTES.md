@@ -8,3 +8,5 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - iFrame/Camera - embedded pages no longer show a permanent scrollbar on desktop when interaction is set to "click action only" (#529)
 - Camera - HTML streams now offer the same interaction setting as the iFrame widget (click action / operable content) (#529)
+- Connected devices - devices that never finished registering (missing navigate and popup datapoints) now complete their object tree automatically on the next connect (#532)
+- Connected devices - "last seen" is now refreshed on every connect instead of only at first registration (#532)

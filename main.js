@@ -536,107 +536,9 @@ class Aura extends utils.Adapter {
             const cId = String(reg.clientId);
             const displayName = reg.name ? String(reg.name) : cId.slice(0, 8);
 
-            await this.setObjectNotExistsAsync(`clients.${cId}`, {
-                type: 'channel',
-                common: { name: displayName },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.info`, {
-                type: 'channel',
-                common: { name: 'Info' },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.info.name`, {
-                type: 'state',
-                common: {
-                    name: 'Client Name',
-                    type: 'string',
-                    role: 'text',
-                    read: true,
-                    write: true,
-                    def: displayName,
-                },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.info.lastSeen`, {
-                type: 'state',
-                common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: true, def: 0 },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.info.resolutionWidth`, {
-                type: 'state',
-                common: {
-                    name: 'Screen resolution width',
-                    type: 'number',
-                    role: 'value',
-                    unit: 'px',
-                    read: true,
-                    write: true,
-                    def: 0,
-                },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.info.resolutionHeight`, {
-                type: 'state',
-                common: {
-                    name: 'Screen resolution height',
-                    type: 'number',
-                    role: 'value',
-                    unit: 'px',
-                    read: true,
-                    write: true,
-                    def: 0,
-                },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.info.userAgent`, {
-                type: 'state',
-                common: { name: 'User agent', type: 'string', role: 'text', read: true, write: true, def: '' },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.navigate`, {
-                type: 'channel',
-                common: { name: 'Navigation' },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.navigate.url`, {
-                type: 'state',
-                common: { name: 'Navigate', type: 'string', role: 'url', read: true, write: true, def: '' },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.navigate.target`, {
-                type: 'state',
-                common: {
-                    name: 'Navigate to view/tab (select)',
-                    type: 'string',
-                    role: 'text',
-                    read: true,
-                    write: true,
-                    def: '',
-                    states: {},
-                },
-                native: {},
-            });
+            await this._ensureClientTree(cId, displayName);
             // Populate the freshly-created selector with the current view/tab list.
             await this._syncNavigateTargets();
-
-            await this.setObjectNotExistsAsync(`clients.${cId}.popup`, {
-                type: 'channel',
-                common: { name: 'Popups' },
-                native: {},
-            });
-            await this.setObjectNotExistsAsync(`clients.${cId}.popup.open`, {
-                type: 'state',
-                common: {
-                    name: 'Open a popup view (name, id or JSON {view,dp,title})',
-                    type: 'string',
-                    role: 'text',
-                    read: true,
-                    write: true,
-                    def: '',
-                },
-                native: {},
-            });
 
             await this.setStateAsync(`clients.${cId}.info.name`, { val: displayName, ack: true });
             await this.setStateAsync(`clients.${cId}.info.lastSeen`, { val: Date.now(), ack: true });
@@ -653,8 +555,8 @@ class Aura extends utils.Adapter {
         }
 
         // Client resolution relay: frontend writes {clientId, width, height} → adapter stores the
-        // per-client viewport resolution. Fired on connect and (debounced) on resize/rotation. DPs
-        // are ensured idempotently here so clients registered before this feature get them on demand.
+        // per-client viewport resolution. Fired on connect and (debounced) on resize/rotation, so
+        // this is also where an incomplete client tree heals itself.
         if (id.endsWith('clients.resolution') && state && !state.ack && state.val) {
             let payload;
             try {
@@ -668,42 +570,13 @@ class Aura extends utils.Adapter {
             const height = Number(payload && payload.height);
             const userAgent = payload && payload.userAgent ? String(payload.userAgent) : '';
             if (cId && Number.isFinite(width) && Number.isFinite(height)) {
-                await this.setObjectNotExistsAsync(`clients.${cId}`, {
-                    type: 'channel',
-                    common: { name: cId.slice(0, 8) },
-                    native: {},
-                });
-                await this.setObjectNotExistsAsync(`clients.${cId}.info`, {
-                    type: 'channel',
-                    common: { name: 'Info' },
-                    native: {},
-                });
-                await this.setObjectNotExistsAsync(`clients.${cId}.info.resolutionWidth`, {
-                    type: 'state',
-                    common: {
-                        name: 'Screen resolution width',
-                        type: 'number',
-                        role: 'value',
-                        unit: 'px',
-                        read: true,
-                        write: true,
-                        def: 0,
-                    },
-                    native: {},
-                });
-                await this.setObjectNotExistsAsync(`clients.${cId}.info.resolutionHeight`, {
-                    type: 'state',
-                    common: {
-                        name: 'Screen resolution height',
-                        type: 'number',
-                        role: 'value',
-                        unit: 'px',
-                        read: true,
-                        write: true,
-                        def: 0,
-                    },
-                    native: {},
-                });
+                // Build the WHOLE client tree here, not just the resolution DPs: this relay
+                // fires on every connect, while the register relay runs once per client and
+                // is skipped for good once info.name carries a value. A client whose
+                // registration never reached the adapter would otherwise be stuck without
+                // navigate.* / popup.* forever (#532).
+                if (await this._ensureClientTree(cId)) await this._syncNavigateTargets();
+                await this.setStateAsync(`clients.${cId}.info.lastSeen`, { val: Date.now(), ack: true });
                 await this.setStateAsync(`clients.${cId}.info.resolutionWidth`, { val: Math.round(width), ack: true });
                 await this.setStateAsync(`clients.${cId}.info.resolutionHeight`, {
                     val: Math.round(height),
@@ -739,6 +612,8 @@ class Aura extends utils.Adapter {
                     `${base}.navigate.url`,
                     `${base}.navigate.target`,
                     `${base}.navigate`,
+                    `${base}.popup.open`,
+                    `${base}.popup`,
                     base,
                 ];
                 this.log.info(`[clients] deleting client: ${base}`);
@@ -747,6 +622,14 @@ class Aura extends utils.Adapter {
                         await this.delForeignObjectAsync(objId);
                     } catch {
                         /* ignore missing */
+                    }
+                    // Renaming a half-built client writes info.name via setState even though
+                    // no object exists; delObject leaves that orphan value behind, and the
+                    // stale name would keep the frontend from ever re-registering (#532).
+                    try {
+                        await this.delForeignStateAsync(objId);
+                    } catch {
+                        /* not a state, or already gone */
                     }
                 }
                 this.log.info(`[clients] deleted: ${base}`);
@@ -1373,85 +1256,148 @@ class Aura extends utils.Adapter {
         await this.setObjectAsync(objId, obj);
     }
 
+    /**
+     * IDs of all known clients, enumerated over the `clients.<id>` channels.
+     * Anchored on the channel — every client has one, whichever relay created it.
+     * The backfills used to enumerate over `.navigate.url` and therefore skipped
+     * exactly the clients that were missing it (#532).
+     */
+    async _listClientIds() {
+        const view = await this.getObjectViewAsync('system', 'channel', {
+            startkey: `${this.namespace}.clients.`,
+            endkey: `${this.namespace}.clients.￿`,
+        });
+        const ids = [];
+        for (const row of (view && view.rows) || []) {
+            // aura.0.clients.<id> — exactly four segments, so the info / navigate /
+            // popup sub-channels of a client are skipped.
+            const parts = row.id.split('.');
+            if (parts.length === 4) ids.push(parts[3]);
+        }
+        return ids;
+    }
+
+    /**
+     * Create the per-client object tree. Idempotent, and called from the register relay,
+     * the resolution relay (every connect) and the startup backfill alike, so a client
+     * always ends up with the full tree even if one of those paths never ran.
+     * Returns true when the tree was incomplete, so callers can skip follow-up work.
+     */
+    async _ensureClientTree(cId, displayName) {
+        const base = `clients.${cId}`;
+        // navigate.url is the sentinel: it is created together with the rest of the tree
+        // and never on its own. Datapoints added later need their own backfill.
+        if (await this.getObjectAsync(`${base}.navigate.url`)) return false;
+        const name = displayName || cId.slice(0, 8);
+
+        await this.setObjectNotExistsAsync(base, { type: 'channel', common: { name }, native: {} });
+        await this.setObjectNotExistsAsync(`${base}.info`, {
+            type: 'channel',
+            common: { name: 'Info' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.info.name`, {
+            type: 'state',
+            common: { name: 'Client Name', type: 'string', role: 'text', read: true, write: true, def: name },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.info.lastSeen`, {
+            type: 'state',
+            common: { name: 'Last Seen', type: 'number', role: 'date', read: true, write: true, def: 0 },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.info.resolutionWidth`, {
+            type: 'state',
+            common: {
+                name: 'Screen resolution width',
+                type: 'number',
+                role: 'value',
+                unit: 'px',
+                read: true,
+                write: true,
+                def: 0,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.info.resolutionHeight`, {
+            type: 'state',
+            common: {
+                name: 'Screen resolution height',
+                type: 'number',
+                role: 'value',
+                unit: 'px',
+                read: true,
+                write: true,
+                def: 0,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.info.userAgent`, {
+            type: 'state',
+            common: { name: 'User agent', type: 'string', role: 'text', read: true, write: true, def: '' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.navigate`, {
+            type: 'channel',
+            common: { name: 'Navigation' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.navigate.url`, {
+            type: 'state',
+            common: { name: 'Navigate', type: 'string', role: 'url', read: true, write: true, def: '' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.navigate.target`, {
+            type: 'state',
+            common: {
+                name: 'Navigate to view/tab (select)',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: true,
+                def: '',
+                states: {},
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.popup`, {
+            type: 'channel',
+            common: { name: 'Popups' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.popup.open`, {
+            type: 'state',
+            common: {
+                name: 'Open a popup view (name, id or JSON {view,dp,title})',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
+        this.log.info(`[clients] completed object tree for ${cId}`);
+        return true;
+    }
+
     async _syncNavigateTargets() {
         try {
             const st = await this.getStateAsync('config.dashboard');
             const raw = st && st.val ? String(st.val) : '';
             const states = this._buildNavigateStates(raw);
             await this._setTargetStates('navigate.target', states);
-            // Enumerate clients via their navigate.url DP (exists for every
-            // client) so we can also create the navigate.target selector for
-            // clients that registered before this DP existed.
-            const view = await this.getObjectViewAsync('system', 'state', {
-                startkey: `${this.namespace}.clients.`,
-                endkey: `${this.namespace}.clients.￿`,
-            });
-            for (const row of (view && view.rows) || []) {
-                if (!row.id.endsWith('.navigate.url')) continue;
-                const rel = row.id.slice(this.namespace.length + 1).replace(/\.navigate\.url$/, '.navigate.target');
+            for (const cId of await this._listClientIds()) {
                 try {
-                    await this.setObjectNotExistsAsync(rel, {
-                        type: 'state',
-                        common: {
-                            name: 'Navigate to view/tab (select)',
-                            type: 'string',
-                            role: 'text',
-                            read: true,
-                            write: true,
-                            def: '',
-                            states: {},
-                        },
-                        native: {},
-                    });
-                    await this._setTargetStates(rel, states);
+                    // Doubles as the backfill for clients whose tree is incomplete.
+                    await this._ensureClientTree(cId);
+                    await this._setTargetStates(`clients.${cId}.navigate.target`, states);
                 } catch {
                     /* ignore a client object that vanished mid-sync */
                 }
             }
         } catch (e) {
             this.log.warn(`[navigate] sync targets failed: ${e.message}`);
-        }
-    }
-
-    /**
-     * Backfill `clients.<id>.popup.open` for clients that registered before that DP
-     * existed. New clients get it from the register relay; the frontend only
-     * re-registers on first contact, so existing ones would never see it.
-     * Enumerated via navigate.url, which every client has.
-     */
-    async _ensureClientPopupStates() {
-        try {
-            const view = await this.getObjectViewAsync('system', 'state', {
-                startkey: `${this.namespace}.clients.`,
-                endkey: `${this.namespace}.clients.￿`,
-            });
-            for (const row of (view && view.rows) || []) {
-                if (!row.id.endsWith('.navigate.url')) continue;
-                const base = row.id.slice(this.namespace.length + 1).replace(/\.navigate\.url$/, '');
-                try {
-                    await this.setObjectNotExistsAsync(`${base}.popup`, {
-                        type: 'channel',
-                        common: { name: 'Popups' },
-                        native: {},
-                    });
-                    await this.setObjectNotExistsAsync(`${base}.popup.open`, {
-                        type: 'state',
-                        common: {
-                            name: 'Open a popup view (name, id or JSON {view,dp,title})',
-                            type: 'string',
-                            role: 'text',
-                            read: true,
-                            write: true,
-                            def: '',
-                        },
-                        native: {},
-                    });
-                } catch {
-                    /* ignore a client object that vanished mid-sync */
-                }
-            }
-        } catch (e) {
-            this.log.warn(`[popup] ensure client popup states failed: ${e.message}`);
         }
     }
 
@@ -1874,8 +1820,8 @@ class Aura extends utils.Adapter {
         this.subscribeStates('navigate.target');
         this.subscribeStates('clients.*.navigate.target');
         this.subscribeStates('config.dashboard');
+        // Also completes the object tree of every known client (navigate.*, popup.*).
         await this._syncNavigateTargets();
-        await this._ensureClientPopupStates();
 
         // ── Timer widget scheduler ─────────────────────────────────────────────
         // Subscribe to per-widget config/enabled DPs and run a tick to evaluate
