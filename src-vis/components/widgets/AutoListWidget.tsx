@@ -38,6 +38,7 @@ import {
     StateDisplay,
     ContactDisplay,
     TimeDisplay,
+    InputControl,
     formatEntryTime,
     resolveContactDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
@@ -493,6 +494,7 @@ function EntryValue({
                 style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
             />
         );
+    if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} />;
 
     // Role-based display for sensors (window, door, motion, smoke, …)
     if (isBoolLike && !hasLabels) {
@@ -657,6 +659,7 @@ function CardEntryValue({
                 style={{ color: 'var(--text-primary)' }}
             />
         );
+    if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth />;
 
     // Role-based display for sensors
     if (isBoolLike && !hasLabels) {

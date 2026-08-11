@@ -125,6 +125,7 @@ export const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
     { value: 'momentary', label: 'Taster' },
     { value: 'states', label: 'Wertzuordnung' },
     { value: 'contact', label: 'Fenster-/Türkontakt' },
+    { value: 'input', label: 'Eingabefeld' },
 ];
 
 /** Human label of a display type, e.g. 'switch' -> 'Schalter'. */
@@ -144,6 +145,35 @@ function Label({ children }: { children: React.ReactNode }) {
         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
             {children}
         </label>
+    );
+}
+
+/** Label + switch on one line - the shape used by every on/off option here. */
+function ToggleRow({
+    label,
+    checked,
+    onChange,
+}: {
+    label: string;
+    checked: boolean;
+    onChange: (next: boolean) => void;
+}) {
+    return (
+        <div className="flex items-center justify-between">
+            <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </label>
+            <button
+                onClick={() => onChange(!checked)}
+                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                style={{ background: checked ? 'var(--accent)' : 'var(--app-border)' }}
+            >
+                <span
+                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                    style={{ left: checked ? '18px' : '2px' }}
+                />
+            </button>
+        </div>
     );
 }
 
@@ -173,6 +203,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
     const timePreview =
         dt === 'time' ? formatTimeDisplay(timeVal, entry.timeFormat || 'time', t, entry.timePattern) : null;
     const sMode = entry.shutterMode ?? 'commands';
+    const inputSubmitMode = entry.inputSubmitMode ?? 'submit';
     const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp'>(null);
     const [statePickFor, setStatePickFor] = useState<number | null>(null);
     const [contactIconPickFor, setContactIconPickFor] = useState<ContactState | null>(null);
@@ -837,6 +868,136 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
                             </div>
                         );
                     })}
+                </div>
+            )}
+
+            {/* ── Eingabefeld (Freitext / Zahl) ── */}
+            {dt === 'input' && (
+                <div className="space-y-1.5">
+                    <div>
+                        <Label>Platzhalter</Label>
+                        <input
+                            className={iCls}
+                            style={iSty}
+                            placeholder="z.B. Nachricht eingeben…"
+                            value={entry.inputPlaceholder ?? ''}
+                            onChange={(e) => onUpdate({ inputPlaceholder: e.target.value || undefined })}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                            <Label>Feldbreite (px, leer = Standard)</Label>
+                            <input
+                                type="number"
+                                min={40}
+                                max={600}
+                                className={iCls}
+                                style={iSty}
+                                placeholder="110"
+                                value={entry.inputWidth ?? ''}
+                                onChange={(e) => {
+                                    const n = parseInt(e.target.value, 10);
+                                    onUpdate({ inputWidth: isFinite(n) && n > 0 ? n : undefined });
+                                }}
+                            />
+                        </div>
+                        <div>
+                            <Label>Eingabeart</Label>
+                            <select
+                                value={entry.inputMode ?? 'text'}
+                                onChange={(e) =>
+                                    onUpdate({ inputMode: e.target.value === 'number' ? 'number' : undefined })
+                                }
+                                className={iCls}
+                                style={iSty}
+                            >
+                                <option value="text">Text</option>
+                                <option value="number">Zahl</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                            <Label>Übertragen</Label>
+                            <select
+                                value={entry.inputSubmitMode ?? 'submit'}
+                                onChange={(e) =>
+                                    onUpdate({ inputSubmitMode: e.target.value === 'live' ? 'live' : undefined })
+                                }
+                                className={iCls}
+                                style={iSty}
+                            >
+                                <option value="submit">Nach Bestätigung</option>
+                                <option value="live">Bei jedem Tastenschlag</option>
+                            </select>
+                        </div>
+                        <div>
+                            <Label>Textausrichtung</Label>
+                            <select
+                                value={entry.inputTextAlign ?? 'left'}
+                                onChange={(e) => {
+                                    const v = e.target.value;
+                                    onUpdate({
+                                        inputTextAlign: v === 'left' ? undefined : (v as 'center' | 'right'),
+                                    });
+                                }}
+                                className={iCls}
+                                style={iSty}
+                            >
+                                <option value="left">Links</option>
+                                <option value="center">Zentriert</option>
+                                <option value="right">Rechts</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p className="text-[9px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {inputSubmitMode === 'live'
+                            ? 'Jeder Tastenschlag schreibt sofort in den Datenpunkt.'
+                            : 'Geschrieben wird mit Enter, beim Verlassen des Felds oder über den Senden-Button.'}
+                    </p>
+                    {/* Alles darunter gilt nur für „Nach Bestätigung“ und ohne Schreibschutz. */}
+                    {inputSubmitMode === 'submit' && !entry.inputReadOnly && (
+                        <>
+                            <ToggleRow
+                                label="Senden-Button anzeigen"
+                                checked={entry.inputShowSubmit !== false}
+                                onChange={(v) => onUpdate({ inputShowSubmit: v ? undefined : false })}
+                            />
+                            <ToggleRow
+                                label="Feld nach dem Senden leeren"
+                                checked={!!entry.inputClearAfterSubmit}
+                                onChange={(v) => onUpdate({ inputClearAfterSubmit: v || undefined })}
+                            />
+                            {entry.inputClearAfterSubmit && (
+                                <p
+                                    className="text-[9px] leading-tight"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                >
+                                    Befehlsfeld: zeigt nie den Datenpunkt-Wert, sendet nur beim Klick auf Senden bzw.
+                                    mit Enter.
+                                </p>
+                            )}
+                            <ToggleRow
+                                label="Sicherheitsabfrage"
+                                checked={!!entry.confirm}
+                                onChange={(v) => onUpdate({ confirm: v || undefined })}
+                            />
+                            {entry.confirm && (
+                                <input
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="Wirklich senden?"
+                                    value={entry.confirmText ?? ''}
+                                    onChange={(e) => onUpdate({ confirmText: e.target.value || undefined })}
+                                />
+                            )}
+                        </>
+                    )}
+                    <ToggleRow
+                        label="Schreibschutz"
+                        checked={!!entry.inputReadOnly}
+                        onChange={(v) => onUpdate({ inputReadOnly: v || undefined })}
+                    />
                 </div>
             )}
 

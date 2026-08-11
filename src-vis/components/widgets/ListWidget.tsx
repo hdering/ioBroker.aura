@@ -37,6 +37,7 @@ import {
     StateDisplay,
     ContactDisplay,
     TimeDisplay,
+    InputControl,
     formatEntryTime,
     resolveContactDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
@@ -191,6 +192,7 @@ function EntryValue({
     falseText,
     wrap,
     valueMaxPct,
+    card,
 }: {
     entry: StaticListEntry;
     val: ioBrokerState['val'];
@@ -205,6 +207,8 @@ function EntryValue({
     falseText?: string;
     wrap?: boolean;
     valueMaxPct?: number;
+    /** Card layout: cells are narrow (min 90px), so width-hungry controls fill them. */
+    card?: boolean;
 }) {
     // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
     // maxWidth caps the value (default 50%) so the label always keeps a guaranteed
@@ -289,6 +293,7 @@ function EntryValue({
                 style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
             />
         );
+    if (displayType === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth={card} />;
 
     // Forced "Nur Wert" — skip role/switch/slider, render text only
     if (displayType === 'value') {
@@ -981,6 +986,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             falseText={opts.falseText}
                                             wrap={wrap}
                                             valueMaxPct={valueMaxPct}
+                                            card
                                         />
                                     </div>
                                     {lcTs > 0 && (

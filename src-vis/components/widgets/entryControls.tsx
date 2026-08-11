@@ -10,9 +10,10 @@
  *   - buttons   → fixed value presets (Off/Eco/Comfort, 0/50/100 …)
  *   - momentary → single push button writing a pulse value (scene/reset)
  *   - time      → a time value (epoch s/ms, ISO string, HH:mm) as time and/or date
+ *   - input     → free text / number entry, like the standalone Eingabefeld widget
  */
-import { useRef } from 'react';
-import { ChevronUp, ChevronDown, Square, Minus, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronUp, ChevronDown, Square, Minus, Plus, Send } from 'lucide-react';
 import type { ioBrokerState } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
@@ -39,7 +40,8 @@ export type EntryDisplayType =
     | 'momentary'
     | 'states'
     | 'contact'
-    | 'time';
+    | 'time'
+    | 'input';
 
 /** Control types that are not a simple on/off and must be excluded from the
  *  group master switch. */
@@ -51,6 +53,7 @@ export const NON_TOGGLE_DISPLAY_TYPES: ReadonlySet<string> = new Set([
     'states',
     'contact',
     'time',
+    'input',
 ]);
 
 /**
@@ -151,6 +154,23 @@ export interface EntryControlConfig {
     pulseDelay?: number;
     /** Button caption for the momentary control. */
     pulseLabel?: string;
+    // ── input (free text / number entry) ───────────────────────────────────────
+    /** Hint shown while the field is empty. */
+    inputPlaceholder?: string;
+    /** Fixed field width in px. Unset = a compact default (row) / full width (card). */
+    inputWidth?: number;
+    /** 'number' parses and writes a number; default 'text' writes the raw string. */
+    inputMode?: 'text' | 'number';
+    /** 'submit' (default) writes on Enter/blur/send button, 'live' on every keystroke. */
+    inputSubmitMode?: 'live' | 'submit';
+    /** Show the send button in submit mode. Default true. */
+    inputShowSubmit?: boolean;
+    /** Command-field mode: clear the field after each send and never mirror the DP. */
+    inputClearAfterSubmit?: boolean;
+    /** Text alignment inside the field. Default 'left'. */
+    inputTextAlign?: 'left' | 'center' | 'right';
+    /** Display the value but refuse edits, regardless of the datapoint's writability. */
+    inputReadOnly?: boolean;
 }
 
 type SetState = (id: string, v: boolean | number | string) => void;
@@ -441,6 +461,184 @@ export function TimeDisplay({
         <span className={className} style={style}>
             {formatEntryTime(entry, val, t)}
         </span>
+    );
+}
+
+// ── Free text / number entry ─────────────────────────────────────────────────
+// Same behaviour as the standalone Eingabefeld widget, shrunk into a list row: a
+// draft-buffered field that writes either on every keystroke ('live') or on
+// Enter / blur / the send button ('submit').
+
+/** Compact default field width for a list row; card layouts fill their cell. */
+const INPUT_ROW_WIDTH = 110;
+
+export function InputControl({
+    entry,
+    val,
+    setState,
+    fullWidth,
+}: {
+    entry: EntryControlConfig & { id: string };
+    val: ioBrokerState['val'];
+    setState: SetState;
+    /** Card layouts stack vertically, so the field takes the whole cell there. */
+    fullWidth?: boolean;
+}) {
+    const numeric = entry.inputMode === 'number';
+    const submitMode = entry.inputSubmitMode ?? 'submit';
+    // Only the explicit option locks the field. The datapoint's own `common.write` is
+    // deliberately NOT consulted - the standalone Eingabefeld widget writes regardless,
+    // and gating on it silently killed both typing and the send button for datapoints
+    // that merely fail to advertise write access.
+    const readOnly = !!entry.inputReadOnly;
+    // Command-field mode: the field never mirrors the DP and empties itself after
+    // each send. The DP is deliberately left untouched - resetting it would be a
+    // second state change and consumers (scripts, notifications) would act on it.
+    const clearAfterSubmit = !!entry.inputClearAfterSubmit && submitMode === 'submit' && !readOnly;
+    const showSubmit = entry.inputShowSubmit !== false && submitMode === 'submit' && !readOnly;
+    const width = Number(entry.inputWidth) > 0 ? Number(entry.inputWidth) : undefined;
+
+    const dpString = val == null ? '' : String(val);
+    const [draft, setDraft] = useState<string>(clearAfterSubmit ? '' : dpString);
+    const [dirty, setDirty] = useState(false);
+    const lastSeenDp = useRef<string>(dpString);
+    const anchorRef = useRef<HTMLDivElement>(null);
+
+    // Follow the datapoint when it changes elsewhere - but never while the user types.
+    useEffect(() => {
+        if (clearAfterSubmit) return;
+        if (dpString !== lastSeenDp.current) {
+            lastSeenDp.current = dpString;
+            if (!dirty) setDraft(dpString);
+        }
+    }, [dpString, dirty, clearAfterSubmit]);
+
+    const writeValue = (v: string) => {
+        lastSeenDp.current = v;
+        if (numeric) {
+            const n = Number(v);
+            if (v === '' || !Number.isFinite(n)) return;
+            setState(entry.id, n);
+            return;
+        }
+        setState(entry.id, v);
+    };
+
+    const doCommit = () => {
+        writeValue(draft);
+        if (clearAfterSubmit) setDraft('');
+        setDirty(false);
+    };
+
+    const {
+        run: runCommit,
+        pending,
+        confirm,
+        cancel,
+    } = useConfirmAction(doCommit, !!entry.confirm && submitMode === 'submit');
+
+    const commit = () => {
+        // A command field must resend the same text (the receiver expects a new
+        // trigger), so the "unchanged value" shortcut only applies to normal fields.
+        if (clearAfterSubmit) {
+            if (draft === '') {
+                setDirty(false);
+                return;
+            }
+        } else if (draft === lastSeenDp.current) {
+            setDirty(false);
+            return;
+        }
+        runCommit();
+    };
+
+    const onChange = (v: string) => {
+        setDraft(v);
+        if (submitMode === 'live') {
+            writeValue(v);
+            setDirty(false);
+        } else {
+            setDirty(clearAfterSubmit ? v !== '' : v !== lastSeenDp.current);
+        }
+    };
+
+    const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (readOnly || submitMode === 'live') return;
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            commit();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setDraft(clearAfterSubmit ? '' : lastSeenDp.current);
+            setDirty(false);
+            e.currentTarget.blur();
+        }
+    };
+
+    return (
+        <div
+            ref={anchorRef}
+            className={`flex items-center gap-1 ${fullWidth ? 'w-full' : 'shrink-0'}`}
+            // The row itself is clickable (popup); typing must not bubble up to it.
+            onClick={(e) => e.stopPropagation()}
+        >
+            <input
+                type={numeric ? 'number' : 'text'}
+                className="aura-widget-action nodrag text-xs rounded-lg px-2 py-1 focus:outline-none min-w-0"
+                style={{
+                    background: 'var(--app-bg)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--widget-border)',
+                    textAlign: entry.inputTextAlign ?? 'left',
+                    // In a card the field takes the cell but must still leave room for the
+                    // send button - `flex-1` instead of a hard 100%, which squeezed it to
+                    // a stub once the button was in the same row.
+                    ...(width
+                        ? { width, flexShrink: 0 }
+                        : fullWidth
+                          ? { flex: '1 1 auto', width: 'auto' }
+                          : { width: INPUT_ROW_WIDTH, flexShrink: 0 }),
+                }}
+                value={draft}
+                placeholder={entry.inputPlaceholder}
+                readOnly={readOnly}
+                onChange={(e) => onChange(e.target.value)}
+                onKeyDown={onKeyDown}
+                // Blur commits - except for a command field, where a stray tap next to
+                // the field would fire off the message. There the send is always explicit.
+                onBlur={submitMode === 'submit' && !clearAfterSubmit && !readOnly ? commit : undefined}
+            />
+            {showSubmit && (
+                <button
+                    type="button"
+                    onClick={commit}
+                    disabled={!dirty}
+                    title="Senden"
+                    aria-label="Senden"
+                    className={`${btnCls} disabled:opacity-40`}
+                    style={{
+                        ...btnStyle,
+                        width: 26,
+                        height: 26,
+                        background: dirty ? 'var(--accent)' : 'var(--app-bg)',
+                        color: dirty ? '#fff' : 'var(--text-secondary)',
+                        border: `1px solid ${dirty ? 'var(--accent)' : 'var(--widget-border)'}`,
+                        cursor: dirty ? 'pointer' : 'default',
+                    }}
+                >
+                    <Send size={13} />
+                </button>
+            )}
+            {pending && (
+                <ConfirmOverlay
+                    popup
+                    anchorRef={anchorRef}
+                    text={entry.confirmText}
+                    onConfirm={confirm}
+                    onCancel={cancel}
+                />
+            )}
+        </div>
     );
 }
 

@@ -135,9 +135,18 @@ export function listEntryTarget(
             : null;
 
     const dt = entry.displayType ?? 'auto';
-    // Rich controls (shutter/stepper/buttons/momentary) are not simple on/off, and
-    // a date/time display is read-only — never include them in the group master switch.
-    if (dt === 'shutter' || dt === 'stepper' || dt === 'buttons' || dt === 'momentary' || dt === 'time') return null;
+    // Rich controls (shutter/stepper/buttons/momentary) are not simple on/off, a
+    // date/time display is read-only, and a free-text input has no on/off state at
+    // all — never include any of them in the group master switch.
+    if (
+        dt === 'shutter' ||
+        dt === 'stepper' ||
+        dt === 'buttons' ||
+        dt === 'momentary' ||
+        dt === 'time' ||
+        dt === 'input'
+    )
+        return null;
     if (dt === 'switch') {
         const isBool = typeof val === 'boolean';
         return { id: entry.id, active: isActiveVal(val), onWrite: isBool ? true : 1, offWrite: isBool ? false : 0 };
@@ -248,7 +257,7 @@ export function groupChildTarget(
 //    action types). State-independent — they only resolve which DPs to write.
 //    `exclude` holds keys (list entry id / group child id) the user deselected. ──
 
-const RICH_DISPLAY_TYPES = ['shutter', 'stepper', 'buttons', 'momentary'];
+const RICH_DISPLAY_TYPES = ['shutter', 'stepper', 'buttons', 'momentary', 'input'];
 const notExcluded = (key: string, exclude?: ReadonlySet<string>) => !exclude?.has(key);
 
 /** Numeric/level DPs a "Dimmer" group action should set. */

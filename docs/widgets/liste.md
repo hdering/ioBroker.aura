@@ -4,7 +4,25 @@ Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. Jeder Eintra
 
 ## Datenpunkt
 
-Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `momentary` · `switch` · `slider` · `value` · `time` · `auto`) erzwingt die Darstellung pro Eintrag.
+Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `momentary` · `switch` · `slider` · `value` · `time` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
+
+### Darstellung Eingabefeld
+
+`displayType: 'input'` macht die Zeile zum Eingabefeld — dieselben Möglichkeiten wie das [Eingabefeld-Widget](./eingabefeld), nur pro Listenzeile. Im Badges-Layout wird stattdessen der reine Wert angezeigt. Gilt auch für die [dynamische Liste](./dynamische-liste).
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `inputPlaceholder` | — | Platzhalter im leeren Feld |
+| `inputWidth` | `110` | Feldbreite in px (Card-Layout der dynamischen Liste: volle Breite) |
+| `inputMode` | `text` | `text` · `number` |
+| `inputSubmitMode` | `submit` | `submit` (Enter / Feld verlassen / Senden-Button) · `live` (jeder Tastenschlag) |
+| `inputShowSubmit` | `true` | Senden-Button anzeigen (nur bei `submit`) |
+| `inputClearAfterSubmit` | `false` | Befehlsfeld: nach dem Senden leeren, Datenpunkt-Wert nie anzeigen |
+| `confirm` / `confirmText` | `false` | Sicherheitsabfrage vor dem Senden (nur bei `submit`) |
+| `inputTextAlign` | `left` | `left` · `center` · `right` |
+| `inputReadOnly` | `false` | Schreibschutz — Wert wird angezeigt, aber nicht geschrieben |
+
+Ein schreibgeschützter Datenpunkt ist immer schreibgeschützt, unabhängig von `inputReadOnly`.
 
 ### Darstellung Datum/Zeit
 
@@ -84,7 +102,14 @@ Pro Datenpunkt lässt sich das im Detail-Editor überschreiben (`entries[].click
 | Wie Liste | Übernimmt die Listen-Einstellung — der Normalfall |
 | Automatisch | Erzwingt die Ableitung aus der Rolle, auch wenn die Liste auf `Aus` oder eine eigene Aktion steht |
 | Aus | Diese Zeile reagiert nicht auf Klicks |
-| Eigene Aktion | Vollständige Klick-Aktion nur für diese Zeile — eine Zeile öffnet ein Widget-Popup, die nächste springt in einen anderen Tab. Popup-Titel und -Größe kommen weiterhin aus der Listen-Einstellung |
+| Eigene Aktion | Vollständige Klick-Aktion nur für diese Zeile — eine Zeile öffnet ein Widget-Popup, die nächste springt in einen anderen Tab. Die Popup-Größe kommt weiterhin aus der Listen-Einstellung |
+
+Popup-Titel und Titelzeile lassen sich zusätzlich pro Datenpunkt setzen — in jedem Modus außer `Aus`:
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `entries[].popupTitle` | Listen-Titel, sonst Zeilenname | Überschrift des Popups nur für diese Zeile |
+| `entries[].popupHideTitle` | wie Liste | `true` = Titelzeile aus · `false` = an, auch wenn die Liste sie ausblendet |
 
 Navigations-Aktionen (`Sprung: Tab` · `Externe URL` · `Widget`) springen direkt, statt ein Popup zu öffnen.
 

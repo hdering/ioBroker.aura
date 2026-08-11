@@ -59,7 +59,8 @@
     "docs:catalog": "node tools/docs/build-widget-catalog.mjs",
     "docs:dev": "vitepress dev docs",
     "docs:build": "vitepress build docs",
-    "docs:preview": "vitepress preview docs"
+    "docs:preview": "vitepress preview docs",
+    "test:list-input": "node tools/tests/list-input.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",
