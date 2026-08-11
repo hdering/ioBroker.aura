@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.39.1 (2026-08-02)
+- 🌟 **New feature:** Frontend Design - new "Values & Formatting" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings
+- 🌟 **New feature:** Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry
+- 🌟 **New feature:** Widget options - unit, decimals and thousands separator now sit together in one row
+
 ## 0.39.0 (2026-08-01)
 - 🌟 **New feature:** Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list
 

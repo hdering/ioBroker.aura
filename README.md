@@ -115,6 +115,14 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.43.3 (2026-08-11)
+- 🌟 **New feature:** Custom layout - column widths can now be set to "auto" (as wide as the content) instead of a ratio, so icon/title columns stay in place when the widget is rendered full-width on mobile
+- Static and dynamic list - display-only value conversion (presets such as Wh to kWh, or a custom factor/offset) and time/date formatting, configurable per datapoint or list-wide, just like the value widget
+- Static list, dynamic list and status overview - "row click" now defaults to "off": rows stay inert until a popup or navigation action is picked
+- Manage datapoints - the datapoint id of the selected entry is shown in the same roomy field the value widget uses, instead of a cramped one-line strip; in the dynamic list the full path now wraps instead of being cut off
+- 🌟 **New feature:** Static list - every row can show additional datapoints in a second line, each placed left, centre or right with its own label, icon, unit, decimals, font size and colour; datapoints of the same device are offered as a dropdown
+
+
 ### 0.43.2 (2026-08-11)
 - 🌟 **New feature:** Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
 - 🌟 **New feature:** Lists - new "Eingabefeld" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
@@ -206,12 +214,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) ([#520](https://github.com/hdering/ioBroker.aura/issues/520))
 
 
-### 0.39.1 (2026-08-02)
-- 🌟 **New feature:** Frontend Design - new "Values & Formatting" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings
-- 🌟 **New feature:** Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry
-- 🌟 **New feature:** Widget options - unit, decimals and thousands separator now sit together in one row
-
-
 ## License
 
 MIT License
@@ -223,6 +225,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
