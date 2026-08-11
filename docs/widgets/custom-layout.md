@@ -12,8 +12,13 @@ Größe per Spinner. Zellen werden zeilenweise gelesen (oben links → unten rec
 | --- | --- | --- |
 | Spalten | 1–20 | |
 | Zeilen | 1–20 | |
+| Spaltenbreiten | Verhältnis (`2` / `1` …) oder **auto** | `auto` = so breit wie der Inhalt |
 | `colSizes` / `rowSizes` | `auto` · `1fr` · `60px` … | Track-Größe pro Spalte/Zeile |
 | `colSpan` / `rowSpan` | 1–n | Zelle über mehrere Spalten/Zeilen ziehen |
+
+Verhältnis-Spalten wachsen mit der Widget-Breite: dasselbe Raster rückt in der mobilen Ansicht (Widget über
+die volle Breite) auseinander. `auto`-Spalten bleiben bei jeder Breite gleich — z. B. Spalte 1 (Icon) und
+Spalte 2 (Titel) auf `auto`, Spalte 3 (Wert) auf `1fr`: Icon + Titel links, Wert rechts, wie im Compact-Layout.
 
 ## Zellinhalt
 

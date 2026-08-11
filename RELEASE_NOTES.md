@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Custom layout - column widths can now be set to "auto" (as wide as the content) instead of a ratio, so icon/title columns stay in place when the widget is rendered full-width on mobile

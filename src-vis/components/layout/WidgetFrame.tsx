@@ -16036,48 +16036,82 @@ export function WidgetFrame({
                                                 </div>
                                             </div>
 
-                                            {/* Per-column width (fr ratios) — e.g. 2 / 1 makes the first column twice as wide */}
+                                            {/* Per-column width: fr ratio (e.g. 2 / 1 makes the first column twice as
+                                            wide) or 'auto' = as wide as the cell content. A ratio column scales with
+                                            the widget, so a grid designed on the desktop grid spreads out when the same
+                                            widget is rendered full-width (mobile stack) — 'auto' columns keep the
+                                            content where it is at any width, like the compact layout does. */}
                                             {cols > 1 && (
                                                 <div>
                                                     <label
                                                         className="text-[11px] mb-1 block"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        Spaltenbreiten (Verhältnis)
+                                                        Spaltenbreiten (Verhältnis / auto)
                                                     </label>
                                                     <div className="flex gap-1">
                                                         {Array.from({ length: cols }, (_, ci) => {
                                                             const cur = grid.colSizes?.[ci] ?? '1fr';
+                                                            const isAuto = cur.trim() === 'auto';
                                                             const num = parseFloat(cur) || 1;
+                                                            const setCol = (size: string) => {
+                                                                const arr = Array.from({ length: cols }, (_, k) =>
+                                                                    k === ci ? size : (grid.colSizes?.[k] ?? '1fr'),
+                                                                );
+                                                                // Only an all-equal *ratio* template is the same as no
+                                                                // template at all — all-'auto' must stay stored.
+                                                                const allEqualFr =
+                                                                    arr.every((s) => s === arr[0]) &&
+                                                                    arr[0].endsWith('fr');
+                                                                writeGrid({
+                                                                    ...grid,
+                                                                    colSizes: allEqualFr ? undefined : arr,
+                                                                });
+                                                            };
                                                             return (
-                                                                <input
+                                                                <div
                                                                     key={ci}
-                                                                    type="number"
-                                                                    min={0.25}
-                                                                    step={0.25}
-                                                                    value={num}
-                                                                    title={`Spalte ${ci + 1}`}
-                                                                    onChange={(e) => {
-                                                                        const v = Math.max(
-                                                                            0.25,
-                                                                            Number(e.target.value) || 1,
-                                                                        );
-                                                                        const arr = Array.from(
-                                                                            { length: cols },
-                                                                            (_, k) =>
-                                                                                k === ci
-                                                                                    ? `${v}fr`
-                                                                                    : (grid.colSizes?.[k] ?? '1fr'),
-                                                                        );
-                                                                        const allEqual = arr.every((s) => s === arr[0]);
-                                                                        writeGrid({
-                                                                            ...grid,
-                                                                            colSizes: allEqual ? undefined : arr,
-                                                                        });
-                                                                    }}
-                                                                    className={`flex-1 ${inputCls}`}
-                                                                    style={inputSty}
-                                                                />
+                                                                    className="flex-1 min-w-0 flex flex-col gap-1"
+                                                                >
+                                                                    <input
+                                                                        type="number"
+                                                                        min={0.25}
+                                                                        step={0.25}
+                                                                        value={isAuto ? '' : num}
+                                                                        disabled={isAuto}
+                                                                        placeholder="auto"
+                                                                        title={`Spalte ${ci + 1}`}
+                                                                        onChange={(e) =>
+                                                                            setCol(
+                                                                                `${Math.max(0.25, Number(e.target.value) || 1)}fr`,
+                                                                            )
+                                                                        }
+                                                                        className={inputCls}
+                                                                        style={{
+                                                                            ...inputSty,
+                                                                            opacity: isAuto ? 0.5 : 1,
+                                                                        }}
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setCol(isAuto ? '1fr' : 'auto')}
+                                                                        title={`Spalte ${ci + 1}: Breite = Inhalt`}
+                                                                        className="text-[10px] rounded-md py-0.5"
+                                                                        style={{
+                                                                            background: isAuto
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                            color: isAuto
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                            border: `1px solid ${isAuto ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                        }}
+                                                                    >
+                                                                        {/* label shortened past ~8 columns so it
+                                                                        doesn't clip in the narrow per-column box */}
+                                                                        {cols > 8 ? 'A' : 'auto'}
+                                                                    </button>
+                                                                </div>
                                                             );
                                                         })}
                                                     </div>
@@ -16086,7 +16120,9 @@ export function WidgetFrame({
                                                         style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                     >
                                                         Verhältnis der Spaltenbreiten – z.&nbsp;B. 2 / 1 macht die erste
-                                                        Spalte doppelt so breit.
+                                                        Spalte doppelt so breit. <b>auto</b> = so breit wie der Inhalt:
+                                                        bleibt bei jeder Widget-Breite gleich (z.&nbsp;B. mobile
+                                                        Vollbreite), Verhältnis-Spalten wachsen mit.
                                                     </p>
                                                 </div>
                                             )}
