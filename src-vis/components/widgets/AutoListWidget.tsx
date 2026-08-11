@@ -65,6 +65,10 @@ export interface AutoListEntry extends EntryControlConfig {
     inactiveBg?: string;
     /** Per-row click action. Overrides the list-wide setting; undefined = inherit. */
     clickAction?: RowClickSetting;
+    /** Heading of this row's popup. Beats options.rowPopupTitle; unset = the row name. */
+    popupTitle?: string;
+    /** Title bar of this row's popup: true = hide, false = show, unset = as the list. */
+    popupHideTitle?: boolean;
 }
 
 export interface AutoListOptions extends GroupActionConfigOpts, RowPopupOptions {
@@ -1302,6 +1306,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             label,
                                             { role: entry.role },
                                             entry.clickAction,
+                                            entry.popupTitle,
+                                            entry.popupHideTitle,
                                         );
                                         return (
                                             <div
@@ -1406,6 +1412,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         label,
                                         { role: entry.role },
                                         entry.clickAction,
+                                        entry.popupTitle,
+                                        entry.popupHideTitle,
                                     );
                                     return (
                                         <div
@@ -1578,7 +1586,14 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         !rowPopup.explicit(entry.clickAction);
                                     const rowProps = togglable
                                         ? undefined
-                                        : rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
+                                        : rowPopup.row(
+                                              entry.id,
+                                              label,
+                                              { role: entry.role },
+                                              entry.clickAction,
+                                              entry.popupTitle,
+                                              entry.popupHideTitle,
+                                          );
                                     return (
                                         <button
                                             key={entry.id}
@@ -1654,7 +1669,14 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     ? entry.activeBg || globalActiveBg
                                     : entry.inactiveBg || globalInactiveBg;
                                 const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
-                                const rowProps = rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
+                                const rowProps = rowPopup.row(
+                                    entry.id,
+                                    label,
+                                    { role: entry.role },
+                                    entry.clickAction,
+                                    entry.popupTitle,
+                                    entry.popupHideTitle,
+                                );
                                 return (
                                     <div
                                         key={entry.id}

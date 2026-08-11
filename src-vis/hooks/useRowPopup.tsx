@@ -23,6 +23,10 @@ interface OpenPopup {
     dpId: string;
     label: string;
     action: ClickAction;
+    /** Per-entry heading; wins over the list-wide one and over the row label. */
+    title?: string;
+    /** Per-entry title-bar visibility. undefined = inherit the list-wide setting. */
+    hideTitle?: boolean;
 }
 
 /**
@@ -62,6 +66,8 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
         label: string,
         hint?: { role?: string; type?: string },
         override?: RowClickSetting,
+        popupTitle?: string,
+        popupHideTitle?: boolean,
     ): RowClickProps | undefined => {
         const action = actionFor(dpId, hint, override);
         if (!action) return undefined;
@@ -96,7 +102,7 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                             .navigateTo(action.layoutId, action.tabId, action.widgetId, action.sectionId);
                         return;
                     default:
-                        setOpen({ dpId, label, action });
+                        setOpen({ dpId, label, action, title: popupTitle, hideTitle: popupHideTitle });
                 }
             },
         };
@@ -112,8 +118,8 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                     // embeds THIS widget, which would render empty from a stripped config.
                     options: {
                         ...base.options,
-                        popupTitle: opts.rowPopupTitle,
-                        popupHideTitle: opts.rowPopupHideTitle,
+                        popupTitle: open.title || opts.rowPopupTitle,
+                        popupHideTitle: open.hideTitle ?? opts.rowPopupHideTitle,
                         popupWidth: opts.rowPopupWidth,
                         popupHeight: opts.rowPopupHeight,
                         popupAutoCloseSec: opts.rowPopupAutoCloseSec,
@@ -121,9 +127,9 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                 } satisfies WidgetConfig
             }
             action={open.action}
-            // Without an explicit title the popup shows the clicked row's name -
-            // otherwise it would show the (shared) list widget title.
-            titleOverride={opts.rowPopupTitle ? undefined : open.label}
+            // Without an explicit title (per entry, else list-wide) the popup shows the
+            // clicked row's name - otherwise it would show the (shared) list widget title.
+            titleOverride={open.title || opts.rowPopupTitle ? undefined : open.label}
             onClose={() => setOpen(null)}
             allWidgets={useDashboardStore
                 .getState()

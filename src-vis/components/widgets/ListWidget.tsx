@@ -80,6 +80,10 @@ export interface StaticListEntry extends EntryControlConfig {
     showLastChange?: boolean;
     /** Per-row click action. Overrides the list-wide setting; undefined = inherit. */
     clickAction?: RowClickSetting;
+    /** Heading of this row's popup. Beats options.rowPopupTitle; unset = the row name. */
+    popupTitle?: string;
+    /** Title bar of this row's popup: true = hide, false = show, unset = as the list. */
+    popupHideTitle?: boolean;
 }
 
 export interface StaticListOptions extends GroupActionConfigOpts, RowPopupOptions {
@@ -936,7 +940,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const entryIconSize = entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
                             const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
-                            const rowProps = rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
+                            const rowProps = rowPopup.row(
+                                entry.id,
+                                label,
+                                { role: entry.role },
+                                entry.clickAction,
+                                entry.popupTitle,
+                                entry.popupHideTitle,
+                            );
                             return (
                                 <div
                                     key={entry.id}
@@ -1019,7 +1030,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const entryIconSize = entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
                             const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
-                            const rowProps = rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
+                            const rowProps = rowPopup.row(
+                                entry.id,
+                                label,
+                                { role: entry.role },
+                                entry.clickAction,
+                                entry.popupTitle,
+                                entry.popupHideTitle,
+                            );
                             return (
                                 <div
                                     key={entry.id}
@@ -1188,7 +1206,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const togglable = clickable && !rowPopup.explicit(entry.clickAction);
                             const rowProps = togglable
                                 ? undefined
-                                : rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
+                                : rowPopup.row(
+                                      entry.id,
+                                      label,
+                                      { role: entry.role },
+                                      entry.clickAction,
+                                      entry.popupTitle,
+                                      entry.popupHideTitle,
+                                  );
                             return (
                                 <button
                                     key={entry.id}
@@ -1265,7 +1290,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         const entryIconSize = entry.iconSize ?? 13;
                         const entryFontSize = entry.fontSize;
                         const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
-                        const rowProps = rowPopup.row(entry.id, label, { role: entry.role }, entry.clickAction);
+                        const rowProps = rowPopup.row(
+                            entry.id,
+                            label,
+                            { role: entry.role },
+                            entry.clickAction,
+                            entry.popupTitle,
+                            entry.popupHideTitle,
+                        );
                         return (
                             <div
                                 key={entry.id}

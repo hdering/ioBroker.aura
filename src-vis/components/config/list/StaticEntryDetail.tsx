@@ -509,6 +509,14 @@ export function StaticEntryDetail({
                     config={listConfig}
                     value={entry.clickAction}
                     onChange={(next) => onUpdate({ clickAction: next })}
+                    popupTitle={entry.popupTitle}
+                    onPopupTitleChange={(next) => onUpdate({ popupTitle: next })}
+                    titlePlaceholder={
+                        (listConfig.options?.rowPopupTitle as string) || entry.label || 'Name des Datenpunkts'
+                    }
+                    popupHideTitle={entry.popupHideTitle}
+                    onPopupHideTitleChange={(next) => onUpdate({ popupHideTitle: next })}
+                    listHidesTitle={!!listConfig.options?.rowPopupHideTitle}
                 />
             </DetailSection>
 
