@@ -51,10 +51,14 @@ export function AutoEntryDetail({
     return (
         <>
             <DetailSection title="Datenpunkt">
-                <div className="flex items-center gap-1">
+                {/* Same field as the value widget's datapoint row - read-only here, the
+                    id comes from the discovery. Wraps instead of truncating: the pane is
+                    wide enough for the whole path, and a cut-off id is unusable. */}
+                <div className="flex items-start gap-1">
                     <div
-                        className="flex-1 min-w-0 text-[10px] font-mono truncate"
-                        style={{ color: 'var(--text-secondary)' }}
+                        className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 font-mono break-all select-text"
+                        style={iSty}
+                        title={entry.id}
                     >
                         {entry.id}
                     </div>

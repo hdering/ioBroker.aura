@@ -90,6 +90,9 @@ export function StaticEntryDetail({
     return (
         <>
             <DetailSection title="Datenpunkt">
+                {/* Same field as the value widget's datapoint row: a long ID needs the
+                    room to be read, so this one block breaks out of the compact 10px
+                    grid the rest of the detail pane uses. */}
                 <div className="flex gap-1 mb-1">
                     <input
                         type="text"
@@ -100,14 +103,15 @@ export function StaticEntryDetail({
                             if (e.key === 'Enter') e.currentTarget.blur();
                             else if (e.key === 'Escape') setIdDraft(entry.id ?? '');
                         }}
+                        title={idDraft}
                         placeholder="Datenpunkt-ID"
-                        className={`flex-1 ${iCls} min-w-0`}
+                        className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
                         style={iSty}
                     />
                     <button
                         onClick={() => setDpPickerOpen(true)}
                         title="Aus ioBroker wählen"
-                        className="px-2 rounded hover:opacity-80 shrink-0 flex items-center justify-center"
+                        className="px-2 rounded-lg hover:opacity-80 shrink-0 flex items-center justify-center"
                         style={{
                             color: 'var(--text-secondary)',
                             background: 'var(--app-bg)',
