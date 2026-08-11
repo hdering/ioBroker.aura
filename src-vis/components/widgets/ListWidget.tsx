@@ -46,6 +46,8 @@ import {
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { ConfirmOverlay } from './ConfirmOverlay';
+import { EntrySubLine, type EntrySubDp } from './EntrySubLine';
+import { useTemplateValues } from '../../hooks/useTemplateValues';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -87,6 +89,11 @@ export interface StaticListEntry extends EntryControlConfig {
     popupTitle?: string;
     /** Title bar of this row's popup: true = hide, false = show, unset = as the list. */
     popupHideTitle?: boolean;
+    /**
+     * Extra datapoints shown in a second line below this entry — display only.
+     * Ignored by the badges (minimal) layout, where a row is a single pill.
+     */
+    subDps?: EntrySubDp[];
 }
 
 export interface StaticListOptions extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings {
@@ -540,6 +547,24 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const t = useT();
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const { subscribe, setState, getState } = useIoBroker();
+    // Second-line datapoints live outside the entry subscription below: they never take
+    // part in filtering, sorting or the statistics line, so they get their own read-only
+    // subscription (same hook the value widget uses for its template datapoints).
+    const subDpRefs = useMemo(
+        () => [...new Set(entries.flatMap((e) => (e.subDps ?? []).map((s) => s?.id).filter(Boolean) as string[]))],
+        [entries],
+    );
+    const subValues = useTemplateValues(subDpRefs);
+    const subLineFor = (entry: StaticListEntry) =>
+        entry.subDps?.some((s) => !!s?.id) ? (
+            <EntrySubLine
+                subDps={entry.subDps}
+                values={subValues}
+                listTransform={opts}
+                decimals={defaultDecimals}
+                numFmt={globalNumFmt}
+            />
+        ) : null;
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
     const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
@@ -998,6 +1023,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             card
                                         />
                                     </div>
+                                    {subLineFor(entry)}
                                     {lcTs > 0 && (
                                         <div
                                             className="aura-last-change text-[9px] truncate text-center"
@@ -1056,7 +1082,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             return (
                                 <div
                                     key={entry.id}
-                                    className="flex items-center gap-1.5 px-2 py-1.5"
+                                    className="flex flex-col gap-1 px-2 py-1.5"
                                     style={{
                                         background: stateBg,
                                         borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
@@ -1066,51 +1092,54 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     }}
                                     {...rowProps}
                                 >
-                                    {EntryIcon && (
-                                        <EntryIcon
-                                            size={entryIconSize}
-                                            className="shrink-0"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        />
-                                    )}
-                                    <div className="flex-1 min-w-0" style={labelContainerStyle}>
-                                        <span
-                                            className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
-                                            style={{
-                                                color: 'var(--text-primary)',
-                                                fontSize: entryFontSize ?? undefined,
-                                            }}
-                                        >
-                                            {label}
-                                        </span>
-                                        {lcTs > 0 && (
-                                            <span
-                                                className="aura-last-change block text-[8px] truncate"
-                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                            >
-                                                {formatLastChange(
-                                                    t as (k: string, v?: Record<string, string | number>) => string,
-                                                    lcTs,
-                                                )}
-                                            </span>
+                                    <div className="flex items-center gap-1.5">
+                                        {EntryIcon && (
+                                            <EntryIcon
+                                                size={entryIconSize}
+                                                className="shrink-0"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            />
                                         )}
+                                        <div className="flex-1 min-w-0" style={labelContainerStyle}>
+                                            <span
+                                                className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
+                                                style={{
+                                                    color: 'var(--text-primary)',
+                                                    fontSize: entryFontSize ?? undefined,
+                                                }}
+                                            >
+                                                {label}
+                                            </span>
+                                            {lcTs > 0 && (
+                                                <span
+                                                    className="aura-last-change block text-[8px] truncate"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    {formatLastChange(
+                                                        t as (k: string, v?: Record<string, string | number>) => string,
+                                                        lcTs,
+                                                    )}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <EntryValue
+                                            entry={entry}
+                                            val={val}
+                                            writable={entry.writable !== false}
+                                            setState={setState}
+                                            globalThresholds={globalThresholds}
+                                            decimals={entry.decimals ?? defaultDecimals}
+                                            numFmt={entry.numberFormat ?? globalNumFmt}
+                                            activeColor={entryActiveColor}
+                                            inactiveColor={entryInactiveColor}
+                                            trueText={opts.trueText}
+                                            falseText={opts.falseText}
+                                            wrap={wrap}
+                                            valueMaxPct={valueMaxPct}
+                                            listTransform={opts}
+                                        />
                                     </div>
-                                    <EntryValue
-                                        entry={entry}
-                                        val={val}
-                                        writable={entry.writable !== false}
-                                        setState={setState}
-                                        globalThresholds={globalThresholds}
-                                        decimals={entry.decimals ?? defaultDecimals}
-                                        numFmt={entry.numberFormat ?? globalNumFmt}
-                                        activeColor={entryActiveColor}
-                                        inactiveColor={entryInactiveColor}
-                                        trueText={opts.trueText}
-                                        falseText={opts.falseText}
-                                        wrap={wrap}
-                                        valueMaxPct={valueMaxPct}
-                                        listTransform={opts}
-                                    />
+                                    {subLineFor(entry)}
                                 </div>
                             );
                         })}
@@ -1329,7 +1358,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         return (
                             <div
                                 key={entry.id}
-                                className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
+                                className="flex flex-col gap-1 px-3 py-2"
                                 style={{
                                     background: stateBg,
                                     borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
@@ -1337,64 +1366,70 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 }}
                                 {...rowProps}
                             >
-                                {EntryIcon && (
-                                    <EntryIcon
-                                        size={entryIconSize}
-                                        className="shrink-0 mt-0.5"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    />
-                                )}
-                                <div className="flex-1 min-w-0" style={labelContainerStyle}>
-                                    <div
-                                        className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
-                                        style={{ color: 'var(--text-primary)', fontSize: entryFontSize ?? undefined }}
-                                    >
-                                        {label}
+                                <div className={`flex gap-2 ${wrap ? 'items-start' : 'items-center'}`}>
+                                    {EntryIcon && (
+                                        <EntryIcon
+                                            size={entryIconSize}
+                                            className="shrink-0 mt-0.5"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        />
+                                    )}
+                                    <div className="flex-1 min-w-0" style={labelContainerStyle}>
+                                        <div
+                                            className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
+                                            style={{
+                                                color: 'var(--text-primary)',
+                                                fontSize: entryFontSize ?? undefined,
+                                            }}
+                                        >
+                                            {label}
+                                        </div>
+                                        {opts.showRoom && (resolvedRooms[entry.id]?.join(', ') || null) && (
+                                            <div
+                                                className="text-[10px] truncate"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {resolvedRooms[entry.id].join(', ')}
+                                            </div>
+                                        )}
+                                        {opts.showId && (
+                                            <div
+                                                className="text-[9px] truncate font-mono"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {entry.id}
+                                            </div>
+                                        )}
+                                        {lcTs > 0 && (
+                                            <div
+                                                className="aura-last-change text-[9px] truncate"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            >
+                                                {formatLastChange(
+                                                    t as (k: string, v?: Record<string, string | number>) => string,
+                                                    lcTs,
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                    {opts.showRoom && (resolvedRooms[entry.id]?.join(', ') || null) && (
-                                        <div
-                                            className="text-[10px] truncate"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {resolvedRooms[entry.id].join(', ')}
-                                        </div>
-                                    )}
-                                    {opts.showId && (
-                                        <div
-                                            className="text-[9px] truncate font-mono"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            {entry.id}
-                                        </div>
-                                    )}
-                                    {lcTs > 0 && (
-                                        <div
-                                            className="aura-last-change text-[9px] truncate"
-                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                        >
-                                            {formatLastChange(
-                                                t as (k: string, v?: Record<string, string | number>) => string,
-                                                lcTs,
-                                            )}
-                                        </div>
-                                    )}
+                                    <EntryValue
+                                        entry={entry}
+                                        val={val}
+                                        writable={entry.writable !== false}
+                                        setState={setState}
+                                        globalThresholds={globalThresholds}
+                                        decimals={entry.decimals ?? defaultDecimals}
+                                        numFmt={entry.numberFormat ?? globalNumFmt}
+                                        activeColor={entryActiveColor}
+                                        inactiveColor={entryInactiveColor}
+                                        trueText={opts.trueText}
+                                        falseText={opts.falseText}
+                                        wrap={wrap}
+                                        valueMaxPct={valueMaxPct}
+                                        listTransform={opts}
+                                    />
                                 </div>
-                                <EntryValue
-                                    entry={entry}
-                                    val={val}
-                                    writable={entry.writable !== false}
-                                    setState={setState}
-                                    globalThresholds={globalThresholds}
-                                    decimals={entry.decimals ?? defaultDecimals}
-                                    numFmt={entry.numberFormat ?? globalNumFmt}
-                                    activeColor={entryActiveColor}
-                                    inactiveColor={entryInactiveColor}
-                                    trueText={opts.trueText}
-                                    falseText={opts.falseText}
-                                    wrap={wrap}
-                                    valueMaxPct={valueMaxPct}
-                                    listTransform={opts}
-                                />
+                                {subLineFor(entry)}
                             </div>
                         );
                     })}

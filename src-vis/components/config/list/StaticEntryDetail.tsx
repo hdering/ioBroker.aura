@@ -12,6 +12,7 @@ import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConf
 import { usesOnOffLabels } from '../../widgets/entryControls';
 import { IconPickerModal } from '../IconPickerModal';
 import { RowClickEntryField } from '../RowClickSection';
+import { SubDpFields } from './SubDpFields';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 
@@ -80,6 +81,7 @@ export function StaticEntryDetail({
     const isSwitchLike = isSwitch || entry.displayType === 'momentary';
     // The on/off label pair is only ever read for boolean-ish entries.
     const showOnOffLabels = usesOnOffLabels(entry, lookupDatapointEntry(entry.id)?.type);
+    const subDpCount = (entry.subDps ?? []).filter((s) => !!s?.id).length;
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -218,6 +220,19 @@ export function StaticEntryDetail({
                         />
                     </div>
                 </div>
+            </DetailSection>
+
+            <DetailSection title="Zweite Zeile" badge={subDpCount > 0 ? `${subDpCount} DP` : undefined}>
+                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                    Weitere Datenpunkte unter dem Haupt-Datenpunkt — nur Anzeige, Position frei wählbar. Nicht im
+                    Badges-Layout.
+                </p>
+                <SubDpFields
+                    subDps={entry.subDps ?? []}
+                    mainDpId={entry.id}
+                    listHasTransform={listHasTransform}
+                    onChange={(next) => onUpdate({ subDps: next })}
+                />
             </DetailSection>
 
             <DetailSection title="Darstellung" badge={entryDisplayTypeLabel(entry.displayType)}>

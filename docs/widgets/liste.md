@@ -35,6 +35,31 @@ Ein schreibgeschützter Datenpunkt ist immer schreibgeschützt, unabhängig von 
 
 Tokens: `HH` `mm` `ss` · `hh` · `dd` `MM` `yyyy` `yy` · `EEEE` (Wochentag) · `EE` · `MMMM` (Monat) · `ww` (KW)
 
+### Zweite Zeile (zusätzliche Datenpunkte)
+
+Dialog **Datenpunkte verwalten** → Detail-Editor → Abschnitt **Zweite Zeile**. Jeder Eintrag kann
+weitere Datenpunkte (`entries[].subDps[]`) in einer zweiten Zeile unter dem Haupt-Datenpunkt zeigen —
+Batterie, Signalstärke, Sollwert, Laufzeit. **Nur Anzeige**: kein Schalter, kein Regler, kein Schreiben.
+
+Die Zeile hat drei Plätze — links, mitte, rechts. Mehrere Datenpunkte am selben Platz stehen in
+Konfigurationsreihenfolge nebeneinander. Das Auswahlfeld bietet die Datenpunkte des gleichen Geräts
+direkt an; der Objektbaum-Button daneben holt jeden anderen.
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `id` | — | Datenpunkt-ID |
+| `align` | `left` | `left` · `center` · `right` |
+| `label` | — | Text vor dem Wert; leer = nur Wert |
+| `icon` | — | [Lucide-Icon](https://lucide.dev) / Iconify-ID vor dem Text |
+| `unit` | aus dem Objekt | Einheit hinter dem Wert (entfällt bei Zeit-Formatierung) |
+| `decimals` / `numberFormat` | global | Dezimalstellen und Tausendertrennung |
+| `fontSize` | `9` | px |
+| `color` | `--text-secondary` | Textfarbe |
+| `valueTransform` / `valueFactor` / `valueOffset` / `valueTimeFormat` / `valueTimePattern` | Liste | eigene [Wert-Umrechnung](#wert-umrechnung-zeit) pro Zusatz-Datenpunkt |
+
+Layouts `default` · `card` · `compact` zeigen die zweite Zeile. Das Badges-Layout (`minimal`) nicht —
+dort ist eine Zeile eine Pille. Nur statische Liste.
+
 ### Wert-Umrechnung / Zeit
 
 Der Button neben dem Datenpunkt-Feld (Dialog **Datenpunkte verwalten** → Abschnitt **Datenpunkt**) rechnet den

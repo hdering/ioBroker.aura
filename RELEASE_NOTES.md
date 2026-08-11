@@ -10,3 +10,4 @@
 - Static and dynamic list - display-only value conversion (presets such as Wh to kWh, or a custom factor/offset) and time/date formatting, configurable per datapoint or list-wide, just like the value widget
 - Static list, dynamic list and status overview - "row click" now defaults to "off": rows stay inert until a popup or navigation action is picked
 - Manage datapoints - the datapoint id of the selected entry is shown in the same roomy field the value widget uses, instead of a cramped one-line strip; in the dynamic list the full path now wraps instead of being cut off
+- Static list - every row can show additional datapoints in a second line, each placed left, centre or right with its own label, icon, unit, decimals, font size and colour; datapoints of the same device are offered as a dropdown
