@@ -69,10 +69,12 @@ Dialog **Datenpunkte verwalten** → Tab **Klick auf Zeile**. Ein Klick auf eine
 
 | Option | Standard | |
 | --- | --- | --- |
-| `rowClickAction` | automatisch | `auto` · `{ "kind": "none" }` (aus) · vollständige Klick-Aktion |
+| `rowClickAction` | Eigene Aktion: alle DP des Geräts | `auto` · `{ "kind": "none" }` (aus) · vollständige Klick-Aktion |
 | `rowPopupTitle` | Zeilenname | Titel des Popups |
 | `rowPopupWidth` / `rowPopupHeight` | auto | px |
 | `rowPopupAutoCloseSec` | View/Global | Sekunden, `0` = aus |
+
+Standard ohne eigene Einstellung: **Eigene Aktion** → *Popup: Alle Datenpunkte des Geräts*, Umfang **Gleicher Strang (Elternobjekt)**, **Nur relevante Datenpunkte** an — entspricht `{ "kind": "popup-dps", "scope": "parent", "relevantOnly": true }`. **Automatisch** (Popup nach Rolle) muss aktiv gewählt werden.
 
 Automatik nach Rolle des Datenpunkts:
 

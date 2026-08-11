@@ -1,5 +1,5 @@
 import type { ClickAction, WidgetConfig } from '../../types';
-import type { RowClickSetting, RowPopupOptions } from '../../utils/rowClickAction';
+import { DEFAULT_ROW_CLICK_ACTION, type RowClickSetting, type RowPopupOptions } from '../../utils/rowClickAction';
 import { ClickActionEditor } from './ClickActionEditor';
 
 type Mode = 'auto' | 'off' | 'custom';
@@ -43,7 +43,7 @@ export function RowClickEntryField({
                         if (v === 'inherit') onChange(undefined);
                         else if (v === 'auto') onChange('auto');
                         else if (v === 'off') onChange({ kind: 'none' });
-                        else onChange({ kind: 'popup-view', viewId: '' });
+                        else onChange(DEFAULT_ROW_CLICK_ACTION);
                     }}
                     className="text-[10px] rounded px-2 py-0.5 focus:outline-none"
                     style={{
@@ -91,8 +91,11 @@ const MODES: { value: Mode; label: string }[] = [
 /**
  * "Klick auf Zeile" - shared by the static and the dynamic list config panel.
  *
- * Automatic mode derives the popup from each row's datapoint role, so a dimmer row
- * opens the dimmer popup and a sensor row the generic datapoint popup. A custom
+ * Default (nothing stored) is DEFAULT_ROW_CLICK_ACTION - the datapoint list of the
+ * clicked row's branch - so the panel opens on "Eigene Aktion" with that preset.
+ * Automatic mode derives the popup from each row's datapoint role instead, so a
+ * dimmer row opens the dimmer popup and a sensor row the generic datapoint popup;
+ * it has to be picked explicitly now. A custom
  * action reuses the regular ClickActionEditor through a proxy config: it reads
  * options.clickAction / popupTitle / popupWidth / popupHeight / popupAutoCloseSec,
  * which are mapped onto the row* option keys here.
@@ -107,13 +110,15 @@ export function RowClickSection({
     onChange: (patch: RowPopupOptions) => void;
 }) {
     const stored = opts.rowClickAction;
-    const mode: Mode = stored === undefined || stored === 'auto' ? 'auto' : stored.kind === 'none' ? 'off' : 'custom';
+    // undefined = not configured = the default action, which is a custom one.
+    const mode: Mode = stored === 'auto' ? 'auto' : stored?.kind === 'none' ? 'off' : 'custom';
+    const customAction = typeof stored === 'object' ? stored : DEFAULT_ROW_CLICK_ACTION;
 
     const setMode = (next: Mode) => {
         if (next === mode) return;
-        if (next === 'auto') return onChange({ rowClickAction: undefined });
+        if (next === 'auto') return onChange({ rowClickAction: 'auto' });
         if (next === 'off') return onChange({ rowClickAction: { kind: 'none' } });
-        onChange({ rowClickAction: { kind: 'popup-view', viewId: '' } });
+        onChange({ rowClickAction: DEFAULT_ROW_CLICK_ACTION });
     };
 
     return (
@@ -150,7 +155,7 @@ export function RowClickSection({
                     config={{
                         ...config,
                         options: {
-                            clickAction: typeof stored === 'object' ? stored : undefined,
+                            clickAction: customAction,
                             popupTitle: opts.rowPopupTitle,
                             popupHideTitle: opts.rowPopupHideTitle,
                             popupWidth: opts.rowPopupWidth,
