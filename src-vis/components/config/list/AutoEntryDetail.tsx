@@ -1,6 +1,7 @@
 import type { WidgetConfig } from '../../../types';
 import type { AutoListEntry } from '../../widgets/AutoListWidget';
 import { ColorField, DetailSection } from './listFieldUi';
+import { ValueTransformButton } from '../ValueTransformButton';
 import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConfig';
 import { usesOnOffLabels } from '../../widgets/entryControls';
 import { RowClickEntryField } from '../RowClickSection';
@@ -26,7 +27,18 @@ export function AutoEntryDetail({
 }) {
     const t = useT();
     // AN/AUS colors only apply to an explicit switch entry; hide for Auto/slider/value/shutter/…
-    const isSwitch = (entry.displayType ?? 'auto') === 'switch';
+    const dt = entry.displayType ?? 'auto';
+    const isSwitch = dt === 'switch';
+    // Time formatting is part of the value text — the other display types either
+    // bring their own (Datum/Zeit) or render a control instead of a value.
+    const allowTimeFormat = dt === 'auto' || dt === 'value';
+    // The list can carry a conversion of its own; "Keine" must then mean "off here",
+    // not "unset" (which would inherit it again).
+    const listOpts = (listConfig.options ?? {}) as Record<string, unknown>;
+    const listHasTransform =
+        listOpts.valueTransform !== undefined ||
+        listOpts.valueFactor !== undefined ||
+        listOpts.valueTimeFormat !== undefined;
     // The on/off label pair is only ever read for boolean-ish entries.
     const showOnOffLabels = usesOnOffLabels(entry, lookupDatapointEntry(entry.id)?.type);
     const iSty = {
@@ -39,8 +51,24 @@ export function AutoEntryDetail({
     return (
         <>
             <DetailSection title="Datenpunkt">
-                <div className="text-[10px] font-mono truncate" style={{ color: 'var(--text-secondary)' }}>
-                    {entry.id}
+                <div className="flex items-center gap-1">
+                    <div
+                        className="flex-1 min-w-0 text-[10px] font-mono truncate"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        {entry.id}
+                    </div>
+                    <ValueTransformButton
+                        factor={entry.valueFactor}
+                        offset={entry.valueOffset}
+                        presetId={entry.valueTransform}
+                        timeFormat={entry.valueTimeFormat}
+                        timePattern={entry.valueTimePattern}
+                        allowTimeFormat={allowTimeFormat}
+                        explicitNone={listHasTransform}
+                        dpId={entry.id}
+                        onPatch={onUpdate}
+                    />
                 </div>
             </DetailSection>
 

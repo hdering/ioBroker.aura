@@ -6,6 +6,8 @@
  * what the widget shows. Non-numeric values pass through unchanged.
  */
 
+import { hasTimeDisplay } from './timeDisplay';
+
 export interface ValueTransformPreset {
     id: string;
     label: string;
@@ -13,6 +15,30 @@ export interface ValueTransformPreset {
     offset: number;
     /** Suggested target unit, auto-filled into the unit field when selected (where applicable). */
     unit?: string;
+}
+
+/**
+ * The option keys a transform is stored under. Identical on the widget options
+ * (Werte-Anzeige) and on a list entry, so both can be fed to the same editor.
+ */
+export interface ValueTransformSettings {
+    /** Preset id, 'custom', or 'none' — the latter switches a list-wide default off. */
+    valueTransform?: string;
+    valueFactor?: number;
+    valueOffset?: number;
+    /** Time output preset id (or 'custom'); undefined / 'none' = plain value. */
+    valueTimeFormat?: string;
+    /** Token pattern, only used when `valueTimeFormat` is 'custom'. */
+    valueTimePattern?: string;
+}
+
+export interface ResolvedValueTransform {
+    factor?: number;
+    offset?: number;
+    timeFormat?: string;
+    timePattern?: string;
+    /** True when anything is configured at all — callers can keep their untouched path. */
+    active: boolean;
 }
 
 /** Built-in conversions so users don't have to compute factors themselves. */
@@ -65,4 +91,33 @@ export function matchValueTransformPreset(factor?: number, offset?: number): str
     const o = num(offset, 0);
     const hit = VALUE_TRANSFORM_PRESETS.find((p) => close(p.factor, f) && close(p.offset, o));
     return hit ? hit.id : 'custom';
+}
+
+/**
+ * Merge a per-datapoint transform with a list-wide default. The two halves
+ * (factor/offset and time format) resolve independently, each taken as a whole
+ * from whichever level configured it — an explicitly selected 'none' on the
+ * datapoint switches the corresponding list default off for that entry.
+ */
+export function resolveValueTransform(
+    own?: ValueTransformSettings,
+    listDefault?: ValueTransformSettings,
+): ResolvedValueTransform {
+    const ownsScale =
+        own?.valueTransform !== undefined || own?.valueFactor !== undefined || own?.valueOffset !== undefined;
+    const scale = ownsScale ? own! : (listDefault ?? {});
+    const scaleOff = scale.valueTransform === 'none';
+
+    const time = own?.valueTimeFormat !== undefined ? own : (listDefault ?? {});
+    const timeFormat = hasTimeDisplay(time.valueTimeFormat) ? time.valueTimeFormat : undefined;
+
+    const factor = scaleOff ? undefined : scale.valueFactor;
+    const offset = scaleOff ? undefined : scale.valueOffset;
+    return {
+        factor,
+        offset,
+        timeFormat,
+        timePattern: time.valueTimePattern,
+        active: factor !== undefined || offset !== undefined || timeFormat !== undefined,
+    };
 }

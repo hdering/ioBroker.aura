@@ -1,4 +1,5 @@
 import { formatNum, type NumberFormat } from './formatValue';
+import { applyValueTransform, resolveValueTransform, type ValueTransformSettings } from './valueTransform';
 
 export type ListStat = 'sum' | 'avg' | 'min' | 'max';
 
@@ -15,10 +16,15 @@ export interface ListStatsResult {
  * Aggregate the numeric values of a list's visible entries. Non-numeric / non-finite
  * values are skipped. Returns null when no numeric value is present. A single shared
  * unit is assumed — the first encountered unit wins.
+ *
+ * Values are aggregated in *display* units: an entry (or the list) may carry a
+ * value conversion, and a Σ in raw units below rows showing converted ones would
+ * simply be wrong.
  */
 export function computeListStats(
-    entries: ReadonlyArray<{ id: string; unit?: string }>,
+    entries: ReadonlyArray<{ id: string; unit?: string } & ValueTransformSettings>,
     states: Record<string, { val?: unknown } | null | undefined>,
+    listDefault?: ValueTransformSettings,
 ): ListStatsResult | null {
     let sum = 0;
     let count = 0;
@@ -26,7 +32,8 @@ export function computeListStats(
     let max = -Infinity;
     let unit: string | undefined;
     for (const e of entries) {
-        const v = states[e.id]?.val;
+        const tr = resolveValueTransform(e, listDefault);
+        const v = applyValueTransform(states[e.id]?.val, tr.factor, tr.offset);
         if (typeof v !== 'number' || !isFinite(v)) continue;
         sum += v;
         count++;

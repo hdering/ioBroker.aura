@@ -31,6 +31,7 @@ export function ValueTransformFields({
     dpId,
     onPatch,
     fillUnit = false,
+    explicitNone = false,
     inputStyle,
     inputClassName = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none',
 }: {
@@ -49,6 +50,10 @@ export function ValueTransformFields({
     onPatch: (patch: ValueTransformPatch) => void;
     /** When true, selecting a preset also fills the `unit` field. */
     fillUnit?: boolean;
+    /** Store "Keine" as the literal 'none' instead of clearing the field. Needed
+     *  where a wider default exists (list-wide transform) that must be switched
+     *  off for this target rather than merely left unset. */
+    explicitNone?: boolean;
     inputStyle?: React.CSSProperties;
     inputClassName?: string;
 }) {
@@ -79,7 +84,11 @@ export function ValueTransformFields({
         }
         const p = VALUE_TRANSFORM_PRESETS.find((x) => x.id === id);
         if (!p || p.id === 'none') {
-            onPatch({ valueTransform: undefined, valueFactor: undefined, valueOffset: undefined });
+            onPatch({
+                valueTransform: explicitNone ? 'none' : undefined,
+                valueFactor: undefined,
+                valueOffset: undefined,
+            });
             return;
         }
         const patch: ValueTransformPatch = {
@@ -94,7 +103,7 @@ export function ValueTransformFields({
     const selectedTime = hasTimeDisplay(timeFormat) ? (timeFormat as string) : 'none';
     const chooseTime = (id: string) => {
         if (id === 'none') {
-            onPatch({ valueTimeFormat: undefined, valueTimePattern: undefined });
+            onPatch({ valueTimeFormat: explicitNone ? 'none' : undefined, valueTimePattern: undefined });
             return;
         }
         onPatch({

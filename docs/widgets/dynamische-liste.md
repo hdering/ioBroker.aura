@@ -8,6 +8,8 @@ Kein Haupt-Datenpunkt — die Einträge (`entries[]`) werden über die Filter er
 
 Pro Eintrag lässt sich die Darstellung erzwingen (`displayType`) — inklusive `time` für Zeit-Datenpunkte (Uhrzeit / Datum / beides / eigenes Muster, siehe [Statische Liste](./liste#darstellung-datum-zeit)) und `input` für ein [Eingabefeld](./liste#darstellung-eingabefeld) in der Zeile.
 
+Pro Eintrag (Dialog **Datenpunkte verwalten** → Abschnitt **Datenpunkt**) lässt sich der Wert außerdem nur für die Anzeige umrechnen und/oder als Uhrzeit/Datum formatieren, siehe [Wert-Umrechnung / Zeit](./liste#wert-umrechnung-zeit). Ohne eigene Einstellung gilt die globale Umrechnung der Liste.
+
 ## Layouts
 
 ### Default
@@ -131,6 +133,8 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `activeColor` | `--accent-green` | Textfarbe bei AN |
 | `inactiveColor` | `--text-secondary` | Textfarbe bei AUS |
 | `activeBg` / `inactiveBg` | — | Hintergrund des Eintrags je Zustand |
+| `valueTransform` / `valueFactor` / `valueOffset` | — | globale [Wert-Umrechnung](./liste#wert-umrechnung-zeit) (Eintrag überschreibt) |
+| `valueTimeFormat` / `valueTimePattern` | — | globale Zeit-Formatierung (Eintrag überschreibt) |
 
 ### Filter
 

@@ -7,6 +7,7 @@ import { ColorPicker } from '../../common/ColorPicker';
 import { ColorField, DetailSection } from './listFieldUi';
 import { DatapointPicker } from '../DatapointPicker';
 import { ValueFormatRow } from '../ValueFormatRow';
+import { ValueTransformButton } from '../ValueTransformButton';
 import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConfig';
 import { usesOnOffLabels } from '../../widgets/entryControls';
 import { IconPickerModal } from '../IconPickerModal';
@@ -63,7 +64,18 @@ export function StaticEntryDetail({
     };
     // AN/AUS styling (switch style, icon size, on/off colors) only applies when the
     // entry is explicitly rendered as a switch; all other types (incl. Auto) hide it.
-    const isSwitch = (entry.displayType ?? 'auto') === 'switch';
+    const dt = entry.displayType ?? 'auto';
+    const isSwitch = dt === 'switch';
+    // Time formatting is part of the value text — the other display types either
+    // bring their own (Datum/Zeit) or render a control instead of a value.
+    const allowTimeFormat = dt === 'auto' || dt === 'value';
+    // The list can carry a conversion of its own; "Keine" must then mean "off here",
+    // not "unset" (which would inherit it again).
+    const listOpts = (listConfig.options ?? {}) as Record<string, unknown>;
+    const listHasTransform =
+        listOpts.valueTransform !== undefined ||
+        listOpts.valueFactor !== undefined ||
+        listOpts.valueTimeFormat !== undefined;
     // Confirmation prompt is offered for switch-like controls (switch, momentary).
     const isSwitchLike = isSwitch || entry.displayType === 'momentary';
     // The on/off label pair is only ever read for boolean-ish entries.
@@ -104,6 +116,17 @@ export function StaticEntryDetail({
                     >
                         <Database size={13} />
                     </button>
+                    <ValueTransformButton
+                        factor={entry.valueFactor}
+                        offset={entry.valueOffset}
+                        presetId={entry.valueTransform}
+                        timeFormat={entry.valueTimeFormat}
+                        timePattern={entry.valueTimePattern}
+                        allowTimeFormat={allowTimeFormat}
+                        explicitNone={listHasTransform}
+                        dpId={entry.id}
+                        onPatch={onUpdate}
+                    />
                 </div>
             </DetailSection>
 

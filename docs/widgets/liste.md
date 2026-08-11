@@ -35,6 +35,27 @@ Ein schreibgeschützter Datenpunkt ist immer schreibgeschützt, unabhängig von 
 
 Tokens: `HH` `mm` `ss` · `hh` · `dd` `MM` `yyyy` `yy` · `EEEE` (Wochentag) · `EE` · `MMMM` (Monat) · `ww` (KW)
 
+### Wert-Umrechnung / Zeit
+
+Der Button neben dem Datenpunkt-Feld (Dialog **Datenpunkte verwalten** → Abschnitt **Datenpunkt**) rechnet den
+Wert nur für die Anzeige um und/oder formatiert ihn als Uhrzeit/Datum — wie bei der
+[Wert-Anzeige](./wert-anzeige). Der Datenpunkt bleibt unverändert. Gilt auch für die
+[dynamische Liste](./dynamische-liste).
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `valueTransform` | — | Preset-Id, `custom` oder `none` (schaltet die globale Umrechnung für diesen Eintrag ab) |
+| `valueFactor` / `valueOffset` | `1` / `0` | Anzeige = Wert × Faktor + Offset |
+| `valueTimeFormat` | — | `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom` |
+| `valueTimePattern` | — | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm` |
+
+Presets: Sekunden → Minuten/Stunden · ms → s · Wh → kWh · W → kW · Bytes → KB/MB/GB · 0..1 → % · °C → °F.
+
+Wirkt auf den angezeigten Werttext, die Farbschwellen und die Statistikzeile — nicht auf Schalter,
+Regler, +/− und Eingabefeld, die ihren Wert zurückschreiben. Bei aktiver Zeit-Formatierung entfällt die
+Einheit. Ohne eigene Einstellung gilt die globale Umrechnung der Liste
+(**Widget bearbeiten** → **Werte & Farben**).
+
 ## Layouts
 
 ### Default
@@ -141,6 +162,8 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `activeColor` | `--accent-green` | Textfarbe bei AN |
 | `inactiveColor` | `--text-secondary` | Textfarbe bei AUS |
 | `activeBg` / `inactiveBg` | — | Hintergrund des Eintrags je Zustand |
+| `valueTransform` / `valueFactor` / `valueOffset` | — | globale [Wert-Umrechnung](#wert-umrechnung-zeit) (Eintrag überschreibt) |
+| `valueTimeFormat` / `valueTimePattern` | — | globale Zeit-Formatierung (Eintrag überschreibt) |
 
 ### Filter
 

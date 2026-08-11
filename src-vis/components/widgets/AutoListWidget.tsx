@@ -14,7 +14,7 @@ import { useT } from '../../i18n';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
 import { StatLine } from './StatLine';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
@@ -40,10 +40,12 @@ import {
     TimeDisplay,
     InputControl,
     formatEntryTime,
+    entryValueText,
     resolveContactDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
 } from './entryControls';
+import type { ValueTransformSettings } from '../../utils/valueTransform';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -72,7 +74,7 @@ export interface AutoListEntry extends EntryControlConfig {
     popupHideTitle?: boolean;
 }
 
-export interface AutoListOptions extends GroupActionConfigOpts, RowPopupOptions {
+export interface AutoListOptions extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings {
     entries: AutoListEntry[];
     filterRoles?: string;
     filterIdPattern?: string;
@@ -447,6 +449,7 @@ function EntryValue({
     falseText,
     wrap,
     valueMaxPct,
+    listTransform,
 }: {
     entry: AutoListEntry;
     val: ioBrokerState['val'];
@@ -461,7 +464,12 @@ function EntryValue({
     falseText?: string;
     wrap?: boolean;
     valueMaxPct?: number;
+    /** List-wide value conversion / time format; the entry's own settings win. */
+    listTransform?: ValueTransformSettings;
 }) {
+    const t = useT();
+    // Display-only conversion — text output only, never the writing controls.
+    const disp = entryValueText(entry, listTransform, val, decimals, numFmt, t);
     // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
     // maxWidth caps the value (default 50%) so the label always keeps a guaranteed share.
     const textValueCls = wrap
@@ -489,7 +497,7 @@ function EntryValue({
         return (
             <TimeDisplay
                 entry={entry}
-                val={val}
+                val={disp.value}
                 className={textValueCls}
                 style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
             />
@@ -555,7 +563,7 @@ function EntryValue({
         );
     }
 
-    const thresholdColor = getThresholdColor(val, thresholds);
+    const thresholdColor = getThresholdColor(disp.value, thresholds);
 
     if (typeof val === 'number' && isDimmerRole(entry.id)) {
         if (!writable) {
@@ -591,10 +599,9 @@ function EntryValue({
         );
     }
 
-    const displayVal = typeof val === 'number' ? formatNum(val, decimals, numFmt) : String(val);
     return (
         <span className={textValueCls} style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}>
-            {val != null ? `${displayVal}${entry.unit ? ` ${entry.unit}` : ''}` : '–'}
+            {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
         </span>
     );
 }
@@ -615,6 +622,7 @@ function CardEntryValue({
     falseText,
     wrap,
     valueMaxPct: _valueMaxPct,
+    listTransform,
 }: {
     entry: AutoListEntry;
     val: ioBrokerState['val'];
@@ -630,7 +638,12 @@ function CardEntryValue({
     wrap?: boolean;
     /** Accepted for API parity with EntryValue; card layout is vertical so the cap doesn't apply. */
     valueMaxPct?: number;
+    /** List-wide value conversion / time format; the entry's own settings win. */
+    listTransform?: ValueTransformSettings;
 }) {
+    const t = useT();
+    // Display-only conversion — text output only, never the writing controls.
+    const disp = entryValueText(entry, listTransform, val, decimals, numFmt, t);
     // Card text values: add break-words when wrap=true so long single tokens still break.
     const cardTextWrap = wrap ? 'break-words [overflow-wrap:anywhere]' : '';
     const trueLabel = entry.trueLabel ?? trueText;
@@ -654,7 +667,7 @@ function CardEntryValue({
         return (
             <TimeDisplay
                 entry={entry}
-                val={val}
+                val={disp.value}
                 className={`text-xl font-bold tabular-nums text-center leading-none ${cardTextWrap}`}
                 style={{ color: 'var(--text-primary)' }}
             />
@@ -708,7 +721,7 @@ function CardEntryValue({
         );
     }
 
-    const thresholdColor = getThresholdColor(val, thresholds);
+    const thresholdColor = getThresholdColor(disp.value, thresholds);
 
     if (typeof val === 'number' && isDimmerRole(entry.id)) {
         if (!writable) {
@@ -748,14 +761,13 @@ function CardEntryValue({
         );
     }
 
-    const displayVal = typeof val === 'number' ? formatNum(val, decimals, numFmt) : String(val);
     return (
         <span
             className={`text-xl font-bold tabular-nums text-center leading-none ${cardTextWrap}`}
             style={{ color: thresholdColor ?? 'var(--text-primary)' }}
         >
-            {val != null ? displayVal : '–'}
-            {entry.unit && (
+            {disp.text ?? '–'}
+            {entry.unit && !disp.isTime && (
                 <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
                     {entry.unit}
                 </span>
@@ -1001,8 +1013,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     // Aggregate (sum / avg / min / max) of numeric values from visible entries.
     const sumInfo = useMemo(
-        () => (opts.showSum ? computeListStats(visibleEntries, states) : null),
-        [opts.showSum, visibleEntries, states],
+        () => (opts.showSum ? computeListStats(visibleEntries, states, opts) : null),
+        [visibleEntries, states, opts],
     );
 
     useEffect(() => {
@@ -1344,6 +1356,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         falseText={opts.falseText}
                                                         wrap={wrap}
                                                         valueMaxPct={valueMaxPct}
+                                                        listTransform={opts}
                                                     />
                                                 </div>
                                                 {opts.showRoom && entry.rooms?.length ? (
@@ -1471,6 +1484,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 falseText={opts.falseText}
                                                 wrap={wrap}
                                                 valueMaxPct={valueMaxPct}
+                                                listTransform={opts}
                                             />
                                         </div>
                                     );
@@ -1524,13 +1538,18 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
                                     const contactMatch =
                                         entry.displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
+                                    // Display-only conversion / time format (per DP or list-wide).
+                                    const disp = entryValueText(entry, opts, val, decimals, numFmt, t);
                                     // Time datapoint rendered as time/date instead of the raw value.
                                     const timeText =
-                                        entry.displayType === 'time' ? formatEntryTime(entry, val, t) : null;
+                                        entry.displayType === 'time' ? formatEntryTime(entry, disp.value, t) : null;
                                     const roleDisplay =
                                         !stateMatch && !contactMatch && isBoolLike && !hasLabels
                                             ? getRoleDisplay(entry.role, val)
                                             : null;
+                                    // Untouched entries keep printing the raw value unrounded —
+                                    // that is the badge's established look.
+                                    const plainText = disp.active ? disp.text : val != null ? String(val) : null;
                                     const valueStr =
                                         timeText ??
                                         (contactMatch
@@ -1543,8 +1562,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                   ? on
                                                       ? trueLabel || 'AN'
                                                       : falseLabel || 'AUS'
-                                                  : val != null
-                                                    ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                                  : plainText != null
+                                                    ? `${plainText}${entry.unit && !disp.isTime ? `\u202f${entry.unit}` : ''}`
                                                     : '–');
                                     const entryActiveColor = entry.activeColor || globalActiveColor;
                                     const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
@@ -1740,6 +1759,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             falseText={opts.falseText}
                                             wrap={wrap}
                                             valueMaxPct={valueMaxPct}
+                                            listTransform={opts}
                                         />
                                     </div>
                                 );

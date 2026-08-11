@@ -22,6 +22,8 @@ interface ValueTransformButtonProps {
     onPatch: (patch: ValueTransformPatch) => void;
     /** When true, selecting a preset also fills the `unit` field. */
     fillUnit?: boolean;
+    /** Store "Keine" as 'none' so it switches off a list-wide default. */
+    explicitNone?: boolean;
     /** Icon size — match the sibling picker / JSON-path buttons. */
     size?: number;
 }
@@ -42,6 +44,7 @@ export function ValueTransformButton({
     dpId,
     onPatch,
     fillUnit = false,
+    explicitNone = false,
     size = 13,
 }: ValueTransformButtonProps) {
     const themeVars = usePortalThemeVars();
@@ -136,6 +139,7 @@ export function ValueTransformButton({
                             dpId={dpId}
                             onPatch={onPatch}
                             fillUnit={fillUnit}
+                            explicitNone={explicitNone}
                         />
                     </div>,
                     document.body,

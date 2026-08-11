@@ -13,7 +13,7 @@ import { useT } from '../../i18n';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { formatLastChange } from '../../utils/formatLastChange';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
-import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
 import { StatLine } from './StatLine';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
@@ -39,10 +39,12 @@ import {
     TimeDisplay,
     InputControl,
     formatEntryTime,
+    entryValueText,
     resolveContactDisplay,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
 } from './entryControls';
+import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -87,7 +89,7 @@ export interface StaticListEntry extends EntryControlConfig {
     popupHideTitle?: boolean;
 }
 
-export interface StaticListOptions extends GroupActionConfigOpts, RowPopupOptions {
+export interface StaticListOptions extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings {
     entries: StaticListEntry[];
     /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
     valueFilter?: 'all' | 'active' | 'inactive';
@@ -192,6 +194,7 @@ function EntryValue({
     falseText,
     wrap,
     valueMaxPct,
+    listTransform,
     card,
 }: {
     entry: StaticListEntry;
@@ -207,9 +210,12 @@ function EntryValue({
     falseText?: string;
     wrap?: boolean;
     valueMaxPct?: number;
+    /** List-wide value conversion / time format; the entry's own settings win. */
+    listTransform?: ValueTransformSettings;
     /** Card layout: cells are narrow (min 90px), so width-hungry controls fill them. */
     card?: boolean;
 }) {
+    const t = useT();
     // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
     // maxWidth caps the value (default 50%) so the label always keeps a guaranteed
     // share of the row — otherwise flex-basis-0 on the label causes it to collapse
@@ -226,7 +232,11 @@ function EntryValue({
     const on = val === true || val === 1;
     const displayType = entry.displayType ?? 'auto';
     const switchStyle = entry.switchStyle ?? 'slide';
-    const thresholdColor = getThresholdColor(val, entry.colorThresholds ?? globalThresholds);
+    // Display-only conversion: only the text/time branches below use it — the
+    // controls write their value back and must stay on the raw one. Thresholds
+    // follow the shown value, so they are configured in display units.
+    const disp = entryValueText(entry, listTransform, val, decimals, numFmt, t);
+    const thresholdColor = getThresholdColor(disp.value, entry.colorThresholds ?? globalThresholds);
 
     // Optional confirmation before a switch-like write (like the Switch widget).
     // The pending action is captured and only run once the user confirms.
@@ -288,7 +298,7 @@ function EntryValue({
         return (
             <TimeDisplay
                 entry={entry}
-                val={val}
+                val={disp.value}
                 className={textValueCls}
                 style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
             />
@@ -298,7 +308,6 @@ function EntryValue({
     // Forced "Nur Wert" — skip role/switch/slider, render text only
     if (displayType === 'value') {
         const active = isActive(val);
-        const displayVal = typeof val === 'number' ? formatNum(val, decimals, numFmt) : String(val);
         return (
             <span
                 className={textValueCls}
@@ -307,7 +316,7 @@ function EntryValue({
                     color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
                 }}
             >
-                {val != null ? `${displayVal}${entry.unit ? ` ${entry.unit}` : ''}` : '–'}
+                {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
             </span>
         );
     }
@@ -505,7 +514,6 @@ function EntryValue({
     }
 
     const active = isActive(val);
-    const displayVal = typeof val === 'number' ? formatNum(val, decimals, numFmt) : String(val);
     return (
         <span
             className={textValueCls}
@@ -514,7 +522,7 @@ function EntryValue({
                 color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
             }}
         >
-            {val != null ? `${displayVal}${entry.unit ? ` ${entry.unit}` : ''}` : '–'}
+            {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
         </span>
     );
 }
@@ -675,8 +683,8 @@ export function ListWidget({ config, editMode }: WidgetProps) {
 
     // Aggregate (sum / avg / min / max) of numeric values from visible entries.
     const sumInfo = useMemo(
-        () => (opts.showSum ? computeListStats(visibleEntries, states) : null),
-        [opts.showSum, visibleEntries, states],
+        () => (opts.showSum ? computeListStats(visibleEntries, states, opts) : null),
+        [visibleEntries, states, opts],
     );
 
     useEffect(() => {
@@ -986,6 +994,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             falseText={opts.falseText}
                                             wrap={wrap}
                                             valueMaxPct={valueMaxPct}
+                                            listTransform={opts}
                                             card
                                         />
                                     </div>
@@ -1100,6 +1109,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         falseText={opts.falseText}
                                         wrap={wrap}
                                         valueMaxPct={valueMaxPct}
+                                        listTransform={opts}
                                     />
                                 </div>
                             );
@@ -1145,12 +1155,24 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
                             const contactMatch =
                                 displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
+                            // Display-only conversion / time format (per DP or list-wide).
+                            const disp = entryValueText(
+                                entry,
+                                opts,
+                                val,
+                                entry.decimals ?? defaultDecimals,
+                                entry.numberFormat ?? globalNumFmt,
+                                t,
+                            );
                             // Time datapoint rendered as time/date instead of the raw value.
-                            const timeText = displayType === 'time' ? formatEntryTime(entry, val, t) : null;
+                            const timeText = displayType === 'time' ? formatEntryTime(entry, disp.value, t) : null;
                             const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
                             const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
                             const truthy = on || (typeof val === 'number' && val > 0);
                             const switchActive = forceSwitch ? truthy : isBoolLike && on;
+                            // Untouched entries keep printing the raw value unrounded —
+                            // that is the badge's established look.
+                            const plainText = disp.active ? disp.text : val != null ? String(val) : null;
                             const valueStr =
                                 timeText ??
                                 (contactMatch
@@ -1163,12 +1185,12 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                           ? switchActive
                                               ? trueLabel || 'AN'
                                               : falseLabel || 'AUS'
-                                          : val != null
-                                            ? `${String(val)}${entry.unit ? `\u202f${entry.unit}` : ''}`
+                                          : plainText != null
+                                            ? `${plainText}${entry.unit && !disp.isTime ? `\u202f${entry.unit}` : ''}`
                                             : '–');
                             const threshColor =
                                 !switchActive && !roleDisplay
-                                    ? getThresholdColor(val, entry.colorThresholds ?? globalThresholds)
+                                    ? getThresholdColor(disp.value, entry.colorThresholds ?? globalThresholds)
                                     : null;
                             const entryActiveColor = entry.activeColor || globalActiveColor;
                             const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
@@ -1371,6 +1393,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     falseText={opts.falseText}
                                     wrap={wrap}
                                     valueMaxPct={valueMaxPct}
+                                    listTransform={opts}
                                 />
                             </div>
                         );

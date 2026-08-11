@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { ValueFormatRow } from './ValueFormatRow';
+import { ValueTransformFields } from './ValueTransformFields';
 import type { WidgetConfig } from '../../types';
 import type { AutoListOptions, AutoListEntry } from '../widgets/AutoListWidget';
 import { useT } from '../../i18n';
@@ -356,6 +357,26 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             </ConfigSection>
             <ConfigSection title="Werte & Farben">
                 <ValueFormatRow decimals={opts.decimals} numberFormat={opts.numberFormat} onChange={setOpts} />
+                {/* ── Wert-Umrechnung / Zeit (global) ── */}
+                <div>
+                    <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+                        Wert-Umrechnung / Zeit (global)
+                    </label>
+                    <ValueTransformFields
+                        factor={opts.valueFactor}
+                        offset={opts.valueOffset}
+                        presetId={opts.valueTransform}
+                        timeFormat={opts.valueTimeFormat}
+                        timePattern={opts.valueTimePattern}
+                        allowTimeFormat
+                        dpId={opts.entries?.[0]?.id}
+                        onPatch={setOpts}
+                        inputClassName="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
+                    />
+                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                        Gilt für jeden Datenpunkt ohne eigene Umrechnung (Datenpunkte verwalten → ƒx).
+                    </p>
+                </div>
                 {/* ── Darstellung AN/AUS (global) ── */}
                 <div>
                     <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>

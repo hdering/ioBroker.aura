@@ -18,7 +18,8 @@ import type { ioBrokerState } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { useT } from '../../i18n';
-import { formatTimeDisplay } from '../../utils/timeDisplay';
+import { formatTimeDisplay, TIME_DASH } from '../../utils/timeDisplay';
+import { applyValueTransform, resolveValueTransform, type ValueTransformSettings } from '../../utils/valueTransform';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import {
@@ -91,8 +92,10 @@ export interface EntryStateMap {
     color?: string;
 }
 
-/** Per-entry control config — mixed into StaticListEntry and AutoListEntry. */
-export interface EntryControlConfig {
+/** Per-entry control config — mixed into StaticListEntry and AutoListEntry.
+ *  Extends ValueTransformSettings: every entry can carry its own display-only
+ *  value conversion / time formatting, overriding the list-wide default. */
+export interface EntryControlConfig extends ValueTransformSettings {
     displayType?: EntryDisplayType;
     /** Switch-like controls (switch, momentary): require a confirmation tap before writing. */
     confirm?: boolean;
@@ -184,6 +187,51 @@ function parseWrite(v: string | number | boolean | undefined, fallback: boolean 
     if (v === 'false') return false;
     const n = Number(v);
     return v.trim() !== '' && Number.isFinite(n) ? n : v;
+}
+
+// ── Display-only value conversion ────────────────────────────────────────────
+// Same feature as the Werte-Anzeige widget: an entry (or the whole list) can
+// declare `displayValue = raw * factor + offset` and/or render the value as a
+// time/date. Read-only text output only — the controls below keep the raw value
+// because they write it back, and a display factor must never reach a write.
+
+export interface EntryValueText {
+    /** Value in display units. Also what the color thresholds are matched against. */
+    value: ioBrokerState['val'];
+    /** Formatted text without the unit; null for an empty value. */
+    text: string | null;
+    /** A time format produced the text — the unit must not be appended to it. */
+    isTime: boolean;
+    /** Nothing configured on either level → callers may keep their raw-value path. */
+    active: boolean;
+}
+
+/** Resolve an entry's value into what the list should print for it. */
+export function entryValueText(
+    entry: EntryControlConfig,
+    listDefault: ValueTransformSettings | undefined,
+    val: ioBrokerState['val'],
+    decimals: number,
+    numFmt: NumberFormat | undefined,
+    t: ReturnType<typeof useT>,
+): EntryValueText {
+    const tr = resolveValueTransform(entry, listDefault);
+    const value = applyValueTransform(val, tr.factor, tr.offset) as ioBrokerState['val'];
+    if (value === null || value === undefined) return { value, text: null, isTime: false, active: tr.active };
+    if (tr.timeFormat) {
+        return {
+            value,
+            text: formatTimeDisplay(value, tr.timeFormat, t, tr.timePattern) ?? TIME_DASH,
+            isTime: true,
+            active: true,
+        };
+    }
+    return {
+        value,
+        text: typeof value === 'number' ? formatNum(value, decimals, numFmt) : String(value),
+        isTime: false,
+        active: tr.active,
+    };
 }
 
 const btnCls = 'shrink-0 flex items-center justify-center rounded transition-colors';
