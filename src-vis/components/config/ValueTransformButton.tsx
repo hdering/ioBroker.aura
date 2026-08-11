@@ -26,6 +26,8 @@ interface ValueTransformButtonProps {
     explicitNone?: boolean;
     /** Icon size — match the sibling picker / JSON-path buttons. */
     size?: number;
+    /** Extra classes on the button, e.g. a height when the sibling field can wrap. */
+    className?: string;
 }
 
 /**
@@ -46,6 +48,7 @@ export function ValueTransformButton({
     fillUnit = false,
     explicitNone = false,
     size = 13,
+    className = '',
 }: ValueTransformButtonProps) {
     const themeVars = usePortalThemeVars();
     const [open, setOpen] = useState(false);
@@ -88,7 +91,7 @@ export function ValueTransformButton({
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 title={allowTimeFormat ? 'Umrechnung / Zeit-Formatierung (nur Anzeige)' : 'Umrechnung (nur Anzeige)'}
-                className="px-2 rounded-lg hover:opacity-80 shrink-0 relative"
+                className={`px-2 rounded-lg hover:opacity-80 shrink-0 relative flex items-center justify-center ${className}`}
                 style={{
                     background: active ? 'color-mix(in srgb, var(--accent) 18%, var(--app-bg))' : 'var(--app-bg)',
                     color: active ? 'var(--accent)' : 'var(--text-secondary)',

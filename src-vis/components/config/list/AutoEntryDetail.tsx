@@ -72,6 +72,10 @@ export function AutoEntryDetail({
                         explicitNone={listHasTransform}
                         dpId={entry.id}
                         onPatch={onUpdate}
+                        // The path field grows with the id, so stretching the button
+                        // with it would blow it up. Pin it to one field line instead:
+                        // py-2 + text-xs line-height + border.
+                        className="h-[34px]"
                     />
                 </div>
             </DetailSection>
