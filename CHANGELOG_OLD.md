@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.39.0 (2026-08-01)
+- 🌟 **New feature:** Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list
+
 ## 0.38.12 (2026-08-01)
 - Image - datapoint values holding an adapter asset path (e.g. /adapter/pirate-weather/icons/...) now render instead of staying blank; same path handling in universal widget cells, JSON table image columns, image popups, state images, switch/window contact images, camera and HTML img tags
 - Every image field now lists the accepted path formats (URL, adapter path, ioBroker file, local file, base64) - see the new "Bildpfade" doc page

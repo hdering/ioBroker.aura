@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.43.2 (2026-08-11)
+- 🌟 **New feature:** Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
+- 🌟 **New feature:** Lists - new "Eingabefeld" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
+
+
 ### 0.43.1 (2026-08-11)
 - iFrame/Camera - embedded pages no longer show a permanent scrollbar on desktop when interaction is set to "click action only" ([#529](https://github.com/hdering/ioBroker.aura/issues/529))
 - Camera - HTML streams now offer the same interaction setting as the iFrame widget (click action / operable content) ([#529](https://github.com/hdering/ioBroker.aura/issues/529))
@@ -207,10 +212,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Widget options - unit, decimals and thousands separator now sit together in one row
 
 
-### 0.39.0 (2026-08-01)
-- 🌟 **New feature:** Timestamp datapoints can be shown as time, date or both - in the value display, in custom-layout dp cells and per entry of the static and dynamic list
-
-
 ## License
 
 MIT License
@@ -222,6 +223,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

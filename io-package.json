@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.43.1",
+    "version": "0.43.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.43.2": {
+        "en": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "de": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "ru": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "pt": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "nl": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "fr": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "it": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "es": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "pl": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "uk": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)",
+        "zh-cn": "🌟 New feature: Lists - the row popup title can now be set per datapoint (and its title bar hidden), overriding the list-wide setting (#524)\n🌟 New feature: Lists - new \"Eingabefeld\" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) (#524)"
+      },
       "0.43.1": {
         "en": "iFrame/Camera - embedded pages no longer show a permanent scrollbar on desktop when interaction is set to \"click action only\" (#529)\nCamera - HTML streams now offer the same interaction setting as the iFrame widget (click action / operable content) (#529)\nConnected devices - devices that never finished registering (missing navigate and popup datapoints) now complete their object tree automatically on the next connect (#532)\nConnected devices - \"last seen\" is now refreshed on every connect instead of only at first registration (#532)\nList / Dynamic list / Status overview - a row click now opens the datapoints of the clicked device by default (same branch, relevant datapoints only); the previous role-based popup is still available as \"Automatisch\" (#524)",
         "de": "iFrame/Camera - embedded pages no longer show a permanent scrollbar on desktop when interaction is set to \"click action only\" (#529)\nCamera - HTML streams now offer the same interaction setting as the iFrame widget (click action / operable content) (#529)\nConnected devices - devices that never finished registering (missing navigate and popup datapoints) now complete their object tree automatically on the next connect (#532)\nConnected devices - \"last seen\" is now refreshed on every connect instead of only at first registration (#532)\nList / Dynamic list / Status overview - a row click now opens the datapoints of the clicked device by default (same branch, relevant datapoints only); the previous role-based popup is still available as \"Automatisch\" (#524)",
@@ -184,19 +197,6 @@
         "pl": "A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome (#528)",
         "uk": "A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome (#528)",
         "zh-cn": "A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome (#528)"
-      },
-      "0.42.3": {
-        "en": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "de": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "ru": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "pt": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "nl": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "fr": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "it": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "es": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "pl": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "uk": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)",
-        "zh-cn": "Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again (#528)"
       }
     }
   },
