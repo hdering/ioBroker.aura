@@ -10,16 +10,16 @@ import { defaultActionForConfig } from '../components/config/ClickActionEditor';
  */
 export const ROW_FALLBACK_VIEW_ID = 'pv-builtin-datapoint';
 
-/** Stored per-row/per-list setting. `'auto'` derives from the role, undefined = default. */
+/** Stored per-row/per-list setting. `'auto'` derives from the role, undefined = off. */
 export type RowClickSetting = ClickAction | 'auto';
 
 /**
- * What a row click does when nothing is configured.
+ * Preset the config panel stores when the user picks "Eigene Aktion": the datapoint
+ * list of the clicked row's own branch, which renders something useful on every
+ * datapoint.
  *
- * The role-derived popups ('auto') are not presentable yet, so the datapoint list
- * of the clicked row's own branch is the better default: it always renders
- * something useful, on every datapoint. `'auto'` stays available as an explicit
- * choice and has to be stored as such now.
+ * NOT the fallback for an unconfigured list - a row click does nothing until an
+ * action is picked (see resolveRowAction).
  */
 export const DEFAULT_ROW_CLICK_ACTION: ClickAction = {
     kind: 'popup-dps',
@@ -29,7 +29,7 @@ export const DEFAULT_ROW_CLICK_ACTION: ClickAction = {
 
 /** Row-popup settings shared by the static and the dynamic list widget. */
 export interface RowPopupOptions {
-    /** undefined = 'auto' (derive from the role). `{kind:'none'}` switches it off. */
+    /** undefined = off (rows are not clickable). `'auto'` derives from the role. */
     rowClickAction?: RowClickSetting;
     rowPopupTitle?: string;
     rowPopupHideTitle?: boolean;
@@ -45,8 +45,8 @@ export interface RowPopupOptions {
  * something would collide. Automatic mode therefore leaves toggleable badges alone -
  * but an action the user explicitly picked for that row wins over the toggle.
  *
- * An unset setting stays non-explicit on purpose: DEFAULT_ROW_CLICK_ACTION must not
- * steal the click from a toggleable badge, only a deliberate choice may do that.
+ * An unset setting is never explicit - it resolves to no action at all, so it can
+ * never steal the click from a toggleable badge.
  */
 export function isExplicitRowAction(
     override: RowClickSetting | undefined,
@@ -66,10 +66,11 @@ export interface RowActionCtx {
 /**
  * Resolves the popup a clicked list row should open.
  *
- * An explicitly configured action always wins, an unset one falls back to
- * DEFAULT_ROW_CLICK_ACTION. `'auto'` runs the same three-level
- * chain WidgetFrame uses for widget clicks, but keyed on the widget type detected
- * from the datapoint's role instead of the (list) widget's own type:
+ * Nothing configured = no popup: rows stay inert until an action is picked, so a
+ * plain list does not turn every row into a click target on its own. `'auto'` runs
+ * the same three-level chain WidgetFrame uses for widget clicks, but keyed on the
+ * widget type detected from the datapoint's role instead of the (list) widget's own
+ * type:
  *
  *   1. admin type default (popupConfigStore.typeDefaults)
  *   2. built-in default for that type (dimmer, switch, shutter, ...)
@@ -91,9 +92,10 @@ export function resolveRowAction(
     if (configured && configured !== 'auto') {
         return configured.kind === 'none' ? null : configured;
     }
-    // Both the default and the role derivation need a source datapoint.
+    // Unconfigured means off - only 'auto' derives an action from the datapoint.
+    if (!configured) return null;
+    // The role derivation needs a source datapoint.
     if (!dpId) return null;
-    if (!configured) return DEFAULT_ROW_CLICK_ACTION;
 
     let role = hint?.role;
     let type = hint?.type;

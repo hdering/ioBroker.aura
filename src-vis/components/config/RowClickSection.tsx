@@ -154,11 +154,11 @@ const MODES: { value: Mode; label: string }[] = [
 /**
  * "Klick auf Zeile" - shared by the static and the dynamic list config panel.
  *
- * Default (nothing stored) is DEFAULT_ROW_CLICK_ACTION - the datapoint list of the
- * clicked row's branch - so the panel opens on "Eigene Aktion" with that preset.
- * Automatic mode derives the popup from each row's datapoint role instead, so a
- * dimmer row opens the dimmer popup and a sensor row the generic datapoint popup;
- * it has to be picked explicitly now. A custom
+ * Default (nothing stored) is "Aus" - a row click does nothing until an action is
+ * picked. "Eigene Aktion" then starts from DEFAULT_ROW_CLICK_ACTION (the datapoint
+ * list of the clicked row's branch). Automatic mode derives the popup from each
+ * row's datapoint role instead, so a dimmer row opens the dimmer popup and a sensor
+ * row the generic datapoint popup. A custom
  * action reuses the regular ClickActionEditor through a proxy config: it reads
  * options.clickAction / popupTitle / popupWidth / popupHeight / popupAutoCloseSec,
  * which are mapped onto the row* option keys here.
@@ -173,8 +173,9 @@ export function RowClickSection({
     onChange: (patch: RowPopupOptions) => void;
 }) {
     const stored = opts.rowClickAction;
-    // undefined = not configured = the default action, which is a custom one.
-    const mode: Mode = stored === 'auto' ? 'auto' : stored?.kind === 'none' ? 'off' : 'custom';
+    // undefined = not configured = off, so rows stay inert until an action is picked.
+    const mode: Mode =
+        stored === undefined ? 'off' : stored === 'auto' ? 'auto' : stored.kind === 'none' ? 'off' : 'custom';
     const customAction = typeof stored === 'object' ? stored : DEFAULT_ROW_CLICK_ACTION;
 
     const setMode = (next: Mode) => {
