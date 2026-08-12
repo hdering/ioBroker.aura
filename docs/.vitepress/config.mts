@@ -13,6 +13,15 @@ export default defineConfig({
   cleanUrls: true,
   lastUpdated: true,
 
+  markdown: {
+    config(md) {
+      // Inline-Code wörtlich ausgeben. Ohne v-pre kompiliert Vue `{{dp}}` als
+      // Interpolation (rendert leer, `{{…}}` bricht sogar den Build).
+      md.renderer.rules.code_inline = (tokens, idx) =>
+        `<code v-pre>${md.utils.escapeHtml(tokens[idx].content)}</code>`;
+    },
+  },
+
   themeConfig: {
     nav: [
       { text: 'Start', link: '/' },
