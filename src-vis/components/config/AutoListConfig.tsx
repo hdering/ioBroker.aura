@@ -13,6 +13,9 @@ import { AutoEntryDetail } from './list/AutoEntryDetail';
 import { AutoDiscoveryPanel } from './list/AutoDiscoveryPanel';
 import { SubDpTemplatePanel } from './list/SubDpTemplatePanel';
 import { DatapointManagerField } from './list/DatapointManagerField';
+import { ListFilterSection } from './list/ListFilterSection';
+import type { EditorFilterRow } from './list/ListFilterEditor';
+import { resolveSubDpTemplate } from '../../utils/subDpTemplate';
 import { useDpDiscovery } from '../../hooks/useDpDiscovery';
 import { RowClickSection } from './RowClickSection';
 import { NS } from '../../utils/namespace';
@@ -78,6 +81,27 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [nameEntryKey, resolvedNames],
+    );
+
+    // What the filter editor evaluates against: every entry with the second-line
+    // datapoints it actually gets — its own list, or the list-wide template resolved
+    // for that row (same precedence as AutoListWidget).
+    const ownSubDpKey = nameEntries
+        .map((e) => (e.subDps ?? []).map((s) => `${s?.id}|${s?.label ?? ''}`).join('+'))
+        .join(',');
+    const filterRows = useMemo<EditorFilterRow[]>(
+        () =>
+            nameEntries.map((e) => {
+                const own = (e.subDps ?? []).filter((s) => !!s?.id);
+                const subs = own.length ? own : resolveSubDpTemplate(opts.subDpTemplate, e.id);
+                return {
+                    id: e.id,
+                    label: e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id,
+                    subs: subs.map((s) => ({ id: s.id, label: s.label })),
+                };
+            }),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [nameEntryKey, ownSubDpKey, opts.subDpTemplate, resolvedNames],
     );
 
     const removeEntry = (id: string) => setOpts({ entries: (opts.entries ?? []).filter((e) => e.id !== id) });
@@ -670,100 +694,12 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 </div>
             </ConfigSection>
             <ConfigSection title="Filter & Sortierung">
-                <div>
-                    <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                        Anzeige-Filter (Backend)
-                    </label>
-                    <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-                        {(['all', 'active', 'inactive'] as const).map((v) => {
-                            const label =
-                                v === 'all'
-                                    ? 'Alle'
-                                    : v === 'active'
-                                      ? opts.filterActiveLabel || 'Nur aktive'
-                                      : opts.filterInactiveLabel || 'Nur inaktive';
-                            const active = (opts.backendValueFilter ?? 'all') === v;
-                            return (
-                                <button
-                                    key={v}
-                                    onClick={() => setOpts({ backendValueFilter: v === 'all' ? undefined : v })}
-                                    className="flex-1 text-[11px] py-1.5 transition-colors"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        borderRight: v !== 'inactive' ? '1px solid var(--app-border)' : undefined,
-                                    }}
-                                >
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-                <div>
-                    <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                        Anzeige-Filter (Frontend)
-                    </label>
-                    <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-                        {(['all', 'active', 'inactive'] as const).map((v) => {
-                            const label =
-                                v === 'all'
-                                    ? 'Alle'
-                                    : v === 'active'
-                                      ? opts.filterActiveLabel || 'Nur aktive'
-                                      : opts.filterInactiveLabel || 'Nur inaktive';
-                            const active = (opts.valueFilter ?? 'all') === v;
-                            return (
-                                <button
-                                    key={v}
-                                    onClick={() => setOpts({ valueFilter: v })}
-                                    className="flex-1 text-[11px] py-1.5 transition-colors"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        borderRight: v !== 'inactive' ? '1px solid var(--app-border)' : undefined,
-                                    }}
-                                >
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5 mt-1.5">
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Label &quot;aktiv&quot;
-                            </label>
-                            <input
-                                className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                placeholder="Nur aktive"
-                                value={opts.filterActiveLabel ?? ''}
-                                onChange={(e) => setOpts({ filterActiveLabel: e.target.value || undefined })}
-                            />
-                        </div>
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Label &quot;inaktiv&quot;
-                            </label>
-                            <input
-                                className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                placeholder="Nur inaktive"
-                                value={opts.filterInactiveLabel ?? ''}
-                                onChange={(e) => setOpts({ filterInactiveLabel: e.target.value || undefined })}
-                            />
-                        </div>
-                    </div>
-                </div>
+                <ListFilterSection
+                    opts={opts}
+                    setOpts={setOpts}
+                    rows={filterRows}
+                    storageKey="aura-autolist-filter-modal"
+                />
                 {/* ── Sortierung ── */}
                 <div>
                     <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>

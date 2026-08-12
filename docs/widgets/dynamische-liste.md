@@ -163,16 +163,25 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `valueTransform` / `valueFactor` / `valueOffset` | — | globale [Wert-Umrechnung](./liste#wert-umrechnung-zeit) (Eintrag überschreibt) |
 | `valueTimeFormat` / `valueTimePattern` | — | globale Zeit-Formatierung (Eintrag überschreibt) |
 
-### Filter
+### Anzeige-Filter
 
-Frontend-Filter als Chip im Header; `backendValueFilter` steuert nur die Editor-Vorschau.
+Frontend-Filter als Chip im Header (nicht zu verwechseln mit der Datenpunkt-Suche oben); `backendValueFilter` steuert nur die Editor-Vorschau. Neben den drei eingebauten Modi bietet das Menü die eigenen Filter und ein Freitextfeld.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `valueFilter` | `all` | `all` · `active` · `inactive` |
+| `valueFilter` | `all` | `all` · `active` · `inactive` · ID eines eigenen Filters |
 | `filterActiveLabel` | `Nur aktive` | Chip-Text |
 | `filterInactiveLabel` | `Nur inaktive` | Chip-Text |
+| `hideBuiltinFilters` | `false` | `Nur aktive`/`Nur inaktive` aus dem Menü nehmen |
+| `hideFilterSearch` | `false` | Freitextfeld im Menü ausblenden |
+| `filterSearchPlaceholder` | `Suchen …` | Platzhalter des Freitextfelds |
 | `backendValueFilter` | `all` | Vorschau-Filter im Editor |
+
+Freitext trifft Name, Datenpunkt-ID, Wert und alle Werte der [zweiten Zeile](#zweite-zeile-zusatzliche-datenpunkte).
+
+### Eigene Filter
+
+Panel **Filter & Sortierung** → **Eigene Filter**. Aufbau und Optionen (`filterPresets[]`, `rules[]`) wie bei der [statischen Liste](./liste#eigene-filter). Regeln mit `source: sub` prüfen die Datenpunkte der zweiten Zeile — auch die per Vorlage aufgelösten, `subKey` trifft dann die Bezeichnung oder die DP-Endung (`{{parent}}.BATTERY` → `BATTERY`).
 
 ### Sortierung
 

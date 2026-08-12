@@ -193,15 +193,40 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 
 ### Filter
 
-Frontend-Filter als Chip im Header; `backendValueFilter` steuert nur die Editor-Vorschau.
+Frontend-Filter als Chip im Header; `backendValueFilter` steuert nur die Editor-Vorschau. Neben den drei eingebauten Modi bietet das Menü die eigenen Filter (siehe [Eigene Filter](#eigene-filter)) und ein Freitextfeld.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `valueFilter` | `all` | `all` · `active` · `inactive` |
+| `valueFilter` | `all` | `all` · `active` · `inactive` · ID eines eigenen Filters |
 | `filterActiveLabel` | `Nur aktive` | Chip-Text |
 | `filterInactiveLabel` | `Nur inaktive` | Chip-Text |
+| `hideBuiltinFilters` | `false` | `Nur aktive`/`Nur inaktive` aus dem Menü nehmen |
+| `hideFilterSearch` | `false` | Freitextfeld im Menü ausblenden |
+| `filterSearchPlaceholder` | `Suchen …` | Platzhalter des Freitextfelds |
 | `hideFilterButton` | `false` | Filter-Chip ausblenden |
 | `backendValueFilter` | `all` | Vorschau-Filter im Editor |
+
+Freitext trifft Name, Datenpunkt-ID, Wert und alle Werte der [zweiten Zeile](#zweite-zeile-zusatzliche-datenpunkte).
+
+### Eigene Filter
+
+Panel **Filter & Sortierung** → **Eigene Filter**. Jeder Filter erscheint als eigener Eintrag im Filter-Menü; jede Regel prüft den Haupt-Datenpunkt, die weiteren Datenpunkte der zweiten Zeile oder beide. Das Wertefeld ist Freitext mit Auswahlliste der aktuell vorhandenen Werte; der Dialog zeigt live, wie viele Einträge ein Filter trifft.
+
+| `filterPresets[]` | Standard | |
+| --- | --- | --- |
+| `id` | — | wird in `valueFilter` / `backendValueFilter` referenziert |
+| `label` | — | Text im Filter-Menü |
+| `icon` | — | Iconify-ID / Lucide-Name im Menü |
+| `logic` | `AND` | `AND` (alle Regeln) · `OR` (eine genügt) |
+| `rules[]` | — | siehe unten |
+
+| `rules[]` | Standard | |
+| --- | --- | --- |
+| `source` | `main` | `main` · `sub` (weitere DPs) · `both` |
+| `subKey` | — | leer = alle weiteren DPs; sonst Bezeichnung oder DP-Endung (`BATTERY`) |
+| `operator` | — | `==` `!=` `>` `>=` `<` `<=` `contains` `true` `false` `active` `inactive` `empty` `notEmpty` |
+| `value` | — | Vergleichswert (entfällt bei `active`/`inactive`/`true`/`false`/`empty`/`notEmpty`) |
+| `every` | `false` | bei mehreren geprüften Werten müssen alle passen |
 
 ### Sortierung
 

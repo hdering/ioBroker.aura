@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Filter, List, Power } from 'lucide-react';
+import { List, Power } from 'lucide-react';
 import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -49,6 +49,17 @@ import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { EntrySubLine, type EntrySubDp } from './EntrySubLine';
 import { useTemplateValues } from '../../hooks/useTemplateValues';
+import { ListFilterChip } from './ListFilterChip';
+import {
+    buildFilterChoices,
+    filterEmptyText,
+    filterModeLabel,
+    matchesFilterMode,
+    matchesSearch,
+    normalizeFilterMode,
+    type ListFilterOptions,
+    type ListFilterRow,
+} from '../../utils/listFilter';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -97,12 +108,14 @@ export interface StaticListEntry extends EntryControlConfig {
     subDps?: EntrySubDp[];
 }
 
-export interface StaticListOptions extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings {
+export interface StaticListOptions
+    extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings, ListFilterOptions {
     entries: StaticListEntry[];
-    /** 'all' = show everything (default), 'active' = only on/> 0, 'inactive' = only off/0 */
-    valueFilter?: 'all' | 'active' | 'inactive';
-    filterActiveLabel?: string;
-    filterInactiveLabel?: string;
+    /**
+     * Filter the frontend starts with: 'all' (default), the built-ins 'active' /
+     * 'inactive', or the id of a filterPresets entry (see utils/listFilter).
+     */
+    valueFilter?: string;
     showId?: boolean;
     showRoom?: boolean;
     showTitle?: boolean;
@@ -130,7 +143,7 @@ export interface StaticListOptions extends GroupActionConfigOpts, RowPopupOption
     /** Publish the filtered count to aura.0.lists.<widgetId>.count */
     publishCount?: boolean;
     /** Backend display filter — independent from frontend valueFilter. Default 'all'. */
-    backendValueFilter?: 'all' | 'active' | 'inactive';
+    backendValueFilter?: string;
     /** Show an aggregate line of numeric values from visible entries below the title. */
     showSum?: boolean;
     /** Which aggregates to show. Default (undefined/empty) = sum only. */
@@ -178,13 +191,6 @@ function compareVals(a: ioBrokerState['val'], b: ioBrokerState['val']): number {
     if (typeof a === 'number' && typeof b === 'number') return a - b;
     return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
 }
-
-type FilterMode = 'all' | 'active' | 'inactive';
-const DEFAULT_filterLabels: Record<FilterMode, string> = {
-    all: 'Alle',
-    active: 'Nur aktive',
-    inactive: 'Nur inaktive',
-};
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
 
@@ -548,9 +554,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const t = useT();
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const { subscribe, setState, getState } = useIoBroker();
-    // Second-line datapoints live outside the entry subscription below: they never take
-    // part in filtering, sorting or the statistics line, so they get their own read-only
+    // Second-line datapoints live outside the entry subscription below: they take no
+    // part in sorting or the statistics line, so they get their own read-only
     // subscription (same hook the value widget uses for its template datapoints).
+    // Filter presets and the free-text search DO read them - see utils/listFilter.
     const subDpRefs = useMemo(
         () => [...new Set(entries.flatMap((e) => (e.subDps ?? []).map((s) => s?.id).filter(Boolean) as string[]))],
         [entries],
@@ -569,7 +576,6 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
     const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
-    const [showFilter, setShowFilter] = useState(false);
     const [lastChangedTs, setLastChangedTs] = useState(0);
     // Frontend filter is a per-viewer runtime toggle held in local state — it is
     // NOT persisted back to config. The read-only frontend runs useConfigSync with
@@ -577,10 +583,12 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // would be overwritten on the next sync and reset the filter. Local-only state
     // applies instantly and survives syncs; the effect only adopts the admin-set
     // default on load / when the admin genuinely changes it.
-    const [viewFilter, setViewFilter] = useState<FilterMode>((opts.valueFilter ?? 'all') as FilterMode);
+    const [viewFilter, setViewFilter] = useState<string>(opts.valueFilter ?? 'all');
     useEffect(() => {
-        setViewFilter((opts.valueFilter ?? 'all') as FilterMode);
+        setViewFilter(opts.valueFilter ?? 'all');
     }, [opts.valueFilter]);
+    // Free-text search: same reasoning as the filter mode — per viewer, never persisted.
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Subscribe to all entry states — keyed on entryKey only, no prevKey guard.
     // A prevKey ref survives the StrictMode mount→unmount→remount cycle and would
@@ -648,26 +656,43 @@ export function ListWidget({ config, editMode }: WidgetProps) {
 
     // Value filter (same logic as AutoListWidget) — driven by local state so
     // frontend clicks take effect immediately, not only after the config sync.
-    const valueFilter = viewFilter;
-    const filterLabels: Record<FilterMode, string> = {
-        all: 'Alle',
-        active: opts.filterActiveLabel || DEFAULT_filterLabels.active,
-        inactive: opts.filterInactiveLabel || DEFAULT_filterLabels.inactive,
-    };
+    // The menu holds the built-ins plus the admin's own presets; a mode that no
+    // longer exists (deleted preset) falls back to 'all' instead of hiding all rows.
+    const filterChoices = useMemo(() => buildFilterChoices(opts), [opts]);
+    const valueFilter = normalizeFilterMode(viewFilter, filterChoices);
+
+    // Everything a filter rule / the free-text search may look at for one row: the
+    // main value plus the second line's extra datapoints - which the old three modes
+    // could not reach at all, since they only asked "is the main value truthy?".
+    const filterRow = (entry: StaticListEntry): ListFilterRow => ({
+        id: entry.id,
+        label: getLabel(entry),
+        value: states[entry.id]?.val ?? null,
+        subs: (entry.subDps ?? [])
+            .filter((s) => !!s?.id)
+            .map((s) => ({ id: s.id, label: s.label, value: subValues[s.id] ?? null })),
+    });
 
     // In editMode the Aura admin view honors a separate backendValueFilter so
     // the editor preview can show what users will see (e.g. only active entries).
-    const backendValueFilter = (opts.backendValueFilter ?? 'all') as FilterMode;
-    const effectiveFilter: FilterMode = editMode ? backendValueFilter : valueFilter;
+    const backendValueFilter = opts.backendValueFilter ?? 'all';
+    const effectiveFilter = editMode ? backendValueFilter : valueFilter;
+    // The search is a frontend-only affordance; the editor preview ignores it. A term
+    // typed before the admin hid the field (or the whole chip) is dropped too -
+    // otherwise it would keep filtering with no way left to clear it.
+    const searchReachable = !opts.hideFilterSearch && !opts.hideFilterButton;
+    const effectiveSearch = editMode || !searchReachable ? '' : searchTerm;
 
     const visibleEntries = useMemo(() => {
         let result =
-            effectiveFilter === 'all'
+            effectiveFilter === 'all' && !effectiveSearch.trim()
                 ? entries
                 : entries.filter((e) => {
-                      const val = states[e.id]?.val ?? null;
-                      if (val === null) return false;
-                      return effectiveFilter === 'active' ? isActive(val) : !isActive(val);
+                      const row = filterRow(e);
+                      return (
+                          matchesFilterMode(effectiveFilter, opts.filterPresets, row) &&
+                          matchesSearch(row, effectiveSearch)
+                      );
                   });
         const sortBy = opts.sortBy ?? 'none';
         const sortOrder = opts.sortOrder ?? 'asc';
@@ -689,18 +714,29 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             });
         }
         return result;
-    }, [entries, states, effectiveFilter, opts.sortBy, opts.sortOrder, opts.sortBy2, opts.sortOrder2, resolvedNames]); // eslint-disable-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [
+        entries,
+        states,
+        subValues,
+        effectiveFilter,
+        effectiveSearch,
+        opts.filterPresets,
+        opts.sortBy,
+        opts.sortOrder,
+        opts.sortBy2,
+        opts.sortOrder2,
+        resolvedNames,
+    ]);
 
     // Count published to ioBroker state = view-mode count using the frontend valueFilter,
-    // independent from backendValueFilter (which only affects the editor preview).
+    // independent from backendValueFilter (which only affects the editor preview) and
+    // from the free-text search (a per-viewer, transient narrowing).
     const viewCount = useMemo(() => {
         if (valueFilter === 'all') return entries.length;
-        return entries.filter((e) => {
-            const val = states[e.id]?.val ?? null;
-            if (val === null) return false;
-            return valueFilter === 'active' ? isActive(val) : !isActive(val);
-        }).length;
-    }, [entries, states, valueFilter]);
+        return entries.filter((e) => matchesFilterMode(valueFilter, opts.filterPresets, filterRow(e))).length;
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [entries, states, subValues, valueFilter, opts.filterPresets]);
 
     useEffect(() => {
         if (!opts.publishCount) return;
@@ -886,57 +922,16 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                 <div className="flex items-center gap-1.5 shrink-0">
                     {masterSwitch}
                     {!opts.hideFilterButton && (
-                        <div className="relative shrink-0">
-                            <button
-                                onClick={() => setShowFilter((v) => !v)}
-                                className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] hover:opacity-80"
-                                style={{
-                                    background:
-                                        valueFilter !== 'all'
-                                            ? 'color-mix(in srgb, var(--accent) 15%, transparent)'
-                                            : 'transparent',
-                                    color: valueFilter !== 'all' ? 'var(--accent)' : 'var(--text-secondary)',
-                                    border: `1px solid ${valueFilter !== 'all' ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'transparent'}`,
-                                }}
-                                title="Filter"
-                            >
-                                <Filter size={10} />
-                                {valueFilter !== 'all' && <span>{filterLabels[valueFilter]}</span>}
-                            </button>
-                            {showFilter && (
-                                <>
-                                    <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-                                    <div
-                                        className="absolute right-0 top-6 rounded-lg shadow-xl z-20 overflow-hidden min-w-[110px]"
-                                        style={{
-                                            background: 'var(--app-surface)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        {(Object.keys(filterLabels) as FilterMode[]).map((mode) => (
-                                            <button
-                                                key={mode}
-                                                onClick={() => {
-                                                    setViewFilter(mode);
-                                                    setShowFilter(false);
-                                                }}
-                                                className="w-full px-3 py-2 text-xs text-left hover:opacity-80"
-                                                style={{
-                                                    background:
-                                                        valueFilter === mode
-                                                            ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
-                                                            : 'transparent',
-                                                    color:
-                                                        valueFilter === mode ? 'var(--accent)' : 'var(--text-primary)',
-                                                }}
-                                            >
-                                                {filterLabels[mode]}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </>
-                            )}
-                        </div>
+                        <ListFilterChip
+                            choices={filterChoices}
+                            value={valueFilter}
+                            onChange={setViewFilter}
+                            search={searchTerm}
+                            onSearchChange={setSearchTerm}
+                            showSearch={!opts.hideFilterSearch}
+                            searchPlaceholder={opts.filterSearchPlaceholder}
+                            label={filterModeLabel(valueFilter, filterChoices)}
+                        />
                     )}
                 </div>
             </div>
@@ -947,9 +942,11 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
                 {entries.length === 0
                     ? `Noch keine Datenpunkte.${editMode ? ' Bearbeiten → Datenpunkt hinzufügen.' : ''}`
-                    : valueFilter === 'active'
-                      ? 'Alle Datenpunkte inaktiv.'
-                      : 'Alle Datenpunkte aktiv.'}
+                    : filterEmptyText(
+                          effectiveFilter,
+                          effectiveSearch,
+                          filterModeLabel(effectiveFilter, filterChoices),
+                      )}
             </p>
         </div>
     );

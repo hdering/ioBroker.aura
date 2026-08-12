@@ -20,6 +20,8 @@ import { NameDisplayFields } from './NameDisplayFields';
 import { ValueTransformFields } from './ValueTransformFields';
 import { StaticEntryDetail } from './list/StaticEntryDetail';
 import { DatapointManagerField } from './list/DatapointManagerField';
+import { ListFilterSection } from './list/ListFilterSection';
+import type { EditorFilterRow } from './list/ListFilterEditor';
 import { RowClickSection } from './RowClickSection';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { NS } from '../../utils/namespace';
@@ -66,6 +68,20 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
             })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [entryKey, resolvedNames],
+    );
+
+    // What the filter editor evaluates against: every entry with its own second-line
+    // datapoints, so a rule can be built from the values that are really there.
+    const subDpKey = entries.map((e) => (e.subDps ?? []).map((s) => `${s?.id}|${s?.label ?? ''}`).join('+')).join(',');
+    const filterRows = useMemo<EditorFilterRow[]>(
+        () =>
+            entries.map((e) => ({
+                id: e.id,
+                label: e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id,
+                subs: (e.subDps ?? []).filter((s) => !!s?.id).map((s) => ({ id: s.id, label: s.label })),
+            })),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [entryKey, subDpKey, resolvedNames],
     );
 
     const addEntry = (id: string, _name?: string, unit?: string) => {
@@ -572,118 +588,13 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                 </div>
             </ConfigSection>
             <ConfigSection title="Filter & Sortierung">
-                <div>
-                    <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                        Anzeige-Filter (Backend)
-                    </label>
-                    <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-                        {(['all', 'active', 'inactive'] as const).map((v) => {
-                            const label =
-                                v === 'all'
-                                    ? 'Alle'
-                                    : v === 'active'
-                                      ? opts.filterActiveLabel || 'Nur aktive'
-                                      : opts.filterInactiveLabel || 'Nur inaktive';
-                            const active = (opts.backendValueFilter ?? 'all') === v;
-                            return (
-                                <button
-                                    key={v}
-                                    onClick={() => setOpts({ backendValueFilter: v === 'all' ? undefined : v })}
-                                    className="flex-1 text-[11px] py-1.5 transition-colors"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        borderRight: v !== 'inactive' ? '1px solid var(--app-border)' : undefined,
-                                    }}
-                                >
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-
-                <div>
-                    <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
-                        Anzeige-Filter (Frontend)
-                    </label>
-                    <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-                        {(['all', 'active', 'inactive'] as const).map((v) => {
-                            const label =
-                                v === 'all'
-                                    ? 'Alle'
-                                    : v === 'active'
-                                      ? opts.filterActiveLabel || 'Nur aktive'
-                                      : opts.filterInactiveLabel || 'Nur inaktive';
-                            const active = (opts.valueFilter ?? 'all') === v;
-                            return (
-                                <button
-                                    key={v}
-                                    onClick={() => setOpts({ valueFilter: v })}
-                                    className="flex-1 text-[11px] py-1.5 transition-colors"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        borderRight: v !== 'inactive' ? '1px solid var(--app-border)' : undefined,
-                                    }}
-                                >
-                                    {label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                    <div className="flex items-center justify-between mt-1.5">
-                        <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                            Filter-Button im Frontend anzeigen
-                        </label>
-                        <button
-                            onClick={() => setOpts({ hideFilterButton: !(opts.hideFilterButton ?? false) })}
-                            className="relative w-9 h-5 rounded-full transition-colors"
-                            style={{
-                                background: !(opts.hideFilterButton ?? false) ? 'var(--accent)' : 'var(--app-border)',
-                            }}
-                        >
-                            <span
-                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                style={{ left: !(opts.hideFilterButton ?? false) ? '18px' : '2px' }}
-                            />
-                        </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-1.5 mt-1.5">
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Label &quot;aktiv&quot;
-                            </label>
-                            <input
-                                className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                placeholder="Nur aktive"
-                                value={opts.filterActiveLabel ?? ''}
-                                onChange={(e) => setOpts({ filterActiveLabel: e.target.value || undefined })}
-                            />
-                        </div>
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Label &quot;inaktiv&quot;
-                            </label>
-                            <input
-                                className="w-full text-[10px] rounded px-2 py-1 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                placeholder="Nur inaktive"
-                                value={opts.filterInactiveLabel ?? ''}
-                                onChange={(e) => setOpts({ filterInactiveLabel: e.target.value || undefined })}
-                            />
-                        </div>
-                    </div>
-                </div>
+                <ListFilterSection
+                    opts={opts}
+                    setOpts={setOpts}
+                    rows={filterRows}
+                    storageKey="aura-staticlist-filter-modal"
+                    showChipToggle
+                />
 
                 {/* ── Sortierung ── */}
                 <div>
