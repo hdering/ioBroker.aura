@@ -9,6 +9,15 @@ Eigene Popup-Views erstellen und als Standard für Widget-Typen zuweisen. Ein Po
 | Option | |
 | --- | --- |
 | Auto-Schließen nach (Sek.) | Automatisches Schließen; `0` / leer = aus |
+| Popup-Transparenz | `0 %` = deckend, höhere Werte lassen das Dashboard durchscheinen (max. `95 %`) |
+| Hintergrund abdunkeln | Abdunklung hinter dem Popup; `0 %` = keine, Standard `60 %` |
+
+Alle drei Werte gelten als Standard für jedes Popup und lassen sich überschreiben:
+
+| Ebene | Wo |
+| --- | --- |
+| Popup-View | Toolbar im View-Editor (leer = global) |
+| Klick-Aktion | Widget-Optionen → Klick-Aktion (leer = View/global) |
 
 ## Popup per Datenpunkt
 

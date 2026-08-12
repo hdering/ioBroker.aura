@@ -3,7 +3,12 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../../types';
 import { usePortalTarget } from '../../../contexts/PortalTargetContext';
-import { usePopupConfigStore } from '../../../store/popupConfigStore';
+import {
+    usePopupConfigStore,
+    DEFAULT_POPUP_TRANSPARENCY,
+    MAX_POPUP_TRANSPARENCY,
+    DEFAULT_BACKDROP_DIM,
+} from '../../../store/popupConfigStore';
 import { buildPopupSubMap, popupMainDp, subAll } from '../../../utils/popupPlaceholders';
 import { DynamicTitle } from '../DynamicTitle';
 import { DimmerPopupBody } from './DimmerPopupBody';
@@ -33,6 +38,13 @@ function normalizeAction(action: ClickAction): ClickAction {
         default:
             return action;
     }
+}
+
+/** Percent option → clamped number; non-numeric/undefined falls back to `fallback`. */
+function clampPct(value: number | undefined, max: number, fallback: number): number {
+    const n = Number(value);
+    if (!Number.isFinite(n)) return fallback;
+    return Math.max(0, Math.min(max, n));
 }
 
 interface Props {
@@ -88,14 +100,30 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
     const adminTarget = usePortalTarget();
     const portalTarget = document.querySelector('[data-aura-app="frontend"]') ?? adminTarget;
 
-    // Auto-close resolution: action override > popup-view setting > global default.
-    // Tri-state: undefined = inherit next level, 0 = explicit off, >0 = seconds.
-    const actionAutoClose = widget.options?.popupAutoCloseSec as number | undefined;
-    const viewAutoClose = usePopupConfigStore((s) =>
-        action.kind === 'popup-view' ? s.views.find((v) => v.id === action.viewId)?.autoCloseSec : undefined,
+    // Everything below resolves through the same three levels:
+    // click action > popup-view setting > global default; undefined = inherit next level.
+    const view = usePopupConfigStore((s) =>
+        action.kind === 'popup-view' ? s.views.find((v) => v.id === action.viewId) : undefined,
     );
+
+    // Auto-close. Tri-state: undefined = inherit, 0 = explicit off, >0 = seconds.
+    const actionAutoClose = widget.options?.popupAutoCloseSec as number | undefined;
     const globalAutoClose = usePopupConfigStore((s) => s.globalAutoCloseSec);
-    const effectiveAutoCloseSec = actionAutoClose ?? viewAutoClose ?? globalAutoClose ?? 0;
+    const effectiveAutoCloseSec = actionAutoClose ?? view?.autoCloseSec ?? globalAutoClose ?? 0;
+
+    // Appearance, both in percent.
+    const globalTransparency = usePopupConfigStore((s) => s.globalPopupTransparency);
+    const globalBackdropDim = usePopupConfigStore((s) => s.globalBackdropDim);
+    const transparency = clampPct(
+        (widget.options?.popupTransparency as number | undefined) ?? view?.transparency ?? globalTransparency,
+        MAX_POPUP_TRANSPARENCY,
+        DEFAULT_POPUP_TRANSPARENCY,
+    );
+    const backdropDim = clampPct(
+        (widget.options?.popupBackdropDim as number | undefined) ?? view?.backdropDim ?? globalBackdropDim,
+        100,
+        DEFAULT_BACKDROP_DIM,
+    );
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -163,7 +191,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
     return createPortal(
         <div
             className="fixed inset-0 flex items-center justify-center z-[300] p-4"
-            style={{ background: 'rgba(0,0,0,0.6)' }}
+            style={{ background: `rgba(0,0,0,${backdropDim / 100})` }}
             onClick={onClose}
         >
             <div
@@ -171,6 +199,10 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                 style={{
                     background: 'var(--app-surface)',
                     border: '1px solid var(--app-border)',
+                    // Element opacity (not just a translucent surface) so the embedded
+                    // widgets — which paint their own --widget-bg cards — turn see-through
+                    // together with the dialog chrome instead of staying solid.
+                    opacity: transparency > 0 ? 1 - transparency / 100 : undefined,
                     width: isIframe ? undefined : customWidth ? `min(calc(100vw - 16px), ${customWidth}px)` : undefined,
                     maxWidth: isIframe ? undefined : customWidth ? undefined : 'min(calc(100vw - 16px), 600px)',
                     maxHeight: isIframe ? undefined : customHeight ? `min(85dvh, ${customHeight}px)` : '85dvh',

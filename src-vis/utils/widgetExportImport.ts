@@ -484,6 +484,8 @@ export function exportPopupView(view: PopupView, anon?: AnonymizeOptions) {
         name: view.name,
         ...(view.version !== undefined ? { version: view.version } : {}),
         ...(view.autoCloseSec !== undefined ? { autoCloseSec: view.autoCloseSec } : {}),
+        ...(view.transparency !== undefined ? { transparency: view.transparency } : {}),
+        ...(view.backdropDim !== undefined ? { backdropDim: view.backdropDim } : {}),
         widgets: view.widgets,
     };
 
@@ -516,6 +518,8 @@ export function importPopupView(raw: unknown): PopupView | null {
         name: obj.name,
         widgets,
         ...(typeof obj.autoCloseSec === 'number' ? { autoCloseSec: obj.autoCloseSec } : {}),
+        ...(typeof obj.transparency === 'number' ? { transparency: obj.transparency } : {}),
+        ...(typeof obj.backdropDim === 'number' ? { backdropDim: obj.backdropDim } : {}),
     };
     return view;
 }

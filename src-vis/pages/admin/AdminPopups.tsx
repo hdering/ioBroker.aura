@@ -8,6 +8,9 @@ import {
     viewCreatedAt,
     BUILTIN_VIEW_IDS,
     BUILTIN_VIEWS,
+    DEFAULT_POPUP_TRANSPARENCY,
+    MAX_POPUP_TRANSPARENCY,
+    DEFAULT_BACKDROP_DIM,
     type PopupView,
     type PopupTrigger,
 } from '../../store/popupConfigStore';
@@ -834,39 +837,103 @@ function TypeDefaultsSection() {
 
 // ── Global settings section ───────────────────────────────────────────────────
 
+/** Slider + live percent readout for one of the global appearance defaults. */
+function PercentSlider({
+    label,
+    hint,
+    value,
+    max,
+    onChange,
+}: {
+    label: string;
+    hint: string;
+    value: number;
+    max: number;
+    onChange: (v: number) => void;
+}) {
+    return (
+        <div>
+            <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px]" style={labelStyle}>
+                    {label}
+                </label>
+                <span className="text-[11px] font-mono" style={{ color: 'var(--text-primary)' }}>
+                    {value} %
+                </span>
+            </div>
+            <input
+                type="range"
+                min={0}
+                max={max}
+                step={5}
+                value={value}
+                onChange={(e) => onChange(Number(e.target.value))}
+                className="w-full"
+                style={{ accentColor: 'var(--accent)' }}
+            />
+            <p className="text-[11px] mt-1" style={labelStyle}>
+                {hint}
+            </p>
+        </div>
+    );
+}
+
 function GlobalSettingsSection() {
     const globalAutoCloseSec = usePopupConfigStore((s) => s.globalAutoCloseSec);
     const setGlobalAutoCloseSec = usePopupConfigStore((s) => s.setGlobalAutoCloseSec);
+    const globalPopupTransparency = usePopupConfigStore((s) => s.globalPopupTransparency);
+    const setGlobalPopupTransparency = usePopupConfigStore((s) => s.setGlobalPopupTransparency);
+    const globalBackdropDim = usePopupConfigStore((s) => s.globalBackdropDim);
+    const setGlobalBackdropDim = usePopupConfigStore((s) => s.setGlobalBackdropDim);
     return (
         <section>
             <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                 Globale Popup-Einstellungen
             </h2>
             <div
-                className="rounded-xl px-4 py-3 space-y-2"
+                className="rounded-xl px-4 py-3 grid grid-cols-1 sm:grid-cols-3 gap-4 items-start"
                 style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
             >
-                <label className="text-[11px] block" style={labelStyle}>
-                    Auto-Schließen nach (Sek., 0/leer = aus)
-                </label>
-                <input
-                    type="number"
-                    min={0}
-                    max={3600}
-                    step={1}
-                    value={globalAutoCloseSec ?? ''}
-                    onChange={(e) => {
-                        const raw = e.target.value;
-                        if (raw === '') return setGlobalAutoCloseSec(undefined);
-                        const n = Number(raw);
-                        setGlobalAutoCloseSec(Number.isFinite(n) && n >= 0 ? n : undefined);
-                    }}
-                    placeholder="aus"
-                    className={inputCls}
-                    style={{ ...inputStyle, maxWidth: 200 }}
+                <div>
+                    <label className="text-[11px] block mb-1" style={labelStyle}>
+                        Auto-Schließen nach (Sek., 0/leer = aus)
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        max={3600}
+                        step={1}
+                        value={globalAutoCloseSec ?? ''}
+                        onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === '') return setGlobalAutoCloseSec(undefined);
+                            const n = Number(raw);
+                            setGlobalAutoCloseSec(Number.isFinite(n) && n >= 0 ? n : undefined);
+                        }}
+                        placeholder="aus"
+                        className={inputCls}
+                        style={{ ...inputStyle, maxWidth: 200 }}
+                    />
+                    <p className="text-[11px] mt-1" style={labelStyle}>
+                        Automatisches Schließen für alle Popups.
+                    </p>
+                </div>
+                <PercentSlider
+                    label="Popup-Transparenz"
+                    hint="0 % = deckend, höhere Werte lassen das Dashboard durchscheinen."
+                    value={globalPopupTransparency ?? DEFAULT_POPUP_TRANSPARENCY}
+                    max={MAX_POPUP_TRANSPARENCY}
+                    onChange={setGlobalPopupTransparency}
                 />
-                <p className="text-[11px]" style={labelStyle}>
-                    Standardwert für alle Popups. Wird durch View- und Klick-Aktions-Einstellungen überschrieben.
+                <PercentSlider
+                    label="Hintergrund abdunkeln"
+                    hint="Abdunklung des Bereichs hinter dem Popup. 0 % = keine Abdunklung."
+                    value={globalBackdropDim ?? DEFAULT_BACKDROP_DIM}
+                    max={100}
+                    onChange={setGlobalBackdropDim}
+                />
+                <p className="text-[11px] sm:col-span-3" style={labelStyle}>
+                    Standardwerte für alle Popups. Werden durch View- und Klick-Aktions-Einstellungen überschrieben.
                 </p>
             </div>
         </section>

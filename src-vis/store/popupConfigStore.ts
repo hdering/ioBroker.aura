@@ -3,12 +3,33 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
 import type { ClickAction, ConditionClause, WidgetConfig, WidgetLayout } from '../types';
 
+/**
+ * Popup appearance defaults. Both values are percentages and follow the same
+ * semantics as the per-widget `transparency` option: 0 = fully opaque popup,
+ * 100 = invisible. The dialog is clamped to MAX_POPUP_TRANSPARENCY so a popup
+ * can never become completely unclickable-invisible.
+ */
+export const DEFAULT_POPUP_TRANSPARENCY = 0;
+export const MAX_POPUP_TRANSPARENCY = 95;
+/** Backdrop dim in percent black behind the popup — matches the historical rgba(0,0,0,.6). */
+export const DEFAULT_BACKDROP_DIM = 60;
+
+/** Percent input → stored value; empty (or garbage) clears the override back to "inherit". */
+export function pctOrUndefined(raw: string): number | undefined {
+    if (raw === '') return undefined;
+    const n = Number(raw);
+    return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
+
 export interface PopupView {
     id: string;
     name: string;
     widgets: WidgetConfig[];
     // Per-view auto-close: undefined = inherit global, 0 = explicit off, >0 = seconds
     autoCloseSec?: number;
+    // Per-view appearance: undefined = inherit the global setting (percent, 0-100)
+    transparency?: number;
+    backdropDim?: number;
     // Built-in shipping version. Bump in code when a built-in's contents change;
     // ensureBuiltins() then overwrites any persisted copy with a lower version.
     // Only meaningful for entries with an id from BUILTIN_VIEW_IDS.
@@ -120,6 +141,9 @@ interface PopupConfigState {
     removedBuiltinTypeDefaults: string[]; // builtin widget types whose default was explicitly removed
     // Global auto-close fallback: undefined = no auto-close, >0 = seconds
     globalAutoCloseSec?: number;
+    // Global appearance fallback (percent): undefined = DEFAULT_POPUP_TRANSPARENCY / DEFAULT_BACKDROP_DIM
+    globalPopupTransparency?: number;
+    globalBackdropDim?: number;
     // Datapoint-driven popups (issue #523)
     triggers: PopupTrigger[];
 
@@ -134,12 +158,16 @@ interface PopupConfigState {
     removeView: (viewId: string) => void;
     updateViewName: (viewId: string, name: string) => void;
     setViewAutoCloseSec: (viewId: string, sec: number | undefined) => void;
+    setViewTransparency: (viewId: string, pct: number | undefined) => void;
+    setViewBackdropDim: (viewId: string, pct: number | undefined) => void;
     addWidgetToView: (viewId: string, widget: WidgetConfig) => void;
     removeWidgetFromView: (viewId: string, widgetId: string) => void;
     updateWidgetInView: (viewId: string, widgetId: string, patch: Partial<WidgetConfig>) => void;
 
     // Global
     setGlobalAutoCloseSec: (sec: number | undefined) => void;
+    setGlobalPopupTransparency: (pct: number | undefined) => void;
+    setGlobalBackdropDim: (pct: number | undefined) => void;
 
     // DP triggers
     addTrigger: (name: string) => string;
@@ -163,6 +191,8 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             deletedBuiltinIds: [],
             removedBuiltinTypeDefaults: [],
             globalAutoCloseSec: undefined,
+            globalPopupTransparency: undefined,
+            globalBackdropDim: undefined,
             triggers: [],
 
             setTypeDefault: (widgetType, viewId) =>
@@ -230,7 +260,21 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                     views: s.views.map((v) => (v.id === viewId ? { ...v, autoCloseSec: sec } : v)),
                 })),
 
+            setViewTransparency: (viewId, pct) =>
+                set((s) => ({
+                    views: s.views.map((v) => (v.id === viewId ? { ...v, transparency: pct } : v)),
+                })),
+
+            setViewBackdropDim: (viewId, pct) =>
+                set((s) => ({
+                    views: s.views.map((v) => (v.id === viewId ? { ...v, backdropDim: pct } : v)),
+                })),
+
             setGlobalAutoCloseSec: (sec) => set({ globalAutoCloseSec: sec }),
+
+            setGlobalPopupTransparency: (pct) => set({ globalPopupTransparency: pct }),
+
+            setGlobalBackdropDim: (pct) => set({ globalBackdropDim: pct }),
 
             addTrigger: (name) => {
                 const id = `pt-${Date.now()}`;
@@ -313,6 +357,9 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                         id: newId,
                         name: `${source.name} (Kopie)`,
                         widgets: source.widgets.map((w, i) => ({ ...w, id: `pw-${Date.now()}-${i}` })),
+                        autoCloseSec: source.autoCloseSec,
+                        transparency: source.transparency,
+                        backdropDim: source.backdropDim,
                         createdAt: Date.now(),
                     };
                     return { views: [...s.views, copy] };

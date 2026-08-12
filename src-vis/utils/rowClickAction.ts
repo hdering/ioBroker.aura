@@ -36,6 +36,9 @@ export interface RowPopupOptions {
     rowPopupWidth?: number;
     rowPopupHeight?: number;
     rowPopupAutoCloseSec?: number;
+    /** Popup transparency / backdrop dim in percent; undefined = inherit view/global. */
+    rowPopupTransparency?: number;
+    rowPopupBackdropDim?: number;
 }
 
 /**

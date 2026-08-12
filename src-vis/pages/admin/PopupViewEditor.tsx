@@ -2,7 +2,12 @@ import { useCallback, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactGridLayout from 'react-grid-layout/legacy';
 import { ArrowLeft, Plus, Upload } from 'lucide-react';
-import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigStore';
+import {
+    usePopupConfigStore,
+    BUILTIN_VIEW_IDS,
+    MAX_POPUP_TRANSPARENCY,
+    pctOrUndefined,
+} from '../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { WidgetFrame } from '../../components/layout/WidgetFrame';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
@@ -81,8 +86,16 @@ const SORTED_WIDGET_REGISTRY = WIDGET_REGISTRY.filter((m) => !m.hidden).sort((a,
 export function PopupViewEditor() {
     const { viewId } = useParams<{ viewId: string }>();
     const navigate = useNavigate();
-    const { views, addWidgetToView, removeWidgetFromView, updateWidgetInView, copyView, setViewAutoCloseSec } =
-        usePopupConfigStore();
+    const {
+        views,
+        addWidgetToView,
+        removeWidgetFromView,
+        updateWidgetInView,
+        copyView,
+        setViewAutoCloseSec,
+        setViewTransparency,
+        setViewBackdropDim,
+    } = usePopupConfigStore();
 
     const isSuperAdmin = useSuperAdmin();
     const view = views.find((v) => v.id === viewId);
@@ -240,6 +253,50 @@ export function PopupViewEditor() {
                             }}
                             placeholder="global"
                             className="text-xs rounded-lg px-2 py-1.5 focus:outline-none w-20"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        />
+                    </label>
+                    <label
+                        className="flex items-center gap-1.5 text-[11px]"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title="Transparenz des Popups für diese View (%, leer = global)"
+                    >
+                        Transparenz
+                        <input
+                            type="number"
+                            min={0}
+                            max={MAX_POPUP_TRANSPARENCY}
+                            step={5}
+                            value={view.transparency ?? ''}
+                            onChange={(e) => setViewTransparency(viewId, pctOrUndefined(e.target.value))}
+                            placeholder="global"
+                            className="text-xs rounded-lg px-2 py-1.5 focus:outline-none w-16"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        />
+                    </label>
+                    <label
+                        className="flex items-center gap-1.5 text-[11px]"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title="Abdunklung des Hintergrunds für diese View (%, leer = global)"
+                    >
+                        Abdunklung
+                        <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            step={5}
+                            value={view.backdropDim ?? ''}
+                            onChange={(e) => setViewBackdropDim(viewId, pctOrUndefined(e.target.value))}
+                            placeholder="global"
+                            className="text-xs rounded-lg px-2 py-1.5 focus:outline-none w-16"
                             style={{
                                 background: 'var(--app-bg)',
                                 color: 'var(--text-primary)',

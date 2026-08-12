@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action

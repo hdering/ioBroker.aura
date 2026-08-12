@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Database } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { usePopupConfigStore } from '../../store/popupConfigStore';
+import { usePopupConfigStore, MAX_POPUP_TRANSPARENCY, pctOrUndefined } from '../../store/popupConfigStore';
 import { DatapointPicker } from './DatapointPicker';
 import { ImagePathHint } from './ImagePathHint';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
@@ -148,6 +148,8 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
     const popupWidth = o.popupWidth as number | undefined;
     const popupHeight = o.popupHeight as number | undefined;
     const popupAutoCloseSec = o.popupAutoCloseSec as number | undefined;
+    const popupTransparency = o.popupTransparency as number | undefined;
+    const popupBackdropDim = o.popupBackdropDim as number | undefined;
 
     const layouts = useDashboardStore((s) => s.layouts);
 
@@ -1075,6 +1077,40 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                             className={inputCls}
                             style={inputStyle}
                         />
+                    </div>
+                    <div className="flex gap-2">
+                        <div className="flex-1">
+                            <label className={labelCls} style={labelStyle}>
+                                Transparenz (%, leer = View/Global)
+                            </label>
+                            <input
+                                type="number"
+                                min={0}
+                                max={MAX_POPUP_TRANSPARENCY}
+                                step={5}
+                                value={popupTransparency ?? ''}
+                                onChange={(e) => setOpts({ popupTransparency: pctOrUndefined(e.target.value) })}
+                                placeholder="View/Global"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className={labelCls} style={labelStyle}>
+                                Hintergrund abdunkeln (%, leer = View/Global)
+                            </label>
+                            <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step={5}
+                                value={popupBackdropDim ?? ''}
+                                onChange={(e) => setOpts({ popupBackdropDim: pctOrUndefined(e.target.value) })}
+                                placeholder="View/Global"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
                     </div>
                 </div>
             )}

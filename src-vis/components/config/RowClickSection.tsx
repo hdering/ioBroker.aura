@@ -234,6 +234,8 @@ export function RowClickSection({
                             popupWidth: opts.rowPopupWidth,
                             popupHeight: opts.rowPopupHeight,
                             popupAutoCloseSec: opts.rowPopupAutoCloseSec,
+                            popupTransparency: opts.rowPopupTransparency,
+                            popupBackdropDim: opts.rowPopupBackdropDim,
                         },
                     }}
                     onConfigChange={(next) => {
@@ -245,6 +247,8 @@ export function RowClickSection({
                             rowPopupWidth: o.popupWidth as number | undefined,
                             rowPopupHeight: o.popupHeight as number | undefined,
                             rowPopupAutoCloseSec: o.popupAutoCloseSec as number | undefined,
+                            rowPopupTransparency: o.popupTransparency as number | undefined,
+                            rowPopupBackdropDim: o.popupBackdropDim as number | undefined,
                         });
                     }}
                     hideNone
