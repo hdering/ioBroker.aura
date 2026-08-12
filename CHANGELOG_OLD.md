@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.39.2 (2026-08-02)
+- 🌟 **New feature:** Settings - popup views and widget type defaults are now sorted alphabetically, with a search box and a sort selector (alphabetical, newest first, oldest first) ([#520](https://github.com/hdering/ioBroker.aura/issues/520))
+
 ## 0.39.1 (2026-08-02)
 - 🌟 **New feature:** Frontend Design - new "Values & Formatting" tab (global scope) holding the global decimals and DP name cleanup settings, which moved here from Settings
 - 🌟 **New feature:** Values - new thousands separator for numeric values (off, 1.234,5, 1,234.5, 1 234,5, 1'234.5) with a matching decimal separator; set globally and overridable per widget, cell and list entry
