@@ -1,6 +1,6 @@
 # Raumklima
 
-Zeigt Temperatur, Luftfeuchtigkeit und einen optionalen Temperaturverlauf kombiniert an. Die Ist-Temperatur kommt aus dem Haupt-Datenpunkt, Soll-Temperatur und Feuchte aus separaten DPs; der Verlauf wird aus einer History-Instanz geladen.
+Zeigt Temperatur, Luftfeuchtigkeit und einen optionalen Temperaturverlauf kombiniert an. Die Ist-Temperatur kommt aus dem Haupt-Datenpunkt, Soll-Temperatur, Feuchte und Luftdruck aus separaten DPs; der Verlauf wird aus einer History-Instanz geladen.
 
 ![](./assets/raumklima/runtime.png)
 
@@ -11,10 +11,11 @@ Zeigt Temperatur, Luftfeuchtigkeit und einen optionalen Temperaturverlauf kombin
 | `datapoint` | ja | `number` | Ist-Temperatur; liefert auch die Verlaufsdaten |
 | `targetDatapoint` | nein | `number` | Soll-Temperatur (als Badge ↑) |
 | `humidityDatapoint` | nein | `number` | Luftfeuchtigkeit |
+| `pressureDatapoint` | nein | `number` | Luftdruck |
 
 ## Layouts
 
-Das Widget hat ein einziges Layout: Titel/Icon oben, darunter Ist-Temperatur groß mit Soll-Wert und Feuchte rechts, optionalem Komfort-Badge, Zeitraum-Auswahl und Verlaufsdiagramm.
+Das Widget hat ein einziges Layout: Titel/Icon oben, darunter Ist-Temperatur groß mit Soll-Wert, Feuchte und Luftdruck rechts, optionalem Komfort-Badge, Zeitraum-Auswahl und Verlaufsdiagramm.
 
 ## Einstellungen
 
@@ -31,9 +32,11 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showActualTemp` | `true` | Ist-Temperatur anzeigen |
 | `showTargetTemp` | `true` | Soll-Temperatur anzeigen (nur mit `targetDatapoint`) |
 | `showHumidity` | `true` | Luftfeuchtigkeit anzeigen |
+| `showPressure` | `true` | Luftdruck anzeigen (nur mit `pressureDatapoint`) |
 | `showComfort` | `false` | Komfort-Badge (Temp 18–24 °C, Feuchte 40–60 %) |
 | `icon` | `Thermometer` | [Lucide-Icon](https://lucide.dev) |
 | `humidityIcon` | `Droplets` | Icon für die Feuchte |
+| `pressureIcon` | `Gauge` | Icon für den Luftdruck |
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 
@@ -41,9 +44,11 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `decimals` | global | Nachkommastellen |
+| `decimals` | global | Nachkommastellen für Temperatur und Feuchte |
 | `unit` | `°C` | Einheit der Temperatur |
 | `humidityUnit` | `%` | Einheit der Feuchte |
+| `pressureUnit` | `hPa` | Einheit des Luftdrucks |
+| `pressureDecimals` | `0` | Nachkommastellen des Luftdrucks |
 
 ### Verlauf
 

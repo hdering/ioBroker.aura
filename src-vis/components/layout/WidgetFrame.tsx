@@ -1336,9 +1336,10 @@ function ClimateConfig({
 }: {
     config: WidgetConfig;
     onConfigChange: (c: WidgetConfig) => void;
-    onPickerOpen: (target: 'climate_humidityDp' | 'climate_targetDp') => void;
+    onPickerOpen: (target: 'climate_humidityDp' | 'climate_targetDp' | 'climate_pressureDp') => void;
 }) {
     const [humidityIconPickerOpen, setHumidityIconPickerOpen] = useState(false);
+    const [pressureIconPickerOpen, setPressureIconPickerOpen] = useState(false);
 
     const o = config.options ?? {};
     const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -1359,6 +1360,11 @@ function ClimateConfig({
         ? getWidgetIcon(humidityIconName, (() => null) as unknown as LucideIcon)
         : null;
 
+    const pressureIconName = o.pressureIcon as string | undefined;
+    const PressureIconPreview = pressureIconName
+        ? getWidgetIcon(pressureIconName, (() => null) as unknown as LucideIcon)
+        : null;
+
     const autoFill = async () => {
         if (!config.datapoint) return;
         const parts = config.datapoint.split('.');
@@ -1370,6 +1376,19 @@ function ClimateConfig({
         const patch: Record<string, unknown> = {};
         const hv = find('HUMIDITY', 'humidity', 'Humidity', 'relative_humidity', 'RELATIVE_HUMIDITY');
         if (hv) patch.humidityDatapoint = hv;
+        const pv = find(
+            'PRESSURE',
+            'pressure',
+            'Pressure',
+            'AIR_PRESSURE',
+            'air_pressure',
+            'airPressure',
+            'BAROMETER',
+            'barometer',
+            'LUFTDRUCK',
+            'luftdruck',
+        );
+        if (pv) patch.pressureDatapoint = pv;
         const tv = find(
             'SET_POINT_TEMPERATURE',
             'setPointTemperature',
@@ -1396,6 +1415,7 @@ function ClimateConfig({
                     { key: 'showActualTemp', label: 'Ist-Temperatur', def: true },
                     { key: 'showTargetTemp', label: 'Soll-Temperatur', def: true },
                     { key: 'showHumidity', label: 'Luftfeuchtigkeit', def: true },
+                    { key: 'showPressure', label: 'Luftdruck', def: true },
                     { key: 'showComfort', label: 'Komfortzone', def: false },
                     { key: 'showChart', label: 'Temperaturverlauf', def: true },
                 ] as const
@@ -1529,6 +1549,72 @@ function ClimateConfig({
                 )}
             </div>
 
+            {/* Luftdruck DP */}
+            <div className="mb-2">
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    Luftdruck (optional)
+                </label>
+                <div className="flex gap-1">
+                    <input
+                        type="text"
+                        value={(o.pressureDatapoint as string) ?? ''}
+                        onChange={(e) => set({ pressureDatapoint: e.target.value || undefined })}
+                        placeholder="optional"
+                        className={inputCls}
+                        style={inputStyle}
+                    />
+                    <button
+                        onClick={() => onPickerOpen('climate_pressureDp')}
+                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                        style={btnStyle}
+                        title="Aus ioBroker wählen"
+                    >
+                        <Database size={13} />
+                    </button>
+                </div>
+            </div>
+
+            {/* Luftdruck-Icon */}
+            <div className="mb-2">
+                <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
+                    Luftdruck-Icon
+                </label>
+                <button
+                    onClick={() => setPressureIconPickerOpen(true)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                    style={{
+                        background: 'var(--app-bg)',
+                        border: '1px solid var(--app-border)',
+                        color: 'var(--text-primary)',
+                    }}
+                >
+                    {PressureIconPreview ? (
+                        <PressureIconPreview size={14} style={{ flexShrink: 0 }} />
+                    ) : (
+                        <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />
+                    )}
+                    <span
+                        className="flex-1 truncate"
+                        style={{ color: pressureIconName ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                    >
+                        {pressureIconName ?? 'Icon auswählen… (Standard: Gauge)'}
+                    </span>
+                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                        ›
+                    </span>
+                </button>
+                {pressureIconPickerOpen && (
+                    <IconPickerModal
+                        current={pressureIconName ?? ''}
+                        onSelect={(name) => {
+                            set({ pressureIcon: name || undefined });
+                            setPressureIconPickerOpen(false);
+                        }}
+                        onClose={() => setPressureIconPickerOpen(false)}
+                    />
+                )}
+            </div>
+
             {/* Einheiten */}
             <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
             <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
@@ -1555,6 +1641,37 @@ function ClimateConfig({
                         type="text"
                         value={(o.humidityUnit as string) ?? '%'}
                         onChange={(e) => set({ humidityUnit: e.target.value || '%' })}
+                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                        style={inputStyle}
+                    />
+                </div>
+            </div>
+            <div className="flex gap-2 mb-2">
+                <div className="flex-1">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Luftdruck
+                    </label>
+                    <input
+                        type="text"
+                        value={(o.pressureUnit as string) ?? 'hPa'}
+                        onChange={(e) => set({ pressureUnit: e.target.value || 'hPa' })}
+                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                        style={inputStyle}
+                    />
+                </div>
+                <div className="flex-1">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Nachkommastellen Druck
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        max={4}
+                        value={(o.pressureDecimals as number | undefined) ?? 0}
+                        onChange={(e) => {
+                            const n = parseInt(e.target.value, 10);
+                            set({ pressureDecimals: Number.isFinite(n) ? Math.max(0, Math.min(4, n)) : 0 });
+                        }}
                         className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                         style={inputStyle}
                     />
@@ -5903,6 +6020,7 @@ export function WidgetFrame({
         | 'http_response_dp'
         | 'climate_humidityDp'
         | 'climate_targetDp'
+        | 'climate_pressureDp'
         | 'iframe_urlDp'
         | 'image_dp'
         | 'light_switchDp'
@@ -17437,6 +17555,8 @@ export function WidgetFrame({
                             onConfigChange({ ...config, options: { ...config.options, humidityDatapoint: id } });
                         } else if (pickerTarget === 'climate_targetDp') {
                             onConfigChange({ ...config, options: { ...config.options, targetDatapoint: id } });
+                        } else if (pickerTarget === 'climate_pressureDp') {
+                            onConfigChange({ ...config, options: { ...config.options, pressureDatapoint: id } });
                         } else if (pickerTarget === 'iframe_urlDp') {
                             onConfigChange({ ...config, options: { ...config.options, iframeUrlDp: id } });
                         } else if (pickerTarget === 'image_dp') {

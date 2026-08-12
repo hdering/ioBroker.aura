@@ -241,7 +241,11 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'control',
         mock: { t: 'Wohnzimmer', v: '21.4', u: '°C', sub: '💧 52%' },
         hint: 'Temperatur, Luftfeuchtigkeit und optionalen Temperaturverlauf kombiniert anzeigen',
-        popupDefaults: { targetDatapoint: '{{targetDatapoint}}', humidityDatapoint: '{{humidityDatapoint}}' },
+        popupDefaults: {
+            targetDatapoint: '{{targetDatapoint}}',
+            humidityDatapoint: '{{humidityDatapoint}}',
+            pressureDatapoint: '{{pressureDatapoint}}',
+        },
     },
     {
         type: 'aircontrol',

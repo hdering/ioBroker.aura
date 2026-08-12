@@ -240,6 +240,21 @@ export const DP_TEMPLATES: DpTemplate[] = [
                 ],
             },
             {
+                optionKey: 'pressureDatapoint',
+                siblingNames: [
+                    'PRESSURE',
+                    'pressure',
+                    'Pressure',
+                    'AIR_PRESSURE',
+                    'air_pressure',
+                    'airPressure',
+                    'BAROMETER',
+                    'barometer',
+                    'LUFTDRUCK',
+                    'luftdruck',
+                ],
+            },
+            {
                 optionKey: 'batteryDp',
                 siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
             },

@@ -26,6 +26,7 @@ export const DP_KEY_LABELS: Record<string, string> = {
     actualDatapoint: 'Ist-Temperatur',
     localTempDatapoint: 'Lokale Temperatur',
     humidityDatapoint: 'Luftfeuchtigkeit',
+    pressureDatapoint: 'Luftdruck',
     switchDp: 'Schalter',
     brightnessDp: 'Helligkeit',
     hueDp: 'Farbton',

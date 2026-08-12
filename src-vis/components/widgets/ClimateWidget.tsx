@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from 'react';
 import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, ReferenceLine } from 'recharts';
-import { Thermometer, Droplets, Loader, BarChart2 } from 'lucide-react';
+import { Thermometer, Droplets, Gauge, Loader, BarChart2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
@@ -58,6 +58,7 @@ export function ClimateWidget({ config }: WidgetProps) {
     const showActualTemp = o.showActualTemp !== false;
     const showTargetTemp = o.showTargetTemp !== false && !!(o.targetDatapoint as string | undefined);
     const showHumidity = o.showHumidity !== false;
+    const showPressure = o.showPressure !== false && !!(o.pressureDatapoint as string | undefined);
     const showComfort = o.showComfort === true;
     const showChart = o.showChart !== false;
 
@@ -66,6 +67,9 @@ export function ClimateWidget({ config }: WidgetProps) {
     const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     const unit = (o.unit as string | undefined) ?? '°C';
     const humidityUnit = (o.humidityUnit as string | undefined) ?? '%';
+    const pressureUnit = (o.pressureUnit as string | undefined) ?? 'hPa';
+    // Pressure is conventionally shown without decimals — independent of the temperature setting.
+    const pressureDecimals = (o.pressureDecimals as number | undefined) ?? 0;
     const lineColor = (o.lineColor as string | undefined) ?? 'var(--accent)';
     const showIcon = o.showIcon !== false;
     const iconSize = (o.iconSize as number) || 20;
@@ -84,17 +88,21 @@ export function ClimateWidget({ config }: WidgetProps) {
 
     const TempIcon = getWidgetIcon(o.icon as string | undefined, Thermometer);
     const HumidityIcon = getWidgetIcon(o.humidityIcon as string | undefined, Droplets);
+    const PressureIcon = getWidgetIcon(o.pressureIcon as string | undefined, Gauge);
 
     const targetDpId = (o.targetDatapoint as string | undefined) ?? '';
     const humidityDpId = (o.humidityDatapoint as string | undefined) ?? '';
+    const pressureDpId = (o.pressureDatapoint as string | undefined) ?? '';
 
     const { value: rawActual } = useDatapoint(config.datapoint);
     const { value: rawTarget } = useDatapoint(targetDpId);
     const { value: rawHumidity } = useDatapoint(humidityDpId);
+    const { value: rawPressure } = useDatapoint(pressureDpId);
 
     const actualTemp = typeof rawActual === 'number' ? rawActual : null;
     const targetTemp = typeof rawTarget === 'number' ? rawTarget : null;
     const humidity = typeof rawHumidity === 'number' ? rawHumidity : null;
+    const pressure = typeof rawPressure === 'number' ? rawPressure : null;
 
     const [activeRange, setActiveRange] = useState<ChartTimeRange>(cfgRange);
     const [activeCustomMs, setActiveCustomMs] = useState<number | undefined>(cfgCustomMs);
@@ -218,7 +226,7 @@ export function ClimateWidget({ config }: WidgetProps) {
             )}
 
             {/* Main values */}
-            {(showActualTemp || showHumidity || showTargetTemp) && (
+            {(showActualTemp || showHumidity || showTargetTemp || showPressure) && (
                 <div className="aura-widget-value flex items-end justify-between gap-2">
                     {showActualTemp && (
                         <div className="flex flex-col leading-none">
@@ -262,6 +270,15 @@ export function ClimateWidget({ config }: WidgetProps) {
                                 <HumidityIcon size={Math.round(14 * fontScale)} strokeWidth={1.5} />
                                 {humidity !== null ? formatNum(humidity, decimals, numFmt) : '–'}
                                 {humidityUnit}
+                            </span>
+                        )}
+                        {showPressure && (
+                            <span
+                                className="flex items-center gap-1 font-medium"
+                                style={{ fontSize: Math.round(13 * fontScale), color: 'var(--text-secondary)' }}
+                            >
+                                <PressureIcon size={Math.round(13 * fontScale)} strokeWidth={1.5} />
+                                {`${pressure !== null ? formatNum(pressure, pressureDecimals, numFmt) : '–'} ${pressureUnit}`}
                             </span>
                         )}
                     </div>
