@@ -1008,6 +1008,13 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                                 className={inputCls}
                                 style={inputStyle}
                             />
+                            <p
+                                className="text-[10px] mt-1 leading-tight"
+                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                            >
+                                <span className="font-mono">{'{{parent}}'}</span> u. a. werden ersetzt,{' '}
+                                <span className="font-mono">[[dp.id]]</span> zeigt den Wert eines Datenpunkts.
+                            </p>
                         </div>
                     )}
                     <div className="flex gap-2">

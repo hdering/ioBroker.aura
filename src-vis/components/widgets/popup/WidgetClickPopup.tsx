@@ -4,6 +4,8 @@ import { X } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../../types';
 import { usePortalTarget } from '../../../contexts/PortalTargetContext';
 import { usePopupConfigStore } from '../../../store/popupConfigStore';
+import { buildPopupSubMap, popupMainDp, subAll } from '../../../utils/popupPlaceholders';
+import { DynamicTitle } from '../DynamicTitle';
 import { DimmerPopupBody } from './DimmerPopupBody';
 import { SwitchPopupBody } from './SwitchPopupBody';
 import { ShutterPopupBody } from './ShutterPopupBody';
@@ -121,7 +123,11 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
 
     const isIframe = action.kind === 'popup-iframe';
     const hideTitle = !!widget.options?.popupHideTitle;
-    const title = getTitle(widget, action, titleOverride);
+    // The heading gets both placeholder layers, exactly like the widgets inside a popup
+    // view: `{{parent}}` & co. resolved here against the popup's main datapoint (for a
+    // list row that is the clicked row), `[[dp]]` resolved live by DynamicTitle below.
+    const mainDp = popupMainDp(widget, action.kind === 'popup-view' ? action.dp : undefined);
+    const title = subAll(getTitle(widget, action, titleOverride), buildPopupSubMap(widget, mainDp));
     const customWidth = widget.options?.popupWidth as number | undefined;
     const customHeight = widget.options?.popupHeight as number | undefined;
 
@@ -191,7 +197,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                 {!hideTitle && title && (
                     <div className="shrink-0 px-5 pr-12 py-3" style={{ borderBottom: '1px solid var(--app-border)' }}>
                         <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-                            {title}
+                            <DynamicTitle text={title} />
                         </span>
                     </div>
                 )}

@@ -25,7 +25,7 @@ const PLACEHOLDER_DOCS: { token: string; example: string; desc: string }[] = [
     {
         token: '[[dp]]',
         example: '21.5',
-        desc: 'Wert des Datenpunkts (nur im Widget-Titel von Listen und Statusübersicht)',
+        desc: 'Wert des Datenpunkts (Popup-Titel, Widget-Name von Listen und Statusübersicht)',
     },
 ];
 
@@ -61,6 +61,11 @@ const PLACEHOLDER_SCENARIOS: { value: string; field: string; result: string }[] 
         value: '[[{{parent}}.TIST]] °C',
         field: 'Widget-Titel einer Liste / Statusübersicht',
         result: '21.5 °C (live)',
+    },
+    {
+        value: '{{name}} · [[{{parent}}.TIST]] °C',
+        field: 'Popup-Titel (Klick-Aktion)',
+        result: 'TSOLL · 21.5 °C (live)',
     },
 ];
 
@@ -304,8 +309,8 @@ export function PopupViewEditor() {
                             <span className="font-mono" style={{ color: 'var(--text-primary)' }}>
                                 {'[[…]]'}
                             </span>{' '}
-                            liest im Widget-Titel dagegen laufend den <em>Wert</em> des Datenpunkts. Beides kombinierbar
-                            — die Text-Ersetzung läuft zuerst.
+                            liest dagegen laufend den <em>Wert</em> des Datenpunkts — im Popup-Titel und im Widget-Namen
+                            von Listen und Statusübersicht. Beides kombinierbar, die Text-Ersetzung läuft zuerst.
                         </p>
                         <table className="border-collapse" style={{ width: 'auto' }}>
                             <thead>

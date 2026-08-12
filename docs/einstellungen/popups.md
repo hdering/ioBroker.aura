@@ -55,10 +55,10 @@ Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
 
 | Platzhalter | ergibt | gilt in |
 | --- | --- | --- |
-| `{{dp}}` | `alias.0.Heizung.Bad.TSOLL` | jedem Feld der Popup-Widgets |
-| `{{parent}}` | `alias.0.Heizung.Bad` | jedem Feld der Popup-Widgets |
-| `{{name}}` | `TSOLL` | jedem Feld der Popup-Widgets |
-| `[[<dp>]]` | Wert des Datenpunkts | Widget-Name von Liste, dynamischer Liste, Statusübersicht |
+| `{{dp}}` | `alias.0.Heizung.Bad.TSOLL` | jedem Feld der Popup-Widgets · Popup-Titel |
+| `{{parent}}` | `alias.0.Heizung.Bad` | jedem Feld der Popup-Widgets · Popup-Titel |
+| `{{name}}` | `TSOLL` | jedem Feld der Popup-Widgets · Popup-Titel |
+| `[[<dp>]]` | Wert des Datenpunkts | Popup-Titel · Widget-Name von Liste, dynamischer Liste, Statusübersicht |
 
 `{{…}}` ersetzt beim Öffnen einmalig Text, `[[…]]` liest laufend den Wert. Die Text-Ersetzung läuft zuerst, beides ist also kombinierbar:
 
@@ -66,6 +66,9 @@ Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
 | --- | --- | --- |
 | `{{parent}}.TIST` | Datenpunkt eines Widgets | `alias.0.Heizung.Bad.TIST` |
 | `[[{{parent}}.TIST]] °C` | Widget-Name einer Liste | `21.5 °C`, live |
+| `{{name}} · [[{{parent}}.TIST]] °C` | Popup-Titel | `TSOLL · 21.5 °C`, live |
+
+Beim Klick auf eine Listenzeile ist der Haupt-Datenpunkt die geklickte Zeile — ein Popup-Titel mit Platzhaltern gilt damit für alle Zeilen.
 
 Ein Platzhalter im Namensfeld einer Listenzeile bleibt Text — nur das Feld `Datenpunkt-ID` der Zeile wird als Datenpunkt gelesen.
 

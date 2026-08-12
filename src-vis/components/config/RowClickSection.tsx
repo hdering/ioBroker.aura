@@ -139,6 +139,15 @@ export function RowClickEntryField({
                             border: '1px solid var(--app-border)',
                         }}
                     />
+                    {/* Tokens resolve against the clicked row, so one title serves every row. */}
+                    <p
+                        className="text-[9px] mt-0.5 leading-tight"
+                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                    >
+                        <span className="font-mono">{'{{name}}'}</span> /{' '}
+                        <span className="font-mono">{'{{parent}}'}</span> der geklickten Zeile;{' '}
+                        <span className="font-mono">[[dp.id]]</span> zeigt einen Wert.
+                    </p>
                 </div>
             )}
         </div>

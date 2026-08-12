@@ -7,6 +7,7 @@ import { useConditionStyle, type ConditionResult } from '../../../hooks/useCondi
 import { widgetSourceCtx } from '../../../utils/conditionSources';
 import { getWidgetMap } from '../widgetMap';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
+import { buildPopupSubMap, popupMainDp, substituteWidget } from '../../../utils/popupPlaceholders';
 import type { WidgetConfig, WidgetCondition } from '../../../types';
 
 const DEFAULT_MARGIN = 10;
@@ -25,35 +26,6 @@ const NO_CONDITIONS: WidgetCondition[] = [];
 
 // Default verdict for a widget whose probe hasn't reported yet (visible).
 const EMPTY_COND: ConditionResult = { cssVars: {}, effect: null, hidden: false, reflow: false };
-
-// ── {{key}} substitution ──────────────────────────────────────────────────────
-
-function subAll(value: string, map: Record<string, string>): string {
-    if (!value) return value;
-    return value.replace(/\{\{(\w+)\}\}/g, (_, key) => map[key] ?? `{{${key}}}`);
-}
-
-/** Recursively substitute {{key}} in every string within a value, walking nested
- *  arrays and objects. Needed so datapoints buried in option arrays — e.g. the
- *  extended chart's `echartSeries[].datapointId`, camera slots, chips — also resolve. */
-function subDeep(value: unknown, map: Record<string, string>): unknown {
-    if (typeof value === 'string') return subAll(value, map);
-    if (Array.isArray(value)) return value.map((v) => subDeep(v, map));
-    if (value && typeof value === 'object') {
-        return Object.fromEntries(Object.entries(value).map(([k, v]) => [k, subDeep(v, map)]));
-    }
-    return value;
-}
-
-function substituteWidget(w: WidgetConfig, map: Record<string, string>): WidgetConfig {
-    if (Object.keys(map).length === 0) return w;
-    return {
-        ...w,
-        datapoint: subAll(w.datapoint, map),
-        title: subAll(w.title, map),
-        options: w.options ? (subDeep(w.options, map) as WidgetConfig['options']) : w.options,
-    };
-}
 
 /**
  * Build an `options` patch for persisting an in-popup widget edit (e.g. adding a
@@ -383,22 +355,8 @@ export function TabEmbedBody({ viewId, triggerWidget, dpOverride }: Props) {
     }
 
     // Main DP: explicit override (click action) wins over the trigger widget's own datapoint.
-    const mainDp = dpOverride || triggerWidget?.datapoint || '';
-    const subMap: Record<string, string> = {
-        // String options of the trigger widget become {{key}} placeholders…
-        ...Object.fromEntries(
-            Object.entries(triggerWidget?.options ?? {}).filter((e): e is [string, string] => typeof e[1] === 'string'),
-        ),
-    };
-    // …and the derived DP variables always take precedence.
-    if (mainDp) {
-        subMap.dp = mainDp;
-        const lastDot = mainDp.lastIndexOf('.');
-        if (lastDot > 0) {
-            subMap.parent = mainDp.slice(0, lastDot); // parent strang, e.g. 0_userdata.0
-            subMap.name = mainDp.slice(lastDot + 1); // last segment, e.g. Anzeige
-        }
-    }
+    const mainDp = popupMainDp(triggerWidget, dpOverride);
+    const subMap = buildPopupSubMap(triggerWidget, mainDp);
 
     // Popup charts inherit the trigger's history adapter instance when they have none.
     const triggerInstance = triggerHistoryInstance(triggerWidget);
