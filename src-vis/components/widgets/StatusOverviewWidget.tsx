@@ -37,6 +37,7 @@ import {
 } from '../../utils/statusOverview';
 import { formatItemName } from '../../utils/nameFilter';
 import { useRowPopup } from '../../hooks/useRowPopup';
+import { DynamicTitle } from './DynamicTitle';
 
 /** Per-category icon + label used in section headers and rows. */
 const CATEGORY_META: Record<CategoryKey, { Icon: LucideIcon; label: string }> = {
@@ -321,7 +322,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         className="aura-widget-title text-xs font-semibold truncate"
                         style={{ color: 'var(--text-secondary)' }}
                     >
-                        {config.title}
+                        <DynamicTitle text={config.title} />
                     </p>
                 )}
                 {chip}
@@ -382,7 +383,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                     className="aura-widget-title text-xs font-semibold truncate"
                     style={{ color: 'var(--text-secondary)' }}
                 >
-                    {config.title}
+                    <DynamicTitle text={config.title} />
                 </p>
             ) : (
                 <span />

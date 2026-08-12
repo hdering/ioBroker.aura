@@ -22,6 +22,11 @@ const PLACEHOLDER_DOCS: { token: string; example: string; desc: string }[] = [
     { token: '{{dp}}', example: 'alias.0.Heizung.Bad.TSOLL', desc: 'Haupt-Datenpunkt (voll)' },
     { token: '{{parent}}', example: 'alias.0.Heizung.Bad', desc: 'Eltern-Strang (ohne letztes Segment)' },
     { token: '{{name}}', example: 'TSOLL', desc: 'Letztes Segment' },
+    {
+        token: '[[dp]]',
+        example: '21.5',
+        desc: 'Wert des Datenpunkts (nur im Widget-Titel von Listen und Statusübersicht)',
+    },
 ];
 
 /** Concrete usage scenarios — what to type, in which field, and what comes out.
@@ -51,6 +56,11 @@ const PLACEHOLDER_SCENARIOS: { value: string; field: string; result: string }[] 
         value: '{{name}}',
         field: 'Widget-Titel',
         result: 'TSOLL',
+    },
+    {
+        value: '[[{{parent}}.TIST]] °C',
+        field: 'Widget-Titel einer Liste / Statusübersicht',
+        result: '21.5 °C (live)',
     },
 ];
 
@@ -285,6 +295,17 @@ export function PopupViewEditor() {
                             <span className="font-mono" style={{ color: 'var(--text-primary)' }}>
                                 {EXAMPLE_MAIN_DP}
                             </span>
+                        </p>
+                        <p className="mb-2" style={{ opacity: 0.8 }}>
+                            <span className="font-mono" style={{ color: 'var(--text-primary)' }}>
+                                {'{{…}}'}
+                            </span>{' '}
+                            ersetzt einmalig <em>Text</em>.{' '}
+                            <span className="font-mono" style={{ color: 'var(--text-primary)' }}>
+                                {'[[…]]'}
+                            </span>{' '}
+                            liest im Widget-Titel dagegen laufend den <em>Wert</em> des Datenpunkts. Beides kombinierbar
+                            — die Text-Ersetzung läuft zuerst.
                         </p>
                         <table className="border-collapse" style={{ width: 'auto' }}>
                             <thead>

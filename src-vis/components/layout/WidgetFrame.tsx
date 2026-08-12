@@ -224,6 +224,9 @@ import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigSt
 const NO_CONDITIONS: WidgetCondition[] = [];
 const NO_BADGES: BadgeDef[] = [];
 
+/** Widget types whose title resolves `[[dp]]` tokens to live values (components/widgets/DynamicTitle). */
+const DP_TOKEN_TITLE_TYPES = new Set<string>(['list', 'autolist', 'statusoverview']);
+
 // ── Edit-Dialog Template (siehe widget-config-template.md) ──────────────────
 // Single source of truth for "which widget gets which visible-field toggle in
 // the Darstellung block". Adding a new widget type only needs an entry here
@@ -7265,6 +7268,16 @@ export function WidgetFrame({
                                     border: '1px solid var(--app-border)',
                                 }}
                             />
+                            {/* Live value tokens are wired in these widgets only (see DynamicTitle),
+                                so the hint appears exactly where it works. */}
+                            {DP_TOKEN_TITLE_TYPES.has(config.type) && (
+                                <p
+                                    className="text-[10px] mt-1 leading-tight"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                >
+                                    {t('wf.edit.nameDpToken')}
+                                </p>
+                            )}
                         </div>
                         <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>

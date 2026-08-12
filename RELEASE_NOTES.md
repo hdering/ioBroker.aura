@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+
+- List, dynamic list and status overview - the widget name resolves [[dp.id]] to that datapoint's live value, e.g. "Living room [[0_userdata.0.Temp]] °C"; inside a popup view it combines with {{parent}}

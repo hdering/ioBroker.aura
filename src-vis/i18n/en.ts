@@ -758,6 +758,8 @@ export const en: Record<TranslationKey, string> = {
 
     'wf.edit.title': 'Edit Widget',
     'wf.edit.name': 'Name',
+    'wf.edit.nameDpToken':
+        '[[dp.id]] in the name shows that datapoint’s value, e.g. "Living room [[0_userdata.0.Temp]] °C".',
     'wf.edit.hideName': 'Hide Name',
     'wf.edit.titlePosition': 'Title Position',
     'wf.edit.showLastChange': 'Show Last Change',

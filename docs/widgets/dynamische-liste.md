@@ -125,6 +125,8 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `wrapText` | `false` | lange Labels/Werte umbrechen statt abschneiden |
 | `labelMinPercent` | `50` | min. Breite des Labels in % (nur bei `wrapText`) |
 
+Der Widget-Name löst `[[<dp>]]` zum Wert des Datenpunkts auf, z. B. `Wohnzimmer [[0_userdata.0.Temp]] °C`. In einer [Popup-View](../einstellungen/popups#platzhalter) kombinierbar mit `{{parent}}`.
+
 ### Werte & Farben
 
 | Option | Standard | |

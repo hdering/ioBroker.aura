@@ -17,6 +17,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
 import { StatLine } from './StatLine';
+import { DynamicTitle, stripDpTokens } from './DynamicTitle';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
 import {
     listEntryTarget,
@@ -1008,7 +1009,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     useEffect(() => {
         if (!opts.publishCount) return;
-        publishListCount(config.id, config.title || 'Dynamische Liste', viewCount);
+        // The published name is a plain string — [[dp]] tokens are a display feature.
+        publishListCount(config.id, stripDpTokens(config.title || '') || 'Dynamische Liste', viewCount);
     }, [opts.publishCount, viewCount, config.id, config.title]);
 
     // Aggregate (sum / avg / min / max) of numeric values from visible entries.
@@ -1134,7 +1136,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
                             >
-                                {config.title || 'Dynamische Liste'}
+                                <DynamicTitle text={config.title || 'Dynamische Liste'} />
                                 {showCount && entries.length > 0 && (
                                     <span className="ml-1 opacity-50">
                                         ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}
@@ -1274,7 +1276,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
                         }}
                     >
-                        {config.title}
+                        <DynamicTitle text={config.title} />
                     </span>
                 )}
                 {lcOverlay}

@@ -759,6 +759,8 @@ export const de = {
 
     'wf.edit.title': 'Widget bearbeiten',
     'wf.edit.name': 'Name',
+    'wf.edit.nameDpToken':
+        '[[dp.id]] im Namen zeigt den Wert des Datenpunkts, z. B. „Wohnzimmer [[0_userdata.0.Temp]] °C“.',
     'wf.edit.hideName': 'Name ausblenden',
     'wf.edit.titlePosition': 'Titel-Position',
     'wf.edit.showLastChange': 'Letzte Änderung anzeigen',

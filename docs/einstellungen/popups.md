@@ -49,6 +49,26 @@ Mitgeliefert werden `Standard: Dimmer`, `Standard: Thermostat`, `Standard: Schal
 
 `Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung) ist bewusst **kein** Widget-Typ-Standard — sie dient nur als Rückfallebene für den [Klick auf eine Listenzeile](../widgets/dynamische-liste#klick-auf-zeile) und ändert das Verhalten bestehender Widgets nicht.
 
+### Platzhalter
+
+Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
+
+| Platzhalter | ergibt | gilt in |
+| --- | --- | --- |
+| `{{dp}}` | `alias.0.Heizung.Bad.TSOLL` | jedem Feld der Popup-Widgets |
+| `{{parent}}` | `alias.0.Heizung.Bad` | jedem Feld der Popup-Widgets |
+| `{{name}}` | `TSOLL` | jedem Feld der Popup-Widgets |
+| `[[<dp>]]` | Wert des Datenpunkts | Widget-Name von Liste, dynamischer Liste, Statusübersicht |
+
+`{{…}}` ersetzt beim Öffnen einmalig Text, `[[…]]` liest laufend den Wert. Die Text-Ersetzung läuft zuerst, beides ist also kombinierbar:
+
+| eingeben | in Feld | ergibt |
+| --- | --- | --- |
+| `{{parent}}.TIST` | Datenpunkt eines Widgets | `alias.0.Heizung.Bad.TIST` |
+| `[[{{parent}}.TIST]] °C` | Widget-Name einer Liste | `21.5 °C`, live |
+
+Ein Platzhalter im Namensfeld einer Listenzeile bleibt Text — nur das Feld `Datenpunkt-ID` der Zeile wird als Datenpunkt gelesen.
+
 ## Klick-Aktion „Alle Datenpunkte des Geräts"
 
 Listet alle Datenpunkte, die unter demselben Elternobjekt, Kanal oder Gerät liegen wie der geklickte — als bedienbare Liste.
