@@ -433,11 +433,13 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 {...rowProps}
                             >
                                 <span
-                                    className="flex items-center gap-1 text-[10px] leading-tight"
+                                    className="flex items-start gap-1 text-[10px] leading-tight"
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
-                                    <Icon size={11} className="shrink-0" style={{ color }} />
-                                    <span className="truncate">
+                                    <Icon size={11} className="shrink-0 mt-px" style={{ color }} />
+                                    {/* Names wrap instead of truncating — a tile is the only place
+                                        the device name appears, so it must stay fully readable. */}
+                                    <span className="min-w-0 break-words">
                                         {formatItemName(item, opts.namePattern, opts.nameFilters)}
                                     </span>
                                 </span>
@@ -477,7 +479,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         return (
                             <span
                                 key={item.id}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium max-w-full"
                                 style={{
                                     background: alert
                                         ? (customBg ?? `color-mix(in srgb, ${color} 14%, transparent)`)
@@ -489,7 +491,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 {...rowProps}
                             >
                                 <Icon size={11} className="shrink-0" style={{ color }} />
-                                <span className="truncate max-w-[120px]">
+                                {/* Full name, wrapped if needed — the pill grows with its label and
+                                    is capped at the container width (max-w-full above). */}
+                                <span className="min-w-0 break-words">
                                     {formatItemName(item, opts.namePattern, opts.nameFilters)}
                                 </span>
                                 <span className="font-semibold" style={{ color }}>
