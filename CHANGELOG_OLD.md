@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.39.4 (2026-08-02)
+- 🌟 **New feature:** Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker ([#518](https://github.com/hdering/ioBroker.aura/issues/518))
+
 ## 0.39.3 (2026-08-02)
 - 🌟 **New feature:** Widget management now lists the widgets of all layouts and sections instead of only the active one, with a layout filter and layout/section shown per widget
 - 🌟 **New feature:** Chart (advanced) - new "Consumption (difference)" aggregation for ever-rising meters (electricity, water, gas): plots consumption per hour, day, week or month instead of the meter reading, with counter resets clamped to zero ([#521](https://github.com/hdering/ioBroker.aura/issues/521))
