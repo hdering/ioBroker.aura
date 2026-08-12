@@ -68,3 +68,14 @@
 ## Konzepte
 
 - [Custom-Layout](./custom-layout) — Widgets mit freier Zellen-Matrix gestalten
+
+## Datenpunkt-Wert im Widget-Namen
+
+Der Name jedes Widgets löst `[[<dp>]]` zum aktuellen Wert dieses Datenpunkts auf, gemischt mit festem Text:
+
+| Name | zeigt |
+| --- | --- |
+| `Wohnzimmer [[0_userdata.0.Temp]] °C` | `Wohnzimmer 21.5 °C` |
+| `[[0_userdata.0.Status]]` | den Inhalt des Datenpunkts |
+
+Mehrere Tokens pro Name sind erlaubt, JSON-Pfade (`[[dp?battery.soc]]`) ebenfalls; Booleans erscheinen als `AN` / `AUS`. In einer [Popup-View](../einstellungen/popups#platzhalter) kombinierbar mit `{{parent}}`.

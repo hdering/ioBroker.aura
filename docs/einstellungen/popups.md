@@ -58,14 +58,14 @@ Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
 | `{{dp}}` | `alias.0.Heizung.Bad.TSOLL` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `{{parent}}` | `alias.0.Heizung.Bad` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `{{name}}` | `TSOLL` | jedem Feld der Popup-Widgets · Popup-Titel |
-| `[[<dp>]]` | Wert des Datenpunkts | Popup-Titel · Widget-Name von Liste, dynamischer Liste, Statusübersicht |
+| `[[<dp>]]` | Wert des Datenpunkts | Popup-Titel · Widget-Name (jedes Widget) |
 
 `{{…}}` ersetzt beim Öffnen einmalig Text, `[[…]]` liest laufend den Wert. Die Text-Ersetzung läuft zuerst, beides ist also kombinierbar:
 
 | eingeben | in Feld | ergibt |
 | --- | --- | --- |
 | `{{parent}}.TIST` | Datenpunkt eines Widgets | `alias.0.Heizung.Bad.TIST` |
-| `[[{{parent}}.TIST]] °C` | Widget-Name einer Liste | `21.5 °C`, live |
+| `[[{{parent}}.TIST]] °C` | Widget-Name | `21.5 °C`, live |
 | `{{name}} · [[{{parent}}.TIST]] °C` | Popup-Titel | `TSOLL · 21.5 °C`, live |
 
 Beim Klick auf eine Listenzeile ist der Haupt-Datenpunkt die geklickte Zeile — ein Popup-Titel mit Platzhaltern gilt damit für alle Zeilen.

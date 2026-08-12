@@ -8,6 +8,7 @@ import { widgetSourceCtx } from '../../../utils/conditionSources';
 import { getWidgetMap } from '../widgetMap';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import { buildPopupSubMap, popupMainDp, substituteWidget } from '../../../utils/popupPlaceholders';
+import { useResolvedTitle } from '../DynamicTitle';
 import type { WidgetConfig, WidgetCondition } from '../../../types';
 
 const DEFAULT_MARGIN = 10;
@@ -209,6 +210,12 @@ function PopupWidgetCell({
 }) {
     const wm = getWidgetMap();
     const Widget = wm[w.type as keyof typeof wm];
+    // `[[dp]]` tokens in the title resolve here, at the render boundary, so every
+    // widget type gets them without wiring anything up itself. Edits are persisted
+    // against the pre-substitution original (see the caller), so the resolved value
+    // never leaks back into the stored view.
+    const resolvedTitle = useResolvedTitle(w.title);
+    const rendered = resolvedTitle === w.title ? w : { ...w, title: resolvedTitle };
 
     const effectClass =
         cond.effect === 'pulse'
@@ -243,7 +250,7 @@ function PopupWidgetCell({
         >
             {Widget ? (
                 <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                    <Widget config={w} editMode={false} onConfigChange={onConfigChange} />
+                    <Widget config={rendered} editMode={false} onConfigChange={onConfigChange} />
                 </Suspense>
             ) : (
                 <div

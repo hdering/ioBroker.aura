@@ -217,15 +217,13 @@ import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
+import { useResolvedTitle } from '../widgets/DynamicTitle';
 import { useNavigationStore } from '../../store/navigationStore';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigStore';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
 const NO_CONDITIONS: WidgetCondition[] = [];
 const NO_BADGES: BadgeDef[] = [];
-
-/** Widget types whose title resolves `[[dp]]` tokens to live values (components/widgets/DynamicTitle). */
-const DP_TOKEN_TITLE_TYPES = new Set<string>(['list', 'autolist', 'statusoverview']);
 
 // ── Edit-Dialog Template (siehe widget-config-template.md) ──────────────────
 // Single source of truth for "which widget gets which visible-field toggle in
@@ -6089,6 +6087,10 @@ export function WidgetFrame({
 
     const menuBtnRef = useRef<HTMLButtonElement>(null);
     const Widget = getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
+    // `[[dp]]` tokens in the name resolve here, at the render boundary, so every widget
+    // type shows live values without wiring anything up itself. Only the rendered copy
+    // is substituted — the edit dialog and every onConfigChange keep the raw title.
+    const resolvedTitle = useResolvedTitle(config.title);
     const currentLayout = config.layout ?? 'default';
     const overrides = config.options?.styleOverride as Record<string, string> | undefined;
 
@@ -6584,7 +6586,13 @@ export function WidgetFrame({
                         enabled={!editMode && isWidgetTrackingEnabled()}
                     >
                         <Widget
-                            config={config.options?.hideTitle ? { ...config, title: '' } : config}
+                            config={
+                                config.options?.hideTitle
+                                    ? { ...config, title: '' }
+                                    : resolvedTitle === config.title
+                                      ? config
+                                      : { ...config, title: resolvedTitle }
+                            }
                             editMode={editMode}
                             onConfigChange={onConfigChange}
                             onLastChange={setLastChangedTs}
@@ -7268,16 +7276,12 @@ export function WidgetFrame({
                                     border: '1px solid var(--app-border)',
                                 }}
                             />
-                            {/* Live value tokens are wired in these widgets only (see DynamicTitle),
-                                so the hint appears exactly where it works. */}
-                            {DP_TOKEN_TITLE_TYPES.has(config.type) && (
-                                <p
-                                    className="text-[10px] mt-1 leading-tight"
-                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                >
-                                    {t('wf.edit.nameDpToken')}
-                                </p>
-                            )}
+                            <p
+                                className="text-[10px] mt-1 leading-tight"
+                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                            >
+                                {t('wf.edit.nameDpToken')}
+                            </p>
                         </div>
                         <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>

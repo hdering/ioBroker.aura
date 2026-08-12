@@ -16,7 +16,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
 import { StatLine } from './StatLine';
-import { DynamicTitle, stripDpTokens } from './DynamicTitle';
+import { stripDpTokens } from './DynamicTitle';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
 import {
     listEntryTarget,
@@ -705,8 +705,12 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     useEffect(() => {
         if (!opts.publishCount) return;
         // The published name is a plain string — [[dp]] tokens are a display feature.
+        // `config.title` is deliberately NOT a dependency: it only names the object on
+        // the first publish, and a title with a live token would otherwise re-fire this
+        // effect (and rewrite the unchanged count) on every value change.
         publishListCount(config.id, stripDpTokens(config.title || '') || 'Statische Liste', viewCount);
-    }, [opts.publishCount, viewCount, config.id, config.title]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [opts.publishCount, viewCount, config.id]);
 
     // Aggregate (sum / avg / min / max) of numeric values from visible entries.
     const sumInfo = useMemo(
@@ -850,7 +854,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     flex: statsAlign === 'left' ? '0 1 auto' : '1 1 auto',
                                 }}
                             >
-                                <DynamicTitle text={config.title || 'Statische Liste'} />
+                                {config.title || 'Statische Liste'}
                                 {showCount && entries.length > 0 && (
                                     <span className="ml-1 opacity-50">
                                         ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}

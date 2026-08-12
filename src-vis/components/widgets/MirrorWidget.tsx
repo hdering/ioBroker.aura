@@ -3,6 +3,7 @@ import { AlertTriangle, CopyPlus } from 'lucide-react';
 import type { WidgetConfig, WidgetProps } from '../../types';
 import { getWidgetMap } from './widgetMap';
 import { useDashboardStore } from '../../store/dashboardStore';
+import { useResolvedTitle } from './DynamicTitle';
 
 /** Small centered notice card used for the mirror's various "cannot render" states. */
 function Notice({ icon, title, detail }: { icon: React.ReactNode; title: string; detail?: string }) {
@@ -35,6 +36,15 @@ export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
 
     const targetId = config.options?.targetWidgetId as string | undefined;
 
+    // Resolve the source live from the whole dashboard (every layout/section/tab).
+    // Done before the early returns below so the hook order stays stable.
+    const allWidgets: WidgetConfig[] = layouts.flatMap((l) =>
+        l.sections.flatMap((sec) => sec.tabs.flatMap((t) => t.widgets)),
+    );
+    const target = targetId && targetId !== config.id ? allWidgets.find((w) => w.id === targetId) : undefined;
+    // `[[dp]]` in the title resolves at every render boundary (same as WidgetFrame).
+    const resolvedTitle = useResolvedTitle(target?.title ?? '');
+
     if (!targetId) {
         return editMode ? (
             <Notice
@@ -56,12 +66,6 @@ export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
             />
         );
     }
-
-    // Resolve the source live from the whole dashboard (every layout/section/tab).
-    const allWidgets: WidgetConfig[] = layouts.flatMap((l) =>
-        l.sections.flatMap((sec) => sec.tabs.flatMap((t) => t.widgets)),
-    );
-    const target = allWidgets.find((w) => w.id === targetId);
 
     if (!target) {
         return (
@@ -91,7 +95,7 @@ export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
     }
 
     // Take the source's content but keep the mirror's own placement.
-    const mirroredConfig: WidgetConfig = { ...target, gridPos: config.gridPos };
+    const mirroredConfig: WidgetConfig = { ...target, title: resolvedTitle, gridPos: config.gridPos };
 
     return (
         <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>

@@ -5,6 +5,7 @@ import type { WidgetConfig, ClickAction } from '../../../types';
 import { getWidgetMap } from '../widgetMap';
 import { useDashboardStore } from '../../../store/dashboardStore';
 import { useConfigStore } from '../../../store/configStore';
+import { useResolvedTitle } from '../DynamicTitle';
 
 interface Props {
     widget: WidgetConfig;
@@ -19,6 +20,8 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
     const gridGap = useConfigStore((s) => s.frontend.gridGap ?? 10);
     const targetId = action.widgetId;
     const target: WidgetConfig = targetId ? (allWidgets.find((w) => w.id === targetId) ?? widget) : widget;
+    // `[[dp]]` in the title resolves at every render boundary (same as WidgetFrame).
+    const resolvedTitle = useResolvedTitle(target.title);
 
     if (targetId && !allWidgets.find((w) => w.id === targetId)) {
         return (
@@ -50,6 +53,7 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
 
     const embedConfig: WidgetConfig = {
         ...target,
+        title: resolvedTitle,
         gridPos: { x: 0, y: 0, w: 6, h: 6 },
     };
 
