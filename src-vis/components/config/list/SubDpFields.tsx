@@ -9,6 +9,10 @@
  * Datapoints from the same device are offered as a dropdown (battery, RSSI, setpoint
  * are almost always siblings of the main one) — the object browser stays available
  * for everything else.
+ *
+ * `templateMode` reuses the very same editor for the dynamic list's list-wide
+ * template: picked siblings are stored as `{{parent}}.BATTERY` so one configuration
+ * applies to every discovered row (see utils/subDpTemplate).
  */
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, Database, Plus, Trash2, X } from 'lucide-react';
@@ -21,6 +25,8 @@ import { ValueTransformButton } from '../ValueTransformButton';
 import { ColorField } from './listFieldUi';
 import { ensureDatapointCache, lookupDatapointEntry, type DatapointEntry } from '../../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
+import { subAll } from '../../../utils/popupPlaceholders';
+import { subDpTokenMap, toSubDpTemplateId } from '../../../utils/subDpTemplate';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -45,13 +51,18 @@ export function SubDpFields({
     subDps,
     mainDpId,
     listHasTransform,
+    templateMode,
     onChange,
 }: {
     subDps: EntrySubDp[];
-    /** The entry's own datapoint — its siblings are offered as quick picks. */
+    /** The entry's own datapoint — its siblings are offered as quick picks. In
+     *  `templateMode` any entry of the list serves as that sample. */
     mainDpId: string;
     /** The list carries a conversion of its own, so "Keine" must mean "off here". */
     listHasTransform: boolean;
+    /** Store picked siblings as `{{parent}}.<segment>` and preview what they resolve
+     *  to for `mainDpId`. Used by the dynamic list's list-wide template. */
+    templateMode?: boolean;
     onChange: (next: EntrySubDp[] | undefined) => void;
 }) {
     // Index-keyed, not id-keyed: a row may briefly hold an empty or duplicate id while
@@ -69,7 +80,10 @@ export function SubDpFields({
             });
     }, []);
 
-    const usedIds = subDps.map((s) => s.id);
+    // In template mode the stored ids carry tokens, so both the duplicate check and
+    // the sibling list have to compare against what they resolve to for the sample.
+    const resolveId = (id: string) => (templateMode && mainDpId ? subAll(id, subDpTokenMap(mainDpId)) : id);
+    const usedIds = subDps.map((s) => resolveId(s.id));
     const siblings = useMemo(() => {
         if (!cache || !mainDpId) return [];
         const parent = mainDpId.split('.').slice(0, -1).join('.');
@@ -102,10 +116,15 @@ export function SubDpFields({
     };
     // Pre-fill the unit from the object's common.unit like the entry picker does —
     // a bare "87" with no % is the first thing users would fix by hand otherwise.
+    // In template mode the unit comes from the sample device and stands in for the
+    // others; the widget fills it in per row where it is still empty.
     const add = (picks: { id: string; unit?: string }[]) => {
         const fresh = picks
             .filter((p) => !!p.id && !usedIds.includes(p.id))
-            .map<EntrySubDp>((p) => ({ id: p.id, unit: p.unit || lookupDatapointEntry(p.id)?.unit || undefined }));
+            .map<EntrySubDp>((p) => ({
+                id: templateMode ? toSubDpTemplateId(p.id, mainDpId) : p.id,
+                unit: p.unit || lookupDatapointEntry(p.id)?.unit || undefined,
+            }));
         if (!fresh.length) return;
         commit([...subDps, ...fresh]);
         // Open the new one right away: position and unit are what users set next.
@@ -181,28 +200,44 @@ export function SubDpFields({
                                 style={{ borderTop: '1px solid var(--app-border)' }}
                             >
                                 {/* Datenpunkt + Umrechnung */}
-                                <div className="flex gap-1 pt-1.5">
-                                    <input
-                                        type="text"
-                                        value={sub.id}
-                                        onChange={(e) => patch(i, { id: e.target.value })}
-                                        title={sub.id}
-                                        placeholder="Datenpunkt-ID"
-                                        className="flex-1 min-w-0 text-[10px] rounded px-2 py-1 font-mono focus:outline-none"
-                                        style={iSty}
-                                    />
-                                    <ValueTransformButton
-                                        factor={sub.valueFactor}
-                                        offset={sub.valueOffset}
-                                        presetId={sub.valueTransform}
-                                        timeFormat={sub.valueTimeFormat}
-                                        timePattern={sub.valueTimePattern}
-                                        allowTimeFormat
-                                        explicitNone={listHasTransform}
-                                        dpId={sub.id}
-                                        size={12}
-                                        onPatch={(p) => patch(i, p)}
-                                    />
+                                <div className="pt-1.5">
+                                    <div className="flex gap-1">
+                                        <input
+                                            type="text"
+                                            value={sub.id}
+                                            onChange={(e) => patch(i, { id: e.target.value })}
+                                            title={sub.id}
+                                            placeholder={templateMode ? '{{parent}}.BATTERY' : 'Datenpunkt-ID'}
+                                            className="flex-1 min-w-0 text-[10px] rounded px-2 py-1 font-mono focus:outline-none"
+                                            style={iSty}
+                                        />
+                                        <ValueTransformButton
+                                            factor={sub.valueFactor}
+                                            offset={sub.valueOffset}
+                                            presetId={sub.valueTransform}
+                                            timeFormat={sub.valueTimeFormat}
+                                            timePattern={sub.valueTimePattern}
+                                            allowTimeFormat
+                                            explicitNone={listHasTransform}
+                                            dpId={resolveId(sub.id)}
+                                            size={12}
+                                            onPatch={(p) => patch(i, p)}
+                                        />
+                                    </div>
+                                    {/* What the tokens resolve to for the sample entry — a typo in the
+                                        pattern is otherwise invisible until the list renders. */}
+                                    {templateMode && !!mainDpId && (
+                                        <p
+                                            className="text-[9px] mt-0.5 font-mono truncate"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            title={resolveId(sub.id)}
+                                        >
+                                            → {resolveId(sub.id) || '…'}
+                                            {cache && sub.id && !cache.some((e) => e.id === resolveId(sub.id))
+                                                ? ' (am Beispiel nicht vorhanden)'
+                                                : ''}
+                                        </p>
+                                    )}
                                 </div>
 
                                 {/* Icon + Bezeichnung */}
@@ -363,7 +398,9 @@ export function SubDpFields({
                     title={
                         siblings.length === 0
                             ? 'Keine weiteren Datenpunkte am selben Gerät'
-                            : 'Datenpunkt des gleichen Geräts hinzufügen'
+                            : templateMode
+                              ? 'Datenpunkt des Beispiel-Geräts als Muster übernehmen'
+                              : 'Datenpunkt des gleichen Geräts hinzufügen'
                     }
                 >
                     <option value="">
@@ -380,7 +417,11 @@ export function SubDpFields({
                 </select>
                 <button
                     onClick={() => setPickerOpen(true)}
-                    title="Anderen Datenpunkt aus ioBroker wählen"
+                    title={
+                        templateMode
+                            ? 'Anderen Datenpunkt aus ioBroker wählen (bleibt absolut und gilt für alle Zeilen)'
+                            : 'Anderen Datenpunkt aus ioBroker wählen'
+                    }
                     className="px-2 rounded hover:opacity-80 shrink-0 flex items-center justify-center"
                     style={{ ...iSty, color: 'var(--text-secondary)' }}
                 >

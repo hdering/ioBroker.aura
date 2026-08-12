@@ -58,7 +58,8 @@ direkt an; der Objektbaum-Button daneben holt jeden anderen.
 | `valueTransform` / `valueFactor` / `valueOffset` / `valueTimeFormat` / `valueTimePattern` | Liste | eigene [Wert-Umrechnung](#wert-umrechnung-zeit) pro Zusatz-Datenpunkt |
 
 Layouts `default` · `card` · `compact` zeigen die zweite Zeile. Das Badges-Layout (`minimal`) nicht —
-dort ist eine Zeile eine Pille. Nur statische Liste.
+dort ist eine Zeile eine Pille. Die [dynamische Liste](./dynamische-liste#zweite-zeile-zusatzliche-datenpunkte)
+kennt dieselben Felder, zusätzlich als Vorlage für alle Einträge.
 
 ### Wert-Umrechnung / Zeit
 

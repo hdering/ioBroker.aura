@@ -1,4 +1,5 @@
-// Verifies the second line of the static list: extra datapoints per entry.
+// Verifies the second line of both lists: extra datapoints per entry (static and
+// dynamic), plus the dynamic list's list-wide template with {{parent}} & co.
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/list-subdps.mjs
@@ -11,6 +12,10 @@
 // badges layout, each one lands in its configured slot (left/centre/right),
 // label/icon/unit/decimals/font size are applied, the value conversion works per
 // datapoint and inherits the list-wide default, and a row click still opens.
+// For the dynamic list additionally: per-entry datapoints render the same way, the
+// template resolves {{parent}} per row, an entry's own list replaces the template,
+// rows whose resolved datapoint has no value are dropped (and shown as a dash once
+// subDpTemplateHideMissing is off), and absolute template ids apply to every row.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -212,6 +217,114 @@ await show('default', {
     // Same locator the row-popup harness uses for the popup layer.
     const count = await page.locator('div[class*="z-[300]"]').count();
     check('clicking the second line opens the row popup', count === 1, `count=${count}`);
+}
+
+// ── 9. Dynamic list: per-entry datapoints render like the static ones ─────────
+// Same widget config shape, type 'autolist'. No filter is set, so the periodic
+// discovery sync stays a no-op and the entries are exactly what we hand in.
+async function showAuto(layout, { entries, options = {}, values }) {
+    const widget = {
+        id: 'w-autolist',
+        type: 'autolist',
+        title: 'Dynamische Testliste',
+        datapoint: '',
+        layout,
+        gridPos: { x: 0, y: 0, w: 12, h: 8 },
+        options: { entries, ...options },
+    };
+    await page.evaluate(
+        ([w, vals]) => {
+            window.__auraShot.mock(vals);
+            window.__auraShot.mockServerState(vals);
+            window.__auraShot.showWidgets([w]);
+        },
+        [widget, values],
+    );
+    await page.waitForTimeout(400);
+}
+
+/** Text of every second line in the widget, in DOM order. */
+const allSubLines = () =>
+    page.evaluate(() =>
+        [...document.querySelectorAll('.aura-entry-subline')].map((el) => el.innerText.replace(/\s+/g, ' ').trim()),
+    );
+
+const AUTO_VALUES = { ...TEMP, 'other.temp': 19 };
+// Two entries in different strangs: only the first one has a sibling battery value.
+const autoEntries = (extra = {}) => [
+    { id: 'demo.temp', label: 'Wohnzimmer', unit: '°C', displayType: 'value', decimals: 1, ...(extra.first ?? {}) },
+    { id: 'other.temp', label: 'Bad', unit: '°C', displayType: 'value', decimals: 1, ...(extra.second ?? {}) },
+];
+
+for (const layout of ['default', 'card', 'compact']) {
+    await showAuto(layout, {
+        entries: [{ ...autoEntries()[0], subDps: [{ id: 'demo.batt', label: 'Batt', unit: '%', decimals: 0 }] }],
+        values: AUTO_VALUES,
+    });
+    const text = await widgetText();
+    check(`autolist ${layout} shows the extra value`, text.includes('Batt 87 %'), text);
+}
+
+await showAuto('minimal', {
+    entries: [{ ...autoEntries()[0], subDps: [{ id: 'demo.batt', label: 'Batt', unit: '%', decimals: 0 }] }],
+    values: AUTO_VALUES,
+});
+{
+    const text = await widgetText();
+    check('autolist badges layout ignores the second line', !text.includes('Batt'), text);
+}
+
+// ── 10. Template: {{parent}} resolved per row, rows without the DP dropped ────
+await showAuto('default', {
+    entries: autoEntries(),
+    options: { subDpTemplate: [{ id: '{{parent}}.batt', label: 'Batt', unit: '%', decimals: 0 }] },
+    values: AUTO_VALUES,
+});
+{
+    const lines = await allSubLines();
+    check('template resolves {{parent}} for the row', lines[0] === 'Batt 87 %', JSON.stringify(lines));
+    check('row without the resolved datapoint has no second line', lines.length === 1, JSON.stringify(lines));
+}
+
+// ── 11. An entry's own datapoints replace the template ───────────────────────
+await showAuto('default', {
+    entries: autoEntries({
+        first: { subDps: [{ id: 'demo.rssi', label: 'RSSI', decimals: 0 }] },
+    }),
+    options: { subDpTemplate: [{ id: '{{parent}}.batt', label: 'Batt', unit: '%', decimals: 0 }] },
+    values: AUTO_VALUES,
+});
+{
+    const lines = await allSubLines();
+    check('own datapoints win over the template', lines[0] === 'RSSI -62', JSON.stringify(lines));
+    check('template is not appended to them', !lines[0]?.includes('Batt'), JSON.stringify(lines));
+}
+
+// ── 12. subDpTemplateHideMissing off keeps the dash ──────────────────────────
+await showAuto('default', {
+    entries: autoEntries(),
+    options: {
+        subDpTemplate: [{ id: '{{parent}}.batt', label: 'Batt', unit: '%', decimals: 0 }],
+        subDpTemplateHideMissing: false,
+    },
+    values: AUTO_VALUES,
+});
+{
+    const lines = await allSubLines();
+    check('hideMissing off renders both rows', lines.length === 2, JSON.stringify(lines));
+    check('the missing datapoint shows a dash', lines[1]?.includes('–'), JSON.stringify(lines));
+}
+
+// ── 13. A template id without tokens applies to every row ────────────────────
+await showAuto('default', {
+    entries: autoEntries(),
+    options: { subDpTemplate: [{ id: 'demo.rssi', label: 'RSSI', decimals: 0 }] },
+    values: AUTO_VALUES,
+});
+{
+    const lines = await allSubLines();
+    check('absolute template id reaches every row', lines.length === 2, JSON.stringify(lines));
+    check('both rows show the same value', lines[0] === 'RSSI -62' && lines[1] === 'RSSI -62', JSON.stringify(lines));
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));

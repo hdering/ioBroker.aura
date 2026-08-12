@@ -44,9 +44,36 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Suchen & Filter | Datenpunkt-Suche, Ausschlüsse, Trefferliste, Übernehmen — dazu Sync-Intervall und „Nur relevante DPs" |
 | Einträge | Gefundene Datenpunkte; rechts der Detail-Editor (Bezeichnung, Einheit, Darstellung, Farben) |
 | Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
+| Zweite Zeile | Vorlage für zusätzliche Datenpunkte in allen Zeilen (siehe unten) |
 | Namen | Namensmuster und Namens-Filter |
 
-Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Verhalten** (letzte Änderung, Klick auf Zeile).
+Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Zweite Zeile** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Verhalten** (letzte Änderung, Klick auf Zeile).
+
+### Zweite Zeile (zusätzliche Datenpunkte)
+
+Zusätzliche Datenpunkte unter dem Wert einer Zeile — Batterie, Signalstärke, Sollwert. **Nur Anzeige**, kein Schreiben. Felder, Plätze (links/mitte/rechts) und Formatierung wie bei der [statischen Liste](./liste#zweite-zeile-zusatzliche-datenpunkte). Layouts `default` · `card` · `compact`, nicht `minimal`.
+
+Zwei Quellen, pro Eintrag gesetzte Datenpunkte gewinnen:
+
+| Quelle | |
+| --- | --- |
+| `subDpTemplate` | Dialog → Tab **Zweite Zeile**: gilt für **alle** Einträge |
+| `entries[].subDps` | Detail-Editor → Abschnitt **Zweite Zeile**: ersetzt die Vorlage für diese Zeile |
+
+In der Vorlage darf die Datenpunkt-ID Platzhalter enthalten, aufgelöst gegen den Datenpunkt der jeweiligen Zeile:
+
+| Platzhalter | |
+| --- | --- |
+| `{{parent}}` | ID ohne letztes Segment, z. B. `{{parent}}.BATTERY` |
+| `{{dp}}` | vollständige ID der Zeile |
+| `{{name}}` | letztes Segment der ID |
+
+Ohne Platzhalter gilt derselbe Datenpunkt für jede Zeile (Außentemperatur, Strompreis). Ein Beispiel-Eintrag im Tab liefert die Auswahl der Geschwister-Datenpunkte und die Vorschau der aufgelösten IDs.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `subDpTemplate` | — | Vorlage für alle Einträge |
+| `subDpTemplateHideMissing` | `true` | Zeilen ohne den aufgelösten Datenpunkt bleiben leer statt `–` zu zeigen |
 
 ### Datenpunkt-Suche
 

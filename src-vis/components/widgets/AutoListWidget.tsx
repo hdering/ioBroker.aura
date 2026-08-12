@@ -29,6 +29,9 @@ import {
     type GroupActionConfigOpts,
 } from '../../utils/groupTargets';
 import { GroupActionControl } from './GroupActionControl';
+import { EntrySubLine, type EntrySubDp } from './EntrySubLine';
+import { useTemplateValues } from '../../hooks/useTemplateValues';
+import { resolveSubDpTemplate } from '../../utils/subDpTemplate';
 import { useRowPopup } from '../../hooks/useRowPopup';
 import type { RowClickSetting, RowPopupOptions } from '../../utils/rowClickAction';
 import {
@@ -73,6 +76,9 @@ export interface AutoListEntry extends EntryControlConfig {
     popupTitle?: string;
     /** Title bar of this row's popup: true = hide, false = show, unset = as the list. */
     popupHideTitle?: boolean;
+    /** Extra display-only datapoints on a second line. Replaces options.subDpTemplate
+     *  for this entry; empty/unset = the template applies. */
+    subDps?: EntrySubDp[];
 }
 
 export interface AutoListOptions extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings {
@@ -154,6 +160,12 @@ export interface AutoListOptions extends GroupActionConfigOpts, RowPopupOptions,
     wrapText?: boolean;
     /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
     labelMinPercent?: number;
+    /** Second line for EVERY entry: ids may use `{{parent}}` / `{{dp}}` / `{{name}}` and
+     *  are resolved per row. An entry's own `subDps` replaces this. */
+    subDpTemplate?: EntrySubDp[];
+    /** Template rows whose resolved datapoint does not exist are left out instead of
+     *  rendering a dash (a device without BATTERY). Default true. */
+    subDpTemplateHideMissing?: boolean;
     // Group action options (groupSwitch, groupActionType, …) come from GroupActionConfigOpts.
 }
 
@@ -209,6 +221,13 @@ function isDimmerRole(role?: string) {
 function isNumericRole(role?: string) {
     const r = (role ?? '').toLowerCase();
     return r.startsWith('value.') || r === 'value' || r.startsWith('level.') || r === 'level';
+}
+
+/** The entry's own second-line datapoints, empty ids dropped. Empty = the list-wide
+ *  template applies — "own" must mean the same thing everywhere or an entry can end up
+ *  counted as configured while rendering the template. */
+function ownSubDps(entry: AutoListEntry): EntrySubDp[] {
+    return (entry.subDps ?? []).filter((s) => !!s?.id);
 }
 
 export function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
@@ -830,6 +849,94 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // Row click -> detail popup for that datapoint (issue #524).
     const rowPopup = useRowPopup(config, opts, editMode);
 
+    // ── Second line: extra datapoints per row ──────────────────────────────────
+    // Two sources, the entry's own list beating the list-wide template: hand-picked
+    // datapoints on a single entry, or the template resolved against each row's own
+    // datapoint ({{parent}}.BATTERY & co.). The template is what makes this usable on
+    // a list whose rows come from a filter - see utils/subDpTemplate.
+    const subDpTemplate = opts.subDpTemplate;
+    const entrySubDps = useMemo(() => {
+        const map = new Map<string, EntrySubDp[]>();
+        for (const e of entries) {
+            const own = ownSubDps(e);
+            map.set(e.id, own.length ? own : resolveSubDpTemplate(subDpTemplate, e.id));
+        }
+        return map;
+    }, [entries, subDpTemplate]);
+    // Outside the entry subscription above: second-line datapoints never take part in
+    // filtering, sorting or the statistics line, so they get their own read-only
+    // subscription (the same hook the value widget uses for its template datapoints).
+    const subDpRefs = useMemo(() => [...new Set([...entrySubDps.values()].flat().map((s) => s.id))], [entrySubDps]);
+    const subValues = useTemplateValues(subDpRefs);
+    // Metadata of the datapoints a TEMPLATE resolved to. Two jobs: it tells apart
+    // "datapoint exists" from "device does not have it" (so a thermostat without
+    // BATTERY does not add a dash to its row), and it supplies the unit the template
+    // itself cannot know per device. Hand-picked subDps skip this - the user named
+    // that exact datapoint and gets a dash if it is missing, like in the static list.
+    const templateIds = useMemo(
+        () =>
+            subDpTemplate?.length
+                ? [
+                      ...new Set(
+                          entries
+                              .filter((e) => ownSubDps(e).length === 0)
+                              .flatMap((e) => (entrySubDps.get(e.id) ?? []).map((s) => s.id)),
+                      ),
+                  ]
+                : [],
+        [entries, entrySubDps, subDpTemplate],
+    );
+    const templateIdKey = templateIds.join(',');
+    const [templateMeta, setTemplateMeta] = useState<Record<string, { unit?: string }>>({});
+    useEffect(() => {
+        if (!templateIdKey) {
+            setTemplateMeta({});
+            return;
+        }
+        let cancelled = false;
+        ensureDatapointCache()
+            .then((cache) => {
+                if (cancelled) return;
+                const byId = new Map(cache.map((c) => [c.id, c]));
+                const meta: Record<string, { unit?: string }> = {};
+                for (const id of templateIdKey.split(',')) {
+                    const found = byId.get(id);
+                    if (found) meta[id] = { unit: found.unit };
+                }
+                setTemplateMeta(meta);
+            })
+            .catch(() => {
+                /* offline - the live-value fallback below still shows what answers */
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [templateIdKey]);
+
+    const hideMissingSubDps = opts.subDpTemplateHideMissing !== false;
+    const subLineFor = (entry: AutoListEntry) => {
+        const list = entrySubDps.get(entry.id);
+        if (!list?.length) return null;
+        const own = ownSubDps(entry).length > 0;
+        // A datapoint missing from the cache but answering with a value counts as
+        // present: the cache can still be loading, and it lags fresh objects.
+        const usable =
+            own || !hideMissingSubDps
+                ? list
+                : list.filter((s) => templateMeta[s.id] !== undefined || subValues[s.id] != null);
+        if (!usable.length) return null;
+        const resolved = own ? usable : usable.map((s) => (s.unit ? s : { ...s, unit: templateMeta[s.id]?.unit }));
+        return (
+            <EntrySubLine
+                subDps={resolved}
+                values={subValues}
+                listTransform={opts}
+                decimals={decimals}
+                numFmt={numFmt}
+            />
+        );
+    };
+
     const saveOpts = useCallback(
         (patch: Partial<AutoListOptions>) => {
             onConfigChange({ ...config, options: { ...opts, ...patch } });
@@ -977,7 +1084,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const groupByRoom = !!opts.groupByRoom;
     const roomSections = useMemo<{ room: string; entries: AutoListEntry[] }[] | null>(() => {
         if (!groupByRoom) return null;
-        const NO_ROOM = ' '; // sorts/keys the no-room bucket without clashing with a real room
+        const NO_ROOM = '\u0000'; // sorts/keys the no-room bucket without clashing with a real room
         const map = new Map<string, AutoListEntry[]>();
         for (const e of visibleEntries) {
             const rooms = resolvedRooms[e.id] ?? e.rooms;
@@ -1365,6 +1472,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         listTransform={opts}
                                                     />
                                                 </div>
+                                                {subLineFor(entry)}
                                                 {opts.showRoom && entry.rooms?.length ? (
                                                     <span
                                                         className="text-[9px] truncate opacity-50"
@@ -1438,9 +1546,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         entry.popupHideTitle,
                                     );
                                     return (
+                                        // Column wrapper so the second line spans the whole cell instead
+                                        // of becoming a third flex item next to label and value.
                                         <div
                                             key={entry.id}
-                                            className={`flex gap-1.5 px-2 py-1.5 ${wrap ? 'items-start' : 'items-center'}`}
+                                            className="flex flex-col gap-1 px-2 py-1.5"
                                             style={{
                                                 background: stateBg,
                                                 borderBottom: showDividers
@@ -1454,44 +1564,47 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             }}
                                             {...rowProps}
                                         >
-                                            <div className="flex-1 min-w-0" style={labelContainerStyle}>
-                                                <span
-                                                    className={`block text-[11px] ${labelWrapCls}`}
-                                                    style={{ color: 'var(--text-primary)' }}
-                                                >
-                                                    {label}
-                                                </span>
-                                                {lcTs > 0 && (
+                                            <div className={`flex gap-1.5 ${wrap ? 'items-start' : 'items-center'}`}>
+                                                <div className="flex-1 min-w-0" style={labelContainerStyle}>
                                                     <span
-                                                        className="aura-last-change block text-[8px] truncate"
-                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                        className={`block text-[11px] ${labelWrapCls}`}
+                                                        style={{ color: 'var(--text-primary)' }}
                                                     >
-                                                        {formatLastChange(
-                                                            t as (
-                                                                k: string,
-                                                                v?: Record<string, string | number>,
-                                                            ) => string,
-                                                            lcTs,
-                                                        )}
+                                                        {label}
                                                     </span>
-                                                )}
+                                                    {lcTs > 0 && (
+                                                        <span
+                                                            className="aura-last-change block text-[8px] truncate"
+                                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                        >
+                                                            {formatLastChange(
+                                                                t as (
+                                                                    k: string,
+                                                                    v?: Record<string, string | number>,
+                                                                ) => string,
+                                                                lcTs,
+                                                            )}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <EntryValue
+                                                    entry={entry}
+                                                    val={val}
+                                                    writable={entry.writable !== false}
+                                                    setState={setState}
+                                                    thresholds={globalThresholds}
+                                                    decimals={decimals}
+                                                    numFmt={numFmt}
+                                                    activeColor={entryActiveColor}
+                                                    inactiveColor={entryInactiveColor}
+                                                    trueText={opts.trueText}
+                                                    falseText={opts.falseText}
+                                                    wrap={wrap}
+                                                    valueMaxPct={valueMaxPct}
+                                                    listTransform={opts}
+                                                />
                                             </div>
-                                            <EntryValue
-                                                entry={entry}
-                                                val={val}
-                                                writable={entry.writable !== false}
-                                                setState={setState}
-                                                thresholds={globalThresholds}
-                                                decimals={decimals}
-                                                numFmt={numFmt}
-                                                activeColor={entryActiveColor}
-                                                inactiveColor={entryInactiveColor}
-                                                trueText={opts.trueText}
-                                                falseText={opts.falseText}
-                                                wrap={wrap}
-                                                valueMaxPct={valueMaxPct}
-                                                listTransform={opts}
-                                            />
+                                            {subLineFor(entry)}
                                         </div>
                                     );
                                 })}
@@ -1706,9 +1819,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     entry.popupHideTitle,
                                 );
                                 return (
+                                    // Column wrapper so the second line spans the whole row instead of
+                                    // becoming a third flex item next to label and value.
                                     <div
                                         key={entry.id}
-                                        className={`flex gap-2 px-3 py-2 ${wrap ? 'items-start' : 'items-center'}`}
+                                        className="flex flex-col gap-1 px-3 py-2"
                                         style={{
                                             background: stateBg,
                                             borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
@@ -1716,57 +1831,63 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         }}
                                         {...rowProps}
                                     >
-                                        <div className="flex-1 min-w-0" style={labelContainerStyle}>
-                                            <div
-                                                className={`text-xs ${labelWrapCls}`}
-                                                style={{ color: 'var(--text-primary)' }}
-                                            >
-                                                {label}
+                                        <div className={`flex gap-2 ${wrap ? 'items-start' : 'items-center'}`}>
+                                            <div className="flex-1 min-w-0" style={labelContainerStyle}>
+                                                <div
+                                                    className={`text-xs ${labelWrapCls}`}
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {label}
+                                                </div>
+                                                {opts.showRoom && (roomLabel || entry.id) && (
+                                                    <div
+                                                        className="text-[10px] truncate"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {roomLabel || entry.id}
+                                                    </div>
+                                                )}
+                                                {opts.showId && (
+                                                    <div
+                                                        className="text-[9px] truncate font-mono"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {entry.id}
+                                                    </div>
+                                                )}
+                                                {lcTs > 0 && (
+                                                    <div
+                                                        className="aura-last-change text-[9px] truncate"
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                    >
+                                                        {formatLastChange(
+                                                            t as (
+                                                                k: string,
+                                                                v?: Record<string, string | number>,
+                                                            ) => string,
+                                                            lcTs,
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
-                                            {opts.showRoom && (roomLabel || entry.id) && (
-                                                <div
-                                                    className="text-[10px] truncate"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {roomLabel || entry.id}
-                                                </div>
-                                            )}
-                                            {opts.showId && (
-                                                <div
-                                                    className="text-[9px] truncate font-mono"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {entry.id}
-                                                </div>
-                                            )}
-                                            {lcTs > 0 && (
-                                                <div
-                                                    className="aura-last-change text-[9px] truncate"
-                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                                >
-                                                    {formatLastChange(
-                                                        t as (k: string, v?: Record<string, string | number>) => string,
-                                                        lcTs,
-                                                    )}
-                                                </div>
-                                            )}
+                                            <EntryValue
+                                                entry={entry}
+                                                val={val}
+                                                writable={entry.writable !== false}
+                                                setState={setState}
+                                                thresholds={globalThresholds}
+                                                decimals={decimals}
+                                                numFmt={numFmt}
+                                                activeColor={entryActiveColor}
+                                                inactiveColor={entryInactiveColor}
+                                                trueText={opts.trueText}
+                                                falseText={opts.falseText}
+                                                wrap={wrap}
+                                                valueMaxPct={valueMaxPct}
+                                                listTransform={opts}
+                                            />
                                         </div>
-                                        <EntryValue
-                                            entry={entry}
-                                            val={val}
-                                            writable={entry.writable !== false}
-                                            setState={setState}
-                                            thresholds={globalThresholds}
-                                            decimals={decimals}
-                                            numFmt={numFmt}
-                                            activeColor={entryActiveColor}
-                                            inactiveColor={entryInactiveColor}
-                                            trueText={opts.trueText}
-                                            falseText={opts.falseText}
-                                            wrap={wrap}
-                                            valueMaxPct={valueMaxPct}
-                                            listTransform={opts}
-                                        />
+                                        {subLineFor(entry)}
                                     </div>
                                 );
                             })}

@@ -5,8 +5,10 @@ import { ValueTransformButton } from '../ValueTransformButton';
 import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConfig';
 import { usesOnOffLabels } from '../../widgets/entryControls';
 import { RowClickEntryField } from '../RowClickSection';
+import { SubDpFields } from './SubDpFields';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { useT } from '../../../i18n';
+import type { EntrySubDp } from '../../widgets/EntrySubLine';
 
 /**
  * Everything that configures ONE entry of the dynamic list - the block that used to
@@ -41,6 +43,10 @@ export function AutoEntryDetail({
         listOpts.valueTimeFormat !== undefined;
     // The on/off label pair is only ever read for boolean-ish entries.
     const showOnOffLabels = usesOnOffLabels(entry, lookupDatapointEntry(entry.id)?.type);
+    // Second line: this entry's own datapoints replace the list-wide template, so the
+    // section says which of the two is in effect here.
+    const subDpCount = (entry.subDps ?? []).filter((s) => !!s?.id).length;
+    const templateCount = ((listOpts.subDpTemplate as EntrySubDp[] | undefined) ?? []).filter((s) => !!s?.id).length;
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -108,6 +114,23 @@ export function AutoEntryDetail({
                         />
                     </div>
                 </div>
+            </DetailSection>
+
+            <DetailSection
+                title="Zweite Zeile"
+                badge={subDpCount > 0 ? `${subDpCount} DP` : templateCount > 0 ? 'Vorlage' : undefined}
+            >
+                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                    {templateCount > 0 && subDpCount === 0
+                        ? `Die Liste hat eine Vorlage mit ${templateCount} Datenpunkt${templateCount === 1 ? '' : 'en'} — sie gilt hier. Eigene Datenpunkte ersetzen sie für diese Zeile.`
+                        : 'Weitere Datenpunkte unter dem Haupt-Datenpunkt — nur Anzeige, Position frei wählbar. Nicht im Badges-Layout. Gesetzte Datenpunkte ersetzen die Vorlage der Liste.'}
+                </p>
+                <SubDpFields
+                    subDps={entry.subDps ?? []}
+                    mainDpId={entry.id}
+                    listHasTransform={listHasTransform}
+                    onChange={(next) => onUpdate({ subDps: next })}
+                />
             </DetailSection>
 
             <DetailSection title="Darstellung" badge={entryDisplayTypeLabel(entry.displayType)}>

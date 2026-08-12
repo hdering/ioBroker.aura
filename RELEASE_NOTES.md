@@ -9,3 +9,5 @@
 
 - The name of every widget, and the popup heading, resolve [[dp.id]] to that datapoint's live value, e.g. "Living room [[0_userdata.0.Temp]] °C"
 - Popup heading now also resolves the {{dp}} / {{parent}} / {{name}} placeholders - for a list row against the clicked row, so one heading serves every row
+- Dynamic list - second line with additional datapoints, either per entry or as one template for every row via {{parent}} / {{dp}} / {{name}} placeholders, e.g. {{parent}}.BATTERY
+- Dynamic list - template rows whose datapoint a device does not have are left out instead of showing a dash

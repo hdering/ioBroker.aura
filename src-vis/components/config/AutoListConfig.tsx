@@ -11,6 +11,7 @@ import type { NameSource } from '../../utils/nameFilter';
 import { NameDisplayFields } from './NameDisplayFields';
 import { AutoEntryDetail } from './list/AutoEntryDetail';
 import { AutoDiscoveryPanel } from './list/AutoDiscoveryPanel';
+import { SubDpTemplatePanel } from './list/SubDpTemplatePanel';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { useDpDiscovery } from '../../hooks/useDpDiscovery';
 import { RowClickSection } from './RowClickSection';
@@ -125,6 +126,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         key: 'rowclick',
                         label: 'Klick auf Zeile',
                         node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
+                    },
+                    {
+                        key: 'subline',
+                        label: 'Zweite Zeile',
+                        node: <SubDpTemplatePanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
                     },
                     {
                         key: 'names',
