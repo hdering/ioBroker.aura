@@ -63,7 +63,8 @@
     "test:list-input": "node tools/tests/list-input.mjs",
     "test:list-transform": "node tools/tests/list-value-transform.mjs",
     "test:list-subdps": "node tools/tests/list-subdps.mjs",
-    "test:list-filter": "node tools/tests/list-filter.mjs"
+    "test:list-filter": "node tools/tests/list-filter.mjs",
+    "test:camera-actions": "node tools/tests/camera-actions.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",

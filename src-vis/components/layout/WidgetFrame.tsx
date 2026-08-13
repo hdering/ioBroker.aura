@@ -2853,10 +2853,14 @@ interface CameraSlotEditorRowProps {
 }
 
 function CameraSlotEditorRow({ slot, idx, label, cCls, cSty, onChange, onRemove, onPickDp }: CameraSlotEditorRowProps) {
-    const hasDP = ['battery', 'temperature', 'armed', 'motion', 'datapoint'].includes(slot.type);
+    const [showIcon, setShowIcon] = useState(false);
+    const isAction = ['toggle', 'button'].includes(slot.type);
+    const hasDP = ['battery', 'temperature', 'armed', 'motion', 'datapoint'].includes(slot.type) || isAction;
     const hasValue = ['text', 'manufacturer'].includes(slot.type);
-    const hasBool = ['armed', 'motion'].includes(slot.type);
+    const hasBool = ['armed', 'motion', 'toggle'].includes(slot.type);
     const sec: React.CSSProperties = { color: 'var(--text-secondary)' };
+    const displayOpts = SLOT_TYPE_OPTIONS.filter((o) => o.value !== 'empty' && o.group !== 'action');
+    const actionOpts = SLOT_TYPE_OPTIONS.filter((o) => o.group === 'action');
 
     return (
         <div className="flex flex-col gap-1 p-2 rounded-lg" style={{ border: '1px solid var(--app-border)' }}>
@@ -2882,11 +2886,21 @@ function CameraSlotEditorRow({ slot, idx, label, cCls, cSty, onChange, onRemove,
                     onChange(idx, { type: e.target.value as CameraSlotType, datapoint: undefined, value: undefined })
                 }
             >
-                {SLOT_TYPE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                    </option>
-                ))}
+                <option value="empty">– Leer –</option>
+                <optgroup label="Anzeige (nur lesen)">
+                    {displayOpts.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                        </option>
+                    ))}
+                </optgroup>
+                <optgroup label="Aktion (schreibt)">
+                    {actionOpts.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                        </option>
+                    ))}
+                </optgroup>
             </select>
             {slot.type !== 'empty' && (
                 <input
@@ -2932,12 +2946,131 @@ function CameraSlotEditorRow({ slot, idx, label, cCls, cSty, onChange, onRemove,
                     </button>
                 </div>
             )}
+            {isAction && (
+                <>
+                    <div className="flex gap-1">
+                        <button
+                            type="button"
+                            onClick={() => setShowIcon(true)}
+                            className={`${cCls} flex-1 text-left flex items-center gap-1.5 min-w-0`}
+                            style={cSty}
+                        >
+                            {(() => {
+                                const Ico = slot.icon ? getWidgetIcon(slot.icon, null) : null;
+                                return Ico ? <Ico size={13} /> : <Shapes size={13} style={{ opacity: 0.5 }} />;
+                            })()}
+                            <span className="truncate" style={slot.icon ? undefined : { opacity: 0.5 }}>
+                                {slot.icon || 'Icon (optional)'}
+                            </span>
+                        </button>
+                        {slot.icon && (
+                            <button
+                                type="button"
+                                onClick={() => onChange(idx, { icon: undefined })}
+                                className="px-2 rounded-lg shrink-0"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                                title="Icon entfernen"
+                            >
+                                ✕
+                            </button>
+                        )}
+                    </div>
+                    {slot.type === 'toggle' ? (
+                        <div className="grid grid-cols-2 gap-1">
+                            <input
+                                type="text"
+                                value={slot.onValue ?? ''}
+                                placeholder="Wert AN (true)"
+                                className={`${cCls} font-mono min-w-0`}
+                                style={cSty}
+                                onChange={(e) => onChange(idx, { onValue: e.target.value || undefined })}
+                            />
+                            <input
+                                type="text"
+                                value={slot.offValue ?? ''}
+                                placeholder="Wert AUS (false)"
+                                className={`${cCls} font-mono min-w-0`}
+                                style={cSty}
+                                onChange={(e) => onChange(idx, { offValue: e.target.value || undefined })}
+                            />
+                        </div>
+                    ) : (
+                        <>
+                            <div className="grid grid-cols-2 gap-1">
+                                <input
+                                    type="text"
+                                    value={slot.pulseLabel ?? ''}
+                                    placeholder="Button-Text (Auslösen)"
+                                    className={`${cCls} min-w-0`}
+                                    style={cSty}
+                                    onChange={(e) => onChange(idx, { pulseLabel: e.target.value || undefined })}
+                                />
+                                <input
+                                    type="text"
+                                    value={slot.pulseValue ?? ''}
+                                    placeholder="Wert (true)"
+                                    className={`${cCls} font-mono min-w-0`}
+                                    style={cSty}
+                                    onChange={(e) => onChange(idx, { pulseValue: e.target.value || undefined })}
+                                />
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={slot.pulseReset ?? false}
+                                    onChange={(e) => onChange(idx, { pulseReset: e.target.checked || undefined })}
+                                    className="rounded"
+                                />
+                                <span className="text-[11px]" style={sec}>
+                                    Wert danach zurücksetzen
+                                </span>
+                            </label>
+                            {slot.pulseReset && (
+                                <>
+                                    <span className="text-[10px]" style={{ ...sec, opacity: 0.7 }}>
+                                        Reset-Wert und Verzögerung (ms)
+                                    </span>
+                                    <div className="grid grid-cols-2 gap-1">
+                                        <input
+                                            type="text"
+                                            value={slot.pulseResetValue ?? ''}
+                                            placeholder="Reset-Wert (false)"
+                                            className={`${cCls} font-mono min-w-0`}
+                                            style={cSty}
+                                            onChange={(e) =>
+                                                onChange(idx, { pulseResetValue: e.target.value || undefined })
+                                            }
+                                        />
+                                        <input
+                                            type="number"
+                                            min={50}
+                                            step={50}
+                                            value={slot.pulseDelay ?? 500}
+                                            className={`${cCls} min-w-0`}
+                                            style={cSty}
+                                            onChange={(e) =>
+                                                onChange(idx, { pulseDelay: Number(e.target.value) || 500 })
+                                            }
+                                        />
+                                    </div>
+                                </>
+                            )}
+                        </>
+                    )}
+                </>
+            )}
             {hasBool && (
                 <>
                     <input
                         type="text"
                         value={slot.trueLabel ?? ''}
-                        placeholder="Text wenn aktiv (z.B. Scharf)"
+                        placeholder={
+                            slot.type === 'toggle' ? 'Text wenn AN (leer = Schalter)' : 'Text wenn aktiv (z.B. Scharf)'
+                        }
                         className={cCls}
                         style={cSty}
                         onChange={(e) => onChange(idx, { trueLabel: e.target.value || undefined })}
@@ -2945,12 +3078,49 @@ function CameraSlotEditorRow({ slot, idx, label, cCls, cSty, onChange, onRemove,
                     <input
                         type="text"
                         value={slot.falseLabel ?? ''}
-                        placeholder="Text wenn inaktiv (z.B. Aus)"
+                        placeholder={
+                            slot.type === 'toggle' ? 'Text wenn AUS (leer = Schalter)' : 'Text wenn inaktiv (z.B. Aus)'
+                        }
                         className={cCls}
                         style={cSty}
                         onChange={(e) => onChange(idx, { falseLabel: e.target.value || undefined })}
                     />
                 </>
+            )}
+            {isAction && (
+                <>
+                    <label className="flex items-center gap-2 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={slot.confirm ?? false}
+                            onChange={(e) => onChange(idx, { confirm: e.target.checked || undefined })}
+                            className="rounded"
+                        />
+                        <span className="text-[11px]" style={sec}>
+                            Rückfrage vor dem Schalten
+                        </span>
+                    </label>
+                    {slot.confirm && (
+                        <input
+                            type="text"
+                            value={slot.confirmText ?? ''}
+                            placeholder="Rückfrage-Text (optional)"
+                            className={cCls}
+                            style={cSty}
+                            onChange={(e) => onChange(idx, { confirmText: e.target.value || undefined })}
+                        />
+                    )}
+                </>
+            )}
+            {showIcon && (
+                <IconPickerModal
+                    current={slot.icon ?? ''}
+                    onSelect={(name) => {
+                        onChange(idx, { icon: name || undefined });
+                        setShowIcon(false);
+                    }}
+                    onClose={() => setShowIcon(false)}
+                />
             )}
         </div>
     );
@@ -10946,7 +11116,10 @@ export function WidgetFrame({
                                                                 className="text-[11px] mb-1.5 block"
                                                                 style={{ color: 'var(--text-secondary)' }}
                                                             >
-                                                                Info-Zeilen
+                                                                Zeilen{' '}
+                                                                <span style={{ opacity: 0.6 }}>
+                                                                    (Anzeige &amp; Aktionen)
+                                                                </span>
                                                             </label>
                                                             <div className="flex flex-col gap-1.5">
                                                                 {items.map((item, idx) => (
@@ -11038,7 +11211,10 @@ export function WidgetFrame({
                                                                 className="text-[11px] mb-1.5 block"
                                                                 style={{ color: 'var(--text-secondary)' }}
                                                             >
-                                                                Slots
+                                                                Slots{' '}
+                                                                <span style={{ opacity: 0.6 }}>
+                                                                    (Anzeige &amp; Aktionen)
+                                                                </span>
                                                             </label>
                                                             <div className="flex flex-col gap-1.5">
                                                                 {paddedSlots.map((slot, idx) => (

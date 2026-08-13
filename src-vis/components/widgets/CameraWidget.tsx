@@ -7,6 +7,9 @@ import type { WidgetProps, ioBrokerState } from '../../types';
 import { setStateDirect, subscribeDpValue } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useWakeReload } from '../../hooks/useWakeReload';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
+import { ConfirmOverlay } from './ConfirmOverlay';
+import { MomentaryButton, parseWrite } from './entryControls';
 import {
     iframeScrollingAttr,
     resolveIframeInteractionMode,
@@ -23,15 +26,42 @@ export type CameraSlotType =
     | 'battery'
     | 'temperature'
     | 'armed'
-    | 'motion';
+    | 'motion'
+    // ── write types: not a read-only display but a control ────────────────────
+    | 'toggle'
+    | 'button';
 
 export interface CameraSlot {
     type: CameraSlotType;
     label?: string;
     value?: string; // static text for text / manufacturer
     datapoint?: string;
-    trueLabel?: string; // armed / motion true display
-    falseLabel?: string; // armed / motion false display
+    trueLabel?: string; // armed / motion / toggle true display
+    falseLabel?: string; // armed / motion / toggle false display
+    // ── action slots (toggle / button) ────────────────────────────────────────
+    /** Lucide/Iconify icon shown in front of the control. */
+    icon?: string;
+    /** toggle: value written when switching on / off. Default `true` / `false`. */
+    onValue?: string;
+    offValue?: string;
+    /** button: value written on press. Default `true`. */
+    pulseValue?: string;
+    /** button: write `pulseResetValue` again after `pulseDelay` ms (momentary DPs). */
+    pulseReset?: boolean;
+    pulseResetValue?: string;
+    pulseDelay?: number;
+    /** button caption. Default „Auslösen“. */
+    pulseLabel?: string;
+    /** Require a confirmation tap before writing. */
+    confirm?: boolean;
+    confirmText?: string;
+}
+
+/** Slot types that write to their datapoint instead of only displaying it. */
+export const CAMERA_ACTION_SLOT_TYPES: ReadonlySet<string> = new Set(['toggle', 'button']);
+
+export function isCameraActionSlot(slot: CameraSlot): boolean {
+    return CAMERA_ACTION_SLOT_TYPES.has(slot.type);
 }
 
 export type CameraTemplateId = 'stream-left' | 'stream-top' | 'stream-topleft' | 'stream-right' | 'stream-full';
@@ -82,7 +112,7 @@ export const CAMERA_TEMPLATES: Record<CameraTemplateId, TemplateSpec> = {
     },
 };
 
-export const SLOT_TYPE_OPTIONS: { value: CameraSlotType; label: string }[] = [
+export const SLOT_TYPE_OPTIONS: { value: CameraSlotType; label: string; group?: 'action' }[] = [
     { value: 'empty', label: '– Leer –' },
     { value: 'text', label: 'Freitext' },
     { value: 'datapoint', label: 'Datenpunkt' },
@@ -91,6 +121,8 @@ export const SLOT_TYPE_OPTIONS: { value: CameraSlotType; label: string }[] = [
     { value: 'temperature', label: 'Temperatur' },
     { value: 'armed', label: 'Scharf / Alarm' },
     { value: 'motion', label: 'Bewegung erkannt' },
+    { value: 'toggle', label: 'Schalter (DP umschalten)', group: 'action' },
+    { value: 'button', label: 'Taster (Wert schreiben)', group: 'action' },
 ];
 
 // ── Internal types ────────────────────────────────────────────────────────────
@@ -129,9 +161,119 @@ function fmtSeconds(s: number): string {
     return `${s}s`;
 }
 
+// ── Action slots (toggle / button) ────────────────────────────────────────────
+// Write slots share the list widgets' write-value coercion and momentary button so
+// a camera action behaves exactly like the same control in a list row. Writes are
+// inert in the editor — a click there is meant to select the widget, not to switch
+// a real device.
+
+const noopWrite = () => {};
+
+function slotWriter(slot: CameraSlot, editMode: boolean) {
+    return slot.datapoint && !editMode ? setStateDirect : noopWrite;
+}
+
+/** True when the toggle's configured on-value matches the datapoint's value.
+ *  Without custom write values a plain bool/1/'true' check decides. */
+function slotToggleOn(slot: CameraSlot, value: unknown): boolean {
+    if (slot.onValue) return String(value) === String(parseWrite(slot.onValue, true));
+    return slotBool(value);
+}
+
+function SlotToggle({ slot, value, editMode }: { slot: CameraSlot; value: unknown; editMode: boolean }) {
+    const btnRef = useRef<HTMLButtonElement>(null);
+    const on = slotToggleOn(slot, value);
+    const write = () => {
+        if (!slot.datapoint) return;
+        const next = on ? parseWrite(slot.offValue, false) : parseWrite(slot.onValue, true);
+        slotWriter(slot, editMode)(slot.datapoint, next);
+    };
+    const { run, pending, confirm, cancel } = useConfirmAction(write, !!slot.confirm);
+    const hasLabels = !!(slot.trueLabel || slot.falseLabel);
+    const activeColor = 'var(--accent)';
+
+    return (
+        <>
+            {hasLabels ? (
+                <button
+                    ref={btnRef}
+                    onClick={run}
+                    className="shrink-0 text-[11px] px-2 py-0.5 rounded-full font-medium"
+                    style={{
+                        background: on
+                            ? `color-mix(in srgb, ${activeColor} 18%, transparent)`
+                            : 'color-mix(in srgb, var(--text-secondary) 14%, transparent)',
+                        color: on ? activeColor : 'var(--text-secondary)',
+                        border: 'none',
+                        cursor: 'pointer',
+                    }}
+                >
+                    {on ? slot.trueLabel || 'AN' : slot.falseLabel || 'AUS'}
+                </button>
+            ) : (
+                <button
+                    ref={btnRef}
+                    onClick={run}
+                    className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
+                    style={{ background: on ? activeColor : 'var(--app-border)', border: 'none', cursor: 'pointer' }}
+                >
+                    <span
+                        className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
+                        style={{ left: on ? 'calc(100% - 16px)' : '2px' }}
+                    />
+                </button>
+            )}
+            {pending && (
+                <ConfirmOverlay
+                    popup
+                    anchorRef={btnRef}
+                    text={slot.confirmText}
+                    onConfirm={confirm}
+                    onCancel={cancel}
+                />
+            )}
+        </>
+    );
+}
+
+function SlotButton({ slot, editMode }: { slot: CameraSlot; editMode: boolean }) {
+    return (
+        // No `icon` here on purpose — the row/tile/chip around the control already
+        // renders the slot icon in front of the label.
+        <MomentaryButton
+            entry={{
+                id: slot.datapoint ?? '',
+                pulseValue: slot.pulseValue,
+                pulseReset: slot.pulseReset,
+                pulseResetValue: slot.pulseResetValue,
+                pulseDelay: slot.pulseDelay,
+                pulseLabel: slot.pulseLabel,
+                confirm: slot.confirm,
+                confirmText: slot.confirmText,
+            }}
+            setState={slotWriter(slot, editMode)}
+        />
+    );
+}
+
+function SlotControl({ slot, value, editMode }: { slot: CameraSlot; value: unknown; editMode: boolean }) {
+    if (slot.type === 'button') return <SlotButton slot={slot} editMode={editMode} />;
+    return <SlotToggle slot={slot} value={value} editMode={editMode} />;
+}
+
 // ── InfoCell ──────────────────────────────────────────────────────────────────
 
-function InfoCell({ slot, value, transparent }: { slot: CameraSlot; value: unknown; transparent?: boolean }) {
+function InfoCell({
+    slot,
+    value,
+    transparent,
+    editMode,
+}: {
+    slot: CameraSlot;
+    value: unknown;
+    transparent?: boolean;
+    editMode?: boolean;
+}) {
     if (slot.type === 'empty')
         return <div style={{ background: transparent ? 'transparent' : 'var(--app-bg)', borderRadius: '4px' }} />;
 
@@ -147,6 +289,17 @@ function InfoCell({ slot, value, transparent }: { slot: CameraSlot; value: unkno
             {label}
         </span>
     ) : null;
+
+    if (isCameraActionSlot(slot)) {
+        const SlotIcon = slot.icon ? getWidgetIcon(slot.icon, null) : null;
+        return (
+            <div className={`${base} relative`} style={{ ...bg, ...pri }}>
+                {SlotIcon && <SlotIcon size={13} style={sec} />}
+                {Lbl}
+                <SlotControl slot={slot} value={value} editMode={!!editMode} />
+            </div>
+        );
+    }
 
     switch (slot.type) {
         case 'text':
@@ -216,7 +369,17 @@ function InfoCell({ slot, value, transparent }: { slot: CameraSlot; value: unkno
 
 // ── InfoRow ───────────────────────────────────────────────────────────────────
 
-function InfoRow({ slot, value, transparent }: { slot: CameraSlot; value: unknown; transparent?: boolean }) {
+function InfoRow({
+    slot,
+    value,
+    transparent,
+    editMode,
+}: {
+    slot: CameraSlot;
+    value: unknown;
+    transparent?: boolean;
+    editMode?: boolean;
+}) {
     if (slot.type === 'empty') return null;
 
     const label = slot.label ?? DEFAULT_LABELS[slot.type];
@@ -224,6 +387,29 @@ function InfoRow({ slot, value, transparent }: { slot: CameraSlot; value: unknow
     const bool = slotBool(value);
     const sec: React.CSSProperties = { color: 'var(--text-secondary)' };
     const pri: React.CSSProperties = { color: 'var(--text-primary)' };
+    const rowCls = 'flex items-center gap-1.5 px-2 rounded text-[11px]';
+    const rowSty: React.CSSProperties = {
+        background: transparent ? 'transparent' : 'var(--app-bg)',
+        color: 'var(--text-primary)',
+        minHeight: '26px',
+        flexShrink: 0,
+    };
+
+    if (isCameraActionSlot(slot)) {
+        const SlotIcon = slot.icon ? getWidgetIcon(slot.icon, null) : null;
+        return (
+            <div className={rowCls} style={rowSty}>
+                {SlotIcon && <SlotIcon size={11} style={sec} className="shrink-0" />}
+                {label && (
+                    <span className="shrink-0 text-[10px] truncate" style={sec}>
+                        {label}
+                    </span>
+                )}
+                <span className="flex-1" />
+                <SlotControl slot={slot} value={value} editMode={!!editMode} />
+            </div>
+        );
+    }
 
     let icon: React.ReactNode = null;
     let display: React.ReactNode = '–';
@@ -259,15 +445,7 @@ function InfoRow({ slot, value, transparent }: { slot: CameraSlot; value: unknow
     }
 
     return (
-        <div
-            className="flex items-center gap-1.5 px-2 rounded text-[11px]"
-            style={{
-                background: transparent ? 'transparent' : 'var(--app-bg)',
-                color: 'var(--text-primary)',
-                minHeight: '26px',
-                flexShrink: 0,
-            }}
-        >
+        <div className={rowCls} style={rowSty}>
             {icon && <span className="shrink-0">{icon}</span>}
             {label && (
                 <span className="shrink-0 text-[10px]" style={sec}>
@@ -1064,7 +1242,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                                 className="text-[10px] text-center opacity-40 m-auto"
                                 style={{ color: 'var(--text-secondary)' }}
                             >
-                                Keine Info-Zeilen konfiguriert
+                                Keine Zeilen konfiguriert
                             </p>
                         ) : (
                             infoItems.map((item, i) => (
@@ -1073,6 +1251,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                                     slot={item}
                                     value={item.datapoint ? dpValues[item.datapoint] : undefined}
                                     transparent={transparent}
+                                    editMode={editMode}
                                 />
                             ))
                         )}
@@ -1104,6 +1283,30 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                             const num = slotNum(val);
                             const bool = slotBool(val);
                             const lbl = slot.label ?? DEFAULT_LABELS[slot.type];
+                            if (isCameraActionSlot(slot)) {
+                                const SlotIcon = slot.icon ? getWidgetIcon(slot.icon, null) : null;
+                                return (
+                                    // The overlay strip itself is click-through so the stream keeps
+                                    // its wake-up/click behaviour — only the control takes clicks.
+                                    <span
+                                        key={i}
+                                        className="text-[10px] px-1.5 py-0.5 rounded font-medium flex items-center gap-1 pointer-events-auto"
+                                        style={{
+                                            // A bare button carries its own filled shape — the chip
+                                            // backdrop would only double it up.
+                                            background:
+                                                slot.type === 'button' && !lbl && !SlotIcon
+                                                    ? 'transparent'
+                                                    : 'rgba(0,0,0,0.55)',
+                                            color: '#fff',
+                                        }}
+                                    >
+                                        {SlotIcon && <SlotIcon size={11} />}
+                                        {lbl && <span style={{ opacity: 0.8 }}>{lbl}</span>}
+                                        <SlotControl slot={slot} value={val} editMode={editMode} />
+                                    </span>
+                                );
+                            }
                             let display = '–';
                             let color: string | undefined;
                             switch (slot.type) {
@@ -1172,6 +1375,7 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                             slot={slot}
                             value={slot.datapoint ? dpValues[slot.datapoint] : undefined}
                             transparent={transparent}
+                            editMode={editMode}
                         />
                     </div>
                 ))}

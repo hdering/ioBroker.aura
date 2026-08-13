@@ -179,8 +179,9 @@ export interface EntryControlConfig extends ValueTransformSettings {
 type SetState = (id: string, v: boolean | number | string) => void;
 
 /** Coerce a configured write value (often a raw string from the editor) into the
- *  proper boolean/number/string before writing. */
-function parseWrite(v: string | number | boolean | undefined, fallback: boolean | number | string) {
+ *  proper boolean/number/string before writing. Exported because other widgets
+ *  with configurable write values (camera action rows) need the same coercion. */
+export function parseWrite(v: string | number | boolean | undefined, fallback: boolean | number | string) {
     if (v === undefined || v === '') return fallback;
     if (typeof v !== 'string') return v;
     if (v === 'true') return true;
