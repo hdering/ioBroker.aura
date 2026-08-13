@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.44.3 (2026-08-13)
+- 🌟 **New feature:** Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt ([#535](https://github.com/hdering/ioBroker.aura/issues/535))
+
+
 ### 0.44.2 (2026-08-12)
 - fix(status-overview): show full device name in card and minimal layouts
 
@@ -216,10 +220,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Conditions and badges - list and dynamic list widgets can match any/all/no list entry or use the entry count, active count, sum, average, min or max
 
 
-### 0.39.5 (2026-08-03)
-- 🌟 **New feature:** Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead ([#504](https://github.com/hdering/ioBroker.aura/issues/504))
-
-
 ## License
 
 MIT License
@@ -231,6 +231,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

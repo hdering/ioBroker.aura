@@ -6,4 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt

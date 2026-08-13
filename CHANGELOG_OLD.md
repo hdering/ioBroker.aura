@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.39.5 (2026-08-03)
+- 🌟 **New feature:** Panels - each widget now gets its own slide selector datapoint under aura.<n>.panels, so buttons, scripts or a select widget can jump straight to a slide; the slide names are published as common.states, swiping writes the value back, and a custom datapoint can be used instead ([#504](https://github.com/hdering/ioBroker.aura/issues/504))
+
 ## 0.39.4 (2026-08-02)
 - 🌟 **New feature:** Date picker - output format and input now accept a custom pattern; the input pattern picks the matching field, so MM.yyyy shows a month picker ([#518](https://github.com/hdering/ioBroker.aura/issues/518))
 
