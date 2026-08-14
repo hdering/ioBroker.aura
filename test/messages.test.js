@@ -91,6 +91,14 @@ async function send(a, relDp, payload, origin) {
     await a._handleMessageSend(typeof payload === 'string' ? payload : JSON.stringify(payload), origin, relDp);
 }
 
+/**
+ * Simulate an ioBroker write and let onStateChange route it. Exercises the id
+ * matching and origin detection, which `send()` above bypasses.
+ */
+async function write(a, relDp, value, ack = false) {
+    await a.onStateChange(`aura.0.${relDp}`, { val: value, ack });
+}
+
 (async () => {
     // ── Plain text becomes an info message ───────────────────────────────────
     {
@@ -476,6 +484,87 @@ async function send(a, relDp, payload, origin) {
         await a._ensureClientTree('new', 'Tablet');
         assert.ok(a._objects.has('clients.new.messages.send'));
         console.log('✓ clients.<id>.messages.send is backfilled on pre-existing trees');
+    }
+
+    // ── onStateChange routes each command datapoint ─────────────────────────
+    // send() above calls the handlers directly; this covers the dispatch itself,
+    // which is where the origin (global / client / layout) is worked out.
+    {
+        const a = makeAdapter();
+        await a._syncLayoutMessageDps(
+            JSON.stringify({ state: { layouts: [{ slug: 'haus', name: 'Haus', sections: [] }] } }),
+        );
+
+        await write(a, 'messages.send', JSON.stringify({ title: 'Global' }));
+        assert.strictEqual(a._history()[0].title, 'Global');
+        assert.strictEqual(a._history()[0].target, undefined, 'a global write reaches everyone');
+
+        await write(a, 'clients.tablet.messages.send', JSON.stringify({ title: 'Client' }));
+        assert.deepStrictEqual(a._history()[0].target, { clients: ['tablet'] });
+
+        await write(a, 'layouts.haus.messages.send', JSON.stringify({ title: 'Layout' }));
+        assert.deepStrictEqual(a._history()[0].target, { layout: 'haus' });
+
+        assert.strictEqual(a._history().length, 3, 'all three arrived');
+        console.log('✓ onStateChange derives the target from the datapoint written');
+    }
+
+    // ── A sanitized layout segment still delivers the original slug ─────────
+    {
+        const a = makeAdapter();
+        await a._syncLayoutMessageDps(
+            JSON.stringify({ state: { layouts: [{ slug: 'wohn zimmer/1', name: 'Wohnzimmer', sections: [] }] } }),
+        );
+        await write(a, 'layouts.wohn_zimmer_1.messages.send', JSON.stringify({ title: 'X' }));
+        assert.deepStrictEqual(
+            a._history()[0].target,
+            { layout: 'wohn zimmer/1' },
+            'the frontend only knows the original slug',
+        );
+        console.log('✓ a sanitized layout id delivers the original slug');
+    }
+
+    // ── Our own confirmations must not re-enter the handlers ───────────────
+    {
+        const a = makeAdapter();
+        await write(a, 'messages.send', JSON.stringify({ title: 'Echo' }), true);
+        assert.strictEqual(a._val('messages.history'), undefined, 'an acked write is our own echo, not a command');
+
+        await write(a, 'messages.send', JSON.stringify({ title: 'Real' }));
+        assert.strictEqual(a._history().length, 1);
+        // Clearing the DP is itself an acked write — it must not loop.
+        assert.strictEqual(a._val('messages.send'), '');
+        console.log('✓ acknowledged writes are ignored, so the self-clear cannot loop');
+    }
+
+    // ── ack / dismiss / clear via the dispatch ─────────────────────────────
+    {
+        const a = makeAdapter();
+        await write(a, 'messages.send', JSON.stringify({ id: 'm1', title: 'A' }));
+        await write(a, 'messages.send', JSON.stringify({ id: 'm2', title: 'B' }));
+        assert.strictEqual(a._val('messages.unreadCount'), 2);
+
+        await write(a, 'messages.ack', 'm1');
+        assert.strictEqual(a._val('messages.unreadCount'), 1);
+
+        await write(a, 'messages.dismiss', 'm2');
+        assert.strictEqual(a._val('messages.unreadCount'), 1, 'dismiss does not confirm');
+        assert.strictEqual(a._history().find((m) => m.id === 'm2').dismissed, true);
+
+        await write(a, 'messages.clear', true);
+        assert.deepStrictEqual(a._history(), []);
+        console.log('✓ ack / dismiss / clear route through onStateChange');
+    }
+
+    // ── config.messageDefaults is picked up live ───────────────────────────
+    {
+        const a = makeAdapter();
+        // The frontend writes it as an owned config value (ack=true), so unlike the
+        // command datapoints this one must be honoured regardless of the ack flag.
+        await write(a, 'config.messageDefaults', JSON.stringify({ position: 'center' }), true);
+        await write(a, 'messages.send', JSON.stringify({ title: 'X' }));
+        assert.strictEqual(a._history()[0].position, 'center');
+        console.log('✓ config.messageDefaults is applied without a restart');
     }
 
     console.log('\nAll message tests passed.');
