@@ -63,11 +63,15 @@ function ShutterViz({ closedFrac, isMoving }: { closedFrac: number; isMoving: bo
 
 export function ShutterPopupBody({ widget }: Props) {
     const opts = widget.options ?? {};
+    const actualPositionDp = opts.actualPositionDp as string | undefined;
     const { value, setValue } = useDatapoint(widget.datapoint);
+    const { value: actualVal } = useDatapoint(actualPositionDp ?? '');
     const { value: activityVal } = useDatapoint((opts.activityDp as string) ?? '');
     const { setState } = useIoBroker();
 
-    const rawPos = typeof value === 'number' ? Math.round(value) : 0;
+    // Separate read-only status DP (if set) shows the real position, not the target
+    const posValue = actualPositionDp && typeof actualVal === 'number' ? actualVal : value;
+    const rawPos = typeof posValue === 'number' ? Math.round(posValue) : 0;
     const pos = (opts.invertPosition as boolean) ? 100 - rawPos : rawPos;
     const closedFrac = Math.max(0, Math.min(1, (100 - pos) / 100));
     const showClosedPercent = !!(opts.showClosedPercent as boolean);

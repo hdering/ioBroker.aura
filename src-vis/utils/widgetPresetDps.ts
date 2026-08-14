@@ -39,6 +39,7 @@ export const DP_KEY_LABELS: Record<string, string> = {
     effectDp: 'Effekt',
     activityDp: 'Aktivität',
     directionDp: 'Richtung',
+    actualPositionDp: 'Ist-Position',
     stopDp: 'Stopp',
     openDp: 'Öffnen',
     closeDp: 'Schließen',

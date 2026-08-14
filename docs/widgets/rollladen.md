@@ -8,7 +8,8 @@ Steuert und zeigt die Rollladen-Position (0–100 %) an. Auf-, Stop- und Ab-Tast
 
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
-| `datapoint` | ja | `number` | Position 0–100 %, `0` = geschlossen, `100` = offen |
+| `datapoint` | ja | `number` | Position 0–100 %, `0` = geschlossen, `100` = offen — hierauf wird geschrieben |
+| `actualPositionDp` | nein | `number` | separater Anzeige-DP für die tatsächliche Position (z. B. HmIP-BROLL: Kanal 3 = Status, Kanal 4 = steuerbar); wenn gesetzt speisen Anzeige, Schieberegler und Stopp-Ziel diesen Wert |
 | `openDp` / `closeDp` | nein | `boolean` | Tasten-DPs für Auf/Ab (nur bei `controlMode: taster`) |
 | `stopDp` | nein | `boolean` | separater Stop-DP; ohne ihn wird die aktuelle Position zurückgeschrieben |
 | `activityDp` | nein | — | meldet, ob der Rollladen fährt |

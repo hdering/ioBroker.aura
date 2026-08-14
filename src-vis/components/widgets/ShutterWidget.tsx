@@ -118,14 +118,19 @@ export function ShutterWidget({ config }: WidgetProps) {
     const openDp = opts.openDp as string | undefined;
     const closeDp = opts.closeDp as string | undefined;
     const activityMovingRaw = opts.activityMovingValues as string | undefined;
+    const actualPositionDp = opts.actualPositionDp as string | undefined;
     const { value, setValue } = useDatapoint(config.datapoint);
+    const { value: actualVal } = useDatapoint(actualPositionDp ?? '');
     const { value: activityVal } = useDatapoint((opts.activityDp as string) ?? '');
     const { value: directionVal } = useDatapoint((opts.directionDp as string) ?? '');
     const { setState } = useIoBroker();
     const layout = config.layout ?? 'default';
 
-    // Normalize position: 0 = closed, 100 = open
-    const rawPos = typeof value === 'number' ? Math.round(value) : 0;
+    // Normalize position: 0 = closed, 100 = open.
+    // Actuators like HmIP-BROLL report the real position on a read-only DP of a
+    // different channel than the writable LEVEL – if configured, it wins for display.
+    const posValue = actualPositionDp && typeof actualVal === 'number' ? actualVal : value;
+    const rawPos = typeof posValue === 'number' ? Math.round(posValue) : 0;
     const pos = (opts.invertPosition as boolean) ? 100 - rawPos : rawPos;
     const closedFrac = Math.max(0, Math.min(1, (100 - pos) / 100));
     const showClosedPercent = !!(opts.showClosedPercent as boolean);
