@@ -406,6 +406,84 @@ export type ClickAction =
 // options.popupTransparency?: number – per-click-action popup transparency in % (0 = opaque; undefined = inherit view/global)
 // options.popupBackdropDim?: number – per-click-action backdrop dim in % (0 = clear; undefined = inherit view/global)
 
+// ── Messages (issue #429) ─────────────────────────────────────────────────────
+// An info / warning / error notice pushed into Aura by writing JSON — or plain
+// text — to one of the `messages.send` datapoints. The adapter parses, defaults
+// and archives every payload, so what reaches the frontend is already validated;
+// see docs/einstellungen/meldungen.md for the wire format.
+
+export type MessageSeverity = 'info' | 'success' | 'warning' | 'error';
+
+export type MessagePosition =
+    | 'top-left'
+    | 'top-center'
+    | 'top-right'
+    | 'center-left'
+    | 'center'
+    | 'center-right'
+    | 'bottom-left'
+    | 'bottom-center'
+    | 'bottom-right';
+
+/** A button on the toast. Writes `value` to `dp`, then closes unless close=false. */
+export interface MessageAction {
+    label: string;
+    dp: string;
+    value: string; // always string; parsed to bool/number/string on write
+    close: boolean;
+}
+
+/** Who sees the message. Absent fields mean "no restriction". */
+export interface MessageTarget {
+    clients?: string[]; // aura.0.clients.<id>
+    layout?: string; // layout slug, id or name
+    tab?: string; // tab slug, id or name
+}
+
+export interface AuraMessage {
+    id: string;
+    ts: number;
+    severity: MessageSeverity;
+    /** Confirmed by someone. Shared across clients — the counter counts !read. */
+    read: boolean;
+    /** Seconds until auto-close. 0 = stays open; always 0 when requireAck is set. */
+    durationSec: number;
+    /** No auto-close, no click-away — only the confirm button closes it. */
+    requireAck: boolean;
+    position: MessagePosition;
+    /** 0..100. A higher value pushes past a full position and pauses the lowest one. */
+    priority: number;
+    /** false = deliver but keep out of the archive. */
+    persist: boolean;
+    title?: string;
+    text?: string;
+    html?: string;
+    image?: string;
+    icon?: string; // Lucide/Iconify id, overrides the severity icon
+    /** Popup view (name or id) rendered as the body instead of text/html/image. */
+    view?: string;
+    /** `{{dp}}` context for that view. */
+    dp?: string;
+    width?: number;
+    height?: number;
+    transparency?: number;
+    /** Datapoint written when the message is confirmed. */
+    ackDp?: string;
+    ackValue?: string;
+    actions?: MessageAction[];
+    target?: MessageTarget;
+    /** Set once the message was closed on every client (ack or dismiss). */
+    dismissed?: boolean;
+    ackedAt?: number;
+}
+
+/**
+ * What `messages.lastMessage` carries. Either a fresh message, or a close marker
+ * telling every client to drop an open toast — `dismissed` is the discriminator,
+ * a real message never sets it at delivery time.
+ */
+export type MessageBroadcast = AuraMessage | { id: string; ts: number; dismissed: true; read: boolean };
+
 // ── Conditional widget styling ────────────────────────────────────────────────
 
 // 'active'/'inactive' are the truthiness test (isActiveVal): > 0, true or a

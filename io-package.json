@@ -221,8 +221,7 @@
     "perfTracking": true,
     "perfWidgetTracking": false,
     "messageHistorySize": 100,
-    "messageRetentionDays": 30,
-    "messageDefaultPosition": "top-right"
+    "messageRetentionDays": 30
   },
   "objects": [],
   "instanceObjects": [

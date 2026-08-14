@@ -1815,6 +1815,18 @@ export const de = {
     'tabSleep.pathChrome':
         'Chrome: Einstellungen → Leistung → Speichersparmodus → Aura-Adresse unter „Diese Websites immer aktiv lassen“ eintragen',
     'tabSleep.dismiss': 'Verstanden',
+
+    // ── Meldungen (Issue #429) ────────────────────────────────────────────────────
+    'messages.title': 'Meldungen',
+    'messages.acknowledge': 'Verstanden',
+    'messages.empty': 'Keine Meldungen',
+    'messages.unread': 'Ungelesen',
+    'messages.ackAll': 'Alle bestätigen',
+    'messages.clearAll': 'Verlauf leeren',
+    'messages.severity.info': 'Info',
+    'messages.severity.success': 'Erfolg',
+    'messages.severity.warning': 'Warnung',
+    'messages.severity.error': 'Fehler',
 } as const;
 
 export type TranslationKey = keyof typeof de;

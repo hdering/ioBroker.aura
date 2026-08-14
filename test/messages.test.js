@@ -154,16 +154,54 @@ async function send(a, relDp, payload, origin) {
         console.log('✓ numeric fields are clamped and unknown enums fall back');
     }
 
-    // ── Admin default position is honoured ───────────────────────────────────
+    // ── config.messageDefaults feeds the normalizer ──────────────────────────
     {
-        const a = makeAdapter({ messageDefaultPosition: 'bottom-center' });
-        assert.strictEqual(a._normalizeMessage('{"text":"x"}').position, 'bottom-center');
-        assert.strictEqual(
-            a._normalizeMessage('{"text":"x","position":"top-left"}').position,
-            'top-left',
-            'payload beats the default',
+        const a = makeAdapter();
+        await a._loadMessageDefaults(
+            JSON.stringify({
+                position: 'bottom-center',
+                durations: { info: 3, warning: 99 },
+                width: 500,
+                transparency: 20,
+                errorsRequireAck: true,
+            }),
         );
-        console.log('✓ configured default position is used');
+        const m = a._normalizeMessage('{"text":"x"}');
+        assert.strictEqual(m.position, 'bottom-center');
+        assert.strictEqual(m.durationSec, 3, 'per-severity duration default');
+        assert.strictEqual(m.width, 500);
+        assert.strictEqual(m.transparency, 20);
+        assert.strictEqual(a._normalizeMessage('{"severity":"warning","text":"x"}').durationSec, 99);
+        assert.strictEqual(
+            a._normalizeMessage('{"severity":"success","text":"x"}').durationSec,
+            8,
+            'an unlisted severity keeps its built-in default',
+        );
+
+        // "Errors always need confirming" can be opted into per message but not out of.
+        const err = a._normalizeMessage('{"severity":"error","text":"x","durationSec":30}');
+        assert.strictEqual(err.requireAck, true);
+        assert.strictEqual(err.durationSec, 0, 'a forced confirmation defeats the auto-close');
+
+        // The payload still beats every default.
+        const explicit = a._normalizeMessage('{"text":"x","position":"top-left","durationSec":7,"width":200}');
+        assert.strictEqual(explicit.position, 'top-left');
+        assert.strictEqual(explicit.durationSec, 7);
+        assert.strictEqual(explicit.width, 200);
+        console.log('✓ config.messageDefaults feeds the normalizer, payload still wins');
+    }
+
+    // ── Broken or absent defaults fall back to the built-ins ─────────────────
+    {
+        const a = makeAdapter();
+        await a._loadMessageDefaults('{not json');
+        assert.strictEqual(a._normalizeMessage('{"text":"x"}').position, 'top-right');
+        await a._loadMessageDefaults(JSON.stringify({ position: 'nowhere', durations: 'nope', width: -1 }));
+        const m = a._normalizeMessage('{"text":"x"}');
+        assert.strictEqual(m.position, 'top-right', 'unknown position ignored');
+        assert.strictEqual(m.durationSec, 8, 'non-object durations ignored');
+        assert.strictEqual(m.width, undefined, 'out-of-range width ignored');
+        console.log('✓ broken defaults fall back to the built-ins');
     }
 
     // ── Actions are validated and capped ────────────────────────────────────

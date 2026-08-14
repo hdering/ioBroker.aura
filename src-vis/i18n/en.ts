@@ -1811,4 +1811,16 @@ export const en: Record<TranslationKey, string> = {
     'tabSleep.pathChrome':
         'Chrome: Settings → Performance → Memory Saver → add the Aura address under "Always keep these sites active"',
     'tabSleep.dismiss': 'Got it',
+
+    // ── Messages (issue #429) ─────────────────────────────────────────────────────
+    'messages.title': 'Messages',
+    'messages.acknowledge': 'Got it',
+    'messages.empty': 'No messages',
+    'messages.unread': 'Unread',
+    'messages.ackAll': 'Confirm all',
+    'messages.clearAll': 'Clear history',
+    'messages.severity.info': 'Info',
+    'messages.severity.success': 'Success',
+    'messages.severity.warning': 'Warning',
+    'messages.severity.error': 'Error',
 };

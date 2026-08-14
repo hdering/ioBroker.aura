@@ -46,6 +46,7 @@
     "test": "node test/adapter.test.js && node test/client-tree.test.js && node test/messages.test.js",
     "test:client-tree": "node test/client-tree.test.js",
     "test:messages": "node test/messages.test.js",
+    "test:messages-ui": "node tools/tests/messages.mjs",
     "test:group-fit": "node tools/tests/group-fit.mjs",
     "test:dp-popup": "node tools/tests/dp-popup-trigger.mjs",
     "test:dp-cache": "node tools/tests/dp-cache-freshness.mjs",

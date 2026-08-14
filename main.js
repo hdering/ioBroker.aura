@@ -700,6 +700,13 @@ class Aura extends utils.Adapter {
         }
 
         // ── Messages (issue #429) ─────────────────────────────────────────────
+        // Presentation defaults changed in Admin → Meldungen. Re-read regardless of
+        // the ack flag: the frontend writes it as an owned config value (ack=true).
+        if (id.endsWith('.config.messageDefaults') && state) {
+            await this._loadMessageDefaults(state.val);
+            return;
+        }
+
         // Command datapoints, all self-clearing. Only unacknowledged writes count;
         // our own ack=true confirmations must not re-enter the handlers.
         if (id.endsWith('.messages.send') && state && !state.ack && state.val) {
@@ -1491,7 +1498,7 @@ class Aura extends utils.Adapter {
 
     // ── Messages (issue #429) ─────────────────────────────────────────────────
 
-    /** Instance settings with their defaults applied. */
+    /** Archive mechanics — instance settings, edited in the ioBroker instance config. */
     _messageConfig() {
         const size = Number(this.config?.messageHistorySize);
         const days = Number(this.config?.messageRetentionDays);
@@ -1502,6 +1509,52 @@ class Aura extends utils.Adapter {
                     : MESSAGE_HISTORY_SIZE_DEFAULT,
             retentionDays: Number.isFinite(days) && days >= 0 ? days : MESSAGE_RETENTION_DAYS_DEFAULT,
         };
+    }
+
+    /**
+     * Presentation defaults for messages that do not spell every field out.
+     *
+     * Lives in the `config.messageDefaults` datapoint rather than in the instance
+     * config: Aura's own admin (Admin → Meldungen) edits it, and both sides read
+     * the same value — the adapter for normalization, the frontend for the one
+     * field that is purely a rendering concern (maxVisible). Cached because
+     * _normalizeMessage runs per message; refreshed by the state subscription.
+     */
+    _messageDefaults() {
+        const d = this._messageDefaultsCache || {};
+        const num = (v, min, max, fallback) => {
+            const n = Number(v);
+            return Number.isFinite(n) && n >= min && n <= max ? n : fallback;
+        };
+        const durations = d.durations && typeof d.durations === 'object' ? d.durations : {};
+        return {
+            position: MESSAGE_POSITIONS.includes(d.position) ? d.position : MESSAGE_DEFAULT_POSITION,
+            durations: {
+                info: num(durations.info, 0, 86400, MESSAGE_DEFAULT_DURATION.info),
+                success: num(durations.success, 0, 86400, MESSAGE_DEFAULT_DURATION.success),
+                warning: num(durations.warning, 0, 86400, MESSAGE_DEFAULT_DURATION.warning),
+                error: num(durations.error, 0, 86400, MESSAGE_DEFAULT_DURATION.error),
+            },
+            width: num(d.width, 0, 4000, 0),
+            transparency: num(d.transparency, 0, 95, 0),
+            errorsRequireAck: d.errorsRequireAck === true,
+        };
+    }
+
+    /** Re-read config.messageDefaults into the cache. Tolerates a missing/broken DP. */
+    async _loadMessageDefaults(raw) {
+        try {
+            let text = raw;
+            if (text === undefined) {
+                const st = await this.getStateAsync('config.messageDefaults');
+                text = st && st.val ? String(st.val) : '';
+            }
+            const parsed = text ? JSON.parse(String(text)) : {};
+            this._messageDefaultsCache = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+        } catch (e) {
+            this.log.warn(`[messages] config.messageDefaults unreadable, using built-in defaults: ${e.message}`);
+            this._messageDefaultsCache = {};
+        }
     }
 
     /**
@@ -1546,13 +1599,16 @@ class Aura extends utils.Adapter {
             return Math.max(min, Math.min(max, n));
         };
 
+        const defaults = this._messageDefaults();
         const severity = MESSAGE_SEVERITIES.includes(src.severity) ? src.severity : 'info';
-        const requireAck = src.requireAck === true;
+        // "Errors always need confirming" is an admin-wide switch; a payload can opt in
+        // per message but not opt out of it.
+        const requireAck = src.requireAck === true || (defaults.errorsRequireAck && severity === 'error');
 
         // Auto-close is tri-state: an explicit number wins (0 = stays open), otherwise
         // the severity default. A message that demands a confirmation never expires.
         const explicitDuration = clamp(src.durationSec, 0, 86400);
-        const durationSec = requireAck ? 0 : (explicitDuration ?? MESSAGE_DEFAULT_DURATION[severity]);
+        const durationSec = requireAck ? 0 : (explicitDuration ?? defaults.durations[severity]);
 
         const actions = Array.isArray(src.actions)
             ? src.actions
@@ -1598,11 +1654,7 @@ class Aura extends utils.Adapter {
             read: false,
             durationSec,
             requireAck,
-            position: MESSAGE_POSITIONS.includes(src.position)
-                ? src.position
-                : this.config?.messageDefaultPosition && MESSAGE_POSITIONS.includes(this.config.messageDefaultPosition)
-                  ? this.config.messageDefaultPosition
-                  : MESSAGE_DEFAULT_POSITION,
+            position: MESSAGE_POSITIONS.includes(src.position) ? src.position : defaults.position,
             priority: clamp(src.priority, 0, 100) ?? 0,
             persist: src.persist !== false,
         };
@@ -1622,11 +1674,13 @@ class Aura extends utils.Adapter {
         const dp = str(src.dp, 256);
         if (dp) msg.dp = dp;
 
-        const width = clamp(src.width, 0, 4000);
+        // Size and transparency fall back to the admin defaults; 0 there means
+        // "let the toast decide", so the field simply stays absent.
+        const width = clamp(src.width, 0, 4000) ?? defaults.width;
         if (width) msg.width = width;
         const height = clamp(src.height, 0, 4000);
         if (height) msg.height = height;
-        const transparency = clamp(src.transparency, 0, 95);
+        const transparency = clamp(src.transparency, 0, 95) ?? defaults.transparency;
         if (transparency) msg.transparency = transparency;
 
         const ackDp = str(src.ackDp, 256);
@@ -1751,8 +1805,20 @@ class Aura extends utils.Adapter {
         }
     }
 
-    /** The `messages.*` channel. Called once from onReady. */
+    /** The `messages.*` channel and its config datapoint. Called once from onReady. */
     async _ensureMessageTree() {
+        await this.setObjectNotExistsAsync('config.messageDefaults', {
+            type: 'state',
+            common: {
+                name: 'Message presentation defaults (JSON, edited in Admin → Meldungen)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
         await this.setObjectNotExistsAsync('messages', {
             type: 'channel',
             common: { name: 'Messages (info / warning / error)' },
@@ -2396,6 +2462,8 @@ class Aura extends utils.Adapter {
         this.subscribeStates('messages.clear');
         this.subscribeStates('clients.*.messages.send');
         this.subscribeStates('layouts.*.messages.send');
+        this.subscribeStates('config.messageDefaults');
+        await this._loadMessageDefaults();
         // Re-publish the counter so a restart cannot leave a stale value behind
         // (retention may have expired entries while the adapter was down).
         await this._writeMessageHistory(await this._readMessageHistory());

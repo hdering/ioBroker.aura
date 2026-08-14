@@ -27,9 +27,10 @@ import { useGroupDefsStore } from '../store/groupDefsStore';
 import { usePopupConfigStore, type PopupTrigger, type PopupView } from '../store/popupConfigStore';
 import { __devForceDpTriggers } from '../components/widgets/popup/DpPopupTriggers';
 import { __devForceConditionRefresh } from '../hooks/useConditionStyle';
+import { useMessagesStore, __devForceMessages, type MessageScope } from '../store/messagesStore';
 import { useThemeStore } from '../store/themeStore';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
-import type { WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
+import type { AuraMessage, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
 
 type MockValue = boolean | number | string | null | Partial<ioBrokerState>;
 
@@ -207,6 +208,33 @@ function installScreenshotApi(): void {
         /** Seed popup views so a `popup-view` action has something to render. */
         popupViews(views: PopupView[]): void {
             withSuppressedDirty(() => usePopupConfigStore.setState({ views }));
+        },
+
+        /** Arm the message runtime (off in screenshot mode so a real notice can't
+         *  pop into a shot). Writes stay blocked either way. */
+        messages(on = true): void {
+            __devForceMessages(on);
+        },
+
+        /** Push messages straight into the toast queue, skipping the datapoint
+         *  plumbing. `scope` (optional) sets what the target filter is matched
+         *  against; without it every message is in scope. */
+        messageIngest(messages: AuraMessage[], scope?: MessageScope): void {
+            const store = useMessagesStore.getState();
+            if (scope) store.setScope(scope);
+            for (const msg of messages) store.ingest(msg);
+        },
+
+        /** Forget which messages this browser has already shown, so a test can
+         *  replay the same ids. */
+        messagesReset(): void {
+            useMessagesStore.setState({ seen: {}, lastSeenTs: 0, open: [], history: [], unreadCount: 0 });
+        },
+
+        /** Toasts per screen position before the rest queue up (config.messageDefaults
+         *  normally supplies this). */
+        messagesMaxVisible(n: number): void {
+            useMessagesStore.setState({ maxVisible: n });
         },
     };
 

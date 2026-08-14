@@ -48,6 +48,8 @@ import { markWidgetPresetsHydrated } from './store/widgetPresetsStore';
 import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
 import { usePopupRuntimeStore } from './store/popupRuntimeStore';
 import { DpPopupTriggers } from './components/widgets/popup/DpPopupTriggers';
+import { ToastLayer } from './components/messages/ToastLayer';
+import type { MessageScope } from './store/messagesStore';
 import { NS } from './utils/namespace';
 import { baseDpId } from './utils/dpRef';
 import { initPerfMetrics, setPerfTracking, reportBackendPing } from './utils/perfMetrics';
@@ -952,6 +954,21 @@ export default function App() {
         return t?.slug ?? null;
     }, [tabs, activeTabId]);
 
+    // Scope for the message target filter. Slug, id and name are all passed on:
+    // a `target` is usually hand-written in a script, so any of the three should hit.
+    const messageScope = useMemo<MessageScope>(() => {
+        const tab = tabs.find((t) => t.id === activeTabId);
+        return {
+            clientId,
+            layoutId: layout?.id,
+            layoutSlug: layout?.slug,
+            layoutName: layout?.name,
+            tabId: tab?.id,
+            tabSlug: tab?.slug,
+            tabName: tab?.name,
+        };
+    }, [clientId, layout?.id, layout?.slug, layout?.name, tabs, activeTabId]);
+
     // The section menu (formerly the layout drawer) lists the sections of the
     // active layout and only appears when that layout has more than one visible
     // section — mirroring the old "menu shows only with >1 entry" behaviour.
@@ -1081,6 +1098,7 @@ export default function App() {
             <TabSleepHint />
             {showClientIdBadge && <ClientIdBadge />}
             <DpPopupTriggers layoutId={layout?.id} tabId={activeTabId} />
+            <ToastLayer scope={messageScope} />
             {drawerFloating && (
                 <LayoutDrawer
                     activeLayoutId={layout?.id}

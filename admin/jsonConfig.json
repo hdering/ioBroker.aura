@@ -260,6 +260,57 @@
       "lg": 4,
       "xl": 4
     },
+    "_messagesHeader": {
+      "type": "header",
+      "text": {
+        "en": "Message archive",
+        "de": "Meldungs-Archiv"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "messageHistorySize": {
+      "type": "number",
+      "label": {
+        "en": "Messages kept",
+        "de": "Gespeicherte Meldungen"
+      },
+      "help": {
+        "en": "How many messages the archive holds before the oldest are dropped. Feeds the Meldungen widget and the unread counter. Range: 1-1000. Default: 100.",
+        "de": "Wie viele Meldungen das Archiv behält, bevor die ältesten wegfallen. Speist das Meldungen-Widget und den Ungelesen-Zähler. Bereich: 1-1000. Standard: 100."
+      },
+      "min": 1,
+      "max": 1000,
+      "default": 100,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
+    "messageRetentionDays": {
+      "type": "number",
+      "label": {
+        "en": "Keep for (days)",
+        "de": "Aufbewahrung (Tage)"
+      },
+      "help": {
+        "en": "Messages older than this are removed from the archive. 0 = keep forever. Default: 30.",
+        "de": "Meldungen, die älter sind, werden aus dem Archiv entfernt. 0 = unbegrenzt aufbewahren. Standard: 30."
+      },
+      "min": 0,
+      "max": 3650,
+      "default": 30,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
     "_perfHeader": {
       "type": "header",
       "text": {
