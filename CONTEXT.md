@@ -1,14 +1,17 @@
 # Kontext
 
 ## Current Task
-Umsetzung `C:\projects\claude-design-doku-plan.md` — Doku für visuelle Dashboard-Mockups. Pilot + Infrastruktur fertig & gepusht (Commit 691c48cc auf main); Rollout auf übrige Widgets steht noch aus.
+
+Issue #429 (Meldungs-System) auf Branch `feat/messages-429` vollständig umgesetzt und getestet — Adapter, Toast-Ebene, Widget, Admin-Seite, Header-Glocke, Bedingungs-Effekt, Doku. Noch nicht gepusht/gemerged.
 
 ## Key Decisions
-- Harness `widgets-all.mjs` rendert pro `shots[]`-Eintrag ein Element-Crop (`layout-<name>.png`/`variant-<name>.png`); ohne `shots` weiter `runtime.png`. Thermostat ist der Pilot/Template.
-- Widget-MD-Seiten sind handgepflegt — `gen-pages.mjs` ist nur Bootstrap und darf NICHT laufen (überschriebe angereicherte Seiten).
-- SSoT: `tools/docs/build-widget-catalog.mjs` → `catalog.json` + `referenz.md`; Optionen halb-automatisch per `OPTION_SEED`-Map (aktuell nur thermostat).
+
+- Der Adapter normalisiert jeden Payload und besitzt das Archiv (`messages.*`); das Frontend konsumiert nur fertige Einträge — kein zweites Regelwerk.
+- Präsentations-Standardwerte in `config.messageDefaults` (DP), von Adapter **und** Frontend gelesen, in Admin → Meldungen editiert. Archivgröße/Aufbewahrung bleiben Instanz-Einstellungen.
+- Seen-Tracking ist `id → ts`: gleiche id mit neuerem Zeitstempel ist ein Update (wiederverwendbare ID), gleicher Zeitstempel ein Replay nach Reload.
 
 ## Next Steps
-- Shots + MD-Anreicherung für restliche ~40 Widgets ausrollen (Layout-Zweige je Komponente prüfen); Dev-Server: `npm run dev` (5174), dann `node tools/screenshots/widgets-all.mjs`; danach `npm run docs:catalog`.
-- Baustein 4: Typ-Spalten + Objekt-Schemata (customGrid/clickAction/conditions/badges), Querschnitts-Options-Seite, componentKey-Tabelle in `custom-layout.md`.
-- Baustein 5 Rest: `schalter.md` (controlMode image, onValue/offValue), `zeitschaltuhr.md`-Platzhalter.
+
+- Auf der Testinstanz (192.168.188.168) manuell prüfen, sobald der Adapter dort läuft: Schreiben auf `aura.0.messages.send`, Layout-DP nach Umbenennung, `unreadCount` über mehrere Clients.
+- Doku-Screenshots der Frontend-Teile sind dunkel (Theme der Dev-Proxy-Instanz) — bei Gelegenheit hell nachziehen.
+- `npm run test:messages` (Adapter) und `npm run test:messages-ui` (Playwright gegen `npm run dev`).
