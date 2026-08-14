@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.41.1 (2026-08-05)
+- Editor - the "Sections:" label now links to Layout settings and opens the current layout expanded
+
 ## 0.41.0 (2026-08-05)
 - Section menu - datapoint elements now show their value right away when the menu is opened (mobile hamburger no longer stuck on a placeholder)
 - Status overview - no more stray horizontal scrollbar when there is enough space

@@ -115,6 +115,15 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.47.0 (2026-08-14)
+- 🌟 **New feature:** Messages - scripts can raise info, warning and error notices in the dashboard by writing to aura.0.messages.send; they show as toasts in one of nine screen positions, with an optional countdown, forced confirmation, action buttons and a shared history ([#429](https://github.com/hdering/ioBroker.aura/issues/429))
+- 🌟 **New feature:** Messages widget - lists the message history with severity, time-range and unread filters; a click opens the full message
+- 🌟 **New feature:** Settings - new Admin -> Messages page builds the message JSON from a form, sends a test message and manages the history
+- 🌟 **New feature:** Settings - optional message bell in the header showing the number of unconfirmed messages
+- 🌟 **New feature:** Conditions - new effect "send a message", so a widget rule can raise a notice without a script
+- 🌟 **New feature:** Messages - the Test senden button on the Admin page now shows the message right there instead of only on the dashboard
+
+
 ### 0.46.0 (2026-08-14)
 - 🌟 **New feature:** List and dynamic list - name pattern can now read the row label from another datapoint, e.g. `[[{{parent}}.DeviceName]]` ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
 - 🌟 **New feature:** List - separators can be added like a datapoint and dragged into place, splitting the list into sections; optional heading with position, font size, colour and rule on/off. Sorting then applies within a section ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
@@ -220,10 +229,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - fix(ui): wrap German typographic quotes in JSX expressions
 
 
-### 0.41.1 (2026-08-05)
-- Editor - the "Sections:" label now links to Layout settings and opens the current layout expanded
-
-
 ## License
 
 MIT License
@@ -235,6 +240,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
