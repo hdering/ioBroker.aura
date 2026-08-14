@@ -56,6 +56,48 @@ function fetchUrl(url, _depth = 0) {
     });
 }
 
+// ── Message system (issue #429) ──────────────────────────────────────────────
+// A "message" is an info/warning/error notice that scripts push into Aura by
+// writing JSON (or plain text) to one of the `messages.send` datapoints. The
+// adapter is the single place where a payload is parsed, defaulted and archived;
+// the frontend only ever consumes finished entries from `messages.history` /
+// `messages.lastMessage`, so there is no second rule set to keep in sync.
+
+const MESSAGE_SEVERITIES = ['info', 'success', 'warning', 'error'];
+
+const MESSAGE_POSITIONS = [
+    'top-left',
+    'top-center',
+    'top-right',
+    'center-left',
+    'center',
+    'center-right',
+    'bottom-left',
+    'bottom-center',
+    'bottom-right',
+];
+
+/** Auto-close default per severity, in seconds. 0 = stays until dismissed. */
+const MESSAGE_DEFAULT_DURATION = { info: 8, success: 8, warning: 15, error: 0 };
+const MESSAGE_DEFAULT_POSITION = 'top-right';
+
+const MESSAGE_HISTORY_SIZE_DEFAULT = 100;
+const MESSAGE_HISTORY_SIZE_MAX = 1000;
+const MESSAGE_RETENTION_DAYS_DEFAULT = 30;
+
+// Hard caps: a runaway script must not be able to blow up the history datapoint.
+const MESSAGE_STR_MAX = 4000;
+const MESSAGE_ID_MAX = 128;
+const MESSAGE_ACTIONS_MAX = 6;
+const MESSAGE_TARGET_CLIENTS_MAX = 50;
+
+/** ioBroker object ids allow a restricted charset — layout slugs are free user text. */
+function sanitizeIdSegment(raw) {
+    return String(raw || '')
+        .replace(/[^a-zA-Z0-9_-]/g, '_')
+        .slice(0, 64);
+}
+
 // ── Proxy helpers ────────────────────────────────────────────────────────────
 
 const STRIP_HEADERS = new Set([
@@ -650,9 +692,43 @@ class Aura extends utils.Adapter {
             return;
         }
 
-        // Dashboard config changed → rebuild the navigate selector dropdowns.
+        // Dashboard config changed → rebuild the navigate selector dropdowns and
+        // the per-layout message datapoints.
         if (id.endsWith('.config.dashboard') && state) {
             await this._syncNavigateTargets();
+            return;
+        }
+
+        // ── Messages (issue #429) ─────────────────────────────────────────────
+        // Command datapoints, all self-clearing. Only unacknowledged writes count;
+        // our own ack=true confirmations must not re-enter the handlers.
+        if (id.endsWith('.messages.send') && state && !state.ack && state.val) {
+            const rel = id.slice(`${this.namespace}.`.length);
+            let origin = { kind: 'global' };
+            let m = rel.match(/^clients\.([^.]+)\.messages\.send$/);
+            if (m) {
+                origin = { kind: 'client', clientId: m[1] };
+            } else if ((m = rel.match(/^layouts\.([^.]+)\.messages\.send$/))) {
+                // The id segment is the sanitized slug; hand on the original one.
+                const known = this._layoutSlugs && this._layoutSlugs.get(m[1]);
+                origin = { kind: 'layout', slug: known ? known.slug : m[1] };
+            }
+            await this._handleMessageSend(String(state.val), origin, rel);
+            return;
+        }
+
+        if (id.endsWith('.messages.ack') && state && !state.ack && state.val) {
+            await this._handleMessageMark(state.val, 'ack');
+            return;
+        }
+
+        if (id.endsWith('.messages.dismiss') && state && !state.ack && state.val) {
+            await this._handleMessageMark(state.val, 'dismiss');
+            return;
+        }
+
+        if (id.endsWith('.messages.clear') && state && !state.ack && state.val) {
+            await this._handleMessageClear();
             return;
         }
 
@@ -1377,10 +1453,17 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+        await this._ensureClientMessageDps(cId);
         this.log.info(`[clients] completed object tree for ${cId}`);
         return true;
     }
 
+    /**
+     * Re-derive everything that depends on the dashboard config: the navigate
+     * selector dropdowns, the per-client object trees, and the per-layout message
+     * datapoints. Called on startup, after a client registers, and whenever
+     * config.dashboard changes.
+     */
     async _syncNavigateTargets() {
         try {
             const st = await this.getStateAsync('config.dashboard');
@@ -1391,13 +1474,494 @@ class Aura extends utils.Adapter {
                 try {
                     // Doubles as the backfill for clients whose tree is incomplete.
                     await this._ensureClientTree(cId);
+                    // Unconditional: _ensureClientTree short-circuits on an existing
+                    // navigate.url, so a client from before the messages channel
+                    // existed would never be reached from there (#429).
+                    await this._ensureClientMessageDps(cId);
                     await this._setTargetStates(`clients.${cId}.navigate.target`, states);
                 } catch {
                     /* ignore a client object that vanished mid-sync */
                 }
             }
+            await this._syncLayoutMessageDps(raw);
         } catch (e) {
             this.log.warn(`[navigate] sync targets failed: ${e.message}`);
+        }
+    }
+
+    // ── Messages (issue #429) ─────────────────────────────────────────────────
+
+    /** Instance settings with their defaults applied. */
+    _messageConfig() {
+        const size = Number(this.config?.messageHistorySize);
+        const days = Number(this.config?.messageRetentionDays);
+        return {
+            historySize:
+                Number.isFinite(size) && size > 0
+                    ? Math.min(size, MESSAGE_HISTORY_SIZE_MAX)
+                    : MESSAGE_HISTORY_SIZE_DEFAULT,
+            retentionDays: Number.isFinite(days) && days >= 0 ? days : MESSAGE_RETENTION_DAYS_DEFAULT,
+        };
+    }
+
+    /**
+     * Parse and normalize one payload written to a `messages.send` datapoint.
+     * Returns null when the payload is unusable (the caller still clears the DP).
+     *
+     * A value that does not start with `{` is taken as the message body, so the
+     * simplest case stays a one-liner in Blockly.
+     *
+     * `origin` supplies the implicit target and is one of
+     *   { kind: 'global' } · { kind: 'client', clientId } · { kind: 'layout', slug }
+     * An explicit `target` inside the JSON always wins over the implicit one.
+     */
+    _normalizeMessage(raw, origin = { kind: 'global' }) {
+        const text = typeof raw === 'string' ? raw.trim() : '';
+        if (!text) return null;
+
+        let src;
+        if (text.startsWith('{')) {
+            try {
+                src = JSON.parse(text);
+            } catch (e) {
+                this.log.warn(`[messages] ignoring invalid JSON payload: ${e.message}`);
+                return null;
+            }
+            if (!src || typeof src !== 'object' || Array.isArray(src)) {
+                this.log.warn('[messages] ignoring payload: expected a JSON object');
+                return null;
+            }
+        } else {
+            src = { text };
+        }
+
+        const str = (v, max = MESSAGE_STR_MAX) => {
+            if (typeof v !== 'string') return undefined;
+            const s = v.trim();
+            return s ? s.slice(0, max) : undefined;
+        };
+        const clamp = (v, min, max) => {
+            const n = Number(v);
+            if (!Number.isFinite(n)) return undefined;
+            return Math.max(min, Math.min(max, n));
+        };
+
+        const severity = MESSAGE_SEVERITIES.includes(src.severity) ? src.severity : 'info';
+        const requireAck = src.requireAck === true;
+
+        // Auto-close is tri-state: an explicit number wins (0 = stays open), otherwise
+        // the severity default. A message that demands a confirmation never expires.
+        const explicitDuration = clamp(src.durationSec, 0, 86400);
+        const durationSec = requireAck ? 0 : (explicitDuration ?? MESSAGE_DEFAULT_DURATION[severity]);
+
+        const actions = Array.isArray(src.actions)
+            ? src.actions
+                  .slice(0, MESSAGE_ACTIONS_MAX)
+                  .map((a) => {
+                      const label = str(a && a.label, 80);
+                      const dp = str(a && a.dp, 256);
+                      if (!label || !dp) return null;
+                      return {
+                          label,
+                          dp,
+                          // Kept as a string; the frontend parses it to bool/number/string
+                          // exactly like every other "value to write" field in Aura.
+                          value: a.value === undefined || a.value === null ? '' : String(a.value).slice(0, 256),
+                          close: a.close !== false,
+                      };
+                  })
+                  .filter(Boolean)
+            : undefined;
+
+        // Implicit target from the datapoint that was written; explicit wins.
+        const target = {};
+        if (origin.kind === 'client' && origin.clientId) target.clients = [String(origin.clientId)];
+        if (origin.kind === 'layout' && origin.slug) target.layout = String(origin.slug);
+        const rawTarget = src.target && typeof src.target === 'object' && !Array.isArray(src.target) ? src.target : {};
+        if (Array.isArray(rawTarget.clients)) {
+            const clients = rawTarget.clients
+                .map((c) => str(c, 128))
+                .filter(Boolean)
+                .slice(0, MESSAGE_TARGET_CLIENTS_MAX);
+            if (clients.length) target.clients = clients;
+        }
+        if (str(rawTarget.layout, 128)) target.layout = str(rawTarget.layout, 128);
+        if (str(rawTarget.tab, 128)) target.tab = str(rawTarget.tab, 128);
+
+        this._messageSeq = ((this._messageSeq || 0) + 1) % 1e6;
+        const ts = Date.now();
+
+        const msg = {
+            id: str(src.id, MESSAGE_ID_MAX) || `m${ts.toString(36)}-${this._messageSeq.toString(36)}`,
+            ts,
+            severity,
+            read: false,
+            durationSec,
+            requireAck,
+            position: MESSAGE_POSITIONS.includes(src.position)
+                ? src.position
+                : this.config?.messageDefaultPosition && MESSAGE_POSITIONS.includes(this.config.messageDefaultPosition)
+                  ? this.config.messageDefaultPosition
+                  : MESSAGE_DEFAULT_POSITION,
+            priority: clamp(src.priority, 0, 100) ?? 0,
+            persist: src.persist !== false,
+        };
+
+        const title = str(src.title, 200);
+        if (title) msg.title = title;
+        const body = str(src.text);
+        if (body) msg.text = body;
+        const html = str(src.html);
+        if (html) msg.html = html;
+        const image = str(src.image, 2000);
+        if (image) msg.image = image;
+        const icon = str(src.icon, 128);
+        if (icon) msg.icon = icon;
+        const view = str(src.view, 128);
+        if (view) msg.view = view;
+        const dp = str(src.dp, 256);
+        if (dp) msg.dp = dp;
+
+        const width = clamp(src.width, 0, 4000);
+        if (width) msg.width = width;
+        const height = clamp(src.height, 0, 4000);
+        if (height) msg.height = height;
+        const transparency = clamp(src.transparency, 0, 95);
+        if (transparency) msg.transparency = transparency;
+
+        const ackDp = str(src.ackDp, 256);
+        if (ackDp) {
+            msg.ackDp = ackDp;
+            msg.ackValue =
+                src.ackValue === undefined || src.ackValue === null ? 'true' : String(src.ackValue).slice(0, 256);
+        }
+        if (actions && actions.length) msg.actions = actions;
+        if (Object.keys(target).length) msg.target = target;
+
+        // A message with no visible body at all would render as an empty box.
+        if (!msg.title && !msg.text && !msg.html && !msg.image && !msg.view) {
+            this.log.warn('[messages] ignoring payload without title, text, html, image or view');
+            return null;
+        }
+        return msg;
+    }
+
+    /** Current archive, newest first. Never throws — a corrupt DP starts over. */
+    async _readMessageHistory() {
+        try {
+            const st = await this.getStateAsync('messages.history');
+            if (!st || !st.val) return [];
+            const parsed = JSON.parse(String(st.val));
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            this.log.warn(`[messages] history unreadable, starting a fresh one: ${e.message}`);
+            return [];
+        }
+    }
+
+    /** Apply retention + ring size, then publish history and the unread counter. */
+    async _writeMessageHistory(list) {
+        const { historySize, retentionDays } = this._messageConfig();
+        let out = Array.isArray(list) ? list.filter((m) => m && typeof m === 'object') : [];
+        if (retentionDays > 0) {
+            const cutoff = Date.now() - retentionDays * 86400_000;
+            out = out.filter((m) => Number(m.ts) >= cutoff);
+        }
+        out.sort((a, b) => Number(b.ts) - Number(a.ts));
+        out = out.slice(0, historySize);
+        await this.setStateAsync('messages.history', { val: JSON.stringify(out), ack: true });
+        await this.setStateAsync('messages.unreadCount', { val: out.filter((m) => m.read !== true).length, ack: true });
+        return out;
+    }
+
+    /**
+     * Tell every connected client to close an open toast. Rides on lastMessage —
+     * a close marker carries `dismissed`, which a real message never does, so the
+     * frontend can tell them apart without a second datapoint.
+     */
+    async _broadcastMessageClose(id, read) {
+        await this.setStateAsync('messages.lastMessage', {
+            val: JSON.stringify({ id, ts: Date.now(), dismissed: true, read: read === true }),
+            ack: true,
+        });
+    }
+
+    /** A `messages.send` write: normalize → archive → publish → clear the DP. */
+    async _handleMessageSend(raw, origin, sendDpId) {
+        try {
+            const msg = this._normalizeMessage(raw, origin);
+            if (msg) {
+                if (msg.persist) {
+                    const history = await this._readMessageHistory();
+                    // Same id replaces its predecessor instead of stacking, so a
+                    // repeating notice ("washer done") stays a single entry.
+                    await this._writeMessageHistory([msg, ...history.filter((m) => m.id !== msg.id)]);
+                }
+                await this.setStateAsync('messages.lastMessage', { val: JSON.stringify(msg), ack: true });
+                this.log.debug(`[messages] ${msg.severity}: ${msg.title || msg.text || msg.id}`);
+            }
+        } catch (e) {
+            this.log.error(`[messages] send failed: ${e.message}`);
+        } finally {
+            // Always clear, even on a rejected payload — otherwise the same broken
+            // value sits in the DP and re-fires on every adapter restart.
+            await this.setStateAsync(sendDpId, { val: '', ack: true });
+        }
+    }
+
+    /** `messages.ack` / `messages.dismiss`. Id or `*` for all. */
+    async _handleMessageMark(rawId, mode) {
+        const id = String(rawId ?? '').trim();
+        const cmdDp = mode === 'ack' ? 'messages.ack' : 'messages.dismiss';
+        if (!id) {
+            await this.setStateAsync(cmdDp, { val: '', ack: true });
+            return;
+        }
+        try {
+            const history = await this._readMessageHistory();
+            const hit = id === '*' ? history : history.filter((m) => m.id === id);
+            if (hit.length) {
+                const now = Date.now();
+                await this._writeMessageHistory(
+                    history.map((m) =>
+                        id === '*' || m.id === id
+                            ? { ...m, dismissed: true, ...(mode === 'ack' ? { read: true, ackedAt: now } : {}) }
+                            : m,
+                    ),
+                );
+            }
+            await this._broadcastMessageClose(id, mode === 'ack');
+        } catch (e) {
+            this.log.error(`[messages] ${mode} failed: ${e.message}`);
+        } finally {
+            await this.setStateAsync(cmdDp, { val: '', ack: true });
+        }
+    }
+
+    /** `messages.clear` button: wipe the archive. */
+    async _handleMessageClear() {
+        try {
+            await this._writeMessageHistory([]);
+            await this._broadcastMessageClose('*', false);
+            this.log.info('[messages] history cleared');
+        } catch (e) {
+            this.log.error(`[messages] clear failed: ${e.message}`);
+        } finally {
+            await this.setStateAsync('messages.clear', { val: false, ack: true });
+        }
+    }
+
+    /** The `messages.*` channel. Called once from onReady. */
+    async _ensureMessageTree() {
+        await this.setObjectNotExistsAsync('messages', {
+            type: 'channel',
+            common: { name: 'Messages (info / warning / error)' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('messages.send', {
+            type: 'state',
+            common: {
+                name: 'Send a message (JSON payload or plain text)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('messages.history', {
+            type: 'state',
+            common: {
+                name: 'Message archive (JSON array, newest first)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: false,
+                def: '[]',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('messages.lastMessage', {
+            type: 'state',
+            common: {
+                name: 'Most recent message (JSON)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: false,
+                def: '',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('messages.unreadCount', {
+            type: 'state',
+            common: {
+                name: 'Unconfirmed messages',
+                type: 'number',
+                role: 'value',
+                read: true,
+                write: false,
+                def: 0,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('messages.ack', {
+            type: 'state',
+            common: {
+                name: 'Confirm a message (write its id, or * for all)',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('messages.dismiss', {
+            type: 'state',
+            common: {
+                name: 'Close a message on all clients (write its id, or * for all)',
+                type: 'string',
+                role: 'text',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('messages.clear', {
+            type: 'state',
+            common: {
+                name: 'Clear the message archive',
+                type: 'boolean',
+                role: 'button',
+                read: false,
+                write: true,
+                def: false,
+            },
+            native: {},
+        });
+    }
+
+    /**
+     * The per-client send datapoint. Split out of _ensureClientTree because that
+     * function short-circuits on its navigate.url sentinel — every datapoint added
+     * after the tree was invented needs its own backfill, or existing installations
+     * would never get it (#532).
+     */
+    async _ensureClientMessageDps(cId) {
+        const base = `clients.${cId}`;
+        await this.setObjectNotExistsAsync(`${base}.messages`, {
+            type: 'channel',
+            common: { name: 'Messages' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.messages.send`, {
+            type: 'state',
+            common: {
+                name: 'Send a message to this client only (JSON payload or plain text)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: true,
+                def: '',
+            },
+            native: {},
+        });
+    }
+
+    /**
+     * Layouts from the dashboard config, keyed by the sanitized id segment used
+     * for their datapoints. The original slug is kept alongside: sanitizing is
+     * lossy, and a message written to `layouts.<segment>.messages.send` must carry
+     * the slug the frontend actually knows.
+     */
+    _buildLayoutSlugs(dashboardRaw) {
+        const out = new Map(); // id segment → { slug, name }
+        try {
+            const parsed = JSON.parse(dashboardRaw);
+            const layouts = parsed && parsed.state && parsed.state.layouts;
+            if (!Array.isArray(layouts)) return out;
+            for (const layout of layouts) {
+                const slug = layout && layout.slug;
+                if (!slug) continue;
+                const seg = sanitizeIdSegment(slug);
+                if (seg && !out.has(seg)) out.set(seg, { slug: String(slug), name: layout.name || String(slug) });
+            }
+        } catch {
+            /* malformed config → no layout datapoints */
+        }
+        return out;
+    }
+
+    /**
+     * One `layouts.<slug>.messages.send` per layout, so a script can address a
+     * single dashboard without spelling out a target filter. Renamed and deleted
+     * layouts have their channel removed again — otherwise every rename would
+     * leave a dead datapoint behind.
+     */
+    async _syncLayoutMessageDps(dashboardRaw) {
+        const wanted = this._buildLayoutSlugs(dashboardRaw);
+        // Cached for _handleMessageSend: it needs the real slug behind an id segment.
+        this._layoutSlugs = wanted;
+        if (wanted.size) {
+            await this.setObjectNotExistsAsync('layouts', {
+                type: 'channel',
+                common: { name: 'Per-layout message inputs' },
+                native: {},
+            });
+        }
+        for (const [seg, { slug, name }] of wanted) {
+            await this.setObjectNotExistsAsync(`layouts.${seg}`, {
+                type: 'channel',
+                common: { name },
+                native: { slug },
+            });
+            await this.setObjectNotExistsAsync(`layouts.${seg}.messages`, {
+                type: 'channel',
+                common: { name: 'Messages' },
+                native: {},
+            });
+            await this.setObjectNotExistsAsync(`layouts.${seg}.messages.send`, {
+                type: 'state',
+                common: {
+                    name: `Send a message to layout "${name}" (JSON payload or plain text)`,
+                    type: 'string',
+                    role: 'json',
+                    read: true,
+                    write: true,
+                    def: '',
+                },
+                native: {},
+            });
+        }
+
+        // Drop orphans. Enumerated over the channel view so a partially created
+        // layout branch is cleaned up too.
+        try {
+            const view = await this.getObjectViewAsync('system', 'channel', {
+                startkey: `${this.namespace}.layouts.`,
+                endkey: `${this.namespace}.layouts.￿`,
+            });
+            const prefix = `${this.namespace}.layouts.`;
+            for (const row of (view && view.rows) || []) {
+                const rest = String(row.id).slice(prefix.length);
+                // Only the layout level itself — the `messages` sub-channel goes
+                // away with its parent.
+                if (!rest || rest.includes('.')) continue;
+                if (wanted.has(rest)) continue;
+                this.log.info(`[messages] removing datapoints of deleted layout "${rest}"`);
+                for (const objId of [`layouts.${rest}.messages.send`, `layouts.${rest}.messages`, `layouts.${rest}`]) {
+                    try {
+                        await this.delObjectAsync(objId);
+                    } catch {
+                        /* already gone */
+                    }
+                }
+            }
+        } catch (e) {
+            this.log.warn(`[messages] layout datapoint cleanup failed: ${e.message}`);
         }
     }
 
@@ -1453,6 +2017,7 @@ class Aura extends utils.Adapter {
             common: { name: 'Panels widget slide selectors' },
             native: {},
         });
+        await this._ensureMessageTree();
 
         await this.setObjectNotExistsAsync('config.dashboard', {
             type: 'state',
@@ -1820,8 +2385,20 @@ class Aura extends utils.Adapter {
         this.subscribeStates('navigate.target');
         this.subscribeStates('clients.*.navigate.target');
         this.subscribeStates('config.dashboard');
-        // Also completes the object tree of every known client (navigate.*, popup.*).
+        // Also completes the object tree of every known client (navigate.*, popup.*,
+        // messages.*) and syncs the per-layout message datapoints.
         await this._syncNavigateTargets();
+
+        // ── Messages (issue #429) ─────────────────────────────────────────────
+        this.subscribeStates('messages.send');
+        this.subscribeStates('messages.ack');
+        this.subscribeStates('messages.dismiss');
+        this.subscribeStates('messages.clear');
+        this.subscribeStates('clients.*.messages.send');
+        this.subscribeStates('layouts.*.messages.send');
+        // Re-publish the counter so a restart cannot leave a stale value behind
+        // (retention may have expired entries while the adapter was down).
+        await this._writeMessageHistory(await this._readMessageHistory());
 
         // ── Timer widget scheduler ─────────────────────────────────────────────
         // Subscribe to per-widget config/enabled DPs and run a tick to evaluate

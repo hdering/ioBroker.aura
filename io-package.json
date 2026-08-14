@@ -219,7 +219,10 @@
     "fsAllowWrite": false,
     "timerTickSeconds": 30,
     "perfTracking": true,
-    "perfWidgetTracking": false
+    "perfWidgetTracking": false,
+    "messageHistorySize": 100,
+    "messageRetentionDays": 30,
+    "messageDefaultPosition": "top-right"
   },
   "objects": [],
   "instanceObjects": [
