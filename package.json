@@ -1,6 +1,6 @@
 {
   "name": "iobroker.aura",
-  "version": "0.45.0",
+  "version": "0.46.0",
   "description": "Modern visualization dashboard for ioBroker",
   "author": "Hermann Dering <aura@dering-online.de>",
   "main": "main.js",
@@ -66,8 +66,8 @@
     "test:list-filter": "node tools/tests/list-filter.mjs",
     "test:camera-actions": "node tools/tests/camera-actions.mjs",
     "test:condition-refresh": "node tools/tests/condition-refresh.mjs",
-        "test:name-pattern": "node tools/tests/name-pattern.mjs",
-        "test:list-dividers": "node tools/tests/list-dividers.mjs"
+    "test:name-pattern": "node tools/tests/name-pattern.mjs",
+    "test:list-dividers": "node tools/tests/list-dividers.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",

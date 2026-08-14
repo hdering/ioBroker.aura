@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.46.0 (2026-08-14)
+- 🌟 **New feature:** List and dynamic list - name pattern can now read the row label from another datapoint, e.g. `[[{{parent}}.DeviceName]]` ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
+- 🌟 **New feature:** List - separators can be added like a datapoint and dragged into place, splitting the list into sections; optional heading with position, font size, colour and rule on/off. Sorting then applies within a section ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
+
+
 ### 0.45.0 (2026-08-14)
 - 🌟 **New feature:** Chart (advanced) - new "1 year" and "total" time ranges, selectable in the config and in the frontend range switcher ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
 - 🌟 **New feature:** Chart (advanced) - "total" charts everything the history adapter holds; the window start is detected per series instead of being configured ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
@@ -219,12 +224,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Editor - the "Sections:" label now links to Layout settings and opens the current layout expanded
 
 
-### 0.41.0 (2026-08-05)
-- Section menu - datapoint elements now show their value right away when the menu is opened (mobile hamburger no longer stuck on a placeholder)
-- Status overview - no more stray horizontal scrollbar when there is enough space
-- 🌟 **New feature:** Status overview, static list and dynamic list - new name pattern with name filter: reshape the placeholder texts with plain-language rules (remove/replace text, keep a segment, first/last words, upper/lower case) or regex, with one-click templates and a live preview of real datapoints; the filter dialog can be moved and resized ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
-
-
 ## License
 
 MIT License
@@ -236,6 +235,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
