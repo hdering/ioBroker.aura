@@ -196,6 +196,7 @@ import { MediaplayerWidget } from '../widgets/MediaplayerWidget';
 import { SliderWidget } from '../widgets/SliderWidget';
 import { ChipsWidget } from '../widgets/ChipsWidget';
 import { MenuWidget } from '../widgets/MenuWidget';
+import { MessagesWidget } from '../widgets/MessagesWidget';
 import { MultiSelect } from '../config/MultiSelect';
 import { ToggleRow } from '../../pages/admin/layouts/shared/SettingControls';
 import { HttpRequestWidget } from '../widgets/HttpRequestWidget';
@@ -308,6 +309,7 @@ const NO_CUSTOM_LAYOUT_TYPES: WidgetType[] = [
     'alarm',
     'map',
     'statusoverview',
+    'messages',
 ];
 
 // ── Global custom-cell clipboard (shared across all WidgetFrames) ───────────
@@ -436,6 +438,7 @@ function getWidgetMap() {
         loadtimes: LoadTimesWidget,
         mirror: MirrorWidget,
         menu: MenuWidget,
+        messages: MessagesWidget,
     } as const;
 }
 
@@ -6019,6 +6022,16 @@ export function WidgetFrame({
                     ai.tabName === b[i].tabName,
             ),
     );
+    // Layout list for pickers that only need to name a layout (messages widget's
+    // "only this layout" filter). Identity-only selector so a widget mutation
+    // anywhere in the dashboard does not re-render every frame.
+    const layoutChoices = useStoreWithEqualityFn(
+        useDashboardStore,
+        (s) => s.layouts.map((l) => ({ id: l.id, slug: l.slug, name: l.name })),
+        (a, b) =>
+            a.length === b.length &&
+            a.every((ai, i) => ai.id === b[i].id && ai.slug === b[i].slug && ai.name === b[i].name),
+    );
     // Group targets per layout *section* (not just per layout): sections default to a
     // single "Dashboard" tab, so a layout with several sections would otherwise render
     // multiple identically-named tabs under one header with no way to tell them apart.
@@ -8019,62 +8032,76 @@ export function WidgetFrame({
                                                                                                         label: 'Anzahl',
                                                                                                     },
                                                                                                 ]
-                                                                                              : [
-                                                                                                    {
-                                                                                                        value: 'default',
-                                                                                                        label: t(
-                                                                                                            'wf.edit.layout.standard',
-                                                                                                        ),
-                                                                                                    },
-                                                                                                    {
-                                                                                                        value: 'card',
-                                                                                                        label: t(
-                                                                                                            'wf.edit.layout.card',
-                                                                                                        ),
-                                                                                                    },
-                                                                                                    {
-                                                                                                        value: 'compact',
-                                                                                                        label: t(
-                                                                                                            'wf.edit.layout.compact',
-                                                                                                        ),
-                                                                                                    },
-                                                                                                    {
-                                                                                                        value: 'minimal',
-                                                                                                        label: t(
-                                                                                                            'wf.edit.layout.minimal',
-                                                                                                        ),
-                                                                                                    },
-                                                                                                    ...(config.type ===
-                                                                                                    'calendar'
-                                                                                                        ? [
-                                                                                                              {
-                                                                                                                  value: 'agenda',
-                                                                                                                  label: t(
-                                                                                                                      'wf.edit.layout.agenda',
-                                                                                                                  ),
-                                                                                                              },
-                                                                                                          ]
-                                                                                                        : []),
-                                                                                                    ...(config.type ===
-                                                                                                    'autolist'
-                                                                                                        ? [
-                                                                                                              {
-                                                                                                                  value: 'count',
-                                                                                                                  label: 'Anzahl',
-                                                                                                              },
-                                                                                                          ]
-                                                                                                        : []),
-                                                                                                    ...(!NO_CUSTOM_LAYOUT_TYPES.includes(
-                                                                                                        config.type,
-                                                                                                    )
-                                                                                                        ? [
-                                                                                                              {
-                                                                                                                  value: 'custom',
-                                                                                                                  label: 'Custom',
-                                                                                                              },
-                                                                                                          ]
-                                                                                                        : []),
-                                                                                                ];
+                                                                                              : config.type ===
+                                                                                                  'messages'
+                                                                                                ? [
+                                                                                                      {
+                                                                                                          value: 'default',
+                                                                                                          label: t(
+                                                                                                              'wf.edit.layout.standard',
+                                                                                                          ),
+                                                                                                      },
+                                                                                                      {
+                                                                                                          value: 'count',
+                                                                                                          label: 'Anzahl',
+                                                                                                      },
+                                                                                                  ]
+                                                                                                : [
+                                                                                                      {
+                                                                                                          value: 'default',
+                                                                                                          label: t(
+                                                                                                              'wf.edit.layout.standard',
+                                                                                                          ),
+                                                                                                      },
+                                                                                                      {
+                                                                                                          value: 'card',
+                                                                                                          label: t(
+                                                                                                              'wf.edit.layout.card',
+                                                                                                          ),
+                                                                                                      },
+                                                                                                      {
+                                                                                                          value: 'compact',
+                                                                                                          label: t(
+                                                                                                              'wf.edit.layout.compact',
+                                                                                                          ),
+                                                                                                      },
+                                                                                                      {
+                                                                                                          value: 'minimal',
+                                                                                                          label: t(
+                                                                                                              'wf.edit.layout.minimal',
+                                                                                                          ),
+                                                                                                      },
+                                                                                                      ...(config.type ===
+                                                                                                      'calendar'
+                                                                                                          ? [
+                                                                                                                {
+                                                                                                                    value: 'agenda',
+                                                                                                                    label: t(
+                                                                                                                        'wf.edit.layout.agenda',
+                                                                                                                    ),
+                                                                                                                },
+                                                                                                            ]
+                                                                                                          : []),
+                                                                                                      ...(config.type ===
+                                                                                                      'autolist'
+                                                                                                          ? [
+                                                                                                                {
+                                                                                                                    value: 'count',
+                                                                                                                    label: 'Anzahl',
+                                                                                                                },
+                                                                                                            ]
+                                                                                                          : []),
+                                                                                                      ...(!NO_CUSTOM_LAYOUT_TYPES.includes(
+                                                                                                          config.type,
+                                                                                                      )
+                                                                                                          ? [
+                                                                                                                {
+                                                                                                                    value: 'custom',
+                                                                                                                    label: 'Custom',
+                                                                                                                },
+                                                                                                            ]
+                                                                                                          : []),
+                                                                                                  ];
                                 return (
                                     <div className="flex items-center gap-1 flex-wrap">
                                         <span
@@ -9209,6 +9236,7 @@ export function WidgetFrame({
                             config.type !== 'statusoverview' &&
                             config.type !== 'mirror' &&
                             config.type !== 'menu' &&
+                            config.type !== 'messages' &&
                             config.type !== 'aircontrol' &&
                             config.type !== 'energiebilanz' && (
                                 <div>
@@ -12799,6 +12827,218 @@ export function WidgetFrame({
                                             k="striped"
                                             def={true}
                                             hint="Zeilen abwechselnd einfärben"
+                                        />
+                                    </>
+                                );
+                            })()}
+
+                        {/* ── Meldungen config (issue #429) ── */}
+                        {config.type === 'messages' &&
+                            (() => {
+                                const o = config.options ?? {};
+                                const set = (patch: Record<string, unknown>) =>
+                                    onConfigChange({ ...config, options: { ...o, ...patch } });
+                                const mCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                                const mSty = {
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                };
+                                const SEVERITIES: { key: string; label: string; color: string }[] = [
+                                    { key: 'error', label: 'Fehler', color: '#ef4444' },
+                                    { key: 'warning', label: 'Warnung', color: '#f59e0b' },
+                                    { key: 'success', label: 'Erfolg', color: '#22c55e' },
+                                    { key: 'info', label: 'Info', color: '#3b82f6' },
+                                ];
+                                const severities = Array.isArray(o.severities)
+                                    ? (o.severities as string[])
+                                    : SEVERITIES.map((s) => s.key);
+                                const toggleSeverity = (key: string) => {
+                                    const next = severities.includes(key)
+                                        ? severities.filter((s) => s !== key)
+                                        : [...severities, key];
+                                    // An empty selection would render a permanently blank
+                                    // widget with nothing to explain why.
+                                    if (next.length) set({ severities: next });
+                                };
+                                const MToggle = ({
+                                    label,
+                                    k,
+                                    def,
+                                    hint,
+                                }: {
+                                    label: string;
+                                    k: string;
+                                    def?: boolean;
+                                    hint?: string;
+                                }) => {
+                                    const val = (o[k] as boolean | undefined) ?? def ?? false;
+                                    return (
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex flex-col">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {label}
+                                                </label>
+                                                {hint && (
+                                                    <span
+                                                        className="text-[10px] opacity-60"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {hint}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={() => set({ [k]: !val })}
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: val ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                    );
+                                };
+                                return (
+                                    <>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Schweregrade
+                                            </label>
+                                            <div className="flex gap-1 flex-wrap">
+                                                {SEVERITIES.map((s) => {
+                                                    const on = severities.includes(s.key);
+                                                    return (
+                                                        <button
+                                                            key={s.key}
+                                                            onClick={() => toggleSeverity(s.key)}
+                                                            className="text-[10px] px-2 py-1 rounded-full transition-colors"
+                                                            style={{
+                                                                background: on ? s.color : 'var(--app-bg)',
+                                                                color: on ? '#fff' : 'var(--text-secondary)',
+                                                                border: `1px solid ${on ? s.color : 'var(--app-border)'}`,
+                                                            }}
+                                                        >
+                                                            {s.label}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Max. Einträge
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={1}
+                                                    max={1000}
+                                                    value={(o.maxEntries as number) ?? 50}
+                                                    onChange={(e) =>
+                                                        set({
+                                                            maxEntries: Math.max(
+                                                                1,
+                                                                Math.min(1000, Number(e.target.value) || 50),
+                                                            ),
+                                                        })
+                                                    }
+                                                    className={`${mCls} font-mono`}
+                                                    style={mSty}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Zeitraum (Std., 0 = alle)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={0}
+                                                    max={8760}
+                                                    value={(o.hours as number) ?? 0}
+                                                    onChange={(e) =>
+                                                        set({
+                                                            hours: Math.max(
+                                                                0,
+                                                                Math.min(8760, Number(e.target.value) || 0),
+                                                            ),
+                                                        })
+                                                    }
+                                                    className={`${mCls} font-mono`}
+                                                    style={mSty}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Nur Meldungen für dieses Layout
+                                            </label>
+                                            <select
+                                                value={(o.layoutFilter as string) ?? ''}
+                                                onChange={(e) => set({ layoutFilter: e.target.value })}
+                                                className={mCls}
+                                                style={mSty}
+                                            >
+                                                <option value="">Alle Layouts</option>
+                                                {layoutChoices.map((l) => (
+                                                    <option key={l.id} value={l.slug ?? l.id}>
+                                                        {l.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <MToggle
+                                            label="Volltext anzeigen"
+                                            k="detailed"
+                                            def={false}
+                                            hint="Aus: nur Kurzfassung in einer Zeile"
+                                        />
+                                        <MToggle
+                                            label="Nach Tag gruppieren"
+                                            k="groupByDay"
+                                            def={false}
+                                            hint="Datums-Zwischenzeilen einfügen"
+                                        />
+                                        <MToggle
+                                            label="Nur ungelesene"
+                                            k="unreadOnly"
+                                            def={false}
+                                            hint="Bestätigte Meldungen ausblenden"
+                                        />
+                                        <MToggle
+                                            label="Filter-Buttons im Frontend"
+                                            k="showFilter"
+                                            def={true}
+                                            hint="Schweregrad-Pillen zum Umschalten"
+                                        />
+                                        <MToggle
+                                            label="Bestätigen erlauben"
+                                            k="showAck"
+                                            def={true}
+                                            hint="Häkchen pro Zeile — gilt für alle Clients"
+                                        />
+                                        <MToggle
+                                            label="Verlauf leeren erlauben"
+                                            k="allowClear"
+                                            def={false}
+                                            hint="Löscht das Archiv für alle Clients"
                                         />
                                     </>
                                 );

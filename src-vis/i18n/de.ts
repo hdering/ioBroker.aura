@@ -1818,6 +1818,7 @@ export const de = {
 
     // ── Meldungen (Issue #429) ────────────────────────────────────────────────────
     'messages.title': 'Meldungen',
+    'messages.one': 'Meldung',
     'messages.acknowledge': 'Verstanden',
     'messages.empty': 'Keine Meldungen',
     'messages.unread': 'Ungelesen',

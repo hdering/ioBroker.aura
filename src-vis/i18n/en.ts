@@ -1814,6 +1814,7 @@ export const en: Record<TranslationKey, string> = {
 
     // ── Messages (issue #429) ─────────────────────────────────────────────────────
     'messages.title': 'Messages',
+    'messages.one': 'Message',
     'messages.acknowledge': 'Got it',
     'messages.empty': 'No messages',
     'messages.unread': 'Unread',

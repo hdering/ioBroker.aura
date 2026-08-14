@@ -230,6 +230,88 @@ await page.evaluate((m) => window.__auraShot.messageIngest([m]), { ...once, ts: 
 await settle();
 check('the same id with a newer timestamp is shown again', await visibleText('WiederDa'));
 
+// ── 17. The Meldungen widget lists the archive ──────────────────────────────
+const now = Date.now();
+const archive = [
+    msg({ id: 'a-err', ts: now - 60_000, severity: 'error', title: 'Heizung', text: 'Kein Kontakt' }),
+    msg({ id: 'a-warn', ts: now - 3_600_000, severity: 'warning', title: 'Waschmaschine', text: 'Fertig' }),
+    { ...msg({ id: 'a-ok', ts: now - 7_200_000, severity: 'success', title: 'Backup' }), read: true },
+    { ...msg({ id: 'a-info', ts: now - 90_000_000, severity: 'info', title: 'Sonnenuntergang' }), read: true },
+];
+
+// A fresh widget id per case: the severity pills are live UI state that survives
+// an options change on purpose, so reusing one id would carry the previous case's
+// filter over into the next.
+let widgetSeq = 0;
+async function showWidget(options = {}, layout = 'default') {
+    widgetSeq += 1;
+    await page.evaluate(
+        ([list, opts, lay, id]) => {
+            window.__auraShot.messagesReset();
+            window.__auraShot.showWidgets([
+                {
+                    id,
+                    type: 'messages',
+                    title: 'Meldungen',
+                    datapoint: '',
+                    layout: lay,
+                    gridPos: { x: 0, y: 0, w: 16, h: 14 },
+                    options: opts,
+                },
+            ]);
+            window.__auraShot.messagesHistory(list);
+        },
+        [archive, options, layout, `w-msg-${widgetSeq}`],
+    );
+    await settle();
+    return page.locator('[data-aura-messages="list"]').first();
+}
+
+let widget = await showWidget({ groupByDay: true });
+let body = await widget.innerText();
+check('the widget lists every archived message', ['Heizung', 'Waschmaschine', 'Backup', 'Sonnenuntergang'].every((s) => body.includes(s)));
+check('day grouping inserts a date separator', /\d{2}\.\d{2}\./.test(body));
+check('relative timestamps are shown', body.includes('vor '));
+
+// Severity pills filter the list down.
+await page.locator('[data-aura-messages="list"] button', { hasText: 'Warnung' }).first().click();
+await settle();
+body = await widget.innerText();
+check('switching a severity pill off hides that severity', !body.includes('Waschmaschine') && body.includes('Heizung'));
+
+// Only-unread hides confirmed entries.
+widget = await showWidget({ unreadOnly: true });
+body = await widget.innerText();
+check(
+    'unreadOnly hides confirmed messages',
+    body.includes('Heizung') && body.includes('Waschmaschine') && !body.includes('Backup'),
+);
+
+// A time window drops everything older.
+widget = await showWidget({ hours: 2 });
+body = await widget.innerText();
+check('the time window drops older entries', body.includes('Heizung') && !body.includes('Sonnenuntergang'));
+
+// maxEntries caps the list.
+widget = await showWidget({ maxEntries: 1 });
+body = await widget.innerText();
+check('maxEntries caps the list', body.includes('Heizung') && !body.includes('Waschmaschine'));
+
+// Clicking a row opens the detail view.
+widget = await showWidget();
+await page.locator('[data-aura-messages="list"] >> text=Waschmaschine').first().click();
+await settle();
+const detail = await page.locator('[style*="10000"]').first().innerText();
+check('a row click opens the detail view', detail.includes('Waschmaschine') && detail.includes('Schweregrad'));
+check('the detail view shows the confirmation state', detail.includes('Ungelesen'));
+
+// The count layout reduces to unread/total.
+await page.locator('[style*="10000"] button').first().click();
+await settle();
+await showWidget({}, 'count');
+const countText = (await page.locator('[data-aura-messages="count"]').first().innerText()).replace(/\s+/g, ' ');
+check(`the count layout shows unread over total (got "${countText}")`, /\b2\b/.test(countText) && /\b4\b/.test(countText));
+
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

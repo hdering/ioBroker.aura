@@ -59,6 +59,7 @@ import {
     Activity,
     CopyPlus,
     Menu,
+    BellRing,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetType } from './types';
@@ -883,6 +884,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'layout',
         mock: { t: 'Menü', v: '☰' },
         hint: 'Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten',
+    },
+    {
+        type: 'messages',
+        label: 'Meldungen',
+        shortLabel: 'Meldungen',
+        Icon: BellRing,
+        iconName: 'BellRing',
+        color: '#f59e0b',
+        defaultW: 10,
+        defaultH: 8,
+        addMode: 'free',
+        widgetGroup: 'special',
+        mock: { t: 'Meldungen', v: '' },
+        hint: 'Verlauf der eingegangenen Informationen, Warnungen und Fehler – Filter nach Schweregrad und Zeitraum, Klick öffnet die Detailansicht',
     },
 ];
 

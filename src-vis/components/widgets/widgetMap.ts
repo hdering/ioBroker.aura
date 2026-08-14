@@ -46,6 +46,7 @@ import { HttpRequestWidget } from './HttpRequestWidget';
 import { ButtonWidget } from './ButtonWidget';
 import { StatusOverviewWidget } from './StatusOverviewWidget';
 import { MirrorWidget } from './MirrorWidget';
+import { MessagesWidget } from './MessagesWidget';
 
 // Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) — lazy-loaded so
 // dashboards without charts skip the cost. Consumers must render these inside
@@ -119,6 +120,7 @@ export function getWidgetMap() {
         statusoverview: StatusOverviewWidget,
         loadtimes: LoadTimesWidget,
         mirror: MirrorWidget,
+        messages: MessagesWidget,
     } as const;
 }
 

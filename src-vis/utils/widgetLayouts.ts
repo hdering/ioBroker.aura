@@ -16,6 +16,7 @@ const NO_CUSTOM = new Set([
     'adapterlogs',
     'loadtimes',
     'alarm',
+    'messages',
 ]);
 
 export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
@@ -51,6 +52,8 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
             return ['default'];
         case 'statusoverview':
             return ['default', 'compact', 'card', 'minimal', 'count'];
+        case 'messages':
+            return ['default', 'count'];
         case 'chart':
             return ['default', 'card'];
         case 'mediaplayer':

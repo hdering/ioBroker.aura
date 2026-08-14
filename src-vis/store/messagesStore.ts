@@ -80,19 +80,21 @@ export interface MessageScope {
 }
 
 /**
- * Does this device show the message? Mirrors `inScope` in DpPopupTriggers, with
- * one addition: layout/tab may be given as slug, id or name, because a target is
- * usually hand-written in a script and any of the three is a fair guess.
+ * Case-insensitive match of a hand-written target name against the identifiers it
+ * could plausibly mean. A `target` is usually typed into a script by hand, so slug,
+ * id and display name are all accepted.
  */
+export function matchesRef(want: string, ...have: (string | undefined)[]): boolean {
+    const w = want.trim().toLowerCase();
+    return have.some((h) => h && h.toLowerCase() === w);
+}
+
+/** Does this device show the message? Mirrors `inScope` in DpPopupTriggers. */
 export function inMessageScope(target: MessageTarget | undefined, scope: MessageScope): boolean {
     if (!target) return true;
     if (target.clients?.length && !target.clients.includes(scope.clientId)) return false;
-    const matches = (want: string, ...have: (string | undefined)[]) => {
-        const w = want.trim().toLowerCase();
-        return have.some((h) => h && h.toLowerCase() === w);
-    };
-    if (target.layout && !matches(target.layout, scope.layoutId, scope.layoutSlug, scope.layoutName)) return false;
-    if (target.tab && !matches(target.tab, scope.tabId, scope.tabSlug, scope.tabName)) return false;
+    if (target.layout && !matchesRef(target.layout, scope.layoutId, scope.layoutSlug, scope.layoutName)) return false;
+    if (target.tab && !matchesRef(target.tab, scope.tabId, scope.tabSlug, scope.tabName)) return false;
     return true;
 }
 
@@ -225,8 +227,15 @@ export function __devForceMessages(on: boolean): void {
     devForced = on;
 }
 
+// Reference-counted so several consumers can ask for it: the ToastLayer always
+// does, and the Meldungen widget / admin page need the history even where no
+// toast layer is mounted (widget editor, admin). The subscriptions exist once.
+let runtimeUsers = 0;
+let runtimeStop: (() => void) | null = null;
+
 /**
- * Subscribe to the three adapter datapoints. Mounted once by ToastLayer.
+ * Subscribe to the adapter datapoints for as long as at least one caller holds
+ * the returned release function.
  *
  * Both value streams treat their first delivery as a baseline: subscribeDpValue
  * primes with the current value, so firing on it would replay the last message on
@@ -237,6 +246,18 @@ export function __devForceMessages(on: boolean): void {
 export function startMessagesRuntime(): () => void {
     if (isScreenshotMode() && !devForced) return () => {};
 
+    runtimeUsers += 1;
+    if (runtimeUsers === 1) runtimeStop = openSubscriptions();
+    return () => {
+        runtimeUsers -= 1;
+        if (runtimeUsers === 0) {
+            runtimeStop?.();
+            runtimeStop = null;
+        }
+    };
+}
+
+function openSubscriptions(): () => void {
     const store = useMessagesStore;
     let lastPrimed = false;
     let historyPrimed = false;

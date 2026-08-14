@@ -231,6 +231,16 @@ function installScreenshotApi(): void {
             useMessagesStore.setState({ seen: {}, lastSeenTs: 0, open: [], history: [], unreadCount: 0 });
         },
 
+        /** Seed the archive mirror (what the Meldungen widget lists) without
+         *  writing the history datapoint. Does NOT raise toasts — use
+         *  messageIngest for that. */
+        messagesHistory(history: AuraMessage[]): void {
+            useMessagesStore.setState({
+                history,
+                unreadCount: history.filter((m) => !m.read).length,
+            });
+        },
+
         /** Toasts per screen position before the rest queue up (config.messageDefaults
          *  normally supplies this). */
         messagesMaxVisible(n: number): void {
