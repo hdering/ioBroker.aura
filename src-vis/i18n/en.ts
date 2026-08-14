@@ -150,6 +150,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.showHeader': 'Show Header',
     'settings.frontend.dashboardTitle': 'Dashboard Title',
     'settings.frontend.connectionBadge': 'Connection Status',
+    'settings.frontend.showMessageBell': 'Message bell in the header',
     'settings.frontend.showAdminLink': 'Show Admin Link in Header',
     'settings.frontend.headerClock': 'Clock/Date in Header',
     'settings.frontend.headerClockDisplay': 'Display',
@@ -1088,6 +1089,10 @@ export const en: Record<TranslationKey, string> = {
     'cond.blink': 'Blink',
     'cond.refreshWidget': 'Reload widget',
     'cond.refreshWidgetHint': 'Reload embedded content (iframe, camera, image) when the rule fires',
+    'cond.notify': 'Send a message',
+    'cond.notifyHint': 'Raises a message when the rule matches.',
+    'cond.notifyOnMatch': 'Sent as soon as the rule starts matching.',
+    'cond.notifyOnChange': 'Sent on every value change.',
     'cond.refreshWidgetOnChange': 'Reloads on every change of the datapoint',
     'cond.refreshWidgetOnMatch':
         'Reloads as soon as the rule matches — pick the "Has changed" operator for "on every change"',

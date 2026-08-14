@@ -9,6 +9,7 @@ const HEADER_KEYS: (keyof LayoutSettings)[] = [
     'headerTitle',
     'showConnectionBadge',
     'showAdminLink',
+    'showMessageBell',
     'headerClockEnabled',
     'headerClockDisplay',
     'headerClockShowSeconds',
@@ -29,6 +30,7 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
     const [headerTitle] = eff('headerTitle');
     const [showConnectionBadge] = eff('showConnectionBadge');
     const [showAdminLink] = eff('showAdminLink');
+    const [showMessageBell] = eff('showMessageBell');
     const [headerClockEnabled] = eff('headerClockEnabled');
     const [headerClockDisplay] = eff('headerClockDisplay');
     const [headerClockShowSeconds] = eff('headerClockShowSeconds');
@@ -87,6 +89,11 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                         label={t('settings.frontend.showAdminLink')}
                         value={showAdminLink ?? false}
                         onChange={(v) => set('showAdminLink', v)}
+                    />
+                    <ToggleRow
+                        label={t('settings.frontend.showMessageBell')}
+                        value={showMessageBell ?? false}
+                        onChange={(v) => set('showMessageBell', v)}
                     />
 
                     <ToggleRow

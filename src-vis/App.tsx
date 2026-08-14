@@ -49,6 +49,7 @@ import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
 import { usePopupRuntimeStore } from './store/popupRuntimeStore';
 import { DpPopupTriggers } from './components/widgets/popup/DpPopupTriggers';
 import { ToastLayer } from './components/messages/ToastLayer';
+import { MessageBell } from './components/layout/MessageBell';
 import type { MessageScope } from './store/messagesStore';
 import { NS } from './utils/namespace';
 import { baseDpId } from './utils/dpRef';
@@ -1176,6 +1177,7 @@ export default function App() {
                                 )}
                                 {effectiveSettings.headerClockEnabled && <HeaderClock f={effectiveSettings} />}
                                 {showBadge && <ConnectionBadge />}
+                                {effectiveSettings.showMessageBell && <MessageBell />}
                                 {effectiveSettings.showAdminLink && (
                                     <a
                                         href="#/admin"

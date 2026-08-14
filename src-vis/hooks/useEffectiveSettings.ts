@@ -59,6 +59,7 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'headerTitle',
     'showConnectionBadge',
     'showAdminLink',
+    'showMessageBell',
     'headerClockEnabled',
     'headerClockDisplay',
     'headerClockShowSeconds',

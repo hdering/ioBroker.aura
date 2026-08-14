@@ -14,6 +14,8 @@ export interface FrontendSettings {
     headerTitle: string;
     showConnectionBadge: boolean;
     showAdminLink: boolean;
+    /** Bell with the unread-message counter (issue #429). */
+    showMessageBell: boolean;
     // Header clock
     headerClockEnabled: boolean;
     headerClockDisplay: 'time' | 'date' | 'datetime';
@@ -152,6 +154,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     headerTitle: 'Aura',
     showConnectionBadge: true,
     showAdminLink: false,
+    showMessageBell: false,
     headerClockEnabled: false,
     headerClockDisplay: 'time',
     headerClockShowSeconds: false,

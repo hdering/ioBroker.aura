@@ -3,7 +3,7 @@ import { Copy, Database, Plus, Trash2 } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
-import type { MessagePosition, MessageSeverity } from '../../types';
+import type { MessageDraft, MessagePosition, MessageSeverity } from '../../types';
 
 /**
  * Form → JSON builder for a message payload.
@@ -36,31 +36,7 @@ export const MESSAGE_SEVERITIES: { value: MessageSeverity; label: string; color:
     { value: 'error', label: 'Fehler', color: '#ef4444' },
 ];
 
-export interface MessageDraft {
-    id: string;
-    severity: MessageSeverity;
-    title: string;
-    text: string;
-    html: string;
-    image: string;
-    icon: string;
-    view: string;
-    dp: string;
-    position: '' | MessagePosition;
-    durationSec: string;
-    requireAck: boolean;
-    priority: string;
-    width: string;
-    height: string;
-    transparency: string;
-    ackDp: string;
-    ackValue: string;
-    persist: boolean;
-    actions: { label: string; dp: string; value: string; close: boolean }[];
-    targetClients: string;
-    targetLayout: string;
-    targetTab: string;
-}
+export type { MessageDraft };
 
 export function emptyDraft(): MessageDraft {
     return {

@@ -149,6 +149,7 @@ export const de = {
     'settings.frontend.showHeader': 'Header anzeigen',
     'settings.frontend.dashboardTitle': 'Dashboard-Titel',
     'settings.frontend.connectionBadge': 'Verbindungsstatus',
+    'settings.frontend.showMessageBell': 'Meldungs-Glocke im Header',
     'settings.frontend.showAdminLink': 'Admin-Link im Header anzeigen',
     'settings.frontend.headerClock': 'Uhrzeit/Datum im Header',
     'settings.frontend.headerClockDisplay': 'Anzeige',
@@ -1091,6 +1092,10 @@ export const de = {
     'cond.blink': 'Blinken',
     'cond.refreshWidget': 'Widget neu laden',
     'cond.refreshWidgetHint': 'Eingebettete Inhalte (iFrame, Kamera, Bild) neu laden, wenn die Regel auslöst',
+    'cond.notify': 'Meldung senden',
+    'cond.notifyHint': 'Erzeugt eine Meldung, wenn die Regel zutrifft.',
+    'cond.notifyOnMatch': 'Wird gesendet, sobald die Regel zutrifft.',
+    'cond.notifyOnChange': 'Wird bei jeder Wertänderung gesendet.',
     'cond.refreshWidgetOnChange': 'Lädt bei jeder Änderung des Datenpunkts neu',
     'cond.refreshWidgetOnMatch':
         'Lädt neu, sobald die Regel zutrifft — für „bei jeder Änderung“ den Operator „Hat sich geändert“ wählen',

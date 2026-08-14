@@ -164,6 +164,7 @@ export interface LayoutSettings {
     headerTitle?: string;
     showConnectionBadge?: boolean;
     showAdminLink?: boolean;
+    showMessageBell?: boolean;
     headerClockEnabled?: boolean;
     headerClockDisplay?: 'time' | 'date' | 'datetime';
     headerClockShowSeconds?: boolean;

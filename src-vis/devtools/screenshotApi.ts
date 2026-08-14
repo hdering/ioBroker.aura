@@ -26,8 +26,14 @@ import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore
 import { useGroupDefsStore } from '../store/groupDefsStore';
 import { usePopupConfigStore, type PopupTrigger, type PopupView } from '../store/popupConfigStore';
 import { __devForceDpTriggers } from '../components/widgets/popup/DpPopupTriggers';
-import { __devForceConditionRefresh } from '../hooks/useConditionStyle';
-import { useMessagesStore, __devForceMessages, type MessageScope } from '../store/messagesStore';
+import { __devForceConditionRefresh, __devForceConditionNotify } from '../hooks/useConditionStyle';
+import {
+    useMessagesStore,
+    __devForceMessages,
+    __devSentMessages,
+    __devClearSentMessages,
+    type MessageScope,
+} from '../store/messagesStore';
 import { useThemeStore } from '../store/themeStore';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
 import type { AuraMessage, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
@@ -203,6 +209,24 @@ function installScreenshotApi(): void {
          *  default — a widget remounting mid-shot would corrupt the image. */
         conditionRefresh(on = true): void {
             __devForceConditionRefresh(on);
+        },
+
+        /** Arm condition rules with "send a message". The write stays blocked —
+         *  read what would have gone out with `sentMessages()`. */
+        conditionNotify(on = true): void {
+            __devForceConditionNotify(on);
+            if (on) __devClearSentMessages();
+        },
+
+        /** Payloads that `send()` swallowed because screenshot mode blocks writes. */
+        sentMessages(): unknown[] {
+            return __devSentMessages().map((raw) => {
+                try {
+                    return JSON.parse(raw);
+                } catch {
+                    return raw;
+                }
+            });
         },
 
         /** Seed popup views so a `popup-view` action has something to render. */

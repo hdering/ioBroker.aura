@@ -312,6 +312,89 @@ await showWidget({}, 'count');
 const countText = (await page.locator('[data-aura-messages="count"]').first().innerText()).replace(/\s+/g, ' ');
 check(`the count layout shows unread over total (got "${countText}")`, /\b2\b/.test(countText) && /\b4\b/.test(countText));
 
+// ── 18. The "send a message" condition effect ──────────────────────────────
+// Same edge rules as "reload widget": priming stays silent, the rising edge
+// fires once, and holding the condition true does not re-fire.
+const COND_DP = 'demo.notifyTrigger';
+const notifyDraft = {
+    id: 'cond-test',
+    severity: 'warning',
+    title: 'Fenster offen',
+    text: 'Bitte schliessen',
+    html: '',
+    image: '',
+    icon: '',
+    view: '',
+    dp: '',
+    position: 'bottom-left',
+    durationSec: '20',
+    requireAck: false,
+    priority: '',
+    width: '',
+    height: '',
+    transparency: '',
+    ackDp: '',
+    ackValue: '',
+    persist: true,
+    actions: [],
+    targetClients: '',
+    targetLayout: '',
+    targetTab: '',
+};
+
+const sentMessages = () => page.evaluate(() => window.__auraShot.sentMessages());
+const setDp = async (value) => {
+    await page.evaluate(([dp, v]) => window.__auraShot.mock({ [dp]: v }), [COND_DP, value]);
+    await settle();
+};
+
+await page.evaluate(
+    ([dp, draftValue]) => {
+        window.__auraShot.conditionNotify(false);
+        window.__auraShot.mock({ [dp]: true });
+        window.__auraShot.showWidgets([
+            {
+                id: 'w-cond',
+                type: 'value',
+                title: 'Test',
+                datapoint: dp,
+                gridPos: { x: 0, y: 0, w: 6, h: 4 },
+                options: {
+                    conditions: [
+                        {
+                            id: 'c1',
+                            logic: 'AND',
+                            clauses: [{ datapoint: dp, operator: 'true', value: '' }],
+                            style: {},
+                            notify: draftValue,
+                        },
+                    ],
+                },
+            },
+        ]);
+        window.__auraShot.conditionNotify(true);
+    },
+    [COND_DP, notifyDraft],
+);
+await settle();
+check('no message while priming on an already-true datapoint', (await sentMessages()).length === 0);
+
+await setDp(false);
+await setDp(true);
+const fired = await sentMessages();
+check('the rising edge sends exactly one message', fired.length === 1);
+check(
+    'the payload carries the configured fields',
+    fired[0]?.title === 'Fenster offen' && fired[0]?.severity === 'warning' && fired[0]?.durationSec === 20,
+);
+check(
+    'unset builder fields are left out of the payload',
+    fired[0] !== undefined && !('width' in fired[0]) && !('target' in fired[0]) && !('requireAck' in fired[0]),
+);
+
+await setDp(true);
+check('holding the condition true does not re-fire', (await sentMessages()).length === 1);
+
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

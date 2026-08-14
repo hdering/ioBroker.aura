@@ -12,6 +12,8 @@ import {
 } from '../../utils/conditionSources';
 import { useT, t } from '../../i18n';
 import { ColorPicker } from '../common/ColorPicker';
+import { ConfigModal } from './ConfigModal';
+import { MessageBuilder, emptyDraft } from './MessageBuilder';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -415,6 +417,7 @@ function ConditionRule({
     // Drives the hint under the reload toggle: a 'changed' rule reloads on every
     // value, everything else only when the rule flips to true.
     const hasChangedClause = condition.clauses.some((c) => c.operator === 'changed');
+    const [editingNotify, setEditingNotify] = useState(false);
 
     return (
         <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
@@ -560,6 +563,73 @@ function ConditionRule({
                                 </button>
                             </div>
                         </>
+                    )}
+
+                    {/* Send a message (issue #429) — same edge rules as "reload widget":
+                        a state rule fires once when it starts matching, a 'changed'
+                        clause on every value arrival. */}
+                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0">
+                            <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                                {t('cond.notify')}
+                            </p>
+                            <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                {condition.notify
+                                    ? hasChangedClause
+                                        ? t('cond.notifyOnChange')
+                                        : t('cond.notifyOnMatch')
+                                    : t('cond.notifyHint')}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {condition.notify && (
+                                <button
+                                    onClick={() => setEditingNotify(true)}
+                                    className="text-[10px] px-2 py-1 rounded-lg"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    {t('common.edit')}
+                                </button>
+                            )}
+                            <button
+                                onClick={() => {
+                                    if (condition.notify) {
+                                        onChange({ ...condition, notify: undefined });
+                                    } else {
+                                        // Open the builder straight away — an enabled but
+                                        // empty message would be silently dropped.
+                                        onChange({ ...condition, notify: emptyDraft() });
+                                        setEditingNotify(true);
+                                    }
+                                }}
+                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                style={{ background: condition.notify ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: condition.notify ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                    {editingNotify && condition.notify && (
+                        <ConfigModal
+                            title={t('cond.notify')}
+                            maxWidth={980}
+                            padded
+                            storageKey="aura-cond-notify-modal"
+                            onClose={() => setEditingNotify(false)}
+                        >
+                            <MessageBuilder
+                                draft={condition.notify}
+                                onChange={(draft) => onChange({ ...condition, notify: draft })}
+                            />
+                        </ConfigModal>
                     )}
 
                     {/* Hide widget / tab */}

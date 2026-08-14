@@ -11,6 +11,8 @@ import {
     type DpSourceCtx,
 } from '../utils/conditionSources';
 import { bumpWidgetRefresh } from '../store/widgetRefreshStore';
+import { useMessagesStore } from '../store/messagesStore';
+import { draftToPayload } from '../components/config/MessageBuilder';
 import { isScreenshotMode } from '../store/persistManager';
 import type { WidgetCondition, ConditionStyle } from '../types';
 
@@ -192,6 +194,14 @@ export function __devForceConditionRefresh(on: boolean): void {
     devRefreshForced = on;
 }
 
+// Same for the "send a message" effect — off in screenshot mode so a rule cannot
+// drop a real notice into the user's archive mid-shot. When armed, the write is
+// still blocked; messagesStore records the payload instead (__devSentMessages).
+let devNotifyForced = false;
+export function __devForceConditionNotify(on: boolean): void {
+    devNotifyForced = on;
+}
+
 // Real state IDs behind all clauses — token refs ('{dp}', '{list:…}') are
 // expanded to the widget's own / list datapoints via the source context.
 function collectUniqueIds(conditions: WidgetCondition[], ctx?: DpSourceCtx): string[] {
@@ -241,6 +251,8 @@ export function useConditionStyle(
     // Last verdict per refresh rule — a rule without a 'changed' clause reloads on
     // the rising edge only, so it must remember whether it already matched.
     const refreshMatchRef = useRef<Map<string, boolean>>(new Map());
+    // Same bookkeeping for the "send a message" effect (issue #429).
+    const notifyMatchRef = useRef<Map<string, boolean>>(new Map());
     // Cache-aware initial state: on remount (e.g. when a widget moves between the
     // visible grid and the off-screen reflow container) the global stateCache
     // already has the DP values — compute the correct result synchronously so the
@@ -373,13 +385,42 @@ export function useConditionStyle(
             }
         };
 
+        // ── "Meldung senden" rules (issue #429) ──────────────────────────────
+        // Deliberately the same edge rules as fireRefresh: a state rule fires once
+        // on the rising edge, a 'changed' clause fires on every arrival. Anything
+        // else would spam the archive on every re-evaluation.
+        const notifyConds = conditions.filter((c) => c.notify);
+        for (const id of [...notifyMatchRef.current.keys()]) {
+            if (!notifyConds.some((c) => c.id === id)) notifyMatchRef.current.delete(id);
+        }
+
+        const fireNotify = (changed: ReadonlySet<string>) => {
+            if (!notifyConds.length) return;
+            // The screenshot harness runs against a real instance — a rule firing
+            // here would write a genuine message into the user's archive.
+            if (isScreenshotMode() && !devNotifyForced) return;
+            for (const cond of notifyConds) {
+                const matched = evaluateConditionWithSource(cond, valuesRef.current, ctxRef.current, changed);
+                const prev = notifyMatchRef.current.get(cond.id);
+                notifyMatchRef.current.set(cond.id, matched);
+                if (!matched) continue;
+                if (!hasChangedClause(cond) && (prev === undefined || prev)) continue;
+                const payload = draftToPayload(cond.notify!);
+                condLog('notify', { widgetId, rule: cond.id, payload });
+                useMessagesStore.getState().send(JSON.stringify(payload));
+            }
+        };
+
         const recompute = (trigger: string, dp?: string, changed: ReadonlySet<string> = NO_CHANGES) => {
             const allKnown = uniqueIds.every((id) => loadedIds.has(id));
             const next = allKnown ? computeResult(conditions, valuesRef.current, ctxRef.current) : pessimistic();
             // computeResult resolved the source tokens into valuesRef, so the refresh
             // rules see the same values the style verdict was built from. Skipped while
             // values are still loading — a half-known state is not a real transition.
-            if (allKnown) fireRefresh(changed);
+            if (allKnown) {
+                fireRefresh(changed);
+                fireNotify(changed);
+            }
             setResult((prev) => {
                 if (
                     prev.effect === next.effect &&

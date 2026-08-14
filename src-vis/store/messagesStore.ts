@@ -204,7 +204,12 @@ export const useMessagesStore = create<MessagesState>()(
             },
 
             send: (payload) => {
-                if (isScreenshotMode()) return;
+                // Screenshot mode never writes to the real instance; record instead,
+                // so a test can assert what *would* have been sent.
+                if (isScreenshotMode()) {
+                    devSentPayloads.push(payload);
+                    return;
+                }
                 setStateDirect(DP_SEND, payload);
             },
         }),
@@ -225,6 +230,15 @@ export const useMessagesStore = create<MessagesState>()(
 let devForced = false;
 export function __devForceMessages(on: boolean): void {
     devForced = on;
+}
+
+/** Payloads `send()` swallowed because screenshot mode blocks the write. */
+const devSentPayloads: string[] = [];
+export function __devSentMessages(): string[] {
+    return [...devSentPayloads];
+}
+export function __devClearSentMessages(): void {
+    devSentPayloads.length = 0;
 }
 
 // Reference-counted so several consumers can ask for it: the ToastLayer always

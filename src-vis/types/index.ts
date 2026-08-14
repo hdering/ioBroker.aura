@@ -485,6 +485,39 @@ export interface AuraMessage {
  */
 export type MessageBroadcast = AuraMessage | { id: string; ts: number; dismissed: true; read: boolean };
 
+/**
+ * A message as the MessageBuilder form holds it — every field a string, so an
+ * empty input round-trips as "not set" rather than 0/false. Persisted (not just
+ * the derived payload) wherever a message is configured in the UI, so re-opening
+ * the editor shows what was entered. `draftToPayload` turns it into the JSON that
+ * goes on the wire.
+ */
+export interface MessageDraft {
+    id: string;
+    severity: MessageSeverity;
+    title: string;
+    text: string;
+    html: string;
+    image: string;
+    icon: string;
+    view: string;
+    dp: string;
+    position: '' | MessagePosition;
+    durationSec: string;
+    requireAck: boolean;
+    priority: string;
+    width: string;
+    height: string;
+    transparency: string;
+    ackDp: string;
+    ackValue: string;
+    persist: boolean;
+    actions: { label: string; dp: string; value: string; close: boolean }[];
+    targetClients: string;
+    targetLayout: string;
+    targetTab: string;
+}
+
 // ── Conditional widget styling ────────────────────────────────────────────────
 
 // 'active'/'inactive' are the truthiness test (isActiveVal): > 0, true or a
@@ -536,6 +569,11 @@ export interface WidgetCondition {
     // image) re-fetches. Rules with a 'changed' clause fire on every change; all
     // others fire on the rising edge of the match (issue #537).
     refreshWidget?: boolean;
+    /**
+     * Send a message when the rule fires — same edge semantics as refreshWidget
+     * (issue #429). Stored as the builder draft so the editor can re-open it.
+     */
+    notify?: MessageDraft;
     hideWidget?: boolean; // enable visibility control (see visibilityMode)
     // Polarity of the visibility control. 'hideOnMatch' (default, back-compat) hides
     // the widget when the condition is true; 'showOnMatch' shows it only when true
