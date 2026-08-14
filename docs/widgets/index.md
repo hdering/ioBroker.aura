@@ -48,6 +48,7 @@
 | [Kamera](./kamera) | Kamera-Livebild einbinden (go2rtc / MJPEG-Stream). |
 | [Karte](./karte) | Positionen (Auto, Kind, …) aus Datenpunkten auf einer OpenStreetMap-Karte anzeigen – optional mit Entfernung. |
 | [Karussell](./karussell) | Horizontal scrollbare Chip-Liste – pro Item Datenpunkt + eigene Klick-Aktion. |
+| [Meldungen](./meldungen) | Verlauf der eingegangenen Informationen, Warnungen und Fehler — Filter nach Schweregrad und Zeitraum. |
 | [Müllabfuhr](./muellabfuhr) | Nächste Müllabfuhr-Termine vom Trash-Adapter anzeigen. |
 | [Müllabfuhr-Zeitplan](./muellabfuhr-zeitplan) | Detaillierter Müllabfuhr-Kalender (Datenpunkt vom Trash-Adapter). |
 | [Skript-Status](./skript-status) | Liste aller JavaScript-Skripte mit Status, Filter und Start-/Stopp-Aktionen. |

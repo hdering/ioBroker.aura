@@ -38,6 +38,7 @@ export default defineConfig({
             { text: 'Übersicht', link: '/einstellungen/' },
             { text: 'Dashboard-Editor', link: '/einstellungen/editor' },
             { text: 'Popups', link: '/einstellungen/popups' },
+            { text: 'Meldungen', link: '/einstellungen/meldungen' },
             { text: 'Widget-Verwaltung', link: '/einstellungen/widgets' },
             { text: 'Layouts & Theme', link: '/einstellungen/layouts' },
             { text: 'Frontend', link: '/einstellungen/frontend' },

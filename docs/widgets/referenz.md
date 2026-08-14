@@ -52,6 +52,7 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | [Adapter-Status](./adapter-status) | `adapterstatus` | `default` | 12×6 |
 | [Skript-Status](./skript-status) | `scriptstatus` | `default` | 12×6 |
 | [Adapter-Logs](./adapter-logs) | `adapterlogs` | `default` | 12×6 |
+| [Meldungen](./meldungen) | `messages` | `default` · `count` | 12×6 |
 | [Alarmanlage](./alarmanlage) | `alarm` | `default` | 12×6 |
 | [Karte](./karte) | `map` | `default` | 12×6 |
 | [Karussell](./karussell) | `carousel` | `default` | 12×6 |

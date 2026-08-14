@@ -170,6 +170,10 @@
         "link": "/widgets/karussell"
       },
       {
+        "text": "Meldungen",
+        "link": "/widgets/meldungen"
+      },
+      {
         "text": "Müllabfuhr",
         "link": "/widgets/muellabfuhr"
       },

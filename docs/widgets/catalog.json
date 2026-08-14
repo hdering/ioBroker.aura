@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-08-12",
+  "generatedAt": "2026-08-14",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -1150,6 +1150,29 @@
       "screenshots": {
         "hero": "assets/adapter-logs/runtime.png",
         "config": "assets/adapter-logs/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "messages",
+      "slug": "meldungen",
+      "label": "Meldungen",
+      "group": "special",
+      "hint": "Verlauf der eingegangenen Informationen, Warnungen und Fehler — Filter nach Schweregrad und Zeitraum.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 6
+      },
+      "layouts": [
+        "default",
+        "count"
+      ],
+      "options": [],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/meldungen/runtime.png",
+        "config": "assets/meldungen/config.png",
         "shots": {}
       }
     },
