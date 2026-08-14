@@ -3,10 +3,13 @@ import { getHistoryDirect, getStateFromCache, getObjectDirect, type HistoryEntry
 import { detectHistoryAdapters, type DetectedAdapter } from './useChartHistory';
 import type { ioBrokerState } from '../types';
 
-export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | 'custom';
+export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'custom';
 
 /** Calendar bucket the `delta` aggregation differences a rising counter over. */
-export type DeltaBucket = 'hour' | 'day' | 'week' | 'month';
+export type DeltaBucket = 'hour' | 'day' | 'week' | 'month' | 'year';
+
+/** What the user picks — `auto` derives the bucket from the selected window (issue #536). */
+export type DeltaBucketSetting = DeltaBucket | 'auto';
 
 export interface EChartSeriesConfig {
     id: string;
@@ -34,8 +37,11 @@ export interface EChartSeriesConfig {
      * reading it plots the consumption per calendar bucket — see `deltaBucket` (issue #521).
      */
     aggregate?: 'average' | 'minmax' | 'max' | 'min' | 'total' | 'none' | 'delta';
-    /** Calendar bucket the `delta` aggregation differences over (default `hour`). */
-    deltaBucket?: DeltaBucket;
+    /**
+     * Calendar bucket the `delta` aggregation differences over (default `hour`). `auto` derives it
+     * from the active window instead — see `resolveDeltaBucket`.
+     */
+    deltaBucket?: DeltaBucketSetting;
     /**
      * Where the series gets its points from. `history` (default) queries a history adapter;
      * `json` reads a JSON array straight out of the datapoint's value — for datapoints that
@@ -70,6 +76,7 @@ const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
     '24h': 86_400_000,
     '7d': 604_800_000,
     '30d': 2_592_000_000,
+    '1y': 31_536_000_000,
 };
 
 const RANGE_STEP: Record<Exclude<EChartTimeRange, 'custom'>, number | undefined> = {
@@ -78,6 +85,8 @@ const RANGE_STEP: Record<Exclude<EChartTimeRange, 'custom'>, number | undefined>
     '24h': 900_000,
     '7d': 3_600_000,
     '30d': 21_600_000,
+    // A year at the 6 h step would be ~1460 rows and run into the `count` cap below.
+    '1y': 86_400_000,
 };
 
 /** Millisecond span of a range selection — also used by the widget to frame flat "no change" windows. */
@@ -92,12 +101,22 @@ function getRangeMs(s: EChartSeriesConfig): number {
     return rangeToMs(s.historyRange ?? '24h', s.historyRangeCustomValue, s.historyRangeCustomUnit);
 }
 
+/** Length of the window actually fetched — an absolute day window overrides the rolling range. */
+function windowMs(s: EChartSeriesConfig): number {
+    if (typeof s.historyStart === 'number' && typeof s.historyEnd === 'number') {
+        return s.historyEnd - s.historyStart;
+    }
+    return getRangeMs(s);
+}
+
 function getStepForMs(rangeMs: number): number | undefined {
     if (rangeMs <= 3 * 3_600_000) return undefined;
     if (rangeMs <= 12 * 3_600_000) return 300_000;
     if (rangeMs <= 48 * 3_600_000) return 900_000;
     if (rangeMs <= 14 * 86_400_000) return 3_600_000;
-    return 21_600_000;
+    // Beyond ~2 months the 6 h step exceeds the 1000-row `count` cap — drop to daily.
+    if (rangeMs <= 60 * 86_400_000) return 21_600_000;
+    return 86_400_000;
 }
 
 // ── Counter deltas (issue #521) ───────────────────────────────────────────────
@@ -120,6 +139,9 @@ export function bucketStart(ts: number, bucket: DeltaBucket): number {
         return d.getTime();
     }
     d.setDate(1);
+    if (bucket === 'month') return d.getTime();
+    // Day is already 1, so setting the month can't roll over into the next one.
+    d.setMonth(0);
     return d.getTime();
 }
 
@@ -129,8 +151,29 @@ export function prevBucketStart(ts: number, bucket: DeltaBucket): number {
     if (bucket === 'hour') d.setHours(d.getHours() - 1);
     else if (bucket === 'day') d.setDate(d.getDate() - 1);
     else if (bucket === 'week') d.setDate(d.getDate() - 7);
-    else d.setMonth(d.getMonth() - 1);
+    else if (bucket === 'month') d.setMonth(d.getMonth() - 1);
+    else d.setFullYear(d.getFullYear() - 1);
     return d.getTime();
+}
+
+/**
+ * Concrete bucket for a bucket setting and the window it is charted over (issue #536).
+ *
+ * An unset bucket keeps the historical `hour` default, so widgets configured before `auto` existed
+ * render unchanged. `auto` picks the bucket that gives a readable number of bars for the window:
+ * a day of hourly bars, a week or month of daily bars, a year of monthly bars. The thresholds sit
+ * above the nominal window lengths (26 h, 45 d, 400 d) so a custom "25 hours" or "31 days" lands in
+ * the bucket a user would expect rather than one step coarser. The weekly band only ever comes from
+ * a custom window (no preset falls into it) and keeps a "90 days" selection at ~13 bars instead of
+ * the three a monthly bucket would give.
+ */
+export function resolveDeltaBucket(setting: DeltaBucketSetting | undefined, rangeMs: number): DeltaBucket {
+    if (setting !== 'auto') return setting ?? 'hour';
+    if (rangeMs <= 26 * 3_600_000) return 'hour';
+    if (rangeMs <= 45 * 86_400_000) return 'day';
+    if (rangeMs <= 180 * 86_400_000) return 'week';
+    if (rangeMs <= 400 * 86_400_000) return 'month';
+    return 'year';
 }
 
 /**
@@ -402,7 +445,9 @@ export function useMultiSeriesData(
             s.historyStart,
             s.historyEnd,
             s.aggregate,
-            s.aggregate === 'delta' ? (s.deltaBucket ?? 'hour') : undefined,
+            // The RESOLVED bucket, so an `auto` series refetches when the window change moves it
+            // into a different bucket.
+            s.aggregate === 'delta' ? resolveDeltaBucket(s.deltaBucket, windowMs(s)) : undefined,
             s.source,
             s.jsonPath,
             s.jsonLabelKey,
@@ -509,7 +554,7 @@ export function useMultiSeriesData(
             // values instead of per-bucket averages.
             const wantRaw = s.aggregate === 'none';
             const isDelta = s.aggregate === 'delta';
-            const bucket = s.deltaBucket ?? 'hour';
+            const bucket = resolveDeltaBucket(s.deltaBucket, rangeMs);
             const step = isDelta
                 ? deltaFetchStep(bucket, rangeMs)
                 : wantRaw
@@ -675,7 +720,7 @@ export function useMultiSeriesData(
                     // reading would spike the chart. Only the still-open trailing bar can grow, and
                     // only while the update still falls into its bucket; once the counter rolls into
                     // the next bucket the base is stale and the next refetch takes over.
-                    const bucket = s.deltaBucket ?? 'hour';
+                    const bucket = resolveDeltaBucket(s.deltaBucket, windowMs(s));
                     return subscribe(s.datapointId, (state: ioBrokerState) => {
                         if (typeof state.val !== 'number') return;
                         const info = deltaBaseRef.current.get(s.id);

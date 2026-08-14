@@ -86,12 +86,12 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].yAxisIndex` | `0` | `0` = links, `1` = rechte Y-Achse |
 | `echartSeries[].smooth` | `true` | geglättete Linie (nur Linie/Fläche) |
 | `echartSeries[].aggregate` | `average` | `average` · `minmax` · `max` · `min` · `total` · `delta` · `none` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen), `delta` siehe unten |
-| `echartSeries[].deltaBucket` | `hour` | `hour` · `day` · `week` · `month` — Zeiteinheit für `aggregate: delta` |
+| `echartSeries[].deltaBucket` | `hour` | `auto` · `hour` · `day` · `week` · `month` · `year` — Zeiteinheit für `aggregate: delta` |
 | `echartSeries[].lineWidth` | `2` | Linienstärke 1–4 (nur Linie/Fläche) |
 
 ### Verbrauch aus Zählerständen
 
-`aggregate: delta` für fortlaufende Gesamtzähler (Strom, Wasser, Gas). Statt des Zählerstands wird die Differenz je Zeiteinheit gezeichnet — also der Verbrauch pro Stunde, Tag, Woche oder Monat.
+`aggregate: delta` für fortlaufende Gesamtzähler (Strom, Wasser, Gas). Statt des Zählerstands wird die Differenz je Zeiteinheit gezeichnet — also der Verbrauch pro Stunde, Tag, Woche, Monat oder Jahr.
 
 | | |
 | --- | --- |
@@ -101,6 +101,16 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | Zählerwechsel / Überlauf | negative Differenz wird auf `0` gesetzt |
 | Buckets ohne Datensatz | übersprungen; ihr Verbrauch fällt in den nächsten Bucket mit Daten |
 | Aktueller Wert oben rechts | Verbrauch des laufenden Buckets, nicht der Zählerstand |
+
+`deltaBucket: auto` leitet die Zeiteinheit aus dem aktiven Zeitraum ab und wechselt mit, wenn im Frontend umgeschaltet wird:
+
+| Zeitraum | Zeiteinheit |
+| --- | --- |
+| bis 1 Tag | pro Stunde |
+| bis 45 Tage | pro Tag |
+| bis 180 Tage | pro Woche |
+| bis 1 Jahr | pro Monat |
+| darüber | pro Jahr |
 
 ### JSON-Quelle
 
@@ -131,7 +141,7 @@ Ein gemeinsamer Zeitraum für alle Serien.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `echartRange` | `24h` | `1h` · `6h` · `24h` · `7d` · `30d` · `custom` |
+| `echartRange` | `24h` | `1h` · `6h` · `24h` · `7d` · `30d` · `1y` · `custom` |
 | `echartRangeCustomValue` | `24` | nur bei `custom` |
 | `echartRangeCustomUnit` | `h` | `h` · `d`, nur bei `custom` |
 | `lockRange` | `false` | Zeitraum-Umschalter im Frontend ausblenden |

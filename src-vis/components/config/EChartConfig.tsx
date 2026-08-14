@@ -21,7 +21,7 @@ interface EChartConfigProps {
     onConfigChange: (c: WidgetConfig) => void;
 }
 
-const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'custom'];
+const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'custom'];
 
 const CHART_TYPES: { id: EChartSeriesConfig['chartType']; label: () => string }[] = [
     { id: 'line', label: () => t('echart.line') },
@@ -965,6 +965,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                         className={inputCls}
                                                                         style={inputStyle}
                                                                     >
+                                                                        <option value="auto">
+                                                                            {t('echart.bucketAuto')}
+                                                                        </option>
                                                                         <option value="hour">
                                                                             {t('echart.bucketHour')}
                                                                         </option>
@@ -977,12 +980,17 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                         <option value="month">
                                                                             {t('echart.bucketMonth')}
                                                                         </option>
+                                                                        <option value="year">
+                                                                            {t('echart.bucketYear')}
+                                                                        </option>
                                                                     </select>
                                                                     <p
                                                                         className="text-[10px] mt-1"
                                                                         style={{ color: 'var(--text-secondary)' }}
                                                                     >
-                                                                        {t('echart.deltaHint')}
+                                                                        {s.deltaBucket === 'auto'
+                                                                            ? t('echart.bucketAutoHint')
+                                                                            : t('echart.deltaHint')}
                                                                     </p>
                                                                 </div>
                                                             )}

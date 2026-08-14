@@ -1202,10 +1202,14 @@ export const de = {
     'echart.aggDelta': 'Verbrauch (Differenz — für Zählerstände)',
     'echart.aggNone': 'Keine (Rohdaten, kein Glätten)',
     'echart.deltaBucket': 'Zeiteinheit',
+    'echart.bucketAuto': 'Automatisch (aus Zeitraum)',
     'echart.bucketHour': 'Pro Stunde',
     'echart.bucketDay': 'Pro Tag',
     'echart.bucketWeek': 'Pro Woche',
     'echart.bucketMonth': 'Pro Monat',
+    'echart.bucketYear': 'Pro Jahr',
+    'echart.bucketAutoHint':
+        'Richtet sich nach dem aktiven Zeitraum: bis 1 Tag pro Stunde, bis 45 Tage pro Tag, bis 180 Tage pro Woche, bis 1 Jahr pro Monat, darüber pro Jahr. Wechselt mit, wenn im Frontend umgeschaltet wird.',
     'echart.deltaHint':
         'Für fortlaufende Zähler (Strom, Wasser, Gas): zeigt den Verbrauch je Zeiteinheit statt des Zählerstands. Zählerwechsel oder Überlauf werden auf 0 gesetzt.',
     'echart.visibleRanges': 'Sichtbare Zeitbereiche im Frontend',

@@ -21,7 +21,7 @@ import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
-const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
+const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y'];
 
 function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
     const result = { ...target };

@@ -1198,10 +1198,14 @@ export const en: Record<TranslationKey, string> = {
     'echart.aggDelta': 'Consumption (difference — for meter readings)',
     'echart.aggNone': 'None (raw data, no smoothing)',
     'echart.deltaBucket': 'Time unit',
+    'echart.bucketAuto': 'Automatic (from time range)',
     'echart.bucketHour': 'Per hour',
     'echart.bucketDay': 'Per day',
     'echart.bucketWeek': 'Per week',
     'echart.bucketMonth': 'Per month',
+    'echart.bucketYear': 'Per year',
+    'echart.bucketAutoHint':
+        'Follows the active time range: up to 1 day per hour, up to 45 days per day, up to 180 days per week, up to 1 year per month, beyond that per year. Also follows a range switch made in the frontend.',
     'echart.deltaHint':
         'For ever-rising meters (electricity, water, gas): plots consumption per time unit instead of the meter reading. Meter swaps and counter rollovers are clamped to 0.',
     'echart.visibleRanges': 'Time ranges shown in frontend',

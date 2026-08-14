@@ -45,6 +45,7 @@ const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
     '24h': 86_400_000,
     '7d': 604_800_000,
     '30d': 2_592_000_000,
+    '1y': 31_536_000_000,
 };
 
 function getRangeMs(range: EChartTimeRange, customVal?: number, customUnit?: 'h' | 'd'): number {
@@ -61,7 +62,8 @@ function getStepForMs(rangeMs: number): number | undefined {
     if (rangeMs <= 12 * 3_600_000) return 300_000;
     if (rangeMs <= 48 * 3_600_000) return 900_000;
     if (rangeMs <= 14 * 86_400_000) return 3_600_000;
-    return 21_600_000;
+    if (rangeMs <= 60 * 86_400_000) return 21_600_000;
+    return 86_400_000;
 }
 
 /** Reduce a sorted [ts,val][] series to a single number per the aggregate mode. */

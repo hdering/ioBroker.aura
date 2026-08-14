@@ -2,7 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import { getObjectDirect, getHistoryDirect, getStateDirect, type HistoryEntry } from './useIoBroker';
 import type { ioBrokerState } from '../types';
 
-export type ChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | 'custom';
+// `1y` is offered by the advanced chart widget only (issue #536); the simple chart's own preset
+// list leaves it out, but range maths and labels stay shared.
+export type ChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'custom';
 
 export const RANGE_LABELS: Record<ChartTimeRange, string> = {
     '1h': '1 Std',
@@ -10,6 +12,7 @@ export const RANGE_LABELS: Record<ChartTimeRange, string> = {
     '24h': '24 Std',
     '7d': '7 Tage',
     '30d': '30 Tage',
+    '1y': '1 Jahr',
     custom: 'Eigen',
 };
 
@@ -19,6 +22,7 @@ const RANGE_MS: Record<Exclude<ChartTimeRange, 'custom'>, number> = {
     '24h': 86_400_000,
     '7d': 604_800_000,
     '30d': 2_592_000_000,
+    '1y': 31_536_000_000,
 };
 
 /** Aggregations-Intervall basierend auf Zeitraum in ms (undefined = Rohdaten) */
@@ -27,7 +31,8 @@ function getStep(rangeMs: number): number | undefined {
     if (rangeMs <= 12 * 3_600_000) return 300_000; // ≤12 h → 5 min
     if (rangeMs <= 48 * 3_600_000) return 900_000; // ≤48 h → 15 min
     if (rangeMs <= 14 * 86_400_000) return 3_600_000; // ≤14 d → 1 h
-    return 21_600_000; //  >14 d → 6 h
+    if (rangeMs <= 60 * 86_400_000) return 21_600_000; // ≤60 d → 6 h
+    return 86_400_000; //  >60 d → 1 d (6 h would exceed the row cap)
 }
 
 export interface DetectedAdapter {
