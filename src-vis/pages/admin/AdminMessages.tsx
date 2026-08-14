@@ -11,8 +11,10 @@ import {
     type MessageDraft,
 } from '../../components/config/MessageBuilder';
 import { MessageDetail } from '../../components/messages/MessageDetail';
+import { ToastLayer } from '../../components/messages/ToastLayer';
 import { SEVERITY_COLOR } from '../../components/messages/MessageToast';
 import { useMessagesStore, startMessagesRuntime, DEFAULT_MAX_VISIBLE } from '../../store/messagesStore';
+import { useConnectionStore } from '../../store/connectionStore';
 import type { AuraMessage, MessagePosition, MessageSeverity } from '../../types';
 
 // ── Shared styles (mirrors AdminPopups) ───────────────────────────────────────
@@ -483,6 +485,14 @@ function HistorySection() {
 // ── AdminMessages ─────────────────────────────────────────────────────────────
 
 export function AdminMessages() {
+    const clientId = useConnectionStore((s) => s.clientId);
+    // Without this the Test senden button would look broken: the toast layer lives
+    // on the dashboard route, so the message would arrive, land in the history
+    // below — and show nothing on the page you pressed the button on. No layout or
+    // tab in the scope, so a message addressed to one of those stays on its
+    // dashboard and only appears in the list.
+    const scope = useMemo(() => ({ clientId }), [clientId]);
+
     return (
         <div className="px-6 py-8 space-y-8">
             <div>
@@ -496,6 +506,7 @@ export function AdminMessages() {
             <DesignerSection />
             <DefaultsSection />
             <HistorySection />
+            <ToastLayer scope={scope} />
         </div>
     );
 }

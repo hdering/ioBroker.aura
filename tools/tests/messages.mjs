@@ -230,6 +230,22 @@ await page.evaluate((m) => window.__auraShot.messageIngest([m]), { ...once, ts: 
 await settle();
 check('the same id with a newer timestamp is shown again', await visibleText('WiederDa'));
 
+// ── 16b. A view without a toast layer must not consume messages ─────────────
+// The admin area keeps a runtime lease for its history list. Before this gate it
+// swallowed arriving messages there: out of scope counts as handled, so the
+// dashboard would never have shown them.
+await page.evaluate(() => {
+    window.__auraShot.messagesReset();
+    // Same state as a route that reads the archive but renders no overlay.
+    window.__auraShot.messagesDisplayActive(false);
+});
+await page.evaluate((m) => window.__auraShot.messageIngest([m]), msg({ id: 'no-surface', title: 'Unsichtbar' }));
+await settle();
+check('no toast without a display surface', (await page.locator('[data-aura-toasts]').count()) === 0);
+const seenWithoutSurface = await page.evaluate(() => window.__auraShot.messagesSeen());
+check('and the message is not marked as handled', !('no-surface' in seenWithoutSurface));
+await page.evaluate(() => window.__auraShot.messagesDisplayActive(true));
+
 // ── 17. The Meldungen widget lists the archive ──────────────────────────────
 const now = Date.now();
 const archive = [

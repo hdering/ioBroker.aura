@@ -119,7 +119,16 @@ interface MessagesState {
     open: AuraMessage[];
     scope: MessageScope;
 
+    /**
+     * A toast layer is mounted and this view is a display surface. Without one
+     * nothing may be ingested: a message reaching a view that cannot show it would
+     * still be marked as handled, and the dashboard would never see it (the admin
+     * area holds a runtime lease for its history list, so this really happens).
+     */
+    displayActive: boolean;
+
     setScope: (scope: MessageScope) => void;
+    setDisplayActive: (active: boolean) => void;
     /** Show a message on this device unless it was already handled or out of scope. */
     ingest: (msg: AuraMessage) => void;
     /** Local-only removal — used after an auto-close, so other clients keep theirs. */
@@ -154,12 +163,15 @@ export const useMessagesStore = create<MessagesState>()(
             maxVisible: DEFAULT_MAX_VISIBLE,
             open: [],
             scope: { clientId: '' },
+            displayActive: false,
 
             setScope: (scope) => set({ scope }),
+            setDisplayActive: (displayActive) => set({ displayActive }),
 
             ingest: (msg) => {
                 const s = get();
                 if (!msg?.id || !Number.isFinite(msg.ts)) return;
+                if (!s.displayActive) return;
                 // Already handled at this timestamp — a reload, or the same message
                 // reaching us twice (live broadcast plus the history catch-up).
                 const seenTs = s.seen[msg.id];

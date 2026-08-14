@@ -56,6 +56,7 @@ export function ToastLayer({ scope }: Props) {
     const open = useMessagesStore((s) => s.open);
     const maxVisible = useMessagesStore((s) => s.maxVisible);
     const setScope = useMessagesStore((s) => s.setScope);
+    const setDisplayActive = useMessagesStore((s) => s.setDisplayActive);
     const closeLocal = useMessagesStore((s) => s.closeLocal);
 
     // The scope has to be in the store before the runtime starts: a message
@@ -63,6 +64,14 @@ export function ToastLayer({ scope }: Props) {
     useEffect(() => {
         setScope(scope);
     }, [setScope, scope]);
+
+    // Mounting this layer is what makes the view a display surface. Views that
+    // only read the archive (widget editor, admin history) must not consume
+    // arriving messages on the dashboard's behalf.
+    useEffect(() => {
+        setDisplayActive(true);
+        return () => setDisplayActive(false);
+    }, [setDisplayActive]);
 
     useEffect(() => startMessagesRuntime(), []);
 

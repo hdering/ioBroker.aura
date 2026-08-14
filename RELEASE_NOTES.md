@@ -11,3 +11,4 @@
 - Settings - new Admin -> Messages page builds the message JSON from a form, sends a test message and manages the history
 - Settings - optional message bell in the header showing the number of unconfirmed messages
 - Conditions - new effect "send a message", so a widget rule can raise a notice without a script
+- Messages - the Test senden button on the Admin page now shows the message right there instead of only on the dashboard

@@ -270,6 +270,17 @@ function installScreenshotApi(): void {
         messagesMaxVisible(n: number): void {
             useMessagesStore.setState({ maxVisible: n });
         },
+
+        /** Pretend a toast layer is / is not mounted — models a route that only
+         *  reads the archive (admin history, widget editor). */
+        messagesDisplayActive(active: boolean): void {
+            useMessagesStore.setState({ displayActive: active });
+        },
+
+        /** Which message ids this browser has already handled, id → timestamp. */
+        messagesSeen(): Record<string, number> {
+            return useMessagesStore.getState().seen;
+        },
     };
 
     (window as unknown as Record<string, unknown>).__auraShot = api;
