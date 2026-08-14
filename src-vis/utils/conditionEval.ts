@@ -38,6 +38,11 @@ export function evaluateClause(clause: ConditionClause, raw: unknown, values: Ma
             return !isActiveVal(raw as never);
         case 'contains':
             return str.includes(cmpStr);
+        case 'changed':
+            // Needs the set of just-changed refs, which only evaluateClauseWithSource
+            // receives. Plain callers (badges, cell rules, DP popup triggers) have no
+            // change tracking, so the clause simply never matches there.
+            return false;
         default:
             return false;
     }

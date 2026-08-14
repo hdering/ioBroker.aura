@@ -6,6 +6,7 @@ import { useEffectiveSettings } from '../../../hooks/useEffectiveSettings';
 import { useConditionStyle, type ConditionResult } from '../../../hooks/useConditionStyle';
 import { widgetSourceCtx } from '../../../utils/conditionSources';
 import { getWidgetMap } from '../widgetMap';
+import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import { buildPopupSubMap, popupMainDp, substituteWidget } from '../../../utils/popupPlaceholders';
 import { useResolvedTitle } from '../DynamicTitle';
@@ -210,6 +211,9 @@ function PopupWidgetCell({
 }) {
     const wm = getWidgetMap();
     const Widget = wm[w.type as keyof typeof wm];
+    // A "reload widget" condition rule reaches popup-view widgets too — ConditionProbe
+    // evaluates them under the same widget id (issue #537).
+    const refreshNonce = useWidgetRefreshNonce(w.id);
     // `[[dp]]` tokens in the title resolve here, at the render boundary, so every
     // widget type gets them without wiring anything up itself. Edits are persisted
     // against the pre-substitution original (see the caller), so the resolved value
@@ -250,7 +254,12 @@ function PopupWidgetCell({
         >
             {Widget ? (
                 <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
-                    <Widget config={rendered} editMode={false} onConfigChange={onConfigChange} />
+                    <Widget
+                        key={`r${refreshNonce}`}
+                        config={rendered}
+                        editMode={false}
+                        onConfigChange={onConfigChange}
+                    />
                 </Suspense>
             ) : (
                 <div

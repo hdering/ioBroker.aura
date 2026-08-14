@@ -5,6 +5,7 @@ import type { WidgetConfig, ClickAction } from '../../../types';
 import { getWidgetMap } from '../widgetMap';
 import { useDashboardStore } from '../../../store/dashboardStore';
 import { useConfigStore } from '../../../store/configStore';
+import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { useResolvedTitle } from '../DynamicTitle';
 
 interface Props {
@@ -22,6 +23,9 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
     const target: WidgetConfig = targetId ? (allWidgets.find((w) => w.id === targetId) ?? widget) : widget;
     // `[[dp]]` in the title resolves at every render boundary (same as WidgetFrame).
     const resolvedTitle = useResolvedTitle(target.title);
+    // Follows the *source* widget's reload rules — this is the same widget, embedded.
+    // Read before the early returns below so the hook order stays stable (issue #537).
+    const refreshNonce = useWidgetRefreshNonce(target.id);
 
     if (targetId && !allWidgets.find((w) => w.id === targetId)) {
         return (
@@ -108,6 +112,7 @@ export function WidgetEmbedBody({ widget, action, allWidgets }: Props) {
         >
             <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
                 <Widget
+                    key={`r${refreshNonce}`}
                     config={embedConfig}
                     editMode={false}
                     onConfigChange={(next) => {

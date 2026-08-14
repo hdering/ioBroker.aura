@@ -3,6 +3,7 @@ import { AlertTriangle, CopyPlus } from 'lucide-react';
 import type { WidgetConfig, WidgetProps } from '../../types';
 import { getWidgetMap } from './widgetMap';
 import { useDashboardStore } from '../../store/dashboardStore';
+import { useWidgetRefreshNonce } from '../../store/widgetRefreshStore';
 import { useResolvedTitle } from './DynamicTitle';
 
 /** Small centered notice card used for the mirror's various "cannot render" states. */
@@ -44,6 +45,9 @@ export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
     const target = targetId && targetId !== config.id ? allWidgets.find((w) => w.id === targetId) : undefined;
     // `[[dp]]` in the title resolves at every render boundary (same as WidgetFrame).
     const resolvedTitle = useResolvedTitle(target?.title ?? '');
+    // A mirror shows the source's content, so it follows the source's reload rules
+    // as well as its own frame's. Read before the early returns (hook order).
+    const targetRefreshNonce = useWidgetRefreshNonce(target?.id);
 
     if (!targetId) {
         return editMode ? (
@@ -100,6 +104,7 @@ export function MirrorWidget({ config, editMode, onLastChange }: WidgetProps) {
     return (
         <Suspense fallback={<div className="h-full w-full" style={{ opacity: 0.3 }} />}>
             <Widget
+                key={`r${targetRefreshNonce}`}
                 config={mirroredConfig}
                 editMode={false}
                 onConfigChange={(next) => {

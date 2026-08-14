@@ -43,6 +43,31 @@ Listen-Quellen stehen bei `Liste` und `Dynamische Liste` zur Verfügung. Das Que
 | enthält | Wert enthält den Text |
 | Ist wahr / Ist falsch | Wert ist `true`/`1` bzw. `false`/`0` |
 | Ist aktiv / Ist inaktiv | Wert ist `> 0`, `true` oder nicht leer — bzw. das Gegenteil |
+| Hat sich geändert | Datenpunkt liefert einen neuen Wert — egal welchen |
+
+`Hat sich geändert` beschreibt den Moment des Wechsels, nicht einen Zustand: Die Klausel ist nur für die eine Auswertung direkt nach dem neuen Wert erfüllt. Sie steht in Widget-Bedingungen zur Verfügung und ist für `Widget neu laden` gedacht — nicht für Marker, Zellenregeln oder Tab-Bedingungen.
+
+## Bedingungen: Effekte
+
+Alles unterhalb der Klauseln greift, wenn die Regel zutrifft. Mehrere Regeln werden der Reihe nach angewandt.
+
+| Effekt | Wirkung |
+| --- | --- |
+| Stil wenn aktiv | Akzent, Hintergrund, Rahmen, Text, Text 2 überschreiben |
+| Effekt | `Pulsieren` · `Blinken` |
+| Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
+| Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
+
+### Widget neu laden
+
+Für Widgets mit fremdem Dokument (iFrame, Kamera, Bild). Aura kennt nur die Adresse, nicht den Inhalt dahinter — ändert ein Skript die Daten der eingebetteten Seite, bleibt die Anzeige ohne diese Regel stehen.
+
+| Klausel | Wann neu geladen wird |
+| --- | --- |
+| mit `Hat sich geändert` | bei jedem neuen Wert des Datenpunkts |
+| alle anderen Operatoren | sobald die Regel von *nicht erfüllt* auf *erfüllt* wechselt |
+
+Wirkt auch auf Widgets in Popup-Views, ohne das Popup zu schließen. Das Widget wird komplett neu aufgebaut — Scrollposition und Eingaben im eingebetteten Inhalt gehen dabei verloren. Für rein zeitgesteuertes Neuladen stattdessen `refreshInterval` des jeweiligen Widgets verwenden.
 
 ## Marker: Sichtbarkeit
 

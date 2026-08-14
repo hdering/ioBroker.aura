@@ -411,6 +411,12 @@ export type ClickAction =
 // 'active'/'inactive' are the truthiness test (isActiveVal): > 0, true or a
 // non-empty string. Distinct from 'true'/'false', which only match true/1 resp.
 // false/0 — a dimmer at 42 is 'active' but not 'true'.
+//
+// 'changed' is an *event*, not a state: it is true only for the single evaluation
+// that follows a new value arriving, and needs a caller that tracks which refs
+// just changed (useConditionStyle). Everywhere else it stays false — see
+// evaluateClause. Its purpose is `refreshWidget`, where "the datapoint moved at
+// all" is the trigger and no comparison value exists (issue #537).
 export type ConditionOperator =
     | '=='
     | '!='
@@ -422,7 +428,8 @@ export type ConditionOperator =
     | 'false'
     | 'active'
     | 'inactive'
-    | 'contains';
+    | 'contains'
+    | 'changed';
 
 export interface ConditionClause {
     datapoint: string;
@@ -446,6 +453,10 @@ export interface WidgetCondition {
     clauses: ConditionClause[];
     style: ConditionStyle;
     effect?: 'none' | 'pulse' | 'blink';
+    // Remount the widget when the rule fires, so embedded content (iframe, camera,
+    // image) re-fetches. Rules with a 'changed' clause fire on every change; all
+    // others fire on the rising edge of the match (issue #537).
+    refreshWidget?: boolean;
     hideWidget?: boolean; // enable visibility control (see visibilityMode)
     // Polarity of the visibility control. 'hideOnMatch' (default, back-compat) hides
     // the widget when the condition is true; 'showOnMatch' shows it only when true

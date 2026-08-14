@@ -166,7 +166,15 @@ export function evaluateClauseWithSource(
     clause: ConditionClause,
     values: Map<string, unknown>,
     ctx: DpSourceCtx | undefined,
+    changed?: ReadonlySet<string>,
 ): boolean {
+    // 'changed' asks about the transition, not the value — resolve the clause to the
+    // real state refs behind it and ask whether one of them just delivered a new value.
+    if (clause.operator === 'changed') {
+        if (!changed?.size) return false;
+        return clauseSourceRefs(clause, ctx).some((ref) => changed.has(ref));
+    }
+
     const p = parseSourceRef(clause.datapoint);
 
     if (p.kind === 'list' && isListQuantifier(p.agg)) {
@@ -188,10 +196,16 @@ export function evaluateConditionWithSource(
     cond: { logic?: 'AND' | 'OR'; clauses: ConditionClause[] },
     values: Map<string, unknown>,
     ctx: DpSourceCtx | undefined,
+    changed?: ReadonlySet<string>,
 ): boolean {
     if (!cond.clauses.length) return false;
-    const results = cond.clauses.map((c) => evaluateClauseWithSource(c, values, ctx));
+    const results = cond.clauses.map((c) => evaluateClauseWithSource(c, values, ctx, changed));
     return (cond.logic ?? 'AND') === 'AND' ? results.every(Boolean) : results.some(Boolean);
+}
+
+/** True when the rule asks about a transition rather than a state. */
+export function hasChangedClause(cond: { clauses: ConditionClause[] }): boolean {
+    return cond.clauses.some((c) => c.operator === 'changed');
 }
 
 // ── Per-widget context ────────────────────────────────────────────────────────

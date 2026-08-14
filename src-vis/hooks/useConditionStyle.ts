@@ -6,9 +6,12 @@ import {
     applySourceValues,
     clauseSourceRefs,
     evaluateConditionWithSource,
+    hasChangedClause,
     sourceCtxKey,
     type DpSourceCtx,
 } from '../utils/conditionSources';
+import { bumpWidgetRefresh } from '../store/widgetRefreshStore';
+import { isScreenshotMode } from '../store/persistManager';
 import type { WidgetCondition, ConditionStyle } from '../types';
 
 // ── Debug logging ─────────────────────────────────────────────────────────────
@@ -177,6 +180,18 @@ export interface ConditionResult {
 // Module-level constant – same reference every time, lets React bail out of re-renders
 const EMPTY_RESULT: ConditionResult = { cssVars: {}, effect: null, hidden: false, reflow: false };
 
+// Shared "nothing changed" set for every evaluation that is not driven by a live
+// value arriving (initial load, getState resolution, manual recompute).
+const NO_CHANGES: ReadonlySet<string> = new Set<string>();
+
+// A widget remounting mid-shot would corrupt documentation screenshots, so the
+// reload rules are off in screenshot mode; `__auraShot.conditionRefresh(true)`
+// re-arms them for the tests that exercise this path on purpose.
+let devRefreshForced = false;
+export function __devForceConditionRefresh(on: boolean): void {
+    devRefreshForced = on;
+}
+
 // Real state IDs behind all clauses — token refs ('{dp}', '{list:…}') are
 // expanded to the widget's own / list datapoints via the source context.
 function collectUniqueIds(conditions: WidgetCondition[], ctx?: DpSourceCtx): string[] {
@@ -223,6 +238,9 @@ export function useConditionStyle(
     const ctxKey = sourceCtxKey(ctx);
     const mountedAtRef = useRef<number>(typeof performance !== 'undefined' ? performance.now() : 0);
     const mountCountRef = useRef<number>(0);
+    // Last verdict per refresh rule — a rule without a 'changed' clause reloads on
+    // the rising edge only, so it must remember whether it already matched.
+    const refreshMatchRef = useRef<Map<string, boolean>>(new Map());
     // Cache-aware initial state: on remount (e.g. when a widget moves between the
     // visible grid and the off-screen reflow container) the global stateCache
     // already has the DP values — compute the correct result synchronously so the
@@ -321,9 +339,47 @@ export function useConditionStyle(
             return mayHide ? { cssVars: {}, effect: null, hidden: true, reflow: false } : EMPTY_RESULT;
         };
 
-        const recompute = (trigger: string, dp?: string) => {
+        // ── "Widget neu laden" rules (issue #537) ────────────────────────────
+        // Kept out of computeResult: that one is pure and also runs in the useState
+        // initializer, where a reload side effect must never fire.
+        const refreshConds = conditions.filter((c) => c.refreshWidget);
+        // A rule re-entering the set must re-prime instead of firing against a stale
+        // verdict from a previous mount.
+        for (const id of [...refreshMatchRef.current.keys()]) {
+            if (!refreshConds.some((c) => c.id === id)) refreshMatchRef.current.delete(id);
+        }
+
+        const fireRefresh = (changed: ReadonlySet<string>) => {
+            if (!refreshConds.length || !widgetId) return;
+            if (isScreenshotMode() && !devRefreshForced) return;
+            for (const cond of refreshConds) {
+                const matched = evaluateConditionWithSource(cond, valuesRef.current, ctxRef.current, changed);
+                const prev = refreshMatchRef.current.get(cond.id);
+                refreshMatchRef.current.set(cond.id, matched);
+                if (!matched) continue;
+                // A 'changed' clause only matches on an actual value arrival, so every
+                // match is a fresh event — no edge detection needed (and none possible:
+                // the verdict falls back to false on the very next evaluation).
+                if (hasChangedClause(cond)) {
+                    condLog('refresh (changed)', { widgetId, rule: cond.id, changed: [...changed] });
+                    bumpWidgetRefresh(widgetId);
+                    continue;
+                }
+                // State rules reload on the rising edge. `undefined` is the baseline
+                // evaluation — firing there would reload on every page load.
+                if (prev === undefined || prev) continue;
+                condLog('refresh (rising edge)', { widgetId, rule: cond.id });
+                bumpWidgetRefresh(widgetId);
+            }
+        };
+
+        const recompute = (trigger: string, dp?: string, changed: ReadonlySet<string> = NO_CHANGES) => {
             const allKnown = uniqueIds.every((id) => loadedIds.has(id));
             const next = allKnown ? computeResult(conditions, valuesRef.current, ctxRef.current) : pessimistic();
+            // computeResult resolved the source tokens into valuesRef, so the refresh
+            // rules see the same values the style verdict was built from. Skipped while
+            // values are still loading — a half-known state is not a real transition.
+            if (allKnown) fireRefresh(changed);
             setResult((prev) => {
                 if (
                     prev.effect === next.effect &&
@@ -378,7 +434,9 @@ export function useConditionStyle(
                 loadedIds.add(ref);
                 valuesRef.current.set(ref, resolveDpValue(state?.val, path));
                 condLog('subscribe event', { widgetId, dp: ref, val: state?.val });
-                recompute('subscribe', ref);
+                // Only a live value counts as a change — a getState resolution is the
+                // initial load, and reloading the widget there would fire on every mount.
+                recompute('subscribe', ref, new Set([ref]));
             });
         });
 

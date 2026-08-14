@@ -27,7 +27,12 @@ const OPERATORS: { value: ConditionOperator; label: () => string; noValue?: bool
     { value: 'false', label: () => t('cond.isFalse'), noValue: true },
     { value: 'active', label: () => t('cond.isActive'), noValue: true },
     { value: 'inactive', label: () => t('cond.isInactive'), noValue: true },
+    // Transition, not a state — only the widget-condition path tracks which
+    // datapoint just delivered a value, so it stays out of cell/badge clauses.
+    { value: 'changed', label: () => t('cond.changed'), noValue: true },
 ];
+
+const CHANGED_ONLY = new Set<ConditionOperator>(['changed']);
 
 const STYLE_FIELDS: { key: keyof ConditionStyle; labelKey: string }[] = [
     { key: 'accent', labelKey: 'cond.colorAccent' },
@@ -106,6 +111,7 @@ export function ClauseRow({
     onDelete,
     ownToken,
     sourceCtx,
+    allowChanged,
 }: {
     clause: ConditionClause;
     isFirst: boolean;
@@ -117,6 +123,8 @@ export function ClauseRow({
     ownToken?: string;
     /** Widget value sources (main DP / list entries) offered as a source select. */
     sourceCtx?: DpSourceCtx;
+    /** Offer the 'changed' operator. Only widget conditions evaluate it (issue #537). */
+    allowChanged?: boolean;
 }) {
     // In a widget/badge clause '{dp}' and an empty field are the same thing, so only
     // the empty field is offered. Cell clauses (ownToken set) keep the token — there
@@ -126,6 +134,11 @@ export function ClauseRow({
     const [showPicker, setShowPicker] = useState(false);
     const [showValuePicker, setShowValuePicker] = useState(false);
     const op = OPERATORS.find((o) => o.value === clause.operator)!;
+    // A clause that already uses a gated operator keeps it listed — otherwise the
+    // select would render a value it has no option for and silently reset it.
+    const operators = OPERATORS.filter(
+        (o) => allowChanged || !CHANGED_ONLY.has(o.value) || o.value === clause.operator,
+    );
     const isDpValue = clause.valueType === 'datapoint';
     const isOwn = !!ownToken && clause.datapoint === ownToken;
 
@@ -234,7 +247,7 @@ export function ClauseRow({
                 className={`${cls} shrink-0`}
                 style={{ ...inputStyle, width: '112px' }}
             >
-                {OPERATORS.map((o) => (
+                {operators.map((o) => (
                     <option key={o.value} value={o.value}>
                         {o.label()}
                     </option>
@@ -399,6 +412,9 @@ function ConditionRule({
     const toggleLogic = () => onChange({ ...condition, logic: condition.logic === 'AND' ? 'OR' : 'AND' });
 
     const hasActiveStyle = Object.values(condition.style).some(Boolean);
+    // Drives the hint under the reload toggle: a 'changed' rule reloads on every
+    // value, everything else only when the rule flips to true.
+    const hasChangedClause = condition.clauses.some((c) => c.operator === 'changed');
 
     return (
         <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
@@ -459,6 +475,7 @@ function ConditionRule({
                                 onChange={(c) => updateClause(i, c)}
                                 onDelete={() => deleteClause(i)}
                                 sourceCtx={sourceCtx}
+                                allowChanged={context === 'widget'}
                             />
                         ))}
                     </div>
@@ -511,6 +528,39 @@ function ConditionRule({
                             <option value="blink">{t('cond.blink')}</option>
                         </select>
                     </div>
+
+                    {/* Reload widget — embedded content (iframe/camera/image) re-fetches */}
+                    {context !== 'tab' && (
+                        <>
+                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                                        {t('cond.refreshWidget')}
+                                    </p>
+                                    <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {condition.refreshWidget && hasChangedClause
+                                            ? t('cond.refreshWidgetOnChange')
+                                            : condition.refreshWidget
+                                              ? t('cond.refreshWidgetOnMatch')
+                                              : t('cond.refreshWidgetHint')}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => onChange({ ...condition, refreshWidget: !condition.refreshWidget })}
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{
+                                        background: condition.refreshWidget ? 'var(--accent)' : 'var(--app-border)',
+                                    }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: condition.refreshWidget ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                        </>
+                    )}
 
                     {/* Hide widget / tab */}
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />

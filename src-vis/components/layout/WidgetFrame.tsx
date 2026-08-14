@@ -220,6 +220,7 @@ import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
 import { useResolvedTitle } from '../widgets/DynamicTitle';
 import { useNavigationStore } from '../../store/navigationStore';
 import { usePopupConfigStore, BUILTIN_VIEW_IDS } from '../../store/popupConfigStore';
+import { useWidgetRefreshNonce } from '../../store/widgetRefreshStore';
 
 // Stable empty array – avoids creating a new reference on every render when no conditions are set
 const NO_CONDITIONS: WidgetCondition[] = [];
@@ -6375,6 +6376,9 @@ export function WidgetFrame({
 
     const menuBtnRef = useRef<HTMLButtonElement>(null);
     const Widget = getWidgetMap()[config.type as keyof ReturnType<typeof getWidgetMap>];
+    // Bumped by a condition rule with "reload widget" — mixed into the body's key so
+    // embedded documents (iframe, camera, image) actually re-fetch (issue #537).
+    const refreshNonce = useWidgetRefreshNonce(config.id);
     // `[[dp]]` tokens in the name resolve here, at the render boundary, so every widget
     // type shows live values without wiring anything up itself. Only the rendered copy
     // is substituted — the edit dialog and every onConfigChange keep the raw title.
@@ -6874,6 +6878,7 @@ export function WidgetFrame({
                         enabled={!editMode && isWidgetTrackingEnabled()}
                     >
                         <Widget
+                            key={`r${refreshNonce}`}
                             config={
                                 config.options?.hideTitle
                                     ? { ...config, title: '' }

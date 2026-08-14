@@ -24,8 +24,9 @@ import {
 } from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
 import { useGroupDefsStore } from '../store/groupDefsStore';
-import { usePopupConfigStore, type PopupTrigger } from '../store/popupConfigStore';
+import { usePopupConfigStore, type PopupTrigger, type PopupView } from '../store/popupConfigStore';
 import { __devForceDpTriggers } from '../components/widgets/popup/DpPopupTriggers';
+import { __devForceConditionRefresh } from '../hooks/useConditionStyle';
 import { useThemeStore } from '../store/themeStore';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
 import type { WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
@@ -195,6 +196,17 @@ function installScreenshotApi(): void {
         dpTriggers(triggers: PopupTrigger[] | false): void {
             __devForceDpTriggers(triggers !== false);
             withSuppressedDirty(() => usePopupConfigStore.setState({ triggers: triggers === false ? [] : triggers }));
+        },
+
+        /** Arm condition rules with "reload widget". Off in screenshot mode by
+         *  default — a widget remounting mid-shot would corrupt the image. */
+        conditionRefresh(on = true): void {
+            __devForceConditionRefresh(on);
+        },
+
+        /** Seed popup views so a `popup-view` action has something to render. */
+        popupViews(views: PopupView[]): void {
+            withSuppressedDirty(() => usePopupConfigStore.setState({ views }));
         },
     };
 

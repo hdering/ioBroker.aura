@@ -33,6 +33,12 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 Standby ab, und ohne Nutzer-Tipp startet der Player nicht wieder. Für Seiten mit
 Eingaben ausgelassen lassen — der Reload verwirft deren Zustand.
 
+Neu laden bei Datenpunkt-Änderung: Bedingung mit Effekt `Widget neu laden` anlegen —
+siehe [Editor](../einstellungen/editor.md#widget-neu-laden). Nötig, sobald sich der
+Inhalt hinter einer gleichbleibenden URL ändert (z. B. Diagramm eines Skripts, das
+auf ein Auswahlfeld reagiert): Die Adresse ändert sich nicht, also lädt der iFrame
+von sich aus nicht neu.
+
 #### Interaktion vs. Klick-Aktion
 
 Ein Klick in die eingebettete Seite erreicht Aura nicht — das Fremd-Dokument behält
