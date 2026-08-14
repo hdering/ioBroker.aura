@@ -8,7 +8,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
-import type { StaticListEntry, StaticListOptions } from '../widgets/ListWidget';
+import { isDivider, type StaticListEntry, type StaticListOptions } from '../widgets/ListWidget';
 import type { ListStat } from '../../utils/listStats';
 import { ColorField, ConfigSection } from './list/listFieldUi';
 import { DatapointPicker } from './DatapointPicker';
@@ -19,6 +19,7 @@ import type { NameSource } from '../../utils/nameFilter';
 import { NameDisplayFields } from './NameDisplayFields';
 import { ValueTransformFields } from './ValueTransformFields';
 import { StaticEntryDetail } from './list/StaticEntryDetail';
+import { DividerDetail } from './list/DividerDetail';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { ListFilterSection } from './list/ListFilterSection';
 import type { EditorFilterRow } from './list/ListFilterEditor';
@@ -61,11 +62,14 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     const entryKey = entries.map((e) => `${e.id}|${e.label ?? ''}`).join(',');
     const nameSamples: NameSource[] = useMemo(
         () =>
-            entries.slice(0, 6).map((e) => ({
-                id: e.id,
-                name: applyDpNameFilter(e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id),
-                room: lookupDatapointEntry(e.id)?.rooms[0],
-            })),
+            entries
+                .filter((e) => !isDivider(e))
+                .slice(0, 6)
+                .map((e) => ({
+                    id: e.id,
+                    name: applyDpNameFilter(e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id),
+                    room: lookupDatapointEntry(e.id)?.rooms[0],
+                })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [entryKey, resolvedNames],
     );
@@ -75,11 +79,13 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     const subDpKey = entries.map((e) => (e.subDps ?? []).map((s) => `${s?.id}|${s?.label ?? ''}`).join('+')).join(',');
     const filterRows = useMemo<EditorFilterRow[]>(
         () =>
-            entries.map((e) => ({
-                id: e.id,
-                label: e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id,
-                subs: (e.subDps ?? []).filter((s) => !!s?.id).map((s) => ({ id: s.id, label: s.label })),
-            })),
+            entries
+                .filter((e) => !isDivider(e))
+                .map((e) => ({
+                    id: e.id,
+                    label: e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id,
+                    subs: (e.subDps ?? []).filter((s) => !!s?.id).map((s) => ({ id: s.id, label: s.label })),
+                })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [entryKey, subDpKey, resolvedNames],
     );
@@ -92,6 +98,14 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     };
 
     const removeEntry = (id: string) => setOpts({ entries: entries.filter((e) => e.id !== id) });
+
+    /** Appends a separator row. Its id only has to be unique and stable — it is a React
+     *  key and the selection key, never an ioBroker object. */
+    const addDivider = () => {
+        let n = 1;
+        while (entries.some((e) => e.id === `divider:${n}`)) n++;
+        setOpts({ entries: [...entries, { id: `divider:${n}`, divider: true }] });
+    };
 
     const updateEntry = (id: string, patch: Partial<StaticListEntry>) =>
         setOpts({ entries: entries.map((e) => (e.id === id ? { ...e, ...patch } : e)) });
@@ -132,25 +146,31 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                 onRemove={removeEntry}
                 onRemoveAll={() => setOpts({ entries: [] })}
                 onAdd={() => setShowPicker(true)}
+                onAddDivider={addDivider}
                 onReorder={reorderEntries}
                 sortHint={
                     (opts.sortBy ?? 'none') !== 'none'
                         ? `Sortierung „${opts.sortBy === 'label' ? 'Name' : 'Wert'}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn Sortierung auf „Keine“ steht.`
                         : undefined
                 }
-                renderDetail={(id, api) => (
-                    <StaticEntryDetail
-                        entry={entries.find((e) => e.id === id)!}
-                        listConfig={config}
-                        onUpdate={(patch) => updateEntry(id, patch)}
-                        onChangeId={(newId, unit, role, writable) => {
-                            changeEntryId(id, newId, unit, role, writable);
-                            // The id is the selection key - follow it, or the detail
-                            // pane would empty out mid-edit.
-                            api.select(newId);
-                        }}
-                    />
-                )}
+                renderDetail={(id, api) => {
+                    const found = entries.find((e) => e.id === id)!;
+                    if (isDivider(found))
+                        return <DividerDetail entry={found} onUpdate={(patch) => updateEntry(id, patch)} />;
+                    return (
+                        <StaticEntryDetail
+                            entry={entries.find((e) => e.id === id)!}
+                            listConfig={config}
+                            onUpdate={(patch) => updateEntry(id, patch)}
+                            onChangeId={(newId, unit, role, writable) => {
+                                changeEntryId(id, newId, unit, role, writable);
+                                // The id is the selection key - follow it, or the detail
+                                // pane would empty out mid-edit.
+                                api.select(newId);
+                            }}
+                        />
+                    );
+                }}
                 tabs={[
                     {
                         key: 'rowclick',

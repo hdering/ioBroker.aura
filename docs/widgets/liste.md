@@ -172,6 +172,34 @@ Navigations-Aktionen (`Sprung: Tab` · `Externe URL` · `Widget`) springen direk
 Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weiterhin, das Popup übernimmt nur Badges ohne eigenen Schalter (Sensoren, schreibgeschützte und numerische Werte). Eine ausdrücklich gesetzte Aktion gewinnt dagegen auch bei schaltbaren Badges.
 :::
 
+### Trennlinien (Abschnitte)
+
+Dialog **Datenpunkte verwalten** → Button **Trennlinie** unter der Liste. Eine Trennlinie ist ein **eigener Eintrag**: sie wird wie ein Datenpunkt hinzugefügt, per Drag & Drop an die gewünschte Stelle gezogen und mit demselben ✕ gelöscht. Sie rendert eine Linie über die volle Breite, wahlweise mit Überschrift, und eröffnet damit einen Abschnitt. Wirkt in allen Layouts außer `custom`.
+
+Auswählen öffnet rechts den Editor:
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `divider` | — | `true` kennzeichnet die Zeile als Trennlinie (die `id` ist dann synthetisch, z. B. `divider:1`) |
+| `dividerLabel` | — | Überschrift; leer = nur Linie |
+| `dividerAlign` | `left` | `left` · `center` · `right` |
+| `dividerFontSize` | `10` | px |
+| `dividerColor` | `--text-secondary` | Textfarbe |
+| `dividerLine` | `true` | `false` = nur Überschrift, ohne Linie |
+
+Verhalten:
+
+| | |
+| --- | --- |
+| Sortierung | wirkt **innerhalb** eines Abschnitts — die Abschnitte selbst bleiben stehen |
+| Wert-Filter / Suche | bleibt von einem Abschnitt keine Zeile übrig, entfällt seine Trennlinie |
+| Position | eine Linie ohne Überschrift ganz oben sowie eine Trennlinie ohne Zeilen dahinter werden unterdrückt |
+| Zählung, Summe, Gruppen-Aktion | ignorieren Trennlinien vollständig |
+
+Unabhängig davon ist `showDividers` — die dünne Linie zwischen je zwei Zeilen.
+
+Die dynamische Liste hat das bewusst nicht: dort kommen die Zeilen aus einem Filter und werden neu sortiert, eine Trennlinie an fester Stelle wäre nach der nächsten Sortierung falsch. Zum Gruppieren dient dort `groupByRoom`.
+
 ### Namen
 
 Dialog **Datenpunkte verwalten** → Tab **Namen**. Ein Muster für alle Zeilen; leer = zusammengesetzter Name des Datenpunkts.

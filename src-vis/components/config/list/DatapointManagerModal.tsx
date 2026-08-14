@@ -34,6 +34,7 @@ export function DatapointManagerModal({
     onRemoveAll,
     onAdd,
     addLabel,
+    onAddDivider,
     onReorder,
     sortHint,
     renderDetail,
@@ -50,6 +51,7 @@ export function DatapointManagerModal({
     onRemoveAll: () => void;
     onAdd?: () => void;
     addLabel?: string;
+    onAddDivider?: () => void;
     onReorder?: (from: number, to: number) => void;
     sortHint?: string;
     renderDetail: (id: string, api: DetailApi) => ReactNode;
@@ -88,7 +90,7 @@ export function DatapointManagerModal({
     const allTabs = [...tabs];
     allTabs.splice(Math.min(entriesTabIndex, allTabs.length), 0, {
         key: TAB_ENTRIES,
-        label: `Einträge (${entries.length})`,
+        label: `Einträge (${entries.filter((e) => !e.divider).length})`,
         node: null,
     });
 
@@ -129,6 +131,7 @@ export function DatapointManagerModal({
                             onRemoveAll={removeAll}
                             onAdd={onAdd}
                             addLabel={addLabel}
+                            onAddDivider={onAddDivider}
                             onReorder={onReorder}
                             sortHint={sortHint}
                         />

@@ -106,6 +106,24 @@ export interface StaticListEntry extends EntryControlConfig {
      * Ignored by the badges (minimal) layout, where a row is a single pill.
      */
     subDps?: EntrySubDp[];
+    /**
+     * This row is a separator, not a datapoint: a rule across the full width that opens
+     * a new section. It lives in `entries` like any other row, so it is added, dragged,
+     * moved and deleted with the same handles — the alternative, a flag on the datapoint
+     * below it, would mean switching one entry off and another on just to move a line.
+     * `id` is then synthetic (`divider:<n>`) and carries no ioBroker meaning.
+     */
+    divider?: boolean;
+    /** Heading on the separator. Empty = a plain rule. */
+    dividerLabel?: string;
+    /** Where the heading sits. Default 'left'. */
+    dividerAlign?: 'left' | 'center' | 'right';
+    /** Heading size in px. Default 10. */
+    dividerFontSize?: number;
+    /** Heading colour. Default --text-secondary. */
+    dividerColor?: string;
+    /** Draw the rule(s) next to the heading. Default true; false = heading only. */
+    dividerLine?: boolean;
 }
 
 export interface StaticListOptions
@@ -190,6 +208,119 @@ function compareVals(a: ioBrokerState['val'], b: ioBrokerState['val']): number {
     if (typeof a === 'boolean' && typeof b === 'boolean') return (a ? 1 : 0) - (b ? 1 : 0);
     if (typeof a === 'number' && typeof b === 'number') return a - b;
     return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
+}
+
+// ── Section breaks ─────────────────────────────────────────────────────────────
+
+/**
+ * Which rendered entries start a new section, and with what heading.
+ *
+ * A break is configured on an entry (`dividerBefore`), never on a position — positions do
+ * not survive drag & drop, and this list is reordered by hand all the time.
+ *
+ * Walked over the CONFIG order while checking against what is actually rendered, so a
+ * break whose own entry is filtered away (value filter, search) moves to the next visible
+ * entry of that section: a heading like "Erdgeschoss" stays as long as the section has a
+ * visible member, and vanishes entirely once it has none — instead of leaving a stray line.
+ */
+/** True for a separator row. Every value-related code path has to skip these. */
+export function isDivider(e: StaticListEntry): boolean {
+    return e?.divider === true;
+}
+
+/** How the separator has to be laid out to span the full width of its container. */
+type BreakVariant = 'stack' | 'grid' | 'wrap';
+
+/**
+ * A separator row.
+ *
+ * The rule frames the heading according to its alignment: left-aligned puts the whole
+ * rule behind the text, centred splits it in two, right-aligned pushes it in front. A
+ * separator without a heading is just the rule, one with the rule switched off just the
+ * heading — and one with neither renders nothing at all.
+ */
+function SectionBreak({ entry, variant, first }: { entry: StaticListEntry; variant: BreakVariant; first: boolean }) {
+    const label = entry.dividerLabel?.trim() || undefined;
+    const align = entry.dividerAlign ?? 'left';
+    const line = entry.dividerLine !== false;
+    if (!label && !line) return null;
+    const rule = <span className="flex-1 h-px min-w-0" style={{ background: 'var(--widget-border)' }} />;
+    const before = line && (align === 'right' || align === 'center');
+    const after = line && (align === 'left' || align === 'center' || !label);
+    return (
+        <div
+            className="aura-section-break flex items-center gap-2 px-3 select-none"
+            style={{
+                // A grid child must be told to span every column; a flex-wrap child needs a
+                // full basis so the badges after it start on a new line.
+                gridColumn: variant === 'grid' ? '1 / -1' : undefined,
+                flexBasis: variant === 'wrap' ? '100%' : undefined,
+                // No air above the very first row - the separator sits under the header.
+                paddingTop: first ? 2 : 10,
+                paddingBottom: label ? 4 : 6,
+                // Without a rule the heading alone has to carry the alignment.
+                justifyContent: line
+                    ? undefined
+                    : align === 'left'
+                      ? 'flex-start'
+                      : align === 'right'
+                        ? 'flex-end'
+                        : 'center',
+            }}
+        >
+            {before && rule}
+            {label && (
+                <span
+                    className="font-semibold uppercase tracking-wide shrink-0 truncate"
+                    style={{
+                        color: entry.dividerColor || 'var(--text-secondary)',
+                        fontSize: entry.dividerFontSize && entry.dividerFontSize > 0 ? entry.dividerFontSize : 10,
+                    }}
+                >
+                    {label}
+                </span>
+            )}
+            {after && rule}
+        </div>
+    );
+}
+
+/**
+ * Sorts the datapoint rows WITHIN each section instead of across the whole list, so an
+ * active sort order and a hand-made grouping can coexist — sorting globally would tear
+ * the sections apart, which is the whole reason they exist.
+ */
+function sortWithinSections(rows: StaticListEntry[], cmp: (a: StaticListEntry, b: StaticListEntry) => number) {
+    const out: StaticListEntry[] = [];
+    let section: StaticListEntry[] = [];
+    const flush = () => {
+        section.sort(cmp);
+        out.push(...section);
+        section = [];
+    };
+    for (const r of rows) {
+        if (isDivider(r)) {
+            flush();
+            out.push(r);
+        } else section.push(r);
+    }
+    flush();
+    return out;
+}
+
+/**
+ * Drops the separators that would render into nothing: one whose section has no visible
+ * row left (its datapoints were filtered away) and a leading bare rule, which would
+ * separate the list from nothing. A leading separator WITH a heading is kept — that is a
+ * section title, and it belongs at the top.
+ */
+function pruneEmptySections(rows: StaticListEntry[]): StaticListEntry[] {
+    return rows.filter((r, i) => {
+        if (!isDivider(r)) return true;
+        const next = rows[i + 1];
+        if (!next || isDivider(next)) return false;
+        return i > 0 || !!r.dividerLabel?.trim();
+    });
 }
 
 // ── Value cell ─────────────────────────────────────────────────────────────────
@@ -548,7 +679,12 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // Inside an auto-height popup-view: render the full list without an inner scrollbar
     // so the popup grid (and dialog) can grow to fit every row. Off elsewhere.
     const autoHeight = usePopupAutoHeight();
-    const entries = useMemo<StaticListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
+    // Two views on the same array: `rows` is what gets rendered (separators included),
+    // `entries` is the datapoints only. Everything value-related — subscriptions, filters,
+    // sorting, statistics, counts, group actions — reads `entries`, so a separator can
+    // never leak into a value calculation.
+    const rows = useMemo<StaticListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
+    const entries = useMemo<StaticListEntry[]>(() => rows.filter((e) => !isDivider(e)), [rows]);
     // Row click -> detail popup for that datapoint (issue #524).
     const rowPopup = useRowPopup(config, opts, editMode);
     const t = useT();
@@ -695,10 +831,13 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const effectiveSearch = editMode || !searchReachable ? '' : searchTerm;
 
     const visibleEntries = useMemo(() => {
+        // A separator is chrome, not data: it passes every value filter and the search,
+        // and is dropped afterwards only if its section ended up empty.
         let result =
             effectiveFilter === 'all' && !effectiveSearch.trim()
-                ? entries
-                : entries.filter((e) => {
+                ? rows
+                : rows.filter((e) => {
+                      if (isDivider(e)) return true;
                       const row = filterRow(e);
                       return (
                           matchesFilterMode(effectiveFilter, opts.filterPresets, row) &&
@@ -714,7 +853,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                 key === 'label'
                     ? getLabel(a).localeCompare(getLabel(b), undefined, { numeric: true, sensitivity: 'base' })
                     : compareVals(states[a.id]?.val ?? null, states[b.id]?.val ?? null);
-            result = [...result].sort((a, b) => {
+            result = sortWithinSections(result, (a, b) => {
                 const cmp1 = cmpFor(sortBy, a, b);
                 if (cmp1 !== 0) return sortOrder === 'desc' ? -cmp1 : cmp1;
                 if (sortBy2 !== 'none' && sortBy2 !== sortBy) {
@@ -724,10 +863,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                 return 0;
             });
         }
-        return result;
+        return pruneEmptySections(result);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
-        entries,
+        rows,
         states,
         subValues,
         effectiveFilter,
@@ -739,6 +878,22 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         opts.sortOrder2,
         resolvedNames,
     ]);
+
+    // Compact is a two-column grid and styles its cells by index parity. A separator spans
+    // both columns and therefore restarts the grid row, so the column has to be counted
+    // rather than derived from the index - otherwise the cell borders sit on the wrong
+    // side after a separator.
+    const compactCols = useMemo(() => {
+        const cols: number[] = [];
+        let c = 0;
+        for (const e of visibleEntries) {
+            if (isDivider(e)) {
+                cols.push(0);
+                c = 0;
+            } else cols.push(c++ % 2);
+        }
+        return cols;
+    }, [visibleEntries]);
 
     // Count published to ioBroker state = view-mode count using the frontend valueFilter,
     // independent from backendValueFilter (which only affects the editor preview) and
@@ -979,7 +1134,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             alignContent: 'start',
                         }}
                     >
-                        {visibleEntries.map((entry) => {
+                        {visibleEntries.map((entry, i) => {
+                            // A separator is a row like any other - it just renders as a rule.
+                            if (isDivider(entry))
+                                return <SectionBreak key={entry.id} entry={entry} variant="grid" first={i === 0} />;
                             const val = states[entry.id]?.val ?? null;
                             const label = getLabel(entry);
                             const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
@@ -1013,7 +1171,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 >
                                     <span
                                         className={`flex items-center gap-1 leading-tight ${labelWrapCls}${entryFontSize ? '' : ' text-[10px]'}`}
-                                        style={{ color: 'var(--text-secondary)', fontSize: entryFontSize ?? undefined }}
+                                        style={{
+                                            color: 'var(--text-secondary)',
+                                            fontSize: entryFontSize ?? undefined,
+                                        }}
                                     >
                                         {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" />}
                                         {label}
@@ -1072,9 +1233,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', alignContent: 'start' }}
                     >
                         {visibleEntries.map((entry, i) => {
+                            // A separator is a row like any other - it just renders as a rule.
+                            if (isDivider(entry))
+                                return <SectionBreak key={entry.id} entry={entry} variant="grid" first={i === 0} />;
                             const val = states[entry.id]?.val ?? null;
                             const label = getLabel(entry);
-                            const isRight = i % 2 === 1;
+                            // Counted, not i % 2: a section break spans both columns and
+                            // starts a fresh grid row (see compactCols).
+                            const isRight = compactCols[i] === 1;
                             const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
                             const eOn = isActive(val);
                             const entryActiveColor = entry.activeColor || globalActiveColor;
@@ -1173,7 +1339,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                 {rowPopup.node}
                 {visibleEntries.length > 0 && (
                     <div className={`${fillCls} p-2 flex flex-wrap gap-1.5 content-start`}>
-                        {visibleEntries.map((entry) => {
+                        {visibleEntries.map((entry, i) => {
+                            // A separator is a row like any other - it just renders as a rule.
+                            if (isDivider(entry))
+                                return <SectionBreak key={entry.id} entry={entry} variant="wrap" first={i === 0} />;
                             const val = states[entry.id]?.val ?? null;
                             const label = getLabel(entry);
                             const writable = entry.writable !== false;
@@ -1349,7 +1518,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
             {rowPopup.node}
             {visibleEntries.length > 0 && (
                 <div className={fillClsY}>
-                    {visibleEntries.map((entry) => {
+                    {visibleEntries.map((entry, i) => {
+                        // A separator is a row like any other - it just renders as a rule.
+                        if (isDivider(entry))
+                            return <SectionBreak key={entry.id} entry={entry} variant="stack" first={i === 0} />;
                         const val = states[entry.id]?.val ?? null;
                         const label = getLabel(entry);
                         const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;

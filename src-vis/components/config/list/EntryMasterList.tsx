@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Database, Search } from 'lucide-react';
+import { Database, Minus, Search } from 'lucide-react';
 import { EntryListItem, type ManagedEntry } from './EntryListItem';
 
 /** Above this many entries a local filter box appears. */
@@ -23,6 +23,7 @@ export function EntryMasterList({
     onRemoveAll,
     onAdd,
     addLabel = 'Datenpunkt hinzufügen',
+    onAddDivider,
     onReorder,
     sortHint,
 }: {
@@ -34,6 +35,8 @@ export function EntryMasterList({
     onRemoveAll: () => void;
     onAdd?: () => void;
     addLabel?: string;
+    /** Adds a separator row. Only the static list, where the order is configuration. */
+    onAddDivider?: () => void;
     onReorder?: (from: number, to: number) => void;
     /** Set while a sort order makes manual ordering pointless - shown as a footer. */
     sortHint?: string;
@@ -71,7 +74,7 @@ export function EntryMasterList({
         <div className="flex flex-col h-full min-h-0 gap-1.5">
             <div className="flex items-center justify-between shrink-0">
                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    Datenpunkte ({entries.length})
+                    Datenpunkte ({entries.filter((e) => !e.divider).length})
                 </label>
                 {entries.length > 0 && (
                     <button
@@ -146,14 +149,32 @@ export function EntryMasterList({
                 </p>
             )}
 
-            {onAdd && (
-                <button
-                    onClick={onAdd}
-                    className="shrink-0 w-full flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80"
-                    style={{ background: 'var(--accent)', color: '#fff' }}
-                >
-                    <Database size={12} /> {addLabel}
-                </button>
+            {(onAdd || onAddDivider) && (
+                <div className="shrink-0 flex gap-1.5">
+                    {onAdd && (
+                        <button
+                            onClick={onAdd}
+                            className="flex-1 min-w-0 flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg hover:opacity-80"
+                            style={{ background: 'var(--accent)', color: '#fff' }}
+                        >
+                            <Database size={12} /> {addLabel}
+                        </button>
+                    )}
+                    {onAddDivider && (
+                        <button
+                            onClick={onAddDivider}
+                            title="Trennlinie am Ende einfügen — danach an die gewünschte Stelle ziehen"
+                            className="shrink-0 flex items-center justify-center gap-1.5 text-xs py-2 px-2.5 rounded-lg hover:opacity-80 whitespace-nowrap"
+                            style={{
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                                color: 'var(--text-secondary)',
+                            }}
+                        >
+                            <Minus size={12} /> Trennlinie
+                        </button>
+                    )}
+                </div>
             )}
         </div>
     );
