@@ -21,7 +21,7 @@ interface EChartConfigProps {
     onConfigChange: (c: WidgetConfig) => void;
 }
 
-const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'custom'];
+const CHART_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'total', 'custom'];
 
 const CHART_TYPES: { id: EChartSeriesConfig['chartType']; label: () => string }[] = [
     { id: 'line', label: () => t('echart.line') },

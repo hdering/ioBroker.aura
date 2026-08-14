@@ -6,6 +6,7 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-Chart (advanced) - new "1 year" time range, selectable in the config and in the frontend range switcher (#536)
+Chart (advanced) - new "1 year" and "total" time ranges, selectable in the config and in the frontend range switcher (#536)
+Chart (advanced) - "total" charts everything the history adapter holds; the window start is detected per series instead of being configured (#536)
 Chart (advanced) - consumption series accept time unit "Automatic", deriving hour/day/month/year buckets from the active time range, plus a new "Per year" unit (#536)
 Chart (advanced) - time ranges beyond two months no longer lose data points to the query row limit

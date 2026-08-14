@@ -141,13 +141,25 @@ Ein gemeinsamer Zeitraum für alle Serien.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `echartRange` | `24h` | `1h` · `6h` · `24h` · `7d` · `30d` · `1y` · `custom` |
+| `echartRange` | `24h` | `1h` · `6h` · `24h` · `7d` · `30d` · `1y` · `total` · `custom` |
 | `echartRangeCustomValue` | `24` | nur bei `custom` |
 | `echartRangeCustomUnit` | `h` | `h` · `d`, nur bei `custom` |
 | `lockRange` | `false` | Zeitraum-Umschalter im Frontend ausblenden |
 | `echartVisibleRanges` | alle | Welche Presets der Frontend-Umschalter anbietet, z. B. `["6h","24h","7d","30d"]` |
 | `echartDayNav` | `false` | Tages-Navigation im Frontend (◀ Heute ▶) — einzelne Kalendertage durchblättern |
 | `autoHistoryInstance` | `false` | History-Instanz je Serie automatisch erkennen |
+
+`total` (Umschalter: **Gesamt**) zeichnet alles, was der Verlaufs-Adapter hergibt.
+
+| | |
+| --- | --- |
+| Fensterstart | wird je Serie beim Adapter ermittelt, nicht konfiguriert |
+| Auflösung | ergibt sich aus der gefundenen Länge — je länger die Historie, desto grober der Schritt |
+| Obergrenze der Suche | 20 Jahre; älter ist ioBroker selbst nicht |
+| `deltaBucket: auto` | ab 400 Tagen Historie `year`, darunter entsprechend feiner |
+| Adapter ohne Daten | leeres Diagramm, wie jeder andere Zeitraum ohne Datensätze |
+
+Der Fensterstart kostet eine zusätzliche, grobe Abfrage je Serie. Bei sehr langen Historien auf dem dateibasierten `history`-Adapter ist der erste Aufbau daher merklich langsamer als bei `influxdb` oder `sql`.
 
 ### JSON-Override
 

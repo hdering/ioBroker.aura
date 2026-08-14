@@ -21,7 +21,7 @@ import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
-const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y'];
+const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'total'];
 
 function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
     const result = { ...target };
@@ -204,8 +204,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             ];
         }
         const val = current ?? 0;
+        // `total` reports its floor (decades) rather than a real span — framing a flat line across
+        // it would stretch the x axis over 20 empty years. With no records there is no recording
+        // start to show anyway, so fall back to a day.
+        const span = activeRange === 'total' ? 86_400_000 : rangeToMs(activeRange, activeCustomVal, activeCustomUnit);
         return [
-            [now - rangeToMs(activeRange, activeCustomVal, activeCustomUnit), val],
+            [now - span, val],
             [now, val],
         ];
     };

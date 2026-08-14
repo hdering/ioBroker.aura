@@ -14,7 +14,7 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import { getHistoryDirect, getObjectDirect, getStateDirect, getStateFromCache, type HistoryEntry } from './useIoBroker';
-import { detectHistoryAdapters } from './useChartHistory';
+import { detectHistoryAdapters, TOTAL_FLOOR_MS } from './useChartHistory';
 import type { EChartTimeRange } from './useMultiSeriesData';
 import type { ioBrokerState } from '../types';
 import type { NumberFormat } from '../utils/formatValue';
@@ -46,6 +46,8 @@ const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
     '7d': 604_800_000,
     '30d': 2_592_000_000,
     '1y': 31_536_000_000,
+    // Not offered by this widget's preset lists; present so the range type stays shared.
+    total: TOTAL_FLOOR_MS,
 };
 
 function getRangeMs(range: EChartTimeRange, customVal?: number, customUnit?: 'h' | 'd'): number {
@@ -63,7 +65,7 @@ function getStepForMs(rangeMs: number): number | undefined {
     if (rangeMs <= 48 * 3_600_000) return 900_000;
     if (rangeMs <= 14 * 86_400_000) return 3_600_000;
     if (rangeMs <= 60 * 86_400_000) return 21_600_000;
-    return 86_400_000;
+    return Math.max(86_400_000, Math.ceil(rangeMs / 900 / 86_400_000) * 86_400_000);
 }
 
 /** Reduce a sorted [ts,val][] series to a single number per the aggregate mode. */
