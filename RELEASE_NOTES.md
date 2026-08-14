@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+
+- List and dynamic list - name pattern can now read the row label from another datapoint, e.g. `[[{{parent}}.DeviceName]]` (#524)

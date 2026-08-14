@@ -123,7 +123,7 @@ export function AutoEntryDetail({
                 <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
                     {templateCount > 0 && subDpCount === 0
                         ? `Die Liste hat eine Vorlage mit ${templateCount} Datenpunkt${templateCount === 1 ? '' : 'en'} — sie gilt hier. Eigene Datenpunkte ersetzen sie für diese Zeile.`
-                        : 'Weitere Datenpunkte unter dem Haupt-Datenpunkt — nur Anzeige, Position frei wählbar. Nicht im Badges-Layout. Gesetzte Datenpunkte ersetzen die Vorlage der Liste.'}
+                        : 'Weitere Datenpunkte unter dem Wert dieser Zeile — beliebige Datenpunkte, nicht nur die des Geräts. Nur Anzeige, Position frei wählbar. Nicht im Badges-Layout. Gesetzte Datenpunkte ersetzen die Vorlage der Liste.'}
                 </p>
                 <SubDpFields
                     subDps={entry.subDps ?? []}

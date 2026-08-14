@@ -42,8 +42,16 @@ weitere Datenpunkte (`entries[].subDps[]`) in einer zweiten Zeile unter dem Haup
 Batterie, Signalstärke, Sollwert, Laufzeit. **Nur Anzeige**: kein Schalter, kein Regler, kein Schreiben.
 
 Die Zeile hat drei Plätze — links, mitte, rechts. Mehrere Datenpunkte am selben Platz stehen in
-Konfigurationsreihenfolge nebeneinander. Das Auswahlfeld bietet die Datenpunkte des gleichen Geräts
-direkt an; der Objektbaum-Button daneben holt jeden anderen.
+Konfigurationsreihenfolge nebeneinander.
+
+Zwei Wege zum Hinzufügen, die Auswahl ist **nicht** auf das Gerät der Zeile beschränkt:
+
+| Schaltfläche | |
+| --- | --- |
+| **+ DP des Geräts (n) …** | Datenpunkte desselben Geräts als Kurzauswahl |
+| **+ Beliebiger DP …** | Objektbaum — jeder Datenpunkt aus ioBroker, auch von einem anderen Gerät oder Adapter |
+
+Die ID lässt sich außerdem direkt ins Feld tippen.
 
 | Feld | Standard | |
 | --- | --- | --- |
@@ -163,6 +171,35 @@ Navigations-Aktionen (`Sprung: Tab` · `Externe URL` · `Widget`) springen direk
 ::: tip Badges-Layout
 Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weiterhin, das Popup übernimmt nur Badges ohne eigenen Schalter (Sensoren, schreibgeschützte und numerische Werte). Eine ausdrücklich gesetzte Aktion gewinnt dagegen auch bei schaltbaren Badges.
 :::
+
+### Namen
+
+Dialog **Datenpunkte verwalten** → Tab **Namen**. Ein Muster für alle Zeilen; leer = zusammengesetzter Name des Datenpunkts.
+
+| Platzhalter | ergibt |
+| --- | --- |
+| `<Raum>` | Raum des Datenpunkts |
+| `<Gerät>` | Geräteteil des Namens |
+| `<DPName>` | letztes Segment der ID |
+| `<Name>` | vollständiger Name |
+| `<ID>` | vollständige Datenpunkt-ID |
+| `{{parent}}` · `{{dp}}` · `{{name}}` | ID-Bausteine der Zeile, wie in der [zweiten Zeile](./dynamische-liste#zweite-zeile-zusatzliche-datenpunkte) |
+| `[[id]]` | **Wert** dieses Datenpunkts, live |
+
+Steht der Anzeigename in einem eigenen Datenpunkt, kombiniert man beides:
+
+| Muster | Ergebnis |
+| --- | --- |
+| `[[{{parent}}.DeviceName]]` | Wert des Nachbar-Datenpunkts `DeviceName` je Zeile |
+| `Steckdose [[{{parent}}.DeviceName]]` | mit festem Text davor |
+| `[[shared.0.Ort]] <DPName>` | absolute ID — derselbe Wert in jeder Zeile |
+
+Ein `[[…]]` ohne Wert fällt auf den normalen Namen zurück. `nameFilters` (Button **Namens-Filter**) schneidet die `<…>`-Platzhalter zurecht, mit Vorschau; Regeln auf **Ergebnis** laufen auf dem fertigen Label — also erst nachdem `[[…]]` seinen Wert hat.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `namePattern` | — | Namensmuster |
+| `nameFilters` | — | Regelliste für die Platzhalter-Texte |
 
 ### Anzeige
 

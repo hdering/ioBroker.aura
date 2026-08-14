@@ -224,8 +224,8 @@ export function StaticEntryDetail({
 
             <DetailSection title="Zweite Zeile" badge={subDpCount > 0 ? `${subDpCount} DP` : undefined}>
                 <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                    Weitere Datenpunkte unter dem Haupt-Datenpunkt — nur Anzeige, Position frei wählbar. Nicht im
-                    Badges-Layout.
+                    Weitere Datenpunkte unter dem Wert dieser Zeile — beliebige Datenpunkte, nicht nur die des Geräts.
+                    Nur Anzeige, Position frei wählbar. Nicht im Badges-Layout.
                 </p>
                 <SubDpFields
                     subDps={entry.subDps ?? []}

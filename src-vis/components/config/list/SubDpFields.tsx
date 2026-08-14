@@ -7,8 +7,9 @@
  * collapsible card so the pane stays scannable.
  *
  * Datapoints from the same device are offered as a dropdown (battery, RSSI, setpoint
- * are almost always siblings of the main one) — the object browser stays available
- * for everything else.
+ * are almost always siblings of the main one), the object browser next to it reaches
+ * every other datapoint. Both are labelled buttons: with the object browser reduced to
+ * a bare icon, the section read as "this device's datapoints only".
  *
  * `templateMode` reuses the very same editor for the dynamic list's list-wide
  * template: picked siblings are stored as `{{parent}}.BATTERY` so one configuration
@@ -384,7 +385,10 @@ export function SubDpFields({
                 );
             })}
 
-            {/* Hinzufügen: Geschwister-DP per Auswahl, alles andere über den Objektbaum */}
+            {/* Hinzufügen: Geschwister-DP per Auswahl, alles andere über den Objektbaum.
+                Beide Wege stehen als gleichwertige, beschriftete Schaltflächen nebeneinander —
+                als reines Icon war der Objektbaum-Weg praktisch unsichtbar und der Eindruck
+                entstand, die zweite Zeile könne nur Datenpunkte desselben Geräts zeigen. */}
             <div className="flex gap-1">
                 <select
                     value=""
@@ -419,15 +423,20 @@ export function SubDpFields({
                     onClick={() => setPickerOpen(true)}
                     title={
                         templateMode
-                            ? 'Anderen Datenpunkt aus ioBroker wählen (bleibt absolut und gilt für alle Zeilen)'
-                            : 'Anderen Datenpunkt aus ioBroker wählen'
+                            ? 'Beliebigen Datenpunkt aus dem ioBroker-Objektbaum wählen (bleibt absolut und gilt für alle Zeilen)'
+                            : 'Beliebigen Datenpunkt aus dem ioBroker-Objektbaum wählen — auch von einem anderen Gerät'
                     }
-                    className="px-2 rounded hover:opacity-80 shrink-0 flex items-center justify-center"
+                    className="px-2 py-1 rounded hover:opacity-80 shrink-0 flex items-center justify-center gap-1 text-[10px] whitespace-nowrap"
                     style={{ ...iSty, color: 'var(--text-secondary)' }}
                 >
-                    <Database size={12} />
+                    <Database size={11} /> + Beliebiger DP …
                 </button>
             </div>
+            <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                {templateMode
+                    ? 'Die zweite Zeile ist nicht auf das Gerät beschränkt: über „Beliebiger DP“ lässt sich jeder Datenpunkt wählen. Eine absolute ID zeigt in jeder Zeile denselben Wert, ein Muster mit {{parent}} den passenden DP je Zeile.'
+                    : 'Die zweite Zeile ist nicht auf das Gerät beschränkt: über „Beliebiger DP“ lässt sich jeder Datenpunkt aus ioBroker wählen — auch von einem anderen Gerät oder Adapter. Die ID lässt sich außerdem direkt ins Feld tippen.'}
+            </p>
 
             {pickerOpen && (
                 <DatapointPicker

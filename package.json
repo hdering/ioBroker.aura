@@ -65,7 +65,8 @@
     "test:list-subdps": "node tools/tests/list-subdps.mjs",
     "test:list-filter": "node tools/tests/list-filter.mjs",
     "test:camera-actions": "node tools/tests/camera-actions.mjs",
-    "test:condition-refresh": "node tools/tests/condition-refresh.mjs"
+    "test:condition-refresh": "node tools/tests/condition-refresh.mjs",
+        "test:name-pattern": "node tools/tests/name-pattern.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",

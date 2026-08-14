@@ -45,7 +45,7 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Einträge | Gefundene Datenpunkte; rechts der Detail-Editor (Bezeichnung, Einheit, Darstellung, Farben) |
 | Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
 | Zweite Zeile | Vorlage für zusätzliche Datenpunkte in allen Zeilen (siehe unten) |
-| Namen | Namensmuster und Namens-Filter |
+| Namen | Namensmuster und Namens-Filter — Platzhalter wie bei der [statischen Liste](./liste#namen), inklusive `[[{{parent}}.DeviceName]]` für Namen aus einem eigenen Datenpunkt |
 
 Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Zweite Zeile** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Verhalten** (letzte Änderung, Klick auf Zeile).
 

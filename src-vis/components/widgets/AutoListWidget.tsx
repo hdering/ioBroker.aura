@@ -8,7 +8,7 @@ import { isRelevantDp } from '../../utils/dpRelevance';
 import { getRoleDisplay, getThresholdColor } from '../../utils/listEntryDisplay';
 import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
-import { formatItemName, type NameFilterRule } from '../../utils/nameFilter';
+import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
@@ -17,7 +17,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
 import { StatLine } from './StatLine';
-import { stripDpTokens } from './DynamicTitle';
+import { stripDpTokens, useDpTokenResolver } from './DynamicTitle';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
 import {
     listEntryTarget,
@@ -1038,9 +1038,24 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         return () => clearInterval(timer);
     }, [runSync, syncMs]);
 
+    // Label pipeline: composed name → name pattern (incl. the `{{parent}}` variables) →
+    // live `[[dp]]` values. The last step is a hook, so the raw labels of every entry are
+    // collected first and the resolver subscribes to all referenced datapoints at once.
+    const baseName = (entry: AutoListEntry) =>
+        applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
+    const rawLabel = (entry: AutoListEntry) =>
+        formatItemName(
+            { id: entry.id, name: baseName(entry), room: entry.rooms?.[0] },
+            opts.namePattern,
+            opts.nameFilters,
+        );
+    const resolveDpTokens = useDpTokenResolver(entries.map(rawLabel));
     const getLabel = (entry: AutoListEntry) => {
-        const base = applyDpNameFilter(entry.label || resolvedNames[entry.id] || entry.id.split('.').pop() || entry.id);
-        return formatItemName({ id: entry.id, name: base, room: entry.rooms?.[0] }, opts.namePattern, opts.nameFilters);
+        const raw = rawLabel(entry);
+        if (!hasLiveToken(raw)) return raw;
+        const base = baseName(entry);
+        // 'Ergebnis' rules were deferred until the value was in — see finishItemName.
+        return finishItemName(resolveDpTokens(raw, base), opts.nameFilters, base);
     };
 
     // ── Value filter ───────────────────────────────────────────────────────────

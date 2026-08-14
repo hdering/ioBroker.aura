@@ -35,7 +35,8 @@ import {
     type StatusItem,
     type StatusOverviewOptions,
 } from '../../utils/statusOverview';
-import { formatItemName } from '../../utils/nameFilter';
+import { formatItemName, finishItemName, hasLiveToken } from '../../utils/nameFilter';
+import { useDpTokenResolver } from './DynamicTitle';
 import { useRowPopup } from '../../hooks/useRowPopup';
 
 /** Per-category icon + label used in section headers and rows. */
@@ -230,6 +231,18 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         return out;
     }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet]);
 
+    // Label pipeline: name pattern (incl. the `{{parent}}` variables) → live `[[dp]]`
+    // values. The resolver is a hook, so it has to run above the layout branches below —
+    // it collects the raw labels of every item and subscribes to them in one go.
+    const rawLabel = (item: StatusItem) => formatItemName(item, opts.namePattern, opts.nameFilters);
+    const resolveDpTokens = useDpTokenResolver(items.map(rawLabel));
+    const labelFor = (item: StatusItem) => {
+        const raw = rawLabel(item);
+        if (!hasLiveToken(raw)) return raw;
+        // 'Ergebnis' rules were deferred until the value was in — see finishItemName.
+        return finishItemName(resolveDpTokens(raw, item.name), opts.nameFilters, item.name);
+    };
+
     // Alerts drive the chip / all-clear; "all" mode additionally lists healthy devices.
     const total = items.reduce((n, i) => (i.severity !== 'ok' ? n + 1 : n), 0);
     const hasCrit = items.some((i) => i.severity === 'crit');
@@ -346,7 +359,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         ]
             .filter(Boolean)
             .join(' · ');
-        const rowProps = rowPopup.row(item.id, formatItemName(item, opts.namePattern, opts.nameFilters));
+        const rowProps = rowPopup.row(item.id, labelFor(item));
         return (
             <div
                 className="flex items-center gap-2 py-1 px-1 -mx-1 rounded-md min-w-0"
@@ -360,7 +373,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             >
                 <Icon size={14} style={{ color }} />
                 <span className="flex-1 min-w-0 truncate text-xs" style={{ color: 'var(--text-primary)' }}>
-                    {formatItemName(item, opts.namePattern, opts.nameFilters)}
+                    {labelFor(item)}
                     {sub && <span className="ml-1 opacity-50">· {sub}</span>}
                 </span>
                 <span className="text-xs font-semibold shrink-0" style={{ color }}>
@@ -414,10 +427,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         const alert = item.severity !== 'ok';
                         const { Icon } = CATEGORY_META[item.category];
                         const batteryLabel = batteryLabelFor(item);
-                        const rowProps = rowPopup.row(
-                            item.id,
-                            formatItemName(item, opts.namePattern, opts.nameFilters),
-                        );
+                        const rowProps = rowPopup.row(item.id, labelFor(item));
                         return (
                             <div
                                 key={item.id}
@@ -439,9 +449,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                     <Icon size={11} className="shrink-0 mt-px" style={{ color }} />
                                     {/* Names wrap instead of truncating — a tile is the only place
                                         the device name appears, so it must stay fully readable. */}
-                                    <span className="min-w-0 break-words">
-                                        {formatItemName(item, opts.namePattern, opts.nameFilters)}
-                                    </span>
+                                    <span className="min-w-0 break-words">{labelFor(item)}</span>
                                 </span>
                                 <span className="text-sm font-bold leading-none" style={{ color }}>
                                     {item.label}
@@ -472,10 +480,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         const alert = item.severity !== 'ok';
                         const { Icon } = CATEGORY_META[item.category];
                         const batteryLabel = batteryLabelFor(item);
-                        const rowProps = rowPopup.row(
-                            item.id,
-                            formatItemName(item, opts.namePattern, opts.nameFilters),
-                        );
+                        const rowProps = rowPopup.row(item.id, labelFor(item));
                         return (
                             <span
                                 key={item.id}
@@ -493,9 +498,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 <Icon size={11} className="shrink-0" style={{ color }} />
                                 {/* Full name, wrapped if needed — the pill grows with its label and
                                     is capped at the container width (max-w-full above). */}
-                                <span className="min-w-0 break-words">
-                                    {formatItemName(item, opts.namePattern, opts.nameFilters)}
-                                </span>
+                                <span className="min-w-0 break-words">{labelFor(item)}</span>
                                 <span className="font-semibold" style={{ color }}>
                                     {item.label}
                                     {batteryLabel ? ` · ${batteryLabel}` : ''}

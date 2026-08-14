@@ -9,6 +9,7 @@
  * Framework-free on purpose: the widget and the config preview import the same
  * formatItemName, so what the editor previews is exactly what the widget renders.
  */
+import { subDpTokenMap } from './subDpTemplate';
 
 /** Which token a rule operates on. 'Ergebnis' runs on the finished label, after substitution. */
 export type NameFilterField = 'Raum' | 'Gerät' | 'DPName' | 'Name' | 'ID' | 'Ergebnis';
@@ -192,16 +193,42 @@ export function nameTokens(item: NameSource): Record<Exclude<NameFilterField, 'E
 }
 
 /**
+ * The `{{dp}}` / `{{parent}}` / `{{name}}` variables of one item, using the very token
+ * table the second-line template and popup views resolve (subDpTokenMap) — there is no
+ * second placeholder concept to learn.
+ *
+ * Per row instead of per popup is the point: it lets ONE name pattern reach a *sibling*
+ * datapoint of every row, e.g. `[[{{parent}}.DeviceName]]` to label rows with a name the
+ * adapter keeps in its own datapoint. Runs before the `<Token>` layer, so the `[[…]]`
+ * body is a real datapoint id by the time the widget resolves its live value.
+ *
+ * Unlike subAll the key lookup is case-insensitive: this pattern is typed by hand, with
+ * no picker to insert the token, and `{{Parent}}` silently staying literal is no help.
+ * Unknown keys are left untouched, exactly as everywhere else.
+ */
+export function substituteItemVars(text: string, id: string): string {
+    if (!text.includes('{{')) return text;
+    const map = subDpTokenMap(id);
+    return text.replace(/\{\{(\w+)\}\}/g, (whole, key: string) => map[key.toLowerCase()] ?? whole);
+}
+
+/**
  * Format a device label from a per-widget template. Tokens (case-insensitive):
  *   <Raum> room · <Gerät>/<Geraet> device part (before " › ") · <DPName> datapoint leaf ·
  *   <Name> full composed name · <ID> full datapoint id.
+ * Additionally the `{{dp}}`/`{{parent}}`/`{{name}}` variables of substituteItemVars, which
+ * exist to build datapoint ids rather than display text — typically inside a `[[…]]` live
+ * token, which this function leaves in place for the widget's live layer to resolve.
  * Empty pattern → the composed name unchanged, unless rules exist: then "<Name>" is assumed
  * so rules still take effect without the user also having to write a pattern.
  * Empty result → falls back to the composed name.
+ *
+ * A label still holding a `[[dp]]` token comes back UNFINISHED: the 'Ergebnis' rules are
+ * deferred to finishItemName, see there.
  */
 export function formatItemName(item: NameSource, pattern?: string, rules?: NameFilterRule[]): string {
     const active = rules?.filter((r) => !r.disabled) ?? [];
-    const tpl = pattern || (active.length ? '<Name>' : '');
+    const tpl = substituteItemVars(pattern || (active.length ? '<Name>' : ''), item.id);
     if (!tpl) return item.name;
 
     const tok = nameTokens(item);
@@ -212,6 +239,30 @@ export function formatItemName(item: NameSource, pattern?: string, rules?: NameF
         .replace(/<Name>/gi, () => applyNameFilters(tok.Name, 'Name', active))
         .replace(/<ID>/gi, () => applyNameFilters(tok.ID, 'ID', active));
 
-    const finished = applyNameFilters(out, 'Ergebnis', active).replace(/\s+/g, ' ').trim();
-    return finished || item.name;
+    return hasLiveToken(out) ? out : finishItemName(out, rules, item.name);
+}
+
+/** `[[…]]` with a non-empty, bracket-free body — the live layer of DynamicTitle. Duplicated
+ *  as a bare test so this module stays framework-free. */
+const LIVE_TOKEN = /\[\[[^[\]]+\]\]/;
+
+/** True when a label still waits for a live datapoint value. */
+export function hasLiveToken(text: string): boolean {
+    return LIVE_TOKEN.test(text);
+}
+
+/**
+ * The closing pass of a label: the 'Ergebnis' rules plus whitespace normalisation.
+ *
+ * Split out because 'Ergebnis' means "the finished label", and for a pattern like
+ * `[[{{parent}}.newsfeed]]` the label is not finished until the widget has substituted the
+ * datapoint's value. Running the rules earlier would rewrite the datapoint id instead —
+ * an "upper case" rule would break the id and the row would fall back to its plain name.
+ * So formatItemName defers this pass whenever a live token is left, and the render sites
+ * call it once the value is in. A label without tokens is already finished.
+ */
+export function finishItemName(text: string, rules: NameFilterRule[] | undefined, fallback: string): string {
+    const active = rules?.filter((r) => !r.disabled) ?? [];
+    const finished = applyNameFilters(text, 'Ergebnis', active).replace(/\s+/g, ' ').trim();
+    return finished || fallback;
 }

@@ -2,6 +2,8 @@ import { useMemo } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, TriangleAlert } from 'lucide-react';
 import {
     formatItemName,
+    finishItemName,
+    hasLiveToken,
     parseRegex,
     NAME_FILTER_FIELDS,
     type NameFilterField,
@@ -9,6 +11,7 @@ import {
     type NameFilterRule,
     type NameSource,
 } from '../../utils/nameFilter';
+import { useDpTokenResolver } from '../widgets/DynamicTitle';
 
 /**
  * Rule-list editor for a widget's name pattern. Each rule reshapes one token value
@@ -206,24 +209,29 @@ export function NameFilterEditor({ rules, pattern, samples, sampleTotal, onChang
         const token = field === 'Gerät' ? 'Ger(?:ä|ae)t' : field;
         return !new RegExp(`<${token}>`, 'i').test(effectivePattern);
     };
-    const preview = useMemo(
+    const rawPreview = useMemo(
         () => samples.map((s) => ({ id: s.id, before: s.name, after: formatItemName(s, pattern, rules) })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [samples, pattern, rulesKey],
     );
+    // The widget resolves `[[dp]]` tokens live and only then runs the 'Ergebnis' rules —
+    // the preview mirrors both steps, otherwise a pattern like `[[{{parent}}.DeviceName]]`
+    // would preview as raw brackets and its result rules would look dead.
+    const resolveDpTokens = useDpTokenResolver(rawPreview.map((p) => p.after));
+    const finish = (raw: string, fallback: string, rs: NameFilterRule[]) =>
+        hasLiveToken(raw) ? finishItemName(resolveDpTokens(raw, fallback), rs, fallback) : raw;
+    const preview = rawPreview.map((p) => ({ ...p, after: finish(p.after, p.before, rules) }));
 
     // A rule that changes nothing in any example is almost always a typo — flag it.
-    const ineffective = useMemo(() => {
-        const flags = rules.map(() => false);
-        if (!samples.length) return flags;
-        rules.forEach((r, i) => {
-            if (r.disabled) return;
-            const without = rules.map((x, j) => (j === i ? { ...x, disabled: true } : x));
-            flags[i] = samples.every((s) => formatItemName(s, pattern, rules) === formatItemName(s, pattern, without));
-        });
-        return flags;
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [samples, pattern, rulesKey]);
+    // Compared on the FINISHED label (not memoised, so it follows the live values): an
+    // 'Ergebnis' rule on a `[[dp]]` pattern only bites after the value is in, and would
+    // otherwise be reported as dead.
+    const label = (s: NameSource, rs: NameFilterRule[]) => finish(formatItemName(s, pattern, rs), s.name, rs);
+    const ineffective = rules.map((r, i) => {
+        if (r.disabled || !samples.length) return false;
+        const without = rules.map((x, j) => (j === i ? { ...x, disabled: true } : x));
+        return samples.every((s) => label(s, rules) === label(s, without));
+    });
 
     const update = (i: number, patch: Partial<NameFilterRule>) =>
         onChange(rules.map((r, j) => (j === i ? { ...r, ...patch } : r)));
