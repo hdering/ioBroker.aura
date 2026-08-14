@@ -20,6 +20,7 @@ import {
     Menu,
     X,
     AppWindow,
+    BellRing,
     BookOpen,
     Code2,
     AlertTriangle,
@@ -293,6 +294,7 @@ export function AdminLayout() {
         { to: '/admin/layouts', label: t('admin.nav.layouts'), icon: Layers2 },
         { to: '/admin/editor', label: t('admin.nav.editor'), icon: PenSquare },
         { to: '/admin/popups', label: t('admin.nav.popups'), icon: AppWindow },
+        { to: '/admin/messages', label: t('admin.nav.messages'), icon: BellRing },
         ...(FEATURES.widgetDesigner
             ? [{ to: '/admin/widget-designer', label: t('admin.nav.widgetDesigner'), icon: Shapes }]
             : []),

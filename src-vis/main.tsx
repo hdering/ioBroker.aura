@@ -60,6 +60,9 @@ const AdminPopups = lazyWithReload(() => import('./pages/admin/AdminPopups').the
 const PopupViewEditor = lazyWithReload(() =>
     import('./pages/admin/PopupViewEditor').then((m) => ({ default: m.PopupViewEditor })),
 );
+const AdminMessages = lazyWithReload(() =>
+    import('./pages/admin/AdminMessages').then((m) => ({ default: m.AdminMessages })),
+);
 const AdminBatteries = lazyWithReload(() =>
     import('./pages/admin/AdminBatteries').then((m) => ({ default: m.AdminBatteries })),
 );
@@ -98,6 +101,7 @@ const router = createHashRouter([
             { path: 'css-js', element: lazyRoute(AdminCssJs) },
             { path: 'popups', element: lazyRoute(AdminPopups) },
             { path: 'popups/:viewId', element: lazyRoute(PopupViewEditor) },
+            { path: 'messages', element: lazyRoute(AdminMessages) },
             { path: 'batteries', element: lazyRoute(AdminBatteries) },
             { path: 'loadtimes', element: lazyRoute(AdminLoadTimes) },
             { path: 'settings', element: lazyRoute(AdminSettings) },
