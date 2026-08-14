@@ -17,7 +17,7 @@ import type { AuraMessage, MessageBroadcast, MessageTarget } from '../types';
  *   messages.unreadCount  badge counter
  *
  * Two things are device-local and therefore persisted here, in plain
- * localStorage rather than through managedStorage: `seenIds` and `lastSeenTs`.
+ * localStorage rather than through managedStorage: `seen` and `lastSeenTs`.
  * They must not travel to other clients (each device shows a message once), and
  * a synced key would show up as an unsaved config change in the admin UI.
  */
@@ -135,6 +135,15 @@ interface MessagesState {
     send: (payload: string) => void;
 }
 
+/** Payloads `send()` swallowed because screenshot mode blocks the write. */
+const devSentPayloads: string[] = [];
+export function __devSentMessages(): string[] {
+    return [...devSentPayloads];
+}
+export function __devClearSentMessages(): void {
+    devSentPayloads.length = 0;
+}
+
 export const useMessagesStore = create<MessagesState>()(
     persist(
         (set, get) => ({
@@ -230,15 +239,6 @@ export const useMessagesStore = create<MessagesState>()(
 let devForced = false;
 export function __devForceMessages(on: boolean): void {
     devForced = on;
-}
-
-/** Payloads `send()` swallowed because screenshot mode blocks the write. */
-const devSentPayloads: string[] = [];
-export function __devSentMessages(): string[] {
-    return [...devSentPayloads];
-}
-export function __devClearSentMessages(): void {
-    devSentPayloads.length = 0;
 }
 
 // Reference-counted so several consumers can ask for it: the ToastLayer always
