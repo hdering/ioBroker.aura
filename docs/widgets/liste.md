@@ -302,6 +302,10 @@ Panel **Filter & Sortierung** → **Eigene Filter**. Jeder Filter erscheint als 
 | `sortBy2` | `none` | zweites Sortierkriterium |
 | `sortOrder2` | `asc` | Richtung des zweiten Kriteriums |
 
+Bei `none` gilt die manuelle Reihenfolge aus dem Dialog **Datenpunkte verwalten**.
+
+Sind [Trennlinien](#trennlinien-abschnitte) gesetzt, wirkt die Sortierung **innerhalb eines Abschnitts** — die Abschnitte selbst bleiben in der konfigurierten Reihenfolge stehen.
+
 ### Summe
 
 Summiert die numerischen Werte der sichtbaren Einträge unter dem Titel.

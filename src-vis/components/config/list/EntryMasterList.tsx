@@ -26,6 +26,7 @@ export function EntryMasterList({
     onAddDivider,
     onReorder,
     sortHint,
+    keepDraggable,
 }: {
     entries: ManagedEntry[];
     resolvedNames: Record<string, string>;
@@ -40,6 +41,9 @@ export function EntryMasterList({
     onReorder?: (from: number, to: number) => void;
     /** Set while a sort order makes manual ordering pointless - shown as a footer. */
     sortHint?: string;
+    /** Keep dragging enabled despite `sortHint`. Set once the list holds separators:
+     *  those ARE positioned by hand, and the sort order only applies within a section. */
+    keepDraggable?: boolean;
 }) {
     const [query, setQuery] = useState('');
     const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -59,10 +63,11 @@ export function EntryMasterList({
     }, [entries, query, resolvedNames]);
 
     // Drag indexes address the UNFILTERED array, so reordering a filtered view would
-    // move the wrong entries. Same for an active sort order, where manual order is
-    // ignored by the widget anyway.
+    // move the wrong entries. An active sort order normally makes the manual order
+    // pointless too - unless the list has separators, which are placed by hand and only
+    // sorted around.
     const filterActive = query.trim().length > 0;
-    const canDrag = !!onReorder && !filterActive && !sortHint;
+    const canDrag = !!onReorder && !filterActive && (!sortHint || !!keepDraggable);
 
     const handleDrop = (toIdx: number) => {
         if (onReorder && dragIdx !== null && dragIdx !== toIdx) onReorder(dragIdx, toIdx);

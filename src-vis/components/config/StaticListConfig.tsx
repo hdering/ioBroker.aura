@@ -123,6 +123,10 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
         });
     };
 
+    // With separators in the list the manual order keeps mattering even while a sort
+    // order is active — the sections are placed by hand and only sorted within.
+    const hasDividers = entries.some((e) => isDivider(e));
+
     const reorderEntries = (fromIdx: number, toIdx: number) => {
         if (fromIdx === toIdx) return;
         if (fromIdx < 0 || fromIdx >= entries.length) return;
@@ -149,10 +153,13 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                 onAddDivider={addDivider}
                 onReorder={reorderEntries}
                 sortHint={
-                    (opts.sortBy ?? 'none') !== 'none'
-                        ? `Sortierung „${opts.sortBy === 'label' ? 'Name' : 'Wert'}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn Sortierung auf „Keine“ steht.`
-                        : undefined
+                    (opts.sortBy ?? 'none') === 'none'
+                        ? undefined
+                        : hasDividers
+                          ? `Sortierung „${opts.sortBy === 'label' ? 'Name' : 'Wert'}“ ist aktiv — sie wirkt innerhalb eines Abschnitts. Die Reihenfolge der Trennlinien und Abschnitte bleibt manuell.`
+                          : `Sortierung „${opts.sortBy === 'label' ? 'Name' : 'Wert'}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn Sortierung auf „Keine“ steht.`
                 }
+                keepDraggable={hasDividers}
                 renderDetail={(id, api) => {
                     const found = entries.find((e) => e.id === id)!;
                     if (isDivider(found))
@@ -621,6 +628,14 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     <label className="text-[11px] mb-1.5 block" style={{ color: 'var(--text-secondary)' }}>
                         Sortierung
                     </label>
+                    {/* Only worth saying once a separator exists — otherwise it describes
+                        a case the user has not built. */}
+                    {hasDividers && (
+                        <p className="text-[10px] mb-1.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            Mit Trennlinien wird <strong>innerhalb</strong> eines Abschnitts sortiert — die Abschnitte
+                            selbst bleiben in ihrer Reihenfolge stehen.
+                        </p>
+                    )}
                     <div className="flex gap-1">
                         {(['none', 'label', 'value'] as const).map((v) => {
                             const lbl = v === 'none' ? 'Keine' : v === 'label' ? 'Name' : 'Wert';

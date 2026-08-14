@@ -37,6 +37,7 @@ export function DatapointManagerModal({
     onAddDivider,
     onReorder,
     sortHint,
+    keepDraggable,
     renderDetail,
     tabs = [],
     entriesTabIndex = 0,
@@ -54,6 +55,7 @@ export function DatapointManagerModal({
     onAddDivider?: () => void;
     onReorder?: (from: number, to: number) => void;
     sortHint?: string;
+    keepDraggable?: boolean;
     renderDetail: (id: string, api: DetailApi) => ReactNode;
     /** Additional tabs, in display order. */
     tabs?: { key: string; label: string; node: ReactNode | ((api: TabApi) => ReactNode) }[];
@@ -134,6 +136,7 @@ export function DatapointManagerModal({
                             onAddDivider={onAddDivider}
                             onReorder={onReorder}
                             sortHint={sortHint}
+                            keepDraggable={keepDraggable}
                         />
                     </div>
                     <div
