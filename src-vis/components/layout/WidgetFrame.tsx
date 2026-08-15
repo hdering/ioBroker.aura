@@ -10053,6 +10053,54 @@ export function WidgetFrame({
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Wert im Bogen anzeigen
+                                            </label>
+                                            <button
+                                                onClick={() => set({ showValue: !(o.showValue !== false) })}
+                                                className="relative w-9 h-5 rounded-full transition-colors"
+                                                style={{
+                                                    background:
+                                                        o.showValue !== false ? 'var(--accent)' : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: o.showValue !== false ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <label
+                                                    className="text-[11px] font-medium"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Wert als Badge
+                                                </label>
+                                                <p
+                                                    className="text-[10px]"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    Unter dem Bogen, in der Farbe der aktiven Zone
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => set({ showValueBadge: !o.showValueBadge })}
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: o.showValueBadge
+                                                        ? 'var(--accent)'
+                                                        : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: o.showValueBadge ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                                 Min/Max anzeigen
                                             </label>
                                             <button

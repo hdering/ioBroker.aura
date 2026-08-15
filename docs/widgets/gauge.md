@@ -32,6 +32,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `showMinMax` | `true` | Min/Max-Labels an den Bogenenden |
+| `showValue` | `true` | Wert als große Zahl im Bogen |
+| `showValueBadge` | `false` | Wert zusätzlich als Badge unter dem Bogen, in der Farbe der aktiven Zone — wie die Badges der Zeiger 2/3 |
 
 ### Skala
 

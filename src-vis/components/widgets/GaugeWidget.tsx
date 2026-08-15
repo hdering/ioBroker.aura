@@ -45,12 +45,20 @@ interface GaugeSVGProps {
     colorZones: boolean;
     zones: ColorZone[];
     showMinMax: boolean;
+    showValue: boolean;
     valueFontSize?: number;
     scale?: number;
 }
 
 const DEFAULT_VALUE_FONT_SIZE = 22;
 const CENTER_DOT_R = 5;
+
+/** Arc/needle color for the primary pointer – zone color when zones are active, else its fixed color. */
+function resolvePrimaryColor(value: number, fallback: string, colorZones: boolean, zones: ColorZone[]): string {
+    if (!colorZones || zones.length === 0) return fallback;
+    const match = zones.find((z) => value <= z.max);
+    return match ? match.color : zones[zones.length - 1].color;
+}
 
 function GaugeSVG({
     pointers,
@@ -63,6 +71,7 @@ function GaugeSVG({
     colorZones,
     zones,
     showMinMax,
+    showValue,
     valueFontSize,
     scale = 1,
 }: GaugeSVGProps) {
@@ -76,14 +85,9 @@ function GaugeSVG({
     const valueFs = valueFontSize && valueFontSize > 0 ? valueFontSize : DEFAULT_VALUE_FONT_SIZE;
     const unitFs = Math.max(7, Math.round(valueFs * 0.6));
     const valueBaseline = cy + CENTER_DOT_R + 4 + valueFs * 0.72;
-    const vbHeight = Math.max(120, Math.ceil(valueBaseline + valueFs * 0.12));
+    const vbHeight = showValue ? Math.max(120, Math.ceil(valueBaseline + valueFs * 0.12)) : 120;
 
-    // Determine primary color (zone-based or fixed)
-    let primaryColor = primary.color;
-    if (colorZones && zones.length > 0) {
-        const match = zones.find((z) => primary.value <= z.max);
-        primaryColor = match ? match.color : zones[zones.length - 1].color;
-    }
+    const primaryColor = resolvePrimaryColor(primary.value, primary.color, colorZones, zones);
 
     const displayVal = isNaN(primary.value) ? '–' : formatNum(primary.value, decimals, numFmt);
 
@@ -171,21 +175,23 @@ function GaugeSVG({
             <circle cx={cx} cy={cy} r={CENTER_DOT_R} fill={primaryColor} />
 
             {/* Primary value text */}
-            <text
-                x={cx}
-                y={valueBaseline}
-                textAnchor="middle"
-                fontSize={valueFs}
-                fontWeight="bold"
-                fill="var(--text-primary)"
-            >
-                {displayVal}
-                {unit && (
-                    <tspan fontSize={unitFs} fill="var(--text-secondary)" dx={2}>
-                        {unit}
-                    </tspan>
-                )}
-            </text>
+            {showValue && (
+                <text
+                    x={cx}
+                    y={valueBaseline}
+                    textAnchor="middle"
+                    fontSize={valueFs}
+                    fontWeight="bold"
+                    fill="var(--text-primary)"
+                >
+                    {displayVal}
+                    {unit && (
+                        <tspan fontSize={unitFs} fill="var(--text-secondary)" dx={2}>
+                            {unit}
+                        </tspan>
+                    )}
+                </text>
+            )}
 
             {/* Min/Max labels – centred below the arc endpoints, clear of the stroke */}
             {showMinMax && (
@@ -239,6 +245,8 @@ export function GaugeWidget({ config }: WidgetProps) {
     const strokeWidth = (opts.strokeWidth as number) ?? 12;
     const colorZones = (opts.colorZones as boolean) ?? false;
     const showMinMax = (opts.showMinMax as boolean) ?? true;
+    const showValue = opts.showValue !== false;
+    const showValueBadge = !!opts.showValueBadge;
     const valueFontSize = (opts.valueFontSize as number) || DEFAULT_VALUE_FONT_SIZE;
 
     const numVal = typeof value === 'number' ? value : parseFloat(String(value ?? 0));
@@ -300,26 +308,41 @@ export function GaugeWidget({ config }: WidgetProps) {
         colorZones,
         zones,
         showMinMax,
+        showValue,
         valueFontSize,
     };
 
-    // Secondary pointer badges
-    const secondaryBadges = pointers.slice(1).map((ptr, i) => {
-        const dispVal = isNaN(ptr.value) ? '–' : formatNum(ptr.value, decimals, numFmt);
+    const renderBadge = (key: string, val: number, color: string, label?: string) => {
+        const dispVal = isNaN(val) ? '–' : formatNum(val, decimals, numFmt);
         return (
             <span
-                key={i}
+                key={key}
                 className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded"
-                style={{ background: `${ptr.color}22`, color: ptr.color, border: `1px solid ${ptr.color}55` }}
+                style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}
             >
                 <span className="font-bold tabular-nums">
                     {dispVal}
                     {unit}
                 </span>
-                {ptr.label && <span className="opacity-80">{ptr.label}</span>}
+                {label && <span className="opacity-80">{label}</span>}
             </span>
         );
-    });
+    };
+
+    // Main value as a badge below the arc – zone-coloured like the arc itself.
+    // The title already sits in the header, so only an explicit pointer 1 label is repeated here.
+    const badges = showValueBadge
+        ? [
+              renderBadge(
+                  'primary',
+                  safeVal,
+                  resolvePrimaryColor(safeVal, ptr1Color, colorZones, zones),
+                  (opts.pointer1Label as string) || undefined,
+              ),
+          ]
+        : [];
+    // Secondary pointer badges
+    badges.push(...pointers.slice(1).map((ptr, i) => renderBadge(`ptr${i}`, ptr.value, ptr.color, ptr.label)));
 
     const titleAlign = (opts.titleAlign as string) ?? 'left';
     const showTitle = opts.showTitle !== false;
@@ -356,9 +379,7 @@ export function GaugeWidget({ config }: WidgetProps) {
             <div className="aura-widget-value flex-1 flex items-center justify-center">
                 <GaugeSVG {...gaugeProps} scale={0.95} />
             </div>
-            {secondaryBadges.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-1.5 pb-1 shrink-0">{secondaryBadges}</div>
-            )}
+            {badges.length > 0 && <div className="flex flex-wrap justify-center gap-1.5 pb-1 shrink-0">{badges}</div>}
         </div>
     );
 }
