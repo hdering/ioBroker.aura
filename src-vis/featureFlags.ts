@@ -9,6 +9,9 @@
  * is ready to release, hard-set the flag to `true` and rebuild.
  */
 export const FEATURES = {
-    /** Widget-Designer — still under construction, dev-server only. */
-    widgetDesigner: import.meta.env.DEV,
+    /**
+     * Widget-Designer — parked. Hidden everywhere, including `npm run dev`.
+     * Set back to `import.meta.env.DEV` to continue working on it.
+     */
+    widgetDesigner: false,
 } as const;
