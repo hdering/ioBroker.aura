@@ -463,6 +463,26 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                     />
                 </summary>
                 <div className="space-y-2 mt-2">
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Textausrichtung
+                        </label>
+                        <select
+                            value={o.contentAlign ?? 'left'}
+                            onChange={(e) =>
+                                set({
+                                    contentAlign:
+                                        e.target.value === 'left' ? undefined : (e.target.value as 'center' | 'right'),
+                                })
+                            }
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="left">Linksbündig</option>
+                            <option value="center">Mittig</option>
+                            <option value="right">Rechtsbündig</option>
+                        </select>
+                    </div>
                     {config.layout === 'card' && (
                         <div>
                             <label className={labelCls} style={labelStyle}>

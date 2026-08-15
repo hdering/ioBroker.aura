@@ -263,6 +263,12 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
 
     const showTitle = opts.showTitle !== false && !!config.title;
     const showCount = opts.showCount !== false;
+    // Horizontal alignment of the content (rows, tiles, pills). Default 'left' keeps
+    // every layout exactly as before; 'center'/'right' mainly matter for the Minimal
+    // layout, where the wrapped pills otherwise always stick to the left edge.
+    const contentAlign = opts.contentAlign ?? 'left';
+    const alignFlex = contentAlign === 'center' ? 'center' : contentAlign === 'right' ? 'flex-end' : 'flex-start';
+    const isAligned = contentAlign !== 'left';
     // Auto-height: size to content (used in the stacked/mobile view). Drops the
     // fixed-box fill (h-full/flex-1/overflow) so the widget grows with its content.
     const autoHeight = opts.autoHeight === true;
@@ -367,12 +373,18 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                     ...(alert
                         ? { background: customBg ?? `color-mix(in srgb, ${color} 12%, transparent)` }
                         : undefined),
+                    // Left (default) keeps name and value pushed apart; centring/right-aligning
+                    // only works once the label stops eating the free space (flex-1 below).
+                    justifyContent: alignFlex,
                     cursor: rowProps ? 'pointer' : undefined,
                 }}
                 {...rowProps}
             >
-                <Icon size={14} style={{ color }} />
-                <span className="flex-1 min-w-0 truncate text-xs" style={{ color: 'var(--text-primary)' }}>
+                <Icon size={14} className="shrink-0" style={{ color }} />
+                <span
+                    className={`${isAligned ? '' : 'flex-1 '}min-w-0 truncate text-xs`}
+                    style={{ color: 'var(--text-primary)' }}
+                >
                     {labelFor(item)}
                     {sub && <span className="ml-1 opacity-50">· {sub}</span>}
                 </span>
@@ -433,6 +445,8 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 key={item.id}
                                 className="rounded-xl p-2 flex flex-col gap-1"
                                 style={{
+                                    alignItems: alignFlex,
+                                    textAlign: contentAlign,
                                     background: alert
                                         ? (customBg ??
                                           `color-mix(in srgb, ${color} 14%, var(--widget-bg, var(--app-surface)))`)
@@ -473,7 +487,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             <div ref={measureRef} className={rootCls}>
                 {header}
                 {rowPopup.node}
-                <div className={`${scrollCls} flex flex-wrap gap-1.5 content-start`}>
+                <div
+                    className={`${scrollCls} flex flex-wrap gap-1.5 content-start`}
+                    style={{ justifyContent: alignFlex }}
+                >
                     {items.map((item) => {
                         const color = alertColorFor(item);
                         const customBg = alertBgFor(item);
@@ -543,7 +560,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                               const { Icon, label } = CATEGORY_META[cat];
                               return (
                                   <div key={cat} className="mb-1.5 last:mb-0">
-                                      <div className="flex items-center gap-1.5 mt-1 mb-0.5">
+                                      <div
+                                          className="flex items-center gap-1.5 mt-1 mb-0.5"
+                                          style={{ justifyContent: alignFlex }}
+                                      >
                                           <Icon
                                               size={12}
                                               style={{ color: catAlerts ? SEVERITY_COLOR.warn : SEVERITY_COLOR.ok }}
