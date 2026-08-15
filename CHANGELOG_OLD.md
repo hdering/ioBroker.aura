@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.41.2 (2026-08-05)
+- fix(lint): resolve remaining eslint warnings
+- fix(ui): wrap German typographic quotes in JSX expressions
+
 ## 0.41.1 (2026-08-05)
 - Editor - the "Sections:" label now links to Layout settings and opens the current layout expanded
 

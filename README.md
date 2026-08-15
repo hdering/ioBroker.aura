@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.47.1 (2026-08-15)
+- 🌟 **New feature:** Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped
+- 🌟 **New feature:** Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment
+
+
 ### 0.47.0 (2026-08-14)
 - 🌟 **New feature:** Messages - scripts can raise info, warning and error notices in the dashboard by writing to aura.0.messages.send; they show as toasts in one of nine screen positions, with an optional countdown, forced confirmation, action buttons and a shared history ([#429](https://github.com/hdering/ioBroker.aura/issues/429))
 - 🌟 **New feature:** Messages widget - lists the message history with severity, time-range and unread filters; a click opens the full message
@@ -224,11 +229,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Popups - scripts can open a popup view via aura.0.popup.open or per client ([#523](https://github.com/hdering/ioBroker.aura/issues/523))
 
 
-### 0.41.2 (2026-08-05)
-- fix(lint): resolve remaining eslint warnings
-- fix(ui): wrap German typographic quotes in JSX expressions
-
-
 ## License
 
 MIT License
@@ -240,6 +240,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
