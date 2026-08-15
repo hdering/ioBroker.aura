@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.47.2",
+    "version": "0.47.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.47.3": {
+        "en": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "de": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "ru": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "pt": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "nl": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "fr": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "it": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "es": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "pl": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "uk": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)",
+        "zh-cn": "🌟 New feature: Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script (#429)\n🌟 New feature: Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint (#429)"
+      },
       "0.47.2": {
         "en": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
         "de": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt (#535)",
         "uk": "🌟 New feature: Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt (#535)",
         "zh-cn": "🌟 New feature: Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt (#535)"
-      },
-      "0.44.2": {
-        "en": "fix(status-overview): show full device name in card and minimal layouts",
-        "de": "fix(status-overview): show full device name in card and minimal layouts",
-        "ru": "fix(status-overview): show full device name in card and minimal layouts",
-        "pt": "fix(status-overview): show full device name in card and minimal layouts",
-        "nl": "fix(status-overview): show full device name in card and minimal layouts",
-        "fr": "fix(status-overview): show full device name in card and minimal layouts",
-        "it": "fix(status-overview): show full device name in card and minimal layouts",
-        "es": "fix(status-overview): show full device name in card and minimal layouts",
-        "pl": "fix(status-overview): show full device name in card and minimal layouts",
-        "uk": "fix(status-overview): show full device name in card and minimal layouts",
-        "zh-cn": "fix(status-overview): show full device name in card and minimal layouts"
       }
     }
   },

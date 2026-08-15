@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.42.1 (2026-08-07)
+- Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen ([#523](https://github.com/hdering/ioBroker.aura/issues/523))
+
 ## 0.42.0 (2026-08-05)
 - 🌟 **New feature:** Popups - open a popup from a datapoint condition, with optional auto-reset of the trigger ([#523](https://github.com/hdering/ioBroker.aura/issues/523))
 - 🌟 **New feature:** Popups - scripts can open a popup view via aura.0.popup.open or per client ([#523](https://github.com/hdering/ioBroker.aura/issues/523))
