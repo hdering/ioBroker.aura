@@ -7,4 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Status overview - new "text alignment" setting (left / centered / right) for rows, cards and the Minimal layout's pills
-- Gauge - the value no longer sits under the needle hub, its font size is configurable, and it can be shown as a zone-coloured badge below the arc instead of (or next to) the big number (#539)
+- Gauge - the value no longer sits under the needle hub, its font size is configurable, and it can be shown as a badge below the arc instead of (or next to) the big number - with its own label, like pointers 2 and 3. Each of the three pointers can now optionally take the colour of the zone its own value falls into (#539)

@@ -70,11 +70,16 @@ Färbt Bogen und Nadel abhängig vom Wert; ohne Zonen zeigt der Bogen eine gefü
 
 ### Zeiger
 
+Jeder Zeiger kann bei aktiven Farbzonen die Farbe der Zone übernehmen, in die **sein eigener** Wert fällt (`pointer<N>ZoneColor`); Nadel und Badge folgen derselben Farbe. Ist die Option aus, gilt die feste Farbe.
+
 | Option | Standard | |
 | --- | --- | --- |
 | `pointer1Color` | `--accent` | Farbe Zeiger 1 |
-| `pointer1Label` | Widget-Titel | Beschriftung Zeiger 1 |
+| `pointer1ZoneColor` | `true` | Zeiger 1 folgt der Farbzone |
+| `pointer1Label` | — | Badge-Text Zeiger 1 (nur sichtbar mit `showValueBadge`) |
 | `pointer2Color` | `#f97316` | Farbe Zeiger 2 |
+| `pointer2ZoneColor` | `false` | Zeiger 2 folgt der Farbzone |
 | `pointer2Label` | — | Badge-Text Zeiger 2 |
 | `pointer3Color` | `#8b5cf6` | Farbe Zeiger 3 |
+| `pointer3ZoneColor` | `false` | Zeiger 3 folgt der Farbzone |
 | `pointer3Label` | — | Badge-Text Zeiger 3 |

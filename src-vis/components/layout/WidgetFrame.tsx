@@ -9942,6 +9942,29 @@ export function WidgetFrame({
                                         {label}
                                     </div>
                                 );
+                                // Per-pointer opt-in to the color of the zone its own value falls into.
+                                // Only rendered while color zones are active; on by default for pointer 1.
+                                const zoneColorOn = (key: string, def: boolean) => (o[key] as boolean) ?? def;
+                                const zoneColorToggle = (key: string, def: boolean) => {
+                                    const on = zoneColorOn(key, def);
+                                    return (
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Farbe aus Farbzone
+                                            </label>
+                                            <button
+                                                onClick={() => set({ [key]: !on })}
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: on ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                    );
+                                };
                                 return (
                                     <>
                                         {sectionHdr('Skala')}
@@ -10288,34 +10311,44 @@ export function WidgetFrame({
                                                 {config.datapoint || '–'}
                                             </div>
                                         </div>
-                                        {!colorZones && (
-                                            <div className="flex items-center gap-2">
+                                        {colorZones && zoneColorToggle('pointer1ZoneColor', true)}
+                                        <div className="flex items-center gap-2">
+                                            {/* The picker only matters while this pointer keeps its own color */}
+                                            {!(colorZones && zoneColorOn('pointer1ZoneColor', true)) && (
                                                 <ColorPicker
                                                     value={(o.pointer1Color as string) ?? '#6366f1'}
                                                     onChange={(v) => set({ pointer1Color: v })}
                                                     className="w-8 h-7 rounded cursor-pointer shrink-0"
                                                     style={{ border: '1px solid var(--app-border)', padding: '1px' }}
                                                 />
-                                                <div className="flex-1">
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
+                                            )}
+                                            <div className="flex-1">
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Zeiger 1 – Bezeichnung
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={(o.pointer1Label as string) ?? ''}
+                                                    onChange={(e) =>
+                                                        set({ pointer1Label: e.target.value || undefined })
+                                                    }
+                                                    placeholder="z.B. Innen"
+                                                    className={gCls}
+                                                    style={gSty}
+                                                />
+                                                {!o.showValueBadge && (
+                                                    <p
+                                                        className="text-[10px] mt-1"
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                     >
-                                                        Zeiger 1 – Farbe
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={(o.pointer1Label as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            set({ pointer1Label: e.target.value || undefined })
-                                                        }
-                                                        placeholder="Bezeichnung (optional)"
-                                                        className={gCls}
-                                                        style={gSty}
-                                                    />
-                                                </div>
+                                                        Sichtbar, sobald „Wert als Badge" aktiv ist
+                                                    </p>
+                                                )}
                                             </div>
-                                        )}
+                                        </div>
                                         {/* Pointer 2 */}
                                         <div>
                                             <label
@@ -10349,14 +10382,22 @@ export function WidgetFrame({
                                                 </button>
                                             </div>
                                         </div>
+                                        {(o.pointer2Datapoint as string) &&
+                                            colorZones &&
+                                            zoneColorToggle('pointer2ZoneColor', false)}
                                         {(o.pointer2Datapoint as string) && (
                                             <div className="flex items-center gap-2">
-                                                <ColorPicker
-                                                    value={(o.pointer2Color as string) ?? '#f97316'}
-                                                    onChange={(v) => set({ pointer2Color: v })}
-                                                    className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                                                />
+                                                {!(colorZones && zoneColorOn('pointer2ZoneColor', false)) && (
+                                                    <ColorPicker
+                                                        value={(o.pointer2Color as string) ?? '#f97316'}
+                                                        onChange={(v) => set({ pointer2Color: v })}
+                                                        className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                        style={{
+                                                            border: '1px solid var(--app-border)',
+                                                            padding: '1px',
+                                                        }}
+                                                    />
+                                                )}
                                                 <div className="flex-1">
                                                     <label
                                                         className="text-[11px] mb-1 block"
@@ -10410,14 +10451,22 @@ export function WidgetFrame({
                                                 </button>
                                             </div>
                                         </div>
+                                        {(o.pointer3Datapoint as string) &&
+                                            colorZones &&
+                                            zoneColorToggle('pointer3ZoneColor', false)}
                                         {(o.pointer3Datapoint as string) && (
                                             <div className="flex items-center gap-2">
-                                                <ColorPicker
-                                                    value={(o.pointer3Color as string) ?? '#8b5cf6'}
-                                                    onChange={(v) => set({ pointer3Color: v })}
-                                                    className="w-8 h-7 rounded cursor-pointer shrink-0"
-                                                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                                                />
+                                                {!(colorZones && zoneColorOn('pointer3ZoneColor', false)) && (
+                                                    <ColorPicker
+                                                        value={(o.pointer3Color as string) ?? '#8b5cf6'}
+                                                        onChange={(v) => set({ pointer3Color: v })}
+                                                        className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                        style={{
+                                                            border: '1px solid var(--app-border)',
+                                                            padding: '1px',
+                                                        }}
+                                                    />
+                                                )}
                                                 <div className="flex-1">
                                                     <label
                                                         className="text-[11px] mb-1 block"

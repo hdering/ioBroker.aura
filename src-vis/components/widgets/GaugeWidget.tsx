@@ -53,9 +53,9 @@ interface GaugeSVGProps {
 const DEFAULT_VALUE_FONT_SIZE = 22;
 const CENTER_DOT_R = 5;
 
-/** Arc/needle color for the primary pointer – zone color when zones are active, else its fixed color. */
-function resolvePrimaryColor(value: number, fallback: string, colorZones: boolean, zones: ColorZone[]): string {
-    if (!colorZones || zones.length === 0) return fallback;
+/** Color of the zone a value falls into; last zone catches anything above the final threshold. */
+function zoneColorAt(value: number, zones: ColorZone[]): string | undefined {
+    if (zones.length === 0) return undefined;
     const match = zones.find((z) => value <= z.max);
     return match ? match.color : zones[zones.length - 1].color;
 }
@@ -87,7 +87,8 @@ function GaugeSVG({
     const valueBaseline = cy + CENTER_DOT_R + 4 + valueFs * 0.72;
     const vbHeight = showValue ? Math.max(120, Math.ceil(valueBaseline + valueFs * 0.12)) : 120;
 
-    const primaryColor = resolvePrimaryColor(primary.value, primary.color, colorZones, zones);
+    // Pointer colors are already resolved by the widget – zone lookup included.
+    const primaryColor = primary.color;
 
     const displayVal = isNaN(primary.value) ? '–' : formatNum(primary.value, decimals, numFmt);
 
@@ -275,24 +276,35 @@ export function GaugeWidget({ config }: WidgetProps) {
         ];
     })();
 
-    // Build pointers array
+    // Build pointers array. Each pointer can take the color of the zone its own value
+    // falls into instead of its fixed color – on by default for pointer 1 only, which
+    // is how the gauge behaved before the toggles existed.
+    const pickColor = (val: number, fixed: string, useZone: boolean): string =>
+        (colorZones && useZone ? zoneColorAt(val, zones) : undefined) ?? fixed;
+
     const ptr1Color = (opts.pointer1Color as string) ?? 'var(--gauge-arc, var(--accent))';
     const pointers: PointerDef[] = [
-        { value: safeVal, color: ptr1Color, label: (opts.pointer1Label as string) || config.title || undefined },
+        {
+            value: safeVal,
+            color: pickColor(safeVal, ptr1Color, opts.pointer1ZoneColor !== false),
+            label: (opts.pointer1Label as string) || undefined,
+        },
     ];
     if (ptr2Dp) {
         const v = parseFloat(String(val2 ?? 0));
+        const val = isNaN(v) ? effectiveMin : tx(v);
         pointers.push({
-            value: isNaN(v) ? effectiveMin : tx(v),
-            color: (opts.pointer2Color as string) ?? '#f97316',
+            value: val,
+            color: pickColor(val, (opts.pointer2Color as string) ?? '#f97316', !!opts.pointer2ZoneColor),
             label: (opts.pointer2Label as string) || undefined,
         });
     }
     if (ptr3Dp) {
         const v = parseFloat(String(val3 ?? 0));
+        const val = isNaN(v) ? effectiveMin : tx(v);
         pointers.push({
-            value: isNaN(v) ? effectiveMin : tx(v),
-            color: (opts.pointer3Color as string) ?? '#8b5cf6',
+            value: val,
+            color: pickColor(val, (opts.pointer3Color as string) ?? '#8b5cf6', !!opts.pointer3ZoneColor),
             label: (opts.pointer3Label as string) || undefined,
         });
     }
@@ -312,13 +324,19 @@ export function GaugeWidget({ config }: WidgetProps) {
         valueFontSize,
     };
 
+    // color-mix instead of an `#rrggbb` + alpha suffix: pointer 1 defaults to a CSS
+    // variable, and `var(--x)22` is not a valid color – it would drop fill and border.
     const renderBadge = (key: string, val: number, color: string, label?: string) => {
         const dispVal = isNaN(val) ? '–' : formatNum(val, decimals, numFmt);
         return (
             <span
                 key={key}
                 className="flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded"
-                style={{ background: `${color}22`, color, border: `1px solid ${color}55` }}
+                style={{
+                    background: `color-mix(in srgb, ${color} 13%, transparent)`,
+                    color,
+                    border: `1px solid color-mix(in srgb, ${color} 33%, transparent)`,
+                }}
             >
                 <span className="font-bold tabular-nums">
                     {dispVal}
@@ -329,18 +347,8 @@ export function GaugeWidget({ config }: WidgetProps) {
         );
     };
 
-    // Main value as a badge below the arc – zone-coloured like the arc itself.
-    // The title already sits in the header, so only an explicit pointer 1 label is repeated here.
-    const badges = showValueBadge
-        ? [
-              renderBadge(
-                  'primary',
-                  safeVal,
-                  resolvePrimaryColor(safeVal, ptr1Color, colorZones, zones),
-                  (opts.pointer1Label as string) || undefined,
-              ),
-          ]
-        : [];
+    // Main value as a badge below the arc – same color as its needle.
+    const badges = showValueBadge ? [renderBadge('primary', safeVal, pointers[0].color, pointers[0].label)] : [];
     // Secondary pointer badges
     badges.push(...pointers.slice(1).map((ptr, i) => renderBadge(`ptr${i}`, ptr.value, ptr.color, ptr.label)));
 
