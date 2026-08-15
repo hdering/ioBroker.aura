@@ -3,6 +3,7 @@ import { BellRing, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useMessagesStore, startMessagesRuntime, matchesRef } from '../../store/messagesStore';
 import { SEVERITY_COLOR } from '../messages/MessageToast';
 import { MessageDetail } from '../messages/MessageDetail';
+import { stripMessageHtml } from '../messages/MessageHtml';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { formatRelative } from '../../utils/parseTimeValue';
 import { useT } from '../../i18n';
@@ -17,10 +18,10 @@ const SEVERITY_SHORT: Record<MessageSeverity, string> = {
     error: 'Fehler',
 };
 
-/** One-line summary for the compact rows: strips HTML and collapses whitespace. */
+/** One-line summary for the compact rows: title and body may carry markup. */
 function summarize(msg: AuraMessage): string {
-    const raw = msg.text ?? msg.html?.replace(/<[^>]*>/g, ' ') ?? (msg.view ? `▦ ${msg.view}` : '');
-    return raw.replace(/\s+/g, ' ').trim();
+    if (msg.html || msg.text) return stripMessageHtml(msg.html || msg.text);
+    return msg.view ? `▦ ${msg.view}` : '';
 }
 
 function dayKey(ts: number): string {
@@ -275,7 +276,7 @@ export function MessagesWidget({ config }: WidgetProps) {
                                                 opacity: msg.read ? 0.65 : 1,
                                             }}
                                         >
-                                            {msg.title || summary || SEVERITY_SHORT[msg.severity]}
+                                            {stripMessageHtml(msg.title) || summary || SEVERITY_SHORT[msg.severity]}
                                         </span>
                                         <span
                                             className="text-[10px] ml-auto shrink-0 whitespace-nowrap"

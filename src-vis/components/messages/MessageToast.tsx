@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { AlertTriangle, CheckCircle2, Info, X, XCircle, type LucideIcon } from 'lucide-react';
-import { SafeHtml } from '../common/SafeHtml';
-import { DynamicTitle } from '../widgets/DynamicTitle';
+import { MessageHtml } from './MessageHtml';
 import { TabEmbedBody } from '../widgets/popup/TabEmbedBody';
 import { usePopupConfigStore, newTriggerHost } from '../../store/popupConfigStore';
 import { useMessagesStore } from '../../store/messagesStore';
@@ -25,6 +24,8 @@ const SEVERITY_ICON: Record<MessageSeverity, LucideIcon> = {
 };
 
 const DEFAULT_WIDTH = 340;
+/** textAlign does not move flex children, so the button row needs its own mapping. */
+const BUTTON_JUSTIFY: Record<string, string> = { left: 'flex-start', center: 'center', right: 'flex-end' };
 /** Countdown bar height in px. */
 const BAR_H = 3;
 
@@ -55,7 +56,16 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
             : undefined,
     );
 
-    const color = SEVERITY_COLOR[msg.severity];
+    // `color` drives bar / fill / outline alike, so a message can be recoloured
+    // without giving up its severity (which still picks the icon and the ranking).
+    const color = msg.color || SEVERITY_COLOR[msg.severity];
+    const appearance = msg.appearance ?? 'bar';
+    // Anything that paints the whole card puts the content on the accent, where
+    // the theme's text tokens would disappear — switch to white unless told otherwise.
+    const onAccent = appearance === 'filled' || !!msg.background;
+    const titleColor = msg.textColor || (onAccent ? '#fff' : 'var(--text-primary)');
+    const bodyColor = msg.textColor || (onAccent ? 'rgba(255,255,255,0.88)' : 'var(--text-secondary)');
+    const frame = appearance === 'outline' ? `2px solid ${color}` : '1px solid var(--app-border)';
     const SeverityIcon = SEVERITY_ICON[msg.severity];
     const countdown = !embedded && msg.durationSec > 0;
 
@@ -114,17 +124,10 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
                         style={{ maxHeight: 200, objectFit: 'cover' }}
                     />
                 )}
-                {msg.html ? (
-                    <SafeHtml as="div" html={msg.html} className="text-xs leading-relaxed" />
-                ) : (
-                    msg.text && (
-                        <p
-                            className="text-xs leading-relaxed whitespace-pre-line"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            <DynamicTitle text={msg.text} />
-                        </p>
-                    )
+                {(msg.html || msg.text) && (
+                    <div className="aura-msg-html text-xs leading-relaxed" style={{ color: bodyColor }}>
+                        <MessageHtml as="div" text={msg.html || msg.text || ''} />
+                    </div>
                 )}
             </>
         );
@@ -136,10 +139,14 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
         <div
             className="relative flex flex-col rounded-2xl shadow-2xl overflow-hidden pointer-events-auto"
             style={{
-                background: 'var(--app-surface)',
-                border: '1px solid var(--app-border)',
-                // The accent sits on the leading edge so a stack reads at a glance.
-                borderLeft: `3px solid ${color}`,
+                background: msg.background || (appearance === 'filled' ? color : 'var(--app-surface)'),
+                border: frame,
+                // 'bar' keeps the accent on the leading edge so a stack reads at a
+                // glance; the other looks carry the colour elsewhere. Always set,
+                // never left undefined: switching a reused card back from 'bar'
+                // would otherwise clear the longhand and leave that edge borderless.
+                borderLeft: appearance === 'bar' ? `3px solid ${color}` : frame,
+                textAlign: msg.align ?? 'left',
                 // Element opacity, not just a translucent surface — an embedded popup
                 // view paints its own widget cards and has to fade along with the frame.
                 opacity: msg.transparency ? 1 - msg.transparency / 100 : undefined,
@@ -151,16 +158,16 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
             role={msg.severity === 'error' ? 'alert' : 'status'}
         >
             <div className="flex items-start gap-2.5 px-3 pt-2.5 pb-2">
-                <span className="shrink-0 mt-0.5" style={{ color }}>
+                <span className="shrink-0 mt-0.5" style={{ color: onAccent ? '#fff' : color }}>
                     {msg.icon ? <Icon icon={msg.icon} width={16} height={16} /> : <SeverityIcon size={16} />}
                 </span>
                 <div className="flex-1 min-w-0">
                     {msg.title && (
                         <div
-                            className="text-xs font-semibold mb-0.5 break-words"
-                            style={{ color: 'var(--text-primary)' }}
+                            className="aura-msg-html text-xs font-semibold mb-0.5 break-words"
+                            style={{ color: titleColor }}
                         >
-                            <DynamicTitle text={msg.title} />
+                            <MessageHtml as="div" text={msg.title} />
                         </div>
                     )}
                     {body}
@@ -170,7 +177,7 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
                     <button
                         onClick={onClose}
                         className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg hover:opacity-70 transition-opacity"
-                        style={{ color: 'var(--text-secondary)' }}
+                        style={{ color: bodyColor }}
                         title={t('common.close')}
                     >
                         <X size={12} />
@@ -179,13 +186,20 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
             </div>
 
             {(msg.actions?.length || msg.requireAck) && !embedded && (
-                <div className="flex flex-wrap gap-1.5 px-3 pb-2.5">
+                <div
+                    className="flex flex-wrap gap-1.5 px-3 pb-2.5"
+                    style={{ justifyContent: BUTTON_JUSTIFY[msg.align ?? 'left'] }}
+                >
                     {msg.actions?.map((action, i) => (
                         <button
                             key={`${action.dp}-${i}`}
                             onClick={() => runAction(msg, i)}
                             className="px-2.5 py-1 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
-                            style={{ background: color, color: '#fff', border: 'none' }}
+                            style={
+                                onAccent
+                                    ? { background: '#fff', color, border: 'none' }
+                                    : { background: color, color: '#fff', border: 'none' }
+                            }
                         >
                             {action.label}
                         </button>
@@ -194,11 +208,19 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
                         <button
                             onClick={() => ack(msg)}
                             className="px-2.5 py-1 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
-                            style={{
-                                background: msg.actions?.length ? 'var(--app-bg)' : color,
-                                color: msg.actions?.length ? 'var(--text-primary)' : '#fff',
-                                border: msg.actions?.length ? '1px solid var(--app-border)' : 'none',
-                            }}
+                            style={
+                                onAccent
+                                    ? {
+                                          background: msg.actions?.length ? 'transparent' : '#fff',
+                                          color: msg.actions?.length ? '#fff' : color,
+                                          border: msg.actions?.length ? '1px solid rgba(255,255,255,0.6)' : 'none',
+                                      }
+                                    : {
+                                          background: msg.actions?.length ? 'var(--app-bg)' : color,
+                                          color: msg.actions?.length ? 'var(--text-primary)' : '#fff',
+                                          border: msg.actions?.length ? '1px solid var(--app-border)' : 'none',
+                                      }
+                            }
                         >
                             {t('messages.acknowledge')}
                         </button>
@@ -207,12 +229,15 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
             )}
 
             {countdown && (
-                <div className="shrink-0" style={{ height: BAR_H, background: 'var(--app-border)' }}>
+                <div
+                    className="shrink-0"
+                    style={{ height: BAR_H, background: onAccent ? 'rgba(0,0,0,0.2)' : 'var(--app-border)' }}
+                >
                     <div
                         style={{
                             height: '100%',
                             width: `${Math.max(0, Math.min(1, remaining)) * 100}%`,
-                            background: color,
+                            background: onAccent ? '#fff' : color,
                             opacity: paused ? 0.45 : 1,
                             transition: 'width 120ms linear',
                         }}

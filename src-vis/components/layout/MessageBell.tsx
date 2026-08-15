@@ -3,6 +3,7 @@ import { Bell, Check } from 'lucide-react';
 import { useMessagesStore, startMessagesRuntime } from '../../store/messagesStore';
 import { MessageDetail } from '../messages/MessageDetail';
 import { SEVERITY_COLOR } from '../messages/MessageToast';
+import { stripMessageHtml } from '../messages/MessageHtml';
 import { formatRelative } from '../../utils/parseTimeValue';
 import { useT } from '../../i18n';
 import type { AuraMessage } from '../../types';
@@ -132,7 +133,7 @@ export function MessageBell() {
                                                 opacity: msg.read ? 0.65 : 1,
                                             }}
                                         >
-                                            {msg.title || msg.text || msg.id}
+                                            {stripMessageHtml(msg.title) || stripMessageHtml(msg.text) || msg.id}
                                         </div>
                                         <div className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                                             {formatRelative(new Date(msg.ts), new Date(now), t)}

@@ -44,9 +44,9 @@ Alle Felder sind optional. Was fehlt, kommt aus den [Standardwerten](#standardwe
 | Feld | Typ | |
 | --- | --- | --- |
 | `severity` | `info` · `success` · `warning` · `error` | Standard `info`; bestimmt Farbe, Icon und Anzeigedauer |
-| `title` | string | Überschrift |
-| `text` | string | Textkörper, mehrzeilig; `[[dp.id]]` wird live durch den Wert ersetzt |
-| `html` | string | statt `text`, wird bereinigt gerendert |
+| `title` | string | Überschrift; HTML erlaubt |
+| `text` | string | Textkörper, mehrzeilig; HTML erlaubt; `[[dp.id]]` wird live durch den Wert ersetzt |
+| `html` | string | Gleichbedeutend mit `text`, hat Vorrang. Bleibt für ältere Skripte erhalten |
 | `image` | string | Bild-URL; Adapter-Dateien über `/webfs/…` |
 | `icon` | string | [Lucide](https://lucide.dev)- oder Iconify-ID, überschreibt das Severity-Icon |
 | `view` | string | Name oder ID einer [Popup-View](./popups#popup-views) als Inhalt — damit sind Widgets in der Meldung möglich |
@@ -64,6 +64,25 @@ Mindestens eines von `title`, `text`, `html`, `image` oder `view` muss gesetzt s
 | `priority` | `0`–`100` | höher drängt sich an wartenden Meldungen derselben Position vorbei |
 | `width` / `height` | number (px) | Größe der Karte |
 | `transparency` | `0`–`95` | Prozent; `0` = deckend |
+
+### Darstellung
+
+| Feld | Typ | |
+| --- | --- | --- |
+| `appearance` | `bar` · `filled` · `outline` · `plain` | wo die Farbe sitzt (siehe unten) |
+| `color` | CSS-Farbe | ersetzt die Farbe des Schweregrads |
+| `background` | CSS-Farbe | eigener Kartenhintergrund; hat Vorrang vor `appearance` |
+| `textColor` | CSS-Farbe | eigene Textfarbe; leer = automatisch |
+| `align` | `left` · `center` · `right` | Textausrichtung |
+
+| `appearance` | |
+| --- | --- |
+| `bar` | Farbiger Streifen an der linken Kante (Standard) |
+| `filled` | Die ganze Karte in der Farbe — Text und Icon werden weiß |
+| `outline` | Farbiger Rahmen rundum |
+| `plain` | Ohne Farbe, nur Icon und Text |
+
+Auf gefülltem Grund schaltet Aura Text, Icon, Buttons und Countdown automatisch auf Weiß. `textColor` überschreibt das.
 
 ### Verhalten
 
@@ -108,6 +127,30 @@ Maximal sechs Buttons. Ein Klick gilt als Antwort und bestätigt die Meldung.
 
 Wird auf einen Client- oder Layout-Datenpunkt geschrieben, ist der Empfänger schon dadurch festgelegt — ein `target` im JSON hat dann Vorrang.
 
+## HTML in Titel und Text
+
+Beide Felder werden als HTML gerendert und vorher bereinigt: `<b>`, `<i>`, `<br>`, `<ul>`, `<table>`, `<span style=…>` und `<img>` bleiben, `<script>` und Handler wie `onclick` werden entfernt.
+
+```js
+setState('aura.0.messages.send', JSON.stringify({
+    title: 'Temperaturen <b>Erdgeschoss</b>',
+    text: '<table>'
+        + '<tr><th>Raum</th><th>Ist</th></tr>'
+        + '<tr><td>Bad</td><td>[[alias.0.Bad.TIST]] °C</td></tr>'
+        + '<tr><td>Küche</td><td>[[alias.0.Kueche.TIST]] °C</td></tr>'
+        + '</table>',
+    width: 420,
+}));
+```
+
+Tabellen, Listen und Trennlinien bekommen im Meldungs-Layout eigene Abstände und Rahmen — eine breite Tabelle scrollt innerhalb der Karte, statt sie auseinanderzuziehen.
+
+::: warning Spitze Klammern im Klartext
+Weil der Text als HTML gelesen wird, verschwindet ein Wort in spitzen Klammern: aus `Wert <sensor> defekt` wird `Wert defekt`. Vergleiche wie `Temperatur < 5` bleiben erhalten — ein `<` beginnt nur dann ein Tag, wenn direkt ein Buchstabe folgt. Im Zweifel `&lt;` schreiben.
+:::
+
+In den Listenansichten (Meldungen-Widget, Glocke, Verlauf) wird das Markup entfernt und nur der lesbare Text gezeigt; formatiert erscheint es in der Einblendung und der Detailansicht.
+
 ## Positionen
 
 | | links | mitte | rechts |
@@ -127,6 +170,8 @@ Jede Position ist ein eigener Stapel. Sind mehr Meldungen offen als „Gleichzei
 | Option | Standard | |
 | --- | --- | --- |
 | Position | `top-right` | |
+| Darstellung | `bar` | `bar` · `filled` · `outline` · `plain` |
+| Textausrichtung | `left` | |
 | Gleichzeitig sichtbar | `3` | pro Position |
 | Breite | `0` | `0` = automatisch (340 px) |
 | Transparenz | `0 %` | |
@@ -212,6 +257,19 @@ setState('aura.0.clients.a1b2c3.messages.send', JSON.stringify({
         { label: 'Ja', dp: 'javascript.0.trockner', value: 'true' },
         { label: 'Nein', dp: 'javascript.0.trockner', value: 'false' },
     ],
+}));
+```
+
+Ganz rote Fehlermeldung, mittig ausgerichtet:
+
+```js
+setState('aura.0.messages.send', JSON.stringify({
+    severity: 'error',
+    title: 'Alarm',
+    text: 'Bewegung im Keller',
+    appearance: 'filled',
+    align: 'center',
+    requireAck: true,
 }));
 ```
 

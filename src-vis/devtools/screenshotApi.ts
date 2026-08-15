@@ -36,6 +36,7 @@ import {
 } from '../store/messagesStore';
 import { useThemeStore } from '../store/themeStore';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
+import { NS } from '../utils/namespace';
 import type { AuraMessage, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
 
 type MockValue = boolean | number | string | null | Partial<ioBrokerState>;
@@ -259,6 +260,11 @@ function installScreenshotApi(): void {
          *  writing the history datapoint. Does NOT raise toasts — use
          *  messageIngest for that. */
         messagesHistory(history: AuraMessage[]): void {
+            // Also seed the cache the subscription reads from. Without this the
+            // live datapoint wins the moment it delivers, and on an instance that
+            // actually holds messages the seeded archive is gone before the
+            // assertions run.
+            __devInjectState(`${NS}.messages.history`, toState(JSON.stringify(history)));
             useMessagesStore.setState({
                 history,
                 unreadCount: history.filter((m) => !m.read).length,

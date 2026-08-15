@@ -87,9 +87,17 @@ const MESSAGE_RETENTION_DAYS_DEFAULT = 30;
 
 // Hard caps: a runaway script must not be able to blow up the history datapoint.
 const MESSAGE_STR_MAX = 4000;
+// Titles render as sanitised HTML too, so markup eats into the budget.
+const MESSAGE_TITLE_MAX = 1000;
 const MESSAGE_ID_MAX = 128;
 const MESSAGE_ACTIONS_MAX = 6;
 const MESSAGE_TARGET_CLIENTS_MAX = 50;
+// CSS colour strings; a cap is enough, React puts them in a style object where a
+// value can only ever be a value.
+const MESSAGE_COLOR_MAX = 64;
+
+const MESSAGE_APPEARANCES = ['bar', 'filled', 'outline', 'plain'];
+const MESSAGE_ALIGNS = ['left', 'center', 'right'];
 
 /** ioBroker object ids allow a restricted charset — layout slugs are free user text. */
 function sanitizeIdSegment(raw) {
@@ -1537,6 +1545,8 @@ class Aura extends utils.Adapter {
             },
             width: num(d.width, 0, 4000, 0),
             transparency: num(d.transparency, 0, 95, 0),
+            appearance: MESSAGE_APPEARANCES.includes(d.appearance) ? d.appearance : 'bar',
+            align: MESSAGE_ALIGNS.includes(d.align) ? d.align : 'left',
             errorsRequireAck: d.errorsRequireAck === true,
         };
     }
@@ -1659,7 +1669,7 @@ class Aura extends utils.Adapter {
             persist: src.persist !== false,
         };
 
-        const title = str(src.title, 200);
+        const title = str(src.title, MESSAGE_TITLE_MAX);
         if (title) msg.title = title;
         const body = str(src.text);
         if (body) msg.text = body;
@@ -1682,6 +1692,17 @@ class Aura extends utils.Adapter {
         if (height) msg.height = height;
         const transparency = clamp(src.transparency, 0, 95) ?? defaults.transparency;
         if (transparency) msg.transparency = transparency;
+
+        // Appearance. Defaults apply per field, so a message can take the admin's
+        // look and still override just the colour.
+        msg.appearance = MESSAGE_APPEARANCES.includes(src.appearance) ? src.appearance : defaults.appearance;
+        msg.align = MESSAGE_ALIGNS.includes(src.align) ? src.align : defaults.align;
+        const color = str(src.color, MESSAGE_COLOR_MAX);
+        if (color) msg.color = color;
+        const background = str(src.background, MESSAGE_COLOR_MAX);
+        if (background) msg.background = background;
+        const textColor = str(src.textColor, MESSAGE_COLOR_MAX);
+        if (textColor) msg.textColor = textColor;
 
         const ackDp = str(src.ackDp, 256);
         if (ackDp) {

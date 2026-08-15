@@ -106,8 +106,11 @@ check(`all nine positions render their own stack (got ${containers})`, container
 for (const position of ['top-left', 'center', 'bottom-right']) {
     const box = await page.locator(`[data-aura-toasts="${position}"]`).boundingBox();
     const vp = page.viewportSize();
-    const okX =
-        position.endsWith('left') ? box.x < 40 : position.endsWith('right') ? box.x + box.width > vp.width - 40 : true;
+    const okX = position.endsWith('left')
+        ? box.x < 40
+        : position.endsWith('right')
+          ? box.x + box.width > vp.width - 40
+          : true;
     const okY = position.startsWith('top')
         ? box.y < 40
         : position.startsWith('bottom')
@@ -118,7 +121,10 @@ for (const position of ['top-left', 'center', 'bottom-right']) {
 
 // ── 5. Auto-close after durationSec, with a countdown bar ────────────────────
 await show([msg({ durationSec: 1, title: 'Kurz' })]);
-check('a toast with a duration shows the countdown bar', (await page.locator('[data-aura-toasts] div div').count()) > 0);
+check(
+    'a toast with a duration shows the countdown bar',
+    (await page.locator('[data-aura-toasts] div div').count()) > 0,
+);
 check('still visible right after arriving', await visibleText('Kurz'));
 await page.waitForTimeout(1600);
 check('auto-closes once the duration elapsed', !(await visibleText('Kurz')));
@@ -151,7 +157,10 @@ await show([
         ],
     }),
 ]);
-check('two actions plus the confirmation render three buttons', (await page.locator('[data-aura-toasts] button').count()) === 3);
+check(
+    'two actions plus the confirmation render three buttons',
+    (await page.locator('[data-aura-toasts] button').count()) === 3,
+);
 check('action labels are shown', (await visibleText('Starten')) && (await visibleText('Spaeter')));
 
 // ── 10. Stack limit per position ─────────────────────────────────────────────
@@ -222,13 +231,133 @@ await page.locator('[data-aura-toasts] button').first().click();
 await settle();
 await page.evaluate((m) => window.__auraShot.messageIngest([m]), once);
 await settle();
-check('a closed message is not re-shown at the same timestamp', (await page.locator('[data-aura-toasts]').count()) === 0);
+check(
+    'a closed message is not re-shown at the same timestamp',
+    (await page.locator('[data-aura-toasts]').count()) === 0,
+);
 
 // ── 16. …but a fresh send on that id shows again ────────────────────────────
 // The reusable-id workflow: the same notice fires later and must be seen again.
-await page.evaluate((m) => window.__auraShot.messageIngest([m]), { ...once, ts: Date.now() + 50000, title: 'WiederDa' });
+await page.evaluate((m) => window.__auraShot.messageIngest([m]), {
+    ...once,
+    ts: Date.now() + 50000,
+    title: 'WiederDa',
+});
 await settle();
 check('the same id with a newer timestamp is shown again', await visibleText('WiederDa'));
+
+// ── 16a. HTML in the title and the body ─────────────────────────────────────
+await show([
+    msg({
+        title: 'Heizung <b>Bad</b>',
+        text: '<table><tr><th>Raum</th><th>Temp</th></tr><tr><td>Bad</td><td>21 °C</td></tr></table>',
+    }),
+]);
+check('the title renders its markup', (await page.locator('[data-aura-toasts] b', { hasText: 'Bad' }).count()) === 1);
+check('a table in the body renders as a table', (await page.locator('[data-aura-toasts] table td').count()) === 2);
+check(
+    'the table is styled, not left as a run-on line',
+    await page.evaluate(() => {
+        const td = document.querySelector('[data-aura-toasts] td');
+        return td ? getComputedStyle(td).borderBottomWidth !== '0px' : false;
+    }),
+);
+
+// Scripts and handlers must not survive the sanitiser.
+await show([msg({ title: 'X<script>window.__pwned = 1</script>', text: '<img src=x onerror="window.__pwned=1">' })]);
+check('script tags are stripped', (await page.locator('[data-aura-toasts] script').count()) === 0);
+check(
+    'inline event handlers are stripped',
+    await page.evaluate(() => {
+        const img = document.querySelector('[data-aura-toasts] img');
+        return window.__pwned === undefined && (!img || !img.getAttribute('onerror'));
+    }),
+);
+
+// `html` still wins over `text`, so existing payloads keep working.
+await show([msg({ title: 'T', text: 'nur text', html: '<i>aus html</i>' })]);
+check('html still overrides text', (await visibleText('aus html')) && !(await visibleText('nur text')));
+
+// ── 16c. Appearance and text alignment ──────────────────────────────────────
+const cardStyle = () =>
+    page.evaluate(() => {
+        const card = document.querySelector('[data-aura-toasts] [role="status"], [data-aura-toasts] [role="alert"]');
+        if (!card) return null;
+        const cs = getComputedStyle(card);
+        return {
+            background: cs.backgroundColor,
+            borderLeft: cs.borderLeftWidth,
+            borderTop: cs.borderTopWidth,
+            textAlign: cs.textAlign,
+        };
+    });
+
+await show([msg({ title: 'Balken' })]);
+let style = await cardStyle();
+check('the default look is the leading-edge bar', style.borderLeft === '3px' && style.borderTop === '1px');
+
+await show([msg({ title: 'Gefuellt', severity: 'error', appearance: 'filled' })]);
+style = await cardStyle();
+check(
+    `filled paints the whole card in the severity colour (got ${style.background})`,
+    style.background === 'rgb(239, 68, 68)',
+);
+check(
+    'and the text flips to white so it stays readable',
+    await page.evaluate(() => {
+        const el = document.querySelector('[data-aura-toasts] .aura-msg-html');
+        return el ? getComputedStyle(el).color === 'rgb(255, 255, 255)' : false;
+    }),
+);
+
+await show([msg({ title: 'Rahmen', appearance: 'outline' })]);
+style = await cardStyle();
+check(
+    `outline draws the colour all the way around (${JSON.stringify(style)})`,
+    style.borderTop === '2px' && style.borderLeft === '2px',
+);
+
+await show([msg({ title: 'Ohne', appearance: 'plain' })]);
+style = await cardStyle();
+check(
+    `plain drops the accent entirely (${JSON.stringify(style)})`,
+    style.borderLeft === '1px' && style.borderTop === '1px',
+);
+
+// An explicit colour replaces the severity colour without changing the severity.
+await show([msg({ title: 'Eigen', severity: 'info', appearance: 'filled', color: '#123456' })]);
+style = await cardStyle();
+check(`an explicit colour wins over the severity (got ${style.background})`, style.background === 'rgb(18, 52, 86)');
+
+// background wins over what the appearance would paint, and still flips the text.
+await show([msg({ title: 'BG', appearance: 'bar', background: '#004400' })]);
+style = await cardStyle();
+check(`background overrides the appearance fill (got ${style.background})`, style.background === 'rgb(0, 68, 0)');
+
+await show([msg({ title: 'Farbe', appearance: 'filled', textColor: '#ffff00' })]);
+check(
+    'an explicit text colour beats the automatic white',
+    await page.evaluate(() => {
+        const el = document.querySelector('[data-aura-toasts] .aura-msg-html');
+        return el ? getComputedStyle(el).color === 'rgb(255, 255, 0)' : false;
+    }),
+);
+
+for (const align of ['left', 'center', 'right']) {
+    await show([msg({ title: `Ausrichtung ${align}`, align })]);
+    style = await cardStyle();
+    check(`align ${align} reaches the card`, style.textAlign === align);
+}
+
+// The button row is flex, so textAlign alone would not move it.
+await show([msg({ title: 'Buttons', align: 'right', requireAck: true })]);
+check(
+    'the button row follows the alignment too',
+    await page.evaluate(() => {
+        const row = document.querySelector('[data-aura-toasts] .flex-wrap');
+        return row ? getComputedStyle(row).justifyContent === 'flex-end' : false;
+    }),
+);
 
 // ── 16b. A view without a toast layer must not consume messages ─────────────
 // The admin area keeps a runtime lease for its history list. Before this gate it
@@ -285,9 +414,35 @@ async function showWidget(options = {}, layout = 'default') {
 
 let widget = await showWidget({ groupByDay: true });
 let body = await widget.innerText();
-check('the widget lists every archived message', ['Heizung', 'Waschmaschine', 'Backup', 'Sonnenuntergang'].every((s) => body.includes(s)));
+check(
+    'the widget lists every archived message',
+    ['Heizung', 'Waschmaschine', 'Backup', 'Sonnenuntergang'].every((s) => body.includes(s)),
+);
 check('day grouping inserts a date separator', /\d{2}\.\d{2}\./.test(body));
 check('relative timestamps are shown', body.includes('vor '));
+
+// A compact row must show readable text, never the raw markup.
+widget = await showWidget({});
+await page.evaluate(
+    (m) => window.__auraShot.messagesHistory([m]),
+    msg({ id: 'a-html', title: 'Heizung <b>Bad</b>', text: '<table><tr><td>21 °C</td></tr></table>' }),
+);
+await settle();
+body = await widget.innerText();
+check('the list row strips markup from the title', body.includes('Heizung Bad') && !body.includes('<b>'));
+check('and from the body', body.includes('21 °C') && !body.includes('<table'));
+
+// Cell boundaries must survive as spaces, or a table collapses into one word.
+await page.evaluate(
+    (m) => window.__auraShot.messagesHistory([m]),
+    msg({ id: 'a-cells', title: 'Tab', text: '<table><tr><th>Raum</th><th>Temperatur</th></tr></table>' }),
+);
+await settle();
+body = await widget.innerText();
+check('table cells stay separate words in the list', body.includes('Raum Temperatur'));
+
+// Restore the shared archive — the checks below filter against all four entries.
+widget = await showWidget({});
 
 // Severity pills filter the list down.
 await page.locator('[data-aura-messages="list"] button', { hasText: 'Warnung' }).first().click();
@@ -326,7 +481,10 @@ await page.locator('[style*="10000"] button').first().click();
 await settle();
 await showWidget({}, 'count');
 const countText = (await page.locator('[data-aura-messages="count"]').first().innerText()).replace(/\s+/g, ' ');
-check(`the count layout shows unread over total (got "${countText}")`, /\b2\b/.test(countText) && /\b4\b/.test(countText));
+check(
+    `the count layout shows unread over total (got "${countText}")`,
+    /\b2\b/.test(countText) && /\b4\b/.test(countText),
+);
 
 // ── 18. The "send a message" condition effect ──────────────────────────────
 // Same edge rules as "reload widget": priming stays silent, the rising edge

@@ -4,6 +4,8 @@ import { getStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import { NS } from '../../utils/namespace';
 import {
     MessageBuilder,
+    MESSAGE_ALIGNS,
+    MESSAGE_APPEARANCES,
     MESSAGE_POSITIONS,
     MESSAGE_SEVERITIES,
     draftToPayload,
@@ -13,9 +15,10 @@ import {
 import { MessageDetail } from '../../components/messages/MessageDetail';
 import { ToastLayer } from '../../components/messages/ToastLayer';
 import { SEVERITY_COLOR } from '../../components/messages/MessageToast';
+import { stripMessageHtml } from '../../components/messages/MessageHtml';
 import { useMessagesStore, startMessagesRuntime, DEFAULT_MAX_VISIBLE } from '../../store/messagesStore';
 import { useConnectionStore } from '../../store/connectionStore';
-import type { AuraMessage, MessagePosition, MessageSeverity } from '../../types';
+import type { AuraMessage, MessageAlign, MessageAppearance, MessagePosition, MessageSeverity } from '../../types';
 
 // ── Shared styles (mirrors AdminPopups) ───────────────────────────────────────
 
@@ -45,6 +48,8 @@ interface MessageDefaults {
     width: number;
     transparency: number;
     maxVisible: number;
+    appearance: MessageAppearance;
+    align: MessageAlign;
     errorsRequireAck: boolean;
 }
 
@@ -54,6 +59,8 @@ const BUILTIN_DEFAULTS: MessageDefaults = {
     width: 0,
     transparency: 0,
     maxVisible: DEFAULT_MAX_VISIBLE,
+    appearance: 'bar',
+    align: 'left',
     errorsRequireAck: false,
 };
 
@@ -165,6 +172,46 @@ function DefaultsSection() {
                         (n) => save({ ...defaults, transparency: n }),
                         95,
                     )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
+                    <div>
+                        <label className="text-[11px] block mb-1" style={labelStyle}>
+                            Darstellung
+                        </label>
+                        <select
+                            value={defaults.appearance}
+                            onChange={(e) => save({ ...defaults, appearance: e.target.value as MessageAppearance })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            {MESSAGE_APPEARANCES.map((a) => (
+                                <option key={a.value} value={a.value}>
+                                    {a.label}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-[11px] mt-1" style={labelStyle}>
+                            {MESSAGE_APPEARANCES.find((a) => a.value === defaults.appearance)?.hint}
+                        </p>
+                    </div>
+                    <div>
+                        <label className="text-[11px] block mb-1" style={labelStyle}>
+                            Textausrichtung
+                        </label>
+                        <select
+                            value={defaults.align}
+                            onChange={(e) => save({ ...defaults, align: e.target.value as MessageAlign })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            {MESSAGE_ALIGNS.map((a) => (
+                                <option key={a.value} value={a.value}>
+                                    {a.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 <div>
@@ -328,7 +375,10 @@ function HistorySection() {
             if (severity && m.severity !== severity) return false;
             if (unreadOnly && m.read) return false;
             if (!lc) return true;
-            return [m.title, m.text, m.id].some((v) => v?.toLowerCase().includes(lc));
+            // Search the readable text, not the markup — otherwise "b" matches every <b>.
+            return [stripMessageHtml(m.title), stripMessageHtml(m.text), m.id].some((v) =>
+                v?.toLowerCase().includes(lc),
+            );
         });
     }, [history, filter, severity, unreadOnly]);
 
@@ -440,11 +490,11 @@ function HistorySection() {
                                         className="text-xs truncate"
                                         style={{ color: 'var(--text-primary)', opacity: msg.read ? 0.65 : 1 }}
                                     >
-                                        {msg.title || msg.text || msg.id}
+                                        {stripMessageHtml(msg.title) || stripMessageHtml(msg.text) || msg.id}
                                     </div>
                                     <div className="text-[10px] truncate" style={labelStyle}>
                                         {formatWhen(msg.ts)}
-                                        {msg.title && msg.text ? ` — ${msg.text}` : ''}
+                                        {msg.title && msg.text ? ` — ${stripMessageHtml(msg.text)}` : ''}
                                     </div>
                                 </div>
                                 {!msg.read && (

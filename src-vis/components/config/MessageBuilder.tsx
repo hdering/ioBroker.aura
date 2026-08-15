@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Copy, Database, Plus, Trash2 } from 'lucide-react';
+import { Copy, Database, Plus, Trash2, X } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
-import type { MessageDraft, MessagePosition, MessageSeverity } from '../../types';
+import type { MessageAlign, MessageAppearance, MessageDraft, MessagePosition, MessageSeverity } from '../../types';
 
 /**
  * Form → JSON builder for a message payload.
@@ -29,6 +29,19 @@ export const MESSAGE_POSITIONS: { value: MessagePosition; label: string }[] = [
     { value: 'bottom-right', label: 'Unten rechts' },
 ];
 
+export const MESSAGE_APPEARANCES: { value: MessageAppearance; label: string; hint: string }[] = [
+    { value: 'bar', label: 'Balken links', hint: 'Farbiger Streifen an der linken Kante' },
+    { value: 'filled', label: 'Ganz gefüllt', hint: 'Die ganze Karte in der Farbe' },
+    { value: 'outline', label: 'Rahmen', hint: 'Farbiger Rahmen rundum' },
+    { value: 'plain', label: 'Ohne Farbe', hint: 'Nur Icon und Text' },
+];
+
+export const MESSAGE_ALIGNS: { value: MessageAlign; label: string }[] = [
+    { value: 'left', label: 'Links' },
+    { value: 'center', label: 'Mitte' },
+    { value: 'right', label: 'Rechts' },
+];
+
 export const MESSAGE_SEVERITIES: { value: MessageSeverity; label: string; color: string }[] = [
     { value: 'info', label: 'Info', color: '#3b82f6' },
     { value: 'success', label: 'Erfolg', color: '#22c55e' },
@@ -37,6 +50,13 @@ export const MESSAGE_SEVERITIES: { value: MessageSeverity; label: string; color:
 ];
 
 export type { MessageDraft };
+
+/** Starting point for the "Tabelle einfügen" button — the shape people ask for most. */
+const TABLE_SNIPPET = `<table>
+  <tr><th>Raum</th><th>Temperatur</th></tr>
+  <tr><td>Bad</td><td>[[alias.0.Bad.TIST]] °C</td></tr>
+  <tr><td>Küche</td><td>[[alias.0.Kueche.TIST]] °C</td></tr>
+</table>`;
 
 export function emptyDraft(): MessageDraft {
     return {
@@ -56,6 +76,11 @@ export function emptyDraft(): MessageDraft {
         width: '',
         height: '',
         transparency: '',
+        appearance: '',
+        align: '',
+        color: '',
+        background: '',
+        textColor: '',
         ackDp: '',
         ackValue: '',
         persist: true,
@@ -66,13 +91,20 @@ export function emptyDraft(): MessageDraft {
     };
 }
 
-/** Draft → the JSON a script would write. Only non-default fields are emitted. */
+/**
+ * Draft → the JSON a script would write. Only non-default fields are emitted.
+ *
+ * Reads persisted data (a condition's stored `notify` draft), so it must survive
+ * a draft written before a field existed — every accessor tolerates undefined
+ * rather than assuming the current shape.
+ */
 export function draftToPayload(d: MessageDraft): Record<string, unknown> {
     const out: Record<string, unknown> = {};
-    const str = (v: string) => v.trim();
-    const num = (v: string) => {
+    const str = (v: string | undefined) => (typeof v === 'string' ? v.trim() : '');
+    const num = (v: string | undefined) => {
+        if (typeof v !== 'string' || v.trim() === '') return undefined;
         const n = Number(v);
-        return v.trim() !== '' && Number.isFinite(n) ? n : undefined;
+        return Number.isFinite(n) ? n : undefined;
     };
 
     if (str(d.id)) out.id = str(d.id);
@@ -91,20 +123,25 @@ export function draftToPayload(d: MessageDraft): Record<string, unknown> {
         const n = num(d[key]);
         if (n) out[key] = n;
     }
+    if (d.appearance) out.appearance = d.appearance;
+    if (d.align) out.align = d.align;
+    for (const key of ['color', 'background', 'textColor'] as const) {
+        if (str(d[key])) out[key] = str(d[key]);
+    }
     if (!d.persist) out.persist = false;
 
-    const actions = d.actions
-        .filter((a) => a.label.trim() && a.dp.trim())
+    const actions = (Array.isArray(d.actions) ? d.actions : [])
+        .filter((a) => str(a?.label) && str(a?.dp))
         .map((a) => ({
-            label: a.label.trim(),
-            dp: a.dp.trim(),
-            ...(a.value.trim() ? { value: a.value.trim() } : {}),
-            ...(a.close ? {} : { close: false }),
+            label: str(a.label),
+            dp: str(a.dp),
+            ...(str(a.value) ? { value: str(a.value) } : {}),
+            ...(a.close === false ? { close: false } : {}),
         }));
     if (actions.length) out.actions = actions;
 
     const target: Record<string, unknown> = {};
-    const clients = d.targetClients
+    const clients = str(d.targetClients)
         .split(',')
         .map((c) => c.trim())
         .filter(Boolean);
@@ -179,6 +216,39 @@ function DpField({
     );
 }
 
+/** Colour swatch plus a free-text field — a CSS name or var(--accent) is valid too. */
+function ColorField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+    return (
+        <div className="flex items-center gap-1">
+            <input
+                type="color"
+                value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#ef4444'}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-7 h-7 rounded shrink-0 cursor-pointer"
+                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                title="Farbe wählen"
+            />
+            <input
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                placeholder="—"
+                className={`${inputCls} font-mono min-w-0`}
+                style={inputStyle}
+            />
+            {value && (
+                <button
+                    onClick={() => onChange('')}
+                    className="shrink-0 w-6 h-6 flex items-center justify-center rounded hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
+                    title="Zurücksetzen"
+                >
+                    <X size={11} />
+                </button>
+            )}
+        </div>
+    );
+}
+
 function Toggle({
     label,
     hint,
@@ -230,6 +300,8 @@ export function MessageBuilder({ draft, onChange, actions }: Props) {
 
     const set = (patch: Partial<MessageDraft>) => onChange({ ...draft, ...patch });
     const json = useMemo(() => JSON.stringify(draftToPayload(draft), null, 2), [draft]);
+    const appearanceHint =
+        MESSAGE_APPEARANCES.find((a) => a.value === draft.appearance)?.hint ?? 'Wie die Farbe auf der Karte sitzt';
 
     const tabsOfLayout = useMemo(() => {
         const layout = layouts.find((l) => (l.slug ?? l.id) === draft.targetLayout);
@@ -272,7 +344,7 @@ export function MessageBuilder({ draft, onChange, actions }: Props) {
                     </div>
                 </Field>
 
-                <Field label="Titel">
+                <Field label="Titel" hint="HTML erlaubt, z. B. <b>fett</b>.">
                     <input
                         value={draft.title}
                         onChange={(e) => set({ title: e.target.value })}
@@ -282,31 +354,37 @@ export function MessageBuilder({ draft, onChange, actions }: Props) {
                     />
                 </Field>
 
-                <Field label="Text" hint="Mehrzeilig erlaubt. [[dp.id]] wird live durch den Wert ersetzt.">
+                <Field
+                    label="Text"
+                    hint="HTML erlaubt (Tabelle, Liste, Fettung) — Skripte werden entfernt. [[dp.id]] wird live durch den Wert ersetzt."
+                >
                     <textarea
                         value={draft.text}
                         onChange={(e) => set({ text: e.target.value })}
-                        rows={2}
+                        rows={3}
                         placeholder="Programm fertig"
                         className={inputCls}
                         style={inputStyle}
                     />
+                    <button
+                        onClick={() => set({ text: TABLE_SNIPPET })}
+                        className="mt-1 text-[10px] px-2 py-0.5 rounded-full"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title="Ersetzt den Text durch ein Tabellen-Gerüst"
+                    >
+                        Tabelle einfügen
+                    </button>
                 </Field>
 
                 <details>
                     <summary className="text-[11px] cursor-pointer select-none" style={labelStyle}>
-                        Anderer Inhalt statt Text (HTML, Bild, Popup-View)
+                        Anderer Inhalt statt Text (Bild, Popup-View)
                     </summary>
                     <div className="flex flex-col gap-3 pt-2">
-                        <Field label="HTML" hint="Wird bereinigt gerendert; ersetzt den Text.">
-                            <textarea
-                                value={draft.html}
-                                onChange={(e) => set({ html: e.target.value })}
-                                rows={2}
-                                className={`${inputCls} font-mono`}
-                                style={inputStyle}
-                            />
-                        </Field>
                         <Field label="Bild-URL" hint="Adapter-Dateien über /webfs/… einbinden.">
                             <input
                                 value={draft.image}
@@ -375,6 +453,51 @@ export function MessageBuilder({ draft, onChange, actions }: Props) {
                             className={`${inputCls} font-mono`}
                             style={inputStyle}
                         />
+                    </Field>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                    <Field label="Darstellung" hint={appearanceHint}>
+                        <select
+                            value={draft.appearance}
+                            onChange={(e) => set({ appearance: e.target.value as MessageDraft['appearance'] })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="">Standard</option>
+                            {MESSAGE_APPEARANCES.map((a) => (
+                                <option key={a.value} value={a.value}>
+                                    {a.label}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+                    <Field label="Textausrichtung">
+                        <select
+                            value={draft.align}
+                            onChange={(e) => set({ align: e.target.value as MessageDraft['align'] })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="">Standard</option>
+                            {MESSAGE_ALIGNS.map((a) => (
+                                <option key={a.value} value={a.value}>
+                                    {a.label}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                    <Field label="Farbe" hint="leer = Schweregrad">
+                        <ColorField value={draft.color} onChange={(v) => set({ color: v })} />
+                    </Field>
+                    <Field label="Hintergrund" hint="leer = Darstellung">
+                        <ColorField value={draft.background} onChange={(v) => set({ background: v })} />
+                    </Field>
+                    <Field label="Textfarbe" hint="leer = automatisch">
+                        <ColorField value={draft.textColor} onChange={(v) => set({ textColor: v })} />
                     </Field>
                 </div>
 

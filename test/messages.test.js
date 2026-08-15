@@ -149,6 +149,53 @@ async function write(a, relDp, value, ack = false) {
         console.log('✓ duration defaults follow severity and requireAck');
     }
 
+    // ── Appearance and alignment ─────────────────────────────────────────────
+    {
+        const a = makeAdapter();
+        const m = a._normalizeMessage(
+            '{"text":"x","appearance":"filled","align":"center","color":"#ef4444","background":"#111","textColor":"#fff"}',
+        );
+        assert.strictEqual(m.appearance, 'filled');
+        assert.strictEqual(m.align, 'center');
+        assert.strictEqual(m.color, '#ef4444');
+        assert.strictEqual(m.background, '#111');
+        assert.strictEqual(m.textColor, '#fff');
+
+        // Unknown values fall back rather than reaching the card as-is.
+        const bad = a._normalizeMessage('{"text":"x","appearance":"neon","align":"justify"}');
+        assert.strictEqual(bad.appearance, 'bar');
+        assert.strictEqual(bad.align, 'left');
+
+        // No colour at all: the card falls back to the severity colour itself.
+        const plain = a._normalizeMessage('{"text":"x"}');
+        assert.strictEqual(plain.color, undefined);
+        assert.strictEqual(plain.appearance, 'bar');
+        assert.strictEqual(plain.align, 'left');
+        console.log('\u2713 appearance and alignment are validated');
+    }
+
+    // ── The admin default supplies both ──────────────────────────────────────
+    {
+        const a = makeAdapter();
+        await a._loadMessageDefaults(JSON.stringify({ appearance: 'filled', align: 'center' }));
+        const m = a._normalizeMessage('{"text":"x"}');
+        assert.strictEqual(m.appearance, 'filled');
+        assert.strictEqual(m.align, 'center');
+        // A payload still overrides the default per field.
+        const over = a._normalizeMessage('{"text":"x","appearance":"plain"}');
+        assert.strictEqual(over.appearance, 'plain');
+        assert.strictEqual(over.align, 'center', 'the untouched field keeps the default');
+        console.log('\u2713 appearance defaults apply per field');
+    }
+
+    // ── A colour string is capped, not trusted for length ────────────────────
+    {
+        const a = makeAdapter();
+        const m = a._normalizeMessage(JSON.stringify({ text: 'x', color: 'a'.repeat(500) }));
+        assert.strictEqual(m.color.length, 64);
+        console.log('\u2713 colour strings are capped');
+    }
+
     // ── Out-of-range values are clamped, not passed through ──────────────────
     {
         const a = makeAdapter();

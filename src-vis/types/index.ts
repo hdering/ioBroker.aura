@@ -426,6 +426,17 @@ export type MessagePosition =
     | 'bottom-center'
     | 'bottom-right';
 
+/**
+ * How the severity colour is applied to the card.
+ *   bar     accent stripe on the leading edge (default)
+ *   filled  the whole card takes the colour
+ *   outline the colour runs all the way around
+ *   plain   no accent at all
+ */
+export type MessageAppearance = 'bar' | 'filled' | 'outline' | 'plain';
+
+export type MessageAlign = 'left' | 'center' | 'right';
+
 /** A button on the toast. Writes `value` to `dp`, then closes unless close=false. */
 export interface MessageAction {
     label: string;
@@ -468,6 +479,15 @@ export interface AuraMessage {
     width?: number;
     height?: number;
     transparency?: number;
+    /** Where the accent colour goes. Undefined = the admin default. */
+    appearance?: MessageAppearance;
+    /** Replaces the severity colour for bar / fill / outline. */
+    color?: string;
+    /** Explicit card background; wins over what `appearance` would paint. */
+    background?: string;
+    /** Explicit text colour for title and body. */
+    textColor?: string;
+    align?: MessageAlign;
     /** Datapoint written when the message is confirmed. */
     ackDp?: string;
     ackValue?: string;
@@ -509,6 +529,11 @@ export interface MessageDraft {
     width: string;
     height: string;
     transparency: string;
+    appearance: '' | MessageAppearance;
+    align: '' | MessageAlign;
+    color: string;
+    background: string;
+    textColor: string;
     ackDp: string;
     ackValue: string;
     persist: boolean;
