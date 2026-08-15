@@ -25,6 +25,13 @@ export interface EChartSeriesConfig {
     smooth?: boolean;
     yAxisIndex?: 0 | 1;
     lineWidth?: number;
+    /**
+     * Stack this series onto the other stacked series of its y axis (issue #541) — e.g. battery
+     * discharge + grid draw adding up to the house consumption. Stacks are grouped per axis, since
+     * summing values from two differently scaled axes would be meaningless. See `alignStackedSeries`
+     * for why the points have to be resampled onto a shared timeline first.
+     */
+    stack?: boolean;
     /** Absolute window override (ms epoch) — set by the widget's day navigation; wins over historyRange. */
     historyStart?: number;
     historyEnd?: number;

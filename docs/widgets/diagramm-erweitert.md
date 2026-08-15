@@ -85,9 +85,25 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].color` | Palette | Linien-/Balkenfarbe |
 | `echartSeries[].yAxisIndex` | `0` | `0` = links, `1` = rechte Y-Achse |
 | `echartSeries[].smooth` | `true` | geglättete Linie (nur Linie/Fläche) |
+| `echartSeries[].stack` | `false` | Serie auf die anderen gestapelten Serien derselben Y-Achse addieren (siehe unten) |
 | `echartSeries[].aggregate` | `average` | `average` · `minmax` · `max` · `min` · `total` · `delta` · `none` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen), `delta` siehe unten |
 | `echartSeries[].deltaBucket` | `hour` | `auto` · `hour` · `day` · `week` · `month` · `year` — Zeiteinheit für `aggregate: delta` |
 | `echartSeries[].lineWidth` | `2` | Linienstärke 1–4 (nur Linie/Fläche) |
+
+### Stapeln
+
+`Stapeln` je Serie: die Serie wird auf die anderen gestapelten Serien **derselben Y-Achse** addiert —
+z. B. Speicher-Entladung 150 W + Netzbezug 50 W als Bänder, die zusammen den Hausverbrauch von 200 W
+ergeben. Für Linie, Fläche und Balken; Flächen werden dabei kräftiger eingefärbt.
+
+- Linke und rechte Y-Achse stapeln getrennt — Werte zweier verschieden skalierter Achsen zu addieren
+  ergäbe keine sinnvolle Zahl.
+- Eine gestapelte Achse beginnt bei 0, damit die Bandhöhen den Werten entsprechen. Ein gesetztes
+  `Min` hat weiterhin Vorrang.
+- Der Tooltip zeigt weiter den Einzelwert jeder Serie und zusätzlich eine Zeile `Σ Summe`.
+- Serien mit eigenen Zeitstempeln werden vorher auf eine gemeinsame Zeitachse gebracht (jede Serie
+  behält ihren letzten gemeldeten Wert bis zur nächsten Messung). Vor dem ersten Datensatz einer
+  Serie bleibt das Band offen, statt eine 0 zu erfinden.
 
 ### Werte-Transformation
 

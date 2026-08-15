@@ -35,6 +35,7 @@ import {
     type MessageScope,
 } from '../store/messagesStore';
 import { useThemeStore } from '../store/themeStore';
+import { alignStackedSeries, type StackableSeries, type StackPoint } from '../utils/stackedSeries';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
 import { NS } from '../utils/namespace';
 import type { AuraMessage, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
@@ -286,6 +287,13 @@ function installScreenshotApi(): void {
         /** Which message ids this browser has already handled, id → timestamp. */
         messagesSeen(): Record<string, number> {
             return useMessagesStore.getState().seen;
+        },
+
+        /** The timeline the advanced chart resamples stacked series onto before echarts
+         *  stacks them by index. Exposed because the stacking itself only exists on a
+         *  canvas, while this is where it can actually be wrong (issue #541). */
+        stackAlign(series: StackableSeries[], data: StackPoint[][]): StackPoint[][] {
+            return alignStackedSeries(series, data);
         },
     };
 

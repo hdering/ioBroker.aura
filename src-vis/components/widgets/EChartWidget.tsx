@@ -16,6 +16,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
+import { alignStackedSeries, stackIdFor } from '../../utils/stackedSeries';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
@@ -243,12 +244,16 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
     // ── Shared y axes and current-value block (used by the timeseries and JSON branches) ──
     const hasRightAxis = echartSeries.some((s) => (s.yAxisIndex ?? 0) === 1);
+    // A stack is read as "these parts add up to that whole", which only works from a zero
+    // baseline: cut the axis at 100 and the bottom band looks like it floats, while the band
+    // heights stop being proportional to the values (issue #541). An explicit min still wins.
+    const stackedOn = (axis: 0 | 1) => echartSeries.some((s) => s.stack && (s.yAxisIndex ?? 0) === axis);
 
     const leftAxis: Record<string, unknown> = {
         type: 'value',
         // Fit the axis to the data range instead of forcing zero in — otherwise a
         // line at e.g. 200–250 sits at the top with the whole 0–200 band left blank.
-        scale: true,
+        scale: !stackedOn(0) || echartLeftMin !== undefined,
         axisLabel: {
             show: echartShowYAxis,
             color: '#888',
@@ -265,7 +270,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const rightAxis: Record<string, unknown> = hasRightAxis
         ? {
               type: 'value',
-              scale: true,
+              scale: !stackedOn(1) || echartRightMin !== undefined,
               axisLabel: {
                   show: echartShowYAxis,
                   color: '#888',
@@ -543,7 +548,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             return {
                 name: s.name,
                 type: s.chartType === 'area' ? 'line' : s.chartType,
-                areaStyle: s.chartType === 'area' ? { opacity: 0.2 } : undefined,
+                // Stacked areas are read as bands, not as curves in front of each other — a 0.2 wash
+                // leaves the bands barely distinguishable from the background they sit on.
+                areaStyle: s.chartType === 'area' ? { opacity: s.stack ? 0.6 : 0.2 } : undefined,
+                stack: stackIdFor(s),
                 smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
                 smoothMonotone: 'x',
                 lineStyle: { width: s.lineWidth ?? 2 },
@@ -719,12 +727,21 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         );
     }
 
+    // Stacked series are resampled onto their shared timeline first: ECharts stacks by data index,
+    // and each series brings its own history timestamps (issue #541).
+    const alignedData = alignStackedSeries(
+        echartSeries,
+        echartSeries.map((s, idx) => seriesData(idx, s.id)),
+    );
+    const hasStack = echartSeries.some((s) => s.stack);
+
     const seriesList = echartSeries.map((s, idx) => {
-        const data = seriesData(idx, s.id);
+        const data = alignedData[idx];
         return {
             name: s.name,
             type: s.chartType === 'area' ? 'line' : s.chartType,
-            areaStyle: s.chartType === 'area' ? { opacity: 0.2 } : undefined,
+            areaStyle: s.chartType === 'area' ? { opacity: s.stack ? 0.6 : 0.2 } : undefined,
+            stack: stackIdFor(s),
             smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
             // Monotone smoothing never overshoots the data — a flat run of equal values
             // (e.g. dry days at 0) stays exactly flat instead of wobbling around it.
@@ -751,7 +768,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 const items = params as {
                     axisValue: number;
                     seriesName: string;
-                    value: [number, number];
+                    value: [number, number | null];
                     marker: string;
                     seriesIndex: number;
                 }[];
@@ -764,13 +781,44 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     hour: '2-digit',
                     minute: '2-digit',
                 });
-                const lines = items.map((p) => {
-                    const seriesCfg = echartSeries[p.seriesIndex];
-                    const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+                // Aligning a stack pads the series that hadn't started yet with nulls \u2014 a row
+                // reading "null" is noise, the series simply has nothing at this moment.
+                const shown = hasStack ? items.filter((p) => typeof p.value?.[1] === 'number') : items;
+                if (!shown.length) return '';
+                const unitOf = (idx: number) =>
+                    (echartSeries[idx]?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+                const lines = shown.map((p) => {
+                    const unit = unitOf(p.seriesIndex);
+                    // Stacked or not, echarts hands the formatter the series' own value, never the
+                    // stacked one \u2014 the total is added below instead.
                     const raw = p.value[1];
                     const dispVal = typeof raw === 'number' ? formatNum(raw, decimals, numFmt) : raw;
                     return `${p.marker} ${p.seriesName}: <b>${dispVal}${unit ? `\u202F${unit}` : ''}</b>`;
                 });
+                // The point of stacking is the sum (150 W battery + 50 W grid = 200 W house), so
+                // spell it out \u2014 one line per stack, since each y axis stacks for itself.
+                if (hasStack) {
+                    const sums = new Map<string, { total: number; count: number; unit: string }>();
+                    for (const p of shown) {
+                        const cfg = echartSeries[p.seriesIndex];
+                        const stackId = cfg ? stackIdFor(cfg) : undefined;
+                        if (!stackId) continue;
+                        const acc = sums.get(stackId) ?? { total: 0, count: 0, unit: unitOf(p.seriesIndex) };
+                        acc.total += p.value[1] as number;
+                        acc.count++;
+                        sums.set(stackId, acc);
+                    }
+                    for (const acc of sums.values()) {
+                        if (acc.count < 2) continue;
+                        lines.push(
+                            `<span style="opacity:.7">\u03A3</span> ${t('echart.stackTotal')}: <b>${formatNum(
+                                acc.total,
+                                decimals,
+                                numFmt,
+                            )}${acc.unit ? `\u202F${acc.unit}` : ''}</b>`,
+                        );
+                    }
+                }
                 return `${timeStr}<br/>${lines.join('<br/>')}`;
             },
         },
