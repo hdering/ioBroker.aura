@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, ReferenceLine } from 'recharts';
 import { TrendingUp, BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -10,6 +10,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
 import { samplePreviewHistory } from '../../utils/sampleChartData';
+import { applyValueTransform } from '../../utils/valueTransform';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -111,8 +112,18 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     // In the popup editor the datapoint is a {{placeholder}} that can't resolve, so there
     // is no real history. Show a representative sample chart instead of an empty widget.
     const isPreview = editMode && (config.datapoint?.startsWith('{{') ?? false) && raw.history.length === 0;
-    const history = isPreview ? PREVIEW_HISTORY : raw.history;
-    const current = isPreview ? history[history.length - 1].v : raw.current;
+    const rawHistory = isPreview ? PREVIEW_HISTORY : raw.history;
+    // Display-only conversion (issue #540), applied before anything derived from the points:
+    // average, y ticks and tooltips all read the converted series. Memoised so the points array
+    // keeps its identity between renders — recharts re-renders on a new reference.
+    const valueFactor = o.valueFactor as number | undefined;
+    const valueOffset = o.valueOffset as number | undefined;
+    const history = useMemo(
+        () => rawHistory.map((p) => ({ t: p.t, v: applyValueTransform(p.v, valueFactor, valueOffset) })),
+        [rawHistory, valueFactor, valueOffset],
+    );
+    const rawCurrent = isPreview ? rawHistory[rawHistory.length - 1].v : raw.current;
+    const current = rawCurrent === null ? null : applyValueTransform(rawCurrent, valueFactor, valueOffset);
     const loading = isPreview ? false : raw.loading;
 
     const avg =

@@ -89,6 +89,22 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].deltaBucket` | `hour` | `auto` · `hour` · `day` · `week` · `month` · `year` — Zeiteinheit für `aggregate: delta` |
 | `echartSeries[].lineWidth` | `2` | Linienstärke 1–4 (nur Linie/Fläche) |
 
+### Werte-Transformation
+
+ƒx-Button neben dem Datenpunkt-Feld der Serie. Reine Anzeige-Umrechnung `Wert × Faktor + Offset`,
+je Serie einzeln — der Datenpunkt und seine History bleiben unverändert. Gilt für Kurve, Tooltip,
+Legende und den aktuellen Wert; ein Preset (z. B. `W → kW`) setzt gleich die Einheit der Y-Achse,
+an der die Serie hängt.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `echartSeries[].valueTransform` | — | Preset-Id oder `custom` |
+| `echartSeries[].valueFactor` | `1` | Multiplikator |
+| `echartSeries[].valueOffset` | `0` | Summand |
+
+Bei `aggregate: delta` wird vor der Differenzbildung umgerechnet: der Faktor wirkt auf den Verbrauch,
+der Offset fällt heraus (die Differenz zweier verschobener Zählerstände ist dieselbe).
+
 ### Verbrauch aus Zählerständen
 
 `aggregate: delta` für fortlaufende Gesamtzähler (Strom, Wasser, Gas). Statt des Zählerstands wird die Differenz je Zeiteinheit gezeichnet — also der Verbrauch pro Stunde, Tag, Woche, Monat oder Jahr.

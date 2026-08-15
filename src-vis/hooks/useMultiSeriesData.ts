@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getHistoryDirect, getStateFromCache, getObjectDirect, type HistoryEntry } from './useIoBroker';
 import { detectHistoryAdapters, TOTAL_FLOOR_MS, type DetectedAdapter } from './useChartHistory';
+import { applyValueTransform } from '../utils/valueTransform';
 import type { ioBrokerState } from '../types';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'total' | 'custom';
@@ -54,6 +55,24 @@ export interface EChartSeriesConfig {
     jsonLabelKey?: string;
     /** Object key holding the y value (default `value`). */
     jsonValueKey?: string;
+    /**
+     * Display-only value conversion, per series (issue #540): every point, the live value and the
+     * current-value block are shown as `raw * valueFactor + valueOffset` — the datapoint and its
+     * history records are never touched. Set through the ƒx button next to the series' datapoint;
+     * `valueTransform` only remembers which preset was picked (several share a factor, e.g. W→kW
+     * and Wh→kWh are both ×0.001).
+     *
+     * A `delta` series is converted before differencing, so the offset cancels out — as it must:
+     * a shifted counter reading consumes exactly as much per bucket as an unshifted one.
+     */
+    valueTransform?: string;
+    valueFactor?: number;
+    valueOffset?: number;
+}
+
+/** A series' raw number as it should be displayed — see `valueFactor` / `valueOffset`. */
+function seriesValue(s: EChartSeriesConfig, raw: number): number {
+    return applyValueTransform(raw, s.valueFactor, s.valueOffset);
 }
 
 /** One label/value pair of a JSON-sourced series. */
@@ -352,7 +371,7 @@ export function parseJsonSeries(raw: unknown, s: EChartSeriesConfig): JsonPoint[
         const rec = item as Record<string, unknown>;
         const value = Number(rec[valueKey]);
         if (!Number.isFinite(value)) continue;
-        points.push({ label: String(rec[labelKey] ?? ''), value });
+        points.push({ label: String(rec[labelKey] ?? ''), value: seriesValue(s, value) });
     }
     return points;
 }
@@ -490,6 +509,8 @@ export function useMultiSeriesData(
             s.jsonPath,
             s.jsonLabelKey,
             s.jsonValueKey,
+            s.valueFactor,
+            s.valueOffset,
         ]),
     );
 
@@ -565,7 +586,7 @@ export function useMultiSeriesData(
                 const cached = getStateFromCache(s.datapointId);
                 const seedFromState = (state: ioBrokerState | null) => {
                     if (!mountedRef.current) return;
-                    const val = typeof state?.val === 'number' ? (state.val as number) : null;
+                    const val = typeof state?.val === 'number' ? seriesValue(s, state.val as number) : null;
                     setResultsMap((prev) => {
                         const next = new Map(prev);
                         const existing = next.get(s.id);
@@ -637,7 +658,10 @@ export function useMultiSeriesData(
                                 (e): e is { ts: number; val: number; ack?: boolean; q?: number } =>
                                     typeof e.val === 'number',
                             )
-                            .map((e): [number, number] => [e.ts, e.val as number])
+                            // Converted here, at the single point every downstream path flows through:
+                            // the plotted points, the delta bucketing and the "current" value all
+                            // derive from `data` (issue #540).
+                            .map((e): [number, number] => [e.ts, seriesValue(s, e.val as number)])
                             .sort((a, b) => a[0] - b[0]);
 
                         if (isDelta) {
@@ -701,7 +725,7 @@ export function useMultiSeriesData(
                         // curve drops to reality instead of running flat.
                         const finish = (state: ioBrokerState | null) => {
                             if (!mountedRef.current) return;
-                            const liveVal = typeof state?.val === 'number' ? (state.val as number) : null;
+                            const liveVal = typeof state?.val === 'number' ? seriesValue(s, state.val as number) : null;
                             let outData = data;
                             if (liveVal !== null && data.length > 0 && data[data.length - 1][1] !== liveVal) {
                                 outData = [...data, [Date.now(), liveVal]];
@@ -799,7 +823,9 @@ export function useMultiSeriesData(
                         // and silently stop growing the trailing bar.
                         const info = deltaBaseRef.current.get(s.id);
                         if (!info || bucketStart(state.ts, info.unit) !== info.bucket) return;
-                        const diff = Math.max(0, (state.val as number) - info.base);
+                        // `info.base` came out of already-converted history, so the live reading has
+                        // to be converted too before the two are differenced.
+                        const diff = Math.max(0, seriesValue(s, state.val as number) - info.base);
                         setResultsMap((prev) => {
                             const existing = prev.get(s.id);
                             if (!existing || existing.loading || existing.data.length === 0) return prev;
@@ -816,7 +842,7 @@ export function useMultiSeriesData(
                 }
                 return subscribe(s.datapointId, (state: ioBrokerState) => {
                     if (typeof state.val !== 'number') return;
-                    const val = state.val as number;
+                    const val = seriesValue(s, state.val as number);
                     setResultsMap((prev) => {
                         const existing = prev.get(s.id);
                         // Adapters often re-write unchanged values on every poll (only the ts

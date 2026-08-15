@@ -9328,7 +9328,8 @@ export function WidgetFrame({
                                         />
                                         {(config.type === 'value' ||
                                             config.type === 'gauge' ||
-                                            config.type === 'fill') && (
+                                            config.type === 'fill' ||
+                                            config.type === 'chart') && (
                                             <ValueTransformButton
                                                 factor={config.options?.valueFactor as number | undefined}
                                                 offset={config.options?.valueOffset as number | undefined}

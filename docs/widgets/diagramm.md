@@ -36,6 +36,18 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `unit` | — | Einheit hinter dem Wert |
 | `decimals` | globale Einstellung | Nachkommastellen |
 
+### Werte-Transformation
+
+ƒx-Button neben dem Datenpunkt-Feld. Reine Anzeige-Umrechnung `Wert × Faktor + Offset` für Kurve,
+aktuellen Wert, Durchschnitt, Y-Achse und Tooltip; der Datenpunkt und seine History bleiben unverändert.
+Presets (z. B. `W → kW`, `Wh → kWh`) füllen die Einheit gleich mit.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `valueTransform` | — | Preset-Id oder `custom` |
+| `valueFactor` | `1` | Multiplikator |
+| `valueOffset` | `0` | Summand |
+
 ### Verlauf
 
 | Option | Standard | |

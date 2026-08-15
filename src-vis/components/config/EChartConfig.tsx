@@ -15,6 +15,7 @@ import {
 } from '../../hooks/useMultiSeriesData';
 import { useT, t } from '../../i18n';
 import { ColorPicker } from '../common/ColorPicker';
+import { ValueTransformButton } from './ValueTransformButton';
 
 interface EChartConfigProps {
     config: WidgetConfig;
@@ -170,6 +171,23 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
 
     const updateSeries = (id: string, patch: Partial<EChartSeriesConfig>) => {
         setSeries(series.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+    };
+
+    /**
+     * Store a series' value conversion (issue #540). A preset's suggested unit lands on the axis
+     * the series is plotted against — the unit lives on the widget, not on the series, so picking
+     * "W → kW" relabels the axis in one go. Both halves go into a single onConfigChange: series and
+     * unit sit in the same options object, so two separate calls would overwrite each other.
+     */
+    const setSeriesTransform = (
+        id: string,
+        patch: { valueTransform?: string; valueFactor?: number; valueOffset?: number; unit?: string },
+    ) => {
+        const { unit, ...rest } = patch;
+        const next = series.map((s) => (s.id === id ? { ...s, ...rest } : s));
+        const target = series.find((s) => s.id === id);
+        const axisKey = (target?.yAxisIndex ?? 0) === 1 ? 'echartRightUnit' : 'echartLeftUnit';
+        setO(unit ? { echartSeries: next, [axisKey]: unit } : { echartSeries: next });
     };
 
     const addSeries = () => {
@@ -509,6 +527,14 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                 >
                                                     <Database size={13} />
                                                 </button>
+                                                <ValueTransformButton
+                                                    factor={s.valueFactor}
+                                                    offset={s.valueOffset}
+                                                    presetId={s.valueTransform}
+                                                    dpId={s.datapointId}
+                                                    fillUnit
+                                                    onPatch={(patch) => setSeriesTransform(s.id, patch)}
+                                                />
                                             </div>
                                         </div>
 
