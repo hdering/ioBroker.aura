@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.47.1",
+    "version": "0.47.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.47.2": {
+        "en": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "de": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "ru": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "pt": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "nl": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "fr": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "it": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "es": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "pl": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "uk": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
+        "zh-cn": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off"
+      },
       "0.47.1": {
         "en": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
         "de": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
@@ -184,19 +197,6 @@
         "pl": "fix(status-overview): show full device name in card and minimal layouts",
         "uk": "fix(status-overview): show full device name in card and minimal layouts",
         "zh-cn": "fix(status-overview): show full device name in card and minimal layouts"
-      },
-      "0.44.1": {
-        "en": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "de": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "ru": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "pt": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "nl": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "fr": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "it": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "es": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "pl": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "uk": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)",
-        "zh-cn": "🌟 New feature: Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action (#534)\n🌟 New feature: Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals (#531)"
       }
     }
   },
