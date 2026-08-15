@@ -359,6 +359,65 @@ check(
     }),
 );
 
+// ── 16d. Size, transparency and the rest of the payload ─────────────────────
+const cardBox = () =>
+    page.evaluate(() => {
+        const card = document.querySelector('[data-aura-toasts] [role="status"], [data-aura-toasts] [role="alert"]');
+        if (!card) return null;
+        const box = card.getBoundingClientRect();
+        const scroller = card.querySelector('.overflow-auto');
+        return {
+            w: Math.round(box.width),
+            h: Math.round(box.height),
+            opacity: getComputedStyle(card).opacity,
+            images: card.querySelectorAll('img').length,
+            buttons: card.querySelectorAll('button').length,
+            scrollable: scroller ? scroller.scrollHeight > scroller.clientHeight + 2 : false,
+        };
+    });
+
+await show([msg({ title: 'Standard', text: 'kurz' })]);
+const defaultBox = await cardBox();
+check(`the default card is ${defaultBox.w}px wide`, defaultBox.w === 340);
+
+await show([msg({ title: 'Breit', text: 'kurz', width: 600 })]);
+let box = await cardBox();
+check(`width reaches the card (got ${box.w})`, box.w === 600);
+
+await show([msg({ title: 'Schmal', text: 'kurz', width: 200 })]);
+box = await cardBox();
+check(`a narrow width applies too (got ${box.w})`, box.w === 200);
+
+// height is a height, not a ceiling: a short message has to grow into it.
+await show([msg({ title: 'Hoch', text: 'kurz', height: 300 })]);
+box = await cardBox();
+check(`height grows a short card (got ${box.h})`, box.h === 300);
+
+await show([msg({ title: 'Durchsichtig', text: 'kurz', transparency: 50 })]);
+box = await cardBox();
+check(`transparency reaches the card (got ${box.opacity})`, box.opacity === '0.5');
+
+await show([msg({ title: 'Alles', text: 'kurz', width: 500, height: 250, transparency: 30 })]);
+box = await cardBox();
+check(
+    `width, height and transparency combine (got ${box.w}x${box.h} @ ${box.opacity})`,
+    box.w === 500 && box.h === 250 && box.opacity === '0.7',
+);
+
+// A message longer than its card must scroll rather than be clipped away.
+const manyLines = Array.from({ length: 40 }, (_, i) => `Zeile ${i}`).join('<br>');
+await show([msg({ title: 'Lang', text: manyLines, height: 120 })]);
+box = await cardBox();
+check('a message taller than its card scrolls instead of being cut off', box.h === 120 && box.scrollable);
+
+await show([msg({ title: 'Bild', text: 'x', image: '/favicon.svg' })]);
+box = await cardBox();
+check('an image is rendered', box.images === 1);
+
+// An unknown view must fall back to the text, not leave an empty card.
+await show([msg({ title: 'Fehlt', text: 'Rueckfalltext', view: 'gibt-es-nicht' })]);
+check('an unknown popup view falls back to the text', await visibleText('Rueckfalltext'));
+
 // ── 16b. A view without a toast layer must not consume messages ─────────────
 // The admin area keeps a runtime lease for its history list. Before this gate it
 // swallowed arriving messages there: out of scope counts as handled, so the

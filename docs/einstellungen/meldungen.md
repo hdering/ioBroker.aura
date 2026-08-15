@@ -62,7 +62,8 @@ Mindestens eines von `title`, `text`, `html`, `image` oder `view` muss gesetzt s
 | `durationSec` | number | Sekunden bis zum automatischen Schließen; `0` = bleibt offen |
 | `requireAck` | boolean | kein Auto-Schließen, kein Klick daneben — nur der Bestätigen-Button schließt |
 | `priority` | `0`–`100` | höher drängt sich an wartenden Meldungen derselben Position vorbei |
-| `width` / `height` | number (px) | Größe der Karte |
+| `width` | number (px) | Breite der Karte; Standard 340 |
+| `height` | number (px) | Feste Höhe — die Karte wächst darauf an; ohne Angabe passt sie sich dem Inhalt an |
 | `transparency` | `0`–`95` | Prozent; `0` = deckend |
 
 ### Darstellung
@@ -83,6 +84,8 @@ Mindestens eines von `title`, `text`, `html`, `image` oder `view` muss gesetzt s
 | `plain` | Ohne Farbe, nur Icon und Text |
 
 Auf gefülltem Grund schaltet Aura Text, Icon, Buttons und Countdown automatisch auf Weiß. `textColor` überschreibt das.
+
+Passt der Inhalt nicht in die angegebene Höhe, scrollt der Text innerhalb der Karte — Icon, Schließen-Button und Countdown bleiben stehen. Ohne `height` wächst die Karte mit dem Inhalt, höchstens bis 85 % der Bildschirmhöhe.
 
 ### Verhalten
 

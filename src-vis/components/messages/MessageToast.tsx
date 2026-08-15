@@ -151,17 +151,23 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
                 // view paints its own widget cards and has to fade along with the frame.
                 opacity: msg.transparency ? 1 - msg.transparency / 100 : undefined,
                 width: embedded ? '100%' : `min(calc(100vw - 24px), ${width}px)`,
-                maxHeight: embedded ? undefined : msg.height ? `min(85dvh, ${msg.height}px)` : '85dvh',
+                // A given height is a height, not just a ceiling — the field is
+                // labelled "Höhe", so a short message has to grow to fill it.
+                height: !embedded && msg.height ? `min(85dvh, ${msg.height}px)` : undefined,
+                maxHeight: embedded ? undefined : '85dvh',
             }}
             onPointerEnter={() => setPaused(true)}
             onPointerLeave={() => setPaused(false)}
             role={msg.severity === 'error' ? 'alert' : 'status'}
         >
-            <div className="flex items-start gap-2.5 px-3 pt-2.5 pb-2">
+            {/* flex-1/min-h-0 so the row can shrink inside a fixed-height card; the
+                text column is what scrolls, keeping icon and close button in place.
+                Without it a message longer than the card was simply clipped away. */}
+            <div className="flex items-start gap-2.5 px-3 pt-2.5 pb-2 flex-1 min-h-0">
                 <span className="shrink-0 mt-0.5" style={{ color: onAccent ? '#fff' : color }}>
                     {msg.icon ? <Icon icon={msg.icon} width={16} height={16} /> : <SeverityIcon size={16} />}
                 </span>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 h-full overflow-auto aura-scroll">
                     {msg.title && (
                         <div
                             className="aura-msg-html text-xs font-semibold mb-0.5 break-words"
