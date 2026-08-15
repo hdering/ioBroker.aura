@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Status overview - new "text alignment" setting (left / centered / right) for rows, cards and the Minimal layout's pills
+- Gauge - the value no longer sits under the needle hub, and its font size is now configurable

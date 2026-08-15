@@ -43,6 +43,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `unit` | — | Einheit hinter dem Wert |
 | `decimals` | globale Vorgabe | Nachkommastellen |
 | `strokeWidth` | `12` | Dicke des Bogens (px) |
+| `valueFontSize` | `22` | Schriftgröße des Werts; die Einheit skaliert mit |
 
 ### Wert-Transformation
 

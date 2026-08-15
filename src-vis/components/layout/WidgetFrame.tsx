@@ -10005,6 +10005,23 @@ export function WidgetFrame({
                                                     style={gSty}
                                                 />
                                             </div>
+                                            <div className="flex-1">
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Schriftgröße Wert
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={8}
+                                                    max={60}
+                                                    value={(o.valueFontSize as number) ?? 22}
+                                                    onChange={(e) => set({ valueFontSize: Number(e.target.value) })}
+                                                    className={gCls}
+                                                    style={gSty}
+                                                />
+                                            </div>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div>

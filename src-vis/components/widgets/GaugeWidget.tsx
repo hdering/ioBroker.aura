@@ -45,8 +45,12 @@ interface GaugeSVGProps {
     colorZones: boolean;
     zones: ColorZone[];
     showMinMax: boolean;
+    valueFontSize?: number;
     scale?: number;
 }
+
+const DEFAULT_VALUE_FONT_SIZE = 22;
+const CENTER_DOT_R = 5;
 
 function GaugeSVG({
     pointers,
@@ -59,12 +63,20 @@ function GaugeSVG({
     colorZones,
     zones,
     showMinMax,
+    valueFontSize,
     scale = 1,
 }: GaugeSVGProps) {
     const cx = 100,
         cy = 100,
         r = 80;
     const primary = pointers[0];
+
+    // Value text: baseline placed so the digit tops stay clear of the centre dot,
+    // and the viewBox grows with the font size so nothing is clipped at the bottom.
+    const valueFs = valueFontSize && valueFontSize > 0 ? valueFontSize : DEFAULT_VALUE_FONT_SIZE;
+    const unitFs = Math.max(7, Math.round(valueFs * 0.6));
+    const valueBaseline = cy + CENTER_DOT_R + 4 + valueFs * 0.72;
+    const vbHeight = Math.max(120, Math.ceil(valueBaseline + valueFs * 0.12));
 
     // Determine primary color (zone-based or fixed)
     let primaryColor = primary.color;
@@ -79,7 +91,7 @@ function GaugeSVG({
     const needleLengths = [r - 8, r - 16, r - 24];
 
     return (
-        <svg viewBox="0 0 200 120" style={{ width: 200 * scale, height: 120 * scale, display: 'block' }}>
+        <svg viewBox={`0 0 200 ${vbHeight}`} style={{ width: 200 * scale, height: vbHeight * scale, display: 'block' }}>
             {colorZones && zones.length > 0 ? (
                 /* Zone arcs – cover the full track, no background track underneath */
                 <>
@@ -156,13 +168,20 @@ function GaugeSVG({
             })}
 
             {/* Center circle */}
-            <circle cx={cx} cy={cy} r={5} fill={primaryColor} />
+            <circle cx={cx} cy={cy} r={CENTER_DOT_R} fill={primaryColor} />
 
             {/* Primary value text */}
-            <text x={cx} y={cy + 18} textAnchor="middle" fontSize={22} fontWeight="bold" fill="var(--text-primary)">
+            <text
+                x={cx}
+                y={valueBaseline}
+                textAnchor="middle"
+                fontSize={valueFs}
+                fontWeight="bold"
+                fill="var(--text-primary)"
+            >
                 {displayVal}
                 {unit && (
-                    <tspan fontSize={13} fill="var(--text-secondary)" dx={2}>
+                    <tspan fontSize={unitFs} fill="var(--text-secondary)" dx={2}>
                         {unit}
                     </tspan>
                 )}
@@ -220,6 +239,7 @@ export function GaugeWidget({ config }: WidgetProps) {
     const strokeWidth = (opts.strokeWidth as number) ?? 12;
     const colorZones = (opts.colorZones as boolean) ?? false;
     const showMinMax = (opts.showMinMax as boolean) ?? true;
+    const valueFontSize = (opts.valueFontSize as number) || DEFAULT_VALUE_FONT_SIZE;
 
     const numVal = typeof value === 'number' ? value : parseFloat(String(value ?? 0));
     const safeVal = isNaN(numVal) ? resolvedMin : tx(numVal);
@@ -280,6 +300,7 @@ export function GaugeWidget({ config }: WidgetProps) {
         colorZones,
         zones,
         showMinMax,
+        valueFontSize,
     };
 
     // Secondary pointer badges
