@@ -78,6 +78,11 @@ function makeAdapter(config = {}, initialObjects = {}) {
         }
     };
     a.setForeignStateAsync = a.setStateAsync;
+    // onMessage answers through sendTo(from, command, result, callback).
+    a._replies = [];
+    a.sendTo = (_from, _command, result) => {
+        a._replies.push(result);
+    };
 
     // Convenience accessors used by the assertions below.
     a._val = (id) => (states.has(id) ? states.get(id).val : undefined);
@@ -612,6 +617,72 @@ async function write(a, relDp, value, ack = false) {
         await write(a, 'messages.send', JSON.stringify({ title: 'X' }));
         assert.strictEqual(a._history()[0].position, 'center');
         console.log('✓ config.messageDefaults is applied without a restart');
+    }
+
+    // ── sendTo('aura.0', 'notify', …) ────────────────────────────────────────
+    // The scripting counterpart to writing messages.send; both go through
+    // _deliverMessage, so they cannot drift apart.
+    {
+        const a = makeAdapter();
+        const call = async (command, message) => {
+            a._replies.length = 0;
+            await a.onMessage({ command, message, from: 'javascript.0', callback: { id: 1 } });
+            return a._replies[0];
+        };
+
+        let r = await call('notify', { severity: 'warning', title: 'Heizung', text: 'kalt' });
+        assert.strictEqual(r.ok, true);
+        assert.ok(r.id, 'the assigned id comes back so a script can ack it later');
+        assert.strictEqual(a._history()[0].title, 'Heizung');
+        assert.strictEqual(a._history()[0].severity, 'warning');
+
+        // A plain string works too, exactly like the datapoint.
+        r = await call('notify', 'Waschmaschine fertig');
+        assert.strictEqual(r.ok, true);
+        assert.strictEqual(a._history()[0].text, 'Waschmaschine fertig');
+        assert.strictEqual(a._history()[0].severity, 'info');
+
+        // 'message' is accepted as an alias.
+        r = await call('message', { title: 'Alias' });
+        assert.strictEqual(r.ok, true);
+        assert.strictEqual(a._history()[0].title, 'Alias');
+
+        // Unusable payloads answer with a reason instead of failing silently.
+        r = await call('notify', '');
+        assert.deepStrictEqual(r, { ok: false, error: 'empty payload' });
+        r = await call('notify', { severity: 'error' });
+        assert.strictEqual(r.ok, false);
+        assert.ok(/title/.test(r.error), 'the error names what is missing');
+
+        console.log('\u2713 sendTo notify delivers and reports the id');
+    }
+
+    // ── sendTo ack / dismiss ─────────────────────────────────────────────────
+    {
+        const a = makeAdapter();
+        const call = async (command, message) => {
+            a._replies.length = 0;
+            await a.onMessage({ command, message, from: 'javascript.0', callback: { id: 1 } });
+            return a._replies[0];
+        };
+
+        await call('notify', { id: 'wm', title: 'Waschmaschine' });
+        assert.strictEqual(a._val('messages.unreadCount'), 1);
+
+        let r = await call('notifyAck', { id: 'wm' });
+        assert.strictEqual(r.ok, true);
+        assert.strictEqual(a._val('messages.unreadCount'), 0);
+
+        // A bare string id is accepted as well.
+        await call('notify', { id: 'x', title: 'X' });
+        r = await call('notifyDismiss', 'x');
+        assert.strictEqual(r.ok, true);
+        assert.strictEqual(a._history().find((m) => m.id === 'x').dismissed, true);
+        assert.strictEqual(a._val('messages.unreadCount'), 1, 'dismiss is not a confirmation');
+
+        r = await call('notifyAck', '');
+        assert.strictEqual(r.ok, false);
+        console.log('\u2713 sendTo can confirm and close a message');
     }
 
     console.log('\nAll message tests passed.');

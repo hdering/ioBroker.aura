@@ -1761,20 +1761,29 @@ class Aura extends utils.Adapter {
         });
     }
 
-    /** A `messages.send` write: normalize → archive → publish → clear the DP. */
+    /**
+     * Normalize → archive → publish. The one path every entry point shares: the
+     * `messages.send` datapoints and the `notify` sendTo command alike.
+     * Returns the delivered message, or null when the payload was unusable.
+     */
+    async _deliverMessage(raw, origin) {
+        const msg = this._normalizeMessage(raw, origin);
+        if (!msg) return null;
+        if (msg.persist) {
+            const history = await this._readMessageHistory();
+            // Same id replaces its predecessor instead of stacking, so a
+            // repeating notice ("washer done") stays a single entry.
+            await this._writeMessageHistory([msg, ...history.filter((m) => m.id !== msg.id)]);
+        }
+        await this.setStateAsync('messages.lastMessage', { val: JSON.stringify(msg), ack: true });
+        this.log.debug(`[messages] ${msg.severity}: ${msg.title || msg.text || msg.id}`);
+        return msg;
+    }
+
+    /** A `messages.send` write: deliver, then clear the datapoint again. */
     async _handleMessageSend(raw, origin, sendDpId) {
         try {
-            const msg = this._normalizeMessage(raw, origin);
-            if (msg) {
-                if (msg.persist) {
-                    const history = await this._readMessageHistory();
-                    // Same id replaces its predecessor instead of stacking, so a
-                    // repeating notice ("washer done") stays a single entry.
-                    await this._writeMessageHistory([msg, ...history.filter((m) => m.id !== msg.id)]);
-                }
-                await this.setStateAsync('messages.lastMessage', { val: JSON.stringify(msg), ack: true });
-                this.log.debug(`[messages] ${msg.severity}: ${msg.title || msg.text || msg.id}`);
-            }
+            await this._deliverMessage(raw, origin);
         } catch (e) {
             this.log.error(`[messages] send failed: ${e.message}`);
         } finally {
@@ -2968,6 +2977,38 @@ class Aura extends utils.Adapter {
                     /* ignore */
                 }
                 reply({ ok: true, version, namespace: this.namespace });
+                return;
+            }
+
+            // ── Messages (issue #429) ─────────────────────────────────────────
+            // sendTo('aura.0', 'notify', {...}, cb) — the scripting counterpart to
+            // writing messages.send. Takes an object or a plain string, and replies
+            // with the assigned id so the caller can confirm or close it later.
+            if (msg.command === 'notify' || msg.command === 'message') {
+                const payload = msg.message;
+                if (payload === undefined || payload === null || payload === '') {
+                    reply({ ok: false, error: 'empty payload' });
+                    return;
+                }
+                const raw = typeof payload === 'string' ? payload : JSON.stringify(payload);
+                const delivered = await this._deliverMessage(raw, { kind: 'global' });
+                if (!delivered) {
+                    reply({ ok: false, error: 'payload needs at least a title, text, html, image or view' });
+                    return;
+                }
+                reply({ ok: true, id: delivered.id, ts: delivered.ts });
+                return;
+            }
+
+            // Confirm or close from a script, mirroring messages.ack / .dismiss.
+            if (msg.command === 'notifyAck' || msg.command === 'notifyDismiss') {
+                const id = String(msg.message?.id ?? msg.message ?? '').trim();
+                if (!id) {
+                    reply({ ok: false, error: 'missing message id' });
+                    return;
+                }
+                await this._handleMessageMark(id, msg.command === 'notifyAck' ? 'ack' : 'dismiss');
+                reply({ ok: true, id });
                 return;
             }
 

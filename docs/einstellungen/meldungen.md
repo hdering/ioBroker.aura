@@ -31,8 +31,30 @@ setState('aura.0.messages.send', JSON.stringify({
 }));
 ```
 
+## sendTo
+
+Aus einem JavaScript-Skript geht es auch ohne Datenpunkt. Der Aufruf antwortet mit der vergebenen ID — damit lässt sich dieselbe Meldung später bestätigen oder schließen.
+
+```js
+sendTo('aura.0', 'notify', {
+    severity: 'warning',
+    title: 'Waschmaschine',
+    text: 'Programm fertig',
+}, (res) => {
+    log(`Meldung ${res.id}`);        // { ok: true, id, ts }
+});
+```
+
+| Befehl | Nutzlast | Antwort |
+| --- | --- | --- |
+| `notify` (alias `message`) | Objekt oder Klartext | `{ ok, id, ts }` — bei Fehler `{ ok: false, error }` |
+| `notifyAck` | ID als String oder `{ id }` | `{ ok, id }` |
+| `notifyDismiss` | ID als String oder `{ id }` | `{ ok, id }` |
+
+`sendTo` schickt immer an alle Geräte — ein `target` im Payload schränkt das wie gewohnt ein.
+
 ::: tip Baukasten im Admin
-**Admin → Meldungen** hat ein Formular, das dieses JSON live erzeugt — inklusive „Kopieren" und „Test senden".
+**Admin → Meldungen** hat ein Formular, das dieses JSON live erzeugt — inklusive fertiger `setState`- und `sendTo`-Zeilen zum Kopieren und einem „Test senden"-Button. Darunter listet **Datenpunkte & sendTo** alle Ein- und Ausgänge.
 :::
 
 ## JSON-Format
@@ -200,6 +222,8 @@ Größe und Aufbewahrung des Archivs stehen in den **Instanz-Einstellungen des A
 | `aura.0.messages.ack` | ID schreiben = bestätigen; `*` = alle |
 | `aura.0.messages.dismiss` | ID schreiben = auf allen Geräten schließen; `*` = alle |
 | `aura.0.messages.clear` | Button; leert den Verlauf |
+
+Dieselben drei Kommandos gibt es als `sendTo` — siehe [oben](#sendto).
 
 Gelesen/ungelesen gilt geräteübergreifend: eine auf dem Tablet bestätigte Meldung ist überall bestätigt. `dismiss` schließt die Einblendung nur, der Eintrag bleibt unbestätigt im Verlauf.
 

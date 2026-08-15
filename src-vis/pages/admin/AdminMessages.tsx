@@ -12,6 +12,7 @@ import {
     emptyDraft,
     type MessageDraft,
 } from '../../components/config/MessageBuilder';
+import { MessageSnippets, CopyButton } from '../../components/config/MessageSnippets';
 import { MessageDetail } from '../../components/messages/MessageDetail';
 import { ToastLayer } from '../../components/messages/ToastLayer';
 import { SEVERITY_COLOR } from '../../components/messages/MessageToast';
@@ -321,26 +322,144 @@ function DesignerSection() {
                     draft={draft}
                     onChange={setDraft}
                     actions={
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={testSend}
-                                disabled={empty}
-                                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 disabled:opacity-40"
-                                style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
-                                title={empty ? 'Mindestens Titel, Text, HTML, Bild oder View angeben' : undefined}
-                            >
-                                <Send size={12} /> Test senden
-                            </button>
-                            {sent && (
-                                <span className="text-[11px]" style={labelStyle}>
-                                    Gesendet um {sent}
-                                </span>
-                            )}
+                        <div className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={testSend}
+                                    disabled={empty}
+                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-opacity hover:opacity-80 disabled:opacity-40"
+                                    style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                                    title={empty ? 'Mindestens Titel, Text, HTML, Bild oder View angeben' : undefined}
+                                >
+                                    <Send size={12} /> Test senden
+                                </button>
+                                {sent && (
+                                    <span className="text-[11px]" style={labelStyle}>
+                                        Gesendet um {sent}
+                                    </span>
+                                )}
+                            </div>
+                            <MessageSnippets payload={payload} />
                         </div>
                     }
                 />
             </div>
         </section>
+    );
+}
+
+// ── Datapoint reference ───────────────────────────────────────────────────────
+
+/** Every datapoint the message system exposes, with what to write into it. */
+const DP_ROWS: { id: string; dir: 'in' | 'out'; what: string }[] = [
+    {
+        id: 'messages.send',
+        dir: 'in',
+        what: 'Meldung senden — JSON oder Klartext. Wird nach der Verarbeitung geleert.',
+    },
+    { id: 'clients.<clientId>.messages.send', dir: 'in', what: 'Nur an dieses Gerät.' },
+    {
+        id: 'layouts.<layout>.messages.send',
+        dir: 'in',
+        what: 'Nur an dieses Layout. Wird je Layout automatisch angelegt.',
+    },
+    { id: 'messages.ack', dir: 'in', what: 'ID schreiben = bestätigen. * = alle.' },
+    { id: 'messages.dismiss', dir: 'in', what: 'ID schreiben = auf allen Geräten schließen. * = alle.' },
+    { id: 'messages.clear', dir: 'in', what: 'Button — leert den Verlauf.' },
+    { id: 'messages.history', dir: 'out', what: 'Archiv als JSON-Array, neueste zuerst.' },
+    { id: 'messages.lastMessage', dir: 'out', what: 'Zuletzt erzeugte Meldung.' },
+    { id: 'messages.unreadCount', dir: 'out', what: 'Anzahl unbestätigter Meldungen — z. B. als Badge nutzbar.' },
+];
+
+const SENDTO_ROWS: { call: string; what: string }[] = [
+    { call: `sendTo('${NS}', 'notify', payload, cb)`, what: 'Meldung senden; antwortet mit { ok, id, ts }.' },
+    { call: `sendTo('${NS}', 'notifyAck', id, cb)`, what: 'Meldung bestätigen.' },
+    { call: `sendTo('${NS}', 'notifyDismiss', id, cb)`, what: 'Meldung auf allen Geräten schließen.' },
+];
+
+/**
+ * Reference of every way in and out. Sits above the builder because that is the
+ * order the questions come in ("which datapoint?" before "what do I write?"), but
+ * collapsed — it is something to look up once, not to scroll past every visit.
+ */
+function DatapointsSection() {
+    return (
+        <details>
+            <summary
+                className="text-sm font-semibold mb-3 cursor-pointer select-none"
+                style={{ color: 'var(--text-primary)' }}
+            >
+                Datenpunkte & sendTo
+            </summary>
+            <div className="rounded-xl overflow-hidden" style={cardStyle}>
+                <table className="w-full text-[11px]">
+                    <tbody>
+                        {DP_ROWS.map((row) => (
+                            <tr key={row.id} style={{ borderBottom: '1px solid var(--app-border)' }}>
+                                <td className="px-3 py-2 align-top whitespace-nowrap">
+                                    <span
+                                        className="text-[9px] px-1.5 py-0.5 rounded-full mr-2 align-middle"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: row.dir === 'in' ? 'var(--accent)' : 'var(--text-secondary)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                        title={row.dir === 'in' ? 'beschreiben' : 'nur lesen'}
+                                    >
+                                        {row.dir === 'in' ? 'schreiben' : 'lesen'}
+                                    </span>
+                                    <code style={{ color: 'var(--text-primary)' }}>
+                                        {NS}.{row.id}
+                                    </code>
+                                </td>
+                                <td className="px-3 py-2 align-top" style={labelStyle}>
+                                    {row.what}
+                                </td>
+                                <td className="px-3 py-2 align-top text-right">
+                                    {!row.id.includes('<') && <CopyButton text={`${NS}.${row.id}`} label="ID" />}
+                                </td>
+                            </tr>
+                        ))}
+                        {SENDTO_ROWS.map((row) => (
+                            <tr key={row.call} style={{ borderBottom: '1px solid var(--app-border)' }}>
+                                <td className="px-3 py-2 align-top whitespace-nowrap">
+                                    <span
+                                        className="text-[9px] px-1.5 py-0.5 rounded-full mr-2 align-middle"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--accent)',
+                                            border: '1px solid var(--app-border)',
+                                        }}
+                                    >
+                                        sendTo
+                                    </span>
+                                    <code style={{ color: 'var(--text-primary)' }}>{row.call}</code>
+                                </td>
+                                <td className="px-3 py-2 align-top" style={labelStyle}>
+                                    {row.what}
+                                </td>
+                                <td className="px-3 py-2 align-top text-right">
+                                    <CopyButton text={row.call} label="Aufruf" />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <p className="px-3 py-2 text-[11px]" style={labelStyle}>
+                    Empfänger lassen sich auch im Payload angeben (<code>target</code>) — das hat Vorrang vor dem
+                    Datenpunkt, über den die Meldung hereinkam. Vollständiges Format:{' '}
+                    <a
+                        href="https://hdering.github.io/ioBroker.aura/einstellungen/meldungen"
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ color: 'var(--accent)' }}
+                    >
+                        Dokumentation
+                    </a>
+                    .
+                </p>
+            </div>
+        </details>
     );
 }
 
@@ -553,6 +672,7 @@ export function AdminMessages() {
                     Informationen, Warnungen und Fehler aus Skripten ins Dashboard einblenden
                 </p>
             </div>
+            <DatapointsSection />
             <DesignerSection />
             <DefaultsSection />
             <HistorySection />
