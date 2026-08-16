@@ -11,10 +11,13 @@
  * timestamps before the stack is handed over.
  */
 
-/** The bits of a series config that decide whether and where it stacks. */
+/** The bits of a series config that decide whether and where it stacks, and how it is drawn. */
 export interface StackableSeries {
     stack?: boolean;
     yAxisIndex?: 0 | 1;
+    chartType?: 'line' | 'bar' | 'area' | 'scatter';
+    lineWidth?: number;
+    stackOutline?: boolean;
 }
 
 /** A plotted point: `[timestamp, value]`, `null` where the series has nothing to show. */
@@ -28,6 +31,22 @@ export type StackPoint = [number, number | null];
  */
 export function stackIdFor(s: StackableSeries): string | undefined {
     return s.stack ? `aura-stack-${s.yAxisIndex ?? 0}` : undefined;
+}
+
+/**
+ * Stroke width of a series' curve.
+ *
+ * A stacked area is read as a band, not as a curve: its outline runs along the top edge of the band
+ * below it, so a series sitting at 0 draws a full-width line with nothing under it — it looks like a
+ * series with data instead of one contributing nothing (issue #541 follow-up). Stacked bands are
+ * therefore drawn without an outline unless `stackOutline` asks for one. The 0 itself stays in the
+ * data, in the tooltip and in the stack total; only the line that made it look like a curve is gone.
+ *
+ * A stacked *line* keeps its stroke — there is no fill, so without it the series would vanish.
+ */
+export function outlineWidthFor(s: StackableSeries): number {
+    if (s.stack && s.chartType === 'area' && !s.stackOutline) return 0;
+    return s.lineWidth ?? 2;
 }
 
 /**

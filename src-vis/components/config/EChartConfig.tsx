@@ -665,6 +665,48 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 {t('echart.stackHint')}
                                                             </p>
                                                         )}
+                                                        {/* A band outline sits on the band below it, so a series at 0
+                                                            shows up as a line without an area — off by default. */}
+                                                        {s.stack && s.chartType === 'area' && (
+                                                            <>
+                                                                <div className="flex items-center justify-between mt-2">
+                                                                    <label
+                                                                        className="text-[11px]"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.stackOutline')}
+                                                                    </label>
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            updateSeries(s.id, {
+                                                                                stackOutline: !s.stackOutline,
+                                                                            })
+                                                                        }
+                                                                        className="relative w-9 h-5 rounded-full transition-colors"
+                                                                        style={{
+                                                                            background: s.stackOutline
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-border)',
+                                                                        }}
+                                                                    >
+                                                                        <span
+                                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                            style={{
+                                                                                left: s.stackOutline ? '18px' : '2px',
+                                                                            }}
+                                                                        />
+                                                                    </button>
+                                                                </div>
+                                                                {!s.stackOutline && (
+                                                                    <p
+                                                                        className="text-[10px] mt-1 leading-tight"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.stackOutlineHint')}
+                                                                    </p>
+                                                                )}
+                                                            </>
+                                                        )}
                                                     </div>
                                                 )}
 
@@ -696,29 +738,36 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                     </div>
                                                 )}
 
-                                                {(s.chartType === 'line' || s.chartType === 'area') && (
-                                                    <div>
-                                                        <label
-                                                            className="text-[11px] mb-1 block"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            {t('echart.lineWidth', { value: s.lineWidth ?? 2 })}
-                                                        </label>
-                                                        <input
-                                                            type="range"
-                                                            min={1}
-                                                            max={4}
-                                                            step={1}
-                                                            value={s.lineWidth ?? 2}
-                                                            onChange={(e) =>
-                                                                updateSeries(s.id, {
-                                                                    lineWidth: Number(e.target.value),
-                                                                })
-                                                            }
-                                                            className="w-full accent-[var(--accent)]"
-                                                        />
-                                                    </div>
-                                                )}
+                                                {/* A stacked band without an outline draws no line at all, so the
+                                                    width would have nothing to act on. */}
+                                                {(s.chartType === 'line' || s.chartType === 'area') &&
+                                                    !(s.chartType === 'area' && s.stack && !s.stackOutline) && (
+                                                        <div>
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                {(s.lineWidth ?? 2) === 0
+                                                                    ? t('echart.lineWidthNone')
+                                                                    : t('echart.lineWidth', {
+                                                                          value: s.lineWidth ?? 2,
+                                                                      })}
+                                                            </label>
+                                                            <input
+                                                                type="range"
+                                                                min={0}
+                                                                max={4}
+                                                                step={1}
+                                                                value={s.lineWidth ?? 2}
+                                                                onChange={(e) =>
+                                                                    updateSeries(s.id, {
+                                                                        lineWidth: Number(e.target.value),
+                                                                    })
+                                                                }
+                                                                className="w-full accent-[var(--accent)]"
+                                                            />
+                                                        </div>
+                                                    )}
 
                                                 {isJson && (
                                                     <div>

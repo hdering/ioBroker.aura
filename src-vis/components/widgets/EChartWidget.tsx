@@ -16,7 +16,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
-import { alignStackedSeries, stackIdFor } from '../../utils/stackedSeries';
+import { alignStackedSeries, outlineWidthFor, stackIdFor } from '../../utils/stackedSeries';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
@@ -568,7 +568,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 stack: stackIdFor(s),
                 smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
                 smoothMonotone: 'x',
-                lineStyle: { width: s.lineWidth ?? 2 },
+                // Stacked bands go without an outline — see `outlineWidthFor`.
+                lineStyle: { width: outlineWidthFor(s) },
                 itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
                 // Labels missing from this series stay null so the line breaks instead of
                 // silently shifting the remaining points onto the wrong categories.
@@ -768,7 +769,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             // Monotone smoothing never overshoots the data — a flat run of equal values
             // (e.g. dry days at 0) stays exactly flat instead of wobbling around it.
             smoothMonotone: 'x',
-            lineStyle: { width: s.lineWidth ?? 2 },
+            // Stacked bands go without an outline — see `outlineWidthFor`.
+            lineStyle: { width: outlineWidthFor(s) },
             itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
             data,
             yAxisIndex: s.yAxisIndex ?? 0,

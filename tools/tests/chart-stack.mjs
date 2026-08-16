@@ -158,7 +158,26 @@ const align = (series, data) => page.evaluate(([s, d]) => window.__auraShot.stac
     );
 }
 
-// ── 5. A stacked chart renders and still reports per-series values ───────────
+// ── 5. Stacked bands are drawn without an outline ────────────────────────────
+// The outline of a band runs along the top edge of the band below it, so a series sitting at 0
+// would show up as a full-width line with no area under it.
+{
+    const width = (s) => page.evaluate((cfg) => window.__auraShot.seriesLineWidth(cfg), s);
+    check('a stacked area has no outline', (await width({ stack: true, chartType: 'area', lineWidth: 2 })) === 0);
+    check(
+        'the outline comes back when the series asks for it',
+        (await width({ stack: true, chartType: 'area', lineWidth: 3, stackOutline: true })) === 3,
+    );
+    check('an unstacked area keeps its line', (await width({ chartType: 'area', lineWidth: 2 })) === 2);
+    check(
+        'a stacked line keeps its line — it has no fill to be seen by',
+        (await width({ stack: true, chartType: 'line', lineWidth: 2 })) === 2,
+    );
+    check('line width 0 is honoured', (await width({ chartType: 'line', lineWidth: 0 })) === 0);
+    check('the default is still 2px', (await width({ chartType: 'line' })) === 2);
+}
+
+// ── 6. A stacked chart renders and still reports per-series values ───────────
 {
     const widget = {
         id: 'w-echart-stack',

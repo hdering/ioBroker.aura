@@ -35,7 +35,7 @@ import {
     type MessageScope,
 } from '../store/messagesStore';
 import { useThemeStore } from '../store/themeStore';
-import { alignStackedSeries, type StackableSeries, type StackPoint } from '../utils/stackedSeries';
+import { alignStackedSeries, outlineWidthFor, type StackableSeries, type StackPoint } from '../utils/stackedSeries';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
 import { NS } from '../utils/namespace';
 import type { AuraMessage, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
@@ -294,6 +294,12 @@ function installScreenshotApi(): void {
          *  canvas, while this is where it can actually be wrong (issue #541). */
         stackAlign(series: StackableSeries[], data: StackPoint[][]): StackPoint[][] {
             return alignStackedSeries(series, data);
+        },
+
+        /** Stroke width the advanced chart gives a series. 0 for a stacked band, whose outline
+         *  would otherwise draw a full-width line wherever the series sits at 0 (issue #541). */
+        seriesLineWidth(series: StackableSeries): number {
+            return outlineWidthFor(series);
         },
     };
 
