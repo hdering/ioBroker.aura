@@ -1243,6 +1243,7 @@ export const de = {
     'echart.showXAxis': 'X-Achse anzeigen',
     'echart.gridLines': 'Horizontale Linien',
     'echart.showCurrentValue': 'Aktuellen Wert anzeigen',
+    'echart.showValues': 'Werte am Datenpunkt anzeigen',
     'echart.unitHoursShort': 'Std',
     'echart.unitDaysShort': 'Tage',
     'echart.daySingular': 'Tag',

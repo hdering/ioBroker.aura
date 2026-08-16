@@ -71,6 +71,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `echartShowCurrent` | `true` | aktuelle Werte oben rechts anzeigen |
+| `echartShowValues` | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) |
 | `echartShowLegend` | `true` | Legende anzeigen |
 | `decimals` | globale Einstellung | Nachkommastellen im Tooltip |
 

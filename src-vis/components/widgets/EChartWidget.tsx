@@ -76,7 +76,29 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
+    // Value labels at the data points. Comparison charts have always drawn them, so they stay
+    // on there unless switched off explicitly; timeseries and JSON default to off (issue #543).
+    const echartShowValues = (o.echartShowValues as boolean | undefined) ?? echartMode === 'comparison';
     const isGauge = config.layout === ('gauge' as string);
+
+    /** Data-point labels, identical in every mode: the tooltip's formatter and the axis' unit. */
+    const valueLabel = (unit: string, inside = false) =>
+        echartShowValues
+            ? {
+                  show: true,
+                  position: inside ? 'inside' : 'top',
+                  color: inside ? '#fff' : '#888',
+                  fontSize: 10,
+                  formatter: (p: { value: number | [number, number] | null }) => {
+                      const v = Array.isArray(p.value) ? p.value[1] : p.value;
+                      if (v === null || v === undefined) return '';
+                      return `${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`;
+                  },
+              }
+            : { show: false };
+    // Dense series would otherwise stamp a label on every single point; echarts drops the
+    // ones that would collide and keeps the rest readable.
+    const valueLabelLayout = echartShowValues ? { hideOverlap: true } : undefined;
 
     // ── Single widget-level range shared by all series (frontend-switchable unless locked) ──
     // Falls back to the first series' former per-series range so upgraded widgets keep their window.
@@ -438,16 +460,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 {
                     type: 'bar',
                     data: values,
-                    label: {
-                        show: true,
-                        position: 'top',
-                        color: '#888',
-                        fontSize: 10,
-                        formatter: (p: { value: number | null }) => {
-                            if (p.value === null || p.value === undefined) return '';
-                            return `${formatNum(p.value, decimals, numFmt)}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`;
-                        },
-                    },
+                    label: valueLabel(echartLeftUnit),
+                    labelLayout: valueLabelLayout,
                 },
             ],
         };
@@ -560,7 +574,15 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 // silently shifting the remaining points onto the wrong categories.
                 data: jsonTimeAxis ? timePointsPerSeries[idx] : categories.map((c) => byLabel.get(c) ?? null),
                 yAxisIndex: s.yAxisIndex ?? 0,
-                showSymbol: false,
+                // Line labels hang on the symbols — echarts creates none while showSymbol is off.
+                showSymbol: echartShowValues,
+                // Above a stacked bar sits the next segment, so its label moves into the bar; on a
+                // stacked line "inside" is the point itself, which is no better than "top".
+                label: valueLabel(
+                    (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+                    !!s.stack && s.chartType === 'bar',
+                ),
+                labelLayout: valueLabelLayout,
             };
         });
 
@@ -750,7 +772,15 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
             data,
             yAxisIndex: s.yAxisIndex ?? 0,
-            showSymbol: false,
+            // Line labels hang on the symbols — echarts creates none while showSymbol is off.
+            showSymbol: echartShowValues,
+            // Above a stacked bar sits the next segment, so its label moves into the bar; on a
+            // stacked line "inside" is the point itself, which is no better than "top".
+            label: valueLabel(
+                (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+                !!s.stack && s.chartType === 'bar',
+            ),
+            labelLayout: valueLabelLayout,
             // A lone delta bar (one bucket logged so far) would otherwise be stretched across
             // the whole plot area, since echarts derives bar width from the point spacing.
             ...(s.aggregate === 'delta' ? { barMaxWidth: 40 } : {}),

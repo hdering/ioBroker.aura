@@ -1239,6 +1239,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.showXAxis': 'Show X axis',
     'echart.gridLines': 'Horizontal grid lines',
     'echart.showCurrentValue': 'Show current value',
+    'echart.showValues': 'Show values at data points',
     'echart.unitHoursShort': 'Hrs',
     'echart.unitDaysShort': 'Days',
     'echart.daySingular': 'day',

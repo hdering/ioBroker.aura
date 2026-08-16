@@ -66,6 +66,7 @@
     "test:list-transform": "node tools/tests/list-value-transform.mjs",
     "test:chart-transform": "node tools/tests/chart-value-transform.mjs",
     "test:chart-stack": "node tools/tests/chart-stack.mjs",
+    "test:chart-labels": "node tools/tests/chart-value-labels.mjs",
     "test:list-subdps": "node tools/tests/list-subdps.mjs",
     "test:list-filter": "node tools/tests/list-filter.mjs",
     "test:camera-actions": "node tools/tests/camera-actions.mjs",

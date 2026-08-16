@@ -127,6 +127,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
+    // Comparison charts have always labelled their bars — keep that as their default (issue #543).
+    const echartShowValues = (o.echartShowValues as boolean | undefined) ?? isComparison;
     // Single widget-level range (replaces the former per-series ranges). Falls back to the
     // first series' old range so existing widgets keep their configured window after upgrade.
     const echartRange = (o.echartRange as EChartTimeRange | undefined) ?? series[0]?.historyRange ?? '24h';
@@ -1155,6 +1157,23 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         <span
                             className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                             style={{ left: echartShowCurrent ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
+
+                {/* Value labels at the data points */}
+                <div className="flex items-center justify-between mb-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.showValues')}
+                    </label>
+                    <button
+                        onClick={() => setO({ echartShowValues: !echartShowValues })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: echartShowValues ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: echartShowValues ? '18px' : '2px' }}
                         />
                     </button>
                 </div>
