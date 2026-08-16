@@ -164,7 +164,8 @@ Nur im Modus `json`.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `echartShowYAxis` | `true` | Y-Achse anzeigen |
+| `echartShowYAxis` | `true` | Y-Achsen anzeigen |
+| `echartShowYAxisRight` | `true` | rechte Y-Achse beschriften; aus = nur die linke Skala, die rechte Achse skaliert weiter |
 | `echartShowXAxis` | `true` | X-Achse anzeigen |
 | `echartShowGridLines` | `true` | horizontale Hilfslinien |
 | `echartLeftUnit` | — | Einheit der linken Y-Achse |

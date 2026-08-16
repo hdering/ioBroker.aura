@@ -22,6 +22,14 @@ import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
+// Margin left over *outside* the axis labels. The grid runs with containLabel, so echarts
+// measures the labels itself instead of us reserving a fixed 60px strip — short labels no
+// longer leave a wide empty band next to the axis, long ones no longer get clipped (issue #541).
+const AXIS_GAP = 6;
+// containLabel does not know that the outermost y label sticks out half a line above and below
+// the grid, so top/bottom keep a line's worth of room — otherwise the "0" is cut off.
+const AXIS_GAP_V = 14;
+
 const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'total'];
 
 function deepMerge(target: Record<string, unknown>, source: Record<string, unknown>): Record<string, unknown> {
@@ -72,6 +80,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartRightMax = o.echartRightMax as number | string | undefined;
     const echartJsonExtra = (o.echartJsonExtra as string | undefined) ?? '';
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
+    // The right axis can be silenced on its own: a second series often only needs its own scale,
+    // not a second set of numbers eating widget width (issue #541). Master switch still wins.
+    const echartShowYAxisRight = echartShowYAxis && ((o.echartShowYAxisRight as boolean | undefined) ?? true);
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
@@ -294,13 +305,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
               type: 'value',
               scale: !stackedOn(1) || echartRightMin !== undefined,
               axisLabel: {
-                  show: echartShowYAxis,
+                  show: echartShowYAxisRight,
                   color: '#888',
                   fontSize: 10,
                   formatter: echartRightUnit ? `{value} ${echartRightUnit}` : '{value}',
               },
-              axisTick: { show: echartShowYAxis },
-              axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
+              axisTick: { show: echartShowYAxisRight },
+              axisLine: { show: echartShowYAxisRight, lineStyle: { color: '#444' } },
               splitLine: { show: false },
               ...(echartRightMin !== undefined ? { min: echartRightMin } : {}),
               ...(echartRightMax !== undefined ? { max: echartRightMax } : {}),
@@ -427,11 +438,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             },
             legend: { show: false },
             grid: {
-                left: echartShowYAxis ? 60 : 12,
-                right: 12,
+                left: AXIS_GAP,
+                right: AXIS_GAP,
                 top: 16,
-                bottom: echartShowXAxis ? 40 : 12,
-                containLabel: false,
+                bottom: AXIS_GAP_V,
+                containLabel: true,
             },
             xAxis: {
                 type: 'category',
@@ -653,11 +664,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 ? { show: true, textStyle: { color: '#888', fontSize: 11 }, top: 4 }
                 : { show: false },
             grid: {
-                left: echartShowYAxis ? 60 : 6,
-                right: hasRightAxis && echartShowYAxis ? 60 : 6,
-                top: echartShowLegend ? 30 : 6,
-                bottom: echartShowXAxis ? 32 : 6,
-                containLabel: false,
+                left: AXIS_GAP,
+                right: AXIS_GAP,
+                top: echartShowLegend ? 30 : AXIS_GAP_V,
+                bottom: AXIS_GAP_V,
+                containLabel: true,
             },
             xAxis: jsonTimeAxis
                 ? {
@@ -856,11 +867,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         },
         legend: echartShowLegend ? { show: true, textStyle: { color: '#888', fontSize: 11 }, top: 4 } : { show: false },
         grid: {
-            left: echartShowYAxis ? 60 : 6,
-            right: hasRightAxis && echartShowYAxis ? 60 : 6,
-            top: echartShowLegend ? 30 : 6,
-            bottom: echartShowXAxis ? 32 : 6,
-            containLabel: false,
+            left: AXIS_GAP,
+            right: AXIS_GAP,
+            top: echartShowLegend ? 30 : AXIS_GAP_V,
+            bottom: AXIS_GAP_V,
+            containLabel: true,
         },
         xAxis: {
             type: 'time',

@@ -1243,6 +1243,7 @@ export const de = {
     'echart.templateInstanceHint':
         'Platzhalter-Datenpunkt – leer lassen, um die Verlaufs-Instanz vom auslösenden Widget zu übernehmen.',
     'echart.showYAxis': 'Y-Achse anzeigen',
+    'echart.showYAxisRight': 'Rechte Y-Achse anzeigen',
     'echart.showXAxis': 'X-Achse anzeigen',
     'echart.gridLines': 'Horizontale Linien',
     'echart.showCurrentValue': 'Aktuellen Wert anzeigen',

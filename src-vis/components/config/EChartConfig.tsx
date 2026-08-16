@@ -124,6 +124,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const jsonTimeAxis = (o.echartJsonTimeAxis as boolean | undefined) ?? false;
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
+    const echartShowYAxisRight = (o.echartShowYAxisRight as boolean | undefined) ?? true;
+    // The right-axis switch only means something once a series actually sits on that axis.
+    const usesRightAxis = series.some((s) => (s.yAxisIndex ?? 0) === 1);
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
@@ -1158,6 +1161,25 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </button>
                 </div>
+
+                {/* Show right Y-axis scale (only relevant when a series uses it) */}
+                {usesRightAxis && echartShowYAxis && (
+                    <div className="flex items-center justify-between mb-2">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.showYAxisRight')}
+                        </label>
+                        <button
+                            onClick={() => setO({ echartShowYAxisRight: !echartShowYAxisRight })}
+                            className="relative w-9 h-5 rounded-full transition-colors"
+                            style={{ background: echartShowYAxisRight ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                style={{ left: echartShowYAxisRight ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                )}
 
                 {/* Show X-axis scale */}
                 <div className="flex items-center justify-between mb-2">

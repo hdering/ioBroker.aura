@@ -1239,6 +1239,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.templateInstanceHint':
         'Template datapoint – leave empty to inherit the history instance from the triggering widget.',
     'echart.showYAxis': 'Show Y axis',
+    'echart.showYAxisRight': 'Show right Y axis',
     'echart.showXAxis': 'Show X axis',
     'echart.gridLines': 'Horizontal grid lines',
     'echart.showCurrentValue': 'Show current value',
