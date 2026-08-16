@@ -3,12 +3,14 @@
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/chart-stack.mjs
 //
-// Two halves:
+// Three parts:
 //   1. The timeline alignment (`__auraShot.stackAlign`). ECharts stacks by data index, so two
 //      history series with their own timestamps would be added up across unrelated moments —
 //      this is the part that can silently produce a wrong sum, and it is pure logic.
 //   2. A rendered stacked chart: it comes up without page errors and the current-value block
 //      keeps showing each series on its own rather than the stacked total.
+//   3. The axis layout (`__auraShot.chartAxes`) — the right axis switching off on its own and
+//      the label reserve fitting the labels instead of a fixed strip.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -246,6 +248,83 @@ const align = (series, data) => page.evaluate(([s, d]) => window.__auraShot.stac
     check('each series reports its own current value', shows(text, '150') && shows(text, '50'), text);
     check('the current-value block is not the stacked total', !shows(text, '200'), text);
     check('a canvas was drawn', (await page.locator('.react-grid-item canvas').count()) > 0);
+}
+
+// ── 7. Axis labels: the right axis switches off on its own, the reserve auto-fits ───
+// Follow-ups on issue #541: a second axis often only needs its scale, not a second column of
+// numbers, and the fixed 60px reserve either wasted width on short labels or clipped long ones.
+{
+    const axisWidget = (options) => ({
+        id: 'w-echart-axes',
+        type: 'echart',
+        title: 'Achsen',
+        datapoint: '',
+        layout: 'default',
+        gridPos: { x: 0, y: 0, w: 20, h: 12 },
+        options: {
+            echartMode: 'timeseries',
+            echartRange: '24h',
+            echartShowCurrent: false,
+            echartLeftUnit: 'W',
+            echartRightUnit: '%',
+            // Fixed ranges make echarts lay the axes out even where no history is reachable.
+            echartLeftMin: 0,
+            echartLeftMax: 10,
+            echartRightMin: 0,
+            echartRightMax: 100,
+            echartSeries: [
+                {
+                    id: 'a1',
+                    name: 'Links',
+                    datapointId: 'demo.left',
+                    chartType: 'line',
+                    historyInstance: 'history.0',
+                    yAxisIndex: 0,
+                },
+                {
+                    id: 'a2',
+                    name: 'Rechts',
+                    datapointId: 'demo.right',
+                    chartType: 'line',
+                    historyInstance: 'history.0',
+                    yAxisIndex: 1,
+                },
+            ],
+            ...options,
+        },
+    });
+    const axesFor = async (options) => {
+        await page.evaluate((w) => window.__auraShot.showWidgets([w]), axisWidget(options));
+        await page.waitForTimeout(700);
+        return page.evaluate(() => window.__auraShot.chartAxes());
+    };
+
+    const dflt = await axesFor({});
+    check('the grid measures its own labels', dflt?.grid?.containLabel === true, JSON.stringify(dflt?.grid));
+    check(
+        'no fixed reserve is left next to the axis',
+        dflt?.grid?.left <= 10 && dflt?.grid?.right <= 10,
+        JSON.stringify(dflt?.grid),
+    );
+    check(
+        'both axes are labelled by default',
+        dflt?.yAxis?.[0]?.axisLabel?.show === true && dflt?.yAxis?.[1]?.axisLabel?.show === true,
+    );
+
+    const rightOff = await axesFor({ echartShowYAxisRight: false });
+    check('the right axis can be silenced on its own', rightOff?.yAxis?.[1]?.axisLabel?.show === false);
+    check('the left axis is untouched by that', rightOff?.yAxis?.[0]?.axisLabel?.show === true);
+    check(
+        'the right axis still scales its series',
+        rightOff?.yAxis?.[1]?.max === 100,
+        JSON.stringify(rightOff?.yAxis?.[1]?.max),
+    );
+
+    const allOff = await axesFor({ echartShowYAxis: false });
+    check(
+        'the master switch still hides both',
+        allOff?.yAxis?.[0]?.axisLabel?.show === false && allOff?.yAxis?.[1]?.axisLabel?.show === false,
+    );
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));

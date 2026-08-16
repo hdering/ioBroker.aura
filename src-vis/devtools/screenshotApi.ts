@@ -12,6 +12,7 @@
 //
 // Stripped from production: only imported from main.tsx under import.meta.env.DEV.
 
+import { getInstanceByDom } from 'echarts';
 import {
     __devInjectState,
     __devSetHistoryGen,
@@ -300,6 +301,19 @@ function installScreenshotApi(): void {
          *  would otherwise draw a full-width line wherever the series sits at 0 (issue #541). */
         seriesLineWidth(series: StackableSeries): number {
             return outlineWidthFor(series);
+        },
+
+        /** grid + y axes of the chart currently on screen, as echarts resolved them. The axis
+         *  reserve and the right-axis switch only exist in the rendered option — on the canvas
+         *  they are pixels, and pixels are not what a test should assert on (issue #541). */
+        chartAxes(): { grid: unknown; yAxis: unknown } | null {
+            const el = document.querySelector('[_echarts_instance_]');
+            const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
+            if (!inst) return null;
+            const opt = inst.getOption() as { grid?: unknown[]; yAxis?: unknown[] };
+            // Round-trip through JSON so the formatter functions echarts adds are dropped and
+            // the result survives the trip out of the page.
+            return JSON.parse(JSON.stringify({ grid: opt.grid?.[0] ?? null, yAxis: opt.yAxis ?? null }));
         },
     };
 
