@@ -32,6 +32,12 @@ export interface EChartSeriesConfig {
      * for why the points have to be resampled onto a shared timeline first.
      */
     stack?: boolean;
+    /**
+     * Outline a stacked area band with the series colour (default off). Off, because the outline of
+     * a band at value 0 lies on the band below it and reads as a curve with no area — see
+     * `outlineWidthFor`. Only meaningful for a stacked area.
+     */
+    stackOutline?: boolean;
     /** Absolute window override (ms epoch) — set by the widget's day navigation; wins over historyRange. */
     historyStart?: number;
     historyEnd?: number;

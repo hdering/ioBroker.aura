@@ -89,7 +89,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].stack` | `false` | Serie auf die anderen gestapelten Serien derselben Y-Achse addieren (siehe unten) |
 | `echartSeries[].aggregate` | `average` | `average` · `minmax` · `max` · `min` · `total` · `delta` · `none` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen), `delta` siehe unten |
 | `echartSeries[].deltaBucket` | `hour` | `auto` · `hour` · `day` · `week` · `month` · `year` — Zeiteinheit für `aggregate: delta` |
-| `echartSeries[].lineWidth` | `2` | Linienstärke 1–4 (nur Linie/Fläche) |
+| `echartSeries[].lineWidth` | `2` | Linienstärke 0–4, `0` = keine Linie (nur Linie/Fläche) |
+| `echartSeries[].stackOutline` | `false` | Kontur eines gestapelten Bandes zeichnen (nur gestapelte Fläche) |
 
 ### Stapeln
 
@@ -102,6 +103,9 @@ ergeben. Für Linie, Fläche und Balken; Flächen werden dabei kräftiger eingef
 - Eine gestapelte Achse beginnt bei 0, damit die Bandhöhen den Werten entsprechen. Ein gesetztes
   `Min` hat weiterhin Vorrang.
 - Der Tooltip zeigt weiter den Einzelwert jeder Serie und zusätzlich eine Zeile `Σ Summe`.
+- Gestapelte Flächen werden ohne Kontur gezeichnet: die Kontur läge auf der Oberkante des Bandes
+  darunter, eine Serie mit Wert 0 sähe also aus wie eine Linie ohne Fläche. Bei Bedarf per
+  `Bandkontur` je Serie wieder einschalten — der Wert 0 bleibt in Tooltip und `Σ Summe` erhalten.
 - Serien mit eigenen Zeitstempeln werden vorher auf eine gemeinsame Zeitachse gebracht (jede Serie
   behält ihren letzten gemeldeten Wert bis zur nächsten Messung). Vor dem ersten Datensatz einer
   Serie bleibt das Band offen, statt eine 0 zu erfinden.
