@@ -10345,7 +10345,7 @@ export function WidgetFrame({
                                                         className="text-[10px] mt-1"
                                                         style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                     >
-                                                        Sichtbar, sobald „Wert als Badge" aktiv ist
+                                                        Sichtbar, sobald „Wert als Badge“ aktiv ist
                                                     </p>
                                                 )}
                                             </div>
