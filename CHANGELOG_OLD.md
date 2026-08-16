@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.42.3 (2026-08-08)
+- Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
+
 ## 0.42.2 (2026-08-07)
 - 🌟 **New feature:** Status overview - room and the "open since ..." duration can each be hidden
 - 🌟 **New feature:** Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button ([#525](https://github.com/hdering/ioBroker.aura/issues/525))

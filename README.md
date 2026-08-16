@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.47.5 (2026-08-16)
+- 🌟 **New feature:** Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well ([#543](https://github.com/hdering/ioBroker.aura/issues/543))
+
+
 ### 0.47.4 (2026-08-16)
 - 🌟 **New feature:** Status overview - new "text alignment" setting (left / centered / right) for rows, cards and the Minimal layout's pills
 - 🌟 **New feature:** Chart (simple and advanced) - display-only value conversion, set with the fx button next to the datapoint field: presets like W to kW or Wh to kWh, or a custom factor and offset. The simple chart converts curve, current value, average and axis; the advanced one converts per series and fills in the unit of the axis the series belongs to. The datapoint and its history stay untouched ([#540](https://github.com/hdering/ioBroker.aura/issues/540))
@@ -227,10 +231,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
 
 
-### 0.42.3 (2026-08-08)
-- Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
-
-
 ## License
 
 MIT License
@@ -242,6 +242,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
