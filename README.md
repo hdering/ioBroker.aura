@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.47.4 (2026-08-16)
+- 🌟 **New feature:** Status overview - new "text alignment" setting (left / centered / right) for rows, cards and the Minimal layout's pills
+- 🌟 **New feature:** Chart (simple and advanced) - display-only value conversion, set with the fx button next to the datapoint field: presets like W to kW or Wh to kWh, or a custom factor and offset. The simple chart converts curve, current value, average and axis; the advanced one converts per series and fills in the unit of the axis the series belongs to. The datapoint and its history stay untouched ([#540](https://github.com/hdering/ioBroker.aura/issues/540))
+- 🌟 **New feature:** Chart (advanced) - new "stack" switch per series: stacked series add up instead of overlapping, e.g. battery discharge plus grid draw as bands that together make up the house consumption. Left and right y axis stack separately, a stacked axis starts at zero, and the tooltip adds a total line next to the individual values ([#541](https://github.com/hdering/ioBroker.aura/issues/541))
+- 🌟 **New feature:** Gauge - the value no longer sits under the needle hub, its font size is configurable, and it can be shown as a badge below the arc instead of (or next to) the big number - with its own label, like pointers 2 and 3. Each of the three pointers can now optionally take the colour of the zone its own value falls into ([#539](https://github.com/hdering/ioBroker.aura/issues/539))
+
+
 ### 0.47.3 (2026-08-15)
 - 🌟 **New feature:** Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script ([#429](https://github.com/hdering/ioBroker.aura/issues/429))
 - 🌟 **New feature:** Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint ([#429](https://github.com/hdering/ioBroker.aura/issues/429))
@@ -224,11 +231,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
 
 
-### 0.42.2 (2026-08-07)
-- 🌟 **New feature:** Status overview - room and the "open since ..." duration can each be hidden
-- 🌟 **New feature:** Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button ([#525](https://github.com/hdering/ioBroker.aura/issues/525))
-
-
 ## License
 
 MIT License
@@ -240,6 +242,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

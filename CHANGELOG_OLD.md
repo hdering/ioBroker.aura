@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.42.2 (2026-08-07)
+- 🌟 **New feature:** Status overview - room and the "open since ..." duration can each be hidden
+- 🌟 **New feature:** Input field - new command mode: the field clears itself after sending, no longer mirrors the datapoint value across devices, and only sends on Enter / Send button ([#525](https://github.com/hdering/ioBroker.aura/issues/525))
+
 ## 0.42.1 (2026-08-07)
 - Popups - datapoint triggers now offer popup actions only; picking a navigation action left an unusable overlay on screen ([#523](https://github.com/hdering/ioBroker.aura/issues/523))
 
