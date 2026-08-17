@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.42.5 (2026-08-08)
+- iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and "Allow interaction" became a three-way "Interaction" setting ([#527](https://github.com/hdering/ioBroker.aura/issues/527))
+- General - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action ([#527](https://github.com/hdering/ioBroker.aura/issues/527))
+
 ## 0.42.4 (2026-08-08)
 - A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
 
