@@ -40,6 +40,8 @@ export const DP_KEY_LABELS: Record<string, string> = {
     activityDp: 'Aktivität',
     directionDp: 'Richtung',
     actualPositionDp: 'Ist-Position',
+    tiltDp: 'Lamellen-Neigung',
+    actualTiltDp: 'Ist-Neigung',
     stopDp: 'Stopp',
     openDp: 'Öffnen',
     closeDp: 'Schließen',

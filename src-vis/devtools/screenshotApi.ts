@@ -20,6 +20,9 @@ import {
     __devSetObjectView,
     __devSetSendTo,
     __devSetGetState,
+    __devSetWriteLog,
+    __devWrites,
+    type DevWrite,
     getStateFromCache,
     isStateFresh,
     type HistoryAggregate,
@@ -292,6 +295,24 @@ function installScreenshotApi(): void {
         conditionNotify(on = true): void {
             __devForceConditionNotify(on);
             if (on) __devClearSentMessages();
+        },
+
+        /** Datapoint writes the UI performed, oldest first. Call with `true` to
+         *  arm/clear the log first — it stays off until a test asks for it, so
+         *  normal screenshot runs record nothing. Lets a test assert the raw value
+         *  a control converted to (slat angle on a 0…1 or -90…90 datapoint). */
+        writes(reset = false): DevWrite[] {
+            if (reset) {
+                __devSetWriteLog(true);
+                return [];
+            }
+            return __devWrites();
+        },
+
+        /** The most recent datapoint write, or null while the log is not armed. */
+        get lastWrite(): DevWrite | null {
+            const all = __devWrites();
+            return all.length ? all[all.length - 1] : null;
         },
 
         /** Payloads that `send()` swallowed because screenshot mode blocks writes. */

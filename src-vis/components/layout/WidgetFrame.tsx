@@ -6183,6 +6183,8 @@ export function WidgetFrame({
         | 'shutter_openDp'
         | 'shutter_closeDp'
         | 'shutter_actualPositionDp'
+        | 'shutter_tiltDp'
+        | 'shutter_actualTiltDp'
         | 'dimmer_switchDp'
         | 'gauge_pointer2Dp'
         | 'gauge_pointer3Dp'
@@ -14418,6 +14420,44 @@ export function WidgetFrame({
                                             : undefined;
                                         if (statusDp) patch.actualPositionDp = statusDp;
                                     }
+                                    {
+                                        // Slat tilt: HmIP blind actuators carry it as LEVEL_2 next to
+                                        // LEVEL, HM classic as LEVEL_SLATS, Zigbee/Velux as tilt.
+                                        // LEVEL_2 only counts next to a LEVEL main DP – on a dimmer it
+                                        // means the second channel's brightness.
+                                        const leaf = parts[parts.length - 1] ?? '';
+                                        const names = [
+                                            ...(/^level$/i.test(leaf) ? ['LEVEL_2', 'level_2'] : []),
+                                            'LEVEL_SLATS',
+                                            'level_slats',
+                                            'SLATS',
+                                            'slats',
+                                            'TILT',
+                                            'tilt',
+                                            'tilt_position',
+                                            'position_tilt',
+                                            'tiltPosition',
+                                            'lamella',
+                                            'lamellen',
+                                            'slat_angle',
+                                            'ANGLE',
+                                            'angle',
+                                        ];
+                                        const tiltDp = find(...names);
+                                        if (tiltDp) patch.tiltDp = tiltDp;
+                                        const device = parts.length >= 3 ? parts.slice(0, -2).join('.') : '';
+                                        const tiltStatus =
+                                            device && tiltDp
+                                                ? entries.find(
+                                                      (e) =>
+                                                          e.id !== tiltDp &&
+                                                          e.id.startsWith(`${device}.`) &&
+                                                          e.write === false &&
+                                                          names.some((n) => e.id.endsWith(`.${n}`)),
+                                                  )?.id
+                                                : undefined;
+                                        if (tiltStatus) patch.actualTiltDp = tiltStatus;
+                                    }
                                     if (Object.keys(patch).length) setO(patch);
                                 };
                                 const dpRow = (optKey: string, pickerKey: string, placeholder = 'optional') => (
@@ -14445,6 +14485,95 @@ export function WidgetFrame({
                                         </button>
                                     </div>
                                 );
+                                const toggleRow = (
+                                    label: string,
+                                    hintText: string,
+                                    on: boolean,
+                                    toggle: () => void,
+                                ) => (
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div>
+                                            <label className="text-[11px] block" style={hint}>
+                                                {label}
+                                            </label>
+                                            <p className="text-[10px]" style={hint}>
+                                                {hintText}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={toggle}
+                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0 mt-0.5"
+                                            style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+                                        >
+                                            <span
+                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                style={{ left: on ? '18px' : '2px' }}
+                                            />
+                                        </button>
+                                    </div>
+                                );
+                                const segRow = (
+                                    label: string,
+                                    hintText: string,
+                                    current: string,
+                                    options: { label: string; val: string }[],
+                                    pick: (val: string) => void,
+                                ) => (
+                                    <div>
+                                        <label className="text-[11px] block mb-1" style={hint}>
+                                            {label}
+                                        </label>
+                                        <div className="flex gap-1 mb-1">
+                                            {options.map(({ label: l, val }) => (
+                                                <button
+                                                    key={val}
+                                                    onClick={() => pick(val)}
+                                                    className="flex-1 py-1 px-2 rounded-lg text-[10px] font-medium transition-colors"
+                                                    style={{
+                                                        background: current === val ? 'var(--accent)' : 'var(--app-bg)',
+                                                        color: current === val ? '#fff' : 'var(--text-secondary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                >
+                                                    {l}
+                                                </button>
+                                            ))}
+                                        </div>
+                                        <p className="text-[10px]" style={hint}>
+                                            {hintText}
+                                        </p>
+                                    </div>
+                                );
+                                const numRow = (
+                                    label: string,
+                                    optKey: string,
+                                    fallback: number,
+                                    step = 1,
+                                    width = 'w-20',
+                                ) => (
+                                    <div className="flex items-center justify-between gap-2">
+                                        <label className="text-[11px]" style={hint}>
+                                            {label}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            step={step}
+                                            value={typeof o[optKey] === 'number' ? (o[optKey] as number) : fallback}
+                                            onChange={(e) =>
+                                                setO({
+                                                    [optKey]:
+                                                        e.target.value === '' ? undefined : Number(e.target.value),
+                                                })
+                                            }
+                                            className={`${width} text-xs rounded-lg px-2 py-1.5 focus:outline-none tabular-nums`}
+                                            style={sInputStyle}
+                                        />
+                                    </div>
+                                );
+                                const tiltOn = !!(o.tiltDp as string | undefined);
+                                const tiltPlacement =
+                                    (o.tiltPlacement as string) ??
+                                    (config.layout === 'compact' || config.layout === 'minimal' ? 'popup' : 'inline');
                                 return (
                                     <>
                                         {/* Steuer-Modus */}
@@ -14700,6 +14829,162 @@ export function WidgetFrame({
                                                 />
                                             </button>
                                         </div>
+
+                                        {/* Position live mitzeichnen */}
+                                        {toggleRow(
+                                            'Position live mitzeichnen',
+                                            'Grafik und Prozentwert folgen dem Positionsregler schon beim Ziehen. Aus: erst beim Loslassen.',
+                                            !!o.positionLivePreview,
+                                            () => setO({ positionLivePreview: !o.positionLivePreview }),
+                                        )}
+
+                                        {/* ── Lamellen / Neigung ──────────────────────────────────── */}
+                                        <div className="pt-2 mt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                                            <label
+                                                className="text-[11px] font-medium block mb-1"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                Lamellen / Neigung
+                                            </label>
+                                            {dpRow('tiltDp', 'shutter_tiltDp', 'z.B. …4.LEVEL_2 oder …tilt')}
+                                            <p className="text-[10px] mt-1" style={hint}>
+                                                Für Jalousien und Raffstores: Datenpunkt für den Lamellenwinkel. 0 % =
+                                                geschlossen, 100 % = offen/waagerecht. Leer = kein Neigungs-Regler.
+                                            </p>
+                                        </div>
+
+                                        {tiltOn && (
+                                            <>
+                                                {/* Ist-Neigung DP */}
+                                                <div>
+                                                    <label className="text-[11px] mb-1 block" style={hint}>
+                                                        Ist-Neigung DP (optional)
+                                                    </label>
+                                                    {dpRow(
+                                                        'actualTiltDp',
+                                                        'shutter_actualTiltDp',
+                                                        'z.B. …3.LEVEL_2 (nur Anzeige)',
+                                                    )}
+                                                    <p className="text-[10px] mt-1" style={hint}>
+                                                        Separater Anzeige-DP für die tatsächliche Neigung. Geschrieben
+                                                        wird weiter auf den Neigungs-DP.
+                                                    </p>
+                                                </div>
+
+                                                {/* Wertebereich */}
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[11px] block" style={hint}>
+                                                        Wertebereich des Datenpunkts
+                                                    </label>
+                                                    {numRow('Wert für „geschlossen"', 'tiltMin', 0, 0.1)}
+                                                    {numRow('Wert für „offen"', 'tiltMax', 100, 0.1)}
+                                                    <p className="text-[10px]" style={hint}>
+                                                        Standard 0…100. Andere Geräte melden 0…1, -90…90 oder 0…180.
+                                                    </p>
+                                                </div>
+
+                                                {toggleRow(
+                                                    'Neigung invertieren',
+                                                    'Wenn beim Gerät der kleinere Wert „offen" bedeutet.',
+                                                    !!o.invertTilt,
+                                                    () => setO({ invertTilt: !o.invertTilt }),
+                                                )}
+
+                                                {segRow(
+                                                    'Bedienung',
+                                                    tiltPlacement === 'inline'
+                                                        ? 'Regler bzw. Tasten direkt im Widget.'
+                                                        : tiltPlacement === 'popup'
+                                                          ? 'Kleine Lamellen-Taste öffnet ein Popover mit Regler und Schnellwerten.'
+                                                          : 'Neigung wird im Widget nicht bedient (nur im Klick-Popup).',
+                                                    tiltPlacement,
+                                                    [
+                                                        { label: 'Im Widget', val: 'inline' },
+                                                        { label: 'Popover', val: 'popup' },
+                                                        { label: 'Aus', val: 'off' },
+                                                    ],
+                                                    (val) => setO({ tiltPlacement: val }),
+                                                )}
+
+                                                {tiltPlacement === 'inline' &&
+                                                    config.layout !== 'compact' &&
+                                                    config.layout !== 'minimal' &&
+                                                    segRow(
+                                                        'Regler-Form',
+                                                        'Senkrecht neben der Lamellen-Grafik, waagerecht unter dem Positionsregler oder als Schrittasten.',
+                                                        (o.tiltControl as string) ?? 'slider-v',
+                                                        [
+                                                            { label: 'Senkrecht', val: 'slider-v' },
+                                                            { label: 'Waagerecht', val: 'slider-h' },
+                                                            { label: 'Tasten', val: 'buttons' },
+                                                        ],
+                                                        (val) => setO({ tiltControl: val }),
+                                                    )}
+
+                                                {((o.tiltControl as string) === 'buttons' ||
+                                                    config.layout === 'compact' ||
+                                                    config.layout === 'minimal') &&
+                                                    numRow('Schrittweite (%)', 'tiltStep', 10)}
+
+                                                {((o.tiltControl as string) ?? 'slider-v') === 'slider-v' &&
+                                                    tiltPlacement === 'inline' &&
+                                                    config.layout !== 'compact' &&
+                                                    config.layout !== 'minimal' && (
+                                                        <>
+                                                            {segRow(
+                                                                'Regler-Seite',
+                                                                'Auf welcher Seite der Lamellen-Grafik der senkrechte Regler sitzt.',
+                                                                (o.tiltSliderSide as string) === 'left'
+                                                                    ? 'left'
+                                                                    : 'right',
+                                                                [
+                                                                    { label: 'Links', val: 'left' },
+                                                                    { label: 'Rechts', val: 'right' },
+                                                                ],
+                                                                (val) => setO({ tiltSliderSide: val }),
+                                                            )}
+                                                            {numRow('Regler-Breite (px)', 'tiltSliderWidth', 14)}
+                                                        </>
+                                                    )}
+
+                                                {toggleRow(
+                                                    'Lamellen live mitzeichnen',
+                                                    'Lamellen-Grafik und Prozentwert folgen dem Neigungsregler schon beim Ziehen. Aus: erst beim Loslassen.',
+                                                    o.tiltLivePreview !== false,
+                                                    () => setO({ tiltLivePreview: !(o.tiltLivePreview !== false) }),
+                                                )}
+
+                                                {toggleRow(
+                                                    'Neigungswert anzeigen',
+                                                    'Prozentwert der Neigung neben dem Regler bzw. im Widget.',
+                                                    o.showTiltValue !== false,
+                                                    () => setO({ showTiltValue: !(o.showTiltValue !== false) }),
+                                                )}
+
+                                                {toggleRow(
+                                                    'Nach Fahrt neu setzen',
+                                                    'Manche Aktoren stellen die Lamellen bei einer Fahrt in die Endlage. Dann wird der Winkel nach Fahrtende erneut geschrieben.',
+                                                    !!o.reapplyTiltAfterMove,
+                                                    () => setO({ reapplyTiltAfterMove: !o.reapplyTiltAfterMove }),
+                                                )}
+
+                                                <div>
+                                                    <label className="text-[11px] mb-1 block" style={hint}>
+                                                        Beschriftung
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={(o.tiltLabel as string) ?? ''}
+                                                        onChange={(e) =>
+                                                            setO({ tiltLabel: e.target.value || undefined })
+                                                        }
+                                                        placeholder="Lamellen"
+                                                        className={sInputCls}
+                                                        style={sInputStyle}
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
 
                                         {/* Größen */}
                                         {(() => {
@@ -17723,177 +18008,197 @@ export function WidgetFrame({
                                             ? ((config.options?.openDp as string) ?? '')
                                             : pickerTarget === 'shutter_actualPositionDp'
                                               ? ((config.options?.actualPositionDp as string) ?? '')
-                                              : pickerTarget === 'shutter_closeDp'
-                                                ? ((config.options?.closeDp as string) ?? '')
-                                                : pickerTarget === 'dimmer_switchDp'
-                                                  ? ((config.options?.switchDp as string) ?? '')
-                                                  : pickerTarget === 'light_switchDp'
-                                                    ? ((config.options?.switchDp as string) ?? '')
-                                                    : pickerTarget === 'light_brightnessDp'
-                                                      ? ((config.options?.brightnessDp as string) ?? '')
-                                                      : pickerTarget === 'light_hueDp'
-                                                        ? ((config.options?.hueDp as string) ?? '')
-                                                        : pickerTarget === 'light_saturationDp'
-                                                          ? ((config.options?.saturationDp as string) ?? '')
-                                                          : pickerTarget === 'light_rDp'
-                                                            ? ((config.options?.rDp as string) ?? '')
-                                                            : pickerTarget === 'light_gDp'
-                                                              ? ((config.options?.gDp as string) ?? '')
-                                                              : pickerTarget === 'light_bDp'
-                                                                ? ((config.options?.bDp as string) ?? '')
-                                                                : pickerTarget === 'light_colorDp'
-                                                                  ? ((config.options?.colorDp as string) ?? '')
-                                                                  : pickerTarget === 'light_temperatureDp'
-                                                                    ? ((config.options?.temperatureDp as string) ?? '')
-                                                                    : pickerTarget === 'light_effectDp'
-                                                                      ? ((config.options?.effectDp as string) ?? '')
-                                                                      : pickerTarget === 'gauge_pointer2Dp'
-                                                                        ? ((config.options
-                                                                              ?.pointer2Datapoint as string) ?? '')
-                                                                        : pickerTarget === 'gauge_pointer3Dp'
-                                                                          ? ((config.options
-                                                                                ?.pointer3Datapoint as string) ?? '')
-                                                                          : pickerTarget === 'windowcontact_batteryDp'
-                                                                            ? ((config.options?.batteryDp as string) ??
-                                                                              '')
-                                                                            : pickerTarget === 'wc_lockDp'
-                                                                              ? ((config.options?.lockDp as string) ??
+                                              : pickerTarget === 'shutter_tiltDp'
+                                                ? ((config.options?.tiltDp as string) ?? '')
+                                                : pickerTarget === 'shutter_actualTiltDp'
+                                                  ? ((config.options?.actualTiltDp as string) ?? '')
+                                                  : pickerTarget === 'shutter_closeDp'
+                                                    ? ((config.options?.closeDp as string) ?? '')
+                                                    : pickerTarget === 'dimmer_switchDp'
+                                                      ? ((config.options?.switchDp as string) ?? '')
+                                                      : pickerTarget === 'light_switchDp'
+                                                        ? ((config.options?.switchDp as string) ?? '')
+                                                        : pickerTarget === 'light_brightnessDp'
+                                                          ? ((config.options?.brightnessDp as string) ?? '')
+                                                          : pickerTarget === 'light_hueDp'
+                                                            ? ((config.options?.hueDp as string) ?? '')
+                                                            : pickerTarget === 'light_saturationDp'
+                                                              ? ((config.options?.saturationDp as string) ?? '')
+                                                              : pickerTarget === 'light_rDp'
+                                                                ? ((config.options?.rDp as string) ?? '')
+                                                                : pickerTarget === 'light_gDp'
+                                                                  ? ((config.options?.gDp as string) ?? '')
+                                                                  : pickerTarget === 'light_bDp'
+                                                                    ? ((config.options?.bDp as string) ?? '')
+                                                                    : pickerTarget === 'light_colorDp'
+                                                                      ? ((config.options?.colorDp as string) ?? '')
+                                                                      : pickerTarget === 'light_temperatureDp'
+                                                                        ? ((config.options?.temperatureDp as string) ??
+                                                                          '')
+                                                                        : pickerTarget === 'light_effectDp'
+                                                                          ? ((config.options?.effectDp as string) ?? '')
+                                                                          : pickerTarget === 'gauge_pointer2Dp'
+                                                                            ? ((config.options
+                                                                                  ?.pointer2Datapoint as string) ?? '')
+                                                                            : pickerTarget === 'gauge_pointer3Dp'
+                                                                              ? ((config.options
+                                                                                    ?.pointer3Datapoint as string) ??
                                                                                 '')
-                                                                              : pickerTarget === 'status_batteryDp'
+                                                                              : pickerTarget ===
+                                                                                  'windowcontact_batteryDp'
                                                                                 ? ((config.options
                                                                                       ?.batteryDp as string) ?? '')
-                                                                                : pickerTarget === 'status_unreachDp'
+                                                                                : pickerTarget === 'wc_lockDp'
                                                                                   ? ((config.options
-                                                                                        ?.unreachDp as string) ?? '')
-                                                                                  : pickerTarget === 'camera_wakeUpDp'
+                                                                                        ?.lockDp as string) ?? '')
+                                                                                  : pickerTarget === 'status_batteryDp'
                                                                                     ? ((config.options
-                                                                                          ?.wakeUpDp as string) ?? '')
-                                                                                    : pickerTarget === 'camera_urlDp'
+                                                                                          ?.batteryDp as string) ?? '')
+                                                                                    : pickerTarget ===
+                                                                                        'status_unreachDp'
                                                                                       ? ((config.options
-                                                                                            ?.streamUrlDp as string) ??
+                                                                                            ?.unreachDp as string) ??
                                                                                         '')
-                                                                                      : pickerTarget === 'html_dp'
+                                                                                      : pickerTarget ===
+                                                                                          'camera_wakeUpDp'
                                                                                         ? ((config.options
-                                                                                              ?.htmlDatapoint as string) ??
+                                                                                              ?.wakeUpDp as string) ??
                                                                                           '')
-                                                                                        : pickerTarget === 'image_dp'
+                                                                                        : pickerTarget ===
+                                                                                            'camera_urlDp'
                                                                                           ? ((config.options
-                                                                                                ?.imageDatapoint as string) ??
+                                                                                                ?.streamUrlDp as string) ??
                                                                                             '')
-                                                                                          : pickerTarget === 'mp_dp'
-                                                                                            ? ((config.options?.[
-                                                                                                  mpPickerKey
-                                                                                              ] as string) ?? '')
-                                                                                            : pickerTarget === 'mp_chip'
-                                                                                              ? (() => {
-                                                                                                    const chips =
-                                                                                                        (config.options
-                                                                                                            ?.chips as Array<{
-                                                                                                            dp: string;
-                                                                                                        }>) ?? [];
-                                                                                                    return (
-                                                                                                        chips[mpChipIdx]
-                                                                                                            ?.dp ?? ''
-                                                                                                    );
-                                                                                                })()
-                                                                                              : pickerTarget ===
-                                                                                                  'chips_chip'
-                                                                                                ? (() => {
-                                                                                                      const chips =
-                                                                                                          (config
-                                                                                                              .options
-                                                                                                              ?.chips as Array<{
-                                                                                                              dp: string;
-                                                                                                          }>) ?? [];
-                                                                                                      return (
-                                                                                                          chips[
-                                                                                                              chipsChipIdx
-                                                                                                          ]?.dp ?? ''
-                                                                                                      );
-                                                                                                  })()
+                                                                                          : pickerTarget === 'html_dp'
+                                                                                            ? ((config.options
+                                                                                                  ?.htmlDatapoint as string) ??
+                                                                                              '')
+                                                                                            : pickerTarget ===
+                                                                                                'image_dp'
+                                                                                              ? ((config.options
+                                                                                                    ?.imageDatapoint as string) ??
+                                                                                                '')
+                                                                                              : pickerTarget === 'mp_dp'
+                                                                                                ? ((config.options?.[
+                                                                                                      mpPickerKey
+                                                                                                  ] as string) ?? '')
                                                                                                 : pickerTarget ===
-                                                                                                    'chips_checkDp'
-                                                                                                  ? ((config.options
-                                                                                                        ?.checkDp as string) ??
-                                                                                                    '')
+                                                                                                    'mp_chip'
+                                                                                                  ? (() => {
+                                                                                                        const chips =
+                                                                                                            (config
+                                                                                                                .options
+                                                                                                                ?.chips as Array<{
+                                                                                                                dp: string;
+                                                                                                            }>) ?? [];
+                                                                                                        return (
+                                                                                                            chips[
+                                                                                                                mpChipIdx
+                                                                                                            ]?.dp ?? ''
+                                                                                                        );
+                                                                                                    })()
                                                                                                   : pickerTarget ===
-                                                                                                      'carousel_item'
+                                                                                                      'chips_chip'
                                                                                                     ? (() => {
-                                                                                                          const items =
+                                                                                                          const chips =
                                                                                                               (config
                                                                                                                   .options
-                                                                                                                  ?.items as Array<{
+                                                                                                                  ?.chips as Array<{
                                                                                                                   dp: string;
                                                                                                               }>) ?? [];
                                                                                                           return (
-                                                                                                              items[
-                                                                                                                  carouselItemIdx
+                                                                                                              chips[
+                                                                                                                  chipsChipIdx
                                                                                                               ]?.dp ??
                                                                                                               ''
                                                                                                           );
                                                                                                       })()
                                                                                                     : pickerTarget ===
-                                                                                                        'carousel_checkDp'
+                                                                                                        'chips_checkDp'
                                                                                                       ? ((config.options
                                                                                                             ?.checkDp as string) ??
                                                                                                         '')
                                                                                                       : pickerTarget ===
-                                                                                                          'http_response_dp'
-                                                                                                        ? ((config
-                                                                                                              .options
-                                                                                                              ?.responseDatapoint as string) ??
-                                                                                                          '')
+                                                                                                          'carousel_item'
+                                                                                                        ? (() => {
+                                                                                                              const items =
+                                                                                                                  (config
+                                                                                                                      .options
+                                                                                                                      ?.items as Array<{
+                                                                                                                      dp: string;
+                                                                                                                  }>) ??
+                                                                                                                  [];
+                                                                                                              return (
+                                                                                                                  items[
+                                                                                                                      carouselItemIdx
+                                                                                                                  ]
+                                                                                                                      ?.dp ??
+                                                                                                                  ''
+                                                                                                              );
+                                                                                                          })()
                                                                                                         : pickerTarget ===
-                                                                                                            'iframe_urlDp'
+                                                                                                            'carousel_checkDp'
                                                                                                           ? ((config
                                                                                                                 .options
-                                                                                                                ?.iframeUrlDp as string) ??
+                                                                                                                ?.checkDp as string) ??
                                                                                                             '')
                                                                                                           : pickerTarget ===
-                                                                                                              'sl_action'
-                                                                                                            ? (() => {
-                                                                                                                  const acts =
-                                                                                                                      (config
-                                                                                                                          .options
-                                                                                                                          ?.actions as Array<{
-                                                                                                                          dp: string;
-                                                                                                                      }>) ??
-                                                                                                                      [];
-                                                                                                                  return (
-                                                                                                                      acts[
-                                                                                                                          slActionIdx
-                                                                                                                      ]
-                                                                                                                          ?.dp ??
-                                                                                                                      ''
-                                                                                                                  );
-                                                                                                              })()
+                                                                                                              'http_response_dp'
+                                                                                                            ? ((config
+                                                                                                                  .options
+                                                                                                                  ?.responseDatapoint as string) ??
+                                                                                                              '')
                                                                                                             : pickerTarget ===
-                                                                                                                'camera_slot'
-                                                                                                              ? (() => {
-                                                                                                                    const key =
-                                                                                                                        (config.layout ??
-                                                                                                                            'minimal') ===
-                                                                                                                        'default'
-                                                                                                                            ? 'infoItems'
-                                                                                                                            : 'customSlots';
-                                                                                                                    const arr =
-                                                                                                                        (config
-                                                                                                                            .options?.[
-                                                                                                                            key
-                                                                                                                        ] as CameraSlot[]) ??
-                                                                                                                        [];
-                                                                                                                    return (
-                                                                                                                        arr[
-                                                                                                                            cameraSlotPickerIdx
-                                                                                                                        ]
-                                                                                                                            ?.datapoint ??
-                                                                                                                        ''
-                                                                                                                    );
-                                                                                                                })()
-                                                                                                              : ((config
+                                                                                                                'iframe_urlDp'
+                                                                                                              ? ((config
                                                                                                                     .options
-                                                                                                                    ?.actualDatapoint as string) ??
+                                                                                                                    ?.iframeUrlDp as string) ??
                                                                                                                 '')
+                                                                                                              : pickerTarget ===
+                                                                                                                  'sl_action'
+                                                                                                                ? (() => {
+                                                                                                                      const acts =
+                                                                                                                          (config
+                                                                                                                              .options
+                                                                                                                              ?.actions as Array<{
+                                                                                                                              dp: string;
+                                                                                                                          }>) ??
+                                                                                                                          [];
+                                                                                                                      return (
+                                                                                                                          acts[
+                                                                                                                              slActionIdx
+                                                                                                                          ]
+                                                                                                                              ?.dp ??
+                                                                                                                          ''
+                                                                                                                      );
+                                                                                                                  })()
+                                                                                                                : pickerTarget ===
+                                                                                                                    'camera_slot'
+                                                                                                                  ? (() => {
+                                                                                                                        const key =
+                                                                                                                            (config.layout ??
+                                                                                                                                'minimal') ===
+                                                                                                                            'default'
+                                                                                                                                ? 'infoItems'
+                                                                                                                                : 'customSlots';
+                                                                                                                        const arr =
+                                                                                                                            (config
+                                                                                                                                .options?.[
+                                                                                                                                key
+                                                                                                                            ] as CameraSlot[]) ??
+                                                                                                                            [];
+                                                                                                                        return (
+                                                                                                                            arr[
+                                                                                                                                cameraSlotPickerIdx
+                                                                                                                            ]
+                                                                                                                                ?.datapoint ??
+                                                                                                                            ''
+                                                                                                                        );
+                                                                                                                    })()
+                                                                                                                  : ((config
+                                                                                                                        .options
+                                                                                                                        ?.actualDatapoint as string) ??
+                                                                                                                    '')
                     }
                     onSelect={(id, unit, name, role, dpType) => {
                         if (pickerTarget === 'datapoint' && config.type === 'clock') {
@@ -18093,6 +18398,10 @@ export function WidgetFrame({
                             onConfigChange({ ...config, options: { ...config.options, closeDp: id } });
                         } else if (pickerTarget === 'shutter_actualPositionDp') {
                             onConfigChange({ ...config, options: { ...config.options, actualPositionDp: id } });
+                        } else if (pickerTarget === 'shutter_tiltDp') {
+                            onConfigChange({ ...config, options: { ...config.options, tiltDp: id } });
+                        } else if (pickerTarget === 'shutter_actualTiltDp') {
+                            onConfigChange({ ...config, options: { ...config.options, actualTiltDp: id } });
                         } else if (pickerTarget === 'dimmer_switchDp') {
                             onConfigChange({ ...config, options: { ...config.options, switchDp: id } });
                         } else if (pickerTarget === 'light_switchDp') {

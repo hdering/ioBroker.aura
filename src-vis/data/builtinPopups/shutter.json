@@ -1,7 +1,7 @@
 {
     "id": "pv-builtin-shutter",
     "name": "Standard: Rolladen",
-    "version": 1,
+    "version": 2,
     "widgets": [
         {
             "id": "pw-bi-shutter-1",
@@ -21,6 +21,8 @@
                 "activityDp": "{{activityDp}}",
                 "directionDp": "{{directionDp}}",
                 "stopDp": "{{stopDp}}",
+                "tiltDp": "{{tiltDp}}",
+                "actualTiltDp": "{{actualTiltDp}}",
                 "batteryDp": "{{batteryDp}}",
                 "unreachDp": "{{unreachDp}}"
             }

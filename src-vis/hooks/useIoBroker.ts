@@ -148,6 +148,25 @@ export function __devSetGetState(fn: typeof devGetState): void {
     devGetState = fn;
 }
 
+// DEV-only write log. Records what a control actually sent (id + value) so a
+// Playwright test can assert the converted raw value — e.g. that a slat slider
+// at 40 % writes 0.4 on a 0…1 datapoint — instead of inferring it from the DOM.
+// Off (null) unless a test arms it; the write itself is untouched either way.
+export interface DevWrite {
+    id: string;
+    val: boolean | number | string;
+}
+let devWriteLog: DevWrite[] | null = null;
+export function __devSetWriteLog(on: boolean): void {
+    devWriteLog = on ? [] : null;
+}
+export function __devWrites(): DevWrite[] {
+    return devWriteLog ? [...devWriteLog] : [];
+}
+function noteWrite(id: string, val: boolean | number | string): void {
+    devWriteLog?.push({ id, val });
+}
+
 // Optimistic writes: when enabled, setState reflects the written value locally
 // (cache + subscribers) immediately, instead of waiting for ioBroker to echo a
 // stateChange back. Synced from the frontend setting via setOptimisticEcho().
@@ -608,6 +627,7 @@ export function useIoBroker() {
     }, []);
 
     const setState = useCallback((id: string, val: boolean | number | string) => {
+        noteWrite(id, val);
         getSocket().emit('setState', id, { val, ack: false });
         if (optimisticEcho) {
             const prev = stateCache.get(id);
@@ -846,6 +866,7 @@ export function getStateDirect(id: string): Promise<ioBrokerState | null> {
 
 /** Set a state value without a React hook. */
 export function setStateDirect(id: string, val: boolean | number | string, ack = false): void {
+    noteWrite(id, val);
     getSocket().emit('setState', id, { val, ack });
 }
 

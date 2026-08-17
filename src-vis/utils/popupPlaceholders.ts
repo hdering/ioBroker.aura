@@ -28,13 +28,37 @@ export function subDeep(value: unknown, map: Record<string, string>): unknown {
     return value;
 }
 
+/** Option keys holding a datapoint id (`stopDp`, `tiltDp`, `actualDatapoint`, …). */
+const DP_OPTION_KEY = /(Dp|Datapoint|datapoint)$/;
+
+/**
+ * Drop datapoint options that still carry a `{{token}}`: the trigger widget has
+ * no such option, so there is nothing to point at. Left in place the literal
+ * would be treated as a datapoint id — a built-in popup would show controls for
+ * a datapoint that does not exist and write to it.
+ */
+function dropUnresolvedDps(options: WidgetConfig['options']): WidgetConfig['options'] {
+    if (!options) return options;
+    const out: Record<string, unknown> = { ...options };
+    let changed = false;
+    for (const [key, val] of Object.entries(out)) {
+        if (typeof val === 'string' && val.includes('{{') && DP_OPTION_KEY.test(key)) {
+            delete out[key];
+            changed = true;
+        }
+    }
+    return changed ? (out as WidgetConfig['options']) : options;
+}
+
 export function substituteWidget(w: WidgetConfig, map: Record<string, string>): WidgetConfig {
-    if (Object.keys(map).length === 0) return w;
+    // Without a token table nothing resolves — the placeholder datapoints still
+    // have to go, or the popup would treat them as real ids.
+    if (Object.keys(map).length === 0) return { ...w, options: dropUnresolvedDps(w.options) };
     return {
         ...w,
         datapoint: subAll(w.datapoint, map),
         title: subAll(w.title, map),
-        options: w.options ? (subDeep(w.options, map) as WidgetConfig['options']) : w.options,
+        options: w.options ? dropUnresolvedDps(subDeep(w.options, map) as WidgetConfig['options']) : w.options,
     };
 }
 

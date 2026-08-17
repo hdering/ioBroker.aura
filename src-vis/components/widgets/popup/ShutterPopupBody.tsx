@@ -3,87 +3,61 @@ import { ChevronUp, ChevronDown, Square } from 'lucide-react';
 import { useDatapoint } from '../../../hooks/useDatapoint';
 import { useIoBroker } from '../../../hooks/useIoBroker';
 import type { WidgetConfig } from '../../../types';
+import { ShutterViz } from '../ShutterViz';
+import { clampPct, rawToTiltPct, tiltPctToRaw, tiltRange } from '../../../utils/shutterTilt';
 
 interface Props {
     widget: WidgetConfig;
 }
 
-function ShutterViz({ closedFrac, isMoving }: { closedFrac: number; isMoving: boolean }) {
-    const accent = isMoving
-        ? 'var(--accent-yellow, #f59e0b)'
-        : closedFrac < 1
-          ? 'var(--accent)'
-          : 'var(--text-secondary)';
-    return (
-        <div
-            style={{
-                width: 120,
-                height: 140,
-                background: 'var(--app-bg)',
-                border: '1px solid var(--app-border)',
-                borderRadius: 8,
-                overflow: 'hidden',
-                position: 'relative',
-            }}
-        >
-            <div
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: `${closedFrac * 100}%`,
-                    transition: 'height 0.4s ease',
-                    backgroundImage:
-                        'repeating-linear-gradient(to bottom, transparent 0px, transparent 8px, color-mix(in srgb, var(--text-secondary) 30%, transparent) 8px, color-mix(in srgb, var(--text-secondary) 30%, transparent) 10px)',
-                }}
-            />
-            {closedFrac > 0.02 && closedFrac < 0.98 && (
-                <div
-                    style={{
-                        position: 'absolute',
-                        left: 0,
-                        right: 0,
-                        top: `${closedFrac * 100}%`,
-                        height: 2,
-                        background: accent,
-                        transition: 'top 0.4s ease',
-                        boxShadow: `0 0 4px ${accent}88`,
-                    }}
-                />
-            )}
-            {isMoving && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-2.5 h-2.5 rounded-full animate-pulse" style={{ background: accent }} />
-                </div>
-            )}
-        </div>
-    );
-}
+const POPUP_SLAT_COLOR = 'color-mix(in srgb, var(--text-secondary) 30%, transparent)';
 
 export function ShutterPopupBody({ widget }: Props) {
     const opts = widget.options ?? {};
     const actualPositionDp = opts.actualPositionDp as string | undefined;
+    const tiltDp = opts.tiltDp as string | undefined;
+    const actualTiltDp = opts.actualTiltDp as string | undefined;
     const { value, setValue } = useDatapoint(widget.datapoint);
     const { value: actualVal } = useDatapoint(actualPositionDp ?? '');
     const { value: activityVal } = useDatapoint((opts.activityDp as string) ?? '');
+    const { value: tiltVal } = useDatapoint(tiltDp ?? '');
+    const { value: actualTiltVal } = useDatapoint(actualTiltDp ?? '');
     const { setState } = useIoBroker();
 
     // Separate read-only status DP (if set) shows the real position, not the target
     const posValue = actualPositionDp && typeof actualVal === 'number' ? actualVal : value;
     const rawPos = typeof posValue === 'number' ? Math.round(posValue) : 0;
     const pos = (opts.invertPosition as boolean) ? 100 - rawPos : rawPos;
-    const closedFrac = Math.max(0, Math.min(1, (100 - pos) / 100));
     const showClosedPercent = !!(opts.showClosedPercent as boolean);
     const isMoving = activityVal === true || activityVal === 1 || activityVal === '1' || activityVal === 'true';
+    const positionLivePreview = !!(opts.positionLivePreview as boolean);
+    const tiltLivePreview = opts.tiltLivePreview !== false;
+    const tiltLabel = (opts.tiltLabel as string) || 'Lamellen';
 
     const [sliderDraft, setSliderDraft] = useState<number | null>(null);
+    const [tiltDraft, setTiltDraft] = useState<number | null>(null);
+    // Thumbs always follow the finger; graphic and percentage only when the
+    // widget's live-preview option says so.
     const display = sliderDraft ?? pos;
+    const shownPos = positionLivePreview ? display : pos;
+    const closedFrac = Math.max(0, Math.min(1, (100 - shownPos) / 100));
+
+    const tiltRng = tiltRange(opts);
+    const tiltActive = !!tiltDp;
+    const tiltRawValue = actualTiltDp && typeof actualTiltVal === 'number' ? actualTiltVal : tiltVal;
+    const tiltPct = rawToTiltPct(tiltRawValue, tiltRng) ?? 0;
+    const tiltDisplay = tiltDraft ?? tiltPct;
+    const tiltShown = tiltLivePreview ? tiltDisplay : tiltPct;
 
     const writePos = (p: number) => {
         const raw = (opts.invertPosition as boolean) ? 100 - p : p;
         setValue(raw);
         setSliderDraft(null);
+    };
+
+    const writeTilt = (pct: number) => {
+        if (tiltDp) setState(tiltDp, tiltPctToRaw(clampPct(pct), tiltRng));
+        setTiltDraft(null);
     };
 
     const stop = () => {
@@ -98,11 +72,42 @@ export function ShutterPopupBody({ widget }: Props) {
         border: '1px solid var(--app-border)',
     };
 
+    const quickBtn = (p: number, current: number, onPick: () => void) => (
+        <button
+            key={p}
+            onClick={onPick}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
+            style={{
+                background: Math.abs(current - p) < 3 ? 'var(--accent)' : 'var(--app-bg)',
+                color: Math.abs(current - p) < 3 ? '#fff' : 'var(--text-primary)',
+                border: '1px solid var(--app-border)',
+            }}
+        >
+            {p}%
+        </button>
+    );
+
     return (
         <div className="flex flex-col items-center gap-6 py-6 px-4">
             <div className="flex items-center gap-8">
                 {/* Visualization */}
-                <ShutterViz closedFrac={closedFrac} isMoving={isMoving} />
+                <ShutterViz
+                    closedFrac={closedFrac}
+                    accentColor={
+                        isMoving
+                            ? 'var(--accent-yellow, #f59e0b)'
+                            : closedFrac < 1
+                              ? 'var(--accent)'
+                              : 'var(--text-secondary)'
+                    }
+                    isMoving={isMoving}
+                    tiltFrac={tiltActive ? tiltShown / 100 : undefined}
+                    pitch={10}
+                    slatColor={POPUP_SLAT_COLOR}
+                    radius={8}
+                    dotPx={10}
+                    style={{ width: 120, height: 140 }}
+                />
 
                 {/* Vertical control column */}
                 <div className="flex flex-col items-center gap-3">
@@ -135,7 +140,7 @@ export function ShutterPopupBody({ widget }: Props) {
                 <div className="flex justify-between text-sm">
                     <span style={{ color: 'var(--text-secondary)' }}>Position</span>
                     <span className="font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                        {showClosedPercent ? 100 - display : display}%
+                        {showClosedPercent ? 100 - shownPos : shownPos}%
                     </span>
                 </div>
                 <input
@@ -161,22 +166,45 @@ export function ShutterPopupBody({ widget }: Props) {
             </div>
 
             {/* Quick positions */}
-            <div className="flex gap-2">
-                {[0, 25, 50, 75, 100].map((p) => (
-                    <button
-                        key={p}
-                        onClick={() => writePos(p)}
-                        className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
-                        style={{
-                            background: Math.abs(display - p) < 3 ? 'var(--accent)' : 'var(--app-bg)',
-                            color: Math.abs(display - p) < 3 ? '#fff' : 'var(--text-primary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        {p}%
-                    </button>
-                ))}
-            </div>
+            <div className="flex gap-2">{[0, 25, 50, 75, 100].map((p) => quickBtn(p, display, () => writePos(p)))}</div>
+
+            {/* Slat tilt – only with a tilt datapoint configured */}
+            {tiltActive && (
+                <>
+                    <div className="w-full max-w-xs space-y-2">
+                        <div className="flex justify-between text-sm">
+                            <span style={{ color: 'var(--text-secondary)' }}>{tiltLabel}</span>
+                            <span className="font-semibold tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                                {Math.round(tiltShown)}%
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={Math.round(tiltDisplay)}
+                            aria-label={tiltLabel}
+                            onChange={(e) => setTiltDraft(Number(e.target.value))}
+                            onMouseUp={() => {
+                                if (tiltDraft !== null) writeTilt(tiltDraft);
+                            }}
+                            onTouchEnd={() => {
+                                if (tiltDraft !== null) writeTilt(tiltDraft);
+                            }}
+                            style={{ accentColor: 'var(--accent)', width: '100%' }}
+                            className="h-2 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <div className="flex justify-between text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                            <span>Zu</span>
+                            <span>Offen</span>
+                        </div>
+                    </div>
+                    <div className="flex gap-2">
+                        {[0, 25, 50, 75, 100].map((p) => quickBtn(p, tiltDisplay, () => writeTilt(p)))}
+                    </div>
+                </>
+            )}
         </div>
     );
 }

@@ -110,6 +110,65 @@ export interface DpTemplate {
     hint?: string;
 }
 
+/** Shared by the roller-shutter and the venetian-blind template — same device
+ *  family, the latter only starts with the tilt regulator switched on. */
+const SHUTTER_SECONDARY_DPS: DpTemplate['secondaryDps'] = [
+    {
+        optionKey: 'activityDp',
+        siblingNames: [
+            'WORKING',
+            'working',
+            'ACTIVITY_STATE',
+            'activity_state',
+            'PROCESS',
+            'process',
+            'state',
+            'moving',
+            'activity',
+            'ACTIVITY',
+        ],
+    },
+    {
+        optionKey: 'directionDp',
+        siblingNames: ['DIRECTION', 'direction'],
+    },
+    {
+        optionKey: 'stopDp',
+        siblingNames: ['STOP', 'stop', 'Pause', 'pause'],
+    },
+    {
+        // Slat angle: HmIP blind actuators carry it as LEVEL_2 next to LEVEL,
+        // HM classic as LEVEL_SLATS, zigbee2mqtt/Velux as tilt.
+        optionKey: 'tiltDp',
+        siblingNames: [
+            'LEVEL_2',
+            'level_2',
+            'LEVEL_SLATS',
+            'level_slats',
+            'SLATS',
+            'slats',
+            'TILT',
+            'tilt',
+            'tilt_position',
+            'position_tilt',
+            'tiltPosition',
+            'lamella',
+            'lamellen',
+            'slat_angle',
+            'ANGLE',
+            'angle',
+        ],
+    },
+    {
+        optionKey: 'batteryDp',
+        siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
+    },
+    {
+        optionKey: 'unreachDp',
+        siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'],
+    },
+];
+
 export const DP_TEMPLATES: DpTemplate[] = [
     // ── BESCHATTUNG ───────────────────────────────────────────────────────────
     {
@@ -119,39 +178,17 @@ export const DP_TEMPLATES: DpTemplate[] = [
         widgetType: 'shutter',
         category: 'shading',
         hint: 'Für alle positionsgesteuerten Beschattungsgeräte: Rollladen, Jalousie, Rollo, Markise – Datenpunkt liefert 0–100 %',
-        secondaryDps: [
-            {
-                optionKey: 'activityDp',
-                siblingNames: [
-                    'WORKING',
-                    'working',
-                    'ACTIVITY_STATE',
-                    'activity_state',
-                    'PROCESS',
-                    'process',
-                    'state',
-                    'moving',
-                    'activity',
-                    'ACTIVITY',
-                ],
-            },
-            {
-                optionKey: 'directionDp',
-                siblingNames: ['DIRECTION', 'direction'],
-            },
-            {
-                optionKey: 'stopDp',
-                siblingNames: ['STOP', 'stop', 'Pause', 'pause'],
-            },
-            {
-                optionKey: 'batteryDp',
-                siblingNames: ['LOWBAT', 'LOW_BAT', 'lowBat', 'low_bat', 'battery_low', 'batteryLow', 'BATTERY_LOW'],
-            },
-            {
-                optionKey: 'unreachDp',
-                siblingNames: ['UNREACH', 'unreach', 'UNREACHABLE', 'unreachable', 'offline', 'OFFLINE'],
-            },
-        ],
+        secondaryDps: SHUTTER_SECONDARY_DPS,
+    },
+    {
+        id: 'blind-tilt',
+        label: 'Jalousie / Raffstore',
+        icon: '📐',
+        widgetType: 'shutter',
+        category: 'shading',
+        hint: 'Wie Rollladen, zusätzlich mit Lamellen-Neigung (HmIP LEVEL_2, HM LEVEL_SLATS, Zigbee tilt) – der Neigungs-Regler ist gleich eingeschaltet',
+        defaultOptions: { tiltPlacement: 'inline', tiltControl: 'slider-v' },
+        secondaryDps: SHUTTER_SECONDARY_DPS,
     },
 
     // ── KLIMA ────────────────────────────────────────────────────────────────
