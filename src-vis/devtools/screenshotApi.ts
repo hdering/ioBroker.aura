@@ -14,6 +14,7 @@
 
 import { getInstanceByDom } from 'echarts';
 import {
+    __devInjectObject,
     __devInjectState,
     __devSetHistoryGen,
     __devSetObjectView,
@@ -21,6 +22,7 @@ import {
     __devSetGetState,
     getStateFromCache,
     isStateFresh,
+    type HistoryAggregate,
     type HistoryEntry,
 } from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
@@ -85,6 +87,46 @@ function genHistory(id: string, opts: { start: number; end: number; count?: numb
         out.push({ ts, val: Math.round((center + wobble) * 100) / 100 });
     }
     return out;
+}
+
+// Stand in for what a history adapter does with `step` + `aggregate`: raw records are
+// grouped into fixed windows and each window is reduced to one row — except `minmax`,
+// which emits the window's extremes at their REAL timestamps, so a spike survives a
+// coarse step. Emulated rather than skipped because the difference between the modes is
+// exactly what the documentation screenshots are meant to show.
+function aggregateRaw(
+    raw: HistoryEntry[],
+    start: number,
+    step: number | undefined,
+    aggregate: HistoryAggregate | undefined,
+): HistoryEntry[] {
+    if (!step || !aggregate || aggregate === 'none') return raw;
+    const nums = raw.filter((e): e is { ts: number; val: number } => typeof e.val === 'number');
+    const groups = new Map<number, { ts: number; val: number }[]>();
+    for (const e of nums) {
+        const key = Math.floor((e.ts - start) / step);
+        const g = groups.get(key);
+        if (g) g.push(e);
+        else groups.set(key, [e]);
+    }
+    const out: HistoryEntry[] = [];
+    for (const [key, g] of [...groups.entries()].sort((a, b) => a[0] - b[0])) {
+        const mid = start + key * step + step / 2;
+        const lo = g.reduce((a, b) => (b.val < a.val ? b : a));
+        const hi = g.reduce((a, b) => (b.val > a.val ? b : a));
+        if (aggregate === 'minmax') {
+            // Both extremes with their own timestamps; a flat window contributes one row.
+            out.push(lo);
+            if (hi.ts !== lo.ts) out.push(hi);
+        } else if (aggregate === 'min') out.push({ ts: mid, val: lo.val });
+        else if (aggregate === 'max') out.push({ ts: mid, val: hi.val });
+        else if (aggregate === 'first') out.push(g[0]);
+        else if (aggregate === 'last') out.push(g[g.length - 1]);
+        else if (aggregate === 'count') out.push({ ts: mid, val: g.length });
+        else if (aggregate === 'total') out.push({ ts: mid, val: g.reduce((sum, e) => sum + e.val, 0) });
+        else out.push({ ts: mid, val: g.reduce((sum, e) => sum + e.val, 0) / g.length });
+    }
+    return out.sort((a, b) => a.ts - b.ts);
 }
 
 function installScreenshotApi(): void {
@@ -171,6 +213,37 @@ function installScreenshotApi(): void {
          *  (pass false to restore the real getHistory path). */
         enableHistory(on = true): void {
             __devSetHistoryGen(on ? genHistory : null);
+        },
+
+        /** Serve an EXPLICIT raw series per datapoint instead of the wobble generator:
+         *  { 'demo.0.pv.total': [[ts, val], …] }, sliced to the requested window and then
+         *  bucketed the way the history adapter would for the requested step/aggregate.
+         *  Needed for anything the generator can't shape — a monotonic counter above all,
+         *  which is what the `delta` aggregation reads — and for showing what the
+         *  aggregation itself does to a series. Unlisted ids fall back to the generator so
+         *  a mixed dashboard still draws. `false` restores the real getHistory path. */
+        mockHistory(byId: Record<string, [number, number][]> | false): void {
+            if (byId === false) {
+                __devSetHistoryGen(null);
+                return;
+            }
+            __devSetHistoryGen((id, opts) => {
+                const points = byId[id];
+                if (!points) return genHistory(id, opts);
+                const raw = points
+                    .filter(([ts]) => ts >= opts.start && ts <= opts.end)
+                    .map(([ts, val]): HistoryEntry => ({ ts, val }));
+                return aggregateRaw(raw, opts.start, opts.step, opts.aggregate);
+            });
+        },
+
+        /** Seed whole objects: { 'demo.0.PV.Ertrag_Gesamt': { common: { custom: { 'history.0': { enabled: true } } } } }.
+         *  Editor fields derived from the object — the history adapters detected in
+         *  `common.custom` above all — then show what a real, logged datapoint would show. */
+        mockObject(byId: Record<string, unknown>): void {
+            for (const [id, obj] of Object.entries(byId)) {
+                __devInjectObject(id, obj as Parameters<typeof __devInjectObject>[1]);
+            }
         },
 
         /** Stub getObjectView per object type: { instance: [{id,value}], script: [...] }.
@@ -301,6 +374,26 @@ function installScreenshotApi(): void {
          *  would otherwise draw a full-width line wherever the series sits at 0 (issue #541). */
         seriesLineWidth(series: StackableSeries): number {
             return outlineWidthFor(series);
+        },
+
+        /** What the chart on screen actually plots, per series: name, point count and the
+         *  first/last x value. Lets a screenshot script verify the curve covers the whole
+         *  window before saving the image — an empty tail is invisible in a thumbnail. */
+        chartSeries(): { name: unknown; points: number; first: unknown; last: unknown }[] | null {
+            const el = document.querySelector('[_echarts_instance_]');
+            const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
+            if (!inst) return null;
+            const opt = inst.getOption() as { series?: { name?: unknown; data?: unknown[] }[] };
+            return (opt.series ?? []).map((s) => {
+                const data = s.data ?? [];
+                const at = (p: unknown) => (Array.isArray(p) ? p[0] : p);
+                return {
+                    name: s.name,
+                    points: data.length,
+                    first: at(data[0]),
+                    last: at(data[data.length - 1]),
+                };
+            });
         },
 
         /** grid + y axes of the chart currently on screen, as echarts resolved them. The axis

@@ -42,7 +42,7 @@ import { tabBarShowsOnOwn } from './utils/tabBarVisible';
 import type { Tab } from './store/dashboardStore';
 import type { FrontendSettings } from './store/configStore';
 
-import { discardPending } from './store/persistManager';
+import { discardPending, isScreenshotMode } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { markWidgetPresetsHydrated } from './store/widgetPresetsStore';
 import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
@@ -734,6 +734,10 @@ export default function App() {
     const sectionId = section?.id;
     const sectionThemeId = section?.settings?.themeId;
     useEffect(() => {
+        // Documentation screenshots pick their own theme; the instance behind the dev proxy
+        // must not pull them back to whatever it is set to (that is why the frontend shots
+        // used to come out dark). Every other write is blocked in screenshot mode too.
+        if (isScreenshotMode()) return;
         const applyOverride = () => {
             const v = themeModeOverride.value;
             if (!v) return;

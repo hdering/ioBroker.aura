@@ -135,9 +135,12 @@ der Offset fällt heraus (die Differenz zweier verschobener Zählerstände ist d
 | Datenquelle | Verlaufs-Adapter (history, influxdb, sql) |
 | Zeiteinheit | `deltaBucket` — Kalendergrenzen in lokaler Zeit |
 | Chart-Typ | beim Umschalten automatisch `bar` |
+| Y-Achse | `echartLeftMin: 0` setzen — die automatische Skala beginnt am kleinsten Balken |
 | Zählerwechsel / Überlauf | negative Differenz wird auf `0` gesetzt |
 | Buckets ohne Datensatz | übersprungen; ihr Verbrauch fällt in den nächsten Bucket mit Daten |
 | Aktueller Wert oben rechts | Verbrauch des laufenden Buckets, nicht der Zählerstand |
+
+Bilder dazu: [Beispiele](#beispiele).
 
 `deltaBucket: auto` leitet die Zeiteinheit aus dem aktiven Zeitraum ab und wechselt mit, wenn im Frontend umgeschaltet wird:
 
@@ -204,3 +207,65 @@ Der Fensterstart kostet eine zusätzliche, grobe Abfrage je Serie. Bei sehr lang
 | Option | Standard | |
 | --- | --- | --- |
 | `echartJsonExtra` | — | JSON, das tief in die ECharts-Optionen gemischt wird |
+
+## Beispiele
+
+Dieselbe Anlage in allen Bildern: PV-Ertragszähler `demo.0.PV.Ertrag_Gesamt` (kWh, fortlaufend steigend, per `history.0` geloggt) und die Hausleistung `demo.0.Haus.Leistung` (W).
+
+### Zählerstand → Tagesertrag
+
+`aggregate: average` · `chartType: line` · `echartRange: 30d` — der Zähler steigt, der Tagesertrag ist daraus nicht ablesbar:
+
+![](./assets/diagramm-erweitert/bsp-zaehlerstand.png)
+
+Derselbe Datenpunkt mit `aggregate: delta` · `deltaBucket: day` · `chartType: bar` · `echartLeftMin: 0`:
+
+![](./assets/diagramm-erweitert/bsp-delta-tag.png)
+
+Die Einstellungen dazu im Editor:
+
+![](./assets/diagramm-erweitert/bsp-config-delta.png)
+
+### Zeiteinheit
+
+`deltaBucket: hour` · `echartRange: 24h` — Tagesverlauf, ein Balken je Stunde:
+
+![](./assets/diagramm-erweitert/bsp-delta-stunde.png)
+
+`deltaBucket: month` · `echartRange: 1y` — Monatserträge über ein Jahr:
+
+![](./assets/diagramm-erweitert/bsp-delta-monat.png)
+
+`deltaBucket: year` · `echartRange: custom` / `1825 d` — Jahreserträge, der letzte Balken ist das laufende Jahr:
+
+![](./assets/diagramm-erweitert/bsp-delta-jahr.png)
+
+### Zeiteinheit automatisch
+
+`deltaBucket: auto` · `echartVisibleRanges: ["24h","30d","1y"]` — die Zeiteinheit wechselt mit dem Umschalter im Frontend. **30 Tage** ergibt Tagesbalken:
+
+![](./assets/diagramm-erweitert/bsp-auto-30d.png)
+
+**1 Jahr** ergibt Monatsbalken — ohne Änderung an der Konfiguration:
+
+![](./assets/diagramm-erweitert/bsp-auto-1y.png)
+
+### Spitzen: Mittelwert oder Min/Max
+
+Hausleistung über 24 h. `aggregate: average` glättet jedes 15-Minuten-Fenster — der Backofen wird zu einem Plateau, der Wasserkocher verschwindet fast:
+
+![](./assets/diagramm-erweitert/bsp-agg-average.png)
+
+`aggregate: minmax` behält die echten Extremwerte samt Zeitstempel — die Spitzen und das Takten der Geräte bleiben sichtbar:
+
+![](./assets/diagramm-erweitert/bsp-agg-minmax.png)
+
+### Stapeln
+
+Zwei Serien mit `stack: true` und `chartType: area` auf derselben Y-Achse: Netzbezug und Speicher-Entladung ergeben zusammen den Hausverbrauch. Der Tooltip zeigt die Einzelwerte plus `Σ Summe`.
+
+![](./assets/diagramm-erweitert/bsp-stapeln.png)
+
+::: tip Bilder neu erzeugen
+`node tools/screenshots/echart-examples.mjs` gegen einen laufenden `npm run dev`. Die Daten sind im Skript erzeugt (fester Zeitpunkt, fester Zufallsgenerator), es wird keine Instanz gelesen oder geschrieben.
+:::

@@ -119,7 +119,14 @@ export function __devInjectState(id: string, state: ioBrokerState): void {
 // so history charts, adapter/script/log lists etc. render offline & side-effect
 // free. Returning `undefined` from the sendTo stub means "not handled, fall
 // through to the real socket". Not wired up in production builds.
-let devHistoryGen: ((id: string, opts: { start: number; end: number; count?: number }) => HistoryEntry[]) | null = null;
+// `step`/`aggregate` are handed over as requested, so a stub can emulate what the
+// adapter would do with them — average smearing a spike, `minmax` keeping it.
+let devHistoryGen:
+    | ((
+          id: string,
+          opts: { start: number; end: number; count?: number; step?: number; aggregate?: HistoryAggregate },
+      ) => HistoryEntry[])
+    | null = null;
 let devObjectView: ((type: string, startkey: string, endkey: string) => ObjectViewResult | undefined) | null = null;
 let devSendTo: ((target: string, command: string, payload: unknown) => unknown) | null = null;
 // Stands in for what the server would answer to `getState`. Lets a test model a
@@ -671,6 +678,13 @@ export function invalidateObjectCache(id?: string): void {
     }
 }
 
+/** Seed the object cache, so getObjectDirect answers from it instead of the socket.
+ *  DEV-only: lets a screenshot show the editor fields that depend on an object (the
+ *  history adapters detected in `common.custom` above all) for a fabricated datapoint. */
+export function __devInjectObject(id: string, obj: ioBrokerObject): void {
+    objectCache.set(id, obj);
+}
+
 export function getObjectDirect(id: string, opts?: { skipCache?: boolean }): Promise<ioBrokerObject | null> {
     if (!opts?.skipCache) {
         if (objectCache.has(id)) return Promise.resolve(objectCache.get(id) ?? null);
@@ -689,6 +703,8 @@ export function getObjectDirect(id: string, opts?: { skipCache?: boolean }): Pro
 }
 
 // ── History adapter ────────────────────────────────────────────────────────────
+export type HistoryAggregate = 'none' | 'average' | 'min' | 'max' | 'minmax' | 'total' | 'count' | 'first' | 'last';
+
 export interface HistoryEntry {
     ts: number;
     val: number | boolean | string | null;
@@ -704,12 +720,18 @@ export function getHistoryDirect(
         end?: number;
         step?: number;
         count?: number;
-        aggregate?: 'none' | 'average' | 'min' | 'max' | 'minmax' | 'total' | 'count' | 'first' | 'last';
+        aggregate?: HistoryAggregate;
     },
 ): Promise<HistoryEntry[]> {
     if (devHistoryGen) {
         return Promise.resolve(
-            devHistoryGen(id, { start: opts.start, end: opts.end ?? Date.now(), count: opts.count }),
+            devHistoryGen(id, {
+                start: opts.start,
+                end: opts.end ?? Date.now(),
+                count: opts.count,
+                step: opts.step,
+                aggregate: opts.aggregate,
+            }),
         );
     }
     return new Promise((resolve) => {
