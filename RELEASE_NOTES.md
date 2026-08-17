@@ -7,4 +7,5 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 
+- Messages - editing the presentation defaults under Admin -> Messages now activates the Save button instead of writing every keystroke straight to the instance; Undo restores the stored values
 - Messages - the send time can now be shown on the message card: pick the default under Admin -> Messages (clock, or date plus clock), and override it per message with `showTime` / `timeFormat`

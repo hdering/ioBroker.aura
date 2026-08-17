@@ -218,6 +218,37 @@ export function isScreenshotMode(): boolean {
     return screenshotMode;
 }
 
+// ── Config that lives outside the sync stores ────────────────────────────────
+// A few admin settings are owned by the adapter rather than by a store: the
+// message presentation defaults live in `config.messageDefaults` because the
+// adapter reads the very same datapoint to normalize payloads. Registering such a
+// key here is what puts it under the global save bar — Speichern, Rückgängig,
+// Ctrl+S and auto-save then treat it like any other admin edit, instead of the
+// page writing itself on every keystroke with nothing to show for it.
+export interface ExternalConfigKey {
+    /** Write the current value. Resolve false to keep the key dirty for a retry. */
+    save: () => Promise<boolean>;
+    /** Drop the edit and go back to the last saved value. */
+    revert: () => void;
+}
+const externalKeys = new Map<string, ExternalConfigKey>();
+
+/** Idempotent per key — the editing page re-registers on every mount. */
+export function registerExternalConfigKey(key: string, handlers: ExternalConfigKey): void {
+    externalKeys.set(key, handlers);
+}
+
+/**
+ * Mark an external key edited. RAM-only on purpose, unlike markDirty: the value
+ * itself lives in the page, so a reload drops the edit — a localStorage flag
+ * would outlive it and leave the save bar armed with nothing left to write.
+ */
+export function markExternalDirty(key: string): void {
+    if (screenshotMode) return;
+    pending.set(key, '\x00');
+    notify();
+}
+
 function notify() {
     subscribers.forEach((fn) => fn());
 }
@@ -294,6 +325,11 @@ export function discardPendingKey(key: string): void {
 }
 
 export function revertAll(rehydrateFns: Array<() => void>): void {
+    // External keys restore themselves — their value never went through
+    // localStorage, so the loop below cannot reach it.
+    externalKeys.forEach((handlers, key) => {
+        if (pending.has(key)) handlers.revert();
+    });
     // Restore each pending key to its pre-edit value, if we still have the
     // original (originals is RAM-only; F5 wipes it). Then clear dirty flags.
     originals.forEach((orig, key) => {
@@ -749,6 +785,19 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
         } else {
             pending.delete(key);
         }
+    });
+    // Adapter-owned keys ride along with the same save. Kept out of `acks`, which
+    // the backup path indexes against changedKeys — these are not sync stores and
+    // have no place in a config backup.
+    externalKeys.forEach((handlers, key) => {
+        if (!pending.has(key)) return;
+        void Promise.resolve(handlers.save()).then((ok) => {
+            // Same rule as a sync store: only a confirmed write may clear the key,
+            // so a lost one stays dirty and the next save retries it.
+            if (ok) pending.delete(key);
+            else console.warn(`[persistManager] save unconfirmed for ${key} — keeping dirty for retry`);
+            notify();
+        });
     });
     originals.clear();
     notify();

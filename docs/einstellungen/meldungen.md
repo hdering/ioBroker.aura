@@ -190,7 +190,7 @@ Jede Position ist ein eigener Stapel. Sind mehr Meldungen offen als „Gleichzei
 
 ## Standardwerte
 
-**Admin → Meldungen → Standardwerte**. Gelten für jede Meldung, die das Feld nicht selbst mitschickt.
+**Admin → Meldungen → Standardwerte**. Gelten für jede Meldung, die das Feld nicht selbst mitschickt. Änderungen werden wie überall im Admin erst mit **Speichern** übernommen — **Rückgängig** stellt die gespeicherten Werte wieder her.
 
 ![](./assets/meldungen.png)
 

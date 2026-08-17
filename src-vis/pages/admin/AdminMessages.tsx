@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, CheckCheck, Search, Send, Trash2, X } from 'lucide-react';
-import { getStateDirect, setStateDirect } from '../../hooks/useIoBroker';
+import { getStateDirect, setStateDirect, setStateDirectAsync } from '../../hooks/useIoBroker';
+import { markExternalDirty, registerExternalConfigKey, subscribeDirty } from '../../store/persistManager';
 import { NS } from '../../utils/namespace';
 import {
     MessageBuilder,
@@ -45,6 +46,9 @@ const cardStyle: React.CSSProperties = {
 };
 
 // ── Presentation defaults (config.messageDefaults) ────────────────────────────
+
+/** Name these defaults carry in the admin's save bookkeeping (persistManager). */
+const DEFAULTS_KEY = 'aura-message-defaults';
 
 /**
  * Mirrors the shape the adapter reads in _messageDefaults(). Kept as a plain DP
@@ -92,26 +96,73 @@ function parseDefaults(raw: unknown): MessageDefaults {
     }
 }
 
+/**
+ * The edit buffer sits at module scope rather than in component state: leaving the
+ * page with an unsaved change has to keep the admin's save bar armed, and pressing
+ * Speichern there — from any page — must still be able to flush it. That is how a
+ * sync store behaves, and these defaults are edited in the same admin.
+ */
+const editBuffer = {
+    /** What the form shows. null = nothing loaded and nothing edited yet. */
+    value: null as MessageDefaults | null,
+    /** What ioBroker holds — the baseline Rückgängig returns to. */
+    saved: null as MessageDefaults | null,
+};
+
+/** ack=true: an owned configuration value, not a command. */
+function writeDefaults(next: MessageDefaults): Promise<boolean> {
+    return setStateDirectAsync(`${NS}.config.messageDefaults`, JSON.stringify(next), true).then(() => true);
+}
+
 function DefaultsSection() {
-    const [defaults, setDefaults] = useState<MessageDefaults>(BUILTIN_DEFAULTS);
-    const [loaded, setLoaded] = useState(false);
+    // One render trigger for everything persistManager announces: our own edits,
+    // Rückgängig from the save bar, and a confirmed save.
+    const [, bump] = useState(0);
+    useEffect(() => subscribeDirty(() => bump((n) => n + 1)), []);
+
+    const [loaded, setLoaded] = useState(editBuffer.value !== null);
+
+    // Registered on mount, never removed: the handlers read the module-level buffer
+    // rather than component state, so a save that happens after navigating away
+    // still writes the right value.
+    useEffect(() => {
+        registerExternalConfigKey(DEFAULTS_KEY, {
+            save: () =>
+                writeDefaults(editBuffer.value ?? BUILTIN_DEFAULTS).then((ok) => {
+                    if (ok) editBuffer.saved = editBuffer.value;
+                    return ok;
+                }),
+            revert: () => {
+                editBuffer.value = editBuffer.saved;
+            },
+        });
+    }, []);
 
     useEffect(() => {
+        // An edit in progress outranks the datapoint — coming back to the page must
+        // not overwrite what the user typed before saving.
+        if (editBuffer.value !== null) return;
         let cancelled = false;
         void getStateDirect(`${NS}.config.messageDefaults`).then((st) => {
-            if (cancelled) return;
-            setDefaults(parseDefaults(st?.val));
+            if (cancelled || editBuffer.value !== null) return;
+            const parsed = parseDefaults(st?.val);
+            editBuffer.saved = parsed;
+            editBuffer.value = parsed;
             setLoaded(true);
+            bump((n) => n + 1);
         });
         return () => {
             cancelled = true;
         };
     }, []);
 
-    // ack=true: this is an owned configuration value, not a command.
+    const defaults = editBuffer.value ?? BUILTIN_DEFAULTS;
+
+    // Buffer the change and arm the save bar; the datapoint is written when the
+    // admin saves, like every other setting on these pages.
     const save = (next: MessageDefaults) => {
-        setDefaults(next);
-        setStateDirect(`${NS}.config.messageDefaults`, JSON.stringify(next), true);
+        editBuffer.value = next;
+        markExternalDirty(DEFAULTS_KEY);
     };
 
     const numberField = (label: string, hint: string, value: number, onChange: (n: number) => void, max: number) => (
@@ -135,7 +186,7 @@ function DefaultsSection() {
     );
 
     return (
-        <section>
+        <section data-aura-msg-defaults="">
             <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
                 Standardwerte
             </h2>
@@ -235,6 +286,7 @@ function DefaultsSection() {
                             independently, and a disabled format select next to a
                             switched-off toggle is just noise. */}
                         <select
+                            data-aura-msg-default="time"
                             value={defaults.showTime ? defaults.timeFormat : ''}
                             onChange={(e) =>
                                 save(
