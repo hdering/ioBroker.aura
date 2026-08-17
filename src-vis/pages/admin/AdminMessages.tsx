@@ -8,6 +8,7 @@ import {
     MESSAGE_APPEARANCES,
     MESSAGE_POSITIONS,
     MESSAGE_SEVERITIES,
+    MESSAGE_TIME_FORMATS,
     draftToPayload,
     emptyDraft,
     type MessageDraft,
@@ -19,7 +20,14 @@ import { SEVERITY_COLOR } from '../../components/messages/MessageToast';
 import { stripMessageHtml } from '../../components/messages/MessageHtml';
 import { useMessagesStore, startMessagesRuntime, DEFAULT_MAX_VISIBLE } from '../../store/messagesStore';
 import { useConnectionStore } from '../../store/connectionStore';
-import type { AuraMessage, MessageAlign, MessageAppearance, MessagePosition, MessageSeverity } from '../../types';
+import type {
+    AuraMessage,
+    MessageAlign,
+    MessageAppearance,
+    MessagePosition,
+    MessageSeverity,
+    MessageTimeFormat,
+} from '../../types';
 
 // ── Shared styles (mirrors AdminPopups) ───────────────────────────────────────
 
@@ -51,6 +59,8 @@ interface MessageDefaults {
     maxVisible: number;
     appearance: MessageAppearance;
     align: MessageAlign;
+    showTime: boolean;
+    timeFormat: MessageTimeFormat;
     errorsRequireAck: boolean;
 }
 
@@ -62,6 +72,8 @@ const BUILTIN_DEFAULTS: MessageDefaults = {
     maxVisible: DEFAULT_MAX_VISIBLE,
     appearance: 'bar',
     align: 'left',
+    showTime: false,
+    timeFormat: 'time',
     errorsRequireAck: false,
 };
 
@@ -72,6 +84,8 @@ function parseDefaults(raw: unknown): MessageDefaults {
             ...BUILTIN_DEFAULTS,
             ...p,
             durations: { ...BUILTIN_DEFAULTS.durations, ...(p.durations ?? {}) },
+            // A format the select does not offer would render as an empty option.
+            timeFormat: p.timeFormat === 'datetime' ? 'datetime' : 'time',
         };
     } catch {
         return BUILTIN_DEFAULTS;
@@ -212,6 +226,40 @@ function DefaultsSection() {
                                 </option>
                             ))}
                         </select>
+                    </div>
+                    <div>
+                        <label className="text-[11px] block mb-1" style={labelStyle}>
+                            Zeitpunkt
+                        </label>
+                        {/* Off plus a format in one control: the two are never chosen
+                            independently, and a disabled format select next to a
+                            switched-off toggle is just noise. */}
+                        <select
+                            value={defaults.showTime ? defaults.timeFormat : ''}
+                            onChange={(e) =>
+                                save(
+                                    e.target.value
+                                        ? {
+                                              ...defaults,
+                                              showTime: true,
+                                              timeFormat: e.target.value as MessageTimeFormat,
+                                          }
+                                        : { ...defaults, showTime: false },
+                                )
+                            }
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="">Nicht anzeigen</option>
+                            {MESSAGE_TIME_FORMATS.map((f) => (
+                                <option key={f.value} value={f.value}>
+                                    {f.label}
+                                </option>
+                            ))}
+                        </select>
+                        <p className="text-[11px] mt-1" style={labelStyle}>
+                            Sendezeit klein unter dem Text der Meldung.
+                        </p>
                     </div>
                 </div>
 

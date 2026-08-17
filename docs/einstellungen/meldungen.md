@@ -87,6 +87,8 @@ Mindestens eines von `title`, `text`, `html`, `image` oder `view` muss gesetzt s
 | `width` | number (px) | Breite der Karte; Standard 340 |
 | `height` | number (px) | Feste Höhe — die Karte wächst darauf an; ohne Angabe passt sie sich dem Inhalt an |
 | `transparency` | `0`–`95` | Prozent; `0` = deckend |
+| `showTime` | boolean | Sendezeit klein unter dem Inhalt; `false` schaltet den [Standardwert](#standardwerte) für diese Meldung ab |
+| `timeFormat` | `time` · `datetime` | `time` = nur Uhrzeit (Standard), `datetime` = Datum + Uhrzeit |
 
 ### Darstellung
 
@@ -200,6 +202,7 @@ Jede Position ist ein eigener Stapel. Sind mehr Meldungen offen als „Gleichzei
 | Gleichzeitig sichtbar | `3` | pro Position |
 | Breite | `0` | `0` = automatisch (340 px) |
 | Transparenz | `0 %` | |
+| Zeitpunkt | nicht anzeigen | `Uhrzeit` oder `Datum + Uhrzeit` — gilt für jede Meldung, `showTime` im Payload überschreibt es |
 | Anzeigedauer Info / Erfolg | `8` s | |
 | Anzeigedauer Warnung | `15` s | |
 | Anzeigedauer Fehler | `0` | bleibt offen |

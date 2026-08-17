@@ -418,6 +418,31 @@ check('an image is rendered', box.images === 1);
 await show([msg({ title: 'Fehlt', text: 'Rueckfalltext', view: 'gibt-es-nicht' })]);
 check('an unknown popup view falls back to the text', await visibleText('Rueckfalltext'));
 
+// ── 16e. The send time on the card ──────────────────────────────────────────
+// Whether to show it is decided by the adapter (payload over admin default), so
+// the card only has to print what it was handed — and print nothing otherwise.
+const timeLine = () =>
+    page.evaluate(() => {
+        const el = document.querySelector('[data-aura-toasts] [data-aura-msg-time]');
+        return el ? el.textContent.trim() : null;
+    });
+
+await show([msg({ title: 'OhneZeit', text: 'x' })]);
+check('no timestamp unless the message carries showTime', (await timeLine()) === null);
+
+const stamp = new Date(2026, 7, 17, 14, 7, 0).getTime();
+await show([msg({ title: 'MitZeit', text: 'x', ts: stamp, showTime: true, timeFormat: 'time' })]);
+let printed = await timeLine();
+check(`the time format prints the clock alone (got ${printed})`, printed === '14:07');
+
+await show([msg({ title: 'MitDatum', text: 'x', ts: stamp, showTime: true, timeFormat: 'datetime' })]);
+printed = await timeLine();
+check(`datetime prints date and clock (got ${printed})`, /^17\.08\.\d{2,4}, 14:07$/.test(printed ?? ''));
+
+await show([msg({ title: 'OhneFormat', text: 'x', ts: stamp, showTime: true })]);
+printed = await timeLine();
+check(`a message without a format falls back to the clock (got ${printed})`, printed === '14:07');
+
 // ── 16b. A view without a toast layer must not consume messages ─────────────
 // The admin area keeps a runtime lease for its history list. Before this gate it
 // swallowed arriving messages there: out of scope counts as handled, so the

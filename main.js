@@ -98,6 +98,9 @@ const MESSAGE_COLOR_MAX = 64;
 
 const MESSAGE_APPEARANCES = ['bar', 'filled', 'outline', 'plain'];
 const MESSAGE_ALIGNS = ['left', 'center', 'right'];
+/** How the card prints `ts` when the timestamp is switched on. */
+const MESSAGE_TIME_FORMATS = ['time', 'datetime'];
+const MESSAGE_DEFAULT_TIME_FORMAT = 'time';
 
 /** ioBroker object ids allow a restricted charset — layout slugs are free user text. */
 function sanitizeIdSegment(raw) {
@@ -1547,6 +1550,8 @@ class Aura extends utils.Adapter {
             transparency: num(d.transparency, 0, 95, 0),
             appearance: MESSAGE_APPEARANCES.includes(d.appearance) ? d.appearance : 'bar',
             align: MESSAGE_ALIGNS.includes(d.align) ? d.align : 'left',
+            showTime: d.showTime === true,
+            timeFormat: MESSAGE_TIME_FORMATS.includes(d.timeFormat) ? d.timeFormat : MESSAGE_DEFAULT_TIME_FORMAT,
             errorsRequireAck: d.errorsRequireAck === true,
         };
     }
@@ -1703,6 +1708,16 @@ class Aura extends utils.Adapter {
         if (background) msg.background = background;
         const textColor = str(src.textColor, MESSAGE_COLOR_MAX);
         if (textColor) msg.textColor = textColor;
+
+        // Timestamp on the card. Tri-state like every other presentation field: an
+        // explicit boolean wins, otherwise the admin default decides. The format is
+        // only carried when the line is actually shown, so a payload that switches
+        // it off stays as small as before.
+        const showTime = typeof src.showTime === 'boolean' ? src.showTime : defaults.showTime;
+        if (showTime) {
+            msg.showTime = true;
+            msg.timeFormat = MESSAGE_TIME_FORMATS.includes(src.timeFormat) ? src.timeFormat : defaults.timeFormat;
+        }
 
         const ackDp = str(src.ackDp, 256);
         if (ackDp) {

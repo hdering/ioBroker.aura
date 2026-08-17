@@ -437,6 +437,9 @@ export type MessageAppearance = 'bar' | 'filled' | 'outline' | 'plain';
 
 export type MessageAlign = 'left' | 'center' | 'right';
 
+/** How the card prints the send time — `time` = 14:07, `datetime` = 17.08.26, 14:07. */
+export type MessageTimeFormat = 'time' | 'datetime';
+
 /** A button on the toast. Writes `value` to `dp`, then closes unless close=false. */
 export interface MessageAction {
     label: string;
@@ -488,6 +491,10 @@ export interface AuraMessage {
     /** Explicit text colour for title and body. */
     textColor?: string;
     align?: MessageAlign;
+    /** Print `ts` on the card. Absent = off; the adapter resolves the admin default. */
+    showTime?: boolean;
+    /** Only set alongside showTime; absent falls back to `time`. */
+    timeFormat?: MessageTimeFormat;
     /** Datapoint written when the message is confirmed. */
     ackDp?: string;
     ackValue?: string;
@@ -531,6 +538,12 @@ export interface MessageDraft {
     transparency: string;
     appearance: '' | MessageAppearance;
     align: '' | MessageAlign;
+    /**
+     * Timestamp override. '' = take the admin default, 'off' = force it away, a
+     * format = show it in exactly that shape. One control instead of a toggle plus
+     * a format select, because "show it" is never asked without "in which shape".
+     */
+    showTime: '' | 'off' | MessageTimeFormat;
     color: string;
     background: string;
     textColor: string;

@@ -6,7 +6,7 @@ import { TabEmbedBody } from '../widgets/popup/TabEmbedBody';
 import { usePopupConfigStore, newTriggerHost } from '../../store/popupConfigStore';
 import { useMessagesStore } from '../../store/messagesStore';
 import { useT } from '../../i18n';
-import type { AuraMessage, MessageSeverity } from '../../types';
+import type { AuraMessage, MessageSeverity, MessageTimeFormat } from '../../types';
 
 /** One accent colour per severity, matching the adapter-logs widget palette. */
 export const SEVERITY_COLOR: Record<MessageSeverity, string> = {
@@ -24,6 +24,24 @@ const SEVERITY_ICON: Record<MessageSeverity, LucideIcon> = {
 };
 
 const DEFAULT_WIDTH = 340;
+
+/**
+ * The send time as the card prints it. `time` is the common case — a toast that
+ * just appeared only needs the clock — while `datetime` is what a message read
+ * later out of the archive wants. Same locale as the history list and the detail
+ * view, so one message never shows two date shapes.
+ */
+export function formatMessageTime(ts: number, format: MessageTimeFormat | undefined): string {
+    try {
+        const date = new Date(ts);
+        return format === 'datetime'
+            ? date.toLocaleString('de-DE', { dateStyle: 'short', timeStyle: 'short' })
+            : date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    } catch {
+        return String(ts);
+    }
+}
+
 /** textAlign does not move flex children, so the button row needs its own mapping. */
 const BUTTON_JUSTIFY: Record<string, string> = { left: 'flex-start', center: 'center', right: 'flex-end' };
 /** Countdown bar height in px. */
@@ -177,6 +195,15 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
                         </div>
                     )}
                     {body}
+                    {msg.showTime && (
+                        <div
+                            className="text-[10px] mt-1.5 opacity-70"
+                            style={{ color: bodyColor }}
+                            data-aura-msg-time={msg.timeFormat ?? 'time'}
+                        >
+                            {formatMessageTime(msg.ts, msg.timeFormat)}
+                        </div>
+                    )}
                 </div>
                 {/* A message demanding confirmation has no shortcut out — the button below is the only way. */}
                 {!msg.requireAck && !embedded && (

@@ -193,6 +193,46 @@ async function write(a, relDp, value, ack = false) {
         console.log('\u2713 appearance defaults apply per field');
     }
 
+    // ── Timestamp on the card: default plus per-message override ─────────────
+    {
+        const a = makeAdapter();
+        // Off unless asked for, and nothing is carried in that case.
+        const off = a._normalizeMessage('{"text":"x"}');
+        assert.strictEqual(off.showTime, undefined);
+        assert.strictEqual(off.timeFormat, undefined);
+
+        // Asked for by the payload alone: the format falls back to the built-in.
+        const on = a._normalizeMessage('{"text":"x","showTime":true}');
+        assert.strictEqual(on.showTime, true);
+        assert.strictEqual(on.timeFormat, 'time');
+        assert.strictEqual(
+            a._normalizeMessage('{"text":"x","showTime":true,"timeFormat":"datetime"}').timeFormat,
+            'datetime',
+        );
+        assert.strictEqual(
+            a._normalizeMessage('{"text":"x","showTime":true,"timeFormat":"epoch"}').timeFormat,
+            'time',
+            'unknown format falls back',
+        );
+
+        // The admin default switches it on for every message …
+        await a._loadMessageDefaults(JSON.stringify({ showTime: true, timeFormat: 'datetime' }));
+        const dflt = a._normalizeMessage('{"text":"x"}');
+        assert.strictEqual(dflt.showTime, true);
+        assert.strictEqual(dflt.timeFormat, 'datetime');
+        // … the payload overrides the format …
+        assert.strictEqual(a._normalizeMessage('{"text":"x","timeFormat":"time"}').timeFormat, 'time');
+        // … and `false` really switches it off again, rather than being ignored.
+        const forcedOff = a._normalizeMessage('{"text":"x","showTime":false}');
+        assert.strictEqual(forcedOff.showTime, undefined);
+        assert.strictEqual(forcedOff.timeFormat, undefined);
+
+        // A bogus default is the same as no default.
+        await a._loadMessageDefaults(JSON.stringify({ showTime: 'yes' }));
+        assert.strictEqual(a._normalizeMessage('{"text":"x"}').showTime, undefined);
+        console.log('✓ the timestamp default applies and a payload can override it');
+    }
+
     // ── A colour string is capped, not trusted for length ────────────────────
     {
         const a = makeAdapter();

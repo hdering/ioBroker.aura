@@ -3,7 +3,14 @@ import { Copy, Database, Plus, Trash2, X } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
-import type { MessageAlign, MessageAppearance, MessageDraft, MessagePosition, MessageSeverity } from '../../types';
+import type {
+    MessageAlign,
+    MessageAppearance,
+    MessageDraft,
+    MessagePosition,
+    MessageSeverity,
+    MessageTimeFormat,
+} from '../../types';
 
 /**
  * Form → JSON builder for a message payload.
@@ -42,6 +49,11 @@ export const MESSAGE_ALIGNS: { value: MessageAlign; label: string }[] = [
     { value: 'right', label: 'Rechts' },
 ];
 
+export const MESSAGE_TIME_FORMATS: { value: MessageTimeFormat; label: string }[] = [
+    { value: 'time', label: 'Uhrzeit' },
+    { value: 'datetime', label: 'Datum + Uhrzeit' },
+];
+
 export const MESSAGE_SEVERITIES: { value: MessageSeverity; label: string; color: string }[] = [
     { value: 'info', label: 'Info', color: '#3b82f6' },
     { value: 'success', label: 'Erfolg', color: '#22c55e' },
@@ -78,6 +90,7 @@ export function emptyDraft(): MessageDraft {
         transparency: '',
         appearance: '',
         align: '',
+        showTime: '',
         color: '',
         background: '',
         textColor: '',
@@ -125,6 +138,13 @@ export function draftToPayload(d: MessageDraft): Record<string, unknown> {
     }
     if (d.appearance) out.appearance = d.appearance;
     if (d.align) out.align = d.align;
+    // 'off' has to travel as an explicit false — leaving it out would let the admin
+    // default switch the timestamp back on.
+    if (d.showTime === 'off') out.showTime = false;
+    else if (d.showTime) {
+        out.showTime = true;
+        out.timeFormat = d.showTime;
+    }
     for (const key of ['color', 'background', 'textColor'] as const) {
         if (str(d[key])) out[key] = str(d[key]);
     }
@@ -483,6 +503,22 @@ export function MessageBuilder({ draft, onChange, actions }: Props) {
                             {MESSAGE_ALIGNS.map((a) => (
                                 <option key={a.value} value={a.value}>
                                     {a.label}
+                                </option>
+                            ))}
+                        </select>
+                    </Field>
+                    <Field label="Zeitpunkt" hint="Wann die Meldung gesendet wurde, klein unter dem Text.">
+                        <select
+                            value={draft.showTime ?? ''}
+                            onChange={(e) => set({ showTime: e.target.value as MessageDraft['showTime'] })}
+                            className={inputCls}
+                            style={inputStyle}
+                        >
+                            <option value="">Standard</option>
+                            <option value="off">Nicht anzeigen</option>
+                            {MESSAGE_TIME_FORMATS.map((f) => (
+                                <option key={f.value} value={f.value}>
+                                    {f.label}
                                 </option>
                             ))}
                         </select>
