@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.42.4 (2026-08-08)
+- A notice now explains when the browser has put the dashboard tab to sleep, including how to exclude the page from tab sleeping in Edge and Chrome ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
+
 ## 0.42.3 (2026-08-08)
 - Datapoints no longer stay stale after the browser tab was inactive for a long time - the dashboard now revalidates all values on reconnect and checks the connection when the tab becomes visible again ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
 
