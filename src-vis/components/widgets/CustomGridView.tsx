@@ -32,6 +32,7 @@ import {
     type DateOutputFormat,
 } from './DatePickerWidget';
 import { DateTimeInput } from '../common/DateTimeInput';
+import { PatternInput } from '../common/PatternInput';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
@@ -1530,6 +1531,13 @@ function DatePickerCellView({
         setCustomVal(formatCustom(dt, inPattern));
         setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
     };
+    /** Custom input, our own parts picker: the date is already assembled. */
+    const handleCustomPick = (dt: Date) => {
+        if (!cell.dpId) return;
+        setTextErr(false);
+        setCustomVal(formatCustom(dt, inPattern));
+        setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
+    };
 
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
@@ -1554,18 +1562,18 @@ function DatePickerCellView({
             <div className="flex flex-wrap gap-1 items-center w-full">
                 {customInput &&
                     (inputKind === 'text' ? (
-                        <input
-                            type="text"
+                        <PatternInput
+                            pattern={inPattern}
                             value={customVal}
-                            onChange={(e) => setCustomVal(e.target.value)}
-                            onBlur={(e) => commitText(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') commitText((e.target as HTMLInputElement).value);
-                            }}
+                            base={currentDate}
+                            onText={setCustomVal}
+                            onCommit={commitText}
+                            onPick={handleCustomPick}
                             placeholder={inPattern}
                             title={`Format: ${inPattern}`}
                             className="nodrag focus:outline-none flex-1 min-w-0 font-mono"
                             style={{ ...inputSty, borderColor: textErr ? '#ef4444' : undefined }}
+                            wrapClassName="flex-1 min-w-0"
                         />
                     ) : (
                         <DateTimeInput

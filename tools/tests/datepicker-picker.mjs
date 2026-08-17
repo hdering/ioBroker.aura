@@ -318,15 +318,86 @@ async function runEngine(engineName) {
         `buttons=${month.buttons} supported=${supports.month}`,
     );
 
-    // A pattern no native field covers stays free text — and free text has no picker.
-    const free = await show(
-        page,
-        datepicker({ ...ISSUE_OPTS, timeOnly: false, showTime: false, inputFormat: 'custom', inputPattern: 'yyyy' }),
-    );
+    // A pattern no native field covers stays free text — but not a dead one: the
+    // widget draws its own parts list, one column per token the pattern names.
+    // The output format has to carry the same parts, or the value read back from
+    // the DP could not fill the field again (a year through `time_hhmm` is gone).
+    const custom = (pattern) => ({
+        ...ISSUE_OPTS,
+        timeOnly: false,
+        showTime: false,
+        inputFormat: 'custom',
+        inputPattern: pattern,
+        outputFormat: 'custom',
+        outputPattern: pattern,
+    });
+    const free = await show(page, datepicker(custom('yyyy')));
     check(
-        `${engineName}: yyyy stays a free-text field without a button`,
-        free.inputs[0]?.type === 'text' && free.buttons === 0,
+        `${engineName}: yyyy is a free-text field with our button`,
+        free.inputs[0]?.type === 'text' && free.buttons === 1 && free.wrapped,
         JSON.stringify(free),
+    );
+    await page.locator(BTN).first().click();
+    await page.waitForTimeout(300);
+    const yearList = await page.evaluate(() => ({
+        cols: [...document.querySelectorAll('[aria-label="Jahr"]')].length,
+        other: ['Monat', 'Tag', 'Stunde', 'Minute', 'Sekunde'].filter(
+            (l) => !!document.querySelector(`[aria-label="${l}"]`),
+        ),
+        sel: document.querySelector('[aria-label="Jahr"] [data-sel="1"]')?.textContent,
+    }));
+    check(
+        `${engineName}: yyyy opens a year list and nothing else`,
+        yearList.cols === 1 && yearList.other.length === 0,
+        JSON.stringify(yearList),
+    );
+    const pickedYear = String(new Date().getFullYear() + 1);
+    await page
+        .locator('[aria-label="Jahr"] button')
+        .filter({ hasText: new RegExp(`^${pickedYear}$`) })
+        .click();
+    await page.waitForTimeout(300);
+    const afterYear = await page.evaluate(() => ({
+        value: document.querySelector('input[type="text"]')?.value,
+        stillOpen: !!document.querySelector('[aria-label="Jahr"]'),
+    }));
+    check(
+        `${engineName}: picking a year fills the field`,
+        afterYear.value === pickedYear,
+        JSON.stringify({ ...afterYear, want: pickedYear }),
+    );
+    check(`${engineName}: the year list closes after the only column`, !afterYear.stillOpen, JSON.stringify(afterYear));
+
+    // Several tokens: one column each, in the pattern's order, and only the last closes.
+    const parts = await show(page, datepicker(custom('dd.MM')));
+    check(
+        `${engineName}: dd.MM stays free text with our button`,
+        parts.inputs[0]?.type === 'text' && parts.buttons === 1,
+        JSON.stringify(parts),
+    );
+    await page.locator(BTN).first().click();
+    await page.waitForTimeout(300);
+    await page.locator('[aria-label="Tag"] button').filter({ hasText: /^07$/ }).click();
+    await page.waitForTimeout(200);
+    const midway = await page.evaluate(() => ({
+        value: document.querySelector('input[type="text"]')?.value,
+        stillOpen: !!document.querySelector('[aria-label="Monat"]'),
+    }));
+    check(
+        `${engineName}: the first column writes but keeps the list open`,
+        midway.value?.startsWith('07.') && midway.stillOpen,
+        JSON.stringify(midway),
+    );
+    await page.locator('[aria-label="Monat"] button').filter({ hasText: /^03$/ }).click();
+    await page.waitForTimeout(300);
+    const afterParts = await page.evaluate(() => ({
+        value: document.querySelector('input[type="text"]')?.value,
+        stillOpen: !!document.querySelector('[aria-label="Monat"]'),
+    }));
+    check(
+        `${engineName}: both columns land in the field`,
+        afterParts.value === '07.03' && !afterParts.stillOpen,
+        JSON.stringify(afterParts),
     );
 
     // ── 6. Same treatment inside a custom-layout cell ───────────────────────

@@ -53,7 +53,7 @@ Das **Eingabe-Muster** bestimmt, welches Auswahlfeld gerendert wird:
 | Tag + Monat + Jahr | Kalender |
 | Monat + Jahr (`MM.yyyy`) | Monatswähler |
 | nur Zeit (`HH:mm`) | Uhrzeit |
-| alles andere | freies Textfeld, geparst nach Muster (Enter/Verlassen schreibt, ungültig = roter Rahmen) |
+| alles andere (`yyyy`, `dd.MM`) | Textfeld, geparst nach Muster (Enter/Verlassen schreibt, ungültig = roter Rahmen) — plus eigene Auswahlliste mit einer Spalte je Muster-Bestandteil |
 
 Nicht genannte Bestandteile behalten ihren gespeicherten Wert — `MM.yyyy` verschiebt nur den Monat, Tag und Uhrzeit bleiben (Tag wird bei kürzeren Monaten gekappt).
 

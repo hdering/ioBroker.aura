@@ -6,6 +6,9 @@ import type { WidgetProps } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { DateTimeInput } from '../common/DateTimeInput';
+import { PatternInput } from '../common/PatternInput';
+import { PICKER_BTN_SPACE } from '../common/PickerPopover';
+import { tokenRe } from '../../utils/datePattern';
 import { StatusBadges } from './StatusBadges';
 
 export type DateOutputFormat =
@@ -37,11 +40,6 @@ export const FORMAT_LABELS: Record<DateOutputFormat, string> = {
 export const DEFAULT_DATE_PATTERN = 'dd.MM.yyyy';
 /** Tokens understood by custom patterns — shown as a hint in the option panels. */
 export const DATE_PATTERN_TOKENS = 'dd MM yyyy yy HH hh mm ss';
-
-/** Fresh instance per call so `exec` loops never inherit a stale `lastIndex`. */
-function tokenRe() {
-    return /yyyy|yy|MM|dd|HH|hh|mm|ss/g;
-}
 
 function pad(n: number) {
     return String(n).padStart(2, '0');
@@ -204,12 +202,14 @@ export function toTimeInputValue(d: Date) {
     return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
-/** Native field that matches a pattern's granularity; 'text' = free entry, no picker. */
+/** Native field that matches a pattern's granularity; 'text' = free entry plus our own picker. */
 export type DateInputKind = 'datetime-local' | 'date' | 'month' | 'time' | 'text';
 
 /**
  * Pick the native input that covers exactly the parts a custom pattern names, so
  * `MM.yyyy` still opens a month picker instead of forcing the user to type.
+ * Patterns no native field covers (`yyyy`, `dd.MM`, …) stay free text and get
+ * the parts picker from {@link PatternInput}.
  */
 export function inputKindFor(pattern: string): DateInputKind {
     const toks: string[] = pattern.match(tokenRe()) ?? [];
@@ -378,6 +378,12 @@ export function DatePickerWidget({ config }: WidgetProps) {
         setCustomVal(formatCustom(dt, inPattern));
         setState(config.datapoint, formatDate(dt, outputFmt, outPattern));
     };
+    /** Custom input, our own parts picker: the date is already assembled. */
+    const handleCustomPick = (dt: Date) => {
+        setTextErr(false);
+        setCustomVal(formatCustom(dt, inPattern));
+        setState(config.datapoint, formatDate(dt, outputFmt, outPattern));
+    };
 
     const currentDisplay = (() => {
         if (customInput) return currentDate ? formatCustom(currentDate, inPattern) : '–';
@@ -410,20 +416,19 @@ export function DatePickerWidget({ config }: WidgetProps) {
     // keep rendering the same two slots.
     const dateInput = customInput ? (
         inputKind === 'text' ? (
-            <input
-                type="text"
+            <PatternInput
+                pattern={inPattern}
                 value={customVal}
-                onChange={(e) => setCustomVal(e.target.value)}
-                onBlur={(e) => commitText(e.target.value)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter') commitText((e.target as HTMLInputElement).value);
-                }}
+                base={currentDate}
+                onText={setCustomVal}
+                onCommit={commitText}
+                onPick={handleCustomPick}
                 placeholder={inPattern}
                 title={`Format: ${inPattern}`}
                 className="aura-widget-action nodrag focus:outline-none font-mono"
                 style={{
                     ...inputSty,
-                    width: `${Math.max(8, inPattern.length + 2)}ch`,
+                    width: `calc(${Math.max(8, inPattern.length + 2)}ch + ${PICKER_BTN_SPACE}px)`,
                     borderColor: textErr ? '#ef4444' : undefined,
                 }}
             />
