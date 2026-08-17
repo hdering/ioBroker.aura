@@ -210,7 +210,7 @@ Der Fensterstart kostet eine zusätzliche, grobe Abfrage je Serie. Bei sehr lang
 
 ## Beispiele
 
-Dieselbe Anlage in allen Bildern: PV-Ertragszähler `demo.0.PV.Ertrag_Gesamt` (kWh, fortlaufend steigend, per `history.0` geloggt) und die Hausleistung `demo.0.Haus.Leistung` (W).
+Vier Datenpunkte, alle per `history.0` geloggt: PV-Ertragszähler `demo.0.PV.Ertrag_Gesamt` (kWh, fortlaufend steigend), Hausleistung `demo.0.Haus.Leistung` (W), Außentemperatur `demo.0.Wetter.Aussentemperatur` (°C) und Regenmenge `demo.0.Regen.Menge` (mm je Messintervall).
 
 ### Zählerstand → Tagesertrag
 
@@ -259,6 +259,34 @@ Hausleistung über 24 h. `aggregate: average` glättet jedes 15-Minuten-Fenster 
 `aggregate: minmax` behält die echten Extremwerte samt Zeitstempel — die Spitzen und das Takten der Geräte bleiben sichtbar:
 
 ![](./assets/diagramm-erweitert/bsp-agg-minmax.png)
+
+### Maximum, Mittelwert, Minimum
+
+Derselbe Datenpunkt dreimal als eigene Serie, `echartRange: 1y` (Tages-Fenster): `max` zeichnet die Nachmittage, `min` die Nächte, `average` den Tagesmittelwert. Die Aggregation gilt je Serie, nicht je Widget.
+
+![](./assets/diagramm-erweitert/bsp-agg-envelope.png)
+
+### Summe
+
+`aggregate: total` addiert die Werte im Zeitfenster — für Datenpunkte, die bereits Zuwächse loggen (Regenmenge je Messintervall, Wh je Impuls), nicht für Zählerstände (dafür `delta`). Hier Regenmenge je 10 Minuten, summiert auf Stundenwerte:
+
+![](./assets/diagramm-erweitert/bsp-agg-total.png)
+
+Derselbe Datenpunkt mit `average`: gleiche Form, aber der Durchschnitt der Einzelzuwächse — 0,6 mm statt 3,6 mm:
+
+![](./assets/diagramm-erweitert/bsp-agg-total-average.png)
+
+### Rohdaten
+
+`aggregate: none` liefert jeden geloggten Datensatz, ohne Zeitfenster. Das Takten der Waschmaschine (2 300 W an/aus) ist damit sichtbar:
+
+![](./assets/diagramm-erweitert/bsp-agg-none.png)
+
+`average` fasst dasselbe in 5-Minuten-Fenster zusammen — aus dem Takten wird ein Plateau bei ~1 100 W:
+
+![](./assets/diagramm-erweitert/bsp-agg-none-average.png)
+
+Viele Datensätze kosten Ladezeit; `none` ist für kurze Zeiträume gedacht, nicht für 30 Tage.
 
 ### Stapeln
 

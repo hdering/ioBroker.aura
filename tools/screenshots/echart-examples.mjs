@@ -142,11 +142,48 @@ function loadSeries(fromTs, toTs, stepMs, pick) {
     return out;
 }
 
+// ── Outdoor temperature: yearly swing plus a day/night cycle ──────────────────
+// The min/max/average example lives off the daily cycle: over a year with daily
+// buckets, `max` traces the afternoons, `min` the nights and `average` runs between
+// them — the same datapoint, three aggregations.
+function outdoorTemp(ts) {
+    const d = new Date(ts);
+    const doy = (Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 1)) / DAY;
+    const h = d.getHours() + d.getMinutes() / 60;
+    const seasonal = 0.5 * (1 + Math.cos((2 * Math.PI * (doy - 200)) / 365)); // warmest ~19 July
+    const w = weather[Math.min(weather.length - 1, Math.max(0, Math.floor((ts - ANCHOR) / DAY)))];
+    const mean = 1.5 + 17 * seasonal + (w - 0.6) * 5; // clear spells run warmer
+    // Coldest around 05:00, warmest around 15:00; clear days swing wider.
+    const swing = (2.2 + 5.5 * seasonal) * (0.55 + 0.7 * w);
+    const rnd = mulberry32(0x7e11 + Math.floor((ts - ANCHOR) / (30 * 60_000)));
+    return Math.round((mean + swing * -Math.cos((2 * Math.PI * (h - 15)) / 24) + (rnd() - 0.5) * 0.8) * 10) / 10;
+}
+
+// ── Rain gauge: millimetres per logging interval, not a total ─────────────────
+// Values that are already increments have to be added up per bucket, which is what
+// `total` does — averaging them answers a question nobody asked.
+function rainIncrement(ts) {
+    const dayIdx = Math.floor((ts - ANCHOR) / DAY);
+    const rnd = mulberry32(0xba11 + dayIdx * 31);
+    const wet = rnd(); // one draw per day decides whether it rains at all
+    if (wet > 0.45) return 0;
+    const startH = 2 + rnd() * 18;
+    const lenH = 0.7 + rnd() * 3.5;
+    const peak = 0.12 + rnd() * 0.55; // mm per 10 min at the height of the shower
+    const h = new Date(ts).getHours() + new Date(ts).getMinutes() / 60;
+    if (h < startH || h > startH + lenH) return 0;
+    const shape = Math.sin((Math.PI * (h - startH)) / lenH);
+    const noise = mulberry32(0xba11 + Math.floor((ts - ANCHOR) / (10 * 60_000)))();
+    return Math.round(peak * shape * (0.5 + noise) * 100) / 100;
+}
+
 // ── datapoints ───────────────────────────────────────────────────────────────
 const DP_PV = 'demo.0.PV.Ertrag_Gesamt';
 const DP_LOAD = 'demo.0.Haus.Leistung';
 const DP_GRID = 'demo.0.Haus.Netzbezug';
 const DP_BATT = 'demo.0.Haus.Speicher';
+const DP_TEMP = 'demo.0.Wetter.Aussentemperatur';
+const DP_RAIN = 'demo.0.Regen.Menge';
 
 // Sanity output — daily/monthly/yearly totals the shots will show.
 {
@@ -231,6 +268,10 @@ function pvSeriesCfg(extra = {}) {
 }
 
 async function shot(file, { widget, history, values, wait = 1600 }) {
+    // Own widget id per shot: same id means React keeps the chart mounted, and echarts
+    // MERGES the new option into the old one — the previous shot's extra series and its
+    // axis min would bleed into this picture.
+    const id = `w-${file}`;
     await page.evaluate(
         ({ w, h, v }) => {
             window.__auraShot.setTheme('light');
@@ -239,11 +280,11 @@ async function shot(file, { widget, history, values, wait = 1600 }) {
             window.__auraShot.mockServerState(v);
             window.__auraShot.showWidgets([w]);
         },
-        { w: widget, h: history, v: values },
+        { w: { ...widget, id }, h: history, v: values },
     );
     await page.waitForTimeout(wait);
     await page
-        .locator(SEL)
+        .locator(`.aura-widget-${id}`)
         .first()
         .screenshot({ path: `${OUT}/${file}.png` });
     // What ended up on the canvas — a curve that stops short of the window is easy to miss
@@ -371,6 +412,106 @@ for (const [file, aggregate, title] of [
     });
 }
 
+// ── 4b. max / average / min: the same datapoint three times ───────────────────
+// A year with daily buckets: the aggregation alone decides whether the curve is the
+// afternoon, the night or the day's mean.
+{
+    const tempHistory = { [DP_TEMP]: loadSeries(now - 400 * DAY, now, 15 * 60_000, outdoorTemp) };
+    const tempSeries = [
+        ['t1', 'Maximum', 'max', '#ef4444'],
+        ['t2', 'Mittelwert', 'average', '#6b7280'],
+        ['t3', 'Minimum', 'min', '#3b82f6'],
+    ].map(([id, name, aggregate, color]) => ({
+        id,
+        name,
+        datapointId: DP_TEMP,
+        chartType: 'line',
+        color,
+        historyInstance: 'history.0',
+        yAxisIndex: 0,
+        aggregate,
+        lineWidth: 1,
+    }));
+    await shot('bsp-agg-envelope', {
+        widget: chart('Außentemperatur — Maximum, Mittelwert, Minimum', tempSeries, {
+            echartRange: '1y',
+            echartLeftUnit: '°C',
+            echartShowLegend: true,
+            echartShowCurrent: false,
+        }),
+        history: tempHistory,
+        values: { [DP_TEMP]: { val: outdoorTemp(now), unit: '°C' } },
+    });
+}
+
+// ── 4c. total: values that are already increments have to be added up ─────────
+{
+    const rainHistory = { [DP_RAIN]: loadSeries(now - 10 * DAY, now, 10 * 60_000, rainIncrement) };
+    for (const [file, aggregate, title, unit] of [
+        ['bsp-agg-total', 'total', 'Regenmenge pro Stunde — Summe', 'mm'],
+        ['bsp-agg-total-average', 'average', 'Regenmenge — Mittelwert (falsch)', 'mm'],
+    ]) {
+        await shot(file, {
+            widget: chart(
+                title,
+                [
+                    {
+                        id: 'r1',
+                        name: 'Regen',
+                        datapointId: DP_RAIN,
+                        chartType: 'bar',
+                        color: '#0ea5e9',
+                        historyInstance: 'history.0',
+                        yAxisIndex: 0,
+                        aggregate,
+                    },
+                ],
+                {
+                    // Three days: the 7-day preset drops to 168 buckets and the showers
+                    // come out as hairlines. A custom window keeps hourly bars readable.
+                    echartRange: 'custom',
+                    echartRangeCustomValue: 3,
+                    echartRangeCustomUnit: 'd',
+                    echartLeftUnit: unit,
+                    echartLeftMin: 0,
+                    decimals: 2,
+                },
+            ),
+            history: rainHistory,
+            values: { [DP_RAIN]: { val: rainIncrement(now), unit } },
+        });
+    }
+}
+
+// ── 4d. none: every logged record, no bucketing ───────────────────────────────
+for (const [file, aggregate, title] of [
+    ['bsp-agg-none', 'none', 'Hausleistung — Rohdaten'],
+    ['bsp-agg-none-average', 'average', 'Hausleistung — Mittelwert (5 min)'],
+]) {
+    await shot(file, {
+        widget: chart(
+            title,
+            [
+                {
+                    id: 's1',
+                    name: 'Hausleistung',
+                    datapointId: DP_LOAD,
+                    chartType: 'line',
+                    color: '#3b82f6',
+                    historyInstance: 'history.0',
+                    yAxisIndex: 0,
+                    aggregate,
+                    lineWidth: 1,
+                    smooth: false,
+                },
+            ],
+            { echartRange: '6h', echartLeftUnit: 'W', echartLeftMin: 0, decimals: 0 },
+        ),
+        history: loadHistory,
+        values: { [DP_LOAD]: { val: loadNow, unit: 'W' } },
+    });
+}
+
 // ── 5. stacking: where the house load comes from ──────────────────────────────
 {
     const grid = (ts) => Math.max(0, houseLoad(ts) - Math.min(houseLoad(ts), batteryPower(ts)));
@@ -440,10 +581,20 @@ await page.waitForTimeout(900);
 await page.locator(`${SEL} button[title="Widget-Optionen"]`).first().click();
 await page.waitForTimeout(300);
 await page.getByRole('button', { name: 'Bearbeiten' }).first().click();
-await page.waitForTimeout(1000);
-// Open the series card — its settings are collapsed behind the header row.
-await page.getByText('PV-Ertrag', { exact: true }).last().click();
+await page.waitForSelector('div.pointer-events-auto.rounded-xl.shadow-2xl', { timeout: 15000 });
 await page.waitForTimeout(600);
+// Open the series card — its settings are collapsed behind the header row. Matched by
+// the row's own classes rather than by text, which also occurs in the widget title.
+const opened = await page.evaluate(() => {
+    const modal = document.querySelector('div.pointer-events-auto.rounded-xl.shadow-2xl');
+    const header = [...(modal?.querySelectorAll('div.cursor-pointer.select-none') ?? [])].find((el) =>
+        el.textContent?.includes('PV-Ertrag'),
+    );
+    header?.click();
+    return !!header;
+});
+if (!opened) throw new Error('series header row not found in the dialog');
+await page.waitForTimeout(700);
 
 const card = await page.evaluateHandle(() => {
     const sel = [...document.querySelectorAll('select')].find((s) => [...s.options].some((o) => o.value === 'delta'));
