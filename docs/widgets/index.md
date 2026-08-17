@@ -11,6 +11,7 @@
 | [Datumswähler](./datumswaehler) | Datum/Uhrzeit auswählen und als Datenpunkt speichern. |
 | [Diagramm (einfach)](./diagramm) | Verlauf eines einzelnen Datenpunkts als einfaches Diagramm. |
 | [Diagramm (erweitert)](./diagramm-erweitert) | Erweitertes Diagramm mit mehreren Datenpunkten und Optionen. |
+| [Diagramm (Verteilung)](./verteilung) | Anteilige Darstellung (Balken, Torte oder Donut) beliebig vieler Gruppen aus mehreren Datenpunkten mit History-Aggregation – z.B. Energiebilanz, Kosten, Speicherbelegung |
 | [Dimmer](./dimmer) | Licht dimmen – Helligkeitsregler 0–100 % mit Ein/Aus-Taste. |
 | [Drehregler](./drehregler) | Wert über Drehknopf einstellen – 3 Zeigertypen, Winkelbereich konfigurierbar. |
 | [Dynamische Liste](./dynamische-liste) | Datenpunkte automatisch aus einem ioBroker-Ordner auflisten. |

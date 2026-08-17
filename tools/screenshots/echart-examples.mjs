@@ -12,26 +12,13 @@
 // Output: docs/widgets/assets/diagramm-erweitert/bsp-*.png
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
+import { HOUR, DAY, mulberry32, makeWeather, pvPowerAt, houseLoadAt, batteryPowerAt } from './demo-energy.mjs';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
 const OUT = 'docs/widgets/assets/diagramm-erweitert';
 const ID = 'w-ex';
 const SEL = `.aura-widget-${ID}`;
 mkdirSync(OUT, { recursive: true });
-
-const HOUR = 3_600_000;
-const DAY = 86_400_000;
-
-// ── deterministic randomness ──────────────────────────────────────────────────
-function mulberry32(seed) {
-    let a = seed;
-    return () => {
-        a = (a + 0x6d2b79f5) | 0;
-        let t = Math.imul(a ^ (a >>> 15), 1 | a);
-        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-}
 
 // The page's clock is pinned to this instant (see clock.setFixedTime below), so the shots
 // don't depend on the hour the script happens to run at — an evening run would otherwise
@@ -49,31 +36,8 @@ const TOTAL_HOURS = Math.ceil((now - ANCHOR) / HOUR) + 2;
 const TOTAL_DAYS = Math.ceil((now - ANCHOR) / DAY) + 2;
 
 // ── PV plant: a ~9 kWp roof, logged as a rising total-yield counter ───────────
-// Weather stays cloudy or clear for a few days at a time — a flat random factor per
-// day would give a comb of alternating bars that no real plant produces.
-const weather = (() => {
-    const rnd = mulberry32(0x5eed01);
-    const noise = Array.from({ length: TOTAL_DAYS }, () => rnd());
-    return noise.map((_, i) => {
-        const smooth = (noise[i] * 1 + noise[Math.max(0, i - 1)] * 0.6 + noise[Math.max(0, i - 2)] * 0.35) / 1.95;
-        return 0.24 + 0.76 * Math.pow(smooth, 0.85);
-    });
-})();
-
-/** Instantaneous PV power in kW — seasonal peak, daylight window, weather. */
-function pvPower(ts) {
-    const d = new Date(ts);
-    const doy = (Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - Date.UTC(d.getFullYear(), 0, 1)) / DAY;
-    const seasonal = 0.5 * (1 + Math.cos((2 * Math.PI * (doy - 172)) / 365)); // 1 = midsummer
-    const halfDay = 4.3 + 3.3 * seasonal; // hours of usable light either side of noon
-    const h = d.getHours() + d.getMinutes() / 60;
-    const from = 12 - halfDay;
-    const to = 12 + halfDay;
-    if (h <= from || h >= to) return 0;
-    const bell = Math.pow(Math.sin((Math.PI * (h - from)) / (to - from)), 1.45);
-    const peak = 2.5 + 4.3 * seasonal;
-    return peak * bell * weather[Math.min(weather.length - 1, Math.max(0, Math.floor((ts - ANCHOR) / DAY)))];
-}
+const weather = makeWeather(TOTAL_DAYS);
+const pvPower = (ts) => pvPowerAt(ts, ANCHOR, weather);
 
 // Counter readings on a fixed hourly grid; anything finer is interpolated, so every
 // window below reads the same counter no matter which resolution it is sampled at.
@@ -102,38 +66,9 @@ function pvSeries(fromTs, toTs, stepMs) {
 }
 
 // ── House load: flat base with short, hard appliance peaks ────────────────────
-// The peaks are the point of the average/minmax example: they are minutes long, so a
-// 15-minute bucket average buries them.
-const APPLIANCES = [
-    { at: 6.7, len: 4 / 60, w: 2100 }, // kettle
-    { at: 7.0, len: 3 / 60, w: 950 }, // toaster
-    { at: 12.5, len: 1.4, w: 2000, duty: 0.35 }, // washing machine
-    { at: 18.1, len: 0.6, w: 2650, duty: 0.75 }, // oven
-    { at: 20.6, len: 1.1, w: 1850, duty: 0.4 }, // dishwasher
-];
-function houseLoad(ts) {
-    const d = new Date(ts);
-    const h = d.getHours() + d.getMinutes() / 60 + d.getSeconds() / 3600;
-    const dayIdx = Math.floor((ts - ANCHOR) / DAY);
-    const rnd = mulberry32(0xa11e + dayIdx * 977 + Math.floor(h * 120));
-    let w = 195 + 55 * Math.sin((h / 24) * Math.PI * 2 - 1.1) + rnd() * 35;
-    if (Math.floor(h * 60) % 47 < 12) w += 85; // fridge compressor
-    for (const a of APPLIANCES) {
-        if (h < a.at || h > a.at + a.len) continue;
-        const duty = a.duty ?? 1;
-        // Cycling appliances are on for `duty` of every ~6 minutes.
-        const phase = ((h - a.at) * 10) % 1;
-        if (phase < duty) w += a.w;
-    }
-    return Math.round(w);
-}
-/** Battery discharge the house is allowed to cover its load from, in W. */
-function batteryPower(ts) {
-    const h = new Date(ts).getHours() + new Date(ts).getMinutes() / 60;
-    if (h >= 17 && h < 23) return 850;
-    if (h >= 23 || h < 2) return 420;
-    return 0;
-}
+const houseLoad = (ts) => houseLoadAt(ts, ANCHOR);
+const batteryPower = batteryPowerAt;
+
 function loadSeries(fromTs, toTs, stepMs, pick) {
     const out = [];
     for (let ts = Math.ceil(fromTs / stepMs) * stepMs; ts <= toTs; ts += stepMs) {

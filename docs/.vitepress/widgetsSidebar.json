@@ -36,6 +36,10 @@
         "link": "/widgets/diagramm-erweitert"
       },
       {
+        "text": "Diagramm (Verteilung)",
+        "link": "/widgets/verteilung"
+      },
+      {
         "text": "Dimmer",
         "link": "/widgets/dimmer"
       },
