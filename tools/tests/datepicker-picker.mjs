@@ -1,0 +1,293 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Datumswähler — the picker must be openable in EVERY browser (issue #544)
+// ─────────────────────────────────────────────────────────────────────────────
+// A native <input type="time"> gets a clock button from Chromium and nothing at
+// all from Firefox, so the very same widget offered a dropdown in one browser
+// and looked like a dead typing field in the other. The widgets therefore draw
+// their own button (DateTimeInput) and open the picker via showPicker().
+//
+// This test runs the SAME assertions against several engines — that split is the
+// whole point, so a Chromium-only run would prove nothing.
+//
+//   npm run dev                       (or set AURA_BASE)
+//   node tools/tests/datepicker-picker.mjs
+//   AURA_ENGINES=chromium node tools/tests/datepicker-picker.mjs   (narrow it)
+//
+// Firefox needs its Playwright build once:  npx playwright install firefox
+//
+// Everything runs against injected demo state with screenshotMode on, so no
+// ioBroker object or state is ever touched.
+import { chromium, firefox, webkit } from 'playwright';
+
+const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
+const ENGINES = (process.env.AURA_ENGINES ?? 'chromium,firefox').split(',').map((s) => s.trim());
+const LAUNCHERS = { chromium, firefox, webkit };
+
+const BTN = 'button[aria-label="Auswahl öffnen"]';
+
+const results = [];
+const check = (name, ok, detail = '') => {
+    results.push({ name, ok, detail });
+    console.log(`${ok ? '  ok  ' : '  FAIL'} ${name}${detail ? ` — ${detail}` : ''}`);
+};
+
+// ── widget configs ───────────────────────────────────────────────────────────
+function datepicker(options, layout = 'compact') {
+    return {
+        id: 'w-dp',
+        type: 'datepicker',
+        title: 'runterfahren',
+        datapoint: 'demo.time',
+        layout,
+        gridPos: { x: 0, y: 0, w: 12, h: 3 },
+        options: { showTitle: true, showCurrentValue: false, ...options },
+    };
+}
+
+/** The export attached to issue #544 — time-only, pattern HH:mm. */
+const ISSUE_OPTS = {
+    inputFormat: 'picker',
+    inputPattern: 'HH:mm',
+    showIcon: true,
+    transparent: true,
+    outputFormat: 'time_hhmm',
+    timeOnly: true,
+    showTime: true,
+};
+
+/** Same datepicker, but as a cell of a custom-layout widget (CustomGridView). */
+function customCellWidget(cell) {
+    return {
+        id: 'w-cell',
+        type: 'button',
+        title: 'Zelle',
+        datapoint: 'demo.time',
+        layout: 'custom',
+        gridPos: { x: 0, y: 0, w: 12, h: 4 },
+        options: {
+            customGrid: {
+                cols: 1,
+                rows: 1,
+                cells: [{ type: 'datepicker', dpId: 'demo.time', ...cell }],
+            },
+        },
+    };
+}
+
+// ── page helpers ─────────────────────────────────────────────────────────────
+
+/** Renders one widget and reports every input plus the picker buttons next to it. */
+const DOM = () => {
+    const inputs = [...document.querySelectorAll('input')].filter((i) => i.type !== 'range');
+    return {
+        inputs: inputs.map((i) => ({
+            type: i.type,
+            value: i.value,
+            width: Math.round(i.getBoundingClientRect().width),
+        })),
+        buttons: document.querySelectorAll('button[aria-label="Auswahl öffnen"]').length,
+        /** Whether the button sits inside the same wrapper as a native field. */
+        wrapped: [...document.querySelectorAll('button[aria-label="Auswahl öffnen"]')].every(
+            (b) => !!b.parentElement?.querySelector('input'),
+        ),
+    };
+};
+
+async function show(page, widgets, editMode = false) {
+    await page.evaluate(
+        ([list, edit]) => {
+            window.__auraShot.mock({ 'demo.time': '23:00', 'demo.date': '15.01.2025' });
+            window.__auraShot.showWidgets(list, { editMode: edit });
+        },
+        [Array.isArray(widgets) ? widgets : [widgets], editMode],
+    );
+    await page.waitForTimeout(450);
+    return page.evaluate(DOM);
+}
+
+// ── run one engine ───────────────────────────────────────────────────────────
+async function runEngine(engineName) {
+    const launcher = LAUNCHERS[engineName];
+    if (!launcher) {
+        check(`${engineName}: known engine`, false, 'use chromium | firefox | webkit');
+        return;
+    }
+    let browser;
+    try {
+        browser = await launcher.launch();
+    } catch (e) {
+        check(
+            `${engineName}: browser available`,
+            false,
+            `not installed — run "npx playwright install ${engineName}" (${String(e).split('\n')[0]})`,
+        );
+        return;
+    }
+    console.log(`\n── ${engineName} ─────────────────────────────────────────────`);
+    const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, ignoreHTTPSErrors: true });
+    const page = await ctx.newPage();
+    const pageErrors = [];
+    page.on('pageerror', (e) => pageErrors.push(e.message));
+    await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 });
+    await page.evaluate(() =>
+        localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })),
+    );
+
+    // Which native field types this engine actually implements — Firefox has no
+    // `month` field, and a button in front of a plain text box would be a lie.
+    const supports = await page.evaluate(() =>
+        Object.fromEntries(
+            ['date', 'time', 'datetime-local', 'month'].map((t) => {
+                const el = document.createElement('input');
+                el.type = t;
+                return [t, el.type === t];
+            }),
+        ),
+    );
+    console.log(`  native field types: ${JSON.stringify(supports)}`);
+
+    // ── 0. What the engine paints on its own ────────────────────────────────
+    // Whether the engine lets the widget remove its own picker button. Where it
+    // does not (Gecko), the widget must stay out of the fields the engine already
+    // equips — two buttons in one field would be worse than the reported bug.
+    const canHideNative = await page.evaluate(() => CSS.supports('selector(::-webkit-calendar-picker-indicator)'));
+    console.log(`  can hide the engine's own picker button: ${canHideNative}`);
+
+    // getComputedStyle on ::-webkit-calendar-picker-indicator reports the host
+    // input's values in Chromium, so it proves nothing — measure instead: an
+    // engine that paints a picker button reserves room for it, and the
+    // .aura-dt-input rule has to take that room back.
+    const probe = await page.evaluate(() => {
+        const mk = (cls) => {
+            const el = document.createElement('input');
+            el.type = 'time';
+            el.className = cls;
+            el.style.cssText = 'position:absolute;left:-9999px;font-size:12px;padding:5px 8px;border:1px solid #000';
+            document.body.appendChild(el);
+            const w = el.getBoundingClientRect().width;
+            el.remove();
+            return Math.round(w);
+        };
+        return { plain: mk(''), hidden: mk('aura-dt-input') };
+    });
+    if (engineName === 'firefox') {
+        // The reason this whole fix exists: no native affordance to begin with.
+        check(
+            `${engineName}: paints no native picker button`,
+            probe.plain === probe.hidden,
+            `plain=${probe.plain} hidden=${probe.hidden}`,
+        );
+    } else {
+        check(
+            `${engineName}: .aura-dt-input removes the native picker button`,
+            probe.plain - probe.hidden > 4,
+            `plain=${probe.plain} hidden=${probe.hidden}`,
+        );
+    }
+
+    // ── 1. The reported case, in every layout and in BOTH views ─────────────
+    for (const layout of ['default', 'card', 'compact', 'minimal']) {
+        for (const editMode of [false, true]) {
+            const view = editMode ? 'editor' : 'frontend';
+            const dom = await show(page, datepicker(ISSUE_OPTS, layout), editMode);
+            const time = dom.inputs.filter((i) => i.type === 'time');
+            check(
+                `${engineName}/${layout}/${view}: renders the time field`,
+                time.length === 1,
+                JSON.stringify(dom.inputs),
+            );
+            check(
+                `${engineName}/${layout}/${view}: has a picker button`,
+                dom.buttons === 1 && dom.wrapped,
+                `buttons=${dom.buttons} wrapped=${dom.wrapped}`,
+            );
+            // (That ours replaces the native button rather than adding to it is
+            //  covered once per engine by the probe measurement above.)
+        }
+    }
+
+    // ── 2. The button really opens the native picker ────────────────────────
+    await show(page, datepicker(ISSUE_OPTS));
+    // Spy instead of letting it fire: an open picker is browser chrome and would
+    // swallow the rest of the run.
+    await page.evaluate(() => {
+        window.__picked = [];
+        HTMLInputElement.prototype.showPicker = function () {
+            window.__picked.push(this.type);
+        };
+    });
+    await page.locator(BTN).first().click();
+    await page.waitForTimeout(150);
+    const picked = await page.evaluate(() => window.__picked);
+    check(`${engineName}: button calls showPicker on the time field`, picked.join() === 'time', JSON.stringify(picked));
+
+    // ── 3. The field stays a working input ──────────────────────────────────
+    await page.locator('input[type="time"]').first().fill('07:45');
+    await page.waitForTimeout(150);
+    const typed = await page.evaluate(() => document.querySelector('input[type="time"]')?.value);
+    check(`${engineName}: time field still accepts input`, typed === '07:45', `value=${typed}`);
+
+    // ── 4. Date and date+time variants ──────────────────────────────────────
+    // A date field already carries a calendar button in every engine — ours only
+    // takes its place where the native one can actually be removed.
+    const wantDateBtn = canHideNative ? 1 : 0;
+    const dateOnly = await show(page, datepicker({ ...ISSUE_OPTS, timeOnly: false, showTime: false }));
+    check(
+        `${engineName}: date-only field renders${wantDateBtn ? ' with' : ' without'} our button`,
+        dateOnly.inputs.length === 1 && dateOnly.inputs[0].type === 'date' && dateOnly.buttons === wantDateBtn,
+        JSON.stringify(dateOnly),
+    );
+    const dateTime = await show(page, datepicker({ ...ISSUE_OPTS, timeOnly: false, showTime: true }));
+    check(
+        `${engineName}: date+time renders two fields, ${wantDateBtn + 1} of our buttons`,
+        dateTime.inputs.length === 2 && dateTime.buttons === wantDateBtn + 1,
+        JSON.stringify(dateTime),
+    );
+
+    // ── 5. Custom pattern: month picker where the engine has one, never a
+    //       button in front of a field that cannot open anything ─────────────
+    const month = await show(
+        page,
+        datepicker({ ...ISSUE_OPTS, timeOnly: false, showTime: false, inputFormat: 'custom', inputPattern: 'MM.yyyy' }),
+    );
+    check(
+        `${engineName}: MM.yyyy uses the month field where supported`,
+        month.inputs[0]?.type === (supports.month ? 'month' : 'text'),
+        JSON.stringify(month.inputs),
+    );
+    check(
+        `${engineName}: MM.yyyy button only where a picker exists`,
+        month.buttons === (supports.month && canHideNative ? 1 : 0),
+        `buttons=${month.buttons} supported=${supports.month}`,
+    );
+
+    // A pattern no native field covers stays free text — and free text has no picker.
+    const free = await show(
+        page,
+        datepicker({ ...ISSUE_OPTS, timeOnly: false, showTime: false, inputFormat: 'custom', inputPattern: 'yyyy' }),
+    );
+    check(
+        `${engineName}: yyyy stays a free-text field without a button`,
+        free.inputs[0]?.type === 'text' && free.buttons === 0,
+        JSON.stringify(free),
+    );
+
+    // ── 6. Same treatment inside a custom-layout cell ───────────────────────
+    const cell = await show(page, customCellWidget({ timeOnly: true, dateFormat: 'time_hhmm' }));
+    check(
+        `${engineName}: custom-layout cell has the picker button`,
+        cell.inputs.some((i) => i.type === 'time') && cell.buttons === 1 && cell.wrapped,
+        JSON.stringify(cell),
+    );
+
+    check(`${engineName}: no page errors`, pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
+    await browser.close();
+}
+
+for (const engine of ENGINES) await runEngine(engine);
+
+const failed = results.filter((r) => !r.ok);
+console.log(`\n${results.length - failed.length}/${results.length} checks passed`);
+if (failed.length) console.log(failed.map((f) => `  FAIL ${f.name}`).join('\n'));
+process.exit(failed.length ? 1 : 0);

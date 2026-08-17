@@ -10,6 +10,7 @@ import { createPortal } from 'react-dom';
 import { X, Trash2, Clock as ClockIcon, Sunrise, CalendarRange, Calendar, Power, PowerOff } from 'lucide-react';
 import type { TimerEvent, TimerWeekday, TimerTrigger, TimerFilter, TimerAstroEvent } from '../../types';
 import { usePortalTarget, usePortalThemeVars } from '../../contexts/PortalTargetContext';
+import { DateTimeInput } from '../common/DateTimeInput';
 
 interface Props {
     initial: TimerEvent;
@@ -188,8 +189,9 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                         </div>
 
                         {t.kind === 'time' && (
-                            <input
-                                type="time"
+                            <DateTimeInput
+                                kind="time"
+                                wrapClassName="w-full"
                                 value={`${String(t.hour).padStart(2, '0')}:${String(t.minute).padStart(2, '0')}`}
                                 onChange={(e) => {
                                     const [h, m] = e.target.value.split(':').map((x) => Number(x) || 0);
@@ -235,8 +237,9 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                         )}
 
                         {t.kind === 'once' && (
-                            <input
-                                type="datetime-local"
+                            <DateTimeInput
+                                kind="datetime-local"
+                                wrapClassName="w-full"
                                 value={t.iso}
                                 onChange={(e) => patch({ trigger: { kind: 'once', iso: e.target.value } })}
                                 className={inputCls}
@@ -253,8 +256,9 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                     >
                                         Von
                                     </label>
-                                    <input
-                                        type="datetime-local"
+                                    <DateTimeInput
+                                        kind="datetime-local"
+                                        wrapClassName="w-full"
                                         value={t.fromIso}
                                         onChange={(e) => patch({ trigger: { ...t, fromIso: e.target.value } })}
                                         className={inputCls}
@@ -268,8 +272,9 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                     >
                                         Bis
                                     </label>
-                                    <input
-                                        type="datetime-local"
+                                    <DateTimeInput
+                                        kind="datetime-local"
+                                        wrapClassName="w-full"
                                         value={t.toIso}
                                         onChange={(e) => patch({ trigger: { ...t, toIso: e.target.value } })}
                                         className={inputCls}
@@ -343,8 +348,9 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                     >
                                         Sperre von
                                     </label>
-                                    <input
-                                        type="time"
+                                    <DateTimeInput
+                                        kind="time"
+                                        wrapClassName="w-full"
                                         value={minutesToHHMM(event.blockFromMin ?? 0)}
                                         onChange={(e) => patch({ blockFromMin: hhmmToMinutes(e.target.value) })}
                                         className={inputCls}
@@ -358,8 +364,9 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                     >
                                         Sperre bis
                                     </label>
-                                    <input
-                                        type="time"
+                                    <DateTimeInput
+                                        kind="time"
+                                        wrapClassName="w-full"
                                         value={minutesToHHMM(event.blockToMin ?? 0)}
                                         onChange={(e) => patch({ blockToMin: hhmmToMinutes(e.target.value) })}
                                         className={inputCls}

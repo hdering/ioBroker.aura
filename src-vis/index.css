@@ -320,6 +320,16 @@ input[type='range']::-moz-range-thumb {
     cursor: pointer;
 }
 
+/* ── Date/time fields ────────────────────────────────────────────────────────
+   Chromium paints its own picker button into date/time inputs, Firefox paints
+   none at all — the same field looked openable in one browser and dead in the
+   other (issue #544). DateTimeInput draws a themed button instead, so the
+   native one has to go wherever it exists.
+   ─────────────────────────────────────────────────────────────────────────── */
+.aura-dt-input::-webkit-calendar-picker-indicator {
+    display: none;
+}
+
 /* Arbitrary px sizes used in some widgets */
 [data-aura-app='frontend'] .text-\[9px\] {
     font-size: calc(9px * var(--font-scale, 1));

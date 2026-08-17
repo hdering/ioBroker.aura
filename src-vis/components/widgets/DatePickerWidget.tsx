@@ -5,6 +5,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { DateTimeInput } from '../common/DateTimeInput';
 import { StatusBadges } from './StatusBadges';
 
 export type DateOutputFormat =
@@ -427,8 +428,8 @@ export function DatePickerWidget({ config }: WidgetProps) {
                 }}
             />
         ) : (
-            <input
-                type={inputKind}
+            <DateTimeInput
+                kind={inputKind}
                 value={customVal}
                 onChange={(e) => handleCustomNative(e.target.value)}
                 title={`Format: ${inPattern}`}
@@ -437,8 +438,8 @@ export function DatePickerWidget({ config }: WidgetProps) {
             />
         )
     ) : !timeOnly ? (
-        <input
-            type="date"
+        <DateTimeInput
+            kind="date"
             value={dateVal}
             onChange={(e) => handleDate(e.target.value)}
             className="aura-widget-action nodrag focus:outline-none"
@@ -448,8 +449,8 @@ export function DatePickerWidget({ config }: WidgetProps) {
 
     const timeInput =
         showTime && !customInput ? (
-            <input
-                type="time"
+            <DateTimeInput
+                kind="time"
                 value={timeVal}
                 onChange={(e) => handleTime(e.target.value)}
                 className="aura-widget-action nodrag focus:outline-none"

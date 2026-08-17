@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Advanced chart - stacked areas are drawn without an outline, so a series sitting at 0 no longer looks like a line; the outline can be switched back on per series, and line width can now be set to 0 (#541)
 - Advanced chart - the right Y axis can be left unlabelled while still scaling its series, and the axis labels now take exactly the width they need instead of a fixed strip, so short labels no longer leave an empty band and long ones are no longer cut off (#541)
+- Date picker - time and date fields now always show a button that opens the picker, also in browsers that draw none themselves (in Firefox a "HH:mm" field offered no dropdown at all); applies to the widget, custom layout cells and the timer event editor (#544)

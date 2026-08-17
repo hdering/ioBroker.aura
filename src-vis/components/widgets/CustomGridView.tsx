@@ -31,6 +31,7 @@ import {
     DEFAULT_DATE_PATTERN,
     type DateOutputFormat,
 } from './DatePickerWidget';
+import { DateTimeInput } from '../common/DateTimeInput';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
@@ -1567,18 +1568,19 @@ function DatePickerCellView({
                             style={{ ...inputSty, borderColor: textErr ? '#ef4444' : undefined }}
                         />
                     ) : (
-                        <input
-                            type={inputKind}
+                        <DateTimeInput
+                            kind={inputKind}
                             value={customVal}
                             onChange={(e) => handleCustomNative(e.target.value)}
                             title={`Format: ${inPattern}`}
                             className="nodrag focus:outline-none flex-1 min-w-0"
                             style={inputSty}
+                            wrapClassName="flex-1 min-w-0"
                         />
                     ))}
                 {!timeOnly && !customInput && (
-                    <input
-                        type="date"
+                    <DateTimeInput
+                        kind="date"
                         value={dateVal}
                         onChange={(e) => {
                             setDateVal(e.target.value);
@@ -1586,11 +1588,12 @@ function DatePickerCellView({
                         }}
                         className="nodrag focus:outline-none flex-1 min-w-0"
                         style={inputSty}
+                        wrapClassName="flex-1 min-w-0"
                     />
                 )}
                 {showTime && !customInput && (
-                    <input
-                        type="time"
+                    <DateTimeInput
+                        kind="time"
                         value={timeVal}
                         onChange={(e) => {
                             setTimeVal(e.target.value);
@@ -1598,6 +1601,7 @@ function DatePickerCellView({
                         }}
                         className="nodrag focus:outline-none flex-1 min-w-0"
                         style={inputSty}
+                        wrapClassName="flex-1 min-w-0"
                     />
                 )}
             </div>
