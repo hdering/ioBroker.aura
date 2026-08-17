@@ -1571,7 +1571,7 @@ function DatePickerCellView({
                         <DateTimeInput
                             kind={inputKind}
                             value={customVal}
-                            onChange={(e) => handleCustomNative(e.target.value)}
+                            onValue={handleCustomNative}
                             title={`Format: ${inPattern}`}
                             className="nodrag focus:outline-none flex-1 min-w-0"
                             style={inputSty}
@@ -1582,9 +1582,9 @@ function DatePickerCellView({
                     <DateTimeInput
                         kind="date"
                         value={dateVal}
-                        onChange={(e) => {
-                            setDateVal(e.target.value);
-                            writeValue(e.target.value, timeVal);
+                        onValue={(v) => {
+                            setDateVal(v);
+                            writeValue(v, timeVal);
                         }}
                         className="nodrag focus:outline-none flex-1 min-w-0"
                         style={inputSty}
@@ -1595,9 +1595,9 @@ function DatePickerCellView({
                     <DateTimeInput
                         kind="time"
                         value={timeVal}
-                        onChange={(e) => {
-                            setTimeVal(e.target.value);
-                            writeValue(dateVal, e.target.value);
+                        onValue={(v) => {
+                            setTimeVal(v);
+                            writeValue(dateVal, v);
                         }}
                         className="nodrag focus:outline-none flex-1 min-w-0"
                         style={inputSty}

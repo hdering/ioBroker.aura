@@ -193,8 +193,8 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                 kind="time"
                                 wrapClassName="w-full"
                                 value={`${String(t.hour).padStart(2, '0')}:${String(t.minute).padStart(2, '0')}`}
-                                onChange={(e) => {
-                                    const [h, m] = e.target.value.split(':').map((x) => Number(x) || 0);
+                                onValue={(v) => {
+                                    const [h, m] = v.split(':').map((x) => Number(x) || 0);
                                     patch({ trigger: { kind: 'time', hour: h, minute: m } });
                                 }}
                                 className={inputCls}
@@ -241,7 +241,7 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                 kind="datetime-local"
                                 wrapClassName="w-full"
                                 value={t.iso}
-                                onChange={(e) => patch({ trigger: { kind: 'once', iso: e.target.value } })}
+                                onValue={(v) => patch({ trigger: { kind: 'once', iso: v } })}
                                 className={inputCls}
                                 style={inputStyle}
                             />
@@ -260,7 +260,7 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                         kind="datetime-local"
                                         wrapClassName="w-full"
                                         value={t.fromIso}
-                                        onChange={(e) => patch({ trigger: { ...t, fromIso: e.target.value } })}
+                                        onValue={(v) => patch({ trigger: { ...t, fromIso: v } })}
                                         className={inputCls}
                                         style={inputStyle}
                                     />
@@ -276,7 +276,7 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                         kind="datetime-local"
                                         wrapClassName="w-full"
                                         value={t.toIso}
-                                        onChange={(e) => patch({ trigger: { ...t, toIso: e.target.value } })}
+                                        onValue={(v) => patch({ trigger: { ...t, toIso: v } })}
                                         className={inputCls}
                                         style={inputStyle}
                                     />
@@ -352,7 +352,7 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                         kind="time"
                                         wrapClassName="w-full"
                                         value={minutesToHHMM(event.blockFromMin ?? 0)}
-                                        onChange={(e) => patch({ blockFromMin: hhmmToMinutes(e.target.value) })}
+                                        onValue={(v) => patch({ blockFromMin: hhmmToMinutes(v) })}
                                         className={inputCls}
                                         style={inputStyle}
                                     />
@@ -368,7 +368,7 @@ export function TimerEventModal({ initial, allowValue, defaultValue, onSave, onC
                                         kind="time"
                                         wrapClassName="w-full"
                                         value={minutesToHHMM(event.blockToMin ?? 0)}
-                                        onChange={(e) => patch({ blockToMin: hhmmToMinutes(e.target.value) })}
+                                        onValue={(v) => patch({ blockToMin: hhmmToMinutes(v) })}
                                         className={inputCls}
                                         style={inputStyle}
                                     />

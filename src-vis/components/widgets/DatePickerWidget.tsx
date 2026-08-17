@@ -431,7 +431,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
             <DateTimeInput
                 kind={inputKind}
                 value={customVal}
-                onChange={(e) => handleCustomNative(e.target.value)}
+                onValue={handleCustomNative}
                 title={`Format: ${inPattern}`}
                 className="aura-widget-action nodrag focus:outline-none"
                 style={inputSty}
@@ -441,7 +441,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
         <DateTimeInput
             kind="date"
             value={dateVal}
-            onChange={(e) => handleDate(e.target.value)}
+            onValue={handleDate}
             className="aura-widget-action nodrag focus:outline-none"
             style={inputSty}
         />
@@ -452,7 +452,7 @@ export function DatePickerWidget({ config }: WidgetProps) {
             <DateTimeInput
                 kind="time"
                 value={timeVal}
-                onChange={(e) => handleTime(e.target.value)}
+                onValue={handleTime}
                 className="aura-widget-action nodrag focus:outline-none"
                 style={inputSty}
             />

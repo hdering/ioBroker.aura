@@ -93,6 +93,30 @@ const DOM = () => {
     };
 };
 
+/**
+ * Does this engine open a picker for `kind` at all? showPicker() needs a user
+ * gesture, so it has to be provoked with a real click on a throwaway field —
+ * and `:open` is the only thing that tells a working picker from a no-op.
+ */
+async function enginePicks(page, kind) {
+    await page.evaluate((k) => {
+        document.querySelectorAll('.pick-probe').forEach((e) => e.remove());
+        const el = document.createElement('input');
+        el.type = k;
+        el.className = 'pick-probe';
+        el.style.cssText = 'position:fixed;top:8px;left:8px;z-index:99999;font-size:14px';
+        document.body.appendChild(el);
+        el.addEventListener('click', () => el.showPicker(), { once: true });
+    }, kind);
+    await page.locator('input.pick-probe').click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(400);
+    const open = await page.evaluate(() => document.querySelector('.pick-probe')?.matches(':open') ?? false);
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => document.querySelectorAll('.pick-probe').forEach((e) => e.remove()));
+    await page.waitForTimeout(200);
+    return open;
+}
+
 async function show(page, widgets, editMode = false) {
     await page.evaluate(
         ([list, edit]) => {
@@ -154,6 +178,11 @@ async function runEngine(engineName) {
     const canHideNative = await page.evaluate(() => CSS.supports('selector(::-webkit-calendar-picker-indicator)'));
     console.log(`  can hide the engine's own picker button: ${canHideNative}`);
 
+    // The second half of #544: Gecko implements the `time` FIELD but has no time
+    // PICKER, so a button that only calls showPicker() would stay dead there.
+    const nativeTime = await enginePicks(page, 'time');
+    console.log(`  engine opens a native time picker: ${nativeTime}`);
+
     // getComputedStyle on ::-webkit-calendar-picker-indicator reports the host
     // input's values in Chromium, so it proves nothing — measure instead: an
     // engine that paints a picker button reserves room for it, and the
@@ -207,26 +236,53 @@ async function runEngine(engineName) {
         }
     }
 
-    // ── 2. The button really opens the native picker ────────────────────────
+    // ── 2. The button actually leads to a picker ────────────────────────────
+    // Not "showPicker was called" — that call is a silent no-op in Gecko, which
+    // is the second half of #544. `:open` says whether a native panel really
+    // came up; where it did not, our own hour/minute list has to.
     await show(page, datepicker(ISSUE_OPTS));
-    // Spy instead of letting it fire: an open picker is browser chrome and would
-    // swallow the rest of the run.
-    await page.evaluate(() => {
-        window.__picked = [];
-        HTMLInputElement.prototype.showPicker = function () {
-            window.__picked.push(this.type);
+    await page.locator(BTN).first().click();
+    await page.waitForTimeout(400);
+    const state = await page.evaluate(() => {
+        const el = document.querySelector('input[type="time"]');
+        return {
+            nativeOpen: CSS.supports('selector(:open)') ? el.matches(':open') : null,
+            ownList: !!document.querySelector('[aria-label="Stunde"]'),
         };
     });
-    await page.locator(BTN).first().click();
-    await page.waitForTimeout(150);
-    const picked = await page.evaluate(() => window.__picked);
-    check(`${engineName}: button calls showPicker on the time field`, picked.join() === 'time', JSON.stringify(picked));
+    check(
+        `${engineName}: the button opens a picker`,
+        state.nativeOpen === true || state.ownList,
+        JSON.stringify(state),
+    );
+    check(`${engineName}: never both pickers at once`, !(state.nativeOpen && state.ownList), JSON.stringify(state));
+    check(
+        `${engineName}: ${nativeTime ? 'uses the engine picker' : 'falls back to our own list'}`,
+        state.nativeOpen === nativeTime && state.ownList === !nativeTime,
+        JSON.stringify(state),
+    );
+
+    if (state.ownList) {
+        // ── 2b. Picking from our list writes the value and closes it ────────
+        await page.locator('[aria-label="Stunde"] button').filter({ hasText: /^07$/ }).click();
+        await page.waitForTimeout(200);
+        await page.locator('[aria-label="Minute"] button').filter({ hasText: /^45$/ }).click();
+        await page.waitForTimeout(300);
+        const after = await page.evaluate(() => ({
+            value: document.querySelector('input[type="time"]')?.value,
+            stillOpen: !!document.querySelector('[aria-label="Stunde"]'),
+        }));
+        check(`${engineName}: picking from our list sets the time`, after.value === '07:45', JSON.stringify(after));
+        check(`${engineName}: our list closes after the minute`, !after.stillOpen, JSON.stringify(after));
+    }
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(200);
 
     // ── 3. The field stays a working input ──────────────────────────────────
-    await page.locator('input[type="time"]').first().fill('07:45');
+    await page.locator('input[type="time"]').first().fill('06:15');
     await page.waitForTimeout(150);
     const typed = await page.evaluate(() => document.querySelector('input[type="time"]')?.value);
-    check(`${engineName}: time field still accepts input`, typed === '07:45', `value=${typed}`);
+    check(`${engineName}: time field still accepts input`, typed === '06:15', `value=${typed}`);
 
     // ── 4. Date and date+time variants ──────────────────────────────────────
     // A date field already carries a calendar button in every engine — ours only
