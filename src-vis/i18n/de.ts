@@ -1211,6 +1211,16 @@ export const de = {
     'echart.jsonTimeAxis': 'Beschriftung ist ein Zeitstempel',
     'echart.jsonTimeAxisHint':
         'Zeitachse statt Kategorien — akzeptiert Epoch in ms oder s sowie ISO-Datum. Einträge ohne gültigen Zeitstempel entfallen.',
+    'echart.jsonAxisBounds': 'Grenzen der Y-Achse aus dem JSON übernehmen',
+    'echart.jsonAxisBoundsHint':
+        'Der Datenpunkt darf neben den Daten einen Block mit min/max tragen, z. B. {"axis": {"min": 0, "max": 100}, "data": […]}. Erkannt werden auch yMin/yMax und Blöcke wie yAxis, scale oder range. Gilt für die Achse der jeweiligen Serie und schlägt die feste Eingabe.',
+    'echart.jsonAxisPath': 'Pfad zum min/max-Block (optional)',
+    'echart.jsonAxisPathPlaceholder': 'z. B. axis – leer = automatisch suchen',
+    'echart.jsonAxisFound': 'Grenzen erkannt: min {min} · max {max}',
+    'echart.jsonAxisNone': 'Keine Grenzen im Datenpunkt gefunden – die Achse skaliert nach den Daten.',
+    'echart.jsonAxisAuto': 'automatisch',
+    'echart.boundFromDp': 'Grenze aus einem Datenpunkt lesen',
+    'echart.boundDpClear': 'Datenpunkt entfernen',
     'echart.aggregation': 'Aggregation',
     'echart.aggAverage': 'Durchschnitt (Standard)',
     'echart.aggMinmax': 'Min/Max (echte Extremwerte — z.B. Regenzähler)',

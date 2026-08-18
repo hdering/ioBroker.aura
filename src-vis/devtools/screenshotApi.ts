@@ -440,7 +440,10 @@ function installScreenshotApi(): void {
             const el = document.querySelector('[_echarts_instance_]');
             const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
             if (!inst) return null;
-            const opt = inst.getOption() as { grid?: unknown[]; yAxis?: unknown[] };
+            // A chart that has just been mounted (or replaced by one with a new widget id) can
+            // answer before it holds an option at all — that is a "not ready yet", not a failure.
+            const opt = inst.getOption() as { grid?: unknown[]; yAxis?: unknown[] } | undefined;
+            if (!opt) return null;
             // Round-trip through JSON so the formatter functions echarts adds are dropped and
             // the result survives the trip out of the page.
             return JSON.parse(JSON.stringify({ grid: opt.grid?.[0] ?? null, yAxis: opt.yAxis ?? null }));

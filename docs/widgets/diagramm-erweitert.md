@@ -52,9 +52,25 @@ Sind die Beschriftungen Zeitstempel, schaltet `echartJsonTimeAxis` auf eine echt
 
 `ts` und `val` erkennt der Editor selbst; erkennt er zusätzlich, dass alle Beschriftungen Zeitstempel sind, schaltet er die Zeitachse einmalig von allein ein. Akzeptiert werden Epoch in Millisekunden, Epoch in Sekunden und ISO-Datumsstrings; Einträge ohne gültigen Zeitstempel entfallen. Reine Jahreszahlen wie `2024` gelten nicht als Zeitstempel — dafür die Option ausgeschaltet lassen.
 
+Neben den Daten darf der Datenpunkt die Grenzen der Y-Achse tragen — dann skaliert die Achse nach dem Skript statt nach den Daten. Dazu `echartJsonAxisBounds` einschalten:
+
+```json
+{
+    "axis": { "min": 0, "max": 100 },
+    "data": [
+        { "label": "12:00", "value": 42 },
+        { "label": "13:00", "value": 87 }
+    ]
+}
+```
+
+Den Block sucht das Widget selbst: `min`/`max` direkt neben den Daten, in einem Block wie `axis`, `yAxis`, `scale`, `range`, `limits` oder in einem beliebigen anderen Unterobjekt. `yMin`/`yMax`, `minValue`/`maxValue` und `axisMin`/`axisMax` gelten ebenso, Zahlen als String auch. Eine der beiden Grenzen genügt — die andere bleibt automatisch. `jsonAxisPath` legt den Block fest, wenn mehrere in Frage kommen.
+
+Die Grenzen gelten für die Achse der jeweiligen Serie (`yAxisIndex`) und werden wie deren Werte umgerechnet (`valueFactor`/`valueOffset`). Ohne Block bleibt die Skalierung, wie sie konfiguriert ist.
+
 ### Gauge
 
-Tacho-Anzeige des aktuellen Werts der ersten Serie (Widget-Layout `gauge`).
+Tacho-Anzeige des aktuellen Werts der ersten Serie (Widget-Layout `gauge`). Skala: `echartLeftMin`/`echartLeftMax`.
 
 ### Custom
 
@@ -68,19 +84,19 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Anzeige
 
-| Option              | Standard                                  |                                                                                                         |
-| ------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `showTitle`         | `true`                                    | Titel anzeigen                                                                                          |
-| `showIcon`          | `true`                                    | Icon anzeigen                                                                                           |
-| `icon`              | `BarChart2`                               | [Lucide-Icon](https://lucide.dev)                                                                       |
-| `iconSize`          | `20`                                      | px                                                                                                      |
-| `titleAlign`        | `left`                                    | `left` · `center` · `right`                                                                             |
-| `echartShowCurrent` | `true`                                    | aktuelle Werte in der Kopfzeile anzeigen                                                                |
-| `echartCurrentFrom` | `last`                                    | welcher Punkt der „aktuelle“ ist: `last` (rechts) · `first` (links, für Reihen mit neuestem Wert vorn)   |
-| `echartCurrentAlign`| `right`                                   | Position der Anzeige in der Kopfzeile: `right` · `left`                                                  |
-| `echartShowValues`  | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) |
-| `echartShowLegend`  | `true`                                    | Legende anzeigen                                                                                        |
-| `decimals`          | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung                         |
+| Option               | Standard                                  |                                                                                                         |
+| -------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `showTitle`          | `true`                                    | Titel anzeigen                                                                                          |
+| `showIcon`           | `true`                                    | Icon anzeigen                                                                                           |
+| `icon`               | `BarChart2`                               | [Lucide-Icon](https://lucide.dev)                                                                       |
+| `iconSize`           | `20`                                      | px                                                                                                      |
+| `titleAlign`         | `left`                                    | `left` · `center` · `right`                                                                             |
+| `echartShowCurrent`  | `true`                                    | aktuelle Werte in der Kopfzeile anzeigen                                                                |
+| `echartCurrentFrom`  | `last`                                    | welcher Punkt der „aktuelle“ ist: `last` (rechts) · `first` (links, für Reihen mit neuestem Wert vorn)  |
+| `echartCurrentAlign` | `right`                                   | Position der Anzeige in der Kopfzeile: `right` · `left`                                                 |
+| `echartShowValues`   | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) |
+| `echartShowLegend`   | `true`                                    | Legende anzeigen                                                                                        |
+| `decimals`           | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung                         |
 
 ### Serien
 
@@ -175,19 +191,25 @@ Nur im Modus `json`.
 | `echartSeries[].jsonLabelKey` | automatisch | Objekt-Feld für die X-Beschriftung; leer = erkennen               |
 | `echartSeries[].jsonValueKey` | automatisch | Objekt-Feld für den Y-Wert; leer = erkennen                       |
 | `echartJsonTimeAxis`          | `false`     | Beschriftungen als Zeitstempel lesen → Zeitachse statt Kategorien |
+| `echartJsonAxisBounds`        | `false`     | min/max-Block aus dem Datenpunkt für die Y-Achse übernehmen       |
+| `echartSeries[].jsonAxisPath` | automatisch | Punkt-Pfad zum min/max-Block, z. B. `axis`; leer = suchen         |
 
 ### Achsen
 
-| Option                              | Standard |                                                                                         |
-| ----------------------------------- | -------- | --------------------------------------------------------------------------------------- |
-| `echartShowYAxis`                   | `true`   | Y-Achsen anzeigen                                                                       |
-| `echartShowYAxisRight`              | `true`   | rechte Y-Achse beschriften; aus = nur die linke Skala, die rechte Achse skaliert weiter |
-| `echartShowXAxis`                   | `true`   | X-Achse anzeigen                                                                        |
-| `echartShowGridLines`               | `true`   | horizontale Hilfslinien                                                                 |
-| `echartLeftUnit`                    | —        | Einheit der linken Y-Achse                                                              |
-| `echartRightUnit`                   | —        | Einheit der rechten Y-Achse                                                             |
-| `echartLeftMin` / `echartLeftMax`   | `auto`   | Skala links; Zahl oder `dataMin`/`dataMax`                                              |
-| `echartRightMin` / `echartRightMax` | `auto`   | Skala rechts; Zahl oder `dataMin`/`dataMax`                                             |
+| Option                                  | Standard |                                                                                         |
+| --------------------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `echartShowYAxis`                       | `true`   | Y-Achsen anzeigen                                                                       |
+| `echartShowYAxisRight`                  | `true`   | rechte Y-Achse beschriften; aus = nur die linke Skala, die rechte Achse skaliert weiter |
+| `echartShowXAxis`                       | `true`   | X-Achse anzeigen                                                                        |
+| `echartShowGridLines`                   | `true`   | horizontale Hilfslinien                                                                 |
+| `echartLeftUnit`                        | —        | Einheit der linken Y-Achse                                                              |
+| `echartRightUnit`                       | —        | Einheit der rechten Y-Achse                                                             |
+| `echartLeftMin` / `echartLeftMax`       | `auto`   | Skala links; Zahl oder `dataMin`/`dataMax`                                              |
+| `echartRightMin` / `echartRightMax`     | `auto`   | Skala rechts; Zahl oder `dataMin`/`dataMax`                                             |
+| `echartLeftMinDp` / `echartLeftMaxDp`   | —        | Datenpunkt liefert die Grenze links — ändert sich die Zahl, skaliert die Achse mit      |
+| `echartRightMinDp` / `echartRightMaxDp` | —        | Datenpunkt liefert die Grenze rechts                                                    |
+
+Reihenfolge, wenn mehrere Quellen gesetzt sind: **Datenpunkt** → **min/max-Block im JSON** → feste Eingabe. Ein leerer oder nicht-numerischer Datenpunkt zählt nicht mit, dann gilt die nächste Quelle. Die Datenpunkt-Grenzen wirken in jedem Modus, auch im Gauge.
 
 ### Verlauf
 

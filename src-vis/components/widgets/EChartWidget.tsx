@@ -9,7 +9,9 @@ import {
     parseTimeLabel,
     type EChartSeriesConfig,
     type EChartTimeRange,
+    type JsonAxisBounds,
 } from '../../hooks/useMultiSeriesData';
+import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -55,6 +57,16 @@ function deepMerge(target: Record<string, unknown>, source: Record<string, unkno
     return result;
 }
 
+/**
+ * An axis bound read from a datapoint, as a number — `undefined` when the datapoint is unset,
+ * empty or holds something non-numeric, so the next fallback in the chain takes over.
+ */
+function boundValue(v: boolean | number | string | null | undefined): number | undefined {
+    if (typeof v === 'number') return Number.isFinite(v) ? v : undefined;
+    if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v))) return Number(v);
+    return undefined;
+}
+
 export function EChartWidget({ config, editMode }: WidgetProps) {
     const { subscribe, getState, connected } = useIoBroker();
     const t = useT();
@@ -79,6 +91,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartRightMin = o.echartRightMin as number | string | undefined;
     const echartRightMax = o.echartRightMax as number | string | undefined;
     const echartJsonExtra = (o.echartJsonExtra as string | undefined) ?? '';
+    // Both axis bounds can come from outside the config instead of being typed in: one datapoint
+    // per bound (any mode), and in JSON mode a min/max block inside the payload itself (issue #550).
+    const echartJsonAxisBounds = (o.echartJsonAxisBounds as boolean | undefined) ?? false;
+    const leftMinDp = useDatapoint((o.echartLeftMinDp as string | undefined) ?? '');
+    const leftMaxDp = useDatapoint((o.echartLeftMaxDp as string | undefined) ?? '');
+    const rightMinDp = useDatapoint((o.echartRightMinDp as string | undefined) ?? '');
+    const rightMaxDp = useDatapoint((o.echartRightMaxDp as string | undefined) ?? '');
     const echartShowYAxis = (o.echartShowYAxis as boolean | undefined) ?? true;
     // The right axis can be silenced on its own: a second series often only needs its own scale,
     // not a second set of numbers eating widget width (issue #541). Master switch still wins.
@@ -292,6 +311,26 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
     // ── Shared y axes and current-value block (used by the timeseries and JSON branches) ──
     const hasRightAxis = echartSeries.some((s) => (s.yAxisIndex ?? 0) === 1);
+
+    // Bounds a JSON payload asks for, per axis: the first series on that axis whose payload carries
+    // a block wins — two payloads disagreeing about one axis cannot both be honoured.
+    const jsonBoundsFor = (axis: 0 | 1): JsonAxisBounds | undefined => {
+        if (!echartJsonAxisBounds) return undefined;
+        for (const s of echartSeries) {
+            if ((s.yAxisIndex ?? 0) !== axis) continue;
+            const b = seriesDataMap.get(s.id)?.bounds;
+            if (b && (b.min !== undefined || b.max !== undefined)) return b;
+        }
+        return undefined;
+    };
+    const jsonLeft = jsonBoundsFor(0);
+    const jsonRight = jsonBoundsFor(1);
+    // A bound datapoint is the most explicit choice, so it wins over the payload, and the payload
+    // over the value typed into the config.
+    const leftMin = boundValue(leftMinDp.value) ?? jsonLeft?.min ?? echartLeftMin;
+    const leftMax = boundValue(leftMaxDp.value) ?? jsonLeft?.max ?? echartLeftMax;
+    const rightMin = boundValue(rightMinDp.value) ?? jsonRight?.min ?? echartRightMin;
+    const rightMax = boundValue(rightMaxDp.value) ?? jsonRight?.max ?? echartRightMax;
     // A stack is read as "these parts add up to that whole", which only works from a zero
     // baseline: cut the axis at 100 and the bottom band looks like it floats, while the band
     // heights stop being proportional to the values (issue #541). An explicit min still wins.
@@ -309,7 +348,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         type: 'value',
         // Fit the axis to the data range instead of forcing zero in — otherwise a
         // line at e.g. 200–250 sits at the top with the whole 0–200 band left blank.
-        scale: !stackedOn(0) || echartLeftMin !== undefined,
+        scale: !stackedOn(0) || leftMin !== undefined,
         axisLabel: {
             show: echartShowYAxis,
             color: '#888',
@@ -319,14 +358,14 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         axisTick: { show: echartShowYAxis },
         axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
         splitLine: { show: echartShowYAxis && echartShowGridLines, lineStyle: { color: '#333' } },
-        ...(echartLeftMin !== undefined ? { min: echartLeftMin } : {}),
-        ...(echartLeftMax !== undefined ? { max: echartLeftMax } : {}),
+        ...(leftMin !== undefined ? { min: leftMin } : {}),
+        ...(leftMax !== undefined ? { max: leftMax } : {}),
     };
 
     const rightAxis: Record<string, unknown> = hasRightAxis
         ? {
               type: 'value',
-              scale: !stackedOn(1) || echartRightMin !== undefined,
+              scale: !stackedOn(1) || rightMin !== undefined,
               axisLabel: {
                   show: echartShowYAxisRight,
                   color: '#888',
@@ -336,8 +375,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
               axisTick: { show: echartShowYAxisRight },
               axisLine: { show: echartShowYAxisRight, lineStyle: { color: '#444' } },
               splitLine: { show: false },
-              ...(echartRightMin !== undefined ? { min: echartRightMin } : {}),
-              ...(echartRightMax !== undefined ? { max: echartRightMax } : {}),
+              ...(rightMin !== undefined ? { min: rightMin } : {}),
+              ...(rightMax !== undefined ? { max: rightMax } : {}),
           }
         : { show: false };
 
@@ -363,6 +402,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             series: [
                 {
                     type: 'gauge',
+                    // The gauge is a y axis too, so it takes the same bounds — but only real
+                    // numbers: `dataMin`/`dataMax` mean nothing without a data range to read them
+                    // from, and echarts would draw an empty dial.
+                    ...(typeof leftMin === 'number' ? { min: leftMin } : {}),
+                    ...(typeof leftMax === 'number' ? { max: leftMax } : {}),
                     radius: '85%',
                     progress: { show: true, width: 12 },
                     axisLine: { lineStyle: { width: 12, color: [[1, '#333']] } },
@@ -488,8 +532,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 axisTick: { show: echartShowYAxis },
                 axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
                 splitLine: { show: echartShowYAxis, lineStyle: { color: '#333' } },
-                ...(echartLeftMin !== undefined ? { min: echartLeftMin } : {}),
-                ...(echartLeftMax !== undefined ? { max: echartLeftMax } : {}),
+                ...(leftMin !== undefined ? { min: leftMin } : {}),
+                ...(leftMax !== undefined ? { max: leftMax } : {}),
             },
             series: [
                 {

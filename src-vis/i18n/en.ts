@@ -1207,6 +1207,16 @@ export const en: Record<TranslationKey, string> = {
     'echart.jsonTimeAxis': 'Label is a timestamp',
     'echart.jsonTimeAxisHint':
         'Time axis instead of categories — accepts epoch in ms or s and ISO dates. Entries without a valid timestamp are dropped.',
+    'echart.jsonAxisBounds': 'Take the y-axis bounds from the JSON',
+    'echart.jsonAxisBoundsHint':
+        'The datapoint may carry a min/max block next to its data, e.g. {"axis": {"min": 0, "max": 100}, "data": […]}. yMin/yMax and wrappers like yAxis, scale or range are recognised as well. Applies to the axis of that series and overrules the fixed value.',
+    'echart.jsonAxisPath': 'Path to the min/max block (optional)',
+    'echart.jsonAxisPathPlaceholder': 'e.g. axis – empty = search automatically',
+    'echart.jsonAxisFound': 'Bounds found: min {min} · max {max}',
+    'echart.jsonAxisNone': 'No bounds found in the datapoint – the axis scales to the data.',
+    'echart.jsonAxisAuto': 'automatic',
+    'echart.boundFromDp': 'Read the bound from a datapoint',
+    'echart.boundDpClear': 'Remove datapoint',
     'echart.aggregation': 'Aggregation',
     'echart.aggAverage': 'Average (default)',
     'echart.aggMinmax': 'Min/Max (true extremes — e.g. rain counter)',

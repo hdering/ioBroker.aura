@@ -8,10 +8,12 @@ import { getObjectDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../../hooks/useChartHistory';
 import {
     detectJsonKeys,
+    parseJsonAxisBounds,
     parseTimeLabel,
     resolveJsonArray,
     type EChartSeriesConfig,
     type EChartTimeRange,
+    type JsonAxisBounds,
 } from '../../hooks/useMultiSeriesData';
 import { useT, t } from '../../i18n';
 import { ColorPicker } from '../common/ColorPicker';
@@ -58,6 +60,8 @@ interface JsonProbe {
     /** Keys the auto-detection picked. */
     labelKey?: string;
     valueKey?: string;
+    /** Y-axis bounds found in the payload — undefined when it carries none (issue #550). */
+    bounds?: JsonAxisBounds;
     /** First entry's label/value, shown as a live example. */
     sampleLabel?: string;
     sampleValue?: string;
@@ -114,6 +118,96 @@ function JsonKeySelect({
     );
 }
 
+/**
+ * One y-axis bound (min or max). Three sources, in the order they win at runtime: a datapoint that
+ * delivers the bound live, the payload's own min/max block in JSON mode, the fixed number typed in
+ * here (issue #550). `dataMin`/`dataMax` leave the bound to the data.
+ *
+ * A picked datapoint replaces the number field instead of sitting beside it — it overrules the
+ * number anyway, and showing both invites the reading that they are added up.
+ */
+function AxisBoundRow({
+    valueKey,
+    dpKey,
+    autoToken,
+    placeholder,
+    o,
+    setO,
+    onPickDp,
+}: {
+    valueKey: string;
+    dpKey: string;
+    autoToken: 'dataMin' | 'dataMax';
+    placeholder: string;
+    o: Record<string, unknown>;
+    setO: (patch: Record<string, unknown>) => void;
+    onPickDp: () => void;
+}) {
+    const tr = useT();
+    const raw = (o[valueKey] as string | number | undefined) ?? '';
+    const dpId = (o[dpKey] as string | undefined) ?? '';
+    const isAuto = raw === autoToken;
+    return (
+        <div className="flex gap-1.5 items-center">
+            {dpId ? (
+                <div
+                    className="flex-1 min-w-0 flex items-center gap-1 text-[11px] px-2.5 py-2 rounded-lg font-mono"
+                    style={inputStyle}
+                    title={dpId}
+                >
+                    <span className="truncate">{dpId}</span>
+                    <button
+                        onClick={() => setO({ [dpKey]: undefined })}
+                        className="ml-auto shrink-0 hover:opacity-70"
+                        style={{ color: 'var(--text-secondary)' }}
+                        title={tr('echart.boundDpClear')}
+                    >
+                        <Trash2 size={11} />
+                    </button>
+                </div>
+            ) : isAuto ? (
+                <div className="flex-1 text-[11px] px-2.5 py-2 rounded-lg font-mono" style={inputStyle}>
+                    {autoToken}
+                </div>
+            ) : (
+                <input
+                    type="number"
+                    value={String(raw)}
+                    onChange={(e) => setO({ [valueKey]: e.target.value !== '' ? Number(e.target.value) : undefined })}
+                    placeholder={placeholder}
+                    className={`${inputCls} flex-1`}
+                    style={inputStyle}
+                />
+            )}
+            <button
+                onClick={onPickDp}
+                className="px-2 py-1.5 rounded-lg shrink-0 hover:opacity-80"
+                style={{
+                    background: dpId ? 'var(--accent)' : 'var(--app-bg)',
+                    color: dpId ? '#fff' : 'var(--text-secondary)',
+                    border: `1px solid ${dpId ? 'var(--accent)' : 'var(--app-border)'}`,
+                }}
+                title={tr('echart.boundFromDp')}
+            >
+                <Database size={12} />
+            </button>
+            {!dpId && (
+                <button
+                    onClick={() => setO({ [valueKey]: isAuto ? undefined : autoToken })}
+                    className="text-[10px] px-2 py-1.5 rounded-lg shrink-0"
+                    style={{
+                        background: isAuto ? 'var(--accent)' : 'var(--app-bg)',
+                        color: isAuto ? '#fff' : 'var(--text-secondary)',
+                        border: `1px solid ${isAuto ? 'var(--accent)' : 'var(--app-border)'}`,
+                    }}
+                >
+                    Auto
+                </button>
+            )}
+        </div>
+    );
+}
+
 export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const t = useT();
     const o = config.options ?? {};
@@ -162,14 +256,13 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const anyHistory = series.some((s) => !!s.historyInstance);
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
     const echartRightUnit = (o.echartRightUnit as string | undefined) ?? '';
-    const echartLeftMin = (o.echartLeftMin as string | undefined) ?? '';
-    const echartLeftMax = (o.echartLeftMax as string | undefined) ?? '';
-    const echartRightMin = (o.echartRightMin as string | undefined) ?? '';
-    const echartRightMax = (o.echartRightMax as string | undefined) ?? '';
+    const jsonAxisBounds = (o.echartJsonAxisBounds as boolean | undefined) ?? false;
     const echartJsonExtra = (o.echartJsonExtra as string | undefined) ?? '';
 
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [pickerForSeries, setPickerForSeries] = useState<string | null>(null);
+    /** Option key of the axis bound whose datapoint is being picked, e.g. `echartLeftMaxDp`. */
+    const [pickerForBound, setPickerForBound] = useState<string | null>(null);
     const [adapterStates, setAdapterStates] = useState<Record<string, SeriesAdapterState>>({});
     const [jsonOpen, setJsonOpen] = useState(false);
     const [jsonProbes, setJsonProbes] = useState<Record<string, JsonProbe>>({});
@@ -233,7 +326,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // Read the actual datapoint value of every JSON series to learn its structure: which keys
     // exist, which ones hold label and value, and whether the labels are timestamps. Without
     // this the two key fields are pure guesswork for anyone who hasn't read the docs.
-    const jsonProbeKey = isJson ? series.map((s) => `${s.id}:${s.datapointId}:${s.jsonPath ?? ''}`).join(',') : '';
+    const jsonProbeKey = isJson
+        ? series.map((s) => `${s.id}:${s.datapointId}:${s.jsonPath ?? ''}:${s.jsonAxisPath ?? ''}`).join(',')
+        : '';
     useEffect(() => {
         if (!isJson) return;
         for (const s of series) {
@@ -272,6 +367,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             valueKey,
                             sampleLabel: labelKey && first ? String(first[labelKey] ?? '') : undefined,
                             sampleValue: valueKey && first ? String(first[valueKey] ?? '') : undefined,
+                            bounds: parseJsonAxisBounds(state?.val, s),
                             entries: arr.length,
                             timeLike,
                         },
@@ -872,6 +968,85 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                     />
                                                                 </div>
                                                             </div>
+                                                            {/* Widget-level, like the axis type above: the
+                                                                payload's bounds belong to the payload, so the switch
+                                                                sits with it and not down in the axis section. */}
+                                                            <div>
+                                                                <label className="flex items-center gap-2 cursor-pointer">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={jsonAxisBounds}
+                                                                        onChange={(e) =>
+                                                                            setO({
+                                                                                echartJsonAxisBounds: e.target.checked,
+                                                                            })
+                                                                        }
+                                                                        className="accent-[var(--accent)]"
+                                                                    />
+                                                                    <span
+                                                                        className="text-[11px]"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.jsonAxisBounds')}
+                                                                    </span>
+                                                                </label>
+                                                                <p
+                                                                    className="text-[11px] mt-1"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.7,
+                                                                    }}
+                                                                >
+                                                                    {t('echart.jsonAxisBoundsHint')}
+                                                                </p>
+                                                            </div>
+                                                            {jsonAxisBounds && (
+                                                                <div>
+                                                                    <label
+                                                                        className="text-[11px] mb-1 block"
+                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                                    >
+                                                                        {t('echart.jsonAxisPath')}
+                                                                    </label>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={s.jsonAxisPath ?? ''}
+                                                                        onChange={(e) =>
+                                                                            updateSeries(s.id, {
+                                                                                jsonAxisPath:
+                                                                                    e.target.value || undefined,
+                                                                            })
+                                                                        }
+                                                                        placeholder={t(
+                                                                            'echart.jsonAxisPathPlaceholder',
+                                                                        )}
+                                                                        className={inputCls}
+                                                                        style={inputStyle}
+                                                                    />
+                                                                    {/* Only once the payload was actually read — an
+                                                                        unreadable datapoint already says so below. */}
+                                                                    {probe?.done && !probe.invalid && (
+                                                                        <p
+                                                                            className="text-[11px] mt-1"
+                                                                            style={{
+                                                                                color: 'var(--text-secondary)',
+                                                                                opacity: 0.8,
+                                                                            }}
+                                                                        >
+                                                                            {probe.bounds
+                                                                                ? t('echart.jsonAxisFound', {
+                                                                                      min:
+                                                                                          probe.bounds.min ??
+                                                                                          t('echart.jsonAxisAuto'),
+                                                                                      max:
+                                                                                          probe.bounds.max ??
+                                                                                          t('echart.jsonAxisAuto'),
+                                                                                  })
+                                                                                : t('echart.jsonAxisNone')}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
+                                                            )}
                                                             {probe?.done && probe.invalid && (
                                                                 <p
                                                                     className="text-[11px]"
@@ -1424,72 +1599,24 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </div>
                     <div className="flex flex-col gap-1">
-                        <div className="flex gap-1.5 items-center">
-                            {echartLeftMin !== 'dataMin' ? (
-                                <input
-                                    type="number"
-                                    value={echartLeftMin}
-                                    onChange={(e) =>
-                                        setO({
-                                            echartLeftMin: e.target.value !== '' ? Number(e.target.value) : undefined,
-                                        })
-                                    }
-                                    placeholder={t('echart.min')}
-                                    className={`${inputCls} flex-1`}
-                                    style={inputStyle}
-                                />
-                            ) : (
-                                <div className="flex-1 text-[11px] px-2.5 py-2 rounded-lg font-mono" style={inputStyle}>
-                                    dataMin
-                                </div>
-                            )}
-                            <button
-                                onClick={() =>
-                                    setO({ echartLeftMin: echartLeftMin === 'dataMin' ? undefined : 'dataMin' })
-                                }
-                                className="text-[10px] px-2 py-1.5 rounded-lg shrink-0"
-                                style={{
-                                    background: echartLeftMin === 'dataMin' ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: echartLeftMin === 'dataMin' ? '#fff' : 'var(--text-secondary)',
-                                    border: `1px solid ${echartLeftMin === 'dataMin' ? 'var(--accent)' : 'var(--app-border)'}`,
-                                }}
-                            >
-                                Auto
-                            </button>
-                        </div>
-                        <div className="flex gap-1.5 items-center">
-                            {echartLeftMax !== 'dataMax' ? (
-                                <input
-                                    type="number"
-                                    value={echartLeftMax}
-                                    onChange={(e) =>
-                                        setO({
-                                            echartLeftMax: e.target.value !== '' ? Number(e.target.value) : undefined,
-                                        })
-                                    }
-                                    placeholder={t('echart.max')}
-                                    className={`${inputCls} flex-1`}
-                                    style={inputStyle}
-                                />
-                            ) : (
-                                <div className="flex-1 text-[11px] px-2.5 py-2 rounded-lg font-mono" style={inputStyle}>
-                                    dataMax
-                                </div>
-                            )}
-                            <button
-                                onClick={() =>
-                                    setO({ echartLeftMax: echartLeftMax === 'dataMax' ? undefined : 'dataMax' })
-                                }
-                                className="text-[10px] px-2 py-1.5 rounded-lg shrink-0"
-                                style={{
-                                    background: echartLeftMax === 'dataMax' ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: echartLeftMax === 'dataMax' ? '#fff' : 'var(--text-secondary)',
-                                    border: `1px solid ${echartLeftMax === 'dataMax' ? 'var(--accent)' : 'var(--app-border)'}`,
-                                }}
-                            >
-                                Auto
-                            </button>
-                        </div>
+                        <AxisBoundRow
+                            valueKey="echartLeftMin"
+                            dpKey="echartLeftMinDp"
+                            autoToken="dataMin"
+                            placeholder={t('echart.min')}
+                            o={o}
+                            setO={setO}
+                            onPickDp={() => setPickerForBound('echartLeftMinDp')}
+                        />
+                        <AxisBoundRow
+                            valueKey="echartLeftMax"
+                            dpKey="echartLeftMaxDp"
+                            autoToken="dataMax"
+                            placeholder={t('echart.max')}
+                            o={o}
+                            setO={setO}
+                            onPickDp={() => setPickerForBound('echartLeftMaxDp')}
+                        />
                     </div>
                 </div>
 
@@ -1509,72 +1636,24 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </div>
                     <div className="flex flex-col gap-1">
-                        <div className="flex gap-1.5 items-center">
-                            {echartRightMin !== 'dataMin' ? (
-                                <input
-                                    type="number"
-                                    value={echartRightMin}
-                                    onChange={(e) =>
-                                        setO({
-                                            echartRightMin: e.target.value !== '' ? Number(e.target.value) : undefined,
-                                        })
-                                    }
-                                    placeholder={t('echart.min')}
-                                    className={`${inputCls} flex-1`}
-                                    style={inputStyle}
-                                />
-                            ) : (
-                                <div className="flex-1 text-[11px] px-2.5 py-2 rounded-lg font-mono" style={inputStyle}>
-                                    dataMin
-                                </div>
-                            )}
-                            <button
-                                onClick={() =>
-                                    setO({ echartRightMin: echartRightMin === 'dataMin' ? undefined : 'dataMin' })
-                                }
-                                className="text-[10px] px-2 py-1.5 rounded-lg shrink-0"
-                                style={{
-                                    background: echartRightMin === 'dataMin' ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: echartRightMin === 'dataMin' ? '#fff' : 'var(--text-secondary)',
-                                    border: `1px solid ${echartRightMin === 'dataMin' ? 'var(--accent)' : 'var(--app-border)'}`,
-                                }}
-                            >
-                                Auto
-                            </button>
-                        </div>
-                        <div className="flex gap-1.5 items-center">
-                            {echartRightMax !== 'dataMax' ? (
-                                <input
-                                    type="number"
-                                    value={echartRightMax}
-                                    onChange={(e) =>
-                                        setO({
-                                            echartRightMax: e.target.value !== '' ? Number(e.target.value) : undefined,
-                                        })
-                                    }
-                                    placeholder={t('echart.max')}
-                                    className={`${inputCls} flex-1`}
-                                    style={inputStyle}
-                                />
-                            ) : (
-                                <div className="flex-1 text-[11px] px-2.5 py-2 rounded-lg font-mono" style={inputStyle}>
-                                    dataMax
-                                </div>
-                            )}
-                            <button
-                                onClick={() =>
-                                    setO({ echartRightMax: echartRightMax === 'dataMax' ? undefined : 'dataMax' })
-                                }
-                                className="text-[10px] px-2 py-1.5 rounded-lg shrink-0"
-                                style={{
-                                    background: echartRightMax === 'dataMax' ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: echartRightMax === 'dataMax' ? '#fff' : 'var(--text-secondary)',
-                                    border: `1px solid ${echartRightMax === 'dataMax' ? 'var(--accent)' : 'var(--app-border)'}`,
-                                }}
-                            >
-                                Auto
-                            </button>
-                        </div>
+                        <AxisBoundRow
+                            valueKey="echartRightMin"
+                            dpKey="echartRightMinDp"
+                            autoToken="dataMin"
+                            placeholder={t('echart.min')}
+                            o={o}
+                            setO={setO}
+                            onPickDp={() => setPickerForBound('echartRightMinDp')}
+                        />
+                        <AxisBoundRow
+                            valueKey="echartRightMax"
+                            dpKey="echartRightMaxDp"
+                            autoToken="dataMax"
+                            placeholder={t('echart.max')}
+                            o={o}
+                            setO={setO}
+                            onPickDp={() => setPickerForBound('echartRightMaxDp')}
+                        />
                     </div>
                 </div>
             </div>
@@ -1633,6 +1712,18 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         setPickerForSeries(null);
                     }}
                     onClose={() => setPickerForSeries(null)}
+                />
+            )}
+
+            {/* Datapoint picker for an axis bound */}
+            {pickerForBound && (
+                <DatapointPicker
+                    currentValue={(o[pickerForBound] as string | undefined) ?? ''}
+                    onSelect={(id) => {
+                        setO({ [pickerForBound]: id || undefined });
+                        setPickerForBound(null);
+                    }}
+                    onClose={() => setPickerForBound(null)}
                 />
             )}
         </div>

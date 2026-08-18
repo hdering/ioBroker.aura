@@ -69,6 +69,12 @@ export interface EChartSeriesConfig {
     /** Object key holding the y value (default `value`). */
     jsonValueKey?: string;
     /**
+     * Dotted path to the object holding the y-axis bounds, e.g. `axis` for
+     * `{"axis": {"min": 0, "max": 100}, "data": [...]}`. Empty = look for the block automatically.
+     * Only read when the widget has `echartJsonAxisBounds` switched on (issue #550).
+     */
+    jsonAxisPath?: string;
+    /**
      * Display-only value conversion, per series (issue #540): every point, the live value and the
      * current-value block are shown as `raw * valueFactor + valueOffset` — the datapoint and its
      * history records are never touched. Set through the ƒx button next to the series' datapoint;
@@ -94,12 +100,20 @@ export interface JsonPoint {
     value: number;
 }
 
+/** Y-axis scale a JSON payload asks for — either bound may be missing (issue #550). */
+export interface JsonAxisBounds {
+    min?: number;
+    max?: number;
+}
+
 export interface SeriesDataResult {
     data: [number, number][];
     current: number | null;
     loading: boolean;
     /** Categorical points — only filled for `source: 'json'` series. */
     points?: JsonPoint[];
+    /** Y-axis min/max the payload carries alongside its data — only for `source: 'json'`. */
+    bounds?: JsonAxisBounds;
 }
 
 const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
@@ -422,6 +436,100 @@ export function parseJsonSeries(raw: unknown, s: EChartSeriesConfig): JsonPoint[
     return points;
 }
 
+/** Key names a payload may use for the two bounds, best guess first. */
+const AXIS_MIN_KEYS = ['min', 'yMin', 'ymin', 'minValue', 'axisMin', 'yAxisMin'];
+const AXIS_MAX_KEYS = ['max', 'yMax', 'ymax', 'maxValue', 'axisMax', 'yAxisMax'];
+/** Object keys commonly wrapping the bounds — checked before any other nested object. */
+const AXIS_BLOCK_KEYS = ['yAxis', 'yaxis', 'axis', 'axes', 'scale', 'range', 'limits', 'bounds', 'meta'];
+
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+    return !!v && typeof v === 'object' && !Array.isArray(v);
+}
+
+/** First of `keys` that holds a finite number (numeric strings count) — `undefined` if none does. */
+function numberAt(obj: Record<string, unknown>, keys: string[]): number | undefined {
+    for (const k of keys) {
+        const v = obj[k];
+        if (typeof v === 'number' && Number.isFinite(v)) return v;
+        if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v))) return Number(v);
+    }
+    return undefined;
+}
+
+function boundsOf(obj: Record<string, unknown>): JsonAxisBounds | undefined {
+    const min = numberAt(obj, AXIS_MIN_KEYS);
+    const max = numberAt(obj, AXIS_MAX_KEYS);
+    return min === undefined && max === undefined ? undefined : { min, max };
+}
+
+/**
+ * Read the y-axis scale a JSON datapoint asks for — the payload's own `min`/`max` block, so a
+ * script that already knows its value range can hand the axis over instead of leaving it to the
+ * data (issue #550).
+ *
+ * The block is looked for next to the data rather than at one fixed place: the object itself
+ * first, then a well-known wrapper (`axis`, `yAxis`, `scale`, `range`, ...), then any other nested
+ * object carrying min/max — walking from the root down along `jsonPath`, so both
+ * `{"min": 0, "max": 100, "data": [...]}` and `{"data": {"axis": {...}, "hours": [...]}}` are
+ * found. `jsonAxisPath` pins the block down when a payload holds several candidates.
+ *
+ * Bounds go through the series' value conversion, exactly like its points: a payload scaled
+ * W → kW must not keep a raw-watt axis.
+ */
+export function parseJsonAxisBounds(raw: unknown, s: EChartSeriesConfig): JsonAxisBounds | undefined {
+    let parsed: unknown = raw;
+    if (typeof raw === 'string') {
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            return undefined;
+        }
+    }
+    if (!isPlainObject(parsed)) return undefined;
+
+    const scaled = (b: JsonAxisBounds): JsonAxisBounds => ({
+        min: b.min === undefined ? undefined : seriesValue(s, b.min),
+        max: b.max === undefined ? undefined : seriesValue(s, b.max),
+    });
+
+    const explicit = (s.jsonAxisPath ?? '').trim();
+    if (explicit) {
+        const target = explicit.split('.').reduce<unknown>((acc, key) => {
+            if (isPlainObject(acc)) return acc[key];
+            return undefined;
+        }, parsed);
+        if (!isPlainObject(target)) return undefined;
+        const found = boundsOf(target);
+        return found ? scaled(found) : undefined;
+    }
+
+    // Root first, then every object step of the data path — the block usually sits beside the array.
+    const candidates: Record<string, unknown>[] = [parsed];
+    let cursor: unknown = parsed;
+    for (const seg of (s.jsonPath ?? '').trim().split('.').filter(Boolean)) {
+        cursor = isPlainObject(cursor) ? cursor[seg] : undefined;
+        if (!isPlainObject(cursor)) break;
+        candidates.push(cursor);
+    }
+
+    for (const cand of candidates) {
+        const direct = boundsOf(cand);
+        if (direct) return scaled(direct);
+        for (const key of AXIS_BLOCK_KEYS) {
+            const block = cand[key];
+            if (!isPlainObject(block)) continue;
+            const found = boundsOf(block);
+            if (found) return scaled(found);
+        }
+        for (const value of Object.values(cand)) {
+            if (!isPlainObject(value)) continue;
+            const found = boundsOf(value);
+            if (found) return scaled(found);
+        }
+    }
+    return undefined;
+}
+
 /**
  * Read a JSON label as a point in time — for datapoints that key their entries by timestamp
  * (`{"ts": "1785362400000", "val": 0}`) rather than by a display label.
@@ -555,6 +663,7 @@ export function useMultiSeriesData(
             s.jsonPath,
             s.jsonLabelKey,
             s.jsonValueKey,
+            s.jsonAxisPath,
             s.valueFactor,
             s.valueOffset,
         ]),
@@ -601,6 +710,7 @@ export function useMultiSeriesData(
                 const applyJson = (state: ioBrokerState | null) => {
                     if (!mountedRef.current) return;
                     const points = parseJsonSeries(state?.val, s);
+                    const bounds = parseJsonAxisBounds(state?.val, s);
                     lastRawRef.current.set(
                         s.id,
                         typeof state?.val === 'string' ? state.val : JSON.stringify(state?.val),
@@ -610,6 +720,7 @@ export function useMultiSeriesData(
                         next.set(s.id, {
                             data: [],
                             points,
+                            bounds,
                             current: points.length > 0 ? points[points.length - 1].value : null,
                             loading: false,
                         });
@@ -857,11 +968,13 @@ export function useMultiSeriesData(
                         if (lastRawRef.current.get(s.id) === rawStr) return;
                         lastRawRef.current.set(s.id, rawStr);
                         const points = parseJsonSeries(state.val, s);
+                        const bounds = parseJsonAxisBounds(state.val, s);
                         setResultsMap((prev) => {
                             const next = new Map(prev);
                             next.set(s.id, {
                                 data: [],
                                 points,
+                                bounds,
                                 current: points.length > 0 ? points[points.length - 1].value : null,
                                 loading: false,
                             });
