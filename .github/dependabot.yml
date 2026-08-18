@@ -20,6 +20,11 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@types/react-dom"
         update-types: ["version-update:semver-major"]
+      # react-leaflet v5 requires React 19 (peer: react/react-dom ^19); we are
+      # on React 18 and vitepress' @docsearch/react caps react at <19. Comes
+      # with the React 19 migration, not before.
+      - dependency-name: "react-leaflet"
+        update-types: ["version-update:semver-major"]
       # Vite major bumps (5→6→7→8) are breaking and need a deliberate
       # migration; block them. Minor/patch updates still flow through.
       - dependency-name: "vite"
