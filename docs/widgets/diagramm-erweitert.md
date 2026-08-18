@@ -75,7 +75,9 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `icon`              | `BarChart2`                               | [Lucide-Icon](https://lucide.dev)                                                                       |
 | `iconSize`          | `20`                                      | px                                                                                                      |
 | `titleAlign`        | `left`                                    | `left` · `center` · `right`                                                                             |
-| `echartShowCurrent` | `true`                                    | aktuelle Werte oben rechts anzeigen                                                                     |
+| `echartShowCurrent` | `true`                                    | aktuelle Werte in der Kopfzeile anzeigen                                                                |
+| `echartCurrentFrom` | `last`                                    | welcher Punkt der „aktuelle“ ist: `last` (rechts) · `first` (links, für Reihen mit neuestem Wert vorn)   |
+| `echartCurrentAlign`| `right`                                   | Position der Anzeige in der Kopfzeile: `right` · `left`                                                  |
 | `echartShowValues`  | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) |
 | `echartShowLegend`  | `true`                                    | Legende anzeigen                                                                                        |
 | `decimals`          | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung                         |

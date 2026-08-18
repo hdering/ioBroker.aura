@@ -86,6 +86,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
+    // Rolling payloads can be sorted newest-first, so the "current" value is then the leftmost
+    // point instead of the rightmost one (issue #549). Position of the block is free as well.
+    const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
+    const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
+    const currentBlockCls = `flex items-center gap-2 shrink-0 ${echartCurrentAlign === 'left' ? 'order-first' : 'ml-auto'}`;
     const echartMode = (o.echartMode as string | undefined) ?? 'timeseries';
     // Value labels at the data points. Comparison charts have always drawn them, so they stay
     // on there unless switched off explicitly; timeseries and JSON default to off (issue #543).
@@ -260,9 +265,19 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         return data;
     };
     const seriesCurrent = (idx: number, id: string): number | null => {
-        if (previewData) return previewData[idx][previewData[idx].length - 1][1];
-        const current = seriesDataMap.get(id)?.current ?? null;
-        if (dayWindow && current === null && !seriesDataMap.get(id)?.loading) return 0;
+        const fromFirst = echartCurrentFrom === 'first';
+        if (previewData) {
+            const pts = previewData[idx];
+            return (fromFirst ? pts[0] : pts[pts.length - 1])[1];
+        }
+        const entry = seriesDataMap.get(id);
+        let current = entry?.current ?? null;
+        // "First" means the leftmost plotted point — the newest one for newest-first payloads.
+        if (fromFirst) {
+            const head = entry?.data?.[0]?.[1] ?? entry?.points?.[0]?.value;
+            if (head !== undefined) current = head;
+        }
+        if (dayWindow && current === null && !entry?.loading) return 0;
         return current;
     };
     // Delta series draw no synthetic flat line, so "has history" alone doesn't mean there is
@@ -616,12 +631,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 // On the time axis the points are sorted chronologically, so "last" means latest.
                 const tp = timePointsPerSeries[idx] ?? [];
                 const cp = pointsPerSeries[idx];
+                const fromFirst = echartCurrentFrom === 'first';
                 const tail = jsonTimeAxis
                     ? tp.length > 0
-                        ? tp[tp.length - 1][1]
+                        ? (fromFirst ? tp[0] : tp[tp.length - 1])[1]
                         : null
                     : cp.length > 0
-                      ? cp[cp.length - 1].value
+                      ? (fromFirst ? cp[0] : cp[cp.length - 1]).value
                       : null;
                 return {
                     value: tail,
@@ -735,7 +751,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             </p>
                         )}
                         {showJsonCurrent && (
-                            <div className="flex items-center gap-2 shrink-0 ml-auto">
+                            <div className={currentBlockCls}>
                                 {jsonCurrentValues.map((c, i) => (
                                     <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
                                         {formatNum(c.value as number, decimals, numFmt)}
@@ -1024,7 +1040,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         </p>
                     )}
                     {showCurrentBlock && (
-                        <div className="flex items-center gap-2 shrink-0 ml-auto">
+                        <div className={currentBlockCls}>
                             {currentValues.map((c, i) => (
                                 <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
                                     {formatNum(c.value as number, decimals, numFmt)}

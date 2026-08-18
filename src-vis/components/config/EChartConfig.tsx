@@ -130,6 +130,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
+    const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
+    const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
     // Comparison charts have always labelled their bars — keep that as their default (issue #543).
     const echartShowValues = (o.echartShowValues as boolean | undefined) ?? isComparison;
     // Single widget-level range (replaces the former per-series ranges). Falls back to the
@@ -1231,6 +1233,50 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </button>
                 </div>
+
+                {/* Which point counts as "current", and where the block sits */}
+                {echartShowCurrent && (
+                    <div className="mb-2 pl-2" style={{ borderLeft: '2px solid var(--app-border)' }}>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.currentValueSource')}
+                        </label>
+                        <div className="flex gap-1">
+                            {(['last', 'first'] as const).map((v) => (
+                                <button
+                                    key={v}
+                                    onClick={() => setO({ echartCurrentFrom: v })}
+                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                    style={{
+                                        background: echartCurrentFrom === v ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: echartCurrentFrom === v ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${echartCurrentFrom === v ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    {v === 'last' ? t('echart.currentValueLast') : t('echart.currentValueFirst')}
+                                </button>
+                            ))}
+                        </div>
+                        <label className="text-[11px] mt-2 mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            {t('echart.currentValueAlign')}
+                        </label>
+                        <div className="flex gap-1">
+                            {(['left', 'right'] as const).map((v) => (
+                                <button
+                                    key={v}
+                                    onClick={() => setO({ echartCurrentAlign: v })}
+                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                    style={{
+                                        background: echartCurrentAlign === v ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: echartCurrentAlign === v ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${echartCurrentAlign === v ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    {v === 'left' ? t('echart.alignLeft') : t('echart.alignRight')}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Value labels at the data points */}
                 <div className="flex items-center justify-between mb-2">
