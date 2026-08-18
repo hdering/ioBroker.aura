@@ -224,11 +224,14 @@ export function resolveDeltaBucket(setting: DeltaBucketSetting | undefined, rang
  * a server-side day bucket would cut the local day at the wrong hour. Only very long windows
  * drop to a daily step so the row count stays sane, and multi-year ones (a `total` window over a
  * long-running install) scale further in whole days to stay under the delta row cap.
+ *
+ * A step of a whole day or more is fetched as `minmax` (see the caller), which returns two rows
+ * per step instead of one — hence the halved row budget in the scaling branch.
  */
 export function deltaFetchStep(bucket: DeltaBucket, rangeMs: number): number {
     if (bucket === 'hour') return 3_600_000;
     if (rangeMs <= 125 * 86_400_000) return 3_600_000;
-    return Math.max(86_400_000, Math.ceil(rangeMs / 2500 / 86_400_000) * 86_400_000);
+    return Math.max(86_400_000, Math.ceil(rangeMs / 1250 / 86_400_000) * 86_400_000);
 }
 
 /**
@@ -261,54 +264,84 @@ export interface DeltaSeries {
     /** One point per bucket: [bucket start, consumption within the bucket]. */
     points: [number, number][];
     /**
-     * Counter reading at the end of the bucket before the last one, plus that last bucket's
-     * start — lets a live state update recompute the still-open trailing bar without refetching.
+     * The trailing bucket's start, plus the value a live reading has to be differenced against to
+     * reproduce that bucket's bar — lets a live state update grow the still-open bar without
+     * refetching. `lastBase` is not a reading the counter ever had: it is the last reading minus
+     * what the bucket has already accumulated, so `live − lastBase` keeps the consumption booked
+     * so far. For a plain monotonic meter it works out to the previous bucket's reading.
      */
     lastBucket: number | null;
     lastBase: number | null;
 }
 
 /**
- * Difference a rising counter series into per-bucket consumption.
+ * Difference a counter series into per-bucket consumption.
  *
- * Each bucket keeps the highest reading seen in it (a monotonic counter's reading at the bucket's
- * end), and the bucket's value becomes `max(bucket) − max(previous bucket)`. Buckets without any
- * record are skipped, so their consumption folds into the next bucket that has one rather than
- * showing a false zero. Negative differences (meter swap, counter rollover, adapter restart)
- * are clamped to 0 — a negative consumption bar would be pure noise.
+ * The series is walked in timestamp order and every rise is booked onto the bucket of the reading
+ * that realises it, so a bucket's bar is the sum of the rises inside it plus the rise out of the
+ * previous bucket. For a plain monotonic meter that is exactly `max(bucket) − max(previous bucket)`,
+ * which is what this used to compute directly. Buckets without any record are skipped, so their
+ * consumption folds into the next bucket that has one rather than showing a false zero, and a
+ * bucket with no predecessor at all is left with the rises inside it — a counter whose logging
+ * just started still renders instead of waiting for its second bucket.
  *
- * A bucket with no predecessor at all differences against its OWN lowest reading instead. Without
- * that fallback a counter whose logging just started (a fresh test datapoint, the first day after
- * enabling history) would render nothing at all until its second bucket exists.
+ * Drops are where the two kinds of counter part ways (issue #545):
  *
- * `windowStart` drops the leading baseline bucket, which only exists to difference against.
+ * - A counter that RESETS — a PV inverter's day yield, `solaredge.*.lastDayData` — falls back to
+ *   ~0 at midnight. The drop books nothing and the climb that follows is real production, so the
+ *   day ends up with its full yield. Differencing the daily maxima instead (the old behaviour)
+ *   gave a negative number on every day that produced less than its predecessor, which was
+ *   clamped to 0 — those bars went missing, and the rest showed only the difference to the day
+ *   before rather than the day's own total.
+ * - A GLITCH — an adapter restart writing one stray low reading — is followed by a jump straight
+ *   back to where the counter was. Booking that jump would invent a bar the size of the entire
+ *   meter reading. It is told apart by WHERE it happens: a resetting counter turns over at a
+ *   calendar day boundary, a glitch anywhere. So a drop within a day arms a guard, and the next
+ *   rise that lands back at or above the pre-drop reading is discarded instead of booked.
+ *
+ * A series that only ever rises never reaches either path and comes out exactly as before.
+ *
+ * `data` must be sorted by timestamp. `windowStart` drops the leading baseline bucket, which only
+ * exists to difference against.
  */
 export function bucketDeltas(data: [number, number][], bucket: DeltaBucket, windowStart: number): DeltaSeries {
-    const maxByBucket = new Map<number, number>();
-    const minByBucket = new Map<number, number>();
+    const sums = new Map<number, number>();
+    let prevVal: number | null = null;
+    let prevTs = 0;
+    /** Reading an intra-day drop fell from, while the rise back to it is still to come. */
+    let glitchHigh: number | null = null;
     for (const [ts, val] of data) {
         const b = bucketStart(ts, bucket);
-        const hi = maxByBucket.get(b);
-        if (hi === undefined || val > hi) maxByBucket.set(b, val);
-        const lo = minByBucket.get(b);
-        if (lo === undefined || val < lo) minByBucket.set(b, val);
+        if (!sums.has(b)) sums.set(b, 0);
+        if (prevVal !== null) {
+            let inc = val - prevVal;
+            if (inc < 0) {
+                // Nothing to book either way — a reset consumed nothing, and a glitch is not a
+                // reading at all. Only a drop that does NOT sit on a day boundary is suspicious.
+                if (bucketStart(ts, 'day') === bucketStart(prevTs, 'day')) glitchHigh ??= prevVal;
+                inc = 0;
+            } else if (inc > 0 && glitchHigh !== null) {
+                if (val >= glitchHigh) inc = 0;
+                // Either outcome settles the guard: a rise that stayed below the pre-drop reading
+                // means the counter really is climbing again from a lower level.
+                glitchHigh = null;
+            }
+            sums.set(b, sums.get(b)! + inc);
+        }
+        prevVal = val;
+        prevTs = ts;
     }
-    const buckets = [...maxByBucket.keys()].sort((a, b) => a - b);
-    /** Reading the bucket at `idx` differences against. */
-    const baseAt = (idx: number): number =>
-        idx > 0 ? maxByBucket.get(buckets[idx - 1])! : minByBucket.get(buckets[idx])!;
+    const buckets = [...sums.keys()].sort((a, b) => a - b);
     const points: [number, number][] = [];
-    for (let i = 0; i < buckets.length; i++) {
-        const b = buckets[i];
+    for (const b of buckets) {
         if (b < windowStart) continue;
-        const diff = maxByBucket.get(b)! - baseAt(i);
-        points.push([b, diff < 0 ? 0 : diff]);
+        points.push([b, sums.get(b)!]);
     }
-    const lastIdx = buckets.length - 1;
+    const lastBucket = buckets.length > 0 ? buckets[buckets.length - 1] : null;
     return {
         points,
-        lastBucket: lastIdx >= 0 ? buckets[lastIdx] : null,
-        lastBase: lastIdx >= 0 ? baseAt(lastIdx) : null,
+        lastBucket,
+        lastBase: lastBucket !== null && prevVal !== null ? prevVal - sums.get(lastBucket)! : null,
     };
 }
 
@@ -659,9 +692,21 @@ export function useMultiSeriesData(
                     start: fetchStart,
                     end,
                     step,
-                    // `delta` never reaches the adapter — it is differenced client-side from the
-                    // highest reading per bucket, i.e. a monotonic counter's value at the bucket's end.
-                    aggregate: s.aggregate === 'delta' ? 'max' : step ? (s.aggregate ?? 'average') : 'none',
+                    // `delta` never reaches the adapter — it is differenced client-side. An hourly
+                    // step comes back as `max`, a counter's reading at the step's end, with any
+                    // sub-hour glitch already swallowed by the aggregation. Once the step is a whole
+                    // day it can contain an entire reset cycle of a day counter, and only the extra
+                    // low row of a `minmax` fetch makes that reset visible to `bucketDeltas` (#545).
+                    // Spelled out rather than reusing `isDelta`, so the else branch keeps the
+                    // narrowing that drops `delta` from the adapter's aggregate union.
+                    aggregate:
+                        s.aggregate === 'delta'
+                            ? (step ?? 0) >= 86_400_000
+                                ? 'minmax'
+                                : 'max'
+                            : step
+                              ? (s.aggregate ?? 'average')
+                              : 'none',
                     count: isDelta ? 3000 : 1000,
                 })
                     .then((entries: HistoryEntry[]) => {

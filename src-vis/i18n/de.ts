@@ -1217,7 +1217,7 @@ export const de = {
     'echart.aggMax': 'Maximum',
     'echart.aggMin': 'Minimum',
     'echart.aggTotal': 'Summe',
-    'echart.aggDelta': 'Verbrauch (Differenz — für Zählerstände)',
+    'echart.aggDelta': 'Verbrauch/Ertrag (Zuwachs — für Zähler)',
     'echart.aggNone': 'Keine (Rohdaten, kein Glätten)',
     'echart.deltaBucket': 'Zeiteinheit',
     'echart.bucketAuto': 'Automatisch (aus Zeitraum)',
@@ -1229,7 +1229,7 @@ export const de = {
     'echart.bucketAutoHint':
         'Richtet sich nach dem aktiven Zeitraum: bis 1 Tag pro Stunde, bis 45 Tage pro Tag, bis 180 Tage pro Woche, bis 1 Jahr pro Monat, darüber pro Jahr. Wechselt mit, wenn im Frontend umgeschaltet wird.',
     'echart.deltaHint':
-        'Für fortlaufende Zähler (Strom, Wasser, Gas): zeigt den Verbrauch je Zeiteinheit statt des Zählerstands. Zählerwechsel oder Überlauf werden auf 0 gesetzt.',
+        'Für Zähler: zeigt den Zuwachs je Zeiteinheit statt des Zählerstands. Passt für fortlaufende Zähler (Strom, Wasser, Gas) ebenso wie für Tageszähler, die um Mitternacht auf 0 zurückspringen (z.B. PV-Tagesertrag). Zählerwechsel, Überlauf und Ausreißer werden nicht als Verbrauch gewertet.',
     'echart.visibleRanges': 'Sichtbare Zeitbereiche im Frontend',
     'echart.dayNavToggle': 'Tages-Navigation im Frontend (◀ Heute ▶)',
     'echart.today': 'Heute',
