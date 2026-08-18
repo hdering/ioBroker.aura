@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.47.12",
+    "version": "0.47.13",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.47.13": {
+        "en": "Release v0.47.13",
+        "de": "Release v0.47.13",
+        "ru": "Release v0.47.13",
+        "pt": "Release v0.47.13",
+        "nl": "Release v0.47.13",
+        "fr": "Release v0.47.13",
+        "it": "Release v0.47.13",
+        "es": "Release v0.47.13",
+        "pl": "Release v0.47.13",
+        "uk": "Release v0.47.13",
+        "zh-cn": "Release v0.47.13"
+      },
       "0.47.12": {
         "en": "🌟 New feature: Advanced chart - the JSON datapoint may carry a min/max block that scales the Y axis (#550)\nAdvanced chart - Y axis min and max can be read from datapoints, in every mode (#550)",
         "de": "🌟 New feature: Advanced chart - the JSON datapoint may carry a min/max block that scales the Y axis (#550)\nAdvanced chart - Y axis min and max can be read from datapoints, in every mode (#550)",
@@ -184,19 +197,6 @@
         "pl": "Messages - editing the presentation defaults under Admin -> Messages now activates the Save button instead of writing every keystroke straight to the instance; Undo restores the stored values\n🌟 New feature: Messages - the send time can now be shown on the message card: pick the default under Admin -> Messages (clock, or date plus clock), and override it per message with `showTime` / `timeFormat`",
         "uk": "Messages - editing the presentation defaults under Admin -> Messages now activates the Save button instead of writing every keystroke straight to the instance; Undo restores the stored values\n🌟 New feature: Messages - the send time can now be shown on the message card: pick the default under Admin -> Messages (clock, or date plus clock), and override it per message with `showTime` / `timeFormat`",
         "zh-cn": "Messages - editing the presentation defaults under Admin -> Messages now activates the Save button instead of writing every keystroke straight to the instance; Undo restores the stored values\n🌟 New feature: Messages - the send time can now be shown on the message card: pick the default under Admin -> Messages (clock, or date plus clock), and override it per message with `showTime` / `timeFormat`"
-      },
-      "0.47.5": {
-        "en": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "de": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "ru": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "pt": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "nl": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "fr": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "it": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "es": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "pl": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "uk": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)",
-        "zh-cn": "🌟 New feature: Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well (#543)"
       }
     }
   },
