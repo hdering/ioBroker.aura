@@ -38,13 +38,15 @@ import {
     __devForceMessages,
     __devSentMessages,
     __devClearSentMessages,
+    applyMessageHistory,
+    clearSessionHandled,
     type MessageScope,
 } from '../store/messagesStore';
 import { useThemeStore } from '../store/themeStore';
 import { alignStackedSeries, outlineWidthFor, type StackableSeries, type StackPoint } from '../utils/stackedSeries';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
 import { NS } from '../utils/namespace';
-import type { AuraMessage, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
+import type { AuraMessage, MessageSeverity, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
 
 type MockValue = boolean | number | string | null | Partial<ioBrokerState>;
 
@@ -347,9 +349,23 @@ function installScreenshotApi(): void {
         },
 
         /** Forget which messages this browser has already shown, so a test can
-         *  replay the same ids. */
+         *  replay the same ids. Models a fresh page load, session state included. */
         messagesReset(): void {
+            clearSessionHandled();
             useMessagesStore.setState({ seen: {}, lastSeenTs: 0, open: [], history: [], unreadCount: 0 });
+        },
+
+        /** Deliver an archive the way the history datapoint does, so the reload
+         *  restore runs. `firstDelivery` is the priming value right after a
+         *  subscribe — pair it with messagesReset() to model a page load. */
+        messagesDeliverHistory(history: AuraMessage[], firstDelivery = false): void {
+            applyMessageHistory(history, firstDelivery);
+        },
+
+        /** Severities that survive a reload (config.messageDefaults normally
+         *  supplies this). */
+        messagesRestoreSeverities(severities: MessageSeverity[]): void {
+            useMessagesStore.setState({ restoreSeverities: severities });
         },
 
         /** Seed the archive mirror (what the Meldungen widget lists) without

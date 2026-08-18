@@ -49,8 +49,12 @@ const BAR_H = 3;
 
 interface Props {
     msg: AuraMessage;
-    /** Auto-close fired, or the user pressed the close button. */
-    onClose: () => void;
+    /**
+     * The card wants to go away. `user` is the close button, `timeout` the expired
+     * auto-close — the two differ for a message that survives a reload: only the
+     * button counts as an answer.
+     */
+    onClose: (reason: 'user' | 'timeout') => void;
     /** Rendered flat (no fixed positioning) — used by the message detail view. */
     embedded?: boolean;
 }
@@ -106,7 +110,7 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
         const tick = () => {
             const left = deadline - Date.now();
             if (left <= 0) {
-                onClose();
+                onClose('timeout');
                 return;
             }
             setRemaining(left / total);
@@ -208,7 +212,7 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
                 {/* A message demanding confirmation has no shortcut out — the button below is the only way. */}
                 {!msg.requireAck && !embedded && (
                     <button
-                        onClick={onClose}
+                        onClick={() => onClose('user')}
                         className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg hover:opacity-70 transition-opacity"
                         style={{ color: bodyColor }}
                         title={t('common.close')}

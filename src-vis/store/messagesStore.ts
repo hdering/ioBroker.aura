@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { subscribeDpValue, setStateDirect } from '../hooks/useIoBroker';
 import { isScreenshotMode } from './persistManager';
 import { NS } from '../utils/namespace';
-import type { AuraMessage, MessageBroadcast, MessageTarget } from '../types';
+import type { AuraMessage, MessageBroadcast, MessageSeverity, MessageTarget } from '../types';
 
 /**
  * Runtime for the message system (issue #429).
@@ -43,6 +43,40 @@ function rememberSeen(seen: Record<string, number>, id: string, ts: number): Rec
 
 /** How many toasts one screen position shows before the rest queue up. */
 export const DEFAULT_MAX_VISIBLE = 3;
+
+/**
+ * Which severities come back after a reload while they are still unread. Errors
+ * by default: a tablet that reloads itself every few hours (or after losing the
+ * connection) must not be the reason nobody ever sees the failure.
+ */
+export const DEFAULT_RESTORE_SEVERITIES: MessageSeverity[] = ['error'];
+
+const ALL_SEVERITIES: MessageSeverity[] = ['info', 'success', 'warning', 'error'];
+
+/**
+ * Ids this browser session has already dealt with — shown, closed or filtered out.
+ * Deliberately RAM-only, unlike `seen`: it is what stops a restored message from
+ * popping straight back up after it was closed, while a reload clears it and lets
+ * an unanswered message return. That is the whole point of the feature.
+ */
+const sessionHandled = new Set<string>();
+
+/**
+ * Does this archive entry belong back on screen after a reload? Nobody has
+ * answered it yet (neither confirmed nor closed on any client), and it is either a
+ * severity the admin marked as surviving a reload or one that demands a
+ * confirmation — a message whose only way out is the confirm button cannot be
+ * dropped by a refresh.
+ */
+export function survivesReload(msg: AuraMessage, severities: MessageSeverity[]): boolean {
+    if (!msg || msg.read || msg.dismissed) return false;
+    return msg.requireAck === true || severities.includes(msg.severity);
+}
+
+/** Forget what this session showed — the screenshot harness models a page load with it. */
+export function clearSessionHandled(): void {
+    sessionHandled.clear();
+}
 
 /** Datapoints owned by the adapter. */
 const DP_DEFAULTS = `${NS}.config.messageDefaults`;
@@ -109,10 +143,12 @@ interface MessagesState {
     history: AuraMessage[];
     unreadCount: number;
     /**
-     * From config.messageDefaults. The only presentation default the frontend owns —
+     * From config.messageDefaults. The only presentation defaults the frontend owns —
      * every other one is applied by the adapter while it normalizes the payload.
      */
     maxVisible: number;
+    /** Severities that reappear after a reload as long as they are unanswered. */
+    restoreSeverities: MessageSeverity[];
 
     // ── Transient UI state ──────────────────────────────────────────────────
     /** Toasts on screen or queued, oldest first. */
@@ -129,10 +165,19 @@ interface MessagesState {
 
     setScope: (scope: MessageScope) => void;
     setDisplayActive: (active: boolean) => void;
-    /** Show a message on this device unless it was already handled or out of scope. */
-    ingest: (msg: AuraMessage) => void;
+    /**
+     * Show a message on this device unless it was already handled or out of scope.
+     * `force` is the reload restore: it ignores `seen`, because having shown the
+     * message before the refresh is exactly the situation it exists for.
+     */
+    ingest: (msg: AuraMessage, force?: boolean) => void;
     /** Local-only removal — used after an auto-close, so other clients keep theirs. */
     closeLocal: (id: string) => void;
+    /**
+     * The close button. A message that survives a reload has to close everywhere,
+     * otherwise the next refresh would just bring it back on this very device.
+     */
+    closeByUser: (msg: AuraMessage) => void;
     /** Confirm: mark read everywhere, write the optional ackDp, close everywhere. */
     ack: (msg: AuraMessage) => void;
     /** Close on every client without confirming — stays unread in the archive. */
@@ -161,6 +206,7 @@ export const useMessagesStore = create<MessagesState>()(
             history: [],
             unreadCount: 0,
             maxVisible: DEFAULT_MAX_VISIBLE,
+            restoreSeverities: DEFAULT_RESTORE_SEVERITIES,
             open: [],
             scope: { clientId: '' },
             displayActive: false,
@@ -168,15 +214,16 @@ export const useMessagesStore = create<MessagesState>()(
             setScope: (scope) => set({ scope }),
             setDisplayActive: (displayActive) => set({ displayActive }),
 
-            ingest: (msg) => {
+            ingest: (msg, force) => {
                 const s = get();
                 if (!msg?.id || !Number.isFinite(msg.ts)) return;
                 if (!s.displayActive) return;
                 // Already handled at this timestamp — a reload, or the same message
                 // reaching us twice (live broadcast plus the history catch-up).
                 const seenTs = s.seen[msg.id];
-                if (seenTs !== undefined && msg.ts <= seenTs) return;
+                if (!force && seenTs !== undefined && msg.ts <= seenTs) return;
                 if (msg.dismissed) return;
+                sessionHandled.add(msg.id);
 
                 const handled = {
                     seen: rememberSeen(s.seen, msg.id, msg.ts),
@@ -195,7 +242,20 @@ export const useMessagesStore = create<MessagesState>()(
                 });
             },
 
-            closeLocal: (id) => set((s) => ({ open: id === '*' ? [] : s.open.filter((m) => m.id !== id) })),
+            closeLocal: (id) => {
+                const s = get();
+                if (id === '*') s.open.forEach((m) => sessionHandled.add(m.id));
+                else sessionHandled.add(id);
+                set({ open: id === '*' ? [] : s.open.filter((m) => m.id !== id) });
+            },
+
+            closeByUser: (msg) => {
+                const s = get();
+                // Closing it here is the answer the archive was waiting for, so it
+                // goes out to every client and is remembered server-side.
+                if (survivesReload(msg, s.restoreSeverities)) s.dismiss(msg.id);
+                s.closeLocal(msg.id);
+            },
 
             ack: (msg) => {
                 if (isScreenshotMode()) return;
@@ -283,6 +343,51 @@ export function startMessagesRuntime(): () => void {
     };
 }
 
+/**
+ * Put unanswered messages back on screen after a page load.
+ *
+ * The archive — not this device — is the authority on what is still open, so a
+ * refresh, a nightly reload or a reconnect no longer loses an error nobody has
+ * dealt with. `sessionHandled` is what keeps it to once per page load: a message
+ * closed here stays closed until the next reload, and a message that was answered
+ * on any client is `read`/`dismissed` in the archive and never comes back at all.
+ */
+function restoreUnanswered(oldestFirst: AuraMessage[]): void {
+    const { restoreSeverities, ingest } = useMessagesStore.getState();
+    for (const msg of oldestFirst) {
+        if (!msg || sessionHandled.has(msg.id)) continue;
+        if (survivesReload(msg, restoreSeverities)) ingest(msg, true);
+    }
+}
+
+/**
+ * The archive arrived. Mirrors it, delivers what this device missed and restores
+ * what is still unanswered. Exported so the screenshot harness can drive the same
+ * path the subscription does — the reload behaviour is only testable from here.
+ *
+ * `firstDelivery` marks the priming value subscribeDpValue hands over right after
+ * subscribing: on it, a device that has never run must not replay the archive.
+ */
+export function applyMessageHistory(list: AuraMessage[], firstDelivery: boolean): void {
+    const store = useMessagesStore;
+    store.setState({ history: list });
+
+    const { lastSeenTs, ingest } = store.getState();
+    // Oldest first in both passes, so the toast stack ends up in send order.
+    const oldestFirst = [...list].reverse();
+    if (firstDelivery && lastSeenTs === 0) {
+        store.setState({ lastSeenTs: Date.now() });
+        // Everything except what is still waiting for an answer (see below).
+        restoreUnanswered(oldestFirst);
+        return;
+    }
+    // Catch-up for the time this device was away.
+    for (const msg of oldestFirst) {
+        if (msg && msg.ts > lastSeenTs) ingest(msg);
+    }
+    restoreUnanswered(oldestFirst);
+}
+
 function openSubscriptions(): () => void {
     const store = useMessagesStore;
     let lastPrimed = false;
@@ -323,21 +428,9 @@ function openSubscriptions(): () => void {
                     console.warn('[aura] messages: history is not valid JSON');
                 }
             }
-            store.setState({ history: list });
-
-            const { lastSeenTs, ingest } = store.getState();
-            if (!historyPrimed) {
-                historyPrimed = true;
-                // A device that has never run must not replay the whole archive.
-                if (lastSeenTs === 0) {
-                    store.setState({ lastSeenTs: Date.now() });
-                    return;
-                }
-            }
-            // Catch-up, oldest first so the toast stack ends up in send order.
-            for (const msg of [...list].reverse()) {
-                if (msg && msg.ts > lastSeenTs) ingest(msg);
-            }
+            const first = !historyPrimed;
+            historyPrimed = true;
+            applyMessageHistory(list, first);
         }),
 
         subscribeDpValue(DP_UNREAD, (value) => {
@@ -348,14 +441,24 @@ function openSubscriptions(): () => void {
         subscribeDpValue(DP_DEFAULTS, (value) => {
             const raw = typeof value === 'string' ? value.trim() : '';
             let n = NaN;
+            let restore: MessageSeverity[] | null = null;
             if (raw) {
                 try {
-                    n = Number((JSON.parse(raw) as { maxVisible?: unknown }).maxVisible);
+                    const parsed = JSON.parse(raw) as { maxVisible?: unknown; restoreSeverities?: unknown };
+                    n = Number(parsed.maxVisible);
+                    if (Array.isArray(parsed.restoreSeverities)) {
+                        restore = parsed.restoreSeverities.filter((sev): sev is MessageSeverity =>
+                            ALL_SEVERITIES.includes(sev as MessageSeverity),
+                        );
+                    }
                 } catch {
                     /* the adapter logs the parse failure; fall back silently */
                 }
             }
-            store.setState({ maxVisible: Number.isFinite(n) && n >= 1 ? Math.min(n, 10) : DEFAULT_MAX_VISIBLE });
+            store.setState({
+                maxVisible: Number.isFinite(n) && n >= 1 ? Math.min(n, 10) : DEFAULT_MAX_VISIBLE,
+                restoreSeverities: restore ?? DEFAULT_RESTORE_SEVERITIES,
+            });
         }),
     ];
 

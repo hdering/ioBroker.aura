@@ -9,3 +9,4 @@
 
 - Date picker - custom patterns without a native field (e.g. `yyyy`, `dd.MM`) now open a picker list of their own instead of only accepting typed input
 - Shutter - slat tilt for venetian blinds and external blinds: its own datapoint with value range and inversion, a vertical regulator beside the blind graphic (left or right), step buttons or a popover in the flat layouts, and an option for whether the slats already follow the regulator while dragging (#547)
+- Messages - unanswered messages now survive a page reload: per severity (errors by default) they reappear until someone confirms or closes them on any device

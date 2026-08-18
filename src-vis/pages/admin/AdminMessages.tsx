@@ -19,7 +19,12 @@ import { MessageDetail } from '../../components/messages/MessageDetail';
 import { ToastLayer } from '../../components/messages/ToastLayer';
 import { SEVERITY_COLOR } from '../../components/messages/MessageToast';
 import { stripMessageHtml } from '../../components/messages/MessageHtml';
-import { useMessagesStore, startMessagesRuntime, DEFAULT_MAX_VISIBLE } from '../../store/messagesStore';
+import {
+    useMessagesStore,
+    startMessagesRuntime,
+    DEFAULT_MAX_VISIBLE,
+    DEFAULT_RESTORE_SEVERITIES,
+} from '../../store/messagesStore';
 import { useConnectionStore } from '../../store/connectionStore';
 import type {
     AuraMessage,
@@ -66,6 +71,8 @@ interface MessageDefaults {
     showTime: boolean;
     timeFormat: MessageTimeFormat;
     errorsRequireAck: boolean;
+    /** Severities that reappear after a reload while nobody has answered them. */
+    restoreSeverities: MessageSeverity[];
 }
 
 const BUILTIN_DEFAULTS: MessageDefaults = {
@@ -79,6 +86,7 @@ const BUILTIN_DEFAULTS: MessageDefaults = {
     showTime: false,
     timeFormat: 'time',
     errorsRequireAck: false,
+    restoreSeverities: DEFAULT_RESTORE_SEVERITIES,
 };
 
 function parseDefaults(raw: unknown): MessageDefaults {
@@ -90,6 +98,9 @@ function parseDefaults(raw: unknown): MessageDefaults {
             durations: { ...BUILTIN_DEFAULTS.durations, ...(p.durations ?? {}) },
             // A format the select does not offer would render as an empty option.
             timeFormat: p.timeFormat === 'datetime' ? 'datetime' : 'time',
+            restoreSeverities: Array.isArray(p.restoreSeverities)
+                ? p.restoreSeverities.filter((sev) => MESSAGE_SEVERITIES.some((o) => o.value === sev))
+                : BUILTIN_DEFAULTS.restoreSeverities,
         };
     } catch {
         return BUILTIN_DEFAULTS;
@@ -345,6 +356,45 @@ function DefaultsSection() {
                                 />
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                <div>
+                    <label className="text-[11px] block mb-1" style={labelStyle}>
+                        Nach Neuladen erneut anzeigen
+                    </label>
+                    <p className="text-[11px] mb-2 opacity-60" style={labelStyle}>
+                        Meldungen dieser Schweregrade erscheinen nach einem Reload wieder, solange sie an keinem Gerät
+                        geschlossen oder quittiert wurden. Meldungen mit Bestätigungspflicht kommen immer zurück.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                        {MESSAGE_SEVERITIES.map((sev) => {
+                            const on = defaults.restoreSeverities.includes(sev.value);
+                            return (
+                                <button
+                                    key={sev.value}
+                                    data-aura-msg-restore={sev.value}
+                                    aria-pressed={on}
+                                    onClick={() =>
+                                        save({
+                                            ...defaults,
+                                            restoreSeverities: on
+                                                ? defaults.restoreSeverities.filter((v) => v !== sev.value)
+                                                : [...defaults.restoreSeverities, sev.value],
+                                        })
+                                    }
+                                    className="flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg transition-opacity hover:opacity-80"
+                                    style={{
+                                        background: on ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: on ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sev.color }} />
+                                    {sev.label}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
 

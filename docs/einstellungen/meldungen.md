@@ -207,6 +207,7 @@ Jede Position ist ein eigener Stapel. Sind mehr Meldungen offen als „Gleichzei
 | Anzeigedauer Warnung | `15` s | |
 | Anzeigedauer Fehler | `0` | bleibt offen |
 | Fehler immer bestätigen lassen | aus | erzwingt `requireAck` für alle Fehler |
+| Nach Neuladen erneut anzeigen | `Fehler` | Schweregrade, die einen Reload überleben — siehe unten |
 
 Größe und Aufbewahrung des Archivs stehen in den **Instanz-Einstellungen des Adapters**:
 
@@ -214,6 +215,18 @@ Größe und Aufbewahrung des Archivs stehen in den **Instanz-Einstellungen des A
 | --- | --- | --- |
 | Gespeicherte Meldungen | `100` | ältere fallen aus dem Verlauf |
 | Aufbewahrung | `30` Tage | `0` = unbegrenzt |
+
+## Nach Neuladen erneut anzeigen
+
+Ein Tablet, das sich alle paar Stunden oder nach einem Verbindungsabbruch selbst neu lädt, verlor bisher jede offene Einblendung. Die ausgewählten Schweregrade kommen nach dem Neuladen zurück, solange die Meldung im Verlauf weder bestätigt noch geschlossen ist.
+
+| | |
+| --- | --- |
+| Kommt zurück | Meldung ist im Verlauf, Schweregrad ausgewählt (oder `requireAck`), niemand hat sie bestätigt oder geschlossen |
+| Kommt nicht zurück | `persist: false`, bestätigt (`ack`), geschlossen (`dismiss` oder Schließen-Button), Verlauf geleert |
+| Ohne Wirkung | automatisches Ausblenden nach Ablauf der Anzeigedauer — die Meldung erscheint beim nächsten Neuladen wieder |
+
+Für diese Meldungen schließt der Schließen-Button (×) auf **allen** Geräten, nicht nur auf dem eigenen — sonst wäre sie nach dem nächsten Reload wieder da. Bestätigen über die [Glocke](#glocke-im-header), das Widget [Meldungen](../widgets/meldungen) oder `aura.0.messages.ack` wirkt genauso.
 
 ## Verlauf und Bestätigung
 

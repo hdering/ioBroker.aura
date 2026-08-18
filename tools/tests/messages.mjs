@@ -7,7 +7,7 @@
 // the store and no datapoint is ever written. Checked: rendering per severity,
 // the nine screen positions, the countdown auto-close, requireAck defeating both
 // auto-close and the close button, the per-position stack limit with priority
-// pre-emption, replace-by-id, and the target filter.
+// pre-emption, replace-by-id, the target filter, and the reload restore.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -652,6 +652,53 @@ check(
 
 await setDp(true);
 check('holding the condition true does not re-fire', (await sentMessages()).length === 1);
+
+// ── 19. Unanswered messages survive a reload ────────────────────────────────
+// A tablet that reloads itself every few hours (or after losing the connection)
+// used to drop every open toast. The archive decides now: unanswered, and a
+// severity the admin marked as surviving, means the message comes back.
+const reload = async (history, severities = ['error']) => {
+    await page.evaluate(
+        ([list, sev]) => {
+            window.__auraShot.messagesReset();
+            window.__auraShot.messagesRestoreSeverities(sev);
+            // Seed the cache too, so the live datapoint cannot overwrite the
+            // archive under test on an instance that holds real messages.
+            window.__auraShot.messagesHistory(list);
+            window.__auraShot.messagesDeliverHistory(list, true);
+        },
+        [history, severities],
+    );
+    await settle();
+};
+
+const openError = msg({ id: 'e-open', severity: 'error', title: 'HeizungAus' });
+
+await reload([openError]);
+check('an unanswered error is restored after a reload', await visibleText('HeizungAus'));
+
+await page.locator('[data-aura-toasts] button').first().click();
+await settle();
+check('the close button takes it off screen', (await toasts().count()) === 0);
+await page.evaluate((list) => window.__auraShot.messagesDeliverHistory(list, false), [openError]);
+await settle();
+check('a closed message does not pop back up in the same session', (await toasts().count()) === 0);
+
+await reload([{ ...openError, dismissed: true }]);
+check('a message closed on any client stays away after a reload', (await toasts().count()) === 0);
+
+await reload([{ ...openError, read: true }]);
+check('a confirmed message stays away after a reload', (await toasts().count()) === 0);
+
+const openInfo = msg({ id: 'i-open', severity: 'info', title: 'InfoOffen' });
+await reload([openInfo]);
+check('a severity the admin did not select is not restored', (await toasts().count()) === 0);
+
+await reload([openInfo], ['info', 'error']);
+check('…and is restored once it is selected', await visibleText('InfoOffen'));
+
+await reload([msg({ id: 'a-open', severity: 'info', requireAck: true, title: 'MussBestaetigt' })]);
+check('a message demanding confirmation is always restored', await visibleText('MussBestaetigt'));
 
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

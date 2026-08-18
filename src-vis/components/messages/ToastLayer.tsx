@@ -58,6 +58,7 @@ export function ToastLayer({ scope }: Props) {
     const setScope = useMessagesStore((s) => s.setScope);
     const setDisplayActive = useMessagesStore((s) => s.setDisplayActive);
     const closeLocal = useMessagesStore((s) => s.closeLocal);
+    const closeByUser = useMessagesStore((s) => s.closeByUser);
 
     // The scope has to be in the store before the runtime starts: a message
     // arriving on the priming delivery is filtered against it.
@@ -97,7 +98,11 @@ export function ToastLayer({ scope }: Props) {
                     data-aura-toasts={position}
                 >
                     {selectVisible(group, maxVisible).map((msg) => (
-                        <MessageToast key={msg.id} msg={msg} onClose={() => closeLocal(msg.id)} />
+                        <MessageToast
+                            key={msg.id}
+                            msg={msg}
+                            onClose={(reason) => (reason === 'user' ? closeByUser(msg) : closeLocal(msg.id))}
+                        />
                     ))}
                 </div>
             ))}
