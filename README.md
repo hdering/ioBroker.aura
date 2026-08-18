@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.47.10 (2026-08-18)
+- Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield ([#545](https://github.com/hdering/ioBroker.aura/issues/545))
+
+
 ### 0.47.9 (2026-08-18)
 - Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places ([#548](https://github.com/hdering/ioBroker.aura/issues/548))
 
@@ -229,10 +233,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - List / Dynamic list / Status overview - a row click now opens the datapoints of the clicked device by default (same branch, relevant datapoints only); the previous role-based popup is still available as "Automatisch" ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
 
 
-### 0.43.0 (2026-08-10)
-- 🌟 **New feature:** Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
-
-
 ## License
 
 MIT License
@@ -244,6 +244,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

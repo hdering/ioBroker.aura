@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.43.0 (2026-08-10)
+- 🌟 **New feature:** Lists and status overview - clicking a row now opens a detail popup for that datapoint: picked automatically from the datapoint's role, or configured per row (widget popup, jump to another tab, all datapoints of the device). Datapoints moved into a dedicated resizable dialog with the entry list next to a sectioned per-entry editor, the options panel is grouped into collapsible sections, and the datapoint search of the dynamic list now finds alias.0.* datapoints ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
+
 ## 0.42.7 (2026-08-08)
 - Camera - embedded streams (go2rtc and friends) reload when the device wakes from display standby instead of stopping on a play button; new "Reload after standby" option, on by default ([#526](https://github.com/hdering/ioBroker.aura/issues/526))
 - iFrame - new "Reload after standby" option reloads embedded videos and streams after display standby, overriding "Keep alive" ([#526](https://github.com/hdering/ioBroker.aura/issues/526))
