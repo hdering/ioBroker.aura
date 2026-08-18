@@ -6,5 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Advanced chart - the JSON datapoint may carry a min/max block that scales the Y axis (#550)
-- Advanced chart - Y axis min and max can be read from datapoints, in every mode (#550)
