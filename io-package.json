@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.47.8",
+    "version": "0.47.9",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.47.9": {
+        "en": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "de": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "ru": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "pt": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "nl": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "fr": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "it": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "es": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "pl": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "uk": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)",
+        "zh-cn": "Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places (#548)"
+      },
       "0.47.8": {
         "en": "Date picker - custom patterns without a native field (e.g. `yyyy`, `dd.MM`) now open a picker list of their own instead of only accepting typed input\n🌟 New feature: Shutter - slat tilt for venetian blinds and external blinds: its own datapoint with value range and inversion, a vertical regulator beside the blind graphic (left or right), step buttons or a popover in the flat layouts, and an option for whether the slats already follow the regulator while dragging (#547)\n🌟 New feature: Messages - unanswered messages now survive a page reload: per severity (errors by default) they reappear until someone confirms or closes them on any device",
         "de": "Date picker - custom patterns without a native field (e.g. `yyyy`, `dd.MM`) now open a picker list of their own instead of only accepting typed input\n🌟 New feature: Shutter - slat tilt for venetian blinds and external blinds: its own datapoint with value range and inversion, a vertical regulator beside the blind graphic (left or right), step buttons or a popover in the flat layouts, and an option for whether the slats already follow the regulator while dragging (#547)\n🌟 New feature: Messages - unanswered messages now survive a page reload: per severity (errors by default) they reappear until someone confirms or closes them on any device",
@@ -184,19 +197,6 @@
         "pl": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
         "uk": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off",
         "zh-cn": "Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off"
-      },
-      "0.47.1": {
-        "en": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "de": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "ru": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "pt": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "nl": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "fr": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "it": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "es": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "pl": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "uk": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment",
-        "zh-cn": "🌟 New feature: Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped\n🌟 New feature: Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment"
       }
     }
   },
