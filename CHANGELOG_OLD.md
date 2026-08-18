@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.42.6 (2026-08-08)
+- Popups now show current datapoint values on every open - previously a popup reopened with the values it had shown the last time, until the datapoint changed again ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
+- Widgets no longer stay on their placeholder when a value arrives from the load-time prefetch just after they appear ([#528](https://github.com/hdering/ioBroker.aura/issues/528))
+
 ## 0.42.5 (2026-08-08)
 - iFrame - click action stays reachable while the embedded page is operable: a small action button is shown over the widget, and "Allow interaction" became a three-way "Interaction" setting ([#527](https://github.com/hdering/ioBroker.aura/issues/527))
 - General - HTML, eCharts preset and camera widgets with an embedded page now offer the same action button for their click action ([#527](https://github.com/hdering/ioBroker.aura/issues/527))
