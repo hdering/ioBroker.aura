@@ -445,6 +445,22 @@ function installScreenshotApi(): void {
             // the result survives the trip out of the page.
             return JSON.parse(JSON.stringify({ grid: opt.grid?.[0] ?? null, yAxis: opt.yAxis ?? null }));
         },
+
+        /** Every text echarts painted, in the order zrender draws it. Axis labels are canvas
+         *  pixels with no DOM node, so this is the only way a test can read what a tick
+         *  actually says — e.g. that it honours the widget's decimals (issue #548). */
+        chartTexts(index = 0): string[] | null {
+            const el = document.querySelectorAll('[_echarts_instance_]')[index];
+            const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
+            if (!inst) return null;
+            const zr = inst.getZr() as unknown as {
+                storage: { getDisplayList(update?: boolean): { style?: { text?: unknown } }[] };
+            };
+            return zr.storage
+                .getDisplayList(true)
+                .map((d) => d.style?.text)
+                .filter((t): t is string => typeof t === 'string' && t.trim() !== '');
+        },
     };
 
     (window as unknown as Record<string, unknown>).__auraShot = api;

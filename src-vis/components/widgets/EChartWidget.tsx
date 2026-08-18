@@ -282,6 +282,14 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // heights stop being proportional to the values (issue #541). An explicit min still wins.
     const stackedOn = (axis: 0 | 1) => echartSeries.some((s) => s.stack && (s.yAxisIndex ?? 0) === axis);
 
+    // `{value}` hands the tick through unformatted, and with min/max on "Auto" (`dataMin`/
+    // `dataMax`) the outermost ticks are raw samples — 16.759028325055955 °C instead of
+    // 16.76 °C (issue #548). Run every tick through the widget's decimals/number format.
+    const axisLabelFormatter =
+        (unit: string) =>
+        (v: number): string =>
+            `${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`;
+
     const leftAxis: Record<string, unknown> = {
         type: 'value',
         // Fit the axis to the data range instead of forcing zero in — otherwise a
@@ -291,7 +299,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             show: echartShowYAxis,
             color: '#888',
             fontSize: 10,
-            formatter: echartLeftUnit ? `{value} ${echartLeftUnit}` : '{value}',
+            formatter: axisLabelFormatter(echartLeftUnit),
         },
         axisTick: { show: echartShowYAxis },
         axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
@@ -308,7 +316,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                   show: echartShowYAxisRight,
                   color: '#888',
                   fontSize: 10,
-                  formatter: echartRightUnit ? `{value} ${echartRightUnit}` : '{value}',
+                  formatter: axisLabelFormatter(echartRightUnit),
               },
               axisTick: { show: echartShowYAxisRight },
               axisLine: { show: echartShowYAxisRight, lineStyle: { color: '#444' } },
@@ -349,7 +357,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     pointer: { show: true, length: '60%', width: 4 },
                     itemStyle: { color: gaugeColor },
                     detail: {
-                        formatter: `{value}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`,
+                        formatter: (v: number) =>
+                            `${formatNum(v, decimals, numFmt)}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`,
                         color: 'var(--text-primary)',
                         fontSize: 16,
                         offsetCenter: [0, '70%'],
@@ -459,7 +468,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     show: echartShowYAxis,
                     color: '#888',
                     fontSize: 10,
-                    formatter: echartLeftUnit ? `{value} ${echartLeftUnit}` : '{value}',
+                    formatter: axisLabelFormatter(echartLeftUnit),
                 },
                 axisTick: { show: echartShowYAxis },
                 axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
