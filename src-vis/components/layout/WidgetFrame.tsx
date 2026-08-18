@@ -14874,8 +14874,8 @@ export function WidgetFrame({
                                                     <label className="text-[11px] block" style={hint}>
                                                         Wertebereich des Datenpunkts
                                                     </label>
-                                                    {numRow('Wert für „geschlossen"', 'tiltMin', 0, 0.1)}
-                                                    {numRow('Wert für „offen"', 'tiltMax', 100, 0.1)}
+                                                    {numRow('Wert für „geschlossen“', 'tiltMin', 0, 0.1)}
+                                                    {numRow('Wert für „offen“', 'tiltMax', 100, 0.1)}
                                                     <p className="text-[10px]" style={hint}>
                                                         Standard 0…100. Andere Geräte melden 0…1, -90…90 oder 0…180.
                                                     </p>
@@ -14883,7 +14883,7 @@ export function WidgetFrame({
 
                                                 {toggleRow(
                                                     'Neigung invertieren',
-                                                    'Wenn beim Gerät der kleinere Wert „offen" bedeutet.',
+                                                    'Wenn beim Gerät der kleinere Wert „offen“ bedeutet.',
                                                     !!o.invertTilt,
                                                     () => setO({ invertTilt: !o.invertTilt }),
                                                 )}
