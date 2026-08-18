@@ -6,4 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Chart (advanced) - the current value can be taken from the first instead of the last data point, and shown on the left or the right (#549)

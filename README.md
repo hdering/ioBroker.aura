@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.47.11 (2026-08-18)
+- Chart (advanced) - the current value can be taken from the first instead of the last data point, and shown on the left or the right ([#549](https://github.com/hdering/ioBroker.aura/issues/549))
+
+
 ### 0.47.10 (2026-08-18)
 - Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield ([#545](https://github.com/hdering/ioBroker.aura/issues/545))
 
@@ -225,14 +229,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Lists - new "Eingabefeld" display type per datapoint, with the same options as the Eingabefeld widget (placeholder, field width, text/number, live or confirmed submit, send button, clear after send, confirmation, text alignment, read-only) ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
 
 
-### 0.43.1 (2026-08-11)
-- iFrame/Camera - embedded pages no longer show a permanent scrollbar on desktop when interaction is set to "click action only" ([#529](https://github.com/hdering/ioBroker.aura/issues/529))
-- Camera - HTML streams now offer the same interaction setting as the iFrame widget (click action / operable content) ([#529](https://github.com/hdering/ioBroker.aura/issues/529))
-- Connected devices - devices that never finished registering (missing navigate and popup datapoints) now complete their object tree automatically on the next connect ([#532](https://github.com/hdering/ioBroker.aura/issues/532))
-- Connected devices - "last seen" is now refreshed on every connect instead of only at first registration ([#532](https://github.com/hdering/ioBroker.aura/issues/532))
-- List / Dynamic list / Status overview - a row click now opens the datapoints of the clicked device by default (same branch, relevant datapoints only); the previous role-based popup is still available as "Automatisch" ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
-
-
 ## License
 
 MIT License
@@ -244,6 +240,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
