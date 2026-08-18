@@ -232,11 +232,9 @@ const NO_BADGES: BadgeDef[] = [];
 // the Darstellung block". Adding a new widget type only needs an entry here
 // (or nothing — empty = just showTitle/showIcon).
 const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: string }[]>> = {
-    shutter: [
-        { key: 'showValue', label: 'Position %' },
-        { key: 'showControls', label: 'Steuerknöpfe' },
-        { key: 'showSlider', label: 'Schieberegler' },
-    ],
+    // shutter: Position %/Steuerknöpfe/Schieberegler live in the shutter settings
+    // block (Sichtbare Felder), right below the size sliders they belong to —
+    // kept out of the generic Darstellung block.
     switch: [{ key: 'showLabel', label: 'Status (AN/AUS)' }],
     dimmer: [
         { key: 'showValue', label: 'Prozentwert' },
@@ -15071,6 +15069,38 @@ export function WidgetFrame({
                                                 </>
                                             );
                                         })()}
+
+                                        {/* Sichtbare Felder */}
+                                        <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                        {[
+                                            { key: 'showValue', label: 'Position %' },
+                                            { key: 'showControls', label: 'Steuerknöpfe' },
+                                            { key: 'showSlider', label: 'Schieberegler' },
+                                        ].map(({ key, label }) => {
+                                            const val = o[key] !== false;
+                                            return (
+                                                <div key={key} className="flex items-center justify-between">
+                                                    <span
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                    >
+                                                        {label}
+                                                    </span>
+                                                    <button
+                                                        onClick={() => setO({ [key]: !val })}
+                                                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                                        style={{
+                                                            background: val ? 'var(--accent)' : 'var(--app-border)',
+                                                        }}
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: val ? '14px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
                                     </>
                                 );
                             })()}
