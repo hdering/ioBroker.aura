@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-08-14",
+  "generatedAt": "2026-08-18",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -628,6 +628,295 @@
       "screenshots": {
         "hero": "assets/diagramm-erweitert/runtime.png",
         "config": "assets/diagramm-erweitert/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "energiebilanz",
+      "slug": "verteilung",
+      "label": "Diagramm (Verteilung)",
+      "group": "control",
+      "hint": "Anteilige Darstellung (Balken, Torte oder Donut) beliebig vieler Gruppen aus mehreren Datenpunkten mit History-Aggregation – z.B. Energiebilanz, Kosten, Speicherbelegung",
+      "defaultGrid": {
+        "w": 8,
+        "h": 8
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [
+        {
+          "key": "bars",
+          "type": "EnergyBar[]",
+          "default": "[]",
+          "note": "Gruppen — je Gruppe ein Balken bzw. Kreis"
+        },
+        {
+          "key": "bars[].title",
+          "type": "string",
+          "default": "—",
+          "note": "Titel über der Gruppe"
+        },
+        {
+          "key": "bars[].legendSide",
+          "type": "enum",
+          "enum": [
+            "left",
+            "right",
+            "top",
+            "below"
+          ],
+          "default": "below",
+          "note": "Legende dieser Gruppe"
+        },
+        {
+          "key": "bars[].entries",
+          "type": "EnergyEntry[]",
+          "default": "[]",
+          "note": "Einträge der Gruppe"
+        },
+        {
+          "key": "entries[].datapointId",
+          "type": "datapoint",
+          "default": "—",
+          "note": "Pflicht je Eintrag"
+        },
+        {
+          "key": "entries[].historyInstance",
+          "type": "string",
+          "default": "auto",
+          "note": "history/influxdb/sql; leer = aus common.custom erkannt"
+        },
+        {
+          "key": "entries[].aggregate",
+          "type": "enum",
+          "enum": [
+            "last",
+            "delta",
+            "sum",
+            "average",
+            "max",
+            "min"
+          ],
+          "default": "last",
+          "note": "reduziert den Eintrag auf EINEN Wert im Zeitraum"
+        },
+        {
+          "key": "entries[].label",
+          "type": "string",
+          "default": "—",
+          "note": "Bezeichnung in der Legende"
+        },
+        {
+          "key": "entries[].icon",
+          "type": "lucide-icon",
+          "default": "—"
+        },
+        {
+          "key": "entries[].color",
+          "type": "color",
+          "default": "Palette"
+        },
+        {
+          "key": "entries[].unit",
+          "type": "string",
+          "default": "unit",
+          "note": "Einheit nur für diesen Eintrag"
+        },
+        {
+          "key": "entries[].decimals",
+          "type": "number",
+          "default": "decimals"
+        },
+        {
+          "key": "chartStyle",
+          "type": "enum",
+          "enum": [
+            "bars",
+            "pie",
+            "donut"
+          ],
+          "default": "bars"
+        },
+        {
+          "key": "barWidth",
+          "type": "number(px)",
+          "default": "46",
+          "note": "nur chartStyle bars"
+        },
+        {
+          "key": "pieSize",
+          "type": "number(px)",
+          "default": "160",
+          "note": "nur pie/donut"
+        },
+        {
+          "key": "unit",
+          "type": "string",
+          "default": "kWh"
+        },
+        {
+          "key": "decimals",
+          "type": "number",
+          "default": "global"
+        },
+        {
+          "key": "range",
+          "type": "enum",
+          "enum": [
+            "1h",
+            "6h",
+            "24h",
+            "7d",
+            "30d",
+            "custom"
+          ],
+          "default": "24h",
+          "note": "gemeinsames Fenster aller Einträge"
+        },
+        {
+          "key": "rangeCustomValue",
+          "type": "number",
+          "default": "24",
+          "note": "nur range custom"
+        },
+        {
+          "key": "rangeCustomUnit",
+          "type": "enum",
+          "enum": [
+            "h",
+            "d"
+          ],
+          "default": "h",
+          "note": "nur range custom"
+        },
+        {
+          "key": "visibleRanges",
+          "type": "EChartTimeRange[]",
+          "default": "alle Presets",
+          "note": "Auswahl des Frontend-Umschalters"
+        },
+        {
+          "key": "lockRange",
+          "type": "boolean",
+          "default": "false",
+          "note": "Umschalter im Frontend ausblenden"
+        },
+        {
+          "key": "showTitle",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "showBarTitles",
+          "type": "boolean",
+          "default": "true",
+          "note": "Titel je Gruppe"
+        },
+        {
+          "key": "showTotals",
+          "type": "boolean",
+          "default": "true",
+          "note": "Summe je Gruppe"
+        },
+        {
+          "key": "barTitleAlign",
+          "type": "enum",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "center"
+        },
+        {
+          "key": "showPercent",
+          "type": "boolean",
+          "default": "true",
+          "note": "Prozent-Label im Segment"
+        },
+        {
+          "key": "showSegmentIcon",
+          "type": "boolean",
+          "default": "false",
+          "note": "Icon zusätzlich im Segment"
+        },
+        {
+          "key": "showOutsidePercent",
+          "type": "boolean",
+          "default": "true",
+          "note": "kleine Segmente außen anschreiben (pie/donut)"
+        },
+        {
+          "key": "showLegend",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "legendSide",
+          "type": "enum",
+          "enum": [
+            "left",
+            "right",
+            "top",
+            "below"
+          ],
+          "default": "je Gruppe",
+          "note": "gilt für alle Gruppen"
+        },
+        {
+          "key": "legendAlign",
+          "type": "enum",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "aus der Position"
+        },
+        {
+          "key": "legendFormat",
+          "type": "enum",
+          "enum": [
+            "value",
+            "icon-value",
+            "label",
+            "label-value",
+            "icon-label-value"
+          ],
+          "default": "icon-value"
+        },
+        {
+          "key": "icon",
+          "type": "lucide-icon",
+          "default": "PieChart"
+        },
+        {
+          "key": "showIcon",
+          "type": "boolean",
+          "default": "true"
+        },
+        {
+          "key": "iconSize",
+          "type": "number(px)",
+          "default": "18"
+        },
+        {
+          "key": "titleAlign",
+          "type": "enum",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left"
+        }
+      ],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/verteilung/bsp-vt-bilanz.png",
+        "config": "assets/verteilung/bsp-vt-config.png",
         "shots": {}
       }
     },

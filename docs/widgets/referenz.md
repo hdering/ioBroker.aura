@@ -24,6 +24,7 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | [Auswahlfeld](./auswahlfeld) | `enum` | `default` | 12×6 |
 | [Diagramm (einfach)](./diagramm) | `chart` | `default` | 12×6 |
 | [Diagramm (erweitert)](./diagramm-erweitert) | `echart` | `default` | 12×6 |
+| [Diagramm (Verteilung)](./verteilung) | `energiebilanz` | `default` | 8×8 |
 | [eCharts](./echarts) | `echartsPreset` | `default` | 12×6 |
 | [RGB-Licht](./rgb-licht) | `light` | `default` | 12×6 |
 | [Mediaplayer](./mediaplayer) | `mediaplayer` | `default` | 12×6 |
@@ -92,6 +93,48 @@ Bislang formal erfasst (weitere folgen; alle Optionen stehen auf der jeweiligen 
 | `colorThresholds` | `[number,color][]` | `—` | färbt die Ist-Temperatur |
 
 **Custom-Layout-Schlüssel** — Komponenten: `icon`, `btn-plus`, `btn-minus`, `battery-icon`, `reach-icon`, `status-badges` · Felder: `setpoint`, `actual`, `status`, `battery`, `reach`
+
+### Diagramm (Verteilung) `energiebilanz`
+
+| Option | Typ | Standard | |
+| --- | --- | --- | --- |
+| `bars` | `EnergyBar[]` | `[]` | Gruppen — je Gruppe ein Balken bzw. Kreis |
+| `bars[].title` | `string` | `—` | Titel über der Gruppe |
+| `bars[].legendSide` | `left` · `right` · `top` · `below` | `below` | Legende dieser Gruppe |
+| `bars[].entries` | `EnergyEntry[]` | `[]` | Einträge der Gruppe |
+| `entries[].datapointId` | `datapoint` | `—` | Pflicht je Eintrag |
+| `entries[].historyInstance` | `string` | `auto` | history/influxdb/sql; leer = aus common.custom erkannt |
+| `entries[].aggregate` | `last` · `delta` · `sum` · `average` · `max` · `min` | `last` | reduziert den Eintrag auf EINEN Wert im Zeitraum |
+| `entries[].label` | `string` | `—` | Bezeichnung in der Legende |
+| `entries[].icon` | `lucide-icon` | `—` |  |
+| `entries[].color` | `color` | `Palette` |  |
+| `entries[].unit` | `string` | `unit` | Einheit nur für diesen Eintrag |
+| `entries[].decimals` | `number` | `decimals` |  |
+| `chartStyle` | `bars` · `pie` · `donut` | `bars` |  |
+| `barWidth` | `number(px)` | `46` | nur chartStyle bars |
+| `pieSize` | `number(px)` | `160` | nur pie/donut |
+| `unit` | `string` | `kWh` |  |
+| `decimals` | `number` | `global` |  |
+| `range` | `1h` · `6h` · `24h` · `7d` · `30d` · `custom` | `24h` | gemeinsames Fenster aller Einträge |
+| `rangeCustomValue` | `number` | `24` | nur range custom |
+| `rangeCustomUnit` | `h` · `d` | `h` | nur range custom |
+| `visibleRanges` | `EChartTimeRange[]` | `alle Presets` | Auswahl des Frontend-Umschalters |
+| `lockRange` | `boolean` | `false` | Umschalter im Frontend ausblenden |
+| `showTitle` | `boolean` | `true` |  |
+| `showBarTitles` | `boolean` | `true` | Titel je Gruppe |
+| `showTotals` | `boolean` | `true` | Summe je Gruppe |
+| `barTitleAlign` | `left` · `center` · `right` | `center` |  |
+| `showPercent` | `boolean` | `true` | Prozent-Label im Segment |
+| `showSegmentIcon` | `boolean` | `false` | Icon zusätzlich im Segment |
+| `showOutsidePercent` | `boolean` | `true` | kleine Segmente außen anschreiben (pie/donut) |
+| `showLegend` | `boolean` | `true` |  |
+| `legendSide` | `left` · `right` · `top` · `below` | `je Gruppe` | gilt für alle Gruppen |
+| `legendAlign` | `left` · `center` · `right` | `aus der Position` |  |
+| `legendFormat` | `value` · `icon-value` · `label` · `label-value` · `icon-label-value` | `icon-value` |  |
+| `icon` | `lucide-icon` | `PieChart` |  |
+| `showIcon` | `boolean` | `true` |  |
+| `iconSize` | `number(px)` | `18` |  |
+| `titleAlign` | `left` · `center` · `right` | `left` |  |
 
 ## Querschnitts-Optionen
 

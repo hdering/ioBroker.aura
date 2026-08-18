@@ -95,6 +95,14 @@ export const WIDGETS = [
       hint: 'Verlauf eines einzelnen Datenpunkts als einfaches Diagramm.', runtime: null },
     { type: 'echart', slug: 'diagramm-erweitert', label: 'Diagramm (erweitert)', group: 'control',
       hint: 'Erweitertes Diagramm mit mehreren Datenpunkten und Optionen.', runtime: null },
+    { type: 'energiebilanz', slug: 'verteilung', label: 'Diagramm (Verteilung)', group: 'control',
+      hint: 'Anteilige Darstellung (Balken, Torte oder Donut) beliebig vieler Gruppen aus mehreren Datenpunkten mit History-Aggregation – z.B. Energiebilanz, Kosten, Speicherbelegung',
+      // Documented by hand (docs/widgets/verteilung.md); its images come from
+      // tools/screenshots/verteilung-examples.mjs, not from widgets-all.mjs — hence the
+      // explicit grid + screenshot paths instead of runtime.png / config.png.
+      runtime: null, defaultGrid: { w: 8, h: 8 },
+      hero: 'assets/verteilung/bsp-vt-bilanz.png',
+      configShot: 'assets/verteilung/bsp-vt-config.png' },
     { type: 'echartsPreset', slug: 'echarts', label: 'eCharts', group: 'control',
       hint: 'Vorkonfiguriertes eCharts-Diagramm per JSON-Preset.', runtime: null },
     { type: 'light', slug: 'rgb-licht', label: 'RGB-Licht', group: 'control',

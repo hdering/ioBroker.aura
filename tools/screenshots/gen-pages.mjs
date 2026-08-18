@@ -21,13 +21,23 @@ function page(w) {
     return lines.join('\n');
 }
 
-// 1. Per-widget pages.
+// 1. Per-widget pages — BOOTSTRAP ONLY: an existing page is never touched. Every
+// page has been extended by hand since it was generated (option tables, examples,
+// screenshots), and regenerating would replace all of that with the stub below.
+// Pass --force to overwrite anyway.
+const force = process.argv.includes('--force');
 let written = 0;
+let kept = 0;
 for (const w of WIDGETS) {
-    writeFileSync(`${DOCS}/${w.slug}.md`, page(w));
+    const file = `${DOCS}/${w.slug}.md`;
+    if (!force && existsSync(file)) {
+        kept++;
+        continue;
+    }
+    writeFileSync(file, page(w));
     written++;
 }
-console.log(`wrote ${written} widget pages`);
+console.log(`wrote ${written} widget pages, kept ${kept} existing`);
 
 // 2. Overview index, grouped.
 const byGroup = (g) => {
