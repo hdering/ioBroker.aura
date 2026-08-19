@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
 import { LayoutDashboard } from 'lucide-react';
 import {
@@ -9,6 +9,8 @@ import {
     type Section,
     type Tab,
 } from '../../store/dashboardStore';
+import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
+import { useActiveSectionId } from '../../contexts/ActiveSectionContext';
 import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 
@@ -68,18 +70,34 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
 
     const t = useT();
 
-    // ── Context — call both hook paths unconditionally, then pick by editMode ──
-    // Editor: the store's active layout/section. Frontend: resolved from the URL,
-    // exactly like App.tsx (the frontend is URL-driven, not store-driven).
+    // ── Context: which view does this menu belong to? ─────────────────────────
+    // The surrounding Dashboard publishes the layout and section it renders — the
+    // frontend resolves those from the URL, the admin editor from what is being
+    // edited — so this is right in both places and keeps working when the menu is
+    // rendered somewhere that has no view params of its own: inside a Spiegel (which
+    // renders its source with editMode=false) on an /admin route, the URL alone
+    // resolved to the FIRST layout instead of the one on screen.
+    // Fallbacks keep the old behaviour where no dashboard provides a context
+    // (widget designer, preset preview): store for the editor, URL for the frontend.
+    const ctxLayoutId = useActiveLayoutId();
+    const ctxSectionId = useActiveSectionId();
     const editorLayout = useActiveLayout();
     const editorSection = useActiveSection();
     const allLayouts = useDashboardStore((s) => s.layouts);
     const { layoutSlug, sectionSlug, tabSlug } = useParams();
     const navigate = useNavigate();
+    // A menu inside the admin area is a preview — navigating would leave the editor.
+    const inAdmin = useLocation().pathname.startsWith('/admin');
 
     const frontView = resolveView(allLayouts, layoutSlug, sectionSlug);
-    const layout = editMode ? editorLayout : frontView?.layout;
-    const section = editMode ? editorSection : frontView?.section;
+    const ctxLayout = ctxLayoutId ? allLayouts.find((l) => l.id === ctxLayoutId) : undefined;
+    const layout = ctxLayout ?? (editMode ? editorLayout : frontView?.layout);
+    const section =
+        layout?.sections.find((sec) => sec.id === ctxSectionId) ??
+        (layout === editorLayout ? editorSection : undefined) ??
+        (layout === frontView?.layout ? frontView?.section : undefined) ??
+        layout?.sections[0];
+    const inert = editMode || inAdmin;
 
     // ── Active entry ──────────────────────────────────────────────────────────
     const keyOf = (it: Section | Tab) => it.slug ?? it.id;
@@ -89,7 +107,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
     } else {
         const tabs = section?.tabs ?? [];
         let active: Tab | undefined;
-        if (editMode) {
+        if (inert) {
             active = tabs.find((tb) => tb.id === section?.activeTabId);
         } else {
             active =
@@ -114,7 +132,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
         .filter((it) => !hiddenItems.includes(it.key));
 
     const go = (item: MenuItem) => {
-        if (editMode || !layout || item.disabled) return; // editor preview is inert
+        if (inert || !layout || item.disabled) return; // editor preview is inert
         if (menuMode === 'section') {
             navigate(`/view/${layout.slug}/s/${item.key}`);
         } else {
@@ -187,7 +205,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                                                   : undefined,
                                         ...menuItemStyle(isActive, effIndicator),
                                         opacity: item.disabled ? 0.4 : undefined,
-                                        cursor: editMode ? 'default' : item.disabled ? 'not-allowed' : 'pointer',
+                                        cursor: inert ? 'default' : item.disabled ? 'not-allowed' : 'pointer',
                                     }}
                                 >
                                     {renderIcon(item)}

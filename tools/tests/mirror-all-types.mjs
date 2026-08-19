@@ -32,13 +32,13 @@ const check = (name, ok, detail = '') => {
     if (!ok) console.log(`  FAIL ${name}${detail ? ` — ${detail}` : ''}`);
 };
 
-const source = (type) => ({
+const source = (type, options = {}) => ({
     id: SRC_ID,
     type,
     title: 'Quelle',
     datapoint: 'demo.0.value',
     gridPos: { x: 0, y: 0, w: 12, h: 8 },
-    options: {},
+    options,
 });
 
 const mirror = () => ({
@@ -107,6 +107,101 @@ check(
     srcText.includes('Screenshot') && mirText.includes('Screenshot'),
     `source="${srcText.trim()}" mirror="${mirText.trim()}"`,
 );
+
+// ── Frontend context: the menu follows the section in the URL, mirror included ──
+// The menu resolves layout + section from the surrounding Dashboard now; this pins the
+// frontend half of that — a tab menu in the second section lists that section's tabs.
+const tab = (id, name, widgets) => ({ id, name, slug: id, widgets });
+const FRONT_LAYOUT = {
+    id: 'lay-front',
+    name: 'Frontend',
+    slug: 'front',
+    activeSectionId: 'sec-one',
+    sections: [
+        { id: 'sec-one', name: 'FRONT-EINS', slug: 'eins', activeTabId: 't1', tabs: [tab('t1', 'TAB-EINS', [])] },
+        {
+            id: 'sec-two',
+            name: 'FRONT-ZWEI',
+            slug: 'zwei',
+            activeTabId: 't2',
+            tabs: [tab('t2', 'TAB-ZWEI', [source('menu', { menuMode: 'tab' }), mirror()])],
+        },
+    ],
+};
+
+await page.goto(`${BASE}/?shot=1#/view/front/s/zwei`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 });
+await page.evaluate(([layout]) => window.__auraShot.seed({ layouts: [layout] }), [FRONT_LAYOUT]);
+await page.waitForTimeout(800);
+
+const frontSrc = await body(SRC_ID).first().innerText();
+const frontMir = await body(MIR_ID).first().innerText();
+check('frontend: tab menu lists the viewed section', frontSrc.includes('TAB-ZWEI'), frontSrc.trim());
+check(
+    'frontend: mirrored tab menu lists the viewed section',
+    frontMir.includes('TAB-ZWEI') && !frontMir.includes('TAB-EINS'),
+    frontMir.trim(),
+);
+
+// ── Editor context: a mirrored menu follows the layout being edited ──────────
+// MirrorWidget renders its source with editMode=false, and the /admin route carries no
+// view params — resolving the menu from the URL alone landed on the FIRST layout instead
+// of the one open in the editor. The surrounding Dashboard publishes layout + section,
+// so both the menu and its mirror show the edited layout's sections.
+const editorTab = (widgets) => ({ id: 'tab-a', name: 'Tab', slug: 'tab-a', widgets });
+const LAYOUTS = [
+    {
+        id: 'lay-first',
+        name: 'Erstes Layout',
+        slug: 'erstes',
+        activeSectionId: 'sec-first',
+        sections: [
+            { id: 'sec-first', name: 'BEREICH-ERSTES', slug: 'erster', activeTabId: 'tab-a', tabs: [editorTab([])] },
+        ],
+    },
+    {
+        id: 'lay-edited',
+        name: 'Bearbeitetes Layout',
+        slug: 'bearbeitet',
+        activeSectionId: 'sec-edited',
+        sections: [
+            {
+                id: 'sec-edited',
+                name: 'BEREICH-BEARBEITET',
+                slug: 'bearbeitet',
+                activeTabId: 'tab-a',
+                tabs: [editorTab([source('menu'), mirror()])],
+            },
+        ],
+    },
+];
+
+// The admin area asks for the PIN — same session bypass the screenshot scripts use.
+await page.evaluate(() =>
+    localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })),
+);
+await page.goto(`${BASE}/?shot=1#/admin/editor`, { waitUntil: 'domcontentloaded', timeout: 90000 });
+await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 });
+await page.evaluate(
+    ([layouts]) => window.__auraShot.seed({ layouts, activeLayoutId: 'lay-edited', editMode: true }),
+    [LAYOUTS],
+);
+await page.waitForTimeout(1500);
+
+const editorSrc = await body(SRC_ID).first().innerText();
+const editorMir = await body(MIR_ID).first().innerText();
+check('editor: menu shows the edited layout', editorSrc.includes('BEREICH-BEARBEITET'), editorSrc.trim());
+check(
+    'editor: mirrored menu shows the edited layout, not the first one',
+    editorMir.includes('BEREICH-BEARBEITET') && !editorMir.includes('BEREICH-ERSTES'),
+    editorMir.trim(),
+);
+
+// …and clicking it stays put instead of navigating out of the editor.
+const urlBefore = page.url();
+await body(MIR_ID).first().locator('button').first().click({ force: true });
+await page.waitForTimeout(500);
+check('editor: mirrored menu click stays in the editor', page.url() === urlBefore, page.url());
 
 await browser.close();
 

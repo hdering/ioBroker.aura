@@ -15,6 +15,7 @@ import { useReflowHiddenIds, useConditionReflowIds } from '../../hooks/useCondit
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { useWakeReload } from '../../hooks/useWakeReload';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
+import { ActiveSectionContext } from '../../contexts/ActiveSectionContext';
 import { DashboardMobileContext } from '../../contexts/DashboardMobileContext';
 import type { WidgetConfig } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
@@ -331,159 +332,166 @@ export function Dashboard({
         return (
             <DashboardMobileContext.Provider value={true}>
                 <ActiveLayoutContext.Provider value={effectiveLayoutId}>
-                    <div className="flex-1 min-h-0 relative">
-                        {fillTabWidget && (
-                            <div className="absolute inset-0" style={{ zIndex: 10 }}>
-                                <WidgetFrame
-                                    config={fillTabWidget}
-                                    editMode={editMode}
-                                    onRemove={removeWidget}
-                                    onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-                                />
-                            </div>
-                        )}
-                        <div
-                            ref={containerRefCallback}
-                            className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2"
-                            style={{ scrollbarGutter: 'stable both-edges' }}
-                        >
-                            {/* Reflow-hidden widgets from all tabs rendered off-screen */}
+                    <ActiveSectionContext.Provider value={section?.id}>
+                        <div className="flex-1 min-h-0 relative">
+                            {fillTabWidget && (
+                                <div className="absolute inset-0" style={{ zIndex: 10 }}>
+                                    <WidgetFrame
+                                        config={fillTabWidget}
+                                        editMode={editMode}
+                                        onRemove={removeWidget}
+                                        onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                    />
+                                </div>
+                            )}
                             <div
-                                style={{
-                                    position: 'fixed',
-                                    top: -9999,
-                                    left: -9999,
-                                    width: 1,
-                                    height: 1,
-                                    overflow: 'hidden',
-                                    pointerEvents: 'none',
-                                    opacity: 0,
-                                }}
+                                ref={containerRefCallback}
+                                className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2"
+                                style={{ scrollbarGutter: 'stable both-edges' }}
                             >
-                                {tabs.flatMap((tab) =>
-                                    (tab.widgets ?? [])
-                                        .filter((w) => reflowHiddenIds.has(w.id))
-                                        .map((w) => (
-                                            <WidgetFrame
-                                                key={w.id}
-                                                config={w}
-                                                editMode={false}
-                                                onRemove={removeWidget}
-                                                onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-                                            />
-                                        )),
-                                )}
-                            </div>
-                            {/* Mount-on-visit: tabs are rendered the first time the user activates
+                                {/* Reflow-hidden widgets from all tabs rendered off-screen */}
+                                <div
+                                    style={{
+                                        position: 'fixed',
+                                        top: -9999,
+                                        left: -9999,
+                                        width: 1,
+                                        height: 1,
+                                        overflow: 'hidden',
+                                        pointerEvents: 'none',
+                                        opacity: 0,
+                                    }}
+                                >
+                                    {tabs.flatMap((tab) =>
+                                        (tab.widgets ?? [])
+                                            .filter((w) => reflowHiddenIds.has(w.id))
+                                            .map((w) => (
+                                                <WidgetFrame
+                                                    key={w.id}
+                                                    config={w}
+                                                    editMode={false}
+                                                    onRemove={removeWidget}
+                                                    onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                                />
+                                            )),
+                                    )}
+                                </div>
+                                {/* Mount-on-visit: tabs are rendered the first time the user activates
               them, and stay mounted afterwards (so iframe widgets keep state).
               Unvisited tabs are skipped entirely so their widgets don't pull in
               lazy chunks (echarts, recharts) on initial load. */}
-                            {tabs
-                                .filter((tab) => mountedTabIds.has(tab.id))
-                                .map((tab) => {
-                                    const isActive = tab.id === activeTabId;
-                                    const tabWidgets = (tab.widgets ?? []).filter(
-                                        (w) =>
-                                            !reflowHiddenIds.has(w.id) && !(fillTabWidget && w.id === fillTabWidget.id),
-                                    );
-                                    const sorted = [...tabWidgets].sort((a, b) => {
-                                        const oa = a.mobileOrder ?? a.gridPos.y * 1000 + a.gridPos.x;
-                                        const ob = b.mobileOrder ?? b.gridPos.y * 1000 + b.gridPos.x;
-                                        return oa - ob;
-                                    });
-                                    return (
-                                        <div
-                                            key={tab.id}
-                                            data-tab={tab.slug}
-                                            className={`aura-tab aura-tab-${tab.slug}`}
-                                            style={{ display: isActive ? undefined : 'none' }}
-                                        >
-                                            {isActive && tabWidgets.length === 0 ? (
-                                                <div
-                                                    className="flex flex-col items-center justify-center flex-1 h-64 space-y-2"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    <p>
-                                                        {readonly ? t('frontend.noWidgets') : t('frontend.addWidgets')}
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <div className="flex flex-col" style={{ gap: MARGIN }}>
-                                                    {sorted.map((w) => {
-                                                        // A mirror renders its SOURCE inside, so the auto-height
-                                                        // decision must follow the source's type/layout — otherwise a
-                                                        // mirror of a group gets a fixed gridPos.h box on mobile and
-                                                        // its stacked children only scroll instead of showing in full
-                                                        // (issue #513). Same source resolution as the desktop branch.
-                                                        const mirrorSrc =
-                                                            w.type === 'mirror'
-                                                                ? widgetById.get(
-                                                                      (w.options?.targetWidgetId as
-                                                                          | string
-                                                                          | undefined) ?? '',
-                                                                  )
-                                                                : undefined;
-                                                        const ew = mirrorSrc ?? w;
-                                                        const wl = ew.layout ?? 'default';
-                                                        // Weather's stacking layouts (default/card) top-align their
-                                                        // content and let a responsive scale fill the height. On the
-                                                        // wide desktop grid that scale grows to fill the box, but in the
-                                                        // narrow mobile column the scale is width-bound and stays small,
-                                                        // so a fixed gridPos.h box would show a tall empty gap below the
-                                                        // card. Size to content instead (like group/mediaplayer). Custom
-                                                        // grid needs a definite height (CustomGridView is height:100%);
-                                                        // minimal/compact already center, so they keep a fixed height.
-                                                        const autoHeight =
-                                                            ew.type === 'group' ||
-                                                            ew.type === 'mediaplayer' ||
-                                                            (ew.type === 'weather' &&
-                                                                wl !== 'custom' &&
-                                                                wl !== 'minimal' &&
-                                                                wl !== 'compact') ||
-                                                            (ew.type === 'statusoverview' &&
-                                                                ew.options?.autoHeight === true);
-                                                        return (
-                                                            <div
-                                                                key={w.id}
-                                                                style={
-                                                                    autoHeight
-                                                                        ? undefined
-                                                                        : {
-                                                                              // 'panels' is a fixed-viewport carousel: its
-                                                                              // slide track is absolutely positioned, so with
-                                                                              // auto height the flex-1 viewport collapses to 0
-                                                                              // (only title + dots show). It needs a definite
-                                                                              // height like a normal widget — unlike group/
-                                                                              // mediaplayer which size to their stacked content.
-                                                                              height:
-                                                                                  w.gridPos.h * cellSize +
-                                                                                  (w.gridPos.h - 1) * MARGIN,
-                                                                          }
-                                                                }
-                                                            >
-                                                                <WidgetFrame
-                                                                    config={w}
-                                                                    editMode={editMode}
-                                                                    onRemove={removeWidget}
-                                                                    onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-                                                                />
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                })}
+                                {tabs
+                                    .filter((tab) => mountedTabIds.has(tab.id))
+                                    .map((tab) => {
+                                        const isActive = tab.id === activeTabId;
+                                        const tabWidgets = (tab.widgets ?? []).filter(
+                                            (w) =>
+                                                !reflowHiddenIds.has(w.id) &&
+                                                !(fillTabWidget && w.id === fillTabWidget.id),
+                                        );
+                                        const sorted = [...tabWidgets].sort((a, b) => {
+                                            const oa = a.mobileOrder ?? a.gridPos.y * 1000 + a.gridPos.x;
+                                            const ob = b.mobileOrder ?? b.gridPos.y * 1000 + b.gridPos.x;
+                                            return oa - ob;
+                                        });
+                                        return (
+                                            <div
+                                                key={tab.id}
+                                                data-tab={tab.slug}
+                                                className={`aura-tab aura-tab-${tab.slug}`}
+                                                style={{ display: isActive ? undefined : 'none' }}
+                                            >
+                                                {isActive && tabWidgets.length === 0 ? (
+                                                    <div
+                                                        className="flex flex-col items-center justify-center flex-1 h-64 space-y-2"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        <p>
+                                                            {readonly
+                                                                ? t('frontend.noWidgets')
+                                                                : t('frontend.addWidgets')}
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col" style={{ gap: MARGIN }}>
+                                                        {sorted.map((w) => {
+                                                            // A mirror renders its SOURCE inside, so the auto-height
+                                                            // decision must follow the source's type/layout — otherwise a
+                                                            // mirror of a group gets a fixed gridPos.h box on mobile and
+                                                            // its stacked children only scroll instead of showing in full
+                                                            // (issue #513). Same source resolution as the desktop branch.
+                                                            const mirrorSrc =
+                                                                w.type === 'mirror'
+                                                                    ? widgetById.get(
+                                                                          (w.options?.targetWidgetId as
+                                                                              | string
+                                                                              | undefined) ?? '',
+                                                                      )
+                                                                    : undefined;
+                                                            const ew = mirrorSrc ?? w;
+                                                            const wl = ew.layout ?? 'default';
+                                                            // Weather's stacking layouts (default/card) top-align their
+                                                            // content and let a responsive scale fill the height. On the
+                                                            // wide desktop grid that scale grows to fill the box, but in the
+                                                            // narrow mobile column the scale is width-bound and stays small,
+                                                            // so a fixed gridPos.h box would show a tall empty gap below the
+                                                            // card. Size to content instead (like group/mediaplayer). Custom
+                                                            // grid needs a definite height (CustomGridView is height:100%);
+                                                            // minimal/compact already center, so they keep a fixed height.
+                                                            const autoHeight =
+                                                                ew.type === 'group' ||
+                                                                ew.type === 'mediaplayer' ||
+                                                                (ew.type === 'weather' &&
+                                                                    wl !== 'custom' &&
+                                                                    wl !== 'minimal' &&
+                                                                    wl !== 'compact') ||
+                                                                (ew.type === 'statusoverview' &&
+                                                                    ew.options?.autoHeight === true);
+                                                            return (
+                                                                <div
+                                                                    key={w.id}
+                                                                    style={
+                                                                        autoHeight
+                                                                            ? undefined
+                                                                            : {
+                                                                                  // 'panels' is a fixed-viewport carousel: its
+                                                                                  // slide track is absolutely positioned, so with
+                                                                                  // auto height the flex-1 viewport collapses to 0
+                                                                                  // (only title + dots show). It needs a definite
+                                                                                  // height like a normal widget — unlike group/
+                                                                                  // mediaplayer which size to their stacked content.
+                                                                                  height:
+                                                                                      w.gridPos.h * cellSize +
+                                                                                      (w.gridPos.h - 1) * MARGIN,
+                                                                              }
+                                                                    }
+                                                                >
+                                                                    <WidgetFrame
+                                                                        config={w}
+                                                                        editMode={editMode}
+                                                                        onRemove={removeWidget}
+                                                                        onConfigChange={(cfg) =>
+                                                                            updateWidget(cfg.id, cfg)
+                                                                        }
+                                                                    />
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                            </div>
+                            {coarsePointer && !hideGridScrollbar && (
+                                <TouchScrollbar target={scrollEl} revision={`${activeTabId}|${containerWidth}`} />
+                            )}
+                            {showIframeOverlay && (
+                                <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
+                            )}
+                            {resolutionOverlay}
                         </div>
-                        {coarsePointer && !hideGridScrollbar && (
-                            <TouchScrollbar target={scrollEl} revision={`${activeTabId}|${containerWidth}`} />
-                        )}
-                        {showIframeOverlay && (
-                            <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
-                        )}
-                        {resolutionOverlay}
-                    </div>
+                    </ActiveSectionContext.Provider>
                 </ActiveLayoutContext.Provider>
             </DashboardMobileContext.Provider>
         );
@@ -491,186 +499,127 @@ export function Dashboard({
 
     return (
         <ActiveLayoutContext.Provider value={effectiveLayoutId}>
-            <div className="flex-1 min-h-0 relative">
-                {fillTabWidget && (
-                    <div className="absolute inset-0" style={{ zIndex: 10 }}>
-                        <WidgetFrame
-                            config={fillTabWidget}
-                            editMode={editMode}
-                            onRemove={removeWidget}
-                            onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-                        />
-                    </div>
-                )}
-                <div
-                    ref={containerRefCallback}
-                    className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2 sm:p-4"
-                    style={{
-                        scrollbarGutter: 'stable both-edges',
-                        ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
-                    }}
-                >
-                    {showGuidelines && (
-                        <GuidelinesOverlay
-                            width={guidelinesWidth}
-                            height={guidelinesHeight}
-                            menuInset={guidelinesMenuInset}
-                            editMode={editMode}
-                            insetKey={guidelinesInsetKey}
-                            fallbackInset={guidelinesFallbackInset}
-                        />
+            <ActiveSectionContext.Provider value={section?.id}>
+                <div className="flex-1 min-h-0 relative">
+                    {fillTabWidget && (
+                        <div className="absolute inset-0" style={{ zIndex: 10 }}>
+                            <WidgetFrame
+                                config={fillTabWidget}
+                                editMode={editMode}
+                                onRemove={removeWidget}
+                                onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                            />
+                        </div>
                     )}
-                    {resolutionOverlay}
-                    {rglWidth > 0 && (
-                        <>
-                            {/* Reflow-hidden widgets from all tabs rendered off-screen so conditions keep evaluating */}
-                            <div
-                                style={{
-                                    position: 'fixed',
-                                    top: -9999,
-                                    left: -9999,
-                                    width: 1,
-                                    height: 1,
-                                    overflow: 'hidden',
-                                    pointerEvents: 'none',
-                                    opacity: 0,
-                                }}
-                            >
-                                {tabs.flatMap((tab) =>
-                                    (tab.widgets ?? [])
-                                        .filter((w) => reflowHiddenIds.has(w.id))
-                                        .map((w) => (
-                                            <WidgetFrame
-                                                key={w.id}
-                                                config={w}
-                                                editMode={false}
-                                                onRemove={removeWidget}
-                                                onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-                                            />
-                                        )),
-                                )}
-                            </div>
+                    <div
+                        ref={containerRefCallback}
+                        className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2 sm:p-4"
+                        style={{
+                            scrollbarGutter: 'stable both-edges',
+                            ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
+                        }}
+                    >
+                        {showGuidelines && (
+                            <GuidelinesOverlay
+                                width={guidelinesWidth}
+                                height={guidelinesHeight}
+                                menuInset={guidelinesMenuInset}
+                                editMode={editMode}
+                                insetKey={guidelinesInsetKey}
+                                fallbackInset={guidelinesFallbackInset}
+                            />
+                        )}
+                        {resolutionOverlay}
+                        {rglWidth > 0 && (
+                            <>
+                                {/* Reflow-hidden widgets from all tabs rendered off-screen so conditions keep evaluating */}
+                                <div
+                                    style={{
+                                        position: 'fixed',
+                                        top: -9999,
+                                        left: -9999,
+                                        width: 1,
+                                        height: 1,
+                                        overflow: 'hidden',
+                                        pointerEvents: 'none',
+                                        opacity: 0,
+                                    }}
+                                >
+                                    {tabs.flatMap((tab) =>
+                                        (tab.widgets ?? [])
+                                            .filter((w) => reflowHiddenIds.has(w.id))
+                                            .map((w) => (
+                                                <WidgetFrame
+                                                    key={w.id}
+                                                    config={w}
+                                                    editMode={false}
+                                                    onRemove={removeWidget}
+                                                    onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                                />
+                                            )),
+                                    )}
+                                </div>
 
-                            {/* Mount-on-visit: see comment above for mobile branch. */}
-                            {tabs
-                                .filter((tab) => mountedTabIds.has(tab.id))
-                                .map((tab) => {
-                                    const isActive = tab.id === activeTabId;
-                                    const tabWidgets = tab.widgets ?? [];
-                                    // Exclude the fillTab widget from the grid — it is rendered as an absolute overlay above
-                                    const tabGridWidgets = tabWidgets.filter(
-                                        (w) =>
-                                            !reflowHiddenIds.has(w.id) && !(fillTabWidget && w.id === fillTabWidget.id),
-                                    );
-                                    const tabLayout = tabGridWidgets.map((w) => {
-                                        // A mirror renders its SOURCE inside; for height it must hug/derive
-                                        // exactly like the source group would, so resolve the source and use
-                                        // it (`gw`) for all group-hug math while keeping the mirror's own
-                                        // identity/position (i/x/y/w) below.
-                                        const mirrorTarget =
-                                            w.type === 'mirror'
-                                                ? widgetById.get(
-                                                      (w.options?.targetWidgetId as string | undefined) ?? '',
-                                                  )
+                                {/* Mount-on-visit: see comment above for mobile branch. */}
+                                {tabs
+                                    .filter((tab) => mountedTabIds.has(tab.id))
+                                    .map((tab) => {
+                                        const isActive = tab.id === activeTabId;
+                                        const tabWidgets = tab.widgets ?? [];
+                                        // Exclude the fillTab widget from the grid — it is rendered as an absolute overlay above
+                                        const tabGridWidgets = tabWidgets.filter(
+                                            (w) =>
+                                                !reflowHiddenIds.has(w.id) &&
+                                                !(fillTabWidget && w.id === fillTabWidget.id),
+                                        );
+                                        const tabLayout = tabGridWidgets.map((w) => {
+                                            // A mirror renders its SOURCE inside; for height it must hug/derive
+                                            // exactly like the source group would, so resolve the source and use
+                                            // it (`gw`) for all group-hug math while keeping the mirror's own
+                                            // identity/position (i/x/y/w) below.
+                                            const mirrorTarget =
+                                                w.type === 'mirror'
+                                                    ? widgetById.get(
+                                                          (w.options?.targetWidgetId as string | undefined) ?? '',
+                                                      )
+                                                    : undefined;
+                                            const gw = mirrorTarget ?? w;
+                                            const isGroup = gw.type === 'group';
+                                            const autoShrink = isGroup && !!gw.options?.autoShrink;
+                                            const defId = isGroup
+                                                ? (gw.options?.defId as string | undefined)
                                                 : undefined;
-                                        const gw = mirrorTarget ?? w;
-                                        const isGroup = gw.type === 'group';
-                                        const autoShrink = isGroup && !!gw.options?.autoShrink;
-                                        const defId = isGroup ? (gw.options?.defId as string | undefined) : undefined;
-                                        const groupChildren = defId ? (groupDefs[defId] ?? []) : [];
+                                            const groupChildren = defId ? (groupDefs[defId] ?? []) : [];
 
-                                        // A non-autoShrink group hugs its children (equal GROUP_GAP spacing on
-                                        // all sides, no trailing row) in both views — see groupRows / GroupWidget.
-                                        const groupCollapsedNow =
-                                            isGroup &&
-                                            !editMode &&
-                                            !!gw.options?.defaultCollapsed &&
-                                            (groupCollapsed[gw.id] ?? true);
-                                        // An empty group has nothing to hug: without this it would clamp to
-                                        // minH (= 1 row) in the editor, so a fresh group came out as a flat
-                                        // strip and its stored height had no effect at all.
-                                        const hugGroup =
-                                            isGroup && !autoShrink && !groupCollapsedNow && groupChildren.length > 0;
+                                            // A non-autoShrink group hugs its children (equal GROUP_GAP spacing on
+                                            // all sides, no trailing row) in both views — see groupRows / GroupWidget.
+                                            const groupCollapsedNow =
+                                                isGroup &&
+                                                !editMode &&
+                                                !!gw.options?.defaultCollapsed &&
+                                                (groupCollapsed[gw.id] ?? true);
+                                            // An empty group has nothing to hug: without this it would clamp to
+                                            // minH (= 1 row) in the editor, so a fresh group came out as a flat
+                                            // strip and its stored height had no effect at all.
+                                            const hugGroup =
+                                                isGroup &&
+                                                !autoShrink &&
+                                                !groupCollapsedNow &&
+                                                groupChildren.length > 0;
 
-                                        let minH = 1;
-                                        // Editor: hug a group to its exact fit so a height stored under an
-                                        // earlier layout (e.g. with a header) can't leave a gap below the last
-                                        // child. autoShrink keeps its own scroll-based logic (below).
-                                        if (editMode && hugGroup && groupChildren.length > 0) {
-                                            const maxBottom = Math.max(
-                                                ...groupChildren.map((c) => c.gridPos.y + c.gridPos.h),
-                                            );
-                                            const showTitle = gw.options?.showTitle !== false;
-                                            const showIcon = gw.options?.showIcon !== false;
-                                            const hasHeader =
-                                                (showTitle && !!gw.title) || showIcon || !!gw.options?.groupSwitch;
-                                            minH = groupRows(
-                                                maxBottom,
-                                                hasHeader,
-                                                showTitle && !!gw.title,
-                                                cellSize,
-                                                MARGIN,
-                                                groupHeaderHeights[gw.id],
-                                            );
-                                        }
-                                        // Hugged groups clamp to the fit; everything else keeps the stored h.
-                                        let h = editMode && hugGroup ? minH : Math.max(w.gridPos.h ?? 2, minH);
-
-                                        // Auto-shrink: collapse the group's outer height to its remaining
-                                        // condition-visible children. The two views fit a different layout:
-                                        //  • Frontend — hidden children are removed and the rest compacted
-                                        //    upward, so the box fits the *compacted* visible layout exactly.
-                                        //  • Editor — every child stays mounted at its stored position (so
-                                        //    hidden ones remain editable). Fitting the visible children at
-                                        //    their *original* positions never cuts a visible widget; only
-                                        //    hidden children trailing below the last visible one fall past
-                                        //    the fold, reachable via the group's inner scrollbar.
-                                        if (autoShrink && groupChildren.length > 0) {
-                                            const visible = groupChildren.filter((c) => !conditionReflowIds.has(c.id));
-                                            if (visible.length > 0 && visible.length < groupChildren.length) {
-                                                const fitLayout = editMode ? visible : verticalCompact(visible);
+                                            let minH = 1;
+                                            // Editor: hug a group to its exact fit so a height stored under an
+                                            // earlier layout (e.g. with a header) can't leave a gap below the last
+                                            // child. autoShrink keeps its own scroll-based logic (below).
+                                            if (editMode && hugGroup && groupChildren.length > 0) {
                                                 const maxBottom = Math.max(
-                                                    ...fitLayout.map((c) => c.gridPos.y + c.gridPos.h),
+                                                    ...groupChildren.map((c) => c.gridPos.y + c.gridPos.h),
                                                 );
-                                                const innerH =
-                                                    maxBottom > 0 ? maxBottom * (cellSize + MARGIN) - MARGIN : 0;
-                                                const showTitle = gw.options?.showTitle !== false;
-                                                const titleBarH = editMode
-                                                    ? gw.title
-                                                        ? 37
-                                                        : 36
-                                                    : (showTitle && gw.title) || gw.options?.groupSwitch
-                                                      ? 37
-                                                      : 0;
-                                                const shrunk = Math.max(
-                                                    1,
-                                                    Math.ceil((titleBarH + innerH + 10 + MARGIN) / (cellSize + MARGIN)),
-                                                );
-                                                h = Math.min(h, shrunk);
-                                                minH = Math.min(minH, h); // never let RGL clamp back up
-                                            }
-                                        }
-                                        // Frontend: hug a group to its compacted content so the box wraps its
-                                        // children with an equal margin on all sides — no trailing gap from a
-                                        // stored editor height or the outer-grid row rounding.
-                                        if (!editMode && hugGroup && groupChildren.length > 0) {
-                                            const visible = groupChildren.filter((c) => !conditionReflowIds.has(c.id));
-                                            const fitLayout = verticalCompact(visible);
-                                            const maxBottom = fitLayout.length
-                                                ? Math.max(...fitLayout.map((c) => c.gridPos.y + c.gridPos.h))
-                                                : 0;
-                                            if (maxBottom > 0) {
                                                 const showTitle = gw.options?.showTitle !== false;
                                                 const showIcon = gw.options?.showIcon !== false;
-                                                // Mirrors GroupWidget's hasHeaderContent, which counts a
-                                                // collapsible group's chevron bar too (frontend only) — without
-                                                // it the box came out one header short and scrolled.
                                                 const hasHeader =
-                                                    (showTitle && !!gw.title) ||
-                                                    showIcon ||
-                                                    !!gw.options?.groupSwitch ||
-                                                    !!gw.options?.defaultCollapsed;
-                                                h = groupRows(
+                                                    (showTitle && !!gw.title) || showIcon || !!gw.options?.groupSwitch;
+                                                minH = groupRows(
                                                     maxBottom,
                                                     hasHeader,
                                                     showTitle && !!gw.title,
@@ -678,179 +627,260 @@ export function Dashboard({
                                                     MARGIN,
                                                     groupHeaderHeights[gw.id],
                                                 );
-                                                minH = Math.min(minH, h);
                                             }
-                                        }
-                                        // Collapsed group (frontend only): fold the outer box down to just
-                                        // the header. Mirrors GroupWidget, which hides the body in the same
-                                        // state. A user toggle lives in groupCollapsed; absent it, the config
-                                        // default applies.
-                                        if (
-                                            isGroup &&
-                                            !editMode &&
-                                            !!gw.options?.defaultCollapsed &&
-                                            (groupCollapsed[gw.id] ?? true)
-                                        ) {
-                                            const headerPx = groupHeaderHeights[gw.id] ?? 37;
-                                            const headerRows = Math.ceil(
-                                                (headerPx + 10 + MARGIN) / (cellSize + MARGIN),
-                                            );
-                                            h = Math.max(1, headerRows);
-                                            minH = Math.min(minH, h);
-                                        }
-                                        // Content auto-height (e.g. Statusübersicht): size the item to the
-                                        // widget's measured content instead of the stored height. The widget
-                                        // reports its content px; add the frame chrome (padding top+bottom + border).
-                                        if (w.type === 'statusoverview' && w.options?.autoHeight === true) {
-                                            const px = autoHeights[w.id];
-                                            if (px && px > 0) {
-                                                const total = px + widgetPadding * 2 + 2;
-                                                const rows = Math.max(
-                                                    1,
-                                                    Math.ceil((total + MARGIN) / (cellSize + MARGIN)),
-                                                );
-                                                h = rows;
-                                                minH = Math.min(minH, h);
-                                            }
-                                        }
-                                        return {
-                                            i: w.id,
-                                            x: Math.min(w.gridPos.x ?? 0, effectiveCols - 1),
-                                            y: w.gridPos.y ?? 9999,
-                                            w: Math.min(w.gridPos.w ?? 2, effectiveCols),
-                                            h,
-                                            minH,
-                                        };
-                                    });
-                                    const buildTabUpdated = (
-                                        newLayout: readonly { i: string; x: number; y: number; w: number; h: number }[],
-                                    ) =>
-                                        tabWidgets.map((w) => {
-                                            if (reflowHiddenIds.has(w.id)) return w;
-                                            const pos = newLayout.find((l) => l.i === w.id);
-                                            if (!pos) return w;
-                                            // Groups hug their children at a derived height, and content
-                                            // auto-height widgets size to their content — neither's rendered
-                                            // height is stored, so keep the canonical gridPos.h and never let a
-                                            // transient value get persisted on an unrelated drag/resize.
-                                            // An empty group derives nothing, so its height stays user-settable.
-                                            const mirrorSrc =
-                                                w.type === 'mirror'
-                                                    ? widgetById.get(
-                                                          (w.options?.targetWidgetId as string | undefined) ?? '',
-                                                      )
-                                                    : undefined;
-                                            const derivedH =
-                                                hasGroupChildren(w) ||
-                                                hasGroupChildren(mirrorSrc) ||
-                                                (w.type === 'statusoverview' && w.options?.autoHeight === true);
-                                            const h = derivedH ? w.gridPos.h : pos.h;
-                                            return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
-                                        });
+                                            // Hugged groups clamp to the fit; everything else keeps the stored h.
+                                            let h = editMode && hugGroup ? minH : Math.max(w.gridPos.h ?? 2, minH);
 
-                                    if (isActive && tabGridWidgets.length === 0) {
+                                            // Auto-shrink: collapse the group's outer height to its remaining
+                                            // condition-visible children. The two views fit a different layout:
+                                            //  • Frontend — hidden children are removed and the rest compacted
+                                            //    upward, so the box fits the *compacted* visible layout exactly.
+                                            //  • Editor — every child stays mounted at its stored position (so
+                                            //    hidden ones remain editable). Fitting the visible children at
+                                            //    their *original* positions never cuts a visible widget; only
+                                            //    hidden children trailing below the last visible one fall past
+                                            //    the fold, reachable via the group's inner scrollbar.
+                                            if (autoShrink && groupChildren.length > 0) {
+                                                const visible = groupChildren.filter(
+                                                    (c) => !conditionReflowIds.has(c.id),
+                                                );
+                                                if (visible.length > 0 && visible.length < groupChildren.length) {
+                                                    const fitLayout = editMode ? visible : verticalCompact(visible);
+                                                    const maxBottom = Math.max(
+                                                        ...fitLayout.map((c) => c.gridPos.y + c.gridPos.h),
+                                                    );
+                                                    const innerH =
+                                                        maxBottom > 0 ? maxBottom * (cellSize + MARGIN) - MARGIN : 0;
+                                                    const showTitle = gw.options?.showTitle !== false;
+                                                    const titleBarH = editMode
+                                                        ? gw.title
+                                                            ? 37
+                                                            : 36
+                                                        : (showTitle && gw.title) || gw.options?.groupSwitch
+                                                          ? 37
+                                                          : 0;
+                                                    const shrunk = Math.max(
+                                                        1,
+                                                        Math.ceil(
+                                                            (titleBarH + innerH + 10 + MARGIN) / (cellSize + MARGIN),
+                                                        ),
+                                                    );
+                                                    h = Math.min(h, shrunk);
+                                                    minH = Math.min(minH, h); // never let RGL clamp back up
+                                                }
+                                            }
+                                            // Frontend: hug a group to its compacted content so the box wraps its
+                                            // children with an equal margin on all sides — no trailing gap from a
+                                            // stored editor height or the outer-grid row rounding.
+                                            if (!editMode && hugGroup && groupChildren.length > 0) {
+                                                const visible = groupChildren.filter(
+                                                    (c) => !conditionReflowIds.has(c.id),
+                                                );
+                                                const fitLayout = verticalCompact(visible);
+                                                const maxBottom = fitLayout.length
+                                                    ? Math.max(...fitLayout.map((c) => c.gridPos.y + c.gridPos.h))
+                                                    : 0;
+                                                if (maxBottom > 0) {
+                                                    const showTitle = gw.options?.showTitle !== false;
+                                                    const showIcon = gw.options?.showIcon !== false;
+                                                    // Mirrors GroupWidget's hasHeaderContent, which counts a
+                                                    // collapsible group's chevron bar too (frontend only) — without
+                                                    // it the box came out one header short and scrolled.
+                                                    const hasHeader =
+                                                        (showTitle && !!gw.title) ||
+                                                        showIcon ||
+                                                        !!gw.options?.groupSwitch ||
+                                                        !!gw.options?.defaultCollapsed;
+                                                    h = groupRows(
+                                                        maxBottom,
+                                                        hasHeader,
+                                                        showTitle && !!gw.title,
+                                                        cellSize,
+                                                        MARGIN,
+                                                        groupHeaderHeights[gw.id],
+                                                    );
+                                                    minH = Math.min(minH, h);
+                                                }
+                                            }
+                                            // Collapsed group (frontend only): fold the outer box down to just
+                                            // the header. Mirrors GroupWidget, which hides the body in the same
+                                            // state. A user toggle lives in groupCollapsed; absent it, the config
+                                            // default applies.
+                                            if (
+                                                isGroup &&
+                                                !editMode &&
+                                                !!gw.options?.defaultCollapsed &&
+                                                (groupCollapsed[gw.id] ?? true)
+                                            ) {
+                                                const headerPx = groupHeaderHeights[gw.id] ?? 37;
+                                                const headerRows = Math.ceil(
+                                                    (headerPx + 10 + MARGIN) / (cellSize + MARGIN),
+                                                );
+                                                h = Math.max(1, headerRows);
+                                                minH = Math.min(minH, h);
+                                            }
+                                            // Content auto-height (e.g. Statusübersicht): size the item to the
+                                            // widget's measured content instead of the stored height. The widget
+                                            // reports its content px; add the frame chrome (padding top+bottom + border).
+                                            if (w.type === 'statusoverview' && w.options?.autoHeight === true) {
+                                                const px = autoHeights[w.id];
+                                                if (px && px > 0) {
+                                                    const total = px + widgetPadding * 2 + 2;
+                                                    const rows = Math.max(
+                                                        1,
+                                                        Math.ceil((total + MARGIN) / (cellSize + MARGIN)),
+                                                    );
+                                                    h = rows;
+                                                    minH = Math.min(minH, h);
+                                                }
+                                            }
+                                            return {
+                                                i: w.id,
+                                                x: Math.min(w.gridPos.x ?? 0, effectiveCols - 1),
+                                                y: w.gridPos.y ?? 9999,
+                                                w: Math.min(w.gridPos.w ?? 2, effectiveCols),
+                                                h,
+                                                minH,
+                                            };
+                                        });
+                                        const buildTabUpdated = (
+                                            newLayout: readonly {
+                                                i: string;
+                                                x: number;
+                                                y: number;
+                                                w: number;
+                                                h: number;
+                                            }[],
+                                        ) =>
+                                            tabWidgets.map((w) => {
+                                                if (reflowHiddenIds.has(w.id)) return w;
+                                                const pos = newLayout.find((l) => l.i === w.id);
+                                                if (!pos) return w;
+                                                // Groups hug their children at a derived height, and content
+                                                // auto-height widgets size to their content — neither's rendered
+                                                // height is stored, so keep the canonical gridPos.h and never let a
+                                                // transient value get persisted on an unrelated drag/resize.
+                                                // An empty group derives nothing, so its height stays user-settable.
+                                                const mirrorSrc =
+                                                    w.type === 'mirror'
+                                                        ? widgetById.get(
+                                                              (w.options?.targetWidgetId as string | undefined) ?? '',
+                                                          )
+                                                        : undefined;
+                                                const derivedH =
+                                                    hasGroupChildren(w) ||
+                                                    hasGroupChildren(mirrorSrc) ||
+                                                    (w.type === 'statusoverview' && w.options?.autoHeight === true);
+                                                const h = derivedH ? w.gridPos.h : pos.h;
+                                                return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
+                                            });
+
+                                        if (isActive && tabGridWidgets.length === 0) {
+                                            return (
+                                                <div
+                                                    key={tab.id}
+                                                    data-tab={tab.slug}
+                                                    className={`aura-tab aura-tab-${tab.slug} flex flex-col items-center justify-center flex-1 h-64 space-y-2`}
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    <p>
+                                                        {readonly ? t('frontend.noWidgets') : t('frontend.addWidgets')}
+                                                    </p>
+                                                </div>
+                                            );
+                                        }
+
+                                        const dropHandlers =
+                                            isActive && editMode
+                                                ? {
+                                                      onDragOver: (e: React.DragEvent) => {
+                                                          if (getDragBridge()) e.preventDefault();
+                                                      },
+                                                      onDrop: (e: React.DragEvent) => {
+                                                          const bridge = getDragBridge();
+                                                          if (!bridge) return;
+                                                          e.preventDefault();
+                                                          addWidgetToLayoutTab(activeLayout.id, tab.id, {
+                                                              ...bridge.widget,
+                                                              id: `w-${Date.now()}`,
+                                                              gridPos: { ...bridge.widget.gridPos, y: 9999 },
+                                                          });
+                                                          bridge.remove(bridge.widget.id);
+                                                          setDragBridge(null);
+                                                      },
+                                                  }
+                                                : {};
+
                                         return (
                                             <div
                                                 key={tab.id}
                                                 data-tab={tab.slug}
-                                                className={`aura-tab aura-tab-${tab.slug} flex flex-col items-center justify-center flex-1 h-64 space-y-2`}
-                                                style={{ color: 'var(--text-secondary)' }}
+                                                className={`aura-tab aura-tab-${tab.slug}`}
+                                                style={{ display: isActive ? undefined : 'none' }}
+                                                {...dropHandlers}
                                             >
-                                                <p>{readonly ? t('frontend.noWidgets') : t('frontend.addWidgets')}</p>
+                                                <ReactGridLayout
+                                                    className="layout"
+                                                    layout={tabLayout}
+                                                    cols={effectiveCols}
+                                                    rowHeight={cellSize}
+                                                    width={effectiveRglWidth}
+                                                    isDraggable={isActive && gridEditable}
+                                                    isResizable={isActive && gridEditable}
+                                                    draggableCancel=".nodrag"
+                                                    onLayoutChange={(nl) => {
+                                                        if (isActive) onLayoutChange?.(buildTabUpdated(nl));
+                                                    }}
+                                                    onDragStop={(nl) => {
+                                                        if (!isActive || readonly || coarsePointer) return;
+                                                        // Skip if nothing moved (click without drag fires onDragStop too)
+                                                        const moved = nl.some(({ i, x, y, w: nw, h: nh }) => {
+                                                            const widget = tabGridWidgets.find((tw) => tw.id === i);
+                                                            return (
+                                                                !widget ||
+                                                                widget.gridPos.x !== x ||
+                                                                widget.gridPos.y !== y ||
+                                                                widget.gridPos.w !== nw ||
+                                                                widget.gridPos.h !== nh
+                                                            );
+                                                        });
+                                                        if (moved) updateLayouts(buildTabUpdated(nl));
+                                                    }}
+                                                    onResizeStop={(nl) => {
+                                                        if (isActive && !readonly && !coarsePointer)
+                                                            updateLayouts(buildTabUpdated(nl));
+                                                    }}
+                                                    margin={[MARGIN, MARGIN]}
+                                                    containerPadding={[0, 0]}
+                                                >
+                                                    {tabGridWidgets.map((w) => (
+                                                        <div key={w.id}>
+                                                            <WidgetFrame
+                                                                config={w}
+                                                                editMode={isActive && editMode}
+                                                                onRemove={removeWidget}
+                                                                onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </ReactGridLayout>
                                             </div>
                                         );
-                                    }
-
-                                    const dropHandlers =
-                                        isActive && editMode
-                                            ? {
-                                                  onDragOver: (e: React.DragEvent) => {
-                                                      if (getDragBridge()) e.preventDefault();
-                                                  },
-                                                  onDrop: (e: React.DragEvent) => {
-                                                      const bridge = getDragBridge();
-                                                      if (!bridge) return;
-                                                      e.preventDefault();
-                                                      addWidgetToLayoutTab(activeLayout.id, tab.id, {
-                                                          ...bridge.widget,
-                                                          id: `w-${Date.now()}`,
-                                                          gridPos: { ...bridge.widget.gridPos, y: 9999 },
-                                                      });
-                                                      bridge.remove(bridge.widget.id);
-                                                      setDragBridge(null);
-                                                  },
-                                              }
-                                            : {};
-
-                                    return (
-                                        <div
-                                            key={tab.id}
-                                            data-tab={tab.slug}
-                                            className={`aura-tab aura-tab-${tab.slug}`}
-                                            style={{ display: isActive ? undefined : 'none' }}
-                                            {...dropHandlers}
-                                        >
-                                            <ReactGridLayout
-                                                className="layout"
-                                                layout={tabLayout}
-                                                cols={effectiveCols}
-                                                rowHeight={cellSize}
-                                                width={effectiveRglWidth}
-                                                isDraggable={isActive && gridEditable}
-                                                isResizable={isActive && gridEditable}
-                                                draggableCancel=".nodrag"
-                                                onLayoutChange={(nl) => {
-                                                    if (isActive) onLayoutChange?.(buildTabUpdated(nl));
-                                                }}
-                                                onDragStop={(nl) => {
-                                                    if (!isActive || readonly || coarsePointer) return;
-                                                    // Skip if nothing moved (click without drag fires onDragStop too)
-                                                    const moved = nl.some(({ i, x, y, w: nw, h: nh }) => {
-                                                        const widget = tabGridWidgets.find((tw) => tw.id === i);
-                                                        return (
-                                                            !widget ||
-                                                            widget.gridPos.x !== x ||
-                                                            widget.gridPos.y !== y ||
-                                                            widget.gridPos.w !== nw ||
-                                                            widget.gridPos.h !== nh
-                                                        );
-                                                    });
-                                                    if (moved) updateLayouts(buildTabUpdated(nl));
-                                                }}
-                                                onResizeStop={(nl) => {
-                                                    if (isActive && !readonly && !coarsePointer)
-                                                        updateLayouts(buildTabUpdated(nl));
-                                                }}
-                                                margin={[MARGIN, MARGIN]}
-                                                containerPadding={[0, 0]}
-                                            >
-                                                {tabGridWidgets.map((w) => (
-                                                    <div key={w.id}>
-                                                        <WidgetFrame
-                                                            config={w}
-                                                            editMode={isActive && editMode}
-                                                            onRemove={removeWidget}
-                                                            onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </ReactGridLayout>
-                                        </div>
-                                    );
-                                })}
-                        </>
+                                    })}
+                            </>
+                        )}
+                    </div>
+                    {coarsePointer && !hideGridScrollbar && (
+                        <TouchScrollbar
+                            target={scrollEl}
+                            revision={`${activeTabId}|${effectiveRglWidth}|${containerWidth}`}
+                        />
+                    )}
+                    {showIframeOverlay && (
+                        <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
                     )}
                 </div>
-                {coarsePointer && !hideGridScrollbar && (
-                    <TouchScrollbar
-                        target={scrollEl}
-                        revision={`${activeTabId}|${effectiveRglWidth}|${containerWidth}`}
-                    />
-                )}
-                {showIframeOverlay && (
-                    <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
-                )}
-            </div>
+            </ActiveSectionContext.Provider>
         </ActiveLayoutContext.Provider>
     );
 }

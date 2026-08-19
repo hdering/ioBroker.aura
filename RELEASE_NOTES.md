@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Mirror - every widget type can be mirrored now; the menu widget reported an unknown type
+- Menu - a mirrored menu shows the layout being edited instead of the first one
