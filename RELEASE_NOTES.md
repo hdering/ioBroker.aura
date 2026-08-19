@@ -12,3 +12,4 @@
 - Advanced chart - new "Area opacity" option per series sets the fill strength of its area (#557)
 - Chart & Climate - new "Horizontal grid lines" option draws helper lines at the y values, like in the advanced chart (#558)
 - List - the "+/-" display now colours its value with the configured colour scale (#559)
+- Value, Dimmer, Shutter, Thermostat & List - colour scales no longer depend on the order the thresholds were entered in (#559)

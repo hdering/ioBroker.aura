@@ -6,7 +6,8 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
-import { getRoleDisplay, getThresholdColor } from '../../utils/listEntryDisplay';
+import { getRoleDisplay } from '../../utils/listEntryDisplay';
+import { getThresholdColor } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
@@ -381,7 +382,9 @@ function EntryValue({
     // controls write their value back and must stay on the raw one. Thresholds
     // follow the shown value, so they are configured in display units.
     const disp = entryValueText(entry, listTransform, val, decimals, numFmt, t);
-    const entryThresholds = entry.colorThresholds ?? globalThresholds;
+    // An entry without its own scale falls back to the list-wide one; an empty
+    // array counts as "none" so an imported entry cannot block the fallback.
+    const entryThresholds = entry.colorThresholds?.length ? entry.colorThresholds : globalThresholds;
     const thresholdColor = getThresholdColor(disp.value, entryThresholds);
 
     // Optional confirmation before a switch-like write (like the Switch widget).
@@ -1414,7 +1417,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             : '–');
                             const threshColor =
                                 !switchActive && !roleDisplay
-                                    ? getThresholdColor(disp.value, entry.colorThresholds ?? globalThresholds)
+                                    ? getThresholdColor(
+                                          disp.value,
+                                          entry.colorThresholds?.length ? entry.colorThresholds : globalThresholds,
+                                      )
                                     : null;
                             const entryActiveColor = entry.activeColor || globalActiveColor;
                             const entryInactiveColor = entry.inactiveColor || globalInactiveColor;

@@ -4,6 +4,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -205,14 +206,8 @@ export function ShutterWidget({ config }: WidgetProps) {
           ? 'var(--blind-color, var(--accent))'
           : 'var(--text-secondary)';
 
-    const thresholds = opts.colorThresholds as Array<[number, string]> | undefined;
-    const thresholdColor = useMemo(() => {
-        if (!thresholds?.length) return undefined;
-        for (const [thresh, color] of thresholds) {
-            if (pos < thresh) return color;
-        }
-        return thresholds[thresholds.length - 1][1];
-    }, [thresholds, pos]);
+    const thresholds = opts.colorThresholds as ColorThreshold[] | undefined;
+    const thresholdColor = useMemo(() => getThresholdColor(pos, thresholds), [thresholds, pos]);
     const valueColor = thresholdColor ?? 'var(--text-primary)';
 
     const showTitle = opts.showTitle !== false;

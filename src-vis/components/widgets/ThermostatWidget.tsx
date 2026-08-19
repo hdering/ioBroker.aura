@@ -5,6 +5,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { lookupDatapointName } from '../../hooks/useDatapointList';
 import type { WidgetProps, WidgetConfig } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { useT } from '../../i18n';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
@@ -64,14 +65,8 @@ export function ThermostatWidget({ config }: WidgetProps) {
     // Colour thresholds are evaluated against the measured (actual) temperature
     // and colour the actual reading — not the setpoint, which keeps its
     // heat/cool accent.
-    const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
-    const thresholdColor = useMemo(() => {
-        if (!thresholds?.length || actual === null) return undefined;
-        for (const [thresh, color] of thresholds) {
-            if (actual < thresh) return color;
-        }
-        return thresholds[thresholds.length - 1][1];
-    }, [thresholds, actual]);
+    const thresholds = o.colorThresholds as ColorThreshold[] | undefined;
+    const thresholdColor = useMemo(() => getThresholdColor(actual, thresholds), [thresholds, actual]);
 
     const displayTitle = resolveTitle(config);
 

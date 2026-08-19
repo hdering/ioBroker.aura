@@ -148,6 +148,47 @@ for (const [val, want, name] of [
     check('a display factor does not shift the band', s?.color === AMBER, JSON.stringify(s));
 }
 
+// ── 6. A scale entered in any order colours the same (issue #559 follow-up) ──
+// "< 100 → green" first, "< 17 → red" second used to answer green for 16.59.
+{
+    const UNSORTED = [
+        [100, '#22c55e'],
+        [17, '#ef4444'],
+    ];
+    const own = await stepper('list', 'default', {
+        entries: phEntry({ colorThresholds: UNSORTED, stepMin: 0, stepMax: 30, decimals: 2 }),
+        values: { 'demo.ph': 16.59 },
+    });
+    check('unsorted entry scale colours by the lowest band', own?.color === RED, JSON.stringify(own));
+
+    const global = await stepper('list', 'default', {
+        entries: phEntry({ stepMin: 0, stepMax: 30, decimals: 2 }),
+        options: { colorThresholds: UNSORTED },
+        values: { 'demo.ph': 16.59 },
+    });
+    check('unsorted list-wide scale colours the stepper', global?.color === RED, JSON.stringify(global));
+
+    const above = await stepper('list', 'default', {
+        entries: phEntry({ colorThresholds: UNSORTED, stepMin: 0, stepMax: 30, decimals: 2 }),
+        values: { 'demo.ph': 20 },
+    });
+    check('unsorted scale still greens the upper band', above?.color === GREEN, JSON.stringify(above));
+
+    // The same scale on a plain value entry - the list-wide colouring of every
+    // other display type runs through the same helper.
+    await stepper('list', 'default', {
+        entries: [{ id: 'demo.ph', label: 'pH-Wert', displayType: 'value', decimals: 2 }],
+        options: { colorThresholds: UNSORTED },
+        values: { 'demo.ph': 16.59 },
+    });
+    const plain = await page.evaluate(() => {
+        const spans = [...document.querySelectorAll('.react-grid-item span')];
+        const el = spans.find((s) => /16[.,]59/.test(s.innerText));
+        return el ? getComputedStyle(el).color : null;
+    });
+    check('unsorted scale colours a plain value entry', plain === RED, `color=${plain}`);
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
 
 await browser.close();

@@ -78,6 +78,7 @@
         "test:name-pattern": "node tools/tests/name-pattern.mjs",
         "test:list-dividers": "node tools/tests/list-dividers.mjs",
         "test:list-stepper-color": "node tools/tests/list-stepper-color.mjs",
+        "test:color-thresholds": "node tools/tests/color-thresholds.mjs",
         "test:datepicker": "node tools/tests/datepicker-picker.mjs",
         "test:shutter-tilt": "node tools/tests/shutter-tilt.mjs",
         "test:chart-delta": "node tools/tests/chart-delta-reset.mjs",

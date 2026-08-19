@@ -4,6 +4,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -80,14 +81,8 @@ export function DimmerWidget({ config }: WidgetProps) {
         handleSliderChange(getBarValue(e));
     };
 
-    const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
-    const thresholdColor = useMemo(() => {
-        if (!thresholds?.length) return undefined;
-        for (const [thresh, color] of thresholds) {
-            if (displayLevel < thresh) return color;
-        }
-        return thresholds[thresholds.length - 1][1];
-    }, [thresholds, displayLevel]);
+    const thresholds = o.colorThresholds as ColorThreshold[] | undefined;
+    const thresholdColor = useMemo(() => getThresholdColor(displayLevel, thresholds), [thresholds, displayLevel]);
     const valueColor = thresholdColor ?? 'var(--text-primary)';
 
     const onValue = o.onValue as string | undefined;

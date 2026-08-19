@@ -50,6 +50,7 @@ import { panelActiveStateId } from '../../utils/publishPanelState';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { sortColorThresholds } from '../../utils/colorThresholds';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -17821,7 +17822,7 @@ export function WidgetFrame({
                                                 className="text-[10px] mb-1.5"
                                                 style={{ color: 'var(--text-secondary)', opacity: 0.65 }}
                                             >
-                                                Wert &lt; Schwelle → Farbe · aufsteigend sortieren
+                                                Wert &lt; Schwelle → Farbe · Reihenfolge beliebig
                                             </p>
                                         )}
                                         <div className="space-y-1">
@@ -17868,6 +17869,9 @@ export function WidgetFrame({
                                                             n[i] = [Number(e.target.value), color];
                                                             setThresholds(n);
                                                         }}
+                                                        // Sorted on blur only, so the rows do
+                                                        // not jump while a number is typed.
+                                                        onBlur={() => setThresholds(sortColorThresholds(thresholds))}
                                                         className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
                                                         style={{
                                                             background: 'var(--app-bg)',

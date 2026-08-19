@@ -5,6 +5,7 @@ import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -54,18 +55,10 @@ export function ValueWidget({ config }: WidgetProps) {
         timeStr ??
         (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals, numFmt) : String(tValue));
 
-    // Threshold-based color: [[maxExclusive, color], …] sorted ascending.
-    // Applied to the transformed (displayed) value so thresholds are configured in display units.
-    const thresholds = o.colorThresholds as Array<[number, string]> | undefined;
-    const thresholdColor = useMemo(() => {
-        if (!thresholds?.length) return undefined;
-        const num = typeof tValue === 'number' ? tValue : parseFloat(String(tValue));
-        if (isNaN(num)) return undefined;
-        for (const [thresh, color] of thresholds) {
-            if (num < thresh) return color;
-        }
-        return thresholds[thresholds.length - 1][1];
-    }, [thresholds, tValue]);
+    // The scale is matched against the transformed (displayed) value, so it is
+    // configured in display units.
+    const thresholds = o.colorThresholds as ColorThreshold[] | undefined;
+    const thresholdColor = useMemo(() => getThresholdColor(tValue, thresholds), [thresholds, tValue]);
 
     const accentColor = thresholdColor ?? 'var(--accent)';
     const valueColor = thresholdColor ?? 'var(--text-primary)';

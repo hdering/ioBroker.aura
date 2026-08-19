@@ -15,6 +15,7 @@ import { RowClickEntryField } from '../RowClickSection';
 import { SubDpFields } from './SubDpFields';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
+import { sortColorThresholds } from '../../../utils/colorThresholds';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -469,7 +470,7 @@ export function StaticEntryDetail({
                     </div>
                     {(entry.colorThresholds?.length ?? 0) > 0 && (
                         <p className="text-[9px] mb-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                            Wert &lt; Schwelle → Farbe · aufsteigend sortieren
+                            Wert &lt; Schwelle → Farbe · Reihenfolge beliebig
                         </p>
                     )}
                     <div className="space-y-1">
@@ -510,6 +511,14 @@ export function StaticEntryDetail({
                                         n[i] = [Number(e.target.value), color];
                                         onUpdate({ colorThresholds: n });
                                     }}
+                                    // Sorting on blur, not while typing - the rows must not
+                                    // jump around under the cursor. Matching is order-free
+                                    // anyway, this only keeps the list readable.
+                                    onBlur={() =>
+                                        onUpdate({
+                                            colorThresholds: sortColorThresholds(entry.colorThresholds ?? []),
+                                        })
+                                    }
                                     className="flex-1 text-[10px] rounded px-1.5 py-0.5 focus:outline-none"
                                     style={{
                                         background: 'var(--app-bg)',
