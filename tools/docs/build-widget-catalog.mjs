@@ -85,6 +85,24 @@ const OPTION_SEED = {
         { key: 'iconSize', type: 'number(px)', default: '18' },
         { key: 'titleAlign', type: 'enum', enum: ['left', 'center', 'right'], default: 'left' },
     ],
+    menue: [
+        { key: 'menuMode', type: 'enum', enum: ['section', 'tab'], default: 'section', note: 'Bereiche des Layouts bzw. Tabs des Bereichs' },
+        { key: 'hiddenItems', type: 'string[]', default: '[]', note: 'abgewählte Einträge (Slug oder ID)' },
+        { key: 'variant', type: 'enum', enum: ['hbar', 'pills', 'vlist', 'grid'], default: 'hbar' },
+        { key: 'indicatorStyle', type: 'enum', enum: ['text', 'underline', 'filled', 'pills'], default: 'underline', note: 'Aktiv-Stil; variant pills erzwingt pills' },
+        { key: 'align', type: 'enum', enum: ['start', 'center', 'end'], default: 'start', note: 'wirkt bei hbar und pills' },
+        { key: 'gridCols', type: 'number', default: '3', note: 'nur variant grid (1–12)' },
+        { key: 'gap', type: 'number(px)', default: '6' },
+        { key: 'iconSize', type: 'number(px)', default: '18' },
+        { key: 'showIcons', type: 'boolean', default: 'true', note: 'Icons stammen aus Bereich/Tab, nicht aus dem Widget' },
+        { key: 'showLabels', type: 'boolean', default: 'true' },
+    ],
+    spiegel: [
+        { key: 'targetWidgetId', type: 'string', default: '—', note: 'ID des Quell-Widgets; Inhalt, Titel und Werte kommen live von dort' },
+        { key: 'transparent', type: 'boolean', default: 'false', note: 'Rahmen des Spiegels; beim Auswählen von der Quelle übernommen' },
+        { key: 'transparency', type: 'number', default: '—', note: 'wie transparent' },
+        { key: 'styleOverride', type: 'Record<string,string>', default: '—', note: 'wie transparent' },
+    ],
 };
 
 // Component keys usable in a widget's custom-layout cells (extraComponents / extraFields).

@@ -57,7 +57,10 @@ await page.evaluate(() => localStorage.setItem('aura-auth', JSON.stringify({ sta
 // (layout-<name>.png / variant-<name>.png). Widgets with only `runtime` keep the
 // single runtime.png. Element crops are side-effect-free (screenshotMode blocks
 // all ioBroker writes).
-const withRuntime = WIDGETS.filter((w) => w.runtime !== null);
+// `customShots` entries are shot by a dedicated script (see widgets-meta.mjs) —
+// regenerating them here would replace those images with poorer generic ones.
+const GENERIC = WIDGETS.filter((w) => !w.customShots);
+const withRuntime = GENERIC.filter((w) => w.runtime !== null);
 
 async function renderShot(w, cfg, dp, val, mock, click, file) {
     await page.evaluate(
@@ -106,7 +109,7 @@ for (const w of withRuntime) {
 await page.goto(`${BASE}/?shot=1#/admin/editor`, { waitUntil: 'networkidle' });
 await ready();
 
-for (const w of WIDGETS) {
+for (const w of GENERIC) {
     mkdirSync(`${ASSETS}/${w.slug}`, { recursive: true });
     try {
         const cfg = widgetConfig(w);

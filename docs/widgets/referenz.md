@@ -66,6 +66,8 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | [Button](./button) | `button` | `default` | 6×4 |
 | [Gruppe](./gruppe) | `group` | `default` | 12×6 |
 | [Panels](./panels) | `panels` | `default` | 12×6 |
+| [Menü](./menue) | `menu` | `default` | 12×2 |
+| [Spiegel](./spiegel) | `mirror` | `default` | 8×4 |
 
 ## Detaillierte Optionen
 
@@ -135,6 +137,30 @@ Bislang formal erfasst (weitere folgen; alle Optionen stehen auf der jeweiligen 
 | `showIcon` | `boolean` | `true` |  |
 | `iconSize` | `number(px)` | `18` |  |
 | `titleAlign` | `left` · `center` · `right` | `left` |  |
+
+### Menü `menu`
+
+| Option | Typ | Standard | |
+| --- | --- | --- | --- |
+| `menuMode` | `section` · `tab` | `section` | Bereiche des Layouts bzw. Tabs des Bereichs |
+| `hiddenItems` | `string[]` | `[]` | abgewählte Einträge (Slug oder ID) |
+| `variant` | `hbar` · `pills` · `vlist` · `grid` | `hbar` |  |
+| `indicatorStyle` | `text` · `underline` · `filled` · `pills` | `underline` | Aktiv-Stil; variant pills erzwingt pills |
+| `align` | `start` · `center` · `end` | `start` | wirkt bei hbar und pills |
+| `gridCols` | `number` | `3` | nur variant grid (1–12) |
+| `gap` | `number(px)` | `6` |  |
+| `iconSize` | `number(px)` | `18` |  |
+| `showIcons` | `boolean` | `true` | Icons stammen aus Bereich/Tab, nicht aus dem Widget |
+| `showLabels` | `boolean` | `true` |  |
+
+### Spiegel `mirror`
+
+| Option | Typ | Standard | |
+| --- | --- | --- | --- |
+| `targetWidgetId` | `string` | `—` | ID des Quell-Widgets; Inhalt, Titel und Werte kommen live von dort |
+| `transparent` | `boolean` | `false` | Rahmen des Spiegels; beim Auswählen von der Quelle übernommen |
+| `transparency` | `number` | `—` | wie transparent |
+| `styleOverride` | `Record<string,string>` | `—` | wie transparent |
 
 ## Querschnitts-Optionen
 

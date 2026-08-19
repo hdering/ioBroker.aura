@@ -178,4 +178,18 @@ export const WIDGETS = [
       hint: 'Mehrere Widgets in einem gemeinsamen Rahmen gruppieren.', runtime: null },
     { type: 'panels', slug: 'panels', label: 'Panels', group: 'layout',
       hint: 'Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons.', runtime: null },
+    // Menü and Spiegel are documented by hand and their images come from
+    // tools/screenshots/menu-mirror.mjs (a menu needs the sections/tabs around it, a
+    // mirror a source widget next to it — more than widgets-all.mjs can seed).
+    // `customShots` keeps widgets-all.mjs from overwriting those files.
+    { type: 'menu', slug: 'menue', label: 'Menü', group: 'layout',
+      hint: 'Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten.',
+      runtime: null, customShots: true, defaultGrid: { w: 12, h: 2 },
+      hero: 'assets/menue/variant-hbar.png',
+      configShot: 'assets/menue/config.png' },
+    { type: 'mirror', slug: 'spiegel', label: 'Spiegel', group: 'layout',
+      hint: 'Zeigt ein vorhandenes Widget live an einer zweiten Stelle an – kein Duplikat: Änderungen an der Quelle wirken sofort mit.',
+      runtime: null, customShots: true, defaultGrid: { w: 8, h: 4 },
+      hero: 'assets/spiegel/runtime.png',
+      configShot: 'assets/spiegel/config.png' },
 ];

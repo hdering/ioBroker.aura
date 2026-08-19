@@ -10,10 +10,7 @@ const DOCS = 'docs/widgets';
 const EXISTING = {
     control: [{ slug: 'schalter', label: 'Schalter', hint: 'Ein/Aus-Schalter für Boolean-Datenpunkte (z. B. Lampe, Steckdose).' }],
     special: [{ slug: 'zeitschaltuhr', label: 'Zeitschaltuhr', hint: 'Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum.' }],
-    layout: [
-        { slug: 'menue', label: 'Menü', hint: 'Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten.' },
-        { slug: 'spiegel', label: 'Spiegel', hint: 'Zeigt ein vorhandenes Widget live an einer zweiten Stelle an – kein Duplikat: Änderungen an der Quelle wirken sofort mit.' },
-    ],
+    layout: [],
 };
 
 function page(w) {
@@ -56,6 +53,20 @@ for (const grp of GROUPS) {
     indexLines.push('');
 }
 indexLines.push('## Konzepte', '', '- [Custom-Layout](./custom-layout) — Widgets mit freier Zellen-Matrix gestalten', '');
+// Hand-written tail of the overview — kept here so regenerating the index does not drop it.
+indexLines.push(
+    '## Datenpunkt-Wert im Widget-Namen',
+    '',
+    'Der Name jedes Widgets löst `[[<dp>]]` zum aktuellen Wert dieses Datenpunkts auf, gemischt mit festem Text:',
+    '',
+    '| Name | zeigt |',
+    '| --- | --- |',
+    '| `Wohnzimmer [[0_userdata.0.Temp]] °C` | `Wohnzimmer 21.5 °C` |',
+    '| `[[0_userdata.0.Status]]` | den Inhalt des Datenpunkts |',
+    '',
+    'Mehrere Tokens pro Name sind erlaubt, JSON-Pfade (`[[dp?battery.soc]]`) ebenfalls; Booleans erscheinen als `AN` / `AUS`. In einer [Popup-View](../einstellungen/popups#platzhalter) kombinierbar mit `{{parent}}`.',
+    '',
+);
 writeFileSync(`${DOCS}/index.md`, indexLines.join('\n'));
 console.log('wrote index.md');
 
@@ -65,6 +76,7 @@ const sidebar = GROUPS.map((grp) => ({
     collapsed: grp.id !== 'control',
     items: byGroup(grp.id).map((it) => ({ text: it.label, link: `/widgets/${it.slug}` })),
 })).filter((g) => g.items.length);
+sidebar.unshift({ text: 'Bildpfade', link: '/widgets/bildpfade' });
 sidebar.unshift({ text: 'Referenz (Primer)', link: '/widgets/referenz' });
 sidebar.unshift({ text: 'Übersicht', link: '/widgets/' });
 sidebar.push({ text: 'Konzepte', items: [{ text: 'Custom-Layout', link: '/widgets/custom-layout' }] });

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-08-18",
+  "generatedAt": "2026-08-19",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -1632,6 +1632,153 @@
       "screenshots": {
         "hero": "assets/panels/runtime.png",
         "config": "assets/panels/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "menu",
+      "slug": "menue",
+      "label": "Menü",
+      "group": "layout",
+      "hint": "Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten.",
+      "defaultGrid": {
+        "w": 12,
+        "h": 2
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [
+        {
+          "key": "menuMode",
+          "type": "enum",
+          "enum": [
+            "section",
+            "tab"
+          ],
+          "default": "section",
+          "note": "Bereiche des Layouts bzw. Tabs des Bereichs"
+        },
+        {
+          "key": "hiddenItems",
+          "type": "string[]",
+          "default": "[]",
+          "note": "abgewählte Einträge (Slug oder ID)"
+        },
+        {
+          "key": "variant",
+          "type": "enum",
+          "enum": [
+            "hbar",
+            "pills",
+            "vlist",
+            "grid"
+          ],
+          "default": "hbar"
+        },
+        {
+          "key": "indicatorStyle",
+          "type": "enum",
+          "enum": [
+            "text",
+            "underline",
+            "filled",
+            "pills"
+          ],
+          "default": "underline",
+          "note": "Aktiv-Stil; variant pills erzwingt pills"
+        },
+        {
+          "key": "align",
+          "type": "enum",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ],
+          "default": "start",
+          "note": "wirkt bei hbar und pills"
+        },
+        {
+          "key": "gridCols",
+          "type": "number",
+          "default": "3",
+          "note": "nur variant grid (1–12)"
+        },
+        {
+          "key": "gap",
+          "type": "number(px)",
+          "default": "6"
+        },
+        {
+          "key": "iconSize",
+          "type": "number(px)",
+          "default": "18"
+        },
+        {
+          "key": "showIcons",
+          "type": "boolean",
+          "default": "true",
+          "note": "Icons stammen aus Bereich/Tab, nicht aus dem Widget"
+        },
+        {
+          "key": "showLabels",
+          "type": "boolean",
+          "default": "true"
+        }
+      ],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/menue/variant-hbar.png",
+        "config": "assets/menue/config.png",
+        "shots": {}
+      }
+    },
+    {
+      "type": "mirror",
+      "slug": "spiegel",
+      "label": "Spiegel",
+      "group": "layout",
+      "hint": "Zeigt ein vorhandenes Widget live an einer zweiten Stelle an – kein Duplikat: Änderungen an der Quelle wirken sofort mit.",
+      "defaultGrid": {
+        "w": 8,
+        "h": 4
+      },
+      "layouts": [
+        "default"
+      ],
+      "options": [
+        {
+          "key": "targetWidgetId",
+          "type": "string",
+          "default": "—",
+          "note": "ID des Quell-Widgets; Inhalt, Titel und Werte kommen live von dort"
+        },
+        {
+          "key": "transparent",
+          "type": "boolean",
+          "default": "false",
+          "note": "Rahmen des Spiegels; beim Auswählen von der Quelle übernommen"
+        },
+        {
+          "key": "transparency",
+          "type": "number",
+          "default": "—",
+          "note": "wie transparent"
+        },
+        {
+          "key": "styleOverride",
+          "type": "Record<string,string>",
+          "default": "—",
+          "note": "wie transparent"
+        }
+      ],
+      "crosscutting": [],
+      "customComponentKeys": null,
+      "screenshots": {
+        "hero": "assets/spiegel/runtime.png",
+        "config": "assets/spiegel/config.png",
         "shots": {}
       }
     }
