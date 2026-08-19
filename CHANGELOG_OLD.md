@@ -1,5 +1,14 @@
 # Changelog (older entries)
 
+## 0.44.0 (2026-08-12)
+- 🌟 **New feature:** The name of every widget, and the popup heading, resolve [[dp.id]] to that datapoint's live value, e.g. "Living room [[0_userdata.0.Temp]] °C"
+- Popup heading now also resolves the {{dp}} / {{parent}} / {{name}} placeholders - for a list row against the clicked row, so one heading serves every row
+- 🌟 **New feature:** Dynamic list - second line with additional datapoints, either per entry or as one template for every row via {{parent}} / {{dp}} / {{name}} placeholders, e.g. {{parent}}.BATTERY
+- 🌟 **New feature:** Dynamic list - template rows whose datapoint a device does not have are left out instead of showing a dash
+- 🌟 **New feature:** List and dynamic list - own display filters instead of just "only active / only inactive": rules with operator and value on the main datapoint, on the extra datapoints of the second line or on both, combined with AND/OR and offered by name in the filter menu
+- 🌟 **New feature:** List and dynamic list - the filter value can be picked from the values the configured datapoints currently hold, and the editor shows live how many entries a filter matches
+- 🌟 **New feature:** List and dynamic list - free-text search in the filter menu, matching the row name, the datapoint id and every value of a row
+
 ## 0.43.3 (2026-08-11)
 - 🌟 **New feature:** Custom layout - column widths can now be set to "auto" (as wide as the content) instead of a ratio, so icon/title columns stay in place when the widget is rendered full-width on mobile
 - Static and dynamic list - display-only value conversion (presets such as Wh to kWh, or a custom factor/offset) and time/date formatting, configurable per datapoint or list-wide, just like the value widget

@@ -115,6 +115,17 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.47.14 (2026-08-19)
+- Mirror - every widget type can be mirrored now; the menu widget reported an unknown type
+- Menu - a mirrored menu shows the layout being edited instead of the first one
+- Advanced chart - stacked areas are now filled with the colour you picked instead of a paler mix with the background ([#557](https://github.com/hdering/ioBroker.aura/issues/557))
+- 🌟 **New feature:** Advanced chart - new "Area opacity" option per series sets the fill strength of its area ([#557](https://github.com/hdering/ioBroker.aura/issues/557))
+- 🌟 **New feature:** Chart & Climate - new "Horizontal grid lines" option draws helper lines at the y values, like in the advanced chart ([#558](https://github.com/hdering/ioBroker.aura/issues/558))
+- List - the "+/-" display now colours its value with the configured colour scale ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
+- Value, Dimmer, Shutter, Thermostat & List - colour scales no longer depend on the order the thresholds were entered in ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
+- List - the global colour scale now sits in "Werte & Farben" next to the other list-wide colours ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
+
+
 ### 0.47.13 (2026-08-18)
 Release v0.47.13
 
@@ -215,16 +226,6 @@ Release v0.47.13
 - 🌟 **New feature:** Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals ([#531](https://github.com/hdering/ioBroker.aura/issues/531))
 
 
-### 0.44.0 (2026-08-12)
-- 🌟 **New feature:** The name of every widget, and the popup heading, resolve [[dp.id]] to that datapoint's live value, e.g. "Living room [[0_userdata.0.Temp]] °C"
-- Popup heading now also resolves the {{dp}} / {{parent}} / {{name}} placeholders - for a list row against the clicked row, so one heading serves every row
-- 🌟 **New feature:** Dynamic list - second line with additional datapoints, either per entry or as one template for every row via {{parent}} / {{dp}} / {{name}} placeholders, e.g. {{parent}}.BATTERY
-- 🌟 **New feature:** Dynamic list - template rows whose datapoint a device does not have are left out instead of showing a dash
-- 🌟 **New feature:** List and dynamic list - own display filters instead of just "only active / only inactive": rules with operator and value on the main datapoint, on the extra datapoints of the second line or on both, combined with AND/OR and offered by name in the filter menu
-- 🌟 **New feature:** List and dynamic list - the filter value can be picked from the values the configured datapoints currently hold, and the editor shows live how many entries a filter matches
-- 🌟 **New feature:** List and dynamic list - free-text search in the filter menu, matching the row name, the datapoint id and every value of a row
-
-
 ## License
 
 MIT License
@@ -236,6 +237,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

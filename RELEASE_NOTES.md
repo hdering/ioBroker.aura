@@ -6,11 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- Mirror - every widget type can be mirrored now; the menu widget reported an unknown type
-- Menu - a mirrored menu shows the layout being edited instead of the first one
-- Advanced chart - stacked areas are now filled with the colour you picked instead of a paler mix with the background (#557)
-- Advanced chart - new "Area opacity" option per series sets the fill strength of its area (#557)
-- Chart & Climate - new "Horizontal grid lines" option draws helper lines at the y values, like in the advanced chart (#558)
-- List - the "+/-" display now colours its value with the configured colour scale (#559)
-- Value, Dimmer, Shutter, Thermostat & List - colour scales no longer depend on the order the thresholds were entered in (#559)
-- List - the global colour scale now sits in "Werte & Farben" next to the other list-wide colours (#559)
