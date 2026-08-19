@@ -1252,6 +1252,8 @@ export const en: Record<TranslationKey, string> = {
     'echart.showYAxisRight': 'Show right Y axis',
     'echart.showXAxis': 'Show X axis',
     'echart.gridLines': 'Horizontal grid lines',
+    'echart.areaOpacity': 'Area opacity: {value}%',
+    'echart.areaOpacityAuto': 'Area opacity: auto ({value}%)',
     'echart.showCurrentValue': 'Show current value',
     'echart.currentValueSource': 'Current value is',
     'echart.currentValueFirst': 'First value',

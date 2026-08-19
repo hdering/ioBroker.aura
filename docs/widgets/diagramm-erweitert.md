@@ -96,6 +96,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartCurrentAlign` | `right`                                   | Position der Anzeige in der Kopfzeile: `right` · `left`                                                 |
 | `echartShowValues`   | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) |
 | `echartShowLegend`   | `true`                                    | Legende anzeigen                                                                                        |
+| `echartAreaOpacity`  | Auto                                      | Deckkraft der Flächen in Prozent (10–100); Auto = gestapelt 100 %, einzelne Fläche 20 %                 |
 | `decimals`           | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung                         |
 
 ### Serien
@@ -119,13 +120,16 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 `Stapeln` je Serie: die Serie wird auf die anderen gestapelten Serien **derselben Y-Achse** addiert —
 z. B. Speicher-Entladung 150 W + Netzbezug 50 W als Bänder, die zusammen den Hausverbrauch von 200 W
-ergeben. Für Linie, Fläche und Balken; Flächen werden dabei kräftiger eingefärbt.
+ergeben. Für Linie, Fläche und Balken.
 
 - Linke und rechte Y-Achse stapeln getrennt — Werte zweier verschieden skalierter Achsen zu addieren
   ergäbe keine sinnvolle Zahl.
 - Eine gestapelte Achse beginnt bei 0, damit die Bandhöhen den Werten entsprechen. Ein gesetztes
   `Min` hat weiterhin Vorrang.
 - Der Tooltip zeigt weiter den Einzelwert jeder Serie und zusätzlich eine Zeile `Σ Summe`.
+- Gestapelte Flächen sind deckend gefüllt: das Band zeigt genau die gewählte Farbe, wie Legende und
+  Farbwähler. Bänder liegen übereinander statt voreinander, Transparenz würde die Farbe nur mit dem
+  Hintergrund mischen. Weicher per `Flächen-Deckkraft` in den Anzeige-Optionen.
 - Gestapelte Flächen werden ohne Kontur gezeichnet: die Kontur läge auf der Oberkante des Bandes
   darunter, eine Serie mit Wert 0 sähe also aus wie eine Linie ohne Fläche. Bei Bedarf per
   `Bandkontur` je Serie wieder einschalten — der Wert 0 bleibt in Tooltip und `Σ Summe` erhalten.

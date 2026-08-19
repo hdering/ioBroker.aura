@@ -50,6 +50,22 @@ export function outlineWidthFor(s: StackableSeries): number {
 }
 
 /**
+ * Fill opacity of an area series, 0–1.
+ *
+ * A stack is drawn opaque: its bands sit on top of each other and never overlap, so transparency
+ * reveals nothing — it only mixes the series colour with the background, and the band ends up a
+ * paler shade than the colour picked in the editor and shown in the legend (issue #557). An
+ * unstacked area does overlap the series behind it and therefore stays a wash to see through.
+ *
+ * `override` comes from the widget option `echartAreaOpacity` (percent in the config, a fraction
+ * here) and replaces both defaults for every area of the chart.
+ */
+export function areaOpacityFor(s: StackableSeries, override?: number): number {
+    if (typeof override === 'number' && Number.isFinite(override)) return Math.min(1, Math.max(0, override));
+    return s.stack ? 1 : 0.2;
+}
+
+/**
  * Value of a series at `ts`: the last point at or before it, `null` before the series starts.
  * `cursor` walks forward across calls, so a whole timeline costs one pass over the points.
  */

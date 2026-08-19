@@ -43,7 +43,13 @@ import {
     type MessageScope,
 } from '../store/messagesStore';
 import { useThemeStore } from '../store/themeStore';
-import { alignStackedSeries, outlineWidthFor, type StackableSeries, type StackPoint } from '../utils/stackedSeries';
+import {
+    alignStackedSeries,
+    areaOpacityFor,
+    outlineWidthFor,
+    type StackableSeries,
+    type StackPoint,
+} from '../utils/stackedSeries';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
 import { NS } from '../utils/namespace';
 import type { AuraMessage, MessageSeverity, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
@@ -411,6 +417,13 @@ function installScreenshotApi(): void {
          *  would otherwise draw a full-width line wherever the series sits at 0 (issue #541). */
         seriesLineWidth(series: StackableSeries): number {
             return outlineWidthFor(series);
+        },
+
+        /** Fill opacity the advanced chart gives an area series. A stacked band is opaque, so it
+         *  shows the colour that was picked instead of a paler mix with the background
+         *  (issue #557); `override` is the widget's `echartAreaOpacity` as a fraction. */
+        seriesAreaOpacity(series: StackableSeries, override?: number): number {
+            return areaOpacityFor(series, override);
         },
 
         /** What the chart on screen actually plots, per series: name, point count and the

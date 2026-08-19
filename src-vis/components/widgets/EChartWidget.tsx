@@ -18,7 +18,7 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
-import { alignStackedSeries, outlineWidthFor, stackIdFor } from '../../utils/stackedSeries';
+import { alignStackedSeries, areaOpacityFor, outlineWidthFor, stackIdFor } from '../../utils/stackedSeries';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
@@ -104,6 +104,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartShowYAxisRight = echartShowYAxis && ((o.echartShowYAxisRight as boolean | undefined) ?? true);
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
+    // Fill opacity of every area series, percent in the config and a fraction for echarts. Unset
+    // leaves it to `areaOpacityFor`: a stack keeps the colour it was given, a single area a wash.
+    const echartAreaOpacityPct = o.echartAreaOpacity as number | undefined;
+    const areaOpacity = typeof echartAreaOpacityPct === 'number' ? echartAreaOpacityPct / 100 : undefined;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     // Rolling payloads can be sorted newest-first, so the "current" value is then the leftmost
     // point instead of the rightmost one (issue #549). Position of the block is free as well.
@@ -641,9 +645,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             return {
                 name: s.name,
                 type: s.chartType === 'area' ? 'line' : s.chartType,
-                // Stacked areas are read as bands, not as curves in front of each other — a 0.2 wash
-                // leaves the bands barely distinguishable from the background they sit on.
-                areaStyle: s.chartType === 'area' ? { opacity: s.stack ? 0.6 : 0.2 } : undefined,
+                // Stacked areas are read as bands, not as curves in front of each other, and are
+                // therefore filled with the colour they were given — see `areaOpacityFor`.
+                areaStyle: s.chartType === 'area' ? { opacity: areaOpacityFor(s, areaOpacity) } : undefined,
                 stack: stackIdFor(s),
                 smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
                 smoothMonotone: 'x',
@@ -843,7 +847,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         return {
             name: s.name,
             type: s.chartType === 'area' ? 'line' : s.chartType,
-            areaStyle: s.chartType === 'area' ? { opacity: s.stack ? 0.6 : 0.2 } : undefined,
+            // A band is filled with the colour it was given, a single area stays a wash — see
+            // `areaOpacityFor`; `echartAreaOpacity` overrides both.
+            areaStyle: s.chartType === 'area' ? { opacity: areaOpacityFor(s, areaOpacity) } : undefined,
             stack: stackIdFor(s),
             smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
             // Monotone smoothing never overshoots the data — a flat run of equal values

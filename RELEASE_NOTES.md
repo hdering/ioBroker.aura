@@ -8,3 +8,5 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Mirror - every widget type can be mirrored now; the menu widget reported an unknown type
 - Menu - a mirrored menu shows the layout being edited instead of the first one
+- Advanced chart - stacked areas are now filled with the colour you picked instead of a paler mix with the background (#557)
+- Advanced chart - new "Area opacity" option in the display settings sets the fill strength of all area series (#557)
