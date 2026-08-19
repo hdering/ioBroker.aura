@@ -7,7 +7,7 @@ import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } fro
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
-import { getThresholdColor } from '../../utils/colorThresholds';
+import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
@@ -75,7 +75,7 @@ export interface StaticListEntry extends EntryControlConfig {
     falseLabel?: string;
     writable?: boolean; // false = read-only; undefined/true = writable
     icon?: string;
-    colorThresholds?: [number, string][]; // [[maxExclusive, color], …] ascending
+    colorThresholds?: ColorThreshold[]; // [[maxExclusive, colour], …] in any order
     /** Per-DP text color when on/true/>0. Overrides global activeColor. */
     activeColor?: string;
     /** Per-DP text color when off/false/0. Overrides global inactiveColor. */
@@ -151,6 +151,8 @@ export interface StaticListOptions
     trueText?: string;
     /** Global default label for off/false/0 state (fallback when entry has no falseLabel). */
     falseText?: string;
+    /** Colour scale for numeric values. Per-DP colorThresholds overrides (see utils/colorThresholds). */
+    colorThresholds?: ColorThreshold[];
     /** Global text color when on. Per-DP activeColor overrides. Default: green. */
     activeColor?: string;
     /** Global text color when off. Per-DP inactiveColor overrides. */
@@ -347,7 +349,7 @@ function EntryValue({
     val: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
-    globalThresholds?: [number, string][];
+    globalThresholds?: ColorThreshold[];
     decimals: number;
     numFmt?: NumberFormat;
     activeColor: string;
@@ -1034,7 +1036,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const valueMaxPct = 100 - labelMinPct;
     const labelContainerStyle: React.CSSProperties | undefined = wrap ? { minWidth: `${labelMinPct}%` } : undefined;
 
-    const globalThresholds = o.colorThresholds as [number, string][] | undefined;
+    const globalThresholds = opts.colorThresholds;
     const globalActiveColor = opts.activeColor || 'var(--accent-green)';
     const globalInactiveColor = opts.inactiveColor || 'var(--text-secondary)';
     const globalActiveBg = opts.activeBg;

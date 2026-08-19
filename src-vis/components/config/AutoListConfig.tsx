@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Plus } from 'lucide-react';
 import { ValueFormatRow } from './ValueFormatRow';
 import { ValueTransformFields } from './ValueTransformFields';
+import { ColorThresholdsEditor } from './ColorThresholdsEditor';
 import type { WidgetConfig } from '../../types';
 import type { AutoListOptions, AutoListEntry } from '../widgets/AutoListWidget';
 import { useT } from '../../i18n';
@@ -472,6 +473,17 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     </div>
                     <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
                         Defaults pro Widget. Pro DP überschreibbar.
+                    </p>
+                </div>
+                {/* ── Farbschwellen (global) ── */}
+                <div>
+                    <ColorThresholdsEditor
+                        label="Farbschwellen (global)"
+                        thresholds={opts.colorThresholds ?? []}
+                        onChange={(next) => setOpts({ colorThresholds: next.length ? next : undefined })}
+                    />
+                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                        Färbt den Werttext jeder Zeile.
                     </p>
                 </div>
             </ConfigSection>

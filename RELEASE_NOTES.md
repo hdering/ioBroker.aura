@@ -13,3 +13,4 @@
 - Chart & Climate - new "Horizontal grid lines" option draws helper lines at the y values, like in the advanced chart (#558)
 - List - the "+/-" display now colours its value with the configured colour scale (#559)
 - Value, Dimmer, Shutter, Thermostat & List - colour scales no longer depend on the order the thresholds were entered in (#559)
+- List - the global colour scale now sits in "Werte & Farben" next to the other list-wide colours (#559)

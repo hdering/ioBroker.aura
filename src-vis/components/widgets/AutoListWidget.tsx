@@ -6,7 +6,7 @@ import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { isRelevantDp } from '../../utils/dpRelevance';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
-import { getThresholdColor } from '../../utils/colorThresholds';
+import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
@@ -96,6 +96,8 @@ export interface AutoListEntry extends EntryControlConfig {
 export interface AutoListOptions
     extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings, ListFilterOptions {
     entries: AutoListEntry[];
+    /** Colour scale for the numeric values of every row (see utils/colorThresholds). */
+    colorThresholds?: ColorThreshold[];
     filterRoles?: string;
     filterIdPattern?: string;
     filterRooms?: string;
@@ -498,7 +500,7 @@ function EntryValue({
     val: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
-    thresholds?: [number, string][];
+    thresholds?: ColorThreshold[];
     decimals: number;
     numFmt?: NumberFormat;
     activeColor: string;
@@ -682,7 +684,7 @@ function CardEntryValue({
     val: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
-    thresholds?: [number, string][];
+    thresholds?: ColorThreshold[];
     decimals: number;
     numFmt?: NumberFormat;
     activeColor: string;
@@ -1294,7 +1296,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
               })()
             : null;
 
-    const globalThresholds = o.colorThresholds as [number, string][] | undefined;
+    const globalThresholds = opts.colorThresholds;
     const globalActiveColor = opts.activeColor || 'var(--accent-green)';
     const globalInactiveColor = opts.inactiveColor || 'var(--text-secondary)';
     const globalActiveBg = opts.activeBg;

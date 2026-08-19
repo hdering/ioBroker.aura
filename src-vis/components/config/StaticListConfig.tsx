@@ -18,6 +18,7 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import type { NameSource } from '../../utils/nameFilter';
 import { NameDisplayFields } from './NameDisplayFields';
 import { ValueTransformFields } from './ValueTransformFields';
+import { ColorThresholdsEditor } from './ColorThresholdsEditor';
 import { StaticEntryDetail } from './list/StaticEntryDetail';
 import { DividerDetail } from './list/DividerDetail';
 import { DatapointManagerField } from './list/DatapointManagerField';
@@ -393,6 +394,17 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     </div>
                     <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
                         Defaults pro Widget. Pro DP überschreibbar.
+                    </p>
+                </div>
+                {/* ── Farbschwellen (global) ── */}
+                <div>
+                    <ColorThresholdsEditor
+                        label="Farbschwellen (global)"
+                        thresholds={opts.colorThresholds ?? []}
+                        onChange={(next) => setOpts({ colorThresholds: next.length ? next : undefined })}
+                    />
+                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                        Färbt den Werttext jedes Datenpunkts ohne eigene Skala (Datenpunkte verwalten → Farbschwellen).
                     </p>
                 </div>
             </ConfigSection>

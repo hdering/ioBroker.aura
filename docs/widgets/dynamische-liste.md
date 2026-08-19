@@ -162,6 +162,7 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `activeBg` / `inactiveBg` | — | Hintergrund des Eintrags je Zustand |
 | `valueTransform` / `valueFactor` / `valueOffset` | — | globale [Wert-Umrechnung](./liste#wert-umrechnung-zeit) (Eintrag überschreibt) |
 | `valueTimeFormat` / `valueTimePattern` | — | globale Zeit-Formatierung (Eintrag überschreibt) |
+| `colorThresholds` | — | Farbskala aus `[Schwelle, Farbe]`, z. B. `[[17,"#ef4444"],[100,"#22c55e"]]` — der Wert nimmt die Farbe der ersten Schwelle, unter der er liegt, oberhalb der letzten bleibt deren Farbe. Reihenfolge beliebig |
 
 ### Anzeige-Filter
 
