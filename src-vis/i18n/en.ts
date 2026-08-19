@@ -854,6 +854,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.history.showYAxis': 'Show Y-axis',
     'wf.history.yAxisCompact': 'Compact (7000 → 7K)',
     'wf.history.showXAxis': 'Show X-axis',
+    'wf.history.gridLines': 'Horizontal grid lines',
 
     // Calendar config
     'wf.cal.addCalendar': 'Add Calendar',

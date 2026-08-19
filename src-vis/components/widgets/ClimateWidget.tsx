@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, ReferenceLine } from 'recharts';
+import { AreaChart, Area, CartesianGrid, ResponsiveContainer, Tooltip, YAxis, XAxis, ReferenceLine } from 'recharts';
 import { Thermometer, Droplets, Gauge, Loader, BarChart2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
@@ -82,6 +82,7 @@ export function ClimateWidget({ config }: WidgetProps) {
     const lockRange = o.lockRange === true;
     const showYAxis = o.showYAxis === true;
     const yAxisCompact = o.yAxisCompact !== false;
+    const showGridLines = o.showGridLines === true;
     const showAverage = o.showAverage === true;
     const showAverageAsValue = o.showAverageAsValue === true;
     const avgColor = (o.avgColor as string | undefined) ?? lineColor;
@@ -304,6 +305,9 @@ export function ClimateWidget({ config }: WidgetProps) {
                                             <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
+                                    {showGridLines && (
+                                        <CartesianGrid horizontal vertical={false} stroke="var(--app-border)" />
+                                    )}
                                     <YAxis
                                         domain={['auto', 'auto']}
                                         hide={!showYAxis}

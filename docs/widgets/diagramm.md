@@ -65,6 +65,7 @@ Presets (z. B. `W → kW`, `Wh → kWh`) füllen die Einheit gleich mit.
 | `showYAxis` | `false` | Y-Achse anzeigen |
 | `yAxisCompact` | `true` | kompakte Y-Achsen-Beschriftung |
 | `showXAxis` | `true` | X-Achse (Zeit) anzeigen |
+| `showGridLines` | `false` | horizontale Hilfslinien an den Y-Werten |
 
 ### Linie & Durchschnitt
 

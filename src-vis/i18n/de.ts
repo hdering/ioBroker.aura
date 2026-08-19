@@ -855,6 +855,7 @@ export const de = {
     'wf.history.showYAxis': 'Y-Achse anzeigen',
     'wf.history.yAxisCompact': 'Kompakt (7000 → 7K)',
     'wf.history.showXAxis': 'X-Achse anzeigen',
+    'wf.history.gridLines': 'Horizontale Linien',
 
     // Calendar config
     'wf.cal.addCalendar': 'Kalender hinzufügen',

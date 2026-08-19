@@ -70,6 +70,7 @@ Das Diagramm erscheint nur, wenn `showChart` aktiv ist und eine `historyInstance
 | --- | --- | --- |
 | `showYAxis` | `false` | Y-Achse einblenden |
 | `yAxisCompact` | `true` | kompakte Tick-Formatierung |
+| `showGridLines` | `false` | horizontale Hilfslinien an den Y-Werten |
 | `showAverage` | `false` | Durchschnittslinie im Diagramm |
 | `showAverageAsValue` | `false` | Durchschnitt als Ø-Wert unter der Temperatur |
 | `avgColor` | wie `lineColor` | Farbe von Linie/Wert |

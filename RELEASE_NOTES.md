@@ -10,3 +10,4 @@
 - Menu - a mirrored menu shows the layout being edited instead of the first one
 - Advanced chart - stacked areas are now filled with the colour you picked instead of a paler mix with the background (#557)
 - Advanced chart - new "Area opacity" option per series sets the fill strength of its area (#557)
+- Chart & Climate - new "Horizontal grid lines" option draws helper lines at the y values, like in the advanced chart (#558)

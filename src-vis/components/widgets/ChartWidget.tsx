@@ -1,5 +1,16 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { LineChart, Line, AreaChart, Area, ResponsiveContainer, Tooltip, YAxis, XAxis, ReferenceLine } from 'recharts';
+import {
+    LineChart,
+    Line,
+    AreaChart,
+    Area,
+    CartesianGrid,
+    ResponsiveContainer,
+    Tooltip,
+    YAxis,
+    XAxis,
+    ReferenceLine,
+} from 'recharts';
 import { TrendingUp, BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
@@ -65,6 +76,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const showYAxis = o.showYAxis === true;
     const yAxisCompact = o.yAxisCompact !== false;
     const showXAxis = o.showXAxis !== false;
+    const showGridLines = o.showGridLines === true;
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, TrendingUp);
 
     // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
@@ -159,6 +171,10 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     };
 
     const tickStyle = { fontSize: Math.round(10 * fontScale), fill: 'var(--text-secondary)' };
+
+    // Horizontal helper lines at the y ticks (issue #558) — drawn even when the y axis itself is
+    // hidden, recharts computes the tick positions either way.
+    const gridLines = showGridLines ? <CartesianGrid horizontal vertical={false} stroke="var(--app-border)" /> : null;
 
     const noData = (
         <div
@@ -317,6 +333,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                                             <stop offset="95%" stopColor={lineColor} stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
+                                    {gridLines}
                                     <YAxis
                                         domain={['auto', 'auto']}
                                         hide={!showYAxis}
@@ -428,6 +445,7 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
                     hasSize ? (
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={history}>
+                                {gridLines}
                                 <YAxis
                                     domain={['auto', 'auto']}
                                     hide={!showYAxis}

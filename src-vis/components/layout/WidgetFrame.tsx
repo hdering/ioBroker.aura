@@ -1152,6 +1152,18 @@ function ChartHistoryConfig({
                             {t('wf.history.showXAxis')}
                         </span>
                     </label>
+                    {/* Horizontale Hilfslinien */}
+                    <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={(o.showGridLines as boolean | undefined) ?? false}
+                            onChange={(e) => set({ showGridLines: e.target.checked })}
+                            className="rounded"
+                        />
+                        <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('wf.history.gridLines')}
+                        </span>
+                    </label>
                 </div>
             )}
 
