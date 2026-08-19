@@ -8,7 +8,6 @@ import React, {
     useSyncExternalStore,
     Suspense,
 } from 'react';
-import { lazyWithReload } from '../../utils/lazyWithReload';
 import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '../../utils/perfBreakdown';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
@@ -74,7 +73,7 @@ import type {
     WidgetLayout,
 } from '../../types';
 import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
-import { DEFAULT_KNOB_GRID, KnobWidget } from '../widgets/KnobWidget';
+import { DEFAULT_KNOB_GRID } from '../widgets/KnobWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { CellConditionEditor } from '../config/CellConditionEditor';
@@ -115,104 +114,44 @@ import {
 } from '../../hooks/useChartHistory';
 import { useConditionStyle, notifyHiddenState } from '../../hooks/useConditionStyle';
 import { widgetSourceCtx } from '../../utils/conditionSources';
-import { SwitchWidget } from '../widgets/SwitchWidget';
-import { ValueWidget } from '../widgets/ValueWidget';
-import { DimmerWidget } from '../widgets/DimmerWidget';
-import { ThermostatWidget } from '../widgets/ThermostatWidget';
-// Chart widgets are heavy (recharts ~380 KB, echarts ~1.1 MB) and only used on
-// dashboards that actually have chart widgets — lazy-loaded so they don't
-// block first paint of the rest of the dashboard.
-const ChartWidget = lazyWithReload(() => import('../widgets/ChartWidget').then((m) => ({ default: m.ChartWidget })));
-const ClimateWidget = lazyWithReload(() =>
-    import('../widgets/ClimateWidget').then((m) => ({ default: m.ClimateWidget })),
-);
-const AirControlWidget = lazyWithReload(() =>
-    import('../widgets/AirControlWidget').then((m) => ({ default: m.AirControlWidget })),
-);
-const EChartWidget = lazyWithReload(() => import('../widgets/EChartWidget').then((m) => ({ default: m.EChartWidget })));
-const EChartsPresetWidget = lazyWithReload(() =>
-    import('../widgets/EChartsPresetWidget').then((m) => ({ default: m.EChartsPresetWidget })),
-);
-// Map widget pulls in Leaflet (~150 KB + CSS) — lazy-load so only dashboards with a
-// map widget pay for it.
-const MapWidget = lazyWithReload(() => import('../widgets/MapWidget').then((m) => ({ default: m.MapWidget })));
-// LoadTimesWidget pulls in recharts — lazy-load like the other chart widgets.
-const LoadTimesWidget = lazyWithReload(() =>
-    import('../widgets/LoadTimesWidget').then((m) => ({ default: m.LoadTimesWidget })),
-);
-import { ListWidget } from '../widgets/ListWidget';
-import { ClockWidget } from '../widgets/ClockWidget';
 import {
-    CalendarWidget,
     getSources,
     extractCalNames,
     DEFAULT_CAL_COLORS,
     type CalendarSource,
     type CalendarSourceType,
 } from '../widgets/CalendarWidget';
-import { HeaderWidget } from '../widgets/HeaderWidget';
-// GroupWidget imports WidgetFrame (circular) — safe because it only uses WidgetFrame
-// inside its render function, never at module-init time.
-import { GroupWidget } from '../widgets/GroupWidget';
 import { EChartConfig } from '../config/EChartConfig';
-import { EvccWidget, EvccConfig } from '../widgets/EvccWidget';
+import { EvccConfig } from '../widgets/EvccWidget';
 
-import { WeatherWidget, buildWeatherCustomGrid } from '../widgets/WeatherWidget';
-import { GaugeWidget } from '../widgets/GaugeWidget';
-import { CameraWidget } from '../widgets/CameraWidget';
-import { ImageWidget } from '../widgets/ImageWidget';
-import { IframeWidget } from '../widgets/IframeWidget';
-import { FillWidget } from '../widgets/FillWidget';
-import { TrashWidget, TrashConfig } from '../widgets/TrashWidget';
-import { TrashScheduleWidget, TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
-import { AutoListWidget } from '../widgets/AutoListWidget';
-import { StatusOverviewWidget } from '../widgets/StatusOverviewWidget';
-import { MirrorWidget } from '../widgets/MirrorWidget';
+import { buildWeatherCustomGrid } from '../widgets/WeatherWidget';
+import { TrashConfig } from '../widgets/TrashWidget';
+import { TrashScheduleConfig } from '../widgets/TrashScheduleWidget';
+// Single source of truth for type → component. WidgetFrame, the mirror widget and the
+// popup/tab embeds all render through this one map, so a new widget type works everywhere.
+import { getWidgetMap } from '../widgets/widgetMap';
 import { MirrorConfig } from '../config/MirrorConfig';
 import { AirControlConfig } from '../config/AirControlConfig';
-import { EnergiebilanzWidget } from '../widgets/EnergiebilanzWidget';
-import { ShutterWidget } from '../widgets/ShutterWidget';
-import { JsonTableWidget } from '../widgets/JsonTableWidget';
-import { WindowContactWidget, WC_PRESETS, WC_PRESET_LABELS } from '../widgets/WindowContactWidget';
-import { BinarySensorWidget, BINARY_SENSOR_PRESETS } from '../widgets/BinarySensorWidget';
-import { StateImageWidget } from '../widgets/StateImageWidget';
+import { WC_PRESETS, WC_PRESET_LABELS } from '../widgets/WindowContactWidget';
+import { BINARY_SENSOR_PRESETS } from '../widgets/BinarySensorWidget';
 import { EChartsPresetConfig } from '../config/EChartsPresetConfig';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { ValueTransformButton } from '../config/ValueTransformButton';
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
-import { HtmlWidget } from '../widgets/HtmlWidget';
 import { HtmlConfig } from '../config/HtmlConfig';
 import { MapConfig } from '../config/MapConfig';
 import {
-    DatePickerWidget,
     FORMAT_LABELS,
     DATE_PATTERN_TOKENS,
     DEFAULT_DATE_PATTERN,
     type DateOutputFormat,
 } from '../widgets/DatePickerWidget';
 import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
-import { MediaplayerWidget } from '../widgets/MediaplayerWidget';
-import { SliderWidget } from '../widgets/SliderWidget';
-import { ChipsWidget } from '../widgets/ChipsWidget';
-import { MenuWidget } from '../widgets/MenuWidget';
-import { MessagesWidget } from '../widgets/MessagesWidget';
 import { MultiSelect } from '../config/MultiSelect';
 import { ToggleRow } from '../../pages/admin/layouts/shared/SettingControls';
-import { HttpRequestWidget } from '../widgets/HttpRequestWidget';
-import { ButtonWidget } from '../widgets/ButtonWidget';
-import { UniversalWidget } from '../widgets/UniversalWidget';
-import { EnumWidget } from '../widgets/EnumWidget';
-import { LightWidget } from '../widgets/LightWidget';
-import { CarouselWidget } from '../widgets/CarouselWidget';
-import { PanelsWidget } from '../widgets/PanelsWidget';
 
-import { TimerWidget } from '../widgets/TimerWidget';
-import { AdapterStatusWidget } from '../widgets/AdapterStatusWidget';
-import { ScriptStatusWidget } from '../widgets/ScriptStatusWidget';
-import { AdapterLogsWidget } from '../widgets/AdapterLogsWidget';
-import { InputWidget } from '../widgets/InputWidget';
-import { AlarmWidget, AlarmConfig } from '../widgets/AlarmWidget';
+import { AlarmConfig } from '../widgets/AlarmWidget';
 import { TimerConfig } from '../config/TimerConfig';
 import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
@@ -377,67 +316,6 @@ function ProfiledWidget({
     });
 
     return <>{children}</>;
-}
-
-// Defined as a function so it's evaluated lazily, avoiding circular-init issues.
-function getWidgetMap() {
-    return {
-        switch: SwitchWidget,
-        value: ValueWidget,
-        dimmer: DimmerWidget,
-        thermostat: ThermostatWidget,
-        chart: ChartWidget,
-        list: ListWidget,
-        clock: ClockWidget,
-        calendar: CalendarWidget,
-        header: HeaderWidget,
-        group: GroupWidget,
-        echart: EChartWidget,
-        evcc: EvccWidget,
-        weather: WeatherWidget,
-        gauge: GaugeWidget,
-        camera: CameraWidget,
-        autolist: AutoListWidget,
-        image: ImageWidget,
-        iframe: IframeWidget,
-        fill: FillWidget,
-        trash: TrashWidget,
-        trashSchedule: TrashScheduleWidget,
-        shutter: ShutterWidget,
-        jsontable: JsonTableWidget,
-        html: HtmlWidget,
-        windowcontact: WindowContactWidget,
-        binarysensor: BinarySensorWidget,
-        stateimage: StateImageWidget,
-        echartsPreset: EChartsPresetWidget,
-        datepicker: DatePickerWidget,
-        mediaplayer: MediaplayerWidget,
-        slider: SliderWidget,
-        chips: ChipsWidget,
-        httpRequest: HttpRequestWidget,
-        button: ButtonWidget,
-        climate: ClimateWidget,
-        aircontrol: AirControlWidget,
-        universal: UniversalWidget,
-        enum: EnumWidget,
-        light: LightWidget,
-        carousel: CarouselWidget,
-        panels: PanelsWidget,
-        knob: KnobWidget,
-        timer: TimerWidget,
-        adapterstatus: AdapterStatusWidget,
-        scriptstatus: ScriptStatusWidget,
-        adapterlogs: AdapterLogsWidget,
-        input: InputWidget,
-        alarm: AlarmWidget,
-        map: MapWidget,
-        statusoverview: StatusOverviewWidget,
-        energiebilanz: EnergiebilanzWidget,
-        loadtimes: LoadTimesWidget,
-        mirror: MirrorWidget,
-        menu: MenuWidget,
-        messages: MessagesWidget,
-    } as const;
 }
 
 // ── CalendarEditPanel ──────────────────────────────────────────────────────
