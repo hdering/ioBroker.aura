@@ -65,7 +65,9 @@
 | [Abschnittstitel](./abschnittstitel) | Trennlinie mit Überschrift zur Gliederung des Dashboards. |
 | [Button](./button) | Klick-Aktion auslösen (Datenpunkt schreiben, HTTP-Call, Szene …). |
 | [Gruppe](./gruppe) | Mehrere Widgets in einem gemeinsamen Rahmen gruppieren. |
+| [Menü](./menue) | Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten. |
 | [Panels](./panels) | Mehrere Widgets als swipebare Slides – Wischen, Pagination-Dots und Pfeil-Buttons. |
+| [Spiegel](./spiegel) | Zeigt ein vorhandenes Widget live an einer zweiten Stelle an – kein Duplikat: Änderungen an der Quelle wirken sofort mit. |
 
 ## Konzepte
 

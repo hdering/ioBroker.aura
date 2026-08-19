@@ -224,8 +224,16 @@
         "link": "/widgets/gruppe"
       },
       {
+        "text": "Menü",
+        "link": "/widgets/menue"
+      },
+      {
         "text": "Panels",
         "link": "/widgets/panels"
+      },
+      {
+        "text": "Spiegel",
+        "link": "/widgets/spiegel"
       }
     ]
   },

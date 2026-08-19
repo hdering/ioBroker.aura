@@ -10,7 +10,10 @@ const DOCS = 'docs/widgets';
 const EXISTING = {
     control: [{ slug: 'schalter', label: 'Schalter', hint: 'Ein/Aus-Schalter für Boolean-Datenpunkte (z. B. Lampe, Steckdose).' }],
     special: [{ slug: 'zeitschaltuhr', label: 'Zeitschaltuhr', hint: 'Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum.' }],
-    layout: [],
+    layout: [
+        { slug: 'menue', label: 'Menü', hint: 'Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten.' },
+        { slug: 'spiegel', label: 'Spiegel', hint: 'Zeigt ein vorhandenes Widget live an einer zweiten Stelle an – kein Duplikat: Änderungen an der Quelle wirken sofort mit.' },
+    ],
 };
 
 function page(w) {
