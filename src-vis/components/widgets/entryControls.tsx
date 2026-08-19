@@ -318,6 +318,7 @@ export function StepperControl({
     decimals = 0,
     numFmt,
     size = 24,
+    valueColor,
 }: {
     entry: EntryControlConfig & { id: string; unit?: string };
     val: ioBrokerState['val'];
@@ -325,6 +326,8 @@ export function StepperControl({
     decimals?: number;
     numFmt?: NumberFormat;
     size?: number;
+    /** Colour for the printed value, from the entry's colour thresholds. Unset = inherit. */
+    valueColor?: string;
 }) {
     const cur = typeof val === 'number' ? val : Number(val) || 0;
     const step = entry.stepStep ?? 1;
@@ -350,7 +353,10 @@ export function StepperControl({
             >
                 <Minus size={Math.round(size * 0.55)} />
             </button>
-            <span className="text-xs font-semibold tabular-nums min-w-[2.5ch] text-center">
+            <span
+                className="text-xs font-semibold tabular-nums min-w-[2.5ch] text-center"
+                style={{ color: valueColor }}
+            >
                 {typeof val === 'number' ? formatNum(cur, decimals, numFmt) : '–'}
                 {entry.unit ? ` ${entry.unit}` : ''}
             </span>

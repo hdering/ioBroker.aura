@@ -381,7 +381,8 @@ function EntryValue({
     // controls write their value back and must stay on the raw one. Thresholds
     // follow the shown value, so they are configured in display units.
     const disp = entryValueText(entry, listTransform, val, decimals, numFmt, t);
-    const thresholdColor = getThresholdColor(disp.value, entry.colorThresholds ?? globalThresholds);
+    const entryThresholds = entry.colorThresholds ?? globalThresholds;
+    const thresholdColor = getThresholdColor(disp.value, entryThresholds);
 
     // Optional confirmation before a switch-like write (like the Switch widget).
     // The pending action is captured and only run once the user confirms.
@@ -433,7 +434,18 @@ function EntryValue({
     // Rich control types — rendered by the shared entry-control components.
     if (displayType === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
     if (displayType === 'stepper')
-        return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} numFmt={numFmt} />;
+        return (
+            <StepperControl
+                entry={entry}
+                val={val}
+                setState={setState}
+                decimals={decimals}
+                numFmt={numFmt}
+                // The stepper prints the raw value (it writes it back), so its colour
+                // must be matched against that value, not the converted one.
+                valueColor={getThresholdColor(val, entryThresholds)}
+            />
+        );
     if (displayType === 'buttons')
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (displayType === 'momentary') return <MomentaryButton entry={entry} setState={setState} icon={entry.icon} />;

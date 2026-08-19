@@ -529,7 +529,18 @@ function EntryValue({
     const dt = entry.displayType ?? 'auto';
     if (dt === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
     if (dt === 'stepper')
-        return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} numFmt={numFmt} />;
+        return (
+            <StepperControl
+                entry={entry}
+                val={val}
+                setState={setState}
+                decimals={decimals}
+                numFmt={numFmt}
+                // The stepper prints the raw value (it writes it back), so its colour
+                // must be matched against that value, not the converted one.
+                valueColor={getThresholdColor(val, thresholds)}
+            />
+        );
     if (dt === 'buttons')
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
@@ -699,7 +710,18 @@ function CardEntryValue({
     const dt = entry.displayType ?? 'auto';
     if (dt === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
     if (dt === 'stepper')
-        return <StepperControl entry={entry} val={val} setState={setState} decimals={decimals} numFmt={numFmt} />;
+        return (
+            <StepperControl
+                entry={entry}
+                val={val}
+                setState={setState}
+                decimals={decimals}
+                numFmt={numFmt}
+                // The stepper prints the raw value (it writes it back), so its colour
+                // must be matched against that value, not the converted one.
+                valueColor={getThresholdColor(val, thresholds)}
+            />
+        );
     if (dt === 'buttons')
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
