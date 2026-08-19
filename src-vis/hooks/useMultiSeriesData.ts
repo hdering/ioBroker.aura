@@ -38,6 +38,12 @@ export interface EChartSeriesConfig {
      * `outlineWidthFor`. Only meaningful for a stacked area.
      */
     stackOutline?: boolean;
+    /**
+     * Fill opacity of an area in percent (10–100), unset = the default of `areaOpacityFor`: a
+     * stacked band is opaque so it shows the colour it was given, a single area stays a wash to
+     * see through (issue #557). Only meaningful for an area.
+     */
+    areaOpacity?: number;
     /** Absolute window override (ms epoch) — set by the widget's day navigation; wins over historyRange. */
     historyStart?: number;
     historyEnd?: number;

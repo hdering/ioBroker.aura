@@ -183,18 +183,24 @@ const align = (series, data) => page.evaluate(([s, d]) => window.__auraShot.stac
 // Bands never overlap, so a transparent fill only mixes the series colour with the background and
 // the result no longer matches the colour in the picker and in the legend.
 {
-    const fill = (s, override) =>
-        page.evaluate(([cfg, ov]) => window.__auraShot.seriesAreaOpacity(cfg, ov), [s, override]);
+    const fill = (s) => page.evaluate((cfg) => window.__auraShot.seriesAreaOpacity(cfg), s);
     check('a stacked band is opaque', (await fill({ stack: true, chartType: 'area' })) === 1);
     check(
         'the outline switch does not change the fill',
         (await fill({ stack: true, chartType: 'area', stackOutline: true })) === 1,
     );
     check('an unstacked area stays a wash', (await fill({ chartType: 'area' })) === 0.2);
-    check('the widget override wins for a band', (await fill({ stack: true, chartType: 'area' }, 0.5)) === 0.5);
-    check('the widget override wins for a single area', (await fill({ chartType: 'area' }, 0.9)) === 0.9);
-    check('an override above 1 is clamped', (await fill({ chartType: 'area' }, 1.4)) === 1);
-    check('an override of 0 is honoured rather than treated as unset', (await fill({ chartType: 'area' }, 0)) === 0);
+    check(
+        'the series own opacity wins for a band',
+        (await fill({ stack: true, chartType: 'area', areaOpacity: 50 })) === 0.5,
+    );
+    check('and for a single area', (await fill({ chartType: 'area', areaOpacity: 90 })) === 0.9);
+    check('each series is read on its own', (await fill({ stack: true, chartType: 'area', areaOpacity: 25 })) === 0.25);
+    check('a percentage above 100 is clamped', (await fill({ chartType: 'area', areaOpacity: 140 })) === 1);
+    check(
+        'an opacity of 0 is honoured rather than treated as unset',
+        (await fill({ chartType: 'area', areaOpacity: 0 })) === 0,
+    );
 }
 
 // ── 6. A stacked chart renders and still reports per-series values ───────────

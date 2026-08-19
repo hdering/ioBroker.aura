@@ -420,10 +420,10 @@ function installScreenshotApi(): void {
         },
 
         /** Fill opacity the advanced chart gives an area series. A stacked band is opaque, so it
-         *  shows the colour that was picked instead of a paler mix with the background
-         *  (issue #557); `override` is the widget's `echartAreaOpacity` as a fraction. */
-        seriesAreaOpacity(series: StackableSeries, override?: number): number {
-            return areaOpacityFor(series, override);
+         *  shows the colour that was picked instead of a paler mix with the background; the
+         *  series' own `areaOpacity` (percent) overrides that (issue #557). */
+        seriesAreaOpacity(series: StackableSeries): number {
+            return areaOpacityFor(series);
         },
 
         /** What the chart on screen actually plots, per series: name, point count and the

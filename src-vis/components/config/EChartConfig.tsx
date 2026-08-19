@@ -223,11 +223,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const usesRightAxis = series.some((s) => (s.yAxisIndex ?? 0) === 1);
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
-    // Fill opacity of the area series in percent; unset = per-series default (issue #557). Only
-    // worth showing once an area exists, and the slider starts at the default it would replace.
-    const echartAreaOpacity = o.echartAreaOpacity as number | undefined;
-    const areaSeries = series.filter((s) => s.chartType === 'area');
-    const autoAreaOpacity = areaSeries.some((s) => s.stack) ? 100 : 20;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
     const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
@@ -875,6 +870,57 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                         </div>
                                                     )}
 
+                                                {/* Fill strength of the area. Auto = a stacked band shows the colour
+                                                    it was given, a single area stays a wash (issue #557). */}
+                                                {s.chartType === 'area' && (
+                                                    <div>
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {s.areaOpacity === undefined
+                                                                ? t('echart.areaOpacityAuto', {
+                                                                      value: s.stack ? 100 : 20,
+                                                                  })
+                                                                : t('echart.areaOpacity', { value: s.areaOpacity })}
+                                                        </label>
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="range"
+                                                                min={10}
+                                                                max={100}
+                                                                step={5}
+                                                                value={s.areaOpacity ?? (s.stack ? 100 : 20)}
+                                                                onChange={(e) =>
+                                                                    updateSeries(s.id, {
+                                                                        areaOpacity: Number(e.target.value),
+                                                                    })
+                                                                }
+                                                                className="flex-1 accent-[var(--accent)]"
+                                                            />
+                                                            <button
+                                                                onClick={() =>
+                                                                    updateSeries(s.id, { areaOpacity: undefined })
+                                                                }
+                                                                className="text-[10px] px-2 py-1 rounded-lg shrink-0"
+                                                                style={{
+                                                                    background:
+                                                                        s.areaOpacity === undefined
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                    color:
+                                                                        s.areaOpacity === undefined
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                    border: `1px solid ${s.areaOpacity === undefined ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                }}
+                                                            >
+                                                                Auto
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 {isJson && (
                                                     <div>
                                                         <div
@@ -1396,40 +1442,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </button>
                 </div>
-
-                {/* Fill opacity of the area series. Auto = a stacked band shows the colour it was
-                    given, a single area stays a wash to see through (issue #557). */}
-                {areaSeries.length > 0 && (
-                    <div className="mb-2">
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            {echartAreaOpacity === undefined
-                                ? t('echart.areaOpacityAuto', { value: autoAreaOpacity })
-                                : t('echart.areaOpacity', { value: echartAreaOpacity })}
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <input
-                                type="range"
-                                min={10}
-                                max={100}
-                                step={5}
-                                value={echartAreaOpacity ?? autoAreaOpacity}
-                                onChange={(e) => setO({ echartAreaOpacity: Number(e.target.value) })}
-                                className="flex-1 accent-[var(--accent)]"
-                            />
-                            <button
-                                onClick={() => setO({ echartAreaOpacity: undefined })}
-                                className="text-[10px] px-2 py-1 rounded-lg shrink-0"
-                                style={{
-                                    background: echartAreaOpacity === undefined ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: echartAreaOpacity === undefined ? '#fff' : 'var(--text-secondary)',
-                                    border: `1px solid ${echartAreaOpacity === undefined ? 'var(--accent)' : 'var(--app-border)'}`,
-                                }}
-                            >
-                                Auto
-                            </button>
-                        </div>
-                    </div>
-                )}
 
                 {/* Show current value */}
                 <div className="flex items-center justify-between mb-2">

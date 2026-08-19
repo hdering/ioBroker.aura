@@ -18,6 +18,7 @@ export interface StackableSeries {
     chartType?: 'line' | 'bar' | 'area' | 'scatter';
     lineWidth?: number;
     stackOutline?: boolean;
+    areaOpacity?: number;
 }
 
 /** A plotted point: `[timestamp, value]`, `null` where the series has nothing to show. */
@@ -57,11 +58,12 @@ export function outlineWidthFor(s: StackableSeries): number {
  * paler shade than the colour picked in the editor and shown in the legend (issue #557). An
  * unstacked area does overlap the series behind it and therefore stays a wash to see through.
  *
- * `override` comes from the widget option `echartAreaOpacity` (percent in the config, a fraction
- * here) and replaces both defaults for every area of the chart.
+ * The series' own `areaOpacity` (percent, next to its colour in the editor) replaces both defaults.
  */
-export function areaOpacityFor(s: StackableSeries, override?: number): number {
-    if (typeof override === 'number' && Number.isFinite(override)) return Math.min(1, Math.max(0, override));
+export function areaOpacityFor(s: StackableSeries): number {
+    if (typeof s.areaOpacity === 'number' && Number.isFinite(s.areaOpacity)) {
+        return Math.min(1, Math.max(0, s.areaOpacity / 100));
+    }
     return s.stack ? 1 : 0.2;
 }
 
