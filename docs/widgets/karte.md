@@ -1,6 +1,8 @@
 # Karte
 
-Zeigt Positionen (Auto, Kind, Haustier …) aus Datenpunkten auf einer OpenStreetMap-Karte. Marker folgen live den Datenpunkten; optional wird die Entfernung zu einem Heimat-Marker eingeblendet. Schnellzugriff-Chips springen zu vordefinierten Orten.
+Zeigt Positionen (Auto, Kind, Haustier …) aus Datenpunkten auf einer OpenStreetMap-Karte. Marker folgen live den Datenpunkten; optional wird die Entfernung zu einem Heimat-Marker eingeblendet. Schnellzugriff-Chips springen zu vordefinierten Orten, ein optionaler Umschalter wechselt den Kartentyp im laufenden Betrieb.
+
+![](./assets/karte/runtime.png)
 
 ## Datenpunkt
 
@@ -31,6 +33,18 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `center` | Deutschland | `[lat, lon]` Startmittelpunkt |
 | `zoom` | `6` | Start-Zoom; bei `followMarkers` = max. Zoom des Auto-Fit |
 | `followMarkers` | `false` | Ansicht automatisch an alle Marker anpassen |
+
+### Kartentyp umschalten
+
+Chips über der Karte wechseln den Kartentyp im Frontend. Die Auswahl gilt nur für das jeweilige Gerät und fällt beim Neuladen auf den konfigurierten Kartentyp zurück. Eine eigene `tileUrl` wird angezeigt, bis im Frontend ein Kartentyp gewählt wird.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `showStyleChips` | `false` | Umschalter im Frontend anzeigen |
+| `styleChipsCorner` | `top-left` | `top-left` · `top-right` · `bottom-left` · `bottom-right` |
+| `styleChoices` | alle | angebotene Typen, z.B. `['standard', 'satellite']` |
+
+Liegen Umschalter und Schnellzugriff-Chips in derselben Ecke, stapeln sie sich untereinander.
 
 ### Marker & Entfernung
 

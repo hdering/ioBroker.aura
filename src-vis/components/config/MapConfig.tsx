@@ -49,6 +49,13 @@ function Toggle({ value, onToggle }: { value: boolean; onToggle: () => void }) {
     );
 }
 
+const CORNER_LABELS: { value: MapChipsCorner; label: string }[] = [
+    { value: 'top-left', label: 'Oben links' },
+    { value: 'top-right', label: 'Oben rechts' },
+    { value: 'bottom-left', label: 'Unten links' },
+    { value: 'bottom-right', label: 'Unten rechts' },
+];
+
 const MODE_LABELS: { value: MapMarkerMode; label: string }[] = [
     { value: 'json', label: 'JSON-/Objekt-DP (lat/lon)' },
     { value: 'latlon', label: 'Zwei DPs (Lat + Lon)' },
@@ -130,6 +137,18 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
         setQuickViews([...quickViews, { id: genId(), mode: 'static', label: '', emoji: '📍', color: '#2563eb' }]);
     const removeQuickView = (idx: number) => setQuickViews(quickViews.filter((_, i) => i !== idx));
 
+    // Runtime map-type switcher. An empty `styleChoices` means "offer all types",
+    // which is why the option is stored as undefined once nothing is picked.
+    const showStyleChips = o.showStyleChips === true;
+    const styleChipsCorner: MapChipsCorner = (o.styleChipsCorner as MapChipsCorner) || 'top-left';
+    const styleChoices: MapStyle[] = Array.isArray(o.styleChoices) ? (o.styleChoices as MapStyle[]) : [];
+    const toggleStyleChoice = (value: MapStyle) => {
+        const on = styleChoices.includes(value);
+        // Rebuild from MAP_STYLES so the chips keep the preset order while toggling.
+        const next = MAP_STYLES.map((s) => s.value).filter((s) => (s === value ? !on : styleChoices.includes(s)));
+        set({ styleChoices: next.length ? next : undefined });
+    };
+
     return (
         <div className="space-y-4">
             {/* ── Map style ── */}
@@ -154,6 +173,69 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                     <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                         Eigene Tile-URL ist gesetzt und überschreibt den Kartentyp.
                     </p>
+                )}
+            </div>
+
+            {/* ── Runtime map-type switcher ── */}
+            <div>
+                <div className="flex items-center justify-between">
+                    <label className={lblCls} style={lblSty}>
+                        Kartentyp im Frontend umschaltbar
+                    </label>
+                    <Toggle value={showStyleChips} onToggle={() => set({ showStyleChips: !showStyleChips })} />
+                </div>
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    Blendet Chips über der Karte ein, mit denen der Kartentyp im laufenden Betrieb gewechselt wird.
+                </p>
+
+                {showStyleChips && (
+                    <div className="mt-2 space-y-2">
+                        <div>
+                            <label className={lblCls} style={lblSty}>
+                                Ecke der Chips
+                            </label>
+                            <select
+                                value={styleChipsCorner}
+                                onChange={(e) => set({ styleChipsCorner: e.target.value as MapChipsCorner })}
+                                className={iCls}
+                                style={iSty}
+                            >
+                                {CORNER_LABELS.map((c) => (
+                                    <option key={c.value} value={c.value}>
+                                        {c.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className={lblCls} style={lblSty}>
+                                Auswählbare Kartentypen
+                            </label>
+                            <div className="flex flex-wrap gap-1">
+                                {MAP_STYLES.map((s) => {
+                                    const on = styleChoices.includes(s.value);
+                                    return (
+                                        <button
+                                            key={s.value}
+                                            type="button"
+                                            onClick={() => toggleStyleChoice(s.value)}
+                                            className="px-2 py-1 rounded-full text-[11px] hover:opacity-80"
+                                            style={{
+                                                background: on ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: on ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                        >
+                                            {s.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                                Ohne Auswahl werden alle Kartentypen angeboten.
+                            </p>
+                        </div>
+                    </div>
                 )}
             </div>
 
@@ -367,10 +449,11 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                     className={iCls}
                                     style={iSty}
                                 >
-                                    <option value="top-left">Oben links</option>
-                                    <option value="top-right">Oben rechts</option>
-                                    <option value="bottom-left">Unten links</option>
-                                    <option value="bottom-right">Unten rechts</option>
+                                    {CORNER_LABELS.map((c) => (
+                                        <option key={c.value} value={c.value}>
+                                            {c.label}
+                                        </option>
+                                    ))}
                                 </select>
                             </div>
                         )}

@@ -1776,6 +1776,11 @@ export const en: Record<TranslationKey, string> = {
     'cw.confirm.enable': 'Require confirmation before action',
     'cw.confirm.text': 'Confirmation text (optional)',
 
+    // ── Map Widget ────────────────────────────────────────────────────────────────
+    'map.style.standard': 'Map',
+    'map.style.satellite': 'Satellite',
+    'map.style.terrain': 'Terrain',
+
     // ── Climate Widget ────────────────────────────────────────────────────────────
     'climate.actualTemp': 'Actual Temperature Datapoint',
     'climate.targetTemp': 'Target Temperature Datapoint (optional)',

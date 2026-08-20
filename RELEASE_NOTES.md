@@ -22,3 +22,4 @@
 - Popups - popups no longer disappear or fall back to a weeks-old state: loading the built-in popups marked the browser as having unsaved changes, so that browser stopped pulling the current popup configuration and pushed its own outdated copy back over it on the next admin visit
 - Popups - a built-in popup you edited yourself is no longer reset to the shipped version when an update ships a new revision of it; use "Reset" in Admin - Popups to pull the new version on purpose
 - Popups - editing a timer or syncing a dynamic list in the frontend no longer writes that browser's theme, group and popup configuration back to ioBroker along with the dashboard
+- Map - the map type can now be switched in the running frontend: optional chips over the map, placed in any corner, offering all or only the selected types (#564)

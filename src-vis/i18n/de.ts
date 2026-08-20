@@ -1781,6 +1781,11 @@ export const de = {
     'cw.confirm.enable': 'Bestätigung vor Aktion erfordern',
     'cw.confirm.text': 'Bestätigungs-Text (optional)',
 
+    // ── Map Widget ────────────────────────────────────────────────────────────────
+    'map.style.standard': 'Karte',
+    'map.style.satellite': 'Satellit',
+    'map.style.terrain': 'Gelände',
+
     // ── Climate Widget ────────────────────────────────────────────────────────────
     'climate.actualTemp': 'Ist-Temperatur Datenpunkt',
     'climate.targetTemp': 'Soll-Temperatur Datenpunkt (optional)',

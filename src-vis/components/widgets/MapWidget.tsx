@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet'
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useT, type TranslationKey } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { extractLatLon, geocodeAddress, haversineKm, formatDistance, type LatLon } from '../../utils/geo';
 
@@ -62,8 +63,15 @@ export interface MapQuickView {
 /** Where the quick-access chips are rendered relative to the map. */
 export type MapChipsPosition = 'overlay' | 'below';
 
-/** Which corner the overlay chips are anchored to (only for `chipsPosition === 'overlay'`). */
+/** Which corner an overlay chip group is anchored to. Used by the quick-access
+ *  chips (only for `chipsPosition === 'overlay'`) and by the map-type switcher. */
 export type MapChipsCorner = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
+
+const CORNERS = ['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const;
+
+function normalizeCorner(value: unknown, fallback: MapChipsCorner): MapChipsCorner {
+    return (CORNERS as readonly string[]).includes(value as string) ? (value as MapChipsCorner) : fallback;
+}
 
 interface MapOptions {
     markers?: MapMarker[];
@@ -79,6 +87,12 @@ interface MapOptions {
     quickViews?: MapQuickView[];
     chipsPosition?: MapChipsPosition;
     chipsCorner?: MapChipsCorner;
+    /** Show the map-type switcher (chips) over the map, so the type can be
+     *  changed in the running frontend instead of only in the editor. */
+    showStyleChips?: boolean;
+    styleChipsCorner?: MapChipsCorner;
+    /** Which types the switcher offers; unset or empty offers all presets. */
+    styleChoices?: MapStyle[];
 }
 
 /** Free tile presets (no API key required). */
@@ -97,6 +111,15 @@ export const TILE_PRESETS: Record<MapStyle, { url: string; attribution: string; 
         maxZoom: 17,
     },
 };
+
+/** Chip labels for the map-type switcher, in the presets' order. */
+const STYLE_LABEL_KEYS: Record<MapStyle, TranslationKey> = {
+    standard: 'map.style.standard',
+    satellite: 'map.style.satellite',
+    terrain: 'map.style.terrain',
+};
+
+const ALL_STYLES = Object.keys(TILE_PRESETS) as MapStyle[];
 
 const DEFAULT_CENTER: LatLon = [51.1657, 10.4515]; // Germany
 const DEFAULT_ZOOM = 6;
@@ -375,6 +398,96 @@ function labelOn(fill: string): string {
     return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.6 ? '#111827' : '#fff';
 }
 
+/** One map-type chip. The active type is filled with the accent colour, so the
+ *  switcher doubles as an indicator of what is currently on screen. */
+function StyleChip({
+    style,
+    label,
+    active,
+    onSelect,
+}: {
+    style: MapStyle;
+    label: string;
+    active: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            // Marker + pressed state for tests and screen readers.
+            data-aura-map-style={style}
+            aria-pressed={active}
+            onClick={(e) => {
+                e.stopPropagation();
+                onSelect();
+            }}
+            className="px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap shrink-0 hover:opacity-85 transition-opacity"
+            style={{
+                background: active ? 'var(--accent)' : 'var(--widget-bg)',
+                color: active ? '#fff' : 'var(--text-primary)',
+                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                boxShadow: '0 1px 3px rgba(0,0,0,.25)',
+                cursor: 'pointer',
+            }}
+            title={label}
+        >
+            {label}
+        </button>
+    );
+}
+
+/** Anchors one or more chip rows to a map corner. Rows stack vertically, so the
+ *  quick-access chips and the map-type switcher can share a corner without
+ *  covering each other. The wrapper stays click-through; the chips themselves
+ *  re-enable pointer events. */
+function CornerOverlay({
+    corner,
+    editMode,
+    children,
+}: {
+    corner: MapChipsCorner;
+    editMode?: boolean;
+    children: React.ReactNode;
+}) {
+    const isTop = corner === 'top-left' || corner === 'top-right';
+    const isLeft = corner === 'top-left' || corner === 'bottom-left';
+    return (
+        <div
+            style={{
+                position: 'absolute',
+                [isTop ? 'top' : 'bottom']: 6,
+                // Clear the zoom control, which Leaflet puts in the top-left corner.
+                [isLeft ? 'left' : 'right']: corner === 'top-left' && !editMode ? 44 : 6,
+                maxWidth: 'calc(100% - 12px)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: isLeft ? 'flex-start' : 'flex-end',
+                gap: 4,
+                zIndex: 1000,
+                pointerEvents: 'none',
+            }}
+        >
+            {children}
+        </div>
+    );
+}
+
+/** One wrapping row of chips inside a `CornerOverlay`. */
+function ChipRow({ alignRight, children }: { alignRight: boolean; children: React.ReactNode }) {
+    return (
+        <div
+            style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 4,
+                justifyContent: alignRight ? 'flex-end' : 'flex-start',
+            }}
+        >
+            {children}
+        </div>
+    );
+}
+
 /** A single quick-access chip pill. */
 function QuickChip({ view, onJump }: { view: MapQuickView; onJump: (v: MapQuickView) => void }) {
     const color = view.color || 'var(--accent)';
@@ -403,12 +516,31 @@ function QuickChip({ view, onJump }: { view: MapQuickView; onJump: (v: MapQuickV
 }
 
 export function MapWidget({ config, editMode }: WidgetProps) {
+    const t = useT();
     const o = (config.options ?? {}) as MapOptions;
     const markers = useMemo<MapMarker[]>(() => (Array.isArray(o.markers) ? o.markers : []), [o.markers]);
-    const preset = TILE_PRESETS[o.mapStyle ?? 'standard'] ?? TILE_PRESETS.standard;
-    // A custom tile URL always wins; otherwise use the selected style preset.
-    const tileUrl = o.tileUrl || preset.url;
-    const attribution = o.tileUrl ? (o.tileAttribution ?? '') : preset.attribution;
+
+    // ── Map type: starts from the admin config, switchable at runtime via chips ──
+    const cfgStyle: MapStyle = o.mapStyle && o.mapStyle in TILE_PRESETS ? o.mapStyle : 'standard';
+    const [styleOverride, setStyleOverride] = useState<MapStyle | null>(null);
+    // Editing the type in the admin config drops a stale frontend selection.
+    useEffect(() => setStyleOverride(null), [cfgStyle, o.tileUrl]);
+    const activeStyle = styleOverride ?? cfgStyle;
+    const preset = TILE_PRESETS[activeStyle] ?? TILE_PRESETS.standard;
+    // A custom tile URL wins over the style preset — until the user picks a type
+    // in the frontend, because then that preset is exactly what they asked for.
+    const customTiles = !!o.tileUrl && !styleOverride;
+    const tileUrl = customTiles ? (o.tileUrl as string) : preset.url;
+    const attribution = customTiles ? (o.tileAttribution ?? '') : preset.attribution;
+
+    const showStyleChips = o.showStyleChips === true;
+    const styleCorner = normalizeCorner(o.styleChipsCorner, 'top-left');
+    // An empty/garbled choice list offers every preset rather than no chip at all.
+    const styleChoices = useMemo<MapStyle[]>(() => {
+        const picked = Array.isArray(o.styleChoices) ? ALL_STYLES.filter((st) => o.styleChoices?.includes(st)) : [];
+        return picked.length ? picked : ALL_STYLES;
+    }, [o.styleChoices]);
+
     const followMarkers = o.followMarkers ?? true;
     const showDistance = !!o.showDistance;
 
@@ -416,11 +548,7 @@ export function MapWidget({ config, editMode }: WidgetProps) {
     // visual feedback; the jump itself is guarded against missing coordinates.
     const quickViews = useMemo<MapQuickView[]>(() => (Array.isArray(o.quickViews) ? o.quickViews : []), [o.quickViews]);
     const chipsPosition: MapChipsPosition = o.chipsPosition === 'below' ? 'below' : 'overlay';
-    const chipsCorner: MapChipsCorner = (['top-left', 'top-right', 'bottom-left', 'bottom-right'] as const).includes(
-        o.chipsCorner as MapChipsCorner,
-    )
-        ? (o.chipsCorner as MapChipsCorner)
-        : 'top-right';
+    const chipsCorner = normalizeCorner(o.chipsCorner, 'top-right');
     const hasChips = quickViews.length > 0;
     const chipsBelow = hasChips && chipsPosition === 'below';
 
@@ -552,37 +680,42 @@ export function MapWidget({ config, editMode }: WidgetProps) {
                     ))}
                 </MapContainer>
 
-                {/* Overlay chips float over the map, anchored to the configured corner.
-                    The top-left corner is nudged right (non-edit mode) to clear the zoom control. */}
-                {hasChips &&
-                    chipsPosition === 'overlay' &&
-                    (() => {
-                        const isTop = chipsCorner === 'top-left' || chipsCorner === 'top-right';
-                        const isLeft = chipsCorner === 'top-left' || chipsCorner === 'bottom-left';
-                        const cornerStyle: React.CSSProperties = {
-                            position: 'absolute',
-                            [isTop ? 'top' : 'bottom']: 6,
-                            // Clear the top-left zoom control only when the chips sit there.
-                            [isLeft ? 'left' : 'right']: isLeft && chipsCorner === 'top-left' && !editMode ? 44 : 6,
-                            maxWidth: 'calc(100% - 12px)',
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: 4,
-                            justifyContent: isLeft ? 'flex-start' : 'flex-end',
-                            zIndex: 1000,
-                            pointerEvents: 'none',
-                        };
-                        return (
-                            <div style={cornerStyle}>
-                                {/* Chips themselves re-enable pointer events; the wrapper stays click-through. */}
+                {/* Overlay chips float over the map, anchored per corner. Both groups
+                    are rendered through the same corner wrapper, so putting them in
+                    the same corner stacks them instead of overlapping. */}
+                {CORNERS.map((corner) => {
+                    const rows = [
+                        hasChips && chipsPosition === 'overlay' && chipsCorner === corner ? (
+                            <ChipRow key="quick" alignRight={corner.endsWith('right')}>
                                 {quickViews.map((v) => (
                                     <div key={v.id} style={{ pointerEvents: 'auto' }}>
                                         <QuickChip view={v} onJump={onJump} />
                                     </div>
                                 ))}
-                            </div>
-                        );
-                    })()}
+                            </ChipRow>
+                        ) : null,
+                        showStyleChips && styleCorner === corner ? (
+                            <ChipRow key="style" alignRight={corner.endsWith('right')}>
+                                {styleChoices.map((st) => (
+                                    <div key={st} style={{ pointerEvents: 'auto' }}>
+                                        <StyleChip
+                                            style={st}
+                                            label={t(STYLE_LABEL_KEYS[st])}
+                                            active={st === activeStyle && !customTiles}
+                                            onSelect={() => setStyleOverride(st)}
+                                        />
+                                    </div>
+                                ))}
+                            </ChipRow>
+                        ) : null,
+                    ].filter(Boolean);
+                    if (!rows.length) return null;
+                    return (
+                        <CornerOverlay key={corner} corner={corner} editMode={editMode}>
+                            {rows}
+                        </CornerOverlay>
+                    );
+                })}
             </div>
 
             {/* Chip bar below the map (camera-widget style). */}
