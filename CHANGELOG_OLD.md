@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.44.2 (2026-08-12)
+- fix(status-overview): show full device name in card and minimal layouts
+
 ## 0.44.1 (2026-08-12)
 - 🌟 **New feature:** Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action ([#534](https://github.com/hdering/ioBroker.aura/issues/534))
 - 🌟 **New feature:** Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals ([#531](https://github.com/hdering/ioBroker.aura/issues/531))

@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.48.1 (2026-08-20)
+- Theme - reloading no longer flashes the previous theme before the datapoint-driven dark/light mode is applied
+
+
 ### 0.48.0 (2026-08-20)
 - Chart (advanced) - y-axis bounds from a JSON datapoint are now found when the payload is wrapped in an array, min/max written the wrong way round are swapped, and the editor shows the accepted JSON shapes plus the paths that hold an array ([#550](https://github.com/hdering/ioBroker.aura/issues/550))
 - Chart (Distribution) - the stacked bar now fills its full height with small readings too; totals below 1 (e.g. 0.01 + 0.04 + 0.02 kWh) used to shrink the bar to a sliver and clip the segment percentages ([#560](https://github.com/hdering/ioBroker.aura/issues/560))
@@ -232,10 +236,6 @@ Release v0.47.13
 - 🌟 **New feature:** Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt ([#535](https://github.com/hdering/ioBroker.aura/issues/535))
 
 
-### 0.44.2 (2026-08-12)
-- fix(status-overview): show full device name in card and minimal layouts
-
-
 ## License
 
 MIT License
@@ -247,6 +247,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
