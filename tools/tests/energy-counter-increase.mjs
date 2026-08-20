@@ -31,7 +31,7 @@ const bundle = join(cache, `aura-energy-counter-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: `export { counterIncrease, counterFetchStep } from './src-vis/hooks/useEnergyBalanceValues.ts';
-            export { bucketStart } from './src-vis/hooks/useMultiSeriesData.ts';`,
+            export { bucketStart, deltaFetchCount } from './src-vis/hooks/useMultiSeriesData.ts';`,
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -54,7 +54,7 @@ await build({
         },
     ],
 });
-const { counterIncrease, counterFetchStep, bucketStart } = await import(pathToFileURL(bundle).href);
+const { counterIncrease, counterFetchStep, bucketStart, deltaFetchCount } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -166,17 +166,19 @@ check('empty series - null, not 0', counterIncrease([], day(0)) === null);
     check('1h window - raw readings, no bucketing', counterFetchStep(3_600_000) === undefined);
     check('24h window - 15 min steps (max)', counterFetchStep(86_400_000) === 900_000);
     check('30d window - hourly steps (max)', counterFetchStep(2_592_000_000) === 3_600_000);
-    // Long custom windows drop to whole days, fetched `minmax` - two rows per step.
-    const rowsFor = (ms) => {
-        const step = counterFetchStep(ms);
-        return step >= 86_400_000 ? (ms / step) * 2 : ms / step;
-    };
     const year = 365 * 86_400_000;
     check('1 year custom window - daily minmax', counterFetchStep(year) === 86_400_000);
+    // A step coarser than a day holds several reset cycles and hides all but one of them (#562),
+    // so long windows keep the daily step and buy the rows they need instead.
     check(
-        'long windows stay under the 3000 row cap',
-        [45 * 86_400_000, 125 * 86_400_000, year, 5 * year, 15 * year].every((ms) => rowsFor(ms) <= 3000),
-        [45 * 86_400_000, year, 15 * year].map((ms) => Math.round(rowsFor(ms))).join(', '),
+        'no window is ever fetched coarser than a day',
+        [year, 5 * year, 15 * year].every((ms) => counterFetchStep(ms) === 86_400_000),
+        [year, 5 * year, 15 * year].map((ms) => counterFetchStep(ms) / 3_600_000 + 'h').join(', '),
+    );
+    check(
+        'row budget covers the window',
+        [year, 3 * year, 13 * year].every((ms) => deltaFetchCount(86_400_000, ms) >= (ms / 86_400_000) * 4),
+        `1y ${deltaFetchCount(86_400_000, year)}, 13y ${deltaFetchCount(86_400_000, 13 * year)}`,
     );
 }
 
@@ -191,6 +193,27 @@ check('empty series - null, not 0', counterIncrease([], day(0)) === null);
     const got = counterIncrease(rows, day(0));
     const want = PEAKS.reduce((s, p) => s + p, 0);
     check('daily minmax rows - still the sum of the daily yields', near(got, want), `${round(got)} vs ${round(want)}`);
+}
+
+// -- 8b. issue #562: the reset lands INSIDE the new day ---------------------------------------
+{
+    // The row a history adapter flushes at midnight still holds yesterday's total, so the reset
+    // sits a few records into the new day - where it used to be taken for a glitch, which then
+    // discarded the whole day's climb whenever it reached the day before's level.
+    const PEAKS = [1.9, 2.4, 2.8, 3.1]; // rising: every day reaches the previous one
+    const rows = PEAKS.flatMap((p, n) => [
+        ...(n > 0 ? [[at(n, 0), PEAKS[n - 1]]] : []),
+        [at(n, 0) + 5_000, 0],
+        [at(n, 20) + 15 * 60_000, p],
+        [at(n, 23), p],
+    ]);
+    const got = counterIncrease(rows, day(0));
+    const want = PEAKS.reduce((s, p) => s + p, 0);
+    check(
+        'reset inside the day - still the sum of the daily yields',
+        near(got, want),
+        `${round(got)} vs ${round(want)}`,
+    );
 }
 
 // -- 9. the hour anchor the hook passes -------------------------------------------------------

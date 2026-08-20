@@ -30,7 +30,7 @@ const bundle = join(cache, `aura-delta-${process.pid}.mjs`);
 await build({
     stdin: {
         contents:
-            "export { bucketDeltas, bucketStart, resolveDeltaBucket, deltaFetchStep } from './src-vis/hooks/useMultiSeriesData.ts';",
+            "export { bucketDeltas, bucketStart, resolveDeltaBucket, deltaFetchStep, deltaFetchCount, looksLikeResettingCounter } from './src-vis/hooks/useMultiSeriesData.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -53,7 +53,8 @@ await build({
         },
     ],
 });
-const { bucketDeltas, bucketStart, resolveDeltaBucket, deltaFetchStep } = await import(pathToFileURL(bundle).href);
+const { bucketDeltas, bucketStart, resolveDeltaBucket, deltaFetchStep, deltaFetchCount, looksLikeResettingCounter } =
+    await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -165,12 +166,11 @@ for (let n = 0; n < 4; n++) for (let h = 0; h < 24; h++) meter.push([at(n, h), 1
         '1 year window - auto bucket is month, fetched daily',
         resolveDeltaBucket('auto', year) === 'month' && deltaFetchStep('month', year) === 86_400_000,
     );
-    // Two rows per step for `minmax` - the fetch asks for at most 3000.
-    const rowsFor = (ms) => (ms / deltaFetchStep('month', ms)) * 2;
+    // Long windows keep the daily step and buy the rows they need - see case 12.
     check(
-        'long windows stay under the 3000 row cap',
-        rowsFor(year) < 3000 && rowsFor(5 * year) < 3000 && rowsFor(15 * year) < 3000,
-        `1y ${Math.round(rowsFor(year))}, 5y ${Math.round(rowsFor(5 * year))}, 15y ${Math.round(rowsFor(15 * year))}`,
+        '1 year window - the row budget grows with the window',
+        deltaFetchCount(86_400_000, year) >= 365 * 4,
+        `${deltaFetchCount(86_400_000, year)} rows`,
     );
 }
 
@@ -187,6 +187,108 @@ for (let n = 0; n < 4; n++) for (let h = 0; h < 24; h++) meter.push([at(n, h), 1
 
 // -- 8. bucketStart stays on local calendar boundaries ----------------------------------------
 check('bucketStart - a day bucket starts at local midnight', bucketStart(at(1, 13) + 1234, 'day') === day(1));
+
+// -- 9. issue #562: the reset shows up INSIDE the new day, not on its boundary ----------------
+//
+// What a daily `minmax` fetch returns for a day counter: the reading it still held at midnight
+// comes first (a history adapter flushes the last unchanged sample when the value finally
+// changes), then the reset, then the day's own peak. The turnover therefore sits inside the new
+// day, where it used to be taken for a glitch - and since the next rise is the whole day's climb
+// in one step, every day that reached the previous day's level was dropped.
+const minmaxRows = (peaks) =>
+    peaks.flatMap((p, n) => [
+        ...(n > 0 ? [[at(n, 0), peaks[n - 1]]] : []), // flushed: yesterday's total, at 00:00
+        [at(n, 0) + 5_000, 0], // the reset, 5 s later
+        [at(n, 20) + 15 * 60_000, p], // the day's peak
+        [at(n, 23), p], // last reading of the day
+    ]);
+{
+    // Ascending peaks are the worst case: every single day reaches the day before's level.
+    const rising = [1.9, 2.4, 2.8, 3.1];
+    const { points } = bucketDeltas(minmaxRows(rising), 'month', bucketStart(day(0), 'month'));
+    const total = points.reduce((s, [, v]) => s + v, 0);
+    check(
+        'month bar - a reset inside the day still books the whole day',
+        near(
+            total,
+            rising.reduce((s, p) => s + p, 0),
+        ),
+        `${round(total)} vs ${round(rising.reduce((s, p) => s + p, 0))}`,
+    );
+    // Day buckets from the same rows: no bar may collapse, and each one is its day's yield.
+    const daily = bucketDeltas(minmaxRows(rising), 'day', day(0)).points;
+    check(
+        'day bars - one per day, each the day yield',
+        daily.length === rising.length && daily.every(([, v], i) => near(v, rising[i])),
+        JSON.stringify(daily.map(([, v]) => round(v))),
+    );
+}
+{
+    // The reported mix (some days above, some below their predecessor).
+    const mixed = [2.1, 2.9, 1.4, 3.1, 3.2, 0.9, 2.6];
+    const { points } = bucketDeltas(minmaxRows(mixed), 'year', bucketStart(day(0), 'year'));
+    const total = points.reduce((s, [, v]) => s + v, 0);
+    check(
+        'year bar - sum of the daily yields, not half of it',
+        near(
+            total,
+            mixed.reduce((s, p) => s + p, 0),
+        ),
+        `${round(total)} vs ${round(mixed.reduce((s, p) => s + p, 0))}`,
+    );
+}
+
+// -- 10. a meter's glitch must stay protected at that same coarse resolution ------------------
+{
+    // Daily rows of a rising meter, with one stray 0 on the 16th - a single day out of four, so
+    // the series is not a resetting counter and the jump back is still discarded.
+    const rows = [];
+    for (let n = 0; n < 4; n++) {
+        rows.push([at(n, 0), 12000 + n * 24]);
+        if (n === 2) rows.push([at(n, 10), 0]);
+        rows.push([at(n, 23), 12000 + n * 24 + 23]);
+    }
+    const { points } = bucketDeltas(rows, 'month', bucketStart(day(0), 'month'));
+    const total = points.reduce((s, [, v]) => s + v, 0);
+    check(
+        'coarse rows - a lone stray 0 is not booked as a full meter reading',
+        total < 200,
+        `${round(total)} - a booked glitch would be ~12000`,
+    );
+}
+
+// -- 11. the classification the drop handling rests on ---------------------------------------
+check(
+    'classify - a counter that falls back every day is a resetting one',
+    looksLikeResettingCounter(minmaxRows([2.1, 2.9, 1.4, 3.1])) === true,
+);
+check(
+    'classify - a rising meter with one glitch is not',
+    looksLikeResettingCounter(
+        meter.map(([ts, v]) => {
+            const d = new Date(ts);
+            return d.getDate() === 15 && d.getHours() === 10 ? [ts, 0] : [ts, v];
+        }),
+    ) === false,
+);
+check('classify - a plain rising meter is not', looksLikeResettingCounter(meter) === false);
+
+// -- 12. resolution: a step coarser than a day cannot carry a reset cycle ---------------------
+{
+    const steps = [1, 30, 125, 400, 5 * 365, 20 * 365].map((d) => deltaFetchStep('month', d * 86_400_000));
+    check(
+        'no step is ever coarser than a day',
+        steps.every((s) => s <= 86_400_000),
+        JSON.stringify(steps.map((s) => s / 3_600_000).map((h) => `${h}h`)),
+    );
+    // The row budget has to cover the window it is fetched over, or bars fall off the end.
+    const covers = (days) => {
+        const ms = days * 86_400_000;
+        const step = deltaFetchStep('month', ms);
+        return deltaFetchCount(step, ms) >= (step >= 86_400_000 ? days * 4 : ms / step);
+    };
+    check('row budget covers the window', [1, 30, 125, 365, 3 * 365, 13 * 365].every(covers));
+}
 
 const failed = results.filter((r) => !r.ok);
 console.log(`\n${results.length - failed.length}/${results.length} passed`);

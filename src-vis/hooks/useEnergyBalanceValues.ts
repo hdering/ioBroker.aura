@@ -18,7 +18,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getHistoryDirect, getObjectDirect, getStateDirect, getStateFromCache, type HistoryEntry } from './useIoBroker';
 import { detectHistoryAdapters, TOTAL_FLOOR_MS } from './useChartHistory';
-import { bucketDeltas, bucketStart } from './useMultiSeriesData';
+import { bucketDeltas, bucketStart, deltaFetchCount } from './useMultiSeriesData';
 import type { EChartTimeRange } from './useMultiSeriesData';
 import type { ioBrokerState } from '../types';
 import type { NumberFormat } from '../utils/formatValue';
@@ -127,13 +127,17 @@ export function counterIncrease(data: [number, number][], windowStart: number): 
  * the very step the counter resets in, which for a day counter is the middle of the night.
  * `getStepForMs` cannot be reused: its coarse end would return a single row for a 1 h window,
  * and one reading has no rise to book.
+ *
+ * A whole day is the coarsest step there is: beyond that one step holds several reset cycles of a
+ * day counter and its `minmax` rows expose only one climb of them, which cut long windows down to a
+ * fraction of the real increase (issue #562). Long windows pay for the extra rows out of the row
+ * budget instead (`deltaFetchCount`).
  */
 export function counterFetchStep(rangeMs: number): number | undefined {
     if (rangeMs <= 3 * 3_600_000) return undefined; // raw — every logged reading
     if (rangeMs <= 48 * 3_600_000) return 900_000; // 15 min → ≥ 96 rows for a day
     if (rangeMs <= 45 * 86_400_000) return 3_600_000; // hourly → ≤ 1080 rows
-    // Whole days come back as `minmax`, two rows per step — hence the halved row budget.
-    return Math.max(86_400_000, Math.ceil(rangeMs / 1250 / 86_400_000) * 86_400_000);
+    return 86_400_000;
 }
 
 export function useEnergyBalanceValues(
@@ -265,7 +269,7 @@ export function useEnergyBalanceValues(
                     : step
                       ? 'average'
                       : 'none',
-                count: isCounter ? 3000 : 1000,
+                count: isCounter ? (step ? deltaFetchCount(step, rangeMs) : 3000) : 1000,
             })
                 .then((raw: HistoryEntry[]) => {
                     if (!mountedRef.current) return;

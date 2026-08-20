@@ -177,16 +177,16 @@ der Offset fällt heraus (die Differenz zweier verschobener Zählerstände ist d
 | fortlaufend steigend         | Strom-, Wasser-, Gaszähler, PV-Gesamtertrag       |
 | täglicher Rücksprung auf `0` | PV-Tagesertrag, z. B. `solaredge.0.*.lastDayData` |
 
-|                                |                                                                                                                          |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Datenquelle                    | Verlaufs-Adapter (history, influxdb, sql)                                                                                |
-| Zeiteinheit                    | `deltaBucket` — Kalendergrenzen in lokaler Zeit                                                                          |
-| Chart-Typ                      | beim Umschalten automatisch `bar`                                                                                        |
-| Y-Achse                        | `echartLeftMin: 0` setzen — die automatische Skala beginnt am kleinsten Balken                                           |
-| Rücksprung um Mitternacht      | Reset eines Tageszählers; der Anstieg danach zählt voll                                                                  |
-| Rücksprung innerhalb des Tages | Zählerwechsel, Überlauf oder Ausreißer — weder der Rücksprung noch der Sprung zurück auf den alten Stand werden gewertet |
-| Buckets ohne Datensatz         | übersprungen; ihr Verbrauch fällt in den nächsten Bucket mit Daten                                                       |
-| Aktueller Wert oben rechts     | Verbrauch des laufenden Buckets, nicht der Zählerstand                                                                   |
+|                                |                                                                                                                                                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Datenquelle                    | Verlaufs-Adapter (history, influxdb, sql)                                                                                                                                                                                       |
+| Zeiteinheit                    | `deltaBucket` — Kalendergrenzen in lokaler Zeit                                                                                                                                                                                 |
+| Chart-Typ                      | beim Umschalten automatisch `bar`                                                                                                                                                                                               |
+| Y-Achse                        | `echartLeftMin: 0` setzen — die automatische Skala beginnt am kleinsten Balken                                                                                                                                                  |
+| Rücksprung um Mitternacht      | Reset eines Tageszählers; der Anstieg danach zählt voll                                                                                                                                                                         |
+| Rücksprung innerhalb des Tages | bei einem täglich zurückspringenden Zähler der Reset des Tages (der Anstieg danach zählt voll); jeder weitere Rücksprung am selben Tag gilt als Ausreißer — weder er noch der Sprung zurück auf den alten Stand werden gewertet |
+| Buckets ohne Datensatz         | übersprungen; ihr Verbrauch fällt in den nächsten Bucket mit Daten                                                                                                                                                              |
+| Aktueller Wert oben rechts     | Verbrauch des laufenden Buckets, nicht der Zählerstand                                                                                                                                                                          |
 
 Bilder dazu: [Beispiele](#beispiele).
 

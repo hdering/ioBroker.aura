@@ -241,17 +241,33 @@ export function resolveDeltaBucket(setting: DeltaBucketSetting | undefined, rang
 /**
  * getHistory step for a delta fetch. Hour buckets are fetched hourly; larger buckets are also
  * fetched hourly and re-bucketed locally, because adapters align their own buckets to UTC —
- * a server-side day bucket would cut the local day at the wrong hour. Only very long windows
- * drop to a daily step so the row count stays sane, and multi-year ones (a `total` window over a
- * long-running install) scale further in whole days to stay under the delta row cap.
+ * a server-side day bucket would cut the local day at the wrong hour. Only long windows drop to a
+ * daily step so the row count stays sane.
  *
- * A step of a whole day or more is fetched as `minmax` (see the caller), which returns two rows
- * per step instead of one — hence the halved row budget in the scaling branch.
+ * A whole day is where it stops. A step coarser than that used to be taken for multi-year windows,
+ * but it cannot carry a resetting counter at all: several reset cycles then fall into one step, and
+ * the `minmax` rows a step comes back as expose exactly one climb of them — a two-day step showed a
+ * `total` window at a fraction of the real yield (issue #562). The rows a daily step costs are paid
+ * for out of the row budget instead, see `deltaFetchCount`.
  */
 export function deltaFetchStep(bucket: DeltaBucket, rangeMs: number): number {
     if (bucket === 'hour') return 3_600_000;
     if (rangeMs <= 125 * 86_400_000) return 3_600_000;
-    return Math.max(86_400_000, Math.ceil(rangeMs / 1250 / 86_400_000) * 86_400_000);
+    return 86_400_000;
+}
+
+/**
+ * Row budget for a delta fetch — a cap the adapter trims the result to, so it has to cover the
+ * whole window: a truncated series silently drops bars off one end.
+ *
+ * An hourly step returns one row per hour, a daily one up to four (`minmax` hands back start, min,
+ * max and end of the step). The floor keeps short windows at the value they always asked for, the
+ * ceiling stops a `total` window whose probe reaches back years from asking for a payload nobody
+ * can read anyway — at four rows a day it still covers well over a decade.
+ */
+export function deltaFetchCount(step: number, rangeMs: number): number {
+    const rows = step >= 86_400_000 ? Math.ceil(rangeMs / 86_400_000) * 4 : Math.ceil(rangeMs / step);
+    return Math.min(20_000, Math.max(3000, rows + 100));
 }
 
 /**
@@ -295,6 +311,32 @@ export interface DeltaSeries {
 }
 
 /**
+ * Does this series come from a counter that RESETS, rather than one that only ever rises?
+ *
+ * A day counter (a PV inverter's day yield, `sourceanalytix.*.01_currentDay`) falls back to ~0 on
+ * every single day; a meter's stray low reading — an adapter restart — happens once. So a fall to
+ * below half the reading it fell from counts as a turnover, and the series is a resetting counter
+ * when those turnovers show up on at least two days AND on at least a third of the days that carry
+ * data. Two thresholds, because either alone misreads a case: a single day of data with one glitch
+ * would be a ratio of 1, and a handful of glitches over a long window would pass a plain count.
+ *
+ * `bucketDeltas` needs the distinction because at a coarse resolution a reset and a glitch look
+ * alike within one day — see the drop handling there (issue #562).
+ */
+export function looksLikeResettingCounter(data: [number, number][]): boolean {
+    const days = new Set<number>();
+    const turnoverDays = new Set<number>();
+    let prev: number | null = null;
+    for (const [ts, val] of data) {
+        const day = bucketStart(ts, 'day');
+        days.add(day);
+        if (prev !== null && prev > 0 && val < prev / 2) turnoverDays.add(day);
+        prev = val;
+    }
+    return turnoverDays.size >= 2 && turnoverDays.size * 3 >= days.size;
+}
+
+/**
  * Difference a counter series into per-bucket consumption.
  *
  * The series is walked in timestamp order and every rise is booked onto the bucket of the reading
@@ -315,9 +357,18 @@ export interface DeltaSeries {
  *   before rather than the day's own total.
  * - A GLITCH — an adapter restart writing one stray low reading — is followed by a jump straight
  *   back to where the counter was. Booking that jump would invent a bar the size of the entire
- *   meter reading. It is told apart by WHERE it happens: a resetting counter turns over at a
- *   calendar day boundary, a glitch anywhere. So a drop within a day arms a guard, and the next
- *   rise that lands back at or above the pre-drop reading is discarded instead of booked.
+ *   meter reading. So a suspicious drop arms a guard, and the next rise that lands back at or
+ *   above the pre-drop reading is discarded instead of booked.
+ *
+ * Which drop is suspicious was decided by WHERE it happens: one across a day boundary is a
+ * turnover, one inside a day a glitch. That reads a resetting counter wrong as soon as the rows
+ * are coarse (issue #562). A day counter's reset lands a few records INTO the new day, because the
+ * reading it still held at midnight comes first — the flushed last sample of the old day, or the
+ * `start` row of a daily `minmax` fetch. The turnover was then taken for a glitch, and since the
+ * next rise is the whole day's climb in one step, every day that reached the previous day's level
+ * was discarded: monthly and yearly bars came out at roughly half. So a series that turns over
+ * daily (`looksLikeResettingCounter`) gets ONE unguarded drop per local day — its reset — and
+ * every further drop that day is still treated as a glitch.
  *
  * A series that only ever rises never reaches either path and comes out exactly as before.
  *
@@ -326,10 +377,13 @@ export interface DeltaSeries {
  */
 export function bucketDeltas(data: [number, number][], bucket: DeltaBucket, windowStart: number): DeltaSeries {
     const sums = new Map<number, number>();
+    const resetting = looksLikeResettingCounter(data);
     let prevVal: number | null = null;
     let prevTs = 0;
     /** Reading an intra-day drop fell from, while the rise back to it is still to come. */
     let glitchHigh: number | null = null;
+    /** Local day whose turnover a resetting counter has already been granted. */
+    let turnoverDay: number | null = null;
     for (const [ts, val] of data) {
         const b = bucketStart(ts, bucket);
         if (!sums.has(b)) sums.set(b, 0);
@@ -337,8 +391,12 @@ export function bucketDeltas(data: [number, number][], bucket: DeltaBucket, wind
             let inc = val - prevVal;
             if (inc < 0) {
                 // Nothing to book either way — a reset consumed nothing, and a glitch is not a
-                // reading at all. Only a drop that does NOT sit on a day boundary is suspicious.
-                if (bucketStart(ts, 'day') === bucketStart(prevTs, 'day')) glitchHigh ??= prevVal;
+                // reading at all. Suspicious is a drop inside a day, unless it is the daily
+                // turnover of a resetting counter (which may sit either side of midnight).
+                const day = bucketStart(ts, 'day');
+                const turnover = resetting && turnoverDay !== day;
+                if (!turnover && bucketStart(prevTs, 'day') === day) glitchHigh ??= prevVal;
+                if (resetting) turnoverDay = day;
                 inc = 0;
             } else if (inc > 0 && glitchHigh !== null) {
                 if (val >= glitchHigh) inc = 0;
@@ -909,7 +967,7 @@ export function useMultiSeriesData(
                             : step
                               ? (s.aggregate ?? 'average')
                               : 'none',
-                    count: isDelta ? 3000 : 1000,
+                    count: isDelta ? deltaFetchCount(step as number, rangeMs) : 1000,
                 })
                     .then((entries: HistoryEntry[]) => {
                         if (!mountedRef.current) return;
