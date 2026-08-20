@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.44.1 (2026-08-12)
+- 🌟 **New feature:** Popups - transparency and backdrop dim are now configurable, globally under Popups and per popup view or click action ([#534](https://github.com/hdering/ioBroker.aura/issues/534))
+- 🌟 **New feature:** Room climate - optional air pressure datapoint, shown next to the humidity with its own icon, unit and decimals ([#531](https://github.com/hdering/ioBroker.aura/issues/531))
+
 ## 0.44.0 (2026-08-12)
 - 🌟 **New feature:** The name of every widget, and the popup heading, resolve [[dp.id]] to that datapoint's live value, e.g. "Living room [[0_userdata.0.Temp]] °C"
 - Popup heading now also resolves the {{dp}} / {{parent}} / {{name}} placeholders - for a list row against the clicked row, so one heading serves every row
