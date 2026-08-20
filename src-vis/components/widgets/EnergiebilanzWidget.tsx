@@ -349,22 +349,32 @@ function StackedBar({
                     background: 'color-mix(in srgb, var(--text-secondary) 12%, transparent)',
                     border: '1px dashed var(--app-border)',
                 }}
+                data-aura-energy-bar="empty"
             />
         );
     }
     return (
-        <div className="rounded-lg overflow-hidden self-stretch flex flex-col" style={{ width, minHeight: 80 }}>
+        <div
+            className="rounded-lg overflow-hidden self-stretch flex flex-col"
+            style={{ width, minHeight: 80 }}
+            data-aura-energy-bar="stack"
+        >
             {items.map((c) => {
                 // Icon needs more vertical room than the percent label, so gate it on a
                 // larger share; both are centred and stacked when they fit together.
                 const wantIcon = showIcon && !!c.entry.icon && c.percent >= 12;
                 const wantPct = showPercent && c.percent >= 8;
+                // Grow by the SHARE, not the raw value: CSS hands out only `sum(flex-grow)`
+                // of the free space when that sum is below 1, so small readings (0.01 + 0.04
+                // + 0.02 kWh) used to collapse the bar to 7 % of its height (issue #560).
+                const grow = total > 0 ? (c.value / total) * 100 : 0;
                 return (
                     <div
                         key={c.entry.id}
                         className="flex flex-col items-center justify-center gap-0.5"
+                        data-aura-energy-segment={c.entry.id}
                         style={{
-                            flexGrow: c.value,
+                            flexGrow: grow,
                             flexBasis: 0,
                             background: c.color,
                             color: '#fff',

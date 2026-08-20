@@ -84,7 +84,8 @@
     "test:chart-delta": "node tools/tests/chart-delta-reset.mjs",
     "test:chart-json-axis": "node tools/tests/chart-json-axis.mjs",
     "test:chart-axis-source": "node tools/tests/chart-axis-source.mjs",
-    "test:chart-grid-lines": "node tools/tests/chart-grid-lines.mjs"
+    "test:chart-grid-lines": "node tools/tests/chart-grid-lines.mjs",
+    "test:energy-bar": "node tools/tests/energy-balance-bar.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",
