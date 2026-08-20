@@ -8,19 +8,21 @@ Anteilige Darstellung beliebig vieler Gruppen aus mehreren Datenpunkten — als 
 
 Das Widget hat keinen eigenen Haupt-Datenpunkt — jeder Eintrag trägt seinen Datenpunkt selbst.
 
-| Feld | Pflicht | |
-| --- | --- | --- |
-| `bars[].entries[].datapointId` | ja | Datenpunkt des Eintrags |
-| `bars[].entries[].historyInstance` | nein | Verlaufs-Adapter; leer = aus `common.custom` erkannt, sonst Live-Wert |
+| Feld                               | Pflicht |                                                                       |
+| ---------------------------------- | ------- | --------------------------------------------------------------------- |
+| `bars[].entries[].datapointId`     | ja      | Datenpunkt des Eintrags                                               |
+| `bars[].entries[].historyInstance` | nein    | Verlaufs-Adapter; leer = aus `common.custom` erkannt, sonst Live-Wert |
 
 ## Layouts
 
 Ein Layout (`default`); die Darstellung steuert `chartStyle`.
 
 ### Balken
+
 100-%-Balken je Gruppe — mehrere Gruppen stehen nebeneinander, z. B. Erzeugung gegen Verbrauch.
 
 ### Torte / Donut
+
 Kreis je Gruppe. Der Donut zeigt zusätzlich die Gruppensumme in der Mitte.
 
 ## Einstellungen
@@ -31,26 +33,26 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Gruppen
 
-| Option | Standard | |
-| --- | --- | --- |
-| `bars` | `[]` | Liste der Gruppen — jede Gruppe ist ein Balken bzw. ein Kreis |
-| `bars[].title` | — | Titel über der Gruppe |
-| `bars[].legendSide` | `below` | Legende dieser Gruppe: `left` · `right` · `top` · `below` |
-| `bars[].entries` | `[]` | Einträge der Gruppe (siehe unten) |
+| Option              | Standard |                                                               |
+| ------------------- | -------- | ------------------------------------------------------------- |
+| `bars`              | `[]`     | Liste der Gruppen — jede Gruppe ist ein Balken bzw. ein Kreis |
+| `bars[].title`      | —        | Titel über der Gruppe                                         |
+| `bars[].legendSide` | `below`  | Legende dieser Gruppe: `left` · `right` · `top` · `below`     |
+| `bars[].entries`    | `[]`     | Einträge der Gruppe (siehe unten)                             |
 
 `legendSide` je Gruppe ist die Grundlage des zweiseitigen Bilanz-Layouts: linke Gruppe `left`, rechte Gruppe `right`. Ein global gesetztes `legendSide` gewinnt über die Gruppen-Angabe.
 
 ### Eintrag
 
-| Option | Standard | |
-| --- | --- | --- |
-| `entries[].label` | — | Bezeichnung in der Legende |
-| `entries[].icon` | — | [Lucide-Icon](https://lucide.dev), z. B. `Sun` |
-| `entries[].color` | Palette | Farbe von Segment und Legendenzeile |
-| `entries[].unit` | `unit` des Widgets | Einheit nur für diesen Eintrag |
-| `entries[].decimals` | `decimals` des Widgets | Nachkommastellen nur für diesen Eintrag |
-| `entries[].numberFormat` | global | 1000er-Trennzeichen |
-| `entries[].aggregate` | `last` | siehe Tabelle unten |
+| Option                   | Standard               |                                                |
+| ------------------------ | ---------------------- | ---------------------------------------------- |
+| `entries[].label`        | —                      | Bezeichnung in der Legende                     |
+| `entries[].icon`         | —                      | [Lucide-Icon](https://lucide.dev), z. B. `Sun` |
+| `entries[].color`        | Palette                | Farbe von Segment und Legendenzeile            |
+| `entries[].unit`         | `unit` des Widgets     | Einheit nur für diesen Eintrag                 |
+| `entries[].decimals`     | `decimals` des Widgets | Nachkommastellen nur für diesen Eintrag        |
+| `entries[].numberFormat` | global                 | 1000er-Trennzeichen                            |
+| `entries[].aggregate`    | `last`                 | siehe Tabelle unten                            |
 
 ![](./assets/verteilung/bsp-vt-config-eintrag.png)
 
@@ -58,36 +60,41 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 Jeder Eintrag wird auf **einen** Wert im gemeinsamen Zeitraum reduziert.
 
-| Wert | | |
-| --- | --- | --- |
-| `last` | Letzter Wert | aktueller Wert des Datenpunkts — ohne Verlaufs-Abfrage |
-| `delta` | Differenz (Ende − Start) | für fortlaufende Zähler: Verbrauch im Zeitraum |
-| `sum` | Summe | für Datenpunkte, die schon Zuwächse loggen |
-| `average` | Durchschnitt | Mittelwert über den Zeitraum |
-| `max` / `min` | Maximum / Minimum | Extremwert im Zeitraum |
+| Wert          |                            |                                                                                                  |
+| ------------- | -------------------------- | ------------------------------------------------------------------------------------------------ |
+| `last`        | Letzter Wert               | aktueller Wert des Datenpunkts — ohne Verlaufs-Abfrage                                           |
+| `delta`       | Differenz (Ende − Start)   | nur für fortlaufende Zähler                                                                      |
+| `consumption` | Verbrauch/Ertrag (Zuwachs) | summiert den Zuwachs im Zeitraum — auch für Tageszähler, die um Mitternacht auf 0 zurückspringen |
+| `sum`         | Summe                      | für Datenpunkte, die schon Zuwächse loggen                                                       |
+| `average`     | Durchschnitt               | Mittelwert über den Zeitraum                                                                     |
+| `max` / `min` | Maximum / Minimum          | Extremwert im Zeitraum                                                                           |
 
 Ohne Verlaufs-Adapter ist kein Zeitraum-Bezug möglich — der Eintrag zeigt dann den aktuellen Wert, wie bei `last`.
 
+::: tip Tageszähler
+`sourceanalytix.*.01_currentDay`, PV-Tagesertrag und ähnliche Zähler springen um Mitternacht auf 0. `delta` vergleicht dort den angefangenen Tag mit dem abgeschlossenen Vortag und wird negativ — für solche Datenpunkte `consumption` wählen. Bei fortlaufenden Zählern liefern beide dasselbe Ergebnis. Liegt der Zeitraum auf Tagesgrenzen, ist `consumption` genau die Summe der Tageswerte.
+:::
+
 ### Darstellung
 
-| Option | Standard | |
-| --- | --- | --- |
-| `chartStyle` | `bars` | `bars` · `pie` · `donut` |
-| `barWidth` | `46` | Balkenbreite in px (nur `bars`) |
-| `pieSize` | `160` | Durchmesser in px (nur `pie`/`donut`) |
-| `unit` | `kWh` | Einheit für alle Werte und Summen |
-| `decimals` | globale Einstellung | Nachkommastellen |
-| `showTitle` | `true` | Widget-Titel |
-| `showBarTitles` | `true` | Titel je Gruppe |
-| `showTotals` | `true` | Summe je Gruppe unter dem Titel |
-| `barTitleAlign` | `center` | `left` · `center` · `right` |
-| `showPercent` | `true` | Prozent-Label im Segment |
-| `showSegmentIcon` | `false` | Icon zusätzlich im Segment |
-| `showOutsidePercent` | `true` | Prozente zu kleiner Segmente außen an einer Fahne (Torte/Donut) |
-| `showLegend` | `true` | Legende anzeigen |
-| `legendSide` | je Gruppe | `left` · `right` · `top` · `below` — gilt für alle Gruppen |
-| `legendAlign` | aus der Position | `left` · `center` · `right` |
-| `legendFormat` | `icon-value` | `value` · `icon-value` · `label` · `label-value` · `icon-label-value` |
+| Option               | Standard            |                                                                       |
+| -------------------- | ------------------- | --------------------------------------------------------------------- |
+| `chartStyle`         | `bars`              | `bars` · `pie` · `donut`                                              |
+| `barWidth`           | `46`                | Balkenbreite in px (nur `bars`)                                       |
+| `pieSize`            | `160`               | Durchmesser in px (nur `pie`/`donut`)                                 |
+| `unit`               | `kWh`               | Einheit für alle Werte und Summen                                     |
+| `decimals`           | globale Einstellung | Nachkommastellen                                                      |
+| `showTitle`          | `true`              | Widget-Titel                                                          |
+| `showBarTitles`      | `true`              | Titel je Gruppe                                                       |
+| `showTotals`         | `true`              | Summe je Gruppe unter dem Titel                                       |
+| `barTitleAlign`      | `center`            | `left` · `center` · `right`                                           |
+| `showPercent`        | `true`              | Prozent-Label im Segment                                              |
+| `showSegmentIcon`    | `false`             | Icon zusätzlich im Segment                                            |
+| `showOutsidePercent` | `true`              | Prozente zu kleiner Segmente außen an einer Fahne (Torte/Donut)       |
+| `showLegend`         | `true`              | Legende anzeigen                                                      |
+| `legendSide`         | je Gruppe           | `left` · `right` · `top` · `below` — gilt für alle Gruppen            |
+| `legendAlign`        | aus der Position    | `left` · `center` · `right`                                           |
+| `legendFormat`       | `icon-value`        | `value` · `icon-value` · `label` · `label-value` · `icon-label-value` |
 
 ![](./assets/verteilung/bsp-vt-config-darstellung.png)
 
@@ -95,13 +102,13 @@ Ohne Verlaufs-Adapter ist kein Zeitraum-Bezug möglich — der Eintrag zeigt dan
 
 Ein gemeinsamer Zeitraum für alle Gruppen und Einträge.
 
-| Option | Standard | |
-| --- | --- | --- |
-| `range` | `24h` | `1h` · `6h` · `24h` · `7d` · `30d` · `custom` |
-| `rangeCustomValue` | `24` | nur bei `custom` |
-| `rangeCustomUnit` | `h` | `h` · `d`, nur bei `custom` |
-| `visibleRanges` | alle Presets | Welche Presets der Frontend-Umschalter anbietet |
-| `lockRange` | `false` | Umschalter im Frontend ausblenden |
+| Option             | Standard     |                                                 |
+| ------------------ | ------------ | ----------------------------------------------- |
+| `range`            | `24h`        | `1h` · `6h` · `24h` · `7d` · `30d` · `custom`   |
+| `rangeCustomValue` | `24`         | nur bei `custom`                                |
+| `rangeCustomUnit`  | `h`          | `h` · `d`, nur bei `custom`                     |
+| `visibleRanges`    | alle Presets | Welche Presets der Frontend-Umschalter anbietet |
+| `lockRange`        | `false`      | Umschalter im Frontend ausblenden               |
 
 ## Beispiele
 

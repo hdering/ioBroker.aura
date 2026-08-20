@@ -28,6 +28,7 @@ const FRONTEND_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', 'cus
 const AGGREGATES: { id: EnergyAggregate; label: string }[] = [
     { id: 'last', label: 'Letzter Wert' },
     { id: 'delta', label: 'Differenz (Ende − Start)' },
+    { id: 'consumption', label: 'Verbrauch/Ertrag (Zuwachs — für Zähler)' },
     { id: 'sum', label: 'Summe' },
     { id: 'average', label: 'Durchschnitt' },
     { id: 'max', label: 'Maximum' },
@@ -247,6 +248,13 @@ function EntryRow({
                             </select>
                         </div>
                     </div>
+                    {entry.aggregate === 'consumption' && (
+                        <p className="text-[9px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                            Summiert den Zuwachs des Zählers im Zeitraum. Passt für fortlaufende Zähler ebenso wie für
+                            Tageszähler, die um Mitternacht auf 0 zurückspringen — „Differenz“ liefert dort einen
+                            negativen Wert.
+                        </p>
+                    )}
 
                     {/* History adapter */}
                     <div>
