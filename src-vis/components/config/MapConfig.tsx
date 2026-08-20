@@ -421,6 +421,18 @@ export function MapConfig({ config, onConfigChange, onPickMarkerDp, onPickQuickV
                                         </button>
                                     </div>
 
+                                    <div className="flex items-center justify-between gap-2">
+                                        <label className="text-[11px]" style={lblSty}>
+                                            Farbe als Füllung (statt nur Rahmen)
+                                        </label>
+                                        <Toggle
+                                            value={v.filled === true}
+                                            onToggle={() =>
+                                                patchQuickView(idx, { filled: v.filled === true ? undefined : true })
+                                            }
+                                        />
+                                    </div>
+
                                     <select
                                         value={v.mode ?? 'static'}
                                         onChange={(e) => patchQuickView(idx, { mode: e.target.value as MapMarkerMode })}

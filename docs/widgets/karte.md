@@ -44,6 +44,16 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 Chips (`quickViews`) rezentrieren die Karte auf einen gespeicherten Ort. Die Zielposition wird wie ein Marker aufgelöst (`mode` + Felder), zusätzlich mit optionalem `zoom`.
 
+Pro Chip zusätzlich:
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `label` | `Position` | Text auf dem Chip |
+| `emoji` | — | Symbol vor dem Text |
+| `color` | Akzentfarbe | Farbe des Chips |
+| `filled` | `false` | `color` füllt den ganzen Chip (statt nur den Rahmen); Textfarbe passt sich automatisch an |
+| `zoom` | — | Zoomstufe beim Springen; ohne Wert bleibt die aktuelle |
+
 | Option | Standard | |
 | --- | --- | --- |
 | `quickViews` | `[]` | Liste der `MapQuickView` |

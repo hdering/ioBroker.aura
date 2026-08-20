@@ -54,6 +54,9 @@ export interface MapQuickView {
     zoom?: number;
     emoji?: string;
     color?: string;
+    /** Paint `color` across the whole chip instead of only its border, so the
+     *  colour coding stays readable at a glance. Per chip. */
+    filled?: boolean;
 }
 
 /** Where the quick-access chips are rendered relative to the map. */
@@ -358,9 +361,24 @@ function FlyToController({ target }: { target: { pos: LatLon; zoom?: number; non
     return null;
 }
 
+/** Picks a readable label colour for a filled chip from the fill's perceived
+ *  brightness. Two cases cannot be measured: a non-hex fill (CSS variable — the
+ *  accent default) gets white, and a mostly transparent fill keeps the theme's
+ *  text colour, because there the widget background still shows through. */
+function labelOn(fill: string): string {
+    const raw = /^#([0-9a-f]{3,8})$/i.exec(fill.trim())?.[1] ?? '';
+    // #rgb / #rgba are shorthand for the doubled form; everything else is taken as is.
+    const hex = raw.length <= 4 ? raw.replace(/./g, (c) => c + c) : raw;
+    if (hex.length !== 6 && hex.length !== 8) return '#fff';
+    if (hex.length === 8 && parseInt(hex.slice(6, 8), 16) < 128) return 'var(--text-primary)';
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(hex.slice(i, i + 2), 16));
+    return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 > 0.6 ? '#111827' : '#fff';
+}
+
 /** A single quick-access chip pill. */
 function QuickChip({ view, onJump }: { view: MapQuickView; onJump: (v: MapQuickView) => void }) {
     const color = view.color || 'var(--accent)';
+    const filled = view.filled === true;
     return (
         <button
             type="button"
@@ -370,8 +388,8 @@ function QuickChip({ view, onJump }: { view: MapQuickView; onJump: (v: MapQuickV
             }}
             className="flex items-center gap-1 px-2 py-1 rounded-full text-[11px] font-medium whitespace-nowrap shrink-0 hover:opacity-85 transition-opacity"
             style={{
-                background: 'var(--widget-bg)',
-                color: 'var(--text-primary)',
+                background: filled ? color : 'var(--widget-bg)',
+                color: filled ? labelOn(color) : 'var(--text-primary)',
                 border: `1px solid ${color}`,
                 boxShadow: '0 1px 3px rgba(0,0,0,.25)',
                 cursor: 'pointer',
