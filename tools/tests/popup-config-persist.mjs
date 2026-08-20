@@ -16,6 +16,8 @@
 //   2. A real user edit must still set the flag (the suppression must not leak).
 //   3. A built-in the user customised survives a shipped-version bump instead of
 //      being reset to the shipped content.
+//   4. The same trap in the RAM-only stores: hydrating aura-group-defs /
+//      aura-widget-presets from ioBroker must not leave the key pending.
 import { build } from 'esbuild';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
@@ -73,7 +75,17 @@ await build({
     stdin: {
         contents: `
             export { usePopupConfigStore, BUILTIN_VIEW_IDS } from './src-vis/store/popupConfigStore.ts';
-            export { isDirty, hasDirtyFlag } from './src-vis/store/persistManager.ts';
+            export { isDirty, hasDirtyFlag, isPending } from './src-vis/store/persistManager.ts';
+            export {
+                hydrateGroupDefs,
+                markGroupDefsHydrated,
+                useGroupDefsStore,
+            } from './src-vis/store/groupDefsStore.ts';
+            export {
+                hydrateWidgetPresets,
+                markWidgetPresetsHydrated,
+                useWidgetPresetsStore,
+            } from './src-vis/store/widgetPresetsStore.ts';
         `,
         resolveDir: root,
         loader: 'ts',
@@ -93,8 +105,7 @@ const check = (name, ok, detail = '') => {
     results.push({ name, ok });
     console.log(`${ok ? '  ok  ' : '  FAIL'} ${name}${!ok && detail ? ` - ${detail}` : ''}`);
 };
-const eq = (name, got, want) =>
-    check(name, got === want, `got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
+const eq = (name, got, want) => check(name, got === want, `got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
 
 const KEY = 'aura-popup-config';
 const DIRTY = `_aura_dirty:${KEY}`;
@@ -121,7 +132,18 @@ async function bootWith(persisted) {
 
 /** The persisted zustand payload shape for aura-popup-config. */
 const persistedState = (views, extra = {}) =>
-    JSON.stringify({ state: { typeDefaults: {}, typeDefaultLayouts: {}, views, deletedBuiltinIds: [], removedBuiltinTypeDefaults: [], triggers: [], ...extra }, version: 0 });
+    JSON.stringify({
+        state: {
+            typeDefaults: {},
+            typeDefaultLayouts: {},
+            views,
+            deletedBuiltinIds: [],
+            removedBuiltinTypeDefaults: [],
+            triggers: [],
+            ...extra,
+        },
+        version: 0,
+    });
 
 const shipped = builtinMap['../data/builtinPopups/shutter.json'];
 const SHUTTER_ID = shipped.id;
@@ -163,11 +185,7 @@ const SHIPPED_VER = shipped.version ?? 1;
     check('addView marks the store dirty', map.get(DIRTY) === '1', `flag = ${map.get(DIRTY)}`);
     check('isDirty() after addView', mod.isDirty() === true);
     mod.usePopupConfigStore.getState().updateViewName(id, 'Umbenannt');
-    eq(
-        'rename landed',
-        mod.usePopupConfigStore.getState().views.find((v) => v.id === id)?.name,
-        'Umbenannt',
-    );
+    eq('rename landed', mod.usePopupConfigStore.getState().views.find((v) => v.id === id)?.name, 'Umbenannt');
 }
 
 // ── 4. Editing a built-in flags it, and the flag protects it from the bump ────
@@ -177,10 +195,13 @@ const SHIPPED_VER = shipped.version ?? 1;
     st().updateViewName(SHUTTER_ID, 'Mein Rollladen');
     const edited = st().views.find((v) => v.id === SHUTTER_ID);
     check('editing a built-in sets userEdited', edited?.userEdited === true);
-    check('editing a custom view does not set userEdited', (() => {
-        const id = st().addView('Custom');
-        return st().views.find((v) => v.id === id)?.userEdited === undefined;
-    })());
+    check(
+        'editing a custom view does not set userEdited',
+        (() => {
+            const id = st().addView('Custom');
+            return st().views.find((v) => v.id === id)?.userEdited === undefined;
+        })(),
+    );
 }
 
 // ── 5. A customised built-in survives a shipped-version bump ──────────────────
@@ -192,7 +213,16 @@ const SHIPPED_VER = shipped.version ?? 1;
         version: SHIPPED_VER - 1,
         userEdited: true,
         name: 'Mein Rollladen',
-        widgets: [{ id: 'w1', type: 'value', title: 'nur meins', datapoint: 'x', gridPos: { x: 0, y: 0, w: 1, h: 1 }, options: {} }],
+        widgets: [
+            {
+                id: 'w1',
+                type: 'value',
+                title: 'nur meins',
+                datapoint: 'x',
+                gridPos: { x: 0, y: 0, w: 1, h: 1 },
+                options: {},
+            },
+        ],
     };
     const { mod, map } = await bootWith({ [KEY]: persistedState([mine]) });
     const view = mod.usePopupConfigStore.getState().views.find((v) => v.id === SHUTTER_ID);
@@ -206,6 +236,32 @@ const SHIPPED_VER = shipped.version ?? 1;
     const after = mod.usePopupConfigStore.getState().views.find((v) => v.id === SHUTTER_ID);
     eq('reset pulls the shipped widgets', after?.widgets.length, shipped.widgets.length);
     check('reset clears userEdited', after?.userEdited === undefined);
+}
+
+// ── 6. The RAM-only stores must not go pending on inbound hydration ──────────
+// aura-group-defs / aura-widget-presets mark dirty from a plain subscribe(),
+// which fires for applyRaw's hydration too. That left both keys pending after
+// every boot: useConfigSync's isPending gate then dropped their inbound sync for
+// the rest of the session, and the admin's bootstrap save rewrote both keys —
+// burning a backup slot — on every single open.
+{
+    const { mod } = await bootWith({ [KEY]: persistedState([]) });
+    const defs = JSON.stringify({ state: { defs: { 'gd-1': [] } }, version: 0 });
+    mod.hydrateGroupDefs(defs);
+    eq('group-defs hydration landed', Object.keys(mod.useGroupDefsStore.getState().defs).length, 1);
+    check('group-defs hydration leaves the key clean', mod.isPending('aura-group-defs') === false);
+
+    mod.hydrateWidgetPresets(JSON.stringify({ state: { presets: [] }, version: 0 }));
+    mod.markWidgetPresetsHydrated();
+    mod.markGroupDefsHydrated();
+    check('widget-presets hydration leaves the key clean', mod.isPending('aura-widget-presets') === false);
+    check('markHydrated does not dirty either key', mod.isDirty() === false);
+
+    // A real edit must still arm the save bar.
+    mod.useGroupDefsStore.getState().setDef('gd-2', []);
+    check('a real group-def edit still marks the key pending', mod.isPending('aura-group-defs') === true);
+    mod.useWidgetPresetsStore.getState().addPreset({ id: 'p1', name: 'x' });
+    check('a real preset edit still marks the key pending', mod.isPending('aura-widget-presets') === true);
 }
 
 rmSync(bundle, { force: true });

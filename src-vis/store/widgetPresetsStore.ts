@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { registerExternalReader, markDirty } from './persistManager';
+import { registerExternalReader, markDirty, withSuppressedDirty } from './persistManager';
 import type { WidgetPreset } from '../types';
 
 export interface WidgetPresetsState {
@@ -49,12 +49,18 @@ useWidgetPresetsStore.subscribe(() => markDirty('aura-widget-presets'));
  *  blocked forever. */
 export function markWidgetPresetsHydrated(): void {
     if (!useWidgetPresetsStore.getState().hydrated) {
-        useWidgetPresetsStore.setState({ hydrated: true });
+        // Suppressed: flipping the hydrated flag is bookkeeping, not an edit.
+        withSuppressedDirty(() => useWidgetPresetsStore.setState({ hydrated: true }));
     }
 }
 
 /** Load presets from a raw JSON string (Zustand persist format or plain {presets:...}). */
 export function hydrateWidgetPresets(raw: string): void {
+    // Suppressed - inbound hydration from ioBroker, not a user edit.
+    withSuppressedDirty(() => hydrateWidgetPresetsInner(raw));
+}
+
+function hydrateWidgetPresetsInner(raw: string): void {
     try {
         const parsed = JSON.parse(raw) as Record<string, unknown>;
         const source = (parsed.state as Record<string, unknown> | undefined) ?? parsed;

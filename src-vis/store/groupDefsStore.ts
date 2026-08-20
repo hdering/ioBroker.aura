@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { registerExternalReader, markDirty, registerPreSaveHook } from './persistManager';
+import { registerExternalReader, markDirty, registerPreSaveHook, withSuppressedDirty } from './persistManager';
 import { useDashboardStore } from './dashboardStore';
 import { usePopupConfigStore } from './popupConfigStore';
 import type { WidgetConfig } from '../types';
@@ -54,12 +54,19 @@ useGroupDefsStore.subscribe(() => markDirty('aura-group-defs'));
  *  aren't blocked forever. */
 export function markGroupDefsHydrated(): void {
     if (!useGroupDefsStore.getState().hydrated) {
-        useGroupDefsStore.setState({ hydrated: true });
+        // Suppressed: flipping the hydrated flag is bookkeeping, not an edit.
+        withSuppressedDirty(() => useGroupDefsStore.setState({ hydrated: true }));
     }
 }
 
 /** Load group-defs from a raw JSON string (Zustand persist format or plain {defs:...}). */
 export function hydrateGroupDefs(raw: string): void {
+    // Suppressed: this is the *inbound* path (ioBroker -> store), the opposite of a
+    // user edit. The subscribe() above cannot tell the two apart on its own.
+    withSuppressedDirty(() => hydrateGroupDefsInner(raw));
+}
+
+function hydrateGroupDefsInner(raw: string): void {
     try {
         const parsed = JSON.parse(raw) as Record<string, unknown>;
         // Support both Zustand persist format { state: { defs } } and plain { defs }

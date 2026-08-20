@@ -185,14 +185,6 @@ export function groupDefsReadyForSave(): boolean {
     return !reader || reader() != null;
 }
 
-/** Mark a key as dirty without buffering a value — used by RAM-only stores
- *  that provide their data via registerExternalReader at save time. */
-export function markDirty(key: string): void {
-    pending.set(key, '\x00'); // sentinel — replaced by externalReader at save time
-    setDirtyFlag(key);
-    notify();
-}
-
 // Navigation-only writes (e.g. activeTabId / activeLayoutId) update localStorage
 // but must NOT mark the key dirty — switching tabs is per-device viewing state,
 // not a config edit the user expects to "save" or "revert".
@@ -216,6 +208,22 @@ export function setScreenshotMode(on: boolean): void {
 }
 export function isScreenshotMode(): boolean {
     return screenshotMode;
+}
+
+/** Mark a key as dirty without buffering a value — used by RAM-only stores
+ *  that provide their data via registerExternalReader at save time.
+ *
+ *  Declared after the two flags above because it reads them: the RAM-only stores
+ *  mark dirty from a plain subscribe(), which cannot tell a user edit from the
+ *  inbound hydration applyRaw performs when pulling from ioBroker. Without the
+ *  guard every boot left aura-group-defs and aura-widget-presets pending, which
+ *  dropped their inbound sync for the rest of the session and made the admin's
+ *  bootstrap save rewrite both keys — burning a backup slot — on every open. */
+export function markDirty(key: string): void {
+    if (suppressDirtyDepth > 0 || screenshotMode) return;
+    pending.set(key, '\x00'); // sentinel — replaced by externalReader at save time
+    setDirtyFlag(key);
+    notify();
 }
 
 // ── Config that lives outside the sync stores ────────────────────────────────

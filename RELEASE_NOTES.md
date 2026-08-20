@@ -23,3 +23,5 @@
 - Popups - a built-in popup you edited yourself is no longer reset to the shipped version when an update ships a new revision of it; use "Reset" in Admin - Popups to pull the new version on purpose
 - Popups - editing a timer or syncing a dynamic list in the frontend no longer writes that browser's theme, group and popup configuration back to ioBroker along with the dashboard
 - Map - the map type can now be switched in the running frontend: optional chips over the map, placed in any corner, offering all or only the selected types (#564)
+- Settings - the automatic backups no longer fill up with one entry per editor visit: opening the editor rewrote the group and preset data every time, so the older backups worth restoring were pushed out of the list
+- Groups and widget presets changed on another device now reach an already open editor again instead of being ignored until the next save
