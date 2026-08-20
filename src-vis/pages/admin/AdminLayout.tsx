@@ -210,8 +210,11 @@ export function AdminLayout() {
             } else if (remoteHasData && localHasData) {
                 // Both have data – flush any cross-session unsaved edits (_dirty flag
                 // survivors). saveToIoBroker writes only dirty keys, so if there are
-                // none this is a cheap no-op.
-                saveToIoBroker({ backup: false });
+                // none this is a cheap no-op — and then no backup is written either.
+                // When it does write it overwrites the remote copy with this device's
+                // carried-over one, which is exactly the save that must show up in
+                // Settings → Backups instead of happening invisibly.
+                saveToIoBroker();
             }
         });
     }, [connected]);

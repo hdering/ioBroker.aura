@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { managedStorage } from './persistManager';
+import { managedStorage, withSuppressedDirty } from './persistManager';
 import type { ClickAction, ConditionClause, WidgetConfig, WidgetLayout } from '../types';
 
 /**
@@ -38,6 +38,12 @@ export interface PopupView {
     // Absent on built-ins and on views persisted before this field existed —
     // use viewCreatedAt() instead of reading it directly.
     createdAt?: number;
+    // Set on a built-in as soon as the user changes anything about it. Such a
+    // view is never overwritten by the version migration in ensureBuiltins() —
+    // an update would otherwise silently throw the customisation away. The
+    // "reset" button in Admin → Popups clears the flag and pulls the shipped
+    // content on demand. Meaningless on custom views.
+    userEdited?: boolean;
 }
 
 /**
@@ -129,6 +135,19 @@ function freshBuiltin(viewId: string): PopupView | undefined {
         ...code,
         widgets: code.widgets.map((w) => ({ ...w, gridPos: { ...w.gridPos }, options: { ...w.options } })),
     };
+}
+
+/**
+ * Apply `fn` to the view with `viewId`. Editing a built-in also flags it as
+ * user-edited so the next shipped-version bump leaves it alone instead of
+ * discarding the customisation.
+ */
+function patchView(views: PopupView[], viewId: string, fn: (v: PopupView) => PopupView): PopupView[] {
+    return views.map((v) => {
+        if (v.id !== viewId) return v;
+        const next = fn(v);
+        return BUILTIN_VIEW_IDS.has(v.id) ? { ...next, userEdited: true } : next;
+    });
 }
 
 // ── Store ─────────────────────────────────────────────────────────────────────
@@ -251,24 +270,16 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                 })),
 
             updateViewName: (viewId, name) =>
-                set((s) => ({
-                    views: s.views.map((v) => (v.id === viewId ? { ...v, name } : v)),
-                })),
+                set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, name })) })),
 
             setViewAutoCloseSec: (viewId, sec) =>
-                set((s) => ({
-                    views: s.views.map((v) => (v.id === viewId ? { ...v, autoCloseSec: sec } : v)),
-                })),
+                set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, autoCloseSec: sec })) })),
 
             setViewTransparency: (viewId, pct) =>
-                set((s) => ({
-                    views: s.views.map((v) => (v.id === viewId ? { ...v, transparency: pct } : v)),
-                })),
+                set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, transparency: pct })) })),
 
             setViewBackdropDim: (viewId, pct) =>
-                set((s) => ({
-                    views: s.views.map((v) => (v.id === viewId ? { ...v, backdropDim: pct } : v)),
-                })),
+                set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, backdropDim: pct })) })),
 
             setGlobalAutoCloseSec: (sec) => set({ globalAutoCloseSec: sec }),
 
@@ -328,23 +339,23 @@ export const usePopupConfigStore = create<PopupConfigState>()(
 
             addWidgetToView: (viewId, widget) =>
                 set((s) => ({
-                    views: s.views.map((v) => (v.id === viewId ? { ...v, widgets: [...v.widgets, widget] } : v)),
+                    views: patchView(s.views, viewId, (v) => ({ ...v, widgets: [...v.widgets, widget] })),
                 })),
 
             removeWidgetFromView: (viewId, widgetId) =>
                 set((s) => ({
-                    views: s.views.map((v) =>
-                        v.id === viewId ? { ...v, widgets: v.widgets.filter((w) => w.id !== widgetId) } : v,
-                    ),
+                    views: patchView(s.views, viewId, (v) => ({
+                        ...v,
+                        widgets: v.widgets.filter((w) => w.id !== widgetId),
+                    })),
                 })),
 
             updateWidgetInView: (viewId, widgetId, patch) =>
                 set((s) => ({
-                    views: s.views.map((v) =>
-                        v.id === viewId
-                            ? { ...v, widgets: v.widgets.map((w) => (w.id === widgetId ? { ...w, ...patch } : w)) }
-                            : v,
-                    ),
+                    views: patchView(s.views, viewId, (v) => ({
+                        ...v,
+                        widgets: v.widgets.map((w) => (w.id === widgetId ? { ...w, ...patch } : w)),
+                    })),
                 })),
 
             copyView: (sourceId) => {
@@ -382,7 +393,11 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                         const codeVer = code.version ?? 1;
                         if (persistedVer < codeVer) {
                             viewsChanged = true;
-                            return freshBuiltin(v.id)!;
+                            // A built-in the user has customised keeps its content —
+                            // only the version marker moves up, so the migration does
+                            // not retry on every load. Admin → Popups → "reset" still
+                            // pulls the new shipped content when the user wants it.
+                            return v.userEdited ? { ...v, version: codeVer } : freshBuiltin(v.id)!;
                         }
                         return v;
                     });
@@ -437,7 +452,15 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             name: 'aura-popup-config',
             storage: createJSONStorage(() => managedStorage),
             onRehydrateStorage: () => (state) => {
-                state?.ensureBuiltins();
+                // ensureBuiltins() is a purely local, code-derived normalisation — it
+                // adds built-ins this bundle ships and migrates their version. It is
+                // NOT a user edit, so it must not set the _dirty flag: dirty means
+                // "this device has unsaved edits", which makes loadConfigFromIoBroker
+                // skip the pull for aura-popup-config and makes the next save push
+                // this device's frozen copy over everyone else's popups. A device
+                // that then failed to complete one ACK'd write stayed marked forever
+                // and silently rolled the popup config back on every admin open.
+                withSuppressedDirty(() => state?.ensureBuiltins());
             },
         },
     ),

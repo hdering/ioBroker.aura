@@ -1051,7 +1051,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             if (newEntries.length > 0) {
                 saveOpts({ entries: [...entries, ...newEntries] });
                 saveAll();
-                saveToIoBroker();
+                // Scoped: the frontend must not push its theme/groups/popup-config
+                // copy along with a dashboard edit.
+                saveToIoBroker({ only: ['aura-dashboard'] });
             }
         } finally {
             setSyncing(false);

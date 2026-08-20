@@ -718,10 +718,19 @@ async function writeStateConfirmed(id: string, raw: string, timeoutMs = 10000): 
  * are confirmed, so its heavy gzip+writeFile+prune I/O can't compete with (and
  * drop) the config-state write frame on the shared socket.
  *
+ * `only` narrows the save to the listed keys. The read-only frontend uses it so
+ * an in-place widget edit (timer schedule, auto-list sync) flushes the dashboard
+ * and nothing else — without it such a flush also pushes whatever this browser
+ * happens to hold for theme/groups/popup-config over the admin's config.
+ *
  * Returns true synchronously once the writes are dispatched; the local stores
  * already hold the new value, so callers never await it.
  */
-export function saveToIoBroker({ backup = true, all = false }: { backup?: boolean; all?: boolean } = {}): boolean {
+export function saveToIoBroker({
+    backup = true,
+    all = false,
+    only,
+}: { backup?: boolean; all?: boolean; only?: SyncStoreKey[] } = {}): boolean {
     // Screenshot harness active → never write to the real ioBroker instance.
     if (screenshotMode) return false;
     // Refuse to write while group-defs is unhydrated — otherwise this save (and
@@ -738,7 +747,8 @@ export function saveToIoBroker({ backup = true, all = false }: { backup?: boolea
     // up by the targetKeys computation below.
     runPreSaveHooks();
     const now = Date.now();
-    const targetKeys: SyncStoreKey[] = all ? SYNC_STORE_KEYS : SYNC_STORE_KEYS.filter(isPending);
+    const candidates: SyncStoreKey[] = only ? SYNC_STORE_KEYS.filter((k) => only.includes(k)) : SYNC_STORE_KEYS;
+    const targetKeys: SyncStoreKey[] = all ? candidates : candidates.filter(isPending);
 
     const changedKeys: SyncStoreKey[] = [];
     const details: BackupChangeDetail[] = [];

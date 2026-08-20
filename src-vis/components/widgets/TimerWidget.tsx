@@ -31,11 +31,15 @@ import { NS } from '../../utils/namespace';
  * unsaved change is otherwise overwritten by the next stateChange echo or
  * poll. Calling saveToIoBroker() arms the `isSavingRecently` window (5 s)
  * that suppresses our own echo and prevents the rollback.
+ *
+ * Scoped to aura-dashboard: an unscoped save from the read-only frontend also
+ * pushes whatever this browser holds for theme/groups/popup-config, which can
+ * roll the admin's config back to this device's copy.
  */
 function flushDashboard() {
     try {
         saveAll();
-        saveToIoBroker();
+        saveToIoBroker({ only: ['aura-dashboard'] });
     } catch {
         /* offline / not configured */
     }
