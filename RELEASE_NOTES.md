@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Chart (advanced) - y-axis bounds from a JSON datapoint are now found when the payload is wrapped in an array, and min/max written the wrong way round are swapped (#550)

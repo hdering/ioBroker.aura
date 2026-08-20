@@ -66,6 +66,19 @@ Neben den Daten darf der Datenpunkt die Grenzen der Y-Achse tragen — dann skal
 
 Den Block sucht das Widget selbst: `min`/`max` direkt neben den Daten, in einem Block wie `axis`, `yAxis`, `scale`, `range`, `limits` oder in einem beliebigen anderen Unterobjekt. `yMin`/`yMax`, `minValue`/`maxValue` und `axisMin`/`axisMax` gelten ebenso, Zahlen als String auch. Eine der beiden Grenzen genügt — die andere bleibt automatisch. `jsonAxisPath` legt den Block fest, wenn mehrere in Frage kommen.
 
+Ist das ganze JSON in ein Array gepackt — z. B. weil ein Skript seine bestehende Liste nur umhüllt hat —, findet das Widget Daten und Block trotzdem, mit oder ohne Pfad:
+
+```json
+[
+    {
+        "yAxis": { "yMin": 0, "yMax": 20 },
+        "data": [{ "ts": 1786990830338, "value": 10 }]
+    }
+]
+```
+
+Stehen die beiden Grenzen verdreht im JSON (`yMin` größer als `yMax`), werden sie getauscht.
+
 Die Grenzen gelten für die Achse der jeweiligen Serie (`yAxisIndex`) und werden wie deren Werte umgerechnet (`valueFactor`/`valueOffset`). Ohne Block bleibt die Skalierung, wie sie konfiguriert ist.
 
 ### Gauge

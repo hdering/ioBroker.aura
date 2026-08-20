@@ -393,6 +393,37 @@ export function detectJsonKeys(sample: Record<string, unknown>): { labelKey?: st
     return { labelKey, valueKey };
 }
 
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+    return !!v && typeof v === 'object' && !Array.isArray(v);
+}
+
+/**
+ * The object hiding inside an array wrapper — `[{"yAxis": {…}, "data": […]}]` instead of
+ * `{"yAxis": {…}, "data": […]}`, the shape a script writes when it wraps a payload that already
+ * was an array (issue #550). Only a single-element array whose object carries a nested array
+ * counts, so an array of real data entries is never mistaken for a wrapper.
+ */
+function wrapperObject(node: unknown): Record<string, unknown> | undefined {
+    if (!Array.isArray(node) || node.length !== 1 || !isPlainObject(node[0])) return undefined;
+    const only = node[0];
+    return Object.values(only).some(Array.isArray) ? only : undefined;
+}
+
+/** Follow one path segment, seeing through an array wrapper around the object that holds it. */
+function stepInto(node: unknown, key: string): unknown {
+    if (Array.isArray(node)) {
+        // A numeric segment picks the element (`0.data`); any other one is looked up in the
+        // objects the array holds, so a path written for the payload itself keeps resolving
+        // when that payload arrives wrapped in an array.
+        if (/^\d+$/.test(key)) return node[Number(key)];
+        for (const item of node) {
+            if (isPlainObject(item) && item[key] !== undefined) return item[key];
+        }
+        return undefined;
+    }
+    return isPlainObject(node) ? node[key] : undefined;
+}
+
 /** Resolve the array a JSON datapoint's value holds, following the configured path. */
 export function resolveJsonArray(raw: unknown, jsonPath?: string): unknown[] | null {
     let parsed: unknown = raw;
@@ -405,12 +436,18 @@ export function resolveJsonArray(raw: unknown, jsonPath?: string): unknown[] | n
     }
     const path = (jsonPath ?? '').trim();
     if (path) {
-        parsed = path.split('.').reduce<unknown>((acc, key) => {
-            if (acc && typeof acc === 'object') return (acc as Record<string, unknown>)[key];
-            return undefined;
-        }, parsed);
+        parsed = path.split('.').filter(Boolean).reduce<unknown>(stepInto, parsed);
     }
-    return Array.isArray(parsed) ? parsed : null;
+    if (!Array.isArray(parsed)) return null;
+    // A wrapper array is not the data: hand out the array it holds, so the same payload charts
+    // with or without the wrapper — and with or without a path pointing past it.
+    const wrapped = wrapperObject(parsed);
+    if (wrapped) {
+        const nested = Object.values(wrapped).filter(Array.isArray) as unknown[][];
+        // One nested array is unambiguous; with several the path has to say which one.
+        if (nested.length === 1) return nested[0];
+    }
+    return parsed;
 }
 
 /**
@@ -448,10 +485,6 @@ const AXIS_MAX_KEYS = ['max', 'yMax', 'ymax', 'maxValue', 'axisMax', 'yAxisMax']
 /** Object keys commonly wrapping the bounds — checked before any other nested object. */
 const AXIS_BLOCK_KEYS = ['yAxis', 'yaxis', 'axis', 'axes', 'scale', 'range', 'limits', 'bounds', 'meta'];
 
-function isPlainObject(v: unknown): v is Record<string, unknown> {
-    return !!v && typeof v === 'object' && !Array.isArray(v);
-}
-
 /** First of `keys` that holds a finite number (numeric strings count) — `undefined` if none does. */
 function numberAt(obj: Record<string, unknown>, keys: string[]): number | undefined {
     for (const k of keys) {
@@ -460,6 +493,17 @@ function numberAt(obj: Record<string, unknown>, keys: string[]): number | undefi
         if (typeof v === 'string' && v.trim() !== '' && Number.isFinite(Number(v))) return Number(v);
     }
     return undefined;
+}
+
+/**
+ * The objects a node offers as a place for the bounds block: itself, or — when the payload
+ * arrives wrapped in an array — the object inside that wrapper. Entries of a plain data array
+ * are deliberately not offered: a `min` next to a point's value is per-point data, not an axis.
+ */
+function boundsCandidates(node: unknown): Record<string, unknown>[] {
+    if (isPlainObject(node)) return [node];
+    const wrapped = wrapperObject(node);
+    return wrapped ? [wrapped] : [];
 }
 
 function boundsOf(obj: Record<string, unknown>): JsonAxisBounds | undefined {
@@ -491,31 +535,36 @@ export function parseJsonAxisBounds(raw: unknown, s: EChartSeriesConfig): JsonAx
             return undefined;
         }
     }
-    if (!isPlainObject(parsed)) return undefined;
+    const roots = boundsCandidates(parsed);
+    if (roots.length === 0) return undefined;
 
-    const scaled = (b: JsonAxisBounds): JsonAxisBounds => ({
-        min: b.min === undefined ? undefined : seriesValue(s, b.min),
-        max: b.max === undefined ? undefined : seriesValue(s, b.max),
-    });
+    const scaled = (b: JsonAxisBounds): JsonAxisBounds => {
+        const min = b.min === undefined ? undefined : seriesValue(s, b.min);
+        const max = b.max === undefined ? undefined : seriesValue(s, b.max);
+        // Hand the two bounds over in ascending order: a payload may write them the other way
+        // round (`{"yMin": 20, "yMax": 0}`, issue #550) and a negative value factor flips them
+        // anyway — a min above its max draws a mirrored, unreadable axis.
+        return min !== undefined && max !== undefined && min > max ? { min: max, max: min } : { min, max };
+    };
 
     const explicit = (s.jsonAxisPath ?? '').trim();
     if (explicit) {
-        const target = explicit.split('.').reduce<unknown>((acc, key) => {
-            if (isPlainObject(acc)) return acc[key];
-            return undefined;
-        }, parsed);
-        if (!isPlainObject(target)) return undefined;
-        const found = boundsOf(target);
-        return found ? scaled(found) : undefined;
+        const target = explicit.split('.').filter(Boolean).reduce<unknown>(stepInto, parsed);
+        for (const cand of boundsCandidates(target)) {
+            const found = boundsOf(cand);
+            if (found) return scaled(found);
+        }
+        return undefined;
     }
 
     // Root first, then every object step of the data path — the block usually sits beside the array.
-    const candidates: Record<string, unknown>[] = [parsed];
+    const candidates: Record<string, unknown>[] = [...roots];
     let cursor: unknown = parsed;
     for (const seg of (s.jsonPath ?? '').trim().split('.').filter(Boolean)) {
-        cursor = isPlainObject(cursor) ? cursor[seg] : undefined;
-        if (!isPlainObject(cursor)) break;
-        candidates.push(cursor);
+        cursor = stepInto(cursor, seg);
+        const next = boundsCandidates(cursor);
+        if (next.length === 0) break;
+        candidates.push(...next);
     }
 
     for (const cand of candidates) {

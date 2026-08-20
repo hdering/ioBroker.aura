@@ -27,7 +27,8 @@ mkdirSync(cache, { recursive: true });
 const bundle = join(cache, `aura-json-axis-${process.pid}.mjs`);
 await build({
     stdin: {
-        contents: "export { parseJsonAxisBounds, parseJsonSeries } from './src-vis/hooks/useMultiSeriesData.ts';",
+        contents:
+            "export { parseJsonAxisBounds, parseJsonSeries, resolveJsonArray } from './src-vis/hooks/useMultiSeriesData.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -50,7 +51,7 @@ await build({
         },
     ],
 });
-const { parseJsonAxisBounds, parseJsonSeries } = await import(pathToFileURL(bundle).href);
+const { parseJsonAxisBounds, parseJsonSeries, resolveJsonArray } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -184,6 +185,71 @@ for (const [name, raw, s] of NONE) {
         'bounds block does not disturb the point parsing',
         points.length === 2 && points[0].label === '12:00' && points[1].value === 1.2,
         JSON.stringify(points),
+    );
+}
+
+// -- 7. the payload arrives wrapped in an array ---------------------------------------------
+// The shape reported on the issue: a script that used to write a bare array wraps it in one so
+// it can add the bounds block. Neither the data nor the bounds were found before — whatever the
+// user typed into the two path fields.
+const WRAPPED = JSON.stringify([
+    {
+        yAxis: { yMin: 20, yMax: 0 },
+        data: [
+            { ts: 1786990830338, value: 10 },
+            { ts: 1787077230338, value: 30 },
+        ],
+    },
+]);
+for (const cfg of [{}, { jsonPath: 'data' }, { jsonPath: '0.data' }, { jsonPath: 'data', jsonAxisPath: 'yAxis' }]) {
+    const s = series(cfg);
+    const arr = resolveJsonArray(WRAPPED, s.jsonPath);
+    const points = parseJsonSeries(WRAPPED, s);
+    const got = parseJsonAxisBounds(WRAPPED, s);
+    const label = JSON.stringify(cfg) === '{}' ? 'no paths set' : JSON.stringify(cfg);
+    check(
+        `array-wrapped payload (${label})`,
+        arr?.length === 2 && points.length === 2 && points[1].value === 30 && got?.min === 0 && got?.max === 20,
+        `${arr?.length ?? 'null'} entries · ${points.length} points · ${show(got)}`,
+    );
+}
+
+// -- 8. bounds are handed over in ascending order -------------------------------------------
+eq('min/max written the wrong way round', parseJsonAxisBounds({ min: 20, max: 0, data: DATA }, series()), 0, 20);
+eq(
+    'a negative factor flips them back',
+    parseJsonAxisBounds({ min: 0, max: 100, data: DATA }, series({ jsonPath: 'data', valueFactor: -1 })),
+    -100,
+    0,
+);
+
+// -- 9. a real data array is never mistaken for a wrapper ----------------------------------
+{
+    const one = [{ ts: 1786990830338, value: 7 }];
+    const points = parseJsonSeries(one, series());
+    check(
+        'single-entry data array stays the data',
+        points.length === 1 && points[0].value === 7,
+        JSON.stringify(points),
+    );
+}
+{
+    // Two nested arrays are ambiguous — the path has to pick one, so the wrapper stays put.
+    const ambiguous = [{ a: [{ label: 'x', value: 1 }], b: [{ label: 'y', value: 2 }] }];
+    const arr = resolveJsonArray(ambiguous, undefined);
+    const picked = resolveJsonArray(ambiguous, 'b');
+    check(
+        'ambiguous wrapper is left alone, path picks the array',
+        arr?.length === 1 && picked?.length === 1 && picked[0].value === 2,
+        `${arr?.length} / ${JSON.stringify(picked)}`,
+    );
+}
+{
+    const nested = { rows: [{ label: 'a', value: 1, min: 5, max: 9 }] };
+    check(
+        'entry-level min/max stays out of the axis with a wrapper in play',
+        parseJsonAxisBounds([nested], series({ jsonPath: 'rows' })) === undefined,
+        show(parseJsonAxisBounds([nested], series({ jsonPath: 'rows' }))),
     );
 }
 
