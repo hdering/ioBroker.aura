@@ -11,6 +11,7 @@ import {
     parseJsonAxisBounds,
     parseTimeLabel,
     resolveJsonArray,
+    suggestJsonArrayPaths,
     type EChartSeriesConfig,
     type EChartTimeRange,
     type JsonAxisBounds,
@@ -18,6 +19,7 @@ import {
 import { useT, t } from '../../i18n';
 import { ColorPicker } from '../common/ColorPicker';
 import { ValueTransformButton } from './ValueTransformButton';
+import { JsonAxisBoundsHint, JsonShapeHint } from './JsonChartHints';
 
 interface EChartConfigProps {
     config: WidgetConfig;
@@ -55,6 +57,8 @@ interface JsonProbe {
     done: boolean;
     /** Datapoint value isn't a JSON array (at the configured path). */
     invalid?: boolean;
+    /** Paths that DO hold an array — offered when the configured one found nothing. */
+    arrayPaths?: string[];
     /** Object keys found in the first entry — these fill the two dropdowns. */
     keys: string[];
     /** Keys the auto-detection picked. */
@@ -339,7 +343,16 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     if (!arr) {
                         setJsonProbes((prev) => ({
                             ...prev,
-                            [s.id]: { done: true, invalid: true, keys: [], entries: 0, timeLike: false },
+                            [s.id]: {
+                                done: true,
+                                invalid: true,
+                                // Say where the arrays actually are instead of only that this
+                                // path holds none (issue #550).
+                                arrayPaths: suggestJsonArrayPaths(state?.val),
+                                keys: [],
+                                entries: 0,
+                                timeLike: false,
+                            },
                         }));
                         return;
                     }
@@ -953,6 +966,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                     className={inputCls}
                                                                     style={inputStyle}
                                                                 />
+                                                                <JsonShapeHint />
                                                             </div>
                                                             {/* Widget-level: the axis type is shared, so this toggle
                                                                 shows the same state in every series panel. */}
@@ -1074,6 +1088,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                         className={inputCls}
                                                                         style={inputStyle}
                                                                     />
+                                                                    <JsonAxisBoundsHint />
                                                                     {/* Only once the payload was actually read — an
                                                                         unreadable datapoint already says so below. */}
                                                                     {probe?.done && !probe.invalid && (
@@ -1099,12 +1114,27 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 </div>
                                                             )}
                                                             {probe?.done && probe.invalid && (
-                                                                <p
-                                                                    className="text-[11px]"
-                                                                    style={{ color: 'var(--danger, #ef4444)' }}
-                                                                >
-                                                                    {t('echart.jsonNoArray')}
-                                                                </p>
+                                                                <div>
+                                                                    <p
+                                                                        className="text-[11px]"
+                                                                        style={{ color: 'var(--danger, #ef4444)' }}
+                                                                    >
+                                                                        {t('echart.jsonNoArray')}
+                                                                    </p>
+                                                                    {!!probe.arrayPaths?.length && (
+                                                                        <p
+                                                                            className="text-[11px] mt-0.5"
+                                                                            style={{
+                                                                                color: 'var(--text-secondary)',
+                                                                                opacity: 0.85,
+                                                                            }}
+                                                                        >
+                                                                            {t('echart.jsonPathSuggest', {
+                                                                                paths: probe.arrayPaths.join(', '),
+                                                                            })}
+                                                                        </p>
+                                                                    )}
+                                                                </div>
                                                             )}
                                                             {probe?.done && !probe.invalid && (
                                                                 <p

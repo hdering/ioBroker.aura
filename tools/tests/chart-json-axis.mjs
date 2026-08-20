@@ -28,7 +28,7 @@ const bundle = join(cache, `aura-json-axis-${process.pid}.mjs`);
 await build({
     stdin: {
         contents:
-            "export { parseJsonAxisBounds, parseJsonSeries, resolveJsonArray } from './src-vis/hooks/useMultiSeriesData.ts';",
+            "export { parseJsonAxisBounds, parseJsonSeries, resolveJsonArray, suggestJsonArrayPaths } from './src-vis/hooks/useMultiSeriesData.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -51,7 +51,9 @@ await build({
         },
     ],
 });
-const { parseJsonAxisBounds, parseJsonSeries, resolveJsonArray } = await import(pathToFileURL(bundle).href);
+const { parseJsonAxisBounds, parseJsonSeries, resolveJsonArray, suggestJsonArrayPaths } = await import(
+    pathToFileURL(bundle).href
+);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -250,6 +252,26 @@ eq(
         'entry-level min/max stays out of the axis with a wrapper in play',
         parseJsonAxisBounds([nested], series({ jsonPath: 'rows' })) === undefined,
         show(parseJsonAxisBounds([nested], series({ jsonPath: 'rows' }))),
+    );
+}
+
+// -- 10. the editor's path suggestions ------------------------------------------------------
+// What the options panel offers when the configured path found nothing.
+const SUGGEST = [
+    ['object payload', { axis: { min: 0, max: 1 }, data: DATA }, ['data']],
+    ['array-wrapped payload suggests the inner key, not 0.data', [{ yAxis: {}, data: DATA }], ['data']],
+    ['nested one level down', { result: { hours: DATA, days: DATA } }, ['result.hours', 'result.days']],
+    ['JSON string payload', JSON.stringify({ rows: DATA }), ['rows']],
+    ['empty arrays are no suggestion', { data: [] }, []],
+    ['broken JSON', '{not json', []],
+    ['plain array payload has nothing to offer', DATA, []],
+];
+for (const [name, raw, want] of SUGGEST) {
+    const got = suggestJsonArrayPaths(raw);
+    check(
+        `suggest: ${name}`,
+        JSON.stringify(got) === JSON.stringify(want),
+        `${JSON.stringify(got)} (want ${JSON.stringify(want)})`,
     );
 }
 

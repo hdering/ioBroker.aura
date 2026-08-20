@@ -451,6 +451,42 @@ export function resolveJsonArray(raw: unknown, jsonPath?: string): unknown[] | n
 }
 
 /**
+ * Every path inside a payload that points at a non-empty array — what the editor offers when the
+ * configured path found nothing, so "no JSON array here" comes with the paths that would work
+ * instead of leaving the structure to be guessed (issue #550).
+ *
+ * Wrapper arrays are seen through exactly like `resolveJsonArray` does, so `[{"data": […]}]`
+ * suggests `data` and not `0.data`. Walks two object levels — deeper nesting is rare enough
+ * that a suggestion list would turn into noise.
+ */
+export function suggestJsonArrayPaths(raw: unknown, maxPaths = 4): string[] {
+    let parsed: unknown = raw;
+    if (typeof raw === 'string') {
+        try {
+            parsed = JSON.parse(raw);
+        } catch {
+            return [];
+        }
+    }
+    const root = isPlainObject(parsed) ? parsed : wrapperObject(parsed);
+    if (!root) return [];
+    const found: string[] = [];
+    const walk = (obj: Record<string, unknown>, prefix: string, depth: number) => {
+        for (const [key, value] of Object.entries(obj)) {
+            if (found.length >= maxPaths) return;
+            const path = prefix ? `${prefix}.${key}` : key;
+            if (Array.isArray(value)) {
+                if (value.length > 0) found.push(path);
+            } else if (isPlainObject(value) && depth > 0) {
+                walk(value, path, depth - 1);
+            }
+        }
+    };
+    walk(root, '', 1);
+    return found;
+}
+
+/**
  * Turn a JSON datapoint's raw value into label/value points.
  *
  * Accepts the value as an already-parsed object/array or as a JSON string (the usual case for

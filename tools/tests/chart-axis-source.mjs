@@ -40,6 +40,9 @@ await page.evaluate((data) => {
         'demo.jsonBlock': JSON.stringify({ axis: { min: 0, max: 100 }, data }),
         'demo.jsonNested': JSON.stringify({ data: { scale: { yMin: 5, yMax: 60 }, hours: data } }),
         'demo.jsonMaxOnly': JSON.stringify({ max: 80, data }),
+        // Payload and bounds block wrapped in an array, bounds written the wrong way round —
+        // the shape reported on the issue.
+        'demo.jsonWrapped': JSON.stringify([{ yAxis: { yMin: 40, yMax: 0 }, data }]),
         // The bound datapoints themselves.
         'demo.axisMax': 250,
         'demo.axisMax2': 175,
@@ -136,6 +139,17 @@ const bounds = (axis) => `min=${axis?.min} max=${axis?.max}`;
         jsonWidget({ dp: 'demo.jsonPlain', echartJsonAxisBounds: true, echartLeftMin: 3, echartLeftMax: 7 }, ''),
     );
     check('payload without a block keeps the config', y?.[0]?.min === 3 && y?.[0]?.max === 7, bounds(y?.[0]));
+}
+
+{
+    // Wrapper array with a path written for the payload inside it.
+    const y = await axesFor(jsonWidget({ dp: 'demo.jsonWrapped', echartJsonAxisBounds: true }));
+    check('array-wrapped payload, reversed bounds', y?.[0]?.min === 0 && y?.[0]?.max === 40, bounds(y?.[0]));
+}
+{
+    // Same payload without any path — the wrapper is seen through.
+    const y = await axesFor(jsonWidget({ dp: 'demo.jsonWrapped', echartJsonAxisBounds: true }, ''));
+    check('array-wrapped payload without a path', y?.[0]?.min === 0 && y?.[0]?.max === 40, bounds(y?.[0]));
 }
 
 // ── Bound datapoints ─────────────────────────────────────────────────────────
