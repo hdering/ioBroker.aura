@@ -6,11 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aura – ioBroker Dashboard</title>
     <style>
+      :root { --aura-boot-bg: #0f172a; --aura-boot-fg: #94a3b8; }
       #aura-boot {
         position: fixed; inset: 0;
         display: flex; flex-direction: column;
         align-items: center; justify-content: center; gap: 16px;
-        background: #0f172a; color: #94a3b8;
+        background: var(--aura-boot-bg); color: var(--aura-boot-fg);
         font-family: system-ui, sans-serif; font-size: 13px;
         z-index: 9999;
         transition: opacity 0.25s ease-out;
@@ -38,7 +39,21 @@
         to { transform: rotate(360deg); }
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-DgiW_Qla.js"></script>
+    <script>
+      // Repaint the boot splash in the theme this device rendered last (written by
+      // ThemeProvider as "<--app-bg>|<--text-secondary>"). Without it the splash is
+      // hard-coded dark, so a light device flashes dark on every reload.
+      try {
+        var c = (localStorage.getItem('aura-boot-colors') || '').split('|');
+        if (c.length === 2 && c[0] && c[1]) {
+          var r = document.documentElement.style;
+          r.setProperty('--aura-boot-bg', c[0]);
+          r.setProperty('--aura-boot-fg', c[1]);
+          r.setProperty('--app-bg', c[0]);
+        }
+      } catch (e) {}
+    </script>
+    <script type="module" crossorigin src="/assets/index-Qnfz-H8Y.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-Bk2tEoOi.js">
     <link rel="modulepreload" crossorigin href="/assets/react-dom-Bt2Mxcwn.js">
     <link rel="modulepreload" crossorigin href="/assets/router-DjLcNTmx.js">

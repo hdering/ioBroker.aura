@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useThemeStore } from './store/themeStore';
 import { useConfigStore } from './store/configStore';
 import { getTheme } from './themes';
+import { BOOT_COLORS_KEY } from './utils/themeModeCache';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const { themeId, customVars } = useThemeStore();
@@ -23,6 +24,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         // admin backend (which sets color-scheme:dark). Also fixes scrollbars /
         // selects / date pickers to render dark in dark themes.
         root.style.colorScheme = theme.dark ? 'dark' : 'light';
+        // Hand the current colours to the pre-React boot splash (inline script in
+        // index.html). Without this the splash is always dark, so a light-theme
+        // device flashes dark → light on every reload.
+        try {
+            const bg = vars['--app-bg'];
+            const fg = vars['--text-secondary'];
+            if (bg && fg) localStorage.setItem(BOOT_COLORS_KEY, `${bg}|${fg}`);
+        } catch {
+            /* quota / private mode */
+        }
     }, [theme, customVars, fontScale]);
 
     return <>{children}</>;

@@ -42,7 +42,7 @@ import { tabBarShowsOnOwn } from './utils/tabBarVisible';
 import type { Tab } from './store/dashboardStore';
 import type { FrontendSettings } from './store/configStore';
 
-import { discardPending, isScreenshotMode } from './store/persistManager';
+import { discardPending, isScreenshotMode, withSuppressedDirty } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { markWidgetPresetsHydrated } from './store/widgetPresetsStore';
 import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
@@ -52,14 +52,10 @@ import { ToastLayer } from './components/messages/ToastLayer';
 import { MessageBell } from './components/layout/MessageBell';
 import type { MessageScope } from './store/messagesStore';
 import { NS } from './utils/namespace';
+import { themeModeOverride, writeCachedThemeMode, revertSeededThemeMode } from './utils/themeModeCache';
 import { baseDpId } from './utils/dpRef';
 import { initPerfMetrics, setPerfTracking, reportBackendPing } from './utils/perfMetrics';
 import { setBreakdownTracking, recordBackendCall } from './utils/perfBreakdown';
-
-// Module-level cache of the active themeMode.frontend DP override. Lets the
-// DP listener win over delayed config rehydrations and the followBrowser
-// effect, which would otherwise overwrite the DP-driven setTheme call.
-const themeModeOverride: { value: 'dark' | 'light' | null } = { value: null };
 
 const STORE_REHYDRATORS: Record<string, () => void> = {
     'aura-dashboard': () => useDashboardStore.persist.rehydrate(),
@@ -741,14 +737,22 @@ export default function App() {
         const applyOverride = () => {
             const v = themeModeOverride.value;
             if (!v) return;
-            if (useThemeStore.getState().themeId !== v) setTheme(v);
-            if (layoutId && sectionId && sectionThemeId) clearSectionSettings(layoutId, sectionId, 'themeId');
+            // Suppressed: a DP-driven theme is per-device viewing state, not an
+            // unsaved config edit. Without this every nightly switch left
+            // `aura-theme` flagged dirty on that device, so an admin opened there
+            // later would write the frozen blob back.
+            withSuppressedDirty(() => {
+                if (useThemeStore.getState().themeId !== v) setTheme(v);
+                if (layoutId && sectionId && sectionThemeId) clearSectionSettings(layoutId, sectionId, 'themeId');
+            });
         };
         const unsubDP = subscribeStateDirect(`${NS}.config.themeMode.frontend`, (state) => {
             if (state?.val == null) return;
             const raw = state.val;
             if (raw === '') {
                 themeModeOverride.value = null;
+                writeCachedThemeMode(null);
+                revertSeededThemeMode(); // undo a boot seed the DP no longer backs
                 return;
             }
             if (raw === 'dark' || raw === 'light') themeModeOverride.value = raw;
@@ -757,6 +761,9 @@ export default function App() {
             else if (raw === false || raw === 0)
                 themeModeOverride.value = 'light'; // legacy boolean
             else return;
+            // Remember it so the next reload paints this mode before the socket
+            // is even connected (see applyCachedThemeMode in main.tsx).
+            writeCachedThemeMode(themeModeOverride.value);
             applyOverride();
         });
         const unsubStore = useThemeStore.subscribe(applyOverride);
@@ -1200,6 +1207,7 @@ export default function App() {
                                     onClick={() => {
                                         const nextId = currentTheme.dark ? 'light' : 'dark';
                                         themeModeOverride.value = nextId; // seed before setTheme so snap-back doesn't revert
+                                        writeCachedThemeMode(nextId);
                                         setTheme(nextId);
                                         if (layout && section?.settings?.themeId)
                                             clearSectionSettings(layout.id, section.id, 'themeId');

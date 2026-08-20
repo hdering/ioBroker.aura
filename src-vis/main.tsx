@@ -8,7 +8,8 @@ import './index.css';
 import App from './App';
 import { ThemeProvider } from './ThemeProvider';
 import { lazyWithReload, installChunkErrorRecovery } from './utils/lazyWithReload';
-import { setScreenshotMode } from './store/persistManager';
+import { setScreenshotMode, isScreenshotMode } from './store/persistManager';
+import { applyCachedThemeMode } from './utils/themeModeCache';
 import { FEATURES } from './featureFlags';
 
 // Recharts' ResponsiveContainer logs a "width(-1) and height(-1) of chart should be
@@ -32,6 +33,13 @@ if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('shot
     setScreenshotMode(true);
     import('./devtools/screenshotApi');
 }
+
+// Paint the DP-driven dark/light mode (aura.0.config.themeMode.frontend) from
+// its per-device cache before React mounts. The DP itself only arrives once the
+// socket has connected, so without this a tablet reloading after the nightly
+// switch rendered the stored daytime theme first and visibly flipped to dark a
+// moment later. The live DP value still overrides this on arrival.
+if (!isScreenshotMode()) applyCachedThemeMode();
 
 // Admin pages are large (editors, pickers, echart configurators) and are not
 // needed by the public dashboard route. Lazy-loaded so the frontend bundle
