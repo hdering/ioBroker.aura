@@ -25,3 +25,4 @@
 - Map - the map type can now be switched in the running frontend: optional chips over the map, placed in any corner, offering all or only the selected types (#564)
 - Settings - the automatic backups no longer fill up with one entry per editor visit: opening the editor rewrote the group and preset data every time, so the older backups worth restoring were pushed out of the list
 - Groups and widget presets changed on another device now reach an already open editor again instead of being ignored until the next save
+- Settings - the number of automatic backups to keep now goes up to 100 (was 20) and defaults to 20 instead of 5, so a config problem noticed days later can still be rolled back

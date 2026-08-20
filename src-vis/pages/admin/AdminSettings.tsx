@@ -4,7 +4,7 @@ import { useActiveLayout } from '../../store/dashboardStore';
 
 import { useConnectionStore } from '../../store/connectionStore';
 import { useConfigStore } from '../../store/configStore';
-import { useAdminPrefsStore } from '../../store/adminPrefsStore';
+import { useAdminPrefsStore, MAX_BACKUP_COUNT } from '../../store/adminPrefsStore';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 import { applyRaw, rehydrateAll } from '../../utils/configLoader';
@@ -136,6 +136,14 @@ function applyBackupPayload(payload: Record<string, unknown>): boolean {
         /* quota – non-fatal */
     }
     return true;
+}
+
+/** Stepper granularity: single backups while the ring is small, coarser above —
+ *  otherwise walking from 20 to the 100 maximum would take eighty clicks. */
+function backupStep(current: number): number {
+    if (current >= 50) return 10;
+    if (current >= 20) return 5;
+    return 1;
 }
 
 function BackupCard() {
@@ -334,7 +342,7 @@ function BackupCard() {
                 </span>
                 <div className="flex items-center gap-1">
                     <button
-                        onClick={() => setBackupCount(backupCount - 1)}
+                        onClick={() => setBackupCount(backupCount - backupStep(backupCount - 1))}
                         disabled={backupCount <= 1}
                         className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold hover:opacity-80 disabled:opacity-30"
                         style={{
@@ -345,12 +353,12 @@ function BackupCard() {
                     >
                         −
                     </button>
-                    <span className="w-6 text-center text-xs font-mono font-bold" style={{ color: 'var(--accent)' }}>
+                    <span className="w-8 text-center text-xs font-mono font-bold" style={{ color: 'var(--accent)' }}>
                         {backupCount}
                     </span>
                     <button
-                        onClick={() => setBackupCount(backupCount + 1)}
-                        disabled={backupCount >= 20}
+                        onClick={() => setBackupCount(backupCount + backupStep(backupCount))}
+                        disabled={backupCount >= MAX_BACKUP_COUNT}
                         className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold hover:opacity-80 disabled:opacity-30"
                         style={{
                             background: 'var(--app-bg)',

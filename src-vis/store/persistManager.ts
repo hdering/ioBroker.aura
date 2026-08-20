@@ -8,6 +8,7 @@ import {
     getStateFromCache,
 } from '../hooks/useIoBroker';
 import { NS } from '../utils/namespace';
+import { MAX_BACKUP_COUNT } from './adminPrefsStore';
 
 // Each localStorage key maps to its own ioBroker state (no more single blob).
 // The {NS} prefix resolves to the running instance namespace (aura.0, aura.1…).
@@ -45,6 +46,12 @@ const BACKUP_FILE_PREFIX = 'backup-';
 // lands. Gzip shrinks ~960 KB → ~60 KB; base64 keeps it a plain text transfer.
 const BACKUP_FILE_SUFFIX = '.json';
 const BACKUP_FILE_SUFFIX_GZ = '.json.gz';
+// Sidecar next to each backup holding only its _ts/_changed/_details summary
+// (a few hundred bytes). listBackupFiles reads these instead of every full
+// payload — fetching all payloads is what used to cap retention at 20, since a
+// single settings-page visit would otherwise pull one ~60 KB gzip blob per kept
+// backup over the same socket that the config writes share.
+const BACKUP_META_SUFFIX = '.meta.json';
 
 // ── gzip helpers (browser-native CompressionStream, base64 transport) ──────────
 async function gzipToBase64(text: string): Promise<string> {
@@ -104,7 +111,20 @@ function tsToFilename(ts: string): string {
     return `${BACKUP_FILE_PREFIX}${ts.replace(/[:.]/g, '-')}${BACKUP_FILE_SUFFIX_GZ}`;
 }
 
+function tsToMetaFilename(ts: string): string {
+    return `${BACKUP_FILE_PREFIX}${ts.replace(/[:.]/g, '-')}${BACKUP_META_SUFFIX}`;
+}
+
+/** The sidecar belonging to a backup payload filename. */
+function metaFilenameFor(backupFile: string): string {
+    const suffix = backupFile.endsWith(BACKUP_FILE_SUFFIX_GZ) ? BACKUP_FILE_SUFFIX_GZ : BACKUP_FILE_SUFFIX;
+    return `${backupFile.slice(0, -suffix.length)}${BACKUP_META_SUFFIX}`;
+}
+
 export function isBackupFile(name: string): boolean {
+    // A sidecar also starts with the prefix and ends in .json — it is metadata,
+    // never a restorable payload, so it must not show up as its own list entry.
+    if (name.endsWith(BACKUP_META_SUFFIX)) return false;
     return (
         name.startsWith(BACKUP_FILE_PREFIX) &&
         (name.endsWith(BACKUP_FILE_SUFFIX_GZ) || name.endsWith(BACKUP_FILE_SUFFIX))
@@ -141,7 +161,7 @@ export { clearDirtyFlag };
 
 let maxBackups = 5;
 export function configureBackup(opts: { maxBackups: number }): void {
-    maxBackups = Math.max(1, Math.min(20, opts.maxBackups));
+    maxBackups = Math.max(1, Math.min(MAX_BACKUP_COUNT, opts.maxBackups));
 }
 
 // In-session edit tracker. pending = key → new value; originals = key → pre-edit
@@ -602,6 +622,12 @@ async function pruneOldBackups(): Promise<number> {
     const toDelete = backupFiles.slice(maxBackups);
     for (const f of toDelete) {
         await deleteFileDirect(BACKUP_NAMESPACE, f.file);
+        // Take the summary sidecar with it — an orphan would linger forever.
+        try {
+            await deleteFileDirect(BACKUP_NAMESPACE, metaFilenameFor(f.file));
+        } catch {
+            /* pre-sidecar backup — nothing to delete */
+        }
     }
     return toDelete.length;
 }
@@ -622,6 +648,21 @@ async function writeBackup(changedKeys: SyncStoreKey[] = [], details: BackupChan
         );
         await writeFileDirect(BACKUP_NAMESPACE, filename, compressed);
         console.info('[aura backup] write acknowledged');
+        // Summary sidecar so listing the backups never has to read the payloads.
+        // Best effort: without it the row simply shows no change list.
+        try {
+            await writeFileDirect(
+                BACKUP_NAMESPACE,
+                tsToMetaFilename(ts),
+                JSON.stringify({
+                    [BACKUP_TS_KEY]: ts,
+                    [BACKUP_CHANGED_KEY]: changedKeys,
+                    [BACKUP_DETAILS_KEY]: details,
+                }),
+            );
+        } catch (err) {
+            console.warn('[aura backup] summary sidecar write failed', err);
+        }
         const pruned = await pruneOldBackups();
         if (pruned > 0) console.info(`[aura backup] pruned ${pruned} old backup file(s) (cap ${maxBackups})`);
     } catch (err) {
@@ -641,13 +682,21 @@ export interface BackupFileEntry {
     details: BackupChangeDetail[];
 }
 
-// Reads each backup's payload to extract its _changed list (cap ≤ 20 small
-// files). Payloads are otherwise fetched on demand in loadBackupPayload.
+// Reads only the small summary sidecar per backup, never the payloads — those
+// are fetched on demand in loadBackupPayload. Backups written before sidecars
+// existed still need their payload read, which is why that fallback is budgeted:
+// the retention limit must not turn one settings-page visit into a hundred
+// parallel multi-megabyte reads on the socket the config writes share.
+const LEGACY_SUMMARY_READ_BUDGET = 20;
 export async function listBackupFiles(): Promise<BackupFileEntry[]> {
     const files = await readDirDirect(BACKUP_NAMESPACE, '');
     const backupFiles = files
         .filter((f) => !f.isDir && isBackupFile(f.file))
         .sort((a, b) => b.file.localeCompare(a.file));
+    const sidecars = new Set(files.filter((f) => !f.isDir && f.file.endsWith(BACKUP_META_SUFFIX)).map((f) => f.file));
+    // Spent newest-first: map() runs every callback up to its first await in
+    // order, so the budget lands on the entries the user is most likely to read.
+    let legacyBudget = LEGACY_SUMMARY_READ_BUDGET;
     return Promise.all(
         backupFiles.map(async (f) => {
             const suffix = f.file.endsWith(BACKUP_FILE_SUFFIX_GZ) ? BACKUP_FILE_SUFFIX_GZ : BACKUP_FILE_SUFFIX;
@@ -657,10 +706,18 @@ export async function listBackupFiles(): Promise<BackupFileEntry[]> {
                 /^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z$/,
                 '$1-$2-$3T$4:$5:$6.$7Z',
             );
+            const metaName = metaFilenameFor(f.file);
+            const useSidecar = sidecars.has(metaName);
+            const legacyAllowed = !useSidecar && legacyBudget > 0;
+            if (legacyAllowed) legacyBudget--;
             let changed: string[] = [];
             let details: BackupChangeDetail[] = [];
             try {
-                const raw = await readBackupText(f.file);
+                const raw = useSidecar
+                    ? await readFileDirect(BACKUP_NAMESPACE, metaName)
+                    : legacyAllowed
+                      ? await readBackupText(f.file)
+                      : null;
                 if (raw) {
                     const parsed = JSON.parse(raw) as Record<string, unknown>;
                     const c = parsed[BACKUP_CHANGED_KEY];
