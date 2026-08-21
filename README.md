@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.48.2 (2026-08-21)
+- 🌟 **New feature:** List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint ([#566](https://github.com/hdering/ioBroker.aura/issues/566))
+- Popups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses
+- Popups - a widget type default set to "no view" now stays that way after a reload instead of falling back to the built-in popup
+
+
 ### 0.48.1 (2026-08-20)
 - Theme - reloading no longer flashes the previous theme before the datapoint-driven dark/light mode is applied
 
@@ -232,10 +238,6 @@ Release v0.47.13
 - 🌟 **New feature:** Shutter - optional "actual position" datapoint for actuators whose real position lives on a read-only DP (e.g. HmIP-BROLL channel 3) while commands keep going to the controllable one; auto-detect fills it ([#538](https://github.com/hdering/ioBroker.aura/issues/538))
 
 
-### 0.44.3 (2026-08-13)
-- 🌟 **New feature:** Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt ([#535](https://github.com/hdering/ioBroker.aura/issues/535))
-
-
 ## License
 
 MIT License
@@ -247,6 +249,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

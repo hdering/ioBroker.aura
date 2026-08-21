@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.48.1",
+    "version": "0.48.2",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.48.2": {
+        "en": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "de": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "ru": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "pt": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "nl": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "fr": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "it": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "es": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "pl": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "uk": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup",
+        "zh-cn": "🌟 New feature: List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)\nPopups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses\nPopups - a widget type default set to \"no view\" now stays that way after a reload instead of falling back to the built-in popup"
+      },
       "0.48.1": {
         "en": "Theme - reloading no longer flashes the previous theme before the datapoint-driven dark/light mode is applied",
         "de": "Theme - reloading no longer flashes the previous theme before the datapoint-driven dark/light mode is applied",
@@ -184,19 +197,6 @@
         "pl": "Chart (advanced) - the current value can be taken from the first instead of the last data point, and shown on the left or the right (#549)",
         "uk": "Chart (advanced) - the current value can be taken from the first instead of the last data point, and shown on the left or the right (#549)",
         "zh-cn": "Chart (advanced) - the current value can be taken from the first instead of the last data point, and shown on the left or the right (#549)"
-      },
-      "0.47.10": {
-        "en": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "de": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "ru": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "pt": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "nl": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "fr": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "it": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "es": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "pl": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "uk": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)",
-        "zh-cn": "Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield (#545)"
       }
     }
   },

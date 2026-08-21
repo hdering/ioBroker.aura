@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.44.3 (2026-08-13)
+- 🌟 **New feature:** Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt ([#535](https://github.com/hdering/ioBroker.aura/issues/535))
+
 ## 0.44.2 (2026-08-12)
 - fix(status-overview): show full device name in card and minimal layouts
 
