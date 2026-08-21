@@ -263,6 +263,10 @@ export interface CustomCell {
     // 'switch' type
     controlMode?: 'toggle' | 'icon' | 'button'; // 'switch' cell: visual control style (default 'toggle')
     buttonTextColor?: string; // 'switch' cell (button mode): label text color (default #fff)
+    buttonTrueColor?: string; // 'switch' cell (button mode): background for truthy value (falls back to color)
+    buttonFalseColor?: string; // 'switch' cell (button mode): background for falsy value (falls back to color)
+    buttonTrueTextColor?: string; // 'switch' cell (button mode): label color for truthy value (falls back to buttonTextColor)
+    buttonFalseTextColor?: string; // 'switch' cell (button mode): label color for falsy value (falls back to buttonTextColor)
     buttonSize?: number; // 'switch' cell (button mode): padding scale in px (default 8)
     buttonWidth?: 'auto' | 'full' | 'uniform'; // 'switch' cell (button mode): 'auto' fits text, 'full' fills cell, 'uniform' matches widest sibling button (default 'auto')
     momentary?: boolean; // 'switch' cell: Taster-Modus — write trueValue on press, falseValue after delay
@@ -287,8 +291,8 @@ export interface CustomCell {
     // 'progress' type
     showValue?: boolean; // 'progress' cell: overlay current value/percentage on top of bar
     // 'state-text' type — reuses trueColor/falseColor + color/text styling
-    trueText?: string; // 'state-text' cell: label rendered for truthy value
-    falseText?: string; // 'state-text' cell: label rendered for falsy value
+    trueText?: string; // 'state-text' cell / 'switch' cell (button mode): label rendered for truthy value
+    falseText?: string; // 'state-text' cell / 'switch' cell (button mode): label rendered for falsy value
     // 'select' type — dropdown that maps DP values to labels (mini enum widget per cell)
     entries?: { value: string; label: string; color?: string; icon?: string }[]; // 'select' cell: selectable value/label pairs (icon: Lucide/Iconify ID)
     showSelectedLabel?: boolean; // 'select' cell: render current label next to dropdown

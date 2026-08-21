@@ -48,6 +48,20 @@ Der Button neben dem Datenpunkt-Feld öffnet beide Anzeige-Optionen — der Date
 Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und `HH:mm` werden automatisch erkannt; nicht lesbare
 Werte zeigen `–`. Tokens siehe [Wert-Anzeige](./wert-anzeige.md#zeit-formatierung).
 
+### Bedienelement (`switch`)
+
+| Feld | | |
+| --- | --- | --- |
+| `controlMode` | `toggle` · `icon` · `button` | Schiebeschalter · Icon · Button |
+| `trueValue` / `falseValue` | z. B. `0`/`100`, `an`/`aus` | Schreibwerte; leer = `true`/`false` |
+| `trueIcon` / `falseIcon`, `trueColor` / `falseColor` | nur `icon` | Icon und Farbe je Zustand |
+| `trueText` / `falseText` | nur `button` | Beschriftung je Zustand; leer = `AN`/`AUS` |
+| `buttonTrueColor` / `buttonFalseColor` | nur `button` | Hintergrundfarbe je Zustand |
+| `buttonTrueTextColor` / `buttonFalseTextColor` | nur `button` | Textfarbe je Zustand |
+| `text`, `color`, `buttonTextColor` | nur `button` | zustandslose Altfelder; gelten, solange die AN/AUS-Felder leer sind |
+| `buttonWidth` | `auto` · `full` · `uniform` | Textbreite · Zellenbreite · längstes Label aller `uniform`-Buttons |
+| `momentary`, `momentaryDelay` | | Taster-Modus: Impuls statt Umschalten |
+
 ## Zellen verschieben & kopieren
 
 ### Mit der Maus

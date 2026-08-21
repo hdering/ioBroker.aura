@@ -956,6 +956,11 @@ export function CustomCellEditor({
                             </span>
                         </button>
                     );
+                    // Button mode colours: per-state keys, falling back to the older
+                    // state-independent color/buttonTextColor of existing configs.
+                    const baseBg = cell.color && cell.color.startsWith('#') ? cell.color : '#3b82f6';
+                    const baseFg =
+                        cell.buttonTextColor && cell.buttonTextColor.startsWith('#') ? cell.buttonTextColor : '#ffffff';
                     return (
                         <>
                             <div>
@@ -1070,21 +1075,39 @@ export function CustomCellEditor({
                             )}
                             {mode === 'button' && (
                                 <>
-                                    <div>
-                                        <label
-                                            className="text-[11px] mb-1 block"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            Beschriftung
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={cell.text ?? ''}
-                                            onChange={(e) => onChange({ text: e.target.value || undefined })}
-                                            placeholder="z.B. AN/AUS"
-                                            className={inputCls}
-                                            style={inputSty}
-                                        />
+                                    <div className="flex gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Beschriftung AN
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={cell.trueText ?? ''}
+                                                onChange={(e) => onChange({ trueText: e.target.value || undefined })}
+                                                placeholder={cell.text || 'AN'}
+                                                className={inputCls}
+                                                style={inputSty}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Beschriftung AUS
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={cell.falseText ?? ''}
+                                                onChange={(e) => onChange({ falseText: e.target.value || undefined })}
+                                                placeholder={cell.text || 'AUS'}
+                                                className={inputCls}
+                                                style={inputSty}
+                                            />
+                                        </div>
                                     </div>
                                     <div className="flex gap-2">
                                         <div className="flex-1">
@@ -1092,45 +1115,52 @@ export function CustomCellEditor({
                                                 className="text-[11px] mb-1 block"
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
-                                                Hintergrundfarbe
+                                                Hintergrundfarbe AN
                                             </label>
-                                            <div className="flex items-center gap-1">
-                                                <ColorPicker
-                                                    value={
-                                                        cell.color && cell.color.startsWith('#')
-                                                            ? cell.color
-                                                            : '#3b82f6'
-                                                    }
-                                                    onChange={(v) => onChange({ color: v })}
-                                                    className="flex-1 h-7 rounded cursor-pointer border-0 p-0"
-                                                />
-                                                <button
-                                                    onClick={() => onChange({ color: '' })}
-                                                    className="text-[10px] px-2 py-0.5 rounded shrink-0"
-                                                    style={{
-                                                        background: 'var(--app-bg)',
-                                                        color: 'var(--text-secondary)',
-                                                        border: '1px solid var(--app-border)',
-                                                    }}
-                                                >
-                                                    Theme
-                                                </button>
-                                            </div>
+                                            <ColorPicker
+                                                value={cell.buttonTrueColor || baseBg}
+                                                onChange={(v) => onChange({ buttonTrueColor: v })}
+                                                className="w-full h-7 rounded cursor-pointer border-0 p-0"
+                                            />
                                         </div>
                                         <div className="flex-1">
                                             <label
                                                 className="text-[11px] mb-1 block"
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
-                                                Textfarbe
+                                                Hintergrundfarbe AUS
                                             </label>
                                             <ColorPicker
-                                                value={
-                                                    cell.buttonTextColor && cell.buttonTextColor.startsWith('#')
-                                                        ? cell.buttonTextColor
-                                                        : '#ffffff'
-                                                }
-                                                onChange={(v) => onChange({ buttonTextColor: v })}
+                                                value={cell.buttonFalseColor || baseBg}
+                                                onChange={(v) => onChange({ buttonFalseColor: v })}
+                                                className="w-full h-7 rounded cursor-pointer border-0 p-0"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <div className="flex-1">
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Textfarbe AN
+                                            </label>
+                                            <ColorPicker
+                                                value={cell.buttonTrueTextColor || baseFg}
+                                                onChange={(v) => onChange({ buttonTrueTextColor: v })}
+                                                className="w-full h-7 rounded cursor-pointer border-0 p-0"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Textfarbe AUS
+                                            </label>
+                                            <ColorPicker
+                                                value={cell.buttonFalseTextColor || baseFg}
+                                                onChange={(v) => onChange({ buttonFalseTextColor: v })}
                                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                             />
                                         </div>

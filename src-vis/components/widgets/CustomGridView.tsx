@@ -431,6 +431,12 @@ function parseCellValue(raw: string | undefined, fallback: boolean | number | st
     return raw;
 }
 
+/** Button-mode switch caption: the per-state label (trueText/falseText) wins, then the
+ *  state-independent `text`, then the AN/AUS default. */
+function switchButtonLabel(cell: CustomCell, on: boolean): string {
+    return (on ? cell.trueText : cell.falseText) || cell.text || (on ? 'AN' : 'AUS');
+}
+
 /** Boolean toggle bound to a DP. */
 function SwitchCellView({
     cell,
@@ -477,7 +483,11 @@ function SwitchCellView({
     const lcLine = cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />;
     if (cell.controlMode === 'button') {
         const pad = cell.buttonSize ?? 8;
-        const label = cell.text || (on ? 'AN' : 'AUS');
+        const label = switchButtonLabel(cell, on);
+        // Per-state colours win over the state-independent base colour, which in turn
+        // falls back to the theme accent / white.
+        const btnBg = (on ? cell.buttonTrueColor : cell.buttonFalseColor) || cell.color || 'var(--accent)';
+        const btnFg = (on ? cell.buttonTrueTextColor : cell.buttonFalseTextColor) || cell.buttonTextColor || '#fff';
         const widthStyle: React.CSSProperties =
             cell.buttonWidth === 'full'
                 ? { width: '100%' }
@@ -491,8 +501,8 @@ function SwitchCellView({
                     onClick={handleClick}
                     className="nodrag rounded-lg font-medium hover:opacity-85 transition-opacity"
                     style={{
-                        background: cell.color || 'var(--accent)',
-                        color: cell.buttonTextColor || '#fff',
+                        background: btnBg,
+                        color: btnFg,
                         border: 'none',
                         cursor: 'pointer',
                         padding: `${pad}px ${pad * 2}px`,
@@ -502,7 +512,7 @@ function SwitchCellView({
                         textAlign: 'center',
                         ...widthStyle,
                     }}
-                    aria-label={cell.text || (on ? 'AN' : 'AUS')}
+                    aria-label={label}
                 >
                     {label}
                 </button>
@@ -533,7 +543,7 @@ function SwitchCellView({
                     onClick={handleClick}
                     className="nodrag flex items-center justify-center transition-transform hover:scale-110"
                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
-                    aria-label={cell.text || (on ? 'AN' : 'AUS')}
+                    aria-label={switchButtonLabel(cell, on)}
                 >
                     <Icon size={size} style={{ color }} />
                 </button>
@@ -1538,7 +1548,7 @@ export function CustomGridView({
         0,
         ...cells
             .filter((c) => c.type === 'switch' && c.controlMode === 'button' && c.buttonWidth === 'uniform')
-            .map((c) => (c.text || 'AUS').length),
+            .map((c) => Math.max(switchButtonLabel(c, true).length, switchButtonLabel(c, false).length)),
     );
     return (
         <div
