@@ -88,7 +88,7 @@ Verfügbare Platzhalter:
 | `{color}` | aktuelle Schwellwert-Farbe — so lässt sich die Farbe frei auf Icon, Text o. Ä. anwenden statt nur auf den Wert |
 | `{unit}` | konfigurierte Einheit |
 
-Zahlen werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte als „–". Ein JSON-Pfad-Suffix `?pfad` ist bei Datenpunkten erlaubt, z. B. `{0_userdata.0.batterie?soc}`.
+Zahlen werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte als „–". Ein JSON-Pfad-Suffix ist erlaubt — `{0_userdata.0.batterie?soc}`, `{0_userdata.0.batterie#soc}` und `{0_userdata.0.batterie}#soc` sind gleichwertig, und auch `{dp}#battery.soc` greift in einen Objekt-Wert des eigenen Datenpunkts.
 
 Beispiel: `<span style="color:{color};font-size:2em">{dp}</span> {unit}`
 

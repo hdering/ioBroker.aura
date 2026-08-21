@@ -14,6 +14,7 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
+import { extractJsonPath } from '../../utils/dpRef';
 import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
 import { useTemplateValues } from '../../hooks/useTemplateValues';
 
@@ -80,6 +81,14 @@ export function ValueWidget({ config }: WidgetProps) {
                             { dp: displayValue, color: accentColor, unit: unit ?? '' },
                             (ref) => {
                                 const v = extraValues[ref];
+                                if (v === null || v === undefined) return '–';
+                                return typeof v === 'number' ? formatNum(v, decimals, numFmt) : String(v);
+                            },
+                            // `{dp}#soc` — a JSON path into the widget's own value, so an
+                            // object datapoint can feed several spots of one template.
+                            (name, path) => {
+                                if (name !== 'dp') return '–';
+                                const v = extractJsonPath(value, path);
                                 if (v === null || v === undefined) return '–';
                                 return typeof v === 'number' ? formatNum(v, decimals, numFmt) : String(v);
                             },

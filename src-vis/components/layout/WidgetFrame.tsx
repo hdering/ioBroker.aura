@@ -10768,7 +10768,16 @@ export function WidgetFrame({
                                 onChange={(patch) =>
                                     onConfigChange({ ...config, options: { ...(config.options ?? {}), ...patch } })
                                 }
-                                onOpenPicker={() => setPickerTarget('html_dp')}
+                                onOpenPicker={(key) => {
+                                    if (key === 'htmlDatapoint') {
+                                        setPickerTarget('html_dp');
+                                    } else {
+                                        // 'mp_dp' is the generic "write the picked id
+                                        // into options[key]" target — reused here.
+                                        setMpPickerKey(key);
+                                        setPickerTarget('mp_dp');
+                                    }
+                                }}
                             />
                         )}
 

@@ -4,7 +4,7 @@ import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 interface Props {
     options: Record<string, unknown>;
     onChange: (patch: Record<string, unknown>) => void;
-    onOpenPicker: () => void;
+    onOpenPicker: (key: 'htmlDatapoint' | 'valueDatapoint') => void;
 }
 
 const iCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
@@ -50,7 +50,7 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                     />
                     <button
                         type="button"
-                        onClick={onOpenPicker}
+                        onClick={() => onOpenPicker('htmlDatapoint')}
                         className="px-2 rounded-lg hover:opacity-80 shrink-0"
                         style={{
                             background: 'var(--app-bg)',
@@ -67,6 +67,40 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                 </p>
             </div>
 
+            {/* Werte-Datenpunkt fuer {dp} */}
+            <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    Werte-Datenpunkt für <span className="font-mono">{'{dp}'}</span> (optional)
+                </label>
+                <div className="flex gap-1">
+                    <input
+                        type="text"
+                        value={(o.valueDatapoint as string) ?? ''}
+                        onChange={(e) => set({ valueDatapoint: e.target.value || undefined })}
+                        placeholder="z.B. 0_userdata.0.Temperatur"
+                        className={`${iCls} flex-1 font-mono min-w-0`}
+                        style={iSty}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => onOpenPicker('valueDatapoint')}
+                        className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-secondary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                        title="Aus ioBroker wählen"
+                    >
+                        <Database size={13} />
+                    </button>
+                </div>
+                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    Wird im HTML als <span className="font-mono">{'{dp}'}</span> eingesetzt. Ohne Angabe gilt der
+                    Haupt-Datenpunkt des Widgets.
+                </p>
+            </div>
+
             {/* Static HTML */}
             <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -79,6 +113,24 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                     rows={6}
                     className={iCls}
                     style={{ ...iSty, resize: 'vertical', fontFamily: 'monospace', lineHeight: 1.5 }}
+                />
+                <PlaceholderHint />
+            </div>
+
+            {/* Nachkommastellen für Zahlen aus Platzhaltern */}
+            <div className="flex items-center justify-between gap-2">
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    Nachkommastellen (Platzhalter)
+                </label>
+                <input
+                    type="number"
+                    min={0}
+                    max={6}
+                    value={(o.decimals as number | undefined) ?? ''}
+                    onChange={(e) => set({ decimals: e.target.value === '' ? undefined : Number(e.target.value) })}
+                    placeholder="global"
+                    className={`${iCls} w-20 shrink-0`}
+                    style={iSty}
                 />
             </div>
 
@@ -101,6 +153,42 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                 onChangeCustom={(s) => set({ sandboxCustom: s || undefined })}
             />
         </>
+    );
+}
+
+/** Kurzreferenz der Datenpunkt-Platzhalter — gilt für statisches HTML und für
+ *  HTML, das aus einem Datenpunkt kommt. */
+function PlaceholderHint() {
+    const code = 'font-mono px-1 rounded';
+    const codeSty: React.CSSProperties = { background: 'var(--app-bg)', border: '1px solid var(--app-border)' };
+    return (
+        <div
+            className="text-[10px] mt-1 leading-relaxed space-y-0.5"
+            style={{ color: 'var(--text-secondary)', opacity: 0.85 }}
+        >
+            <p>Platzhalter im HTML werden live durch Datenpunkt-Werte ersetzt (auch in HTML aus einem Datenpunkt):</p>
+            <p>
+                <span className={code} style={codeSty}>
+                    {'{0_userdata.0.Temperatur}'}
+                </span>{' '}
+                beliebiger Datenpunkt ·{' '}
+                <span className={code} style={codeSty}>
+                    {'{dp}'}
+                </span>{' '}
+                Haupt-Datenpunkt des Widgets
+            </p>
+            <p>
+                JSON-Wert:{' '}
+                <span className={code} style={codeSty}>
+                    {'{dp}#battery.soc'}
+                </span>{' '}
+                ·{' '}
+                <span className={code} style={codeSty}>
+                    {'{0_userdata.0.Akku?soc}'}
+                </span>
+            </p>
+            <p style={{ opacity: 0.75 }}>CSS-Klammern wie {'{ color: red }'} bleiben unangetastet.</p>
+        </div>
     );
 }
 
