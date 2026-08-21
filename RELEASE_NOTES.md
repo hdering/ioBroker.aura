@@ -6,4 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint
+- List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint (#566)

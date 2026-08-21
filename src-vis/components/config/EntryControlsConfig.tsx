@@ -119,8 +119,9 @@ function detectShutterDps(
 const TYPE_LABEL_COLLATOR = new Intl.Collator('de');
 
 /**
- * The "Darstellung" choices, sorted by label — the sort runs here, so a new
- * display type only has to be added to the list, never placed by hand.
+ * The "Darstellung" choices: 'auto' first (it is the default — no override), the
+ * rest sorted by label. The sort runs here, so a new display type only has to be
+ * added to the list, never placed by hand.
  */
 export const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = (
     [
@@ -138,7 +139,11 @@ export const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = (
         { value: 'contact', label: 'Fenster-/Türkontakt' },
         { value: 'input', label: 'Eingabefeld' },
     ] as { value: EntryDisplayType; label: string }[]
-).sort((a, b) => TYPE_LABEL_COLLATOR.compare(a.label, b.label));
+).sort((a, b) =>
+    a.value === 'auto' || b.value === 'auto'
+        ? Number(b.value === 'auto') - Number(a.value === 'auto')
+        : TYPE_LABEL_COLLATOR.compare(a.label, b.label),
+);
 
 /** Human label of a display type, e.g. 'switch' -> 'Schalter'. */
 export function entryDisplayTypeLabel(dt: EntryDisplayType | undefined): string {
