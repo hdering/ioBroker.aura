@@ -40,6 +40,8 @@ import {
     ContactDisplay,
     TimeDisplay,
     InputControl,
+    DateEntryControl,
+    entryDateText,
     formatEntryTime,
     entryValueText,
     resolveContactDisplay,
@@ -465,6 +467,8 @@ function EntryValue({
                 style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
             />
         );
+    if (displayType === 'datepicker')
+        return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth={card} />;
     if (displayType === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth={card} />;
 
     // Forced "Nur Wert" — skip role/switch/slider, render text only
@@ -1394,7 +1398,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 t,
                             );
                             // Time datapoint rendered as time/date instead of the raw value.
-                            const timeText = displayType === 'time' ? formatEntryTime(entry, disp.value, t) : null;
+                            // A datepicker entry has no room for its fields in a badge, so it
+                            // prints the picked value in the format it was written in.
+                            const timeText =
+                                displayType === 'time'
+                                    ? formatEntryTime(entry, disp.value, t)
+                                    : displayType === 'datepicker'
+                                      ? entryDateText(entry, val)
+                                      : null;
                             const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
                             const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
                             const truthy = on || (typeof val === 'number' && val > 0);

@@ -4,7 +4,7 @@ Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. Jeder Eintra
 
 ## Datenpunkt
 
-Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `momentary` · `switch` · `slider` · `value` · `time` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
+Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `momentary` · `switch` · `slider` · `value` · `time` · `datepicker` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
 
 ### Darstellung Eingabefeld
 
@@ -34,6 +34,28 @@ Ein schreibgeschützter Datenpunkt ist immer schreibgeschützt, unabhängig von 
 | `timePattern` | — | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm` |
 
 Tokens: `HH` `mm` `ss` · `hh` · `dd` `MM` `yyyy` `yy` · `EEEE` (Wochentag) · `EE` · `MMMM` (Monat) · `ww` (KW)
+
+### Darstellung Datumswähler {#darstellung-datumswaehler}
+
+`displayType: 'datepicker'` macht die Zeile zum Datums-/Zeitwähler — dieselben Möglichkeiten wie das
+[Datumswähler-Widget](./datumswaehler), nur pro Listenzeile. Der gewählte Wert wird im Ausgabeformat in
+den Datenpunkt geschrieben. Im Badges-Layout ist kein Platz für die Felder — dort steht der gesetzte Wert
+als Text. Gilt auch für die [dynamische Liste](./dynamische-liste).
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `dateInputFormat` | `picker` | `picker` (Datums-/Zeitwähler) · `custom` (Feld laut `dateInputPattern`) |
+| `dateInputPattern` | wie `dateOutputPattern` | Muster bei `dateInputFormat: custom`, z. B. `MM.yyyy` |
+| `dateTimeOnly` | `false` | nur Uhrzeit, ohne Datum |
+| `dateShowTime` | `false` | zusätzliches Uhrzeit-Feld zum Datum |
+| `dateOutputFormat` | `timestamp_ms` | `timestamp_ms` · `timestamp_s` · `iso` · `date` · `datetime_local` · `de_date` · `de_datetime` · `time_hhmm` · `time_hhmmss` · `custom` |
+| `dateOutputPattern` | `dd.MM.yyyy` | Muster bei `dateOutputFormat: custom` |
+
+Muster-Tokens: `dd` `MM` `yyyy` `yy` `HH` `hh` `mm` `ss`. Welches Auswahlfeld das Eingabe-Muster rendert
+(Kalender, Monatswähler, Uhrzeit, Textfeld mit eigener Auswahlliste) steht beim
+[Datumswähler](./datumswaehler#modus).
+
+Nur Anzeige eines Zeit-Datenpunkts, ohne Schreiben: `displayType: 'time'`.
 
 ### Zweite Zeile (zusätzliche Datenpunkte)
 

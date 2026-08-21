@@ -55,6 +55,8 @@ import {
     ContactDisplay,
     TimeDisplay,
     InputControl,
+    DateEntryControl,
+    entryDateText,
     formatEntryTime,
     entryValueText,
     resolveContactDisplay,
@@ -558,6 +560,7 @@ function EntryValue({
                 style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
             />
         );
+    if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} />;
     if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} />;
 
     // Role-based display for sensors (window, door, motion, smoke, …)
@@ -739,6 +742,7 @@ function CardEntryValue({
                 style={{ color: 'var(--text-primary)' }}
             />
         );
+    if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth />;
     if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth />;
 
     // Role-based display for sensors
@@ -1710,7 +1714,11 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const disp = entryValueText(entry, opts, val, decimals, numFmt, t);
                                     // Time datapoint rendered as time/date instead of the raw value.
                                     const timeText =
-                                        entry.displayType === 'time' ? formatEntryTime(entry, disp.value, t) : null;
+                                        entry.displayType === 'time'
+                                            ? formatEntryTime(entry, disp.value, t)
+                                            : entry.displayType === 'datepicker'
+                                              ? entryDateText(entry, val)
+                                              : null;
                                     const roleDisplay =
                                         !stateMatch && !contactMatch && isBoolLike && !hasLabels
                                             ? getRoleDisplay(entry.role, val)

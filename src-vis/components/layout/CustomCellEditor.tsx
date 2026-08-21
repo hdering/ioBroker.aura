@@ -11,12 +11,7 @@ import { Database, FolderOpen, HelpCircle, Plus, SlidersHorizontal, type LucideI
 import { JsonPathButton } from '../config/JsonPathButton';
 import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import {
-    FORMAT_LABELS,
-    DATE_PATTERN_TOKENS,
-    DEFAULT_DATE_PATTERN,
-    type DateOutputFormat,
-} from '../widgets/DatePickerWidget';
+import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ImagePathHint } from '../config/ImagePathHint';
 import { ValueTransformButton } from '../config/ValueTransformButton';

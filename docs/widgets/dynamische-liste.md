@@ -6,7 +6,7 @@ Listet Datenpunkte automatisch anhand von Filtern (Rolle, ID-Muster, Raum, Funkt
 
 Kein Haupt-Datenpunkt — die Einträge (`entries[]`) werden über die Filter ermittelt und beim Sync ergänzt. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, `value.*`/`level`-Rollen immer als Wert dargestellt.
 
-Pro Eintrag lässt sich die Darstellung erzwingen (`displayType`) — inklusive `time` für Zeit-Datenpunkte (Uhrzeit / Datum / beides / eigenes Muster, siehe [Statische Liste](./liste#darstellung-datum-zeit)) und `input` für ein [Eingabefeld](./liste#darstellung-eingabefeld) in der Zeile.
+Pro Eintrag lässt sich die Darstellung erzwingen (`displayType`) — inklusive `time` für Zeit-Datenpunkte (Uhrzeit / Datum / beides / eigenes Muster, siehe [Statische Liste](./liste#darstellung-datum-zeit)), `datepicker` für einen [Datumswähler](./liste#darstellung-datumswaehler) und `input` für ein [Eingabefeld](./liste#darstellung-eingabefeld) in der Zeile.
 
 Pro Eintrag (Dialog **Datenpunkte verwalten** → Abschnitt **Datenpunkt**) lässt sich der Wert außerdem nur für die Anzeige umrechnen und/oder als Uhrzeit/Datum formatieren, siehe [Wert-Umrechnung / Zeit](./liste#wert-umrechnung-zeit). Ohne eigene Einstellung gilt die globale Umrechnung der Liste.
 

@@ -143,12 +143,7 @@ import { ValueFormatRow } from '../config/ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlConfig } from '../config/HtmlConfig';
 import { MapConfig } from '../config/MapConfig';
-import {
-    FORMAT_LABELS,
-    DATE_PATTERN_TOKENS,
-    DEFAULT_DATE_PATTERN,
-    type DateOutputFormat,
-} from '../widgets/DatePickerWidget';
+import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { CustomCellEditor, CELL_LABELS } from './CustomCellEditor';
 import { MultiSelect } from '../config/MultiSelect';
 import { ToggleRow } from '../../pages/admin/layouts/shared/SettingControls';

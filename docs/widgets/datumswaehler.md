@@ -12,6 +12,8 @@ Wählt Datum und/oder Uhrzeit über native Eingabefelder aus und schreibt den We
 
 Optionale Status-Datenpunkte (Batterie, Erreichbarkeit) werden als Badges eingeblendet (Abschnitt **Status-Datenpunkte** im Dialog).
 
+Dieselben Felder gibt es als Darstellung `datepicker` pro Zeile in der [statischen](./liste#darstellung-datumswaehler) und [dynamischen Liste](./dynamische-liste).
+
 ## Layouts
 
 ### Default

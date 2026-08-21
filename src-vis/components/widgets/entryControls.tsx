@@ -10,6 +10,7 @@
  *   - buttons   → fixed value presets (Off/Eco/Comfort, 0/50/100 …)
  *   - momentary → single push button writing a pulse value (scene/reset)
  *   - time      → a time value (epoch s/ms, ISO string, HH:mm) as time and/or date
+ *   - datepicker→ a date/time picker writing the value back, like the Datumswähler widget
  *   - input     → free text / number entry, like the standalone Eingabefeld widget
  */
 import { useEffect, useRef, useState } from 'react';
@@ -22,6 +23,8 @@ import { formatTimeDisplay, TIME_DASH } from '../../utils/timeDisplay';
 import { applyValueTransform, resolveValueTransform, type ValueTransformSettings } from '../../utils/valueTransform';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { ConfirmOverlay } from './ConfirmOverlay';
+import { useDateValueFields, dateValueText, type DateValueSettings } from '../common/DateValueFields';
+import type { DateOutputFormat } from '../../utils/dateValue';
 import {
     type ContactState,
     WC_PRESETS,
@@ -42,6 +45,7 @@ export type EntryDisplayType =
     | 'states'
     | 'contact'
     | 'time'
+    | 'datepicker'
     | 'input';
 
 /** Control types that are not a simple on/off and must be excluded from the
@@ -54,6 +58,7 @@ export const NON_TOGGLE_DISPLAY_TYPES: ReadonlySet<string> = new Set([
     'states',
     'contact',
     'time',
+    'datepicker',
     'input',
 ]);
 
@@ -146,6 +151,19 @@ export interface EntryControlConfig extends ValueTransformSettings {
     timeFormat?: string;
     /** Token pattern, only used when `timeFormat` is 'custom'. */
     timePattern?: string;
+    // ── datepicker (date/time entry) ───────────────────────────────────────────
+    // Same options as the standalone Datumswähler widget, per list entry.
+    /** 'custom' replaces the native pickers with a field matching `dateInputPattern`. */
+    dateInputFormat?: 'picker' | 'custom';
+    dateInputPattern?: string;
+    /** Only a time field, no date. */
+    dateTimeOnly?: boolean;
+    /** Additional time field next to the date. */
+    dateShowTime?: boolean;
+    /** Format the picked value is written in. Default 'timestamp_ms'. */
+    dateOutputFormat?: DateOutputFormat;
+    /** Token pattern, only used when `dateOutputFormat` is 'custom'. */
+    dateOutputPattern?: string;
     // ── momentary (push / pulse) ───────────────────────────────────────────────
     /** Value written on press. Default true. */
     pulseValue?: string | number | boolean;
@@ -516,6 +534,69 @@ export function TimeDisplay({
         <span className={className} style={style}>
             {formatEntryTime(entry, val, t)}
         </span>
+    );
+}
+
+// ── Date/time entry (Datumswähler) ───────────────────────────────────────────
+// The Datumswähler widget shrunk into a list row: the same option set (native
+// pickers or a token pattern, time-only, output format) writing the picked value
+// back to the entry's datapoint.
+
+/** The entry's picker options in the shape the shared date fields expect. */
+export function entryDateSettings(entry: EntryControlConfig): DateValueSettings {
+    return {
+        inputFormat: entry.dateInputFormat === 'custom' ? 'custom' : 'picker',
+        inputPattern: entry.dateInputPattern,
+        timeOnly: entry.dateTimeOnly === true,
+        showTime: entry.dateShowTime === true,
+        outputFormat: entry.dateOutputFormat ?? 'timestamp_ms',
+        outputPattern: entry.dateOutputPattern,
+    };
+}
+
+/** Readable text of a datepicker entry's value — for layouts with no room for fields. */
+export function entryDateText(entry: EntryControlConfig, val: ioBrokerState['val']): string {
+    return dateValueText(val, entryDateSettings(entry));
+}
+
+export function DateEntryControl({
+    entry,
+    val,
+    setState,
+    fullWidth,
+}: {
+    entry: EntryControlConfig & { id: string };
+    val: ioBrokerState['val'];
+    setState: SetState;
+    /** Card layouts stack vertically, so the fields take the whole cell there. */
+    fullWidth?: boolean;
+}) {
+    const { dateInput, timeInput } = useDateValueFields({
+        value: val,
+        settings: entryDateSettings(entry),
+        onWrite: (v) => setState(entry.id, v),
+        className: `aura-widget-action nodrag focus:outline-none${fullWidth ? ' flex-1 min-w-0' : ''}`,
+        wrapClassName: fullWidth ? 'flex-1 min-w-0' : undefined,
+        style: {
+            background: 'var(--app-bg)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--widget-border)',
+            borderRadius: 8,
+            padding: '2px 6px',
+            fontSize: 11,
+            colorScheme: 'dark' as never,
+            minWidth: 0,
+        },
+    });
+    return (
+        <div
+            className={`flex items-center gap-1 flex-wrap justify-end ${fullWidth ? 'w-full' : 'shrink-0'}`}
+            // The row itself is clickable (popup); picking a date must not bubble up to it.
+            onClick={(e) => e.stopPropagation()}
+        >
+            {dateInput}
+            {timeInput}
+        </div>
     );
 }
 

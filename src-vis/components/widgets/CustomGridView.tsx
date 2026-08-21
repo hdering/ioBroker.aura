@@ -18,21 +18,8 @@ import { evaluateClause } from '../../utils/conditionEval';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, ChevronDown, Send } from 'lucide-react';
-import {
-    parseValue,
-    formatDate,
-    formatCustom,
-    parseCustom,
-    inputKindFor,
-    toInputValue,
-    fromInputValue,
-    toDateInputValue,
-    toTimeInputValue,
-    DEFAULT_DATE_PATTERN,
-    type DateOutputFormat,
-} from './DatePickerWidget';
-import { DateTimeInput } from '../common/DateTimeInput';
-import { PatternInput } from '../common/PatternInput';
+import type { DateOutputFormat } from '../../utils/dateValue';
+import { useDateValueFields, type DateValueSettings } from '../common/DateValueFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
@@ -1450,97 +1437,14 @@ function DatePickerCellView({
 }) {
     const { state, value } = useDatapoint(cell.dpId ?? '');
     const { setState } = useIoBroker();
-    const timeOnly = cell.timeOnly === true;
-    const showTime = timeOnly || cell.showTime === true;
-    const outputFmt = (cell.dateFormat as DateOutputFormat) ?? 'timestamp_ms';
-    const outPattern = (cell.datePattern ?? '').trim() || DEFAULT_DATE_PATTERN;
-    const customInput = cell.dateInput === 'custom';
-    const inPattern =
-        (cell.dateInputPattern ?? '').trim() || (outputFmt === 'custom' ? outPattern : DEFAULT_DATE_PATTERN);
-
-    const currentDate =
-        parseValue(value, outputFmt === 'custom' ? outPattern : undefined) ??
-        (customInput && typeof value === 'string' ? parseCustom(value, inPattern) : null);
-    const [dateVal, setDateVal] = useState(() => (currentDate ? toDateInputValue(currentDate) : ''));
-    const [timeVal, setTimeVal] = useState(() => {
-        if (currentDate) return toTimeInputValue(currentDate);
-        if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
-        return '00:00';
-    });
-    // The pattern picks the matching native field (month picker for `MM.yyyy`, …);
-    // patterns no native field covers fall back to free text.
-    const inputKind = inputKindFor(inPattern);
-    const [customVal, setCustomVal] = useState(() =>
-        currentDate ? toInputValue(inputKind, currentDate, inPattern) : '',
-    );
-    const [textErr, setTextErr] = useState(false);
-
-    useEffect(() => {
-        if (customInput) {
-            setCustomVal(currentDate ? toInputValue(inputKind, currentDate, inPattern) : '');
-            setTextErr(false);
-            return;
-        }
-        if (timeOnly) {
-            if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) setTimeVal(value.slice(0, 5));
-            else if (currentDate) setTimeVal(toTimeInputValue(currentDate));
-            return;
-        }
-        if (!currentDate) return;
-        setDateVal(toDateInputValue(currentDate));
-        setTimeVal(toTimeInputValue(currentDate));
-    }, [value, customInput, inPattern]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    const writeValue = (date: string, time: string) => {
-        if (!cell.dpId) return;
-        if (timeOnly) {
-            if (!time) return;
-            const [h, mi] = time.split(':').map(Number);
-            const dt = new Date(1970, 0, 1, h ?? 0, mi ?? 0);
-            setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
-            return;
-        }
-        if (!date) return;
-        const [y, mo, d] = date.split('-').map(Number);
-        const [h, mi] = time.split(':').map(Number);
-        const dt = showTime ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0) : new Date(y, mo - 1, d, 0, 0, 0, 0);
-        if (isNaN(dt.getTime())) return;
-        setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
+    const settings: DateValueSettings = {
+        inputFormat: cell.dateInput === 'custom' ? 'custom' : 'picker',
+        inputPattern: cell.dateInputPattern,
+        timeOnly: cell.timeOnly === true,
+        showTime: cell.showTime === true,
+        outputFormat: (cell.dateFormat as DateOutputFormat) ?? 'timestamp_ms',
+        outputPattern: cell.datePattern,
     };
-
-    /** Custom input, native field: write straight away, like the standard pickers. */
-    const handleCustomNative = (raw: string) => {
-        setCustomVal(raw);
-        if (!cell.dpId) return;
-        const dt = fromInputValue(inputKind, raw, currentDate);
-        if (dt) setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
-    };
-    /** Custom input, free text: parse against the pattern, write only when valid. */
-    const commitText = (raw: string) => {
-        if (!cell.dpId) return;
-        if (!raw.trim()) {
-            setTextErr(false);
-            return;
-        }
-        const dt = parseCustom(raw, inPattern, currentDate);
-        if (!dt) {
-            setTextErr(true);
-            return;
-        }
-        setTextErr(false);
-        setCustomVal(formatCustom(dt, inPattern));
-        setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
-    };
-    /** Custom input, our own parts picker: the date is already assembled. */
-    const handleCustomPick = (dt: Date) => {
-        if (!cell.dpId) return;
-        setTextErr(false);
-        setCustomVal(formatCustom(dt, inPattern));
-        setState(baseDpId(cell.dpId), formatDate(dt, outputFmt, outPattern));
-    };
-
-    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-
     const inputSty: React.CSSProperties = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -1552,6 +1456,18 @@ function DatePickerCellView({
         flexShrink: 0,
         minWidth: 0,
     };
+    const { dateInput, timeInput } = useDateValueFields({
+        value,
+        settings,
+        onWrite: (v) => {
+            if (cell.dpId) setState(baseDpId(cell.dpId), v);
+        },
+        className: 'nodrag focus:outline-none flex-1 min-w-0',
+        wrapClassName: 'flex-1 min-w-0',
+        style: inputSty,
+    });
+
+    if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
     const wrapSty = { ...cellWrapStyle(cell, index, cols, rows), padding: '2px 4px' };
     return (
@@ -1560,58 +1476,8 @@ function DatePickerCellView({
             style={cell.showLastChange ? { ...wrapSty, flexDirection: 'column' as const, gap: 2 } : wrapSty}
         >
             <div className="flex flex-wrap gap-1 items-center w-full">
-                {customInput &&
-                    (inputKind === 'text' ? (
-                        <PatternInput
-                            pattern={inPattern}
-                            value={customVal}
-                            base={currentDate}
-                            onText={setCustomVal}
-                            onCommit={commitText}
-                            onPick={handleCustomPick}
-                            placeholder={inPattern}
-                            title={`Format: ${inPattern}`}
-                            className="nodrag focus:outline-none flex-1 min-w-0 font-mono"
-                            style={{ ...inputSty, borderColor: textErr ? '#ef4444' : undefined }}
-                            wrapClassName="flex-1 min-w-0"
-                        />
-                    ) : (
-                        <DateTimeInput
-                            kind={inputKind}
-                            value={customVal}
-                            onValue={handleCustomNative}
-                            title={`Format: ${inPattern}`}
-                            className="nodrag focus:outline-none flex-1 min-w-0"
-                            style={inputSty}
-                            wrapClassName="flex-1 min-w-0"
-                        />
-                    ))}
-                {!timeOnly && !customInput && (
-                    <DateTimeInput
-                        kind="date"
-                        value={dateVal}
-                        onValue={(v) => {
-                            setDateVal(v);
-                            writeValue(v, timeVal);
-                        }}
-                        className="nodrag focus:outline-none flex-1 min-w-0"
-                        style={inputSty}
-                        wrapClassName="flex-1 min-w-0"
-                    />
-                )}
-                {showTime && !customInput && (
-                    <DateTimeInput
-                        kind="time"
-                        value={timeVal}
-                        onValue={(v) => {
-                            setTimeVal(v);
-                            writeValue(dateVal, v);
-                        }}
-                        className="nodrag focus:outline-none flex-1 min-w-0"
-                        style={inputSty}
-                        wrapClassName="flex-1 min-w-0"
-                    />
-                )}
+                {dateInput}
+                {timeInput}
             </div>
             {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
         </div>

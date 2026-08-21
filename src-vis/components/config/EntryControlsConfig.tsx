@@ -16,6 +16,8 @@ import { useT } from '../../i18n';
 import { TIME_DISPLAY_PRESETS, formatTimeDisplay } from '../../utils/timeDisplay';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import type { EntryControlConfig, EntryDisplayType, EntryPreset, EntryStateMap } from '../widgets/entryControls';
+import { entryDateText } from '../widgets/entryControls';
+import { DATE_PATTERN_TOKENS, FORMAT_LABELS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import {
     type ContactState,
     WC_PRESETS,
@@ -113,20 +115,30 @@ function detectShutterDps(
     return { mode: 'position', stop: res.stop };
 }
 
-export const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = [
-    { value: 'auto', label: 'Auto' },
-    { value: 'switch', label: 'Schalter' },
-    { value: 'slider', label: 'Schieberegler' },
-    { value: 'value', label: 'Wert' },
-    { value: 'time', label: 'Datum/Zeit' },
-    { value: 'shutter', label: 'Rollladen' },
-    { value: 'stepper', label: '+/−' },
-    { value: 'buttons', label: 'Tasten' },
-    { value: 'momentary', label: 'Taster' },
-    { value: 'states', label: 'Wertzuordnung' },
-    { value: 'contact', label: 'Fenster-/Türkontakt' },
-    { value: 'input', label: 'Eingabefeld' },
-];
+/** German collation, so ä/ö/ü sort next to a/o/u instead of after z. */
+const TYPE_LABEL_COLLATOR = new Intl.Collator('de');
+
+/**
+ * The "Darstellung" choices, sorted by label — the sort runs here, so a new
+ * display type only has to be added to the list, never placed by hand.
+ */
+export const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = (
+    [
+        { value: 'auto', label: 'Auto' },
+        { value: 'switch', label: 'Schalter' },
+        { value: 'slider', label: 'Schieberegler' },
+        { value: 'value', label: 'Wert' },
+        { value: 'time', label: 'Datum/Zeit' },
+        { value: 'datepicker', label: 'Datumswähler' },
+        { value: 'shutter', label: 'Rollladen' },
+        { value: 'stepper', label: '+/−' },
+        { value: 'buttons', label: 'Tasten' },
+        { value: 'momentary', label: 'Taster' },
+        { value: 'states', label: 'Wertzuordnung' },
+        { value: 'contact', label: 'Fenster-/Türkontakt' },
+        { value: 'input', label: 'Eingabefeld' },
+    ] as { value: EntryDisplayType; label: string }[]
+).sort((a, b) => TYPE_LABEL_COLLATOR.compare(a.label, b.label));
 
 /** Human label of a display type, e.g. 'switch' -> 'Schalter'. */
 export function entryDisplayTypeLabel(dt: EntryDisplayType | undefined): string {
@@ -199,9 +211,10 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
     const dt = entry.displayType ?? 'auto';
     // Live value of the entry's datapoint, so the automatic time detection is
     // verifiable while configuring. Only subscribed for the date/time display.
-    const { value: timeVal } = useDatapoint(dt === 'time' ? (entry.id ?? '') : '');
+    const { value: timeVal } = useDatapoint(dt === 'time' || dt === 'datepicker' ? (entry.id ?? '') : '');
     const timePreview =
         dt === 'time' ? formatTimeDisplay(timeVal, entry.timeFormat || 'time', t, entry.timePattern) : null;
+    const datePreview = dt === 'datepicker' ? entryDateText(entry, timeVal ?? null) : null;
     const sMode = entry.shutterMode ?? 'commands';
     const inputSubmitMode = entry.inputSubmitMode ?? 'submit';
     const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp'>(null);
@@ -363,6 +376,107 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
                         {timePreview
                             ? `Vorschau: ${timePreview}`
                             : 'Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und HH:mm werden automatisch erkannt.'}
+                    </p>
+                </div>
+            )}
+
+            {/* ── Datumswähler (Datum/Zeit setzen) ── */}
+            {dt === 'datepicker' && (
+                <div className="space-y-1.5">
+                    <div>
+                        <Label>Eingabeformat</Label>
+                        <select
+                            value={entry.dateInputFormat ?? 'picker'}
+                            onChange={(e) =>
+                                onUpdate({ dateInputFormat: e.target.value === 'custom' ? 'custom' : undefined })
+                            }
+                            className={iCls}
+                            style={iSty}
+                        >
+                            <option value="picker">Datums-/Zeitwähler</option>
+                            <option value="custom">Eigenes Format…</option>
+                        </select>
+                    </div>
+                    {entry.dateInputFormat === 'custom' ? (
+                        <div>
+                            <Label>Eingabe-Muster</Label>
+                            <input
+                                className={`${iCls} font-mono`}
+                                style={iSty}
+                                placeholder="z.B. MM.yyyy"
+                                value={entry.dateInputPattern ?? ''}
+                                onChange={(e) => onUpdate({ dateInputPattern: e.target.value || undefined })}
+                            />
+                            <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                Das Muster bestimmt die Auswahl: <code>MM.yyyy</code> → Monatswähler,{' '}
+                                <code>dd.MM.yyyy</code> → Kalender, <code>HH:mm</code> → Uhrzeit; sonst freies Textfeld.
+                                Nicht genannte Teile bleiben erhalten. Tokens: {DATE_PATTERN_TOKENS}
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            <ToggleRow
+                                label="Nur Uhrzeit (kein Datum)"
+                                checked={!!entry.dateTimeOnly}
+                                onChange={(v) =>
+                                    onUpdate({
+                                        dateTimeOnly: v || undefined,
+                                        dateShowTime: v ? true : entry.dateShowTime,
+                                    })
+                                }
+                            />
+                            {!entry.dateTimeOnly && (
+                                <ToggleRow
+                                    label="Uhrzeit-Eingabe anzeigen"
+                                    checked={!!entry.dateShowTime}
+                                    onChange={(v) => onUpdate({ dateShowTime: v || undefined })}
+                                />
+                            )}
+                        </>
+                    )}
+                    <div>
+                        <Label>Ausgabeformat</Label>
+                        <select
+                            value={entry.dateOutputFormat ?? 'timestamp_ms'}
+                            onChange={(e) => {
+                                const v = e.target.value as DateOutputFormat;
+                                onUpdate({
+                                    dateOutputFormat: v === 'timestamp_ms' ? undefined : v,
+                                    dateOutputPattern:
+                                        v === 'custom'
+                                            ? (entry.dateOutputPattern ?? DEFAULT_DATE_PATTERN)
+                                            : entry.dateOutputPattern,
+                                });
+                            }}
+                            className={iCls}
+                            style={iSty}
+                        >
+                            {(Object.entries(FORMAT_LABELS) as [DateOutputFormat, string][]).map(([key, label]) => (
+                                <option key={key} value={key}>
+                                    {label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    {entry.dateOutputFormat === 'custom' && (
+                        <div>
+                            <Label>Ausgabe-Muster</Label>
+                            <input
+                                className={`${iCls} font-mono`}
+                                style={iSty}
+                                placeholder={DEFAULT_DATE_PATTERN}
+                                value={entry.dateOutputPattern ?? ''}
+                                onChange={(e) => onUpdate({ dateOutputPattern: e.target.value || undefined })}
+                            />
+                            <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                                Tokens: {DATE_PATTERN_TOKENS}
+                            </p>
+                        </div>
+                    )}
+                    <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.75 }}>
+                        {datePreview && datePreview !== '–'
+                            ? `Gesetzt: ${datePreview}`
+                            : 'Der gewählte Wert wird im Ausgabeformat in den Datenpunkt geschrieben.'}
                     </p>
                 </div>
             )}
