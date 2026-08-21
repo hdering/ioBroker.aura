@@ -57,6 +57,7 @@
     "test:iframe-scrolling": "node tools/tests/iframe-scrolling.mjs",
     "test:row-popup": "node tools/tests/row-popup.mjs",
     "test:popup-persist": "node tools/tests/popup-config-persist.mjs",
+    "test:popup-prune": "node tools/tests/popup-builtin-prune.mjs",
     "test:backup-retention": "node tools/tests/backup-retention.mjs",
     "test:package": "node test/adapter.test.js",
     "test:integration": "node test/adapter.test.js",

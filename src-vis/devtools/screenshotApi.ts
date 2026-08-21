@@ -30,7 +30,13 @@ import {
 } from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
 import { useGroupDefsStore } from '../store/groupDefsStore';
-import { usePopupConfigStore, type PopupTrigger, type PopupView } from '../store/popupConfigStore';
+import {
+    usePopupConfigStore,
+    BUILTIN_TYPE_DEFAULTS,
+    BUILTIN_VIEWS,
+    type PopupTrigger,
+    type PopupView,
+} from '../store/popupConfigStore';
 import { __devForceDpTriggers } from '../components/widgets/popup/DpPopupTriggers';
 import { __devForceConditionRefresh, __devForceConditionNotify } from '../hooks/useConditionStyle';
 import {
@@ -337,6 +343,36 @@ function installScreenshotApi(): void {
         /** Seed popup views so a `popup-view` action has something to render. */
         popupViews(views: PopupView[]): void {
             withSuppressedDirty(() => usePopupConfigStore.setState({ views }));
+        },
+
+        /** Read back what the popup store currently holds (views by id/name plus the
+         *  widget-type assignments), so a test can assert on state instead of DOM. */
+        popupState(): { views: { id: string; name: string }[]; typeDefaults: Record<string, string> } {
+            const s = usePopupConfigStore.getState();
+            return {
+                views: s.views.map((v) => ({ id: v.id, name: v.name })),
+                typeDefaults: { ...s.typeDefaults },
+            };
+        },
+
+        /** Rename a view through the store action, i.e. flagging a built-in as
+         *  user-edited — the state a test needs to check that customised built-ins
+         *  are protected. */
+        popupRename(viewId: string, name: string): void {
+            withSuppressedDirty(() => usePopupConfigStore.getState().updateViewName(viewId, name));
+        },
+
+        /** Reproduce a pre-existing installation: every shipped built-in plus the
+         *  widget-type assignments that used to be seeded automatically. A fresh
+         *  install (which is what the harness boots into) no longer gets them, so
+         *  a test that exercises them has to ask for them. */
+        popupBuiltins(): void {
+            withSuppressedDirty(() =>
+                usePopupConfigStore.setState({
+                    views: BUILTIN_VIEWS.map((v) => ({ ...v, widgets: v.widgets.map((w) => ({ ...w })) })),
+                    typeDefaults: { ...BUILTIN_TYPE_DEFAULTS },
+                }),
+            );
         },
 
         /** Arm the message runtime (off in screenshot mode so a real notice can't

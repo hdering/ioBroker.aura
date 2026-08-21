@@ -24,18 +24,17 @@ function normalizeAction(action: ClickAction): ClickAction {
     }
 }
 
+/**
+ * Hardcoded fallback action for a widget that has none stored.
+ *
+ * Used to also map dimmer/thermostat/switch/shutter/mediaplayer onto their
+ * built-in popup views. That link was invisible — a widget opened a popup with
+ * nothing configured anywhere — so it was turned into a real, editable entry in
+ * popupConfigStore.typeDefaults (see ensureBuiltins). Installations that had it
+ * keep it; new ones start without a default popup for those types.
+ */
 export function defaultActionForConfig(config: WidgetConfig): ClickAction | null {
     switch (config.type) {
-        case 'dimmer':
-            return { kind: 'popup-view', viewId: 'pv-builtin-dimmer' };
-        case 'thermostat':
-            return { kind: 'popup-view', viewId: 'pv-builtin-thermostat' };
-        case 'switch':
-            return { kind: 'popup-view', viewId: 'pv-builtin-switch' };
-        case 'shutter':
-            return { kind: 'popup-view', viewId: 'pv-builtin-shutter' };
-        case 'mediaplayer':
-            return { kind: 'popup-view', viewId: 'pv-builtin-mediaplayer' };
         case 'slider':
             return { kind: 'popup-widget', widgetId: '' };
         default:
@@ -240,29 +239,22 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
 
     const popupViews = usePopupConfigStore((s) => s.views);
     const popupTypeDefaults = usePopupConfigStore((s) => s.typeDefaults);
-    const popupRemovedTypeDefaults = usePopupConfigStore((s) => s.removedBuiltinTypeDefaults);
 
     // Resolution order when no explicit action is stored:
     //   1. Admin-configured type default (dynamic — admin edits propagate live)
-    //   2. Built-in default for known widget types (dimmer, thermostat, …),
-    //      unless the admin explicitly removed that type default in the backend
+    //   2. Hardcoded fallback for the types that still have one (slider)
     //   3. 'none'
-    const typeDefaultRemoved = popupRemovedTypeDefaults.includes(config.type);
     const typeDefaultViewId = !storedAction ? popupTypeDefaults[config.type] : undefined;
     // An explicit empty type default ('— keine View —') means "no popup" and must
-    // suppress the builtin fallback, just like an explicitly removed type default.
+    // suppress the hardcoded fallback below.
     const explicitNoView = !storedAction && config.type in popupTypeDefaults && !typeDefaultViewId;
     const builtInDefault =
-        !storedAction && !typeDefaultViewId && !explicitNoView && !typeDefaultRemoved
-            ? defaultActionForConfig(config)
-            : null;
+        !storedAction && !typeDefaultViewId && !explicitNoView ? defaultActionForConfig(config) : null;
     const action: ClickAction = storedAction ??
         (typeDefaultViewId ? { kind: 'popup-view' as const, viewId: typeDefaultViewId } : null) ??
         builtInDefault ?? { kind: 'none' as const };
     const isTypeDefaultActive = !!typeDefaultViewId;
-    const hasFallback =
-        !!popupTypeDefaults[config.type] ||
-        (!explicitNoView && !typeDefaultRemoved && !!defaultActionForConfig(config));
+    const hasFallback = !!popupTypeDefaults[config.type] || (!explicitNoView && !!defaultActionForConfig(config));
 
     const isPopup = action.kind.startsWith('popup-');
 

@@ -6359,10 +6359,11 @@ export function WidgetFrame({
     // ── Click action (3-level resolution) ─────────────────────────────────────
     // Ebene 3: explicit widget-level action (stored in options.clickAction)
     // Ebene 2: admin-configured type default (popupConfigStore) — dynamic
-    // Ebene 1: built-in default for known widget types (dimmer, thermostat, …)
+    // Ebene 1: hardcoded fallback, nowadays only 'slider' → popup-widget. The
+    //          built-in popup views the known device types used to resolve to
+    //          live in Ebene 2 as real type defaults instead.
     const popupTypeDefaults = usePopupConfigStore((s) => s.typeDefaults);
     const popupTypeDefaultLayouts = usePopupConfigStore((s) => s.typeDefaultLayouts);
-    const popupRemovedTypeDefaults = usePopupConfigStore((s) => s.removedBuiltinTypeDefaults);
     const storedClickAction = config.options?.clickAction as ClickAction | undefined;
     const rawClickAction = storedClickAction ?? { kind: 'none' as const };
     const clickAction: ClickAction = (() => {
@@ -6376,13 +6377,10 @@ export function WidgetFrame({
                 }
             }
             // An explicit empty type default ('— keine View —') means "no popup".
-            // It must suppress the builtin fallback below — otherwise choosing it
-            // in the backend has no effect (the hardcoded fallback keeps opening).
+            // It must suppress the hardcoded fallback below — otherwise choosing it
+            // in the backend has no effect (the fallback keeps opening).
             const explicitNoView = config.type in popupTypeDefaults && !viewId;
-            // Ebene 1 only applies while the admin hasn't explicitly removed the
-            // builtin type default — otherwise removing it in the backend would
-            // have no effect (the hardcoded fallback would keep re-linking it).
-            if (!explicitNoView && !popupRemovedTypeDefaults.includes(config.type)) {
+            if (!explicitNoView) {
                 const builtIn = defaultActionForConfig(config);
                 if (builtIn) return builtIn;
             }

@@ -5,9 +5,15 @@
 //
 // Uses the screenshot harness (__auraShot) so datapoint values live in the
 // in-memory cache only - no socket write, no real datapoint is touched.
-// Checked: the popup opens per row, the built-in view is picked from the row's
-// role, a control inside the row keeps its own click, and rowClickAction 'none'
-// switches the whole thing off.
+// Checked: the popup opens per row, the view is picked from the row's role, a
+// control inside the row keeps its own click, and rowClickAction 'none' switches
+// the whole thing off.
+//
+// A row click needs rowClickAction 'auto' (or an explicit action) - unset means
+// off. And the type-specific built-in views are no longer seeded into fresh
+// installations, so the role -> view chain is exercised twice: once as the
+// harness boots (generic datapoint view for every role) and once after
+// __auraShot.popupBuiltins() has restored a pre-existing installation.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -34,6 +40,8 @@ function listWidget(options = {}) {
         layout: 'default',
         gridPos: { x: 0, y: 0, w: 12, h: 8 },
         options: {
+            // Unset means "rows are inert" - every role test needs 'auto'.
+            rowClickAction: 'auto',
             entries: ROWS.map((r) => ({ ...r })),
             ...options,
         },
@@ -76,6 +84,20 @@ const clickRowLabel = async (label) => {
     await page.locator(`text=${label}`).first().click();
     await settle();
 };
+
+// ── 0. Fresh install: no type-specific built-ins, so every role falls back ───
+// The shipped dimmer/switch/... views are not set up any more; 'auto' resolves
+// through the (empty) type defaults and lands on the generic datapoint view,
+// which is the only one that prints the datapoint id.
+await show();
+await clickRowLabel('Licht Wohnzimmer');
+check('fresh install: a row click still opens a popup', (await popupCount()) === 1, `count=${await popupCount()}`);
+check('fresh install: switch role falls back to the datapoint view', (await popupText()).includes('demo.light'));
+await closePopup();
+
+// Everything below is the pre-existing installation that still has them.
+await page.evaluate(() => window.__auraShot.popupBuiltins());
+await settle();
 
 // ── 1. Row click opens exactly one popup, titled with the row label ───────────
 await show();

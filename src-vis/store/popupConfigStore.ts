@@ -106,6 +106,11 @@ export function viewCreatedAt(view: PopupView): number {
 // To ship a new/updated built-in: drop a JSON file in that folder; Vite picks
 // it up automatically at build time. See data/builtinPopups/README.md.
 //
+// Only ALWAYS_SEEDED_VIEW_IDS still reaches every installation. The
+// type-specific views (dimmer, thermostat, …) are kept for the installations
+// that already have them — they are no longer seeded into new ones, so do not
+// add another one here expecting it to show up.
+//
 // JSON shape: { id, name, version, widgets[], autoCloseSec? }
 //   - id: stable `pv-builtin-<slug>` — used as the migration slot.
 //   - version: bump when shipping a content update; ensureBuiltins() then
@@ -117,13 +122,31 @@ export const BUILTIN_VIEWS: PopupView[] = Object.keys(_builtinModules)
     .sort()
     .map((k) => _builtinModules[k]);
 
-const BUILTIN_TYPE_DEFAULTS: Record<string, string> = {
+/**
+ * Widget type → built-in view, seeded into `typeDefaults` on installations that
+ * already have popup config (see `ensureBuiltins`).
+ *
+ * Deprecated as a shipping mechanism: fresh installations no longer get these
+ * assignments, and no new entry should be added here. A widget type that wants
+ * a default popup gets it from the admin, not from the bundle.
+ */
+export const BUILTIN_TYPE_DEFAULTS: Record<string, string> = {
     dimmer: 'pv-builtin-dimmer',
     thermostat: 'pv-builtin-thermostat',
     switch: 'pv-builtin-switch',
     shutter: 'pv-builtin-shutter',
     mediaplayer: 'pv-builtin-mediaplayer',
 };
+
+/**
+ * Built-ins every installation keeps getting, new ones included.
+ *
+ * `pv-builtin-datapoint` is not a type default but the row-click fallback
+ * (`ROW_FALLBACK_VIEW_ID` in utils/rowClickAction — duplicated here because
+ * importing it would close a module cycle through ClickActionEditor). Every
+ * list row set to `'auto'` opens it, so it is load-bearing, not decoration.
+ */
+export const ALWAYS_SEEDED_VIEW_IDS = new Set(['pv-builtin-datapoint']);
 
 export const BUILTIN_VIEW_IDS = new Set(BUILTIN_VIEWS.map((v) => v.id));
 const BUILTIN_VIEW_BY_ID = new Map(BUILTIN_VIEWS.map((v) => [v.id, v] as const));
@@ -135,6 +158,32 @@ function freshBuiltin(viewId: string): PopupView | undefined {
         ...code,
         widgets: code.widgets.map((w) => ({ ...w, gridPos: { ...w.gridPos }, options: { ...w.options } })),
     };
+}
+
+/**
+ * True when this installation already carries popup configuration — the signal
+ * that decides whether the deprecated type-specific built-ins still get seeded.
+ *
+ * Derived from the persisted state on every rehydrate instead of being stored as
+ * a flag: a flag would have to be written, and a device that writes before the
+ * ioBroker pull has landed would then persist "fresh install" over everyone
+ * else's popups (see the _dirty note on onRehydrateStorage). A derived value
+ * heals itself — the empty boot state reads as fresh, and the moment
+ * loadConfigFromIoBroker rehydrates the real payload it reads as existing again.
+ */
+function hasExistingSetup(
+    s: Pick<
+        PopupConfigState,
+        'views' | 'typeDefaults' | 'deletedBuiltinIds' | 'removedBuiltinTypeDefaults' | 'triggers'
+    >,
+): boolean {
+    return (
+        s.views.length > 0 ||
+        Object.keys(s.typeDefaults).length > 0 ||
+        s.deletedBuiltinIds.length > 0 ||
+        s.removedBuiltinTypeDefaults.length > 0 ||
+        s.triggers.length > 0
+    );
 }
 
 /**
@@ -198,6 +247,7 @@ interface PopupConfigState {
     ensureBuiltins: () => void;
     restoreBuiltin: (viewId: string) => void;
     resetBuiltin: (viewId: string) => void;
+    pruneBuiltins: (viewIds: string[]) => void;
     copyView: (sourceId: string) => string;
 }
 
@@ -402,15 +452,29 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                         return v;
                     });
 
+                    // Seeding is what got retired: the type-specific built-ins and
+                    // their assignments only land on installations that already have
+                    // popup config, so existing setups keep working exactly as before
+                    // while a fresh install starts without them. ALWAYS_SEEDED_VIEW_IDS
+                    // still goes everywhere.
+                    const seedAll = hasExistingSetup(s);
                     const missingViews = BUILTIN_VIEWS.filter(
-                        (v) => !existingIds.has(v.id) && !deletedSet.has(v.id),
+                        (v) =>
+                            !existingIds.has(v.id) &&
+                            !deletedSet.has(v.id) &&
+                            (seedAll || ALWAYS_SEEDED_VIEW_IDS.has(v.id)),
                     ).map((v) => freshBuiltin(v.id)!);
 
                     const removedTypeSet = new Set(s.removedBuiltinTypeDefaults);
                     const defaultsToAdd: Record<string, string> = {};
-                    for (const [type, viewId] of Object.entries(BUILTIN_TYPE_DEFAULTS)) {
-                        if (!s.typeDefaults[type] && !deletedSet.has(viewId) && !removedTypeSet.has(type)) {
-                            defaultsToAdd[type] = viewId;
+                    if (seedAll) {
+                        for (const [type, viewId] of Object.entries(BUILTIN_TYPE_DEFAULTS)) {
+                            // `in`, not truthiness: an explicit '' means "— keine View —"
+                            // and must survive a reload. Reading it as "nothing set" put
+                            // the built-in straight back on the next rehydrate.
+                            if (!(type in s.typeDefaults) && !deletedSet.has(viewId) && !removedTypeSet.has(type)) {
+                                defaultsToAdd[type] = viewId;
+                            }
                         }
                     }
                     if (!viewsChanged && missingViews.length === 0 && Object.keys(defaultsToAdd).length === 0) return s;
@@ -445,6 +509,36 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                     if (!builtin) return s;
                     return {
                         views: s.views.map((v) => (v.id === viewId ? builtin : v)),
+                    };
+                }),
+
+            /**
+             * Drop built-in views in one go, including their type assignments.
+             * Fed by the usage scan in utils/builtinPopupUsage — the caller decides
+             * what is unused, this only applies it. The ids land in
+             * deletedBuiltinIds, so ensureBuiltins does not seed them back.
+             */
+            pruneBuiltins: (viewIds) =>
+                set((s) => {
+                    const drop = new Set(viewIds.filter((id) => BUILTIN_VIEW_IDS.has(id)));
+                    if (drop.size === 0) return s;
+                    const droppedTypes = Object.entries(s.typeDefaults)
+                        .filter(([, vid]) => drop.has(vid))
+                        .map(([type]) => type);
+                    const typeDefaults = { ...s.typeDefaults };
+                    const typeDefaultLayouts = { ...s.typeDefaultLayouts };
+                    for (const type of droppedTypes) {
+                        delete typeDefaults[type];
+                        delete typeDefaultLayouts[type];
+                    }
+                    return {
+                        views: s.views.filter((v) => !drop.has(v.id)),
+                        typeDefaults,
+                        typeDefaultLayouts,
+                        deletedBuiltinIds: [
+                            ...s.deletedBuiltinIds,
+                            ...[...drop].filter((id) => !s.deletedBuiltinIds.includes(id)),
+                        ],
                     };
                 }),
         }),

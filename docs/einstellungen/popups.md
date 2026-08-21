@@ -54,9 +54,9 @@ setState('aura.0.popup.open', '{"view":"Gerät","dp":"hm-rpc.0.ABC.1.STATE"}');
 
 ## Popup-Views
 
-Mitgeliefert werden `Standard: Dimmer`, `Standard: Thermostat`, `Standard: Schalter`, `Standard: Rolladen`, `Standard: Mediaplayer` und `Standard: Datenpunkt`.
+Mitgeliefert wird `Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung). Sie ist bewusst **kein** Widget-Typ-Standard — sie dient nur als Rückfallebene für den [Klick auf eine Listenzeile](../widgets/dynamische-liste#klick-auf-zeile) und ändert das Verhalten bestehender Widgets nicht.
 
-`Standard: Datenpunkt` (Wert, Steuerung, ID, letzte Änderung) ist bewusst **kein** Widget-Typ-Standard — sie dient nur als Rückfallebene für den [Klick auf eine Listenzeile](../widgets/dynamische-liste#klick-auf-zeile) und ändert das Verhalten bestehender Widgets nicht.
+`Standard: Dimmer`, `Standard: Thermostat`, `Standard: Schalter`, `Standard: Rolladen` und `Standard: Mediaplayer` werden nicht mehr weiterentwickelt und in neue Installationen nicht mehr eingerichtet. Wer sie hat, behält sie unverändert.
 
 ### Platzhalter
 
@@ -97,9 +97,18 @@ Listet alle Datenpunkte, die unter demselben Elternobjekt, Kanal oder Gerät lie
 
 Liste aus mitgelieferten (`Standard: …`) und eigenen Views. Pro View: `Bearbeiten`, `Kopieren`, `Exportieren`; eigene zusätzlich umbenennen/löschen. Über `View hinzufügen` bzw. `Import` neue Views anlegen.
 
+`Ungenutzte entfernen` löscht die mitgelieferten Standard-Views, auf die nichts verweist. Der Dialog listet vorher auf, was entfernt wird und was aus welchem Grund bleibt:
+
+| Grund | |
+| --- | --- |
+| wurde angepasst | View wurde bearbeitet |
+| ist als Klick-Aktion verlinkt | Widget, Popup-Widget oder Trigger zeigt darauf |
+| ist Typ-Standard für vorhandene Widgets | Widgets dieses Typs ohne eigene Klick-Aktion öffnen sie |
+| kann über Listenzeilen im Automatik-Modus geöffnet werden | Zeilen-Klick `Automatisch` löst die View über die Rolle auf |
+
 ## Widget-Typ-Standards
 
-Ordnet einem Widget-Typ eine Popup-View zu — gilt für alle Widgets dieses Typs ohne individuelle Klick-Aktion.
+Ordnet einem Widget-Typ eine Popup-View zu — gilt für alle Widgets dieses Typs ohne individuelle Klick-Aktion. In Bestandsinstallationen sind Dimmer, Thermostat, Schalter, Rolladen und Mediaplayer hier vorbelegt; neue Installationen starten ohne Zuordnung. `Popup-View` auf `— keine View —` unterdrückt das Popup für den Typ, das Papierkorb-Symbol entfernt die Zuordnung ganz.
 
 | Spalte | |
 | --- | --- |

@@ -6,6 +6,7 @@ import { Plus, Trash2, Check, Pencil, Layers, RotateCcw, Download, Upload, Searc
 import {
     usePopupConfigStore,
     viewCreatedAt,
+    ALWAYS_SEEDED_VIEW_IDS,
     BUILTIN_VIEW_IDS,
     BUILTIN_VIEWS,
     DEFAULT_POPUP_TRANSPARENCY,
@@ -25,6 +26,7 @@ import { WIDGET_REGISTRY } from '../../widgetRegistry';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { getAvailableLayouts } from '../../utils/widgetLayouts';
 import { exportPopupView, importPopupView } from '../../utils/widgetExportImport';
+import { builtinUsage, type UsageReason } from '../../utils/builtinPopupUsage';
 import type { ClickAction, WidgetLayout } from '../../types';
 
 // ── Shared styles ─────────────────────────────────────────────────────────────
@@ -265,6 +267,129 @@ function ViewSelect({ value, onChange }: { value: string; onChange: (v: string) 
     );
 }
 
+// ── Retired built-in cleanup ──────────────────────────────────────────────────
+
+const USAGE_LABEL: Record<UsageReason, string> = {
+    always: 'wird von Listenzeilen im Automatik-Modus geöffnet',
+    edited: 'wurde angepasst',
+    linked: 'ist als Klick-Aktion verlinkt',
+    'type-default': 'ist Typ-Standard für vorhandene Widgets',
+    'row-auto': 'kann über Listenzeilen im Automatik-Modus geöffnet werden',
+};
+
+/**
+ * Offers to delete the shipped popup views this installation no longer needs.
+ *
+ * The views are not seeded into new installations any more, but nobody's working
+ * setup gets torn out from under them — so the decision happens here, per
+ * installation, with the usage scan spelling out why each keeper stays.
+ */
+function PruneBuiltinsDialog({ onClose }: { onClose: () => void }) {
+    const pruneBuiltins = usePopupConfigStore((s) => s.pruneBuiltins);
+    // Snapshot on mount: the list must not shift under the user while they read it.
+    const [usage] = useState(() => builtinUsage());
+    const removable = usage.filter((u) => !u.reason);
+    const kept = usage.filter((u) => u.reason);
+
+    const rowStyle: React.CSSProperties = {
+        background: 'var(--app-bg)',
+        border: '1px solid var(--app-border)',
+    };
+
+    return (
+        <ConfigModal title="Nicht genutzte Standard-Views entfernen" maxWidth={620} padded onClose={onClose}>
+            <div className="space-y-4">
+                <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    Die mitgelieferten Standard-Views werden nicht weiterentwickelt und in neue Installationen nicht
+                    mehr eingerichtet. Entfernt wird nur, was hier nachweislich nirgends verwendet wird.
+                </p>
+
+                <div>
+                    <p className="text-[11px] mb-1.5 font-medium" style={{ color: 'var(--text-primary)' }}>
+                        Wird entfernt ({removable.length})
+                    </p>
+                    {removable.length === 0 ? (
+                        <div
+                            className="px-3 py-3 text-xs rounded-lg"
+                            style={{ ...rowStyle, color: 'var(--text-secondary)' }}
+                        >
+                            Alle vorhandenen Standard-Views sind in Verwendung.
+                        </div>
+                    ) : (
+                        <div className="space-y-1">
+                            {removable.map((u) => (
+                                <div
+                                    key={u.view.id}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
+                                    style={rowStyle}
+                                >
+                                    <span className="flex-1 truncate" style={{ color: 'var(--text-primary)' }}>
+                                        {u.view.name}
+                                    </span>
+                                    {u.types.length > 0 && (
+                                        <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                            Typ-Standard: {u.types.join(', ')}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {kept.length > 0 && (
+                    <div>
+                        <p className="text-[11px] mb-1.5 font-medium" style={{ color: 'var(--text-primary)' }}>
+                            Bleibt erhalten ({kept.length})
+                        </p>
+                        <div className="space-y-1">
+                            {kept.map((u) => (
+                                <div
+                                    key={u.view.id}
+                                    className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs"
+                                    style={rowStyle}
+                                >
+                                    <span className="flex-1 truncate" style={{ color: 'var(--text-primary)' }}>
+                                        {u.view.name}
+                                    </span>
+                                    <span className="text-[10px] text-right" style={{ color: 'var(--text-secondary)' }}>
+                                        {USAGE_LABEL[u.reason!]}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                    <button
+                        onClick={onClose}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        Abbrechen
+                    </button>
+                    <button
+                        disabled={removable.length === 0}
+                        onClick={() => {
+                            pruneBuiltins(removable.map((u) => u.view.id));
+                            onClose();
+                        }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 disabled:opacity-40 transition-opacity"
+                        style={{ background: 'var(--accent-red, #ef4444)', color: '#fff' }}
+                    >
+                        {removable.length} entfernen
+                    </button>
+                </div>
+            </div>
+        </ConfigModal>
+    );
+}
+
 // ── Popup-Views section ───────────────────────────────────────────────────────
 
 function PopupViewsSection() {
@@ -287,9 +412,18 @@ function PopupViewsSection() {
     const [editingNameId, setEditingNameId] = useState<string | null>(null);
     const [editingName, setEditingName] = useState('');
     const [exportTarget, setExportTarget] = useState<PopupView | null>(null);
+    const [pruning, setPruning] = useState(false);
     const [filter, setFilter] = useState('');
     const [sort, setSort] = useState<SortMode>('alpha');
     const importInputRef = useRef<HTMLInputElement>(null);
+
+    // Retired built-ins: only the ones that are still shipped everywhere stay
+    // silent. Anything else means this installation was set up back when the
+    // type-specific views were seeded — so it gets the cleanup offer.
+    const retiredBuiltins = useMemo(
+        () => views.filter((v) => BUILTIN_VIEW_IDS.has(v.id) && !ALWAYS_SEEDED_VIEW_IDS.has(v.id)),
+        [views],
+    );
 
     const query = filter.trim().toLowerCase();
 
@@ -384,6 +518,30 @@ function PopupViewsSection() {
                     </div>
                 )}
             </div>
+
+            {retiredBuiltins.length > 0 && (
+                <div
+                    className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl"
+                    style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+                >
+                    <p className="text-[11px] flex-1" style={{ color: 'var(--text-secondary)' }}>
+                        Die mitgelieferten Standard-Views werden nicht weiterentwickelt. Zum Anpassen kopieren.
+                    </p>
+                    <button
+                        onClick={() => setPruning(true)}
+                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity shrink-0"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        <Trash2 size={11} /> Ungenutzte entfernen
+                    </button>
+                </div>
+            )}
+
+            {pruning && <PruneBuiltinsDialog onClose={() => setPruning(false)} />}
 
             {views.length > 0 && (
                 <ListToolbar

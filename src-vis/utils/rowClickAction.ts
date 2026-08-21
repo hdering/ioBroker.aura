@@ -1,7 +1,6 @@
-import type { ClickAction, WidgetConfig } from '../types';
+import type { ClickAction } from '../types';
 import { detectWidgetTypeFromRole } from './dpTemplates';
 import { lookupDatapointEntry } from '../hooks/useDatapointList';
-import { defaultActionForConfig } from '../components/config/ClickActionEditor';
 
 /**
  * Generic detail popup for a datapoint that has no type-specific built-in view.
@@ -62,8 +61,6 @@ export function isExplicitRowAction(
 export interface RowActionCtx {
     /** popupConfigStore.typeDefaults - admin-assigned view per widget type. */
     typeDefaults: Record<string, string>;
-    /** popupConfigStore.removedBuiltinTypeDefaults. */
-    removedTypeDefaults: string[];
 }
 
 /**
@@ -71,13 +68,11 @@ export interface RowActionCtx {
  *
  * Nothing configured = no popup: rows stay inert until an action is picked, so a
  * plain list does not turn every row into a click target on its own. `'auto'` runs
- * the same three-level chain WidgetFrame uses for widget clicks, but keyed on the
- * widget type detected from the datapoint's role instead of the (list) widget's own
- * type:
+ * the same chain WidgetFrame uses for widget clicks, but keyed on the widget type
+ * detected from the datapoint's role instead of the (list) widget's own type:
  *
  *   1. admin type default (popupConfigStore.typeDefaults)
- *   2. built-in default for that type (dimmer, switch, shutter, ...)
- *   3. the generic datapoint view
+ *   2. the generic datapoint view
  *
  * The `typeDefaultLayouts` gate from WidgetFrame is intentionally not applied - it
  * filters by widget *layout*, which has no meaning for a row.
@@ -115,14 +110,8 @@ export function resolveRowAction(
         const viewId = ctx.typeDefaults[widgetType];
         if (viewId) return { kind: 'popup-view', viewId };
         // An explicit empty type default ('- keine View -') means "no popup" and
-        // must suppress the built-in fallback, exactly as for widget clicks.
+        // must suppress the generic fallback, exactly as for widget clicks.
         if (widgetType in ctx.typeDefaults) return null;
-        if (!ctx.removedTypeDefaults.includes(widgetType)) {
-            const builtIn = defaultActionForConfig({ type: widgetType } as WidgetConfig);
-            // popup-widget (slider default) embeds a dashboard widget - meaningless
-            // for a row, so only real popup views are taken from here.
-            if (builtIn && builtIn.kind === 'popup-view') return builtIn;
-        }
     }
     return { kind: 'popup-view', viewId: ROW_FALLBACK_VIEW_ID };
 }

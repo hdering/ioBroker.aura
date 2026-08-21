@@ -42,10 +42,9 @@ interface OpenPopup {
  */
 export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode: boolean) {
     const typeDefaults = usePopupConfigStore((s) => s.typeDefaults);
-    const removedTypeDefaults = usePopupConfigStore((s) => s.removedBuiltinTypeDefaults);
     const [open, setOpen] = useState<OpenPopup | null>(null);
 
-    const ctx = useMemo(() => ({ typeDefaults, removedTypeDefaults }), [typeDefaults, removedTypeDefaults]);
+    const ctx = useMemo(() => ({ typeDefaults }), [typeDefaults]);
 
     /**
      * Resolved action for a row, or null when the row must not be clickable.

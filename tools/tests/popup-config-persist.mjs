@@ -18,6 +18,9 @@
 //      being reset to the shipped content.
 //   4. The same trap in the RAM-only stores: hydrating aura-group-defs /
 //      aura-widget-presets from ioBroker must not leave the key pending.
+//   5. Seeding is retired: the type-specific built-ins only land on installations
+//      that already have popup config. A fresh install gets ALWAYS_SEEDED_VIEW_IDS
+//      and nothing else, and a pruned built-in never comes back.
 import { build } from 'esbuild';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
@@ -74,7 +77,11 @@ const bundle = join(cache, `aura-popup-persist-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: `
-            export { usePopupConfigStore, BUILTIN_VIEW_IDS } from './src-vis/store/popupConfigStore.ts';
+            export {
+                usePopupConfigStore,
+                BUILTIN_VIEW_IDS,
+                ALWAYS_SEEDED_VIEW_IDS,
+            } from './src-vis/store/popupConfigStore.ts';
             export { isDirty, hasDirtyFlag, isPending } from './src-vis/store/persistManager.ts';
             export {
                 hydrateGroupDefs,
@@ -149,6 +156,10 @@ const shipped = builtinMap['../data/builtinPopups/shutter.json'];
 const SHUTTER_ID = shipped.id;
 const SHIPPED_VER = shipped.version ?? 1;
 
+// Any user-created view is enough to mark an installation as "already set up",
+// which is what keeps the retired built-ins flowing to it.
+const CUSTOM_VIEW = { id: 'pv-1700000000000', name: 'Bestand', widgets: [], createdAt: 1700000000000 };
+
 // ── 1. A version bump on a shipped built-in must not mark the device dirty ────
 // This is the bug: shutter.json went 1 → 2, so every client migrated its stored
 // copy on the next load and thereby claimed "unsaved edits" — after which it
@@ -166,11 +177,16 @@ const SHIPPED_VER = shipped.version ?? 1;
 
 // ── 2. Adding a newly shipped built-in must not mark the device dirty either ──
 // A release that ships a new built-in (datapoint.json, #524) otherwise arms the
-// same trap on every single client at once.
+// same trap on every single client at once. Seeding needs an installation that
+// already has popup config — see scenario 7 for the fresh-install side.
 {
-    const { mod, map } = await bootWith({ [KEY]: persistedState([]) });
+    const { mod, map } = await bootWith({ [KEY]: persistedState([CUSTOM_VIEW]) });
     const ids = mod.usePopupConfigStore.getState().views.map((v) => v.id);
-    check('missing built-ins were added', ids.length === mod.BUILTIN_VIEW_IDS.size, `got ${ids.length}`);
+    check(
+        'missing built-ins were added',
+        ids.length === mod.BUILTIN_VIEW_IDS.size + 1,
+        `got ${ids.length}, want ${mod.BUILTIN_VIEW_IDS.size + 1}`,
+    );
     check('adding built-ins did NOT set the dirty flag', map.get(DIRTY) === undefined, `flag = ${map.get(DIRTY)}`);
     check('adding built-ins did NOT leave the store dirty', mod.isDirty() === false);
 }
@@ -190,7 +206,7 @@ const SHIPPED_VER = shipped.version ?? 1;
 
 // ── 4. Editing a built-in flags it, and the flag protects it from the bump ────
 {
-    const { mod } = await bootWith({ [KEY]: persistedState([]) });
+    const { mod } = await bootWith({ [KEY]: persistedState([CUSTOM_VIEW]) });
     const st = () => mod.usePopupConfigStore.getState();
     st().updateViewName(SHUTTER_ID, 'Mein Rollladen');
     const edited = st().views.find((v) => v.id === SHUTTER_ID);
@@ -262,6 +278,74 @@ const SHIPPED_VER = shipped.version ?? 1;
     check('a real group-def edit still marks the key pending', mod.isPending('aura-group-defs') === true);
     mod.useWidgetPresetsStore.getState().addPreset({ id: 'p1', name: 'x' });
     check('a real preset edit still marks the key pending', mod.isPending('aura-widget-presets') === true);
+}
+
+// ── 7. Fresh install: the retired built-ins are not seeded ───────────────────
+// The type-specific views (dimmer, thermostat, …) were never configured by anyone
+// — they just appeared. New installations no longer get them, nor their type
+// assignments; only the row-click fallback still ships everywhere.
+{
+    const { mod, map } = await bootWith({});
+    const st = () => mod.usePopupConfigStore.getState();
+    const ids = st().views.map((v) => v.id);
+    check(
+        'fresh install only gets the always-seeded built-ins',
+        ids.length === mod.ALWAYS_SEEDED_VIEW_IDS.size && ids.every((id) => mod.ALWAYS_SEEDED_VIEW_IDS.has(id)),
+        `got ${JSON.stringify(ids)}`,
+    );
+    eq('fresh install gets no type defaults', Object.keys(st().typeDefaults).length, 0);
+    check('seeding nothing did NOT set the dirty flag', map.get(DIRTY) === undefined, `flag = ${map.get(DIRTY)}`);
+
+    // The empty boot state before the ioBroker pull reads as "fresh" too — the
+    // moment the real payload arrives it must seed like an existing setup again,
+    // otherwise a device that boots first would drop everyone's built-ins.
+    const { mod: mod2 } = await bootWith({ [KEY]: persistedState([CUSTOM_VIEW]) });
+    check(
+        'the pull rehydrating a real payload seeds again',
+        mod2.usePopupConfigStore.getState().views.length === mod2.BUILTIN_VIEW_IDS.size + 1,
+    );
+}
+
+// ── 8. An existing installation keeps its built-ins and gets the assignments ──
+{
+    const { mod } = await bootWith({ [KEY]: persistedState([CUSTOM_VIEW]) });
+    const { typeDefaults, views } = mod.usePopupConfigStore.getState();
+    eq('dimmer keeps its type default', typeDefaults.dimmer, 'pv-builtin-dimmer');
+    check('the dimmer view is there', views.some((v) => v.id === 'pv-builtin-dimmer'));
+}
+
+// ── 9. '— keine View —' survives a reload ────────────────────────────────────
+// Seeding read the assignment as falsy rather than absent, so an explicit "no
+// popup for this type" was overwritten with the built-in on the next rehydrate.
+{
+    const { mod } = await bootWith({
+        [KEY]: persistedState([CUSTOM_VIEW], { typeDefaults: { dimmer: '' } }),
+    });
+    eq('an explicit empty type default is not re-seeded', mod.usePopupConfigStore.getState().typeDefaults.dimmer, '');
+}
+
+// ── 10. Pruning a built-in is permanent ──────────────────────────────────────
+// The cleanup in Admin → Popups drops the views nothing references. Seeding must
+// not put them straight back on the next load.
+{
+    const { mod, map } = await bootWith({ [KEY]: persistedState([CUSTOM_VIEW]) });
+    mod.usePopupConfigStore.getState().pruneBuiltins(['pv-builtin-dimmer', 'pv-builtin-switch']);
+    const after = mod.usePopupConfigStore.getState();
+    check('pruned views are gone', !after.views.some((v) => v.id === 'pv-builtin-dimmer'));
+    check('pruned type defaults are gone', !('dimmer' in after.typeDefaults));
+    check('pruned ids are remembered', after.deletedBuiltinIds.includes('pv-builtin-dimmer'));
+
+    // Same payload, next boot: ensureBuiltins must respect deletedBuiltinIds.
+    const raw = map.get(KEY);
+    const { mod: mod2 } = await bootWith({ [KEY]: raw });
+    check(
+        'a pruned built-in stays gone after a reload',
+        !mod2.usePopupConfigStore.getState().views.some((v) => v.id === 'pv-builtin-dimmer'),
+    );
+    check(
+        'pruning does not take the always-seeded view with it',
+        mod2.usePopupConfigStore.getState().views.some((v) => v.id === 'pv-builtin-datapoint'),
+    );
 }
 
 rmSync(bundle, { force: true });
