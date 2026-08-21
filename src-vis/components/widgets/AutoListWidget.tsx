@@ -9,6 +9,14 @@ import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { CustomGridView } from './CustomGridView';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import {
+    buildEnumMemberIndex,
+    collectEnumFilterOptions,
+    enumIdsForObject,
+    matchesEnumFilter,
+    splitEnumFilter,
+    type EnumFilterOption,
+} from '../../utils/enumFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT } from '../../i18n';
@@ -104,6 +112,12 @@ export interface AutoListOptions
     filterIdPattern?: string;
     filterRooms?: string;
     filterFuncs?: string;
+    /**
+     * Custom enum categories (issue #568): comma-separated FULL enum ids, e.g.
+     * 'enum.floors.og, enum.floors.dg'. Ids, not labels - the same name may exist
+     * under several categories. OR inside a category, AND across categories.
+     */
+    filterEnums?: string;
     filterTypes?: string;
     excludeIdPatterns?: string;
     excludeIds?: string[];
@@ -290,6 +304,8 @@ export async function loadFilterOptions(): Promise<{
     roles: string[];
     rooms: string[];
     funcs: string[];
+    /** User-defined enum categories, e.g. enum.floors.* (issue #568). */
+    enums: EnumFilterOption[];
     types: string[];
     adapters: string[];
 }> {
@@ -318,6 +334,7 @@ export async function loadFilterOptions(): Promise<{
         roles: Array.from(rolesSet).sort(),
         rooms: rooms.sort(),
         funcs: funcs.sort(),
+        enums: collectEnumFilterOptions(enumResult.rows.map((r) => r.value)),
         types: Array.from(typesSet).sort(),
         adapters: Array.from(adaptersSet).sort(),
     };
@@ -330,6 +347,7 @@ export async function discoverDatapoints(
         | 'filterIdPattern'
         | 'filterRooms'
         | 'filterFuncs'
+        | 'filterEnums'
         | 'filterTypes'
         | 'excludeIdPatterns'
         | 'excludeIds'
@@ -370,6 +388,12 @@ export async function discoverDatapoints(
             else e.funcs.push(label);
         }
     }
+
+    // Custom categories (enum.floors & co.) get their own index: they are matched by
+    // enum id, and their members are usually rooms rather than states, so membership
+    // has to be resolved through the nested enums (see utils/enumFilter).
+    const enumFilter = splitEnumFilter(opts.filterEnums);
+    const customEnumIndex = enumFilter.length ? buildEnumMemberIndex(enumResult.rows.map((r) => r.value)) : null;
 
     // Role filter: exact match (same as DatapointPicker) with OR semantics for multiple values.
     const roleFilter = (opts.filterRoles ?? '')
@@ -436,6 +460,7 @@ export async function discoverDatapoints(
                 if (roomFilter.length > 0 && !roomFilter.some((r) => roomsSet.has(r))) return false;
                 if (funcFilter.length > 0 && !funcFilter.some((f) => funcsSet.has(f))) return false;
             }
+            if (customEnumIndex && !matchesEnumFilter(enumFilter, enumIdsForObject(id, customEnumIndex))) return false;
             return true;
         })
         .map(({ id, value: obj }) => {
@@ -1034,6 +1059,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             opts.filterIdPattern ||
             opts.filterRooms ||
             opts.filterFuncs ||
+            opts.filterEnums ||
             opts.filterTypes ||
             opts.filterAdapters;
         if (!hasFilter) return;

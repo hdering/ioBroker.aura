@@ -77,6 +77,7 @@
     "test:chart-axis-decimals": "node tools/tests/chart-axis-decimals.mjs",
     "test:list-subdps": "node tools/tests/list-subdps.mjs",
     "test:list-filter": "node tools/tests/list-filter.mjs",
+    "test:list-enums": "node tools/tests/list-enum-filter.mjs",
     "test:camera-actions": "node tools/tests/camera-actions.mjs",
     "test:condition-refresh": "node tools/tests/condition-refresh.mjs",
     "test:name-pattern": "node tools/tests/name-pattern.mjs",

@@ -1,5 +1,13 @@
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Check, ChevronDown } from 'lucide-react';
+
+/**
+ * A plain string is both the stored value and the shown text. The object form exists
+ * for lists whose labels are not unique - the custom enum categories of the dynamic
+ * list store the full enum id and show only the name, optionally under a `group`
+ * heading (see utils/enumFilter).
+ */
+export type MultiSelectOption = string | { value: string; label: string; group?: string };
 
 export function MultiSelect({
     label,
@@ -10,7 +18,7 @@ export function MultiSelect({
     placeholder,
 }: {
     label: string;
-    options: string[];
+    options: MultiSelectOption[];
     selected: string[];
     onChange: (v: string[]) => void;
     loading?: boolean;
@@ -19,8 +27,13 @@ export function MultiSelect({
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
 
-    const filtered = options.filter((o) => o.toLowerCase().includes(search.toLowerCase()));
+    const norm = options.map((o) => (typeof o === 'string' ? { value: o, label: o, group: undefined } : o));
+    const q = search.toLowerCase();
+    const filtered = norm.filter((o) => o.label.toLowerCase().includes(q) || (o.group ?? '').toLowerCase().includes(q));
     const toggle = (v: string) => onChange(selected.includes(v) ? selected.filter((s) => s !== v) : [...selected, v]);
+    // Unknown values (an enum deleted in ioBroker) still show, as the raw id - hiding
+    // them would silently drop a filter the user cannot see any more.
+    const selectedText = selected.map((v) => norm.find((o) => o.value === v)?.label ?? v).join(', ');
 
     return (
         <div className="relative">
@@ -38,7 +51,7 @@ export function MultiSelect({
                 }}
             >
                 <span className="truncate flex-1 min-w-0">
-                    {loading ? 'Lade…' : selected.length === 0 ? (placeholder ?? 'Alle') : selected.join(', ')}
+                    {loading ? 'Lade…' : selected.length === 0 ? (placeholder ?? 'Alle') : selectedText}
                 </span>
                 <ChevronDown
                     size={11}
@@ -76,34 +89,44 @@ export function MultiSelect({
                                     Keine Ergebnisse
                                 </p>
                             )}
-                            {filtered.map((opt) => {
-                                const on = selected.includes(opt);
+                            {filtered.map((opt, i) => {
+                                const on = selected.includes(opt.value);
+                                const heading = opt.group && opt.group !== filtered[i - 1]?.group ? opt.group : null;
                                 return (
-                                    <label
-                                        key={opt}
-                                        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:opacity-90"
-                                        style={{
-                                            background: on
-                                                ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
-                                                : 'transparent',
-                                        }}
-                                    >
-                                        <div
-                                            className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
-                                            style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+                                    <Fragment key={opt.value}>
+                                        {heading && (
+                                            <p
+                                                className="px-3 pt-2 pb-1 text-[9px] font-semibold uppercase tracking-wide"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {heading}
+                                            </p>
+                                        )}
+                                        <label
+                                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:opacity-90"
+                                            style={{
+                                                background: on
+                                                    ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                                    : 'transparent',
+                                            }}
                                         >
-                                            {on && <Check size={9} color="#fff" />}
-                                        </div>
-                                        <input
-                                            type="checkbox"
-                                            className="sr-only"
-                                            checked={on}
-                                            onChange={() => toggle(opt)}
-                                        />
-                                        <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>
-                                            {opt}
-                                        </span>
-                                    </label>
+                                            <div
+                                                className="w-3.5 h-3.5 rounded shrink-0 flex items-center justify-center"
+                                                style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+                                            >
+                                                {on && <Check size={9} color="#fff" />}
+                                            </div>
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only"
+                                                checked={on}
+                                                onChange={() => toggle(opt.value)}
+                                            />
+                                            <span className="text-sm truncate" style={{ color: 'var(--text-primary)' }}>
+                                                {opt.label}
+                                            </span>
+                                        </label>
+                                    </Fragment>
                                 );
                             })}
                         </div>

@@ -70,6 +70,7 @@ export function AutoDiscoveryPanel({
         availRoles,
         availRooms,
         availFuncs,
+        availEnums,
         availTypes,
         availAdapters,
         optLoading,
@@ -80,6 +81,8 @@ export function AutoDiscoveryPanel({
         setSelRooms,
         selFuncs,
         setSelFuncs,
+        selEnums,
+        setSelEnums,
         selTypes,
         setSelTypes,
         selAdapters,
@@ -166,6 +169,27 @@ export function AutoDiscoveryPanel({
                     }}
                     loading={optLoading}
                 />
+                {(availEnums.length > 0 || selEnums.length > 0) && (
+                    <div className="col-span-2">
+                        <MultiSelect
+                            label={t('autolist.categories')}
+                            options={availEnums.map((e) => ({
+                                value: e.id,
+                                label: e.label,
+                                group: e.categoryLabel,
+                            }))}
+                            selected={selEnums}
+                            onChange={(v) => {
+                                setSelEnums(v);
+                                resetSearch();
+                            }}
+                            loading={optLoading}
+                        />
+                        <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            {t('autolist.categoriesHint')}
+                        </p>
+                    </div>
+                )}
                 <div>
                     <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('autolist.idContains')} <span className="opacity-60">(kommagetrennt, OR)</span>

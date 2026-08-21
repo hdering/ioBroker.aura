@@ -1473,6 +1473,9 @@ export const en: Record<TranslationKey, string> = {
     'autolist.roles': 'Roles',
     'autolist.room': 'Room',
     'autolist.func': 'Function',
+    'autolist.categories': 'Custom categories',
+    'autolist.categoriesHint':
+        'Custom enum categories (e.g. floors). Several within one category: OR, across categories: AND.',
     'autolist.idPh': 'e.g. hm-rpc, shelly',
     'autolist.search': 'Search',
     'autolist.noneFound': 'No datapoints found',

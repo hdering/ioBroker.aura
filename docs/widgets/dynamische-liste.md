@@ -79,12 +79,15 @@ Ohne Platzhalter gilt derselbe Datenpunkt für jede Zeile (Außentemperatur, Str
 
 Dialog **Datenpunkte verwalten** → Tab **Suchen & Filter**. Mehrere Werte je Feld kommagetrennt; ID-Muster akzeptiert Text (Teilstring) oder `/regex/`.
 
+Neben Raum und Funktion steht jede selbst angelegte enum-Kategorie zur Auswahl (z. B. `enum.floors` für Stockwerke). Enthält ein Eintrag Räume statt Datenpunkte, werden diese mit aufgelöst — ein Stockwerk findet also die Datenpunkte seiner Räume.
+
 | Option | Standard | |
 | --- | --- | --- |
 | `filterRoles` | — | Rollen (exakt, ODER-Verknüpfung) |
 | `filterIdPattern` | — | ID-Muster (Text oder `/regex/`) |
 | `filterRooms` | — | Räume |
 | `filterFuncs` | — | Funktionen |
+| `filterEnums` | — | eigene Kategorien: volle enum-IDs (`enum.floors.og`), ODER innerhalb einer Kategorie, UND über Kategorien |
 | `filterTypes` | — | Typen (`boolean`, `number`, …) |
 | `filterAdapters` | — | Adapter-Instanzen (`hm-rpc.0`, …) |
 | `excludeIdPatterns` | — | auszuschließende ID-Muster |

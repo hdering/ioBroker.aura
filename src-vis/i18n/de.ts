@@ -1478,6 +1478,9 @@ export const de = {
     'autolist.roles': 'Rollen',
     'autolist.room': 'Raum',
     'autolist.func': 'Funktion',
+    'autolist.categories': 'Eigene Kategorien',
+    'autolist.categoriesHint':
+        'Eigene enum-Kategorien (z. B. Stockwerke). Mehrere in einer Kategorie: ODER, über Kategorien hinweg: UND.',
     'autolist.idPh': 'z.B. hm-rpc, shelly',
     'autolist.search': 'Suchen',
     'autolist.noneFound': 'Keine Datenpunkte gefunden',

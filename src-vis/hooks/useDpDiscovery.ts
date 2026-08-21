@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { discoverDatapoints, loadFilterOptions } from '../components/widgets/AutoListWidget';
 import type { AutoListEntry, AutoListOptions, DiscoveredDp } from '../components/widgets/AutoListWidget';
+import type { EnumFilterOption } from '../utils/enumFilter';
 
 function toArr(csv?: string): string[] {
     return csv
@@ -35,6 +36,7 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
     const [availRoles, setAvailRoles] = useState<string[]>([]);
     const [availRooms, setAvailRooms] = useState<string[]>([]);
     const [availFuncs, setAvailFuncs] = useState<string[]>([]);
+    const [availEnums, setAvailEnums] = useState<EnumFilterOption[]>([]);
     const [availTypes, setAvailTypes] = useState<string[]>([]);
     const [availAdapters, setAvailAdapters] = useState<string[]>([]);
     const [optLoading, setOptLoading] = useState(true);
@@ -43,11 +45,12 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
     useEffect(() => {
         if (!optionsRequested) return;
         let cancelled = false;
-        loadFilterOptions().then(({ roles, rooms, funcs, types, adapters }) => {
+        loadFilterOptions().then(({ roles, rooms, funcs, enums, types, adapters }) => {
             if (cancelled) return;
             setAvailRoles(roles);
             setAvailRooms(rooms);
             setAvailFuncs(funcs);
+            setAvailEnums(enums);
             setAvailTypes(types);
             setAvailAdapters(adapters);
             setOptLoading(false);
@@ -64,6 +67,7 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
     const [selRoles, setSelRoles] = useState<string[]>(toArr(opts.filterRoles));
     const [selRooms, setSelRooms] = useState<string[]>(toArr(opts.filterRooms));
     const [selFuncs, setSelFuncs] = useState<string[]>(toArr(opts.filterFuncs));
+    const [selEnums, setSelEnums] = useState<string[]>(toArr(opts.filterEnums));
     const [selTypes, setSelTypes] = useState<string[]>(toArr(opts.filterTypes));
     const [selAdapters, setSelAdapters] = useState<string[]>(toArr(opts.filterAdapters));
     const [idPat, setIdPat] = useState(opts.filterIdPattern ?? '');
@@ -97,6 +101,7 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
                 filterIdPattern: idPat || undefined,
                 filterRooms: toCsv(selRooms),
                 filterFuncs: toCsv(selFuncs),
+                filterEnums: toCsv(selEnums),
                 filterTypes: toCsv(selTypes),
                 excludeIdPatterns: excludePats || undefined,
                 excludeIds: excludeIds.length ? excludeIds : undefined,
@@ -138,6 +143,7 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
             filterIdPattern: idPat || undefined,
             filterRooms: toCsv(selRooms),
             filterFuncs: toCsv(selFuncs),
+            filterEnums: toCsv(selEnums),
             filterTypes: toCsv(selTypes),
             excludeIdPatterns: excludePats || undefined,
             excludeIds: excludeIds.length ? excludeIds : undefined,
@@ -156,6 +162,7 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
         selRoles.length > 0 ||
         selRooms.length > 0 ||
         selFuncs.length > 0 ||
+        selEnums.length > 0 ||
         selTypes.length > 0 ||
         selAdapters.length > 0 ||
         !!idPat;
@@ -164,6 +171,7 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
         availRoles,
         availRooms,
         availFuncs,
+        availEnums,
         availTypes,
         availAdapters,
         optLoading,
@@ -174,6 +182,8 @@ export function useDpDiscovery(opts: AutoListOptions, setOpts: (patch: Partial<A
         setSelRooms,
         selFuncs,
         setSelFuncs,
+        selEnums,
+        setSelEnums,
         selTypes,
         setSelTypes,
         selAdapters,
