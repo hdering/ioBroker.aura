@@ -99,19 +99,20 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Anzeige
 
-| Option               | Standard                                  |                                                                                                         |
-| -------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| `showTitle`          | `true`                                    | Titel anzeigen                                                                                          |
-| `showIcon`           | `true`                                    | Icon anzeigen                                                                                           |
-| `icon`               | `BarChart2`                               | [Lucide-Icon](https://lucide.dev)                                                                       |
-| `iconSize`           | `20`                                      | px                                                                                                      |
-| `titleAlign`         | `left`                                    | `left` · `center` · `right`                                                                             |
-| `echartShowCurrent`  | `true`                                    | aktuelle Werte in der Kopfzeile anzeigen                                                                |
-| `echartCurrentFrom`  | `last`                                    | welcher Punkt der „aktuelle“ ist: `last` (rechts) · `first` (links, für Reihen mit neuestem Wert vorn)  |
-| `echartCurrentAlign` | `right`                                   | Position der Anzeige in der Kopfzeile: `right` · `left`                                                 |
-| `echartShowValues`   | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) |
-| `echartShowLegend`   | `true`                                    | Legende anzeigen                                                                                        |
-| `decimals`           | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung                         |
+| Option                   | Standard                                  |                                                                                                         |
+| ------------------------ | ----------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `showTitle`              | `true`                                    | Titel anzeigen                                                                                          |
+| `showIcon`               | `true`                                    | Icon anzeigen                                                                                           |
+| `icon`                   | `BarChart2`                               | [Lucide-Icon](https://lucide.dev)                                                                       |
+| `iconSize`               | `20`                                      | px                                                                                                      |
+| `titleAlign`             | `left`                                    | `left` · `center` · `right`                                                                             |
+| `echartShowCurrent`      | `true`                                    | aktuelle Werte in der Kopfzeile anzeigen                                                                |
+| `echartCurrentFrom`      | `last`                                    | welcher Punkt der „aktuelle“ ist: `last` (rechts) · `first` (links, für Reihen mit neuestem Wert vorn)  |
+| `echartCurrentAlign`     | `right`                                   | Position der Anzeige in der Kopfzeile: `right` · `left`                                                 |
+| `echartShowValues`       | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) |
+| `echartShowStackPercent` | `false`                                   | prozentualen Anteil an der Stapelsumme anzeigen (nur gestapelte Serien, siehe [Stapeln](#stapeln))      |
+| `echartShowLegend`       | `true`                                    | Legende anzeigen                                                                                        |
+| `decimals`               | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung                         |
 
 ### Serien
 
@@ -142,6 +143,13 @@ ergeben. Für Linie, Fläche und Balken.
 - Eine gestapelte Achse beginnt bei 0, damit die Bandhöhen den Werten entsprechen. Ein gesetztes
   `Min` hat weiterhin Vorrang.
 - Der Tooltip zeigt weiter den Einzelwert jeder Serie und zusätzlich eine Zeile `Σ Summe`.
+- `Prozentualen Anteil am Stapel anzeigen` (Abschnitt „Anzeige“, erscheint sobald eine Serie stapelt)
+  schreibt den Anteil an der Stapelsumme desselben Datenpunkts an den Balken bzw. Punkt und in den
+  Tooltip. Zusammen mit `Werte am Datenpunkt anzeigen` steht er in Klammern hinter dem Wert, ohne
+  diese Option allein. Anteil = `|Wert| / Σ|Werte des Stapels|` — mit Betrag, damit die Anteile auch
+  bei einem negativen Mitglied 100 % ergeben. Kein Anteil bei Stapeln mit nur einer Serie je Achse,
+  an Stellen ohne Wert und bei einer Stapelsumme von 0. Anzeige in ganzen Prozent, unter 10 % mit
+  einer Nachkommastelle.
 - Gestapelte Flächen sind deckend gefüllt: das Band zeigt genau die gewählte Farbe, wie Legende und
   Farbwähler. Bänder liegen übereinander statt voreinander, Transparenz würde die Farbe nur mit dem
   Hintergrund mischen. Weicher per `Flächen-Deckkraft` je Serie, unter der Linienstärke.

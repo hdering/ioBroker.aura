@@ -53,7 +53,9 @@ import {
     alignStackedSeries,
     areaOpacityFor,
     outlineWidthFor,
+    stackShares,
     type StackableSeries,
+    type StackDatum,
     type StackPoint,
 } from '../utils/stackedSeries';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
@@ -447,6 +449,13 @@ function installScreenshotApi(): void {
          *  canvas, while this is where it can actually be wrong (issue #541). */
         stackAlign(series: StackableSeries[], data: StackPoint[][]): StackPoint[][] {
             return alignStackedSeries(series, data);
+        },
+
+        /** Share each stacked value has of its stack total, per series and data index (issue
+         *  #569). Same reason as `stackAlign`: the percentages end up as canvas text, while this
+         *  is where they can actually be wrong. */
+        stackShares(series: StackableSeries[], data: StackDatum[][]): (number | null)[][] {
+            return stackShares(series, data);
         },
 
         /** Stroke width the advanced chart gives a series. 0 for a stacked band, whose outline

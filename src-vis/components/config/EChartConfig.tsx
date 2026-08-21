@@ -232,6 +232,9 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
     // Comparison charts have always labelled their bars — keep that as their default (issue #543).
     const echartShowValues = (o.echartShowValues as boolean | undefined) ?? isComparison;
+    // Share of the stack total at the data point (issue #569) — only offered once something stacks.
+    const echartShowStackPercent = (o.echartShowStackPercent as boolean | undefined) ?? false;
+    const anyStack = series.some((s) => s.stack);
     // Single widget-level range (replaces the former per-series ranges). Falls back to the
     // first series' old range so existing widgets keep their configured window after upgrade.
     const echartRange = (o.echartRange as EChartTimeRange | undefined) ?? series[0]?.historyRange ?? '24h';
@@ -1550,6 +1553,33 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         />
                     </button>
                 </div>
+
+                {/* Percentage share of the stack total — pointless without a stack, so it only
+                    appears once at least one series stacks (issue #569). */}
+                {anyStack && (
+                    <div className="mb-2">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.showStackPercent')}
+                            </label>
+                            <button
+                                onClick={() => setO({ echartShowStackPercent: !echartShowStackPercent })}
+                                className="relative w-9 h-5 rounded-full transition-colors"
+                                style={{ background: echartShowStackPercent ? 'var(--accent)' : 'var(--app-border)' }}
+                            >
+                                <span
+                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                    style={{ left: echartShowStackPercent ? '18px' : '2px' }}
+                                />
+                            </button>
+                        </div>
+                        {echartShowStackPercent && (
+                            <p className="text-[10px] mt-1 leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                                {t('echart.showStackPercentHint')}
+                            </p>
+                        )}
+                    </div>
+                )}
 
                 {/* Time range — one window shared by all series, frontend-switchable unless locked */}
                 {anyHistory && (

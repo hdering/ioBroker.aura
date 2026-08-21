@@ -18,7 +18,14 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
-import { alignStackedSeries, areaOpacityFor, outlineWidthFor, stackIdFor } from '../../utils/stackedSeries';
+import {
+    alignStackedSeries,
+    areaOpacityFor,
+    outlineWidthFor,
+    stackIdFor,
+    stackShares,
+    type StackDatum,
+} from '../../utils/stackedSeries';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
@@ -114,26 +121,75 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Value labels at the data points. Comparison charts have always drawn them, so they stay
     // on there unless switched off explicitly; timeseries and JSON default to off (issue #543).
     const echartShowValues = (o.echartShowValues as boolean | undefined) ?? echartMode === 'comparison';
+    // Share of the stack total at the same data point, next to the value or instead of it
+    // (issue #569). Only stacked series get one — see `stackShares`.
+    const echartShowStackPercent = (o.echartShowStackPercent as boolean | undefined) ?? false;
     const isGauge = config.layout === ('gauge' as string);
 
-    /** Data-point labels, identical in every mode: the tooltip's formatter and the axis' unit. */
-    const valueLabel = (unit: string, inside = false) =>
-        echartShowValues
-            ? {
-                  show: true,
-                  position: inside ? 'inside' : 'top',
-                  color: inside ? '#fff' : '#888',
-                  fontSize: 10,
-                  formatter: (p: { value: number | [number, number] | null }) => {
-                      const v = Array.isArray(p.value) ? p.value[1] : p.value;
-                      if (v === null || v === undefined) return '';
-                      return `${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`;
-                  },
-              }
-            : { show: false };
+    /** A stack share as a percentage. Whole percent is what a stack is read in; below 10 % one
+     *  decimal keeps the thin slices apart instead of rounding a batch of them to the same 0 %. */
+    const formatShare = (share: number) => `${formatNum(share * 100, share * 100 < 10 ? 1 : 0, numFmt)} %`;
+
+    /**
+     * Percentage suffix for the tooltip rows: each value's share of its stack at the hovered
+     * index, computed from the rows echarts hands the formatter (issue #569). Stays empty while
+     * the option is off, and for a stack only one series has a value at — 100 % of itself says
+     * nothing.
+     */
+    const tooltipShare = (rows: { seriesIndex: number; num: number | null }[]) => {
+        if (!echartShowStackPercent) return () => '';
+        const acc = new Map<string, { total: number; count: number }>();
+        for (const r of rows) {
+            const cfg = echartSeries[r.seriesIndex];
+            const id = cfg ? stackIdFor(cfg) : undefined;
+            if (!id || r.num === null) continue;
+            const a = acc.get(id) ?? { total: 0, count: 0 };
+            a.total += Math.abs(r.num);
+            a.count++;
+            acc.set(id, a);
+        }
+        return (seriesIndex: number, num: number | null) => {
+            const cfg = echartSeries[seriesIndex];
+            const id = cfg ? stackIdFor(cfg) : undefined;
+            const a = id ? acc.get(id) : undefined;
+            if (!a || a.count < 2 || a.total === 0 || num === null) return '';
+            return ` <span style="opacity:.7">${formatShare(Math.abs(num) / a.total)}</span>`;
+        };
+    };
+
+    /**
+     * Data-point labels, identical in every mode: the tooltip's formatter and the axis' unit.
+     * `share` yields this series' share of its stack at a data index, and is only passed for
+     * series that are actually stacked.
+     */
+    const valueLabel = (unit: string, inside = false, share?: (dataIndex: number) => number | null) => {
+        const withShare = echartShowStackPercent && !!share;
+        if (!echartShowValues && !withShare) return { show: false };
+        return {
+            show: true,
+            position: inside ? 'inside' : 'top',
+            color: inside ? '#fff' : '#888',
+            fontSize: 10,
+            formatter: (p: { value: number | [number, number] | null; dataIndex: number }) => {
+                const v = Array.isArray(p.value) ? p.value[1] : p.value;
+                if (v === null || v === undefined) return '';
+                const parts: string[] = [];
+                if (echartShowValues) parts.push(`${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`);
+                if (withShare) {
+                    const s = share(p.dataIndex);
+                    // Both on: the percentage is the aside, so it goes in brackets behind the value.
+                    if (s !== null) parts.push(echartShowValues ? `(${formatShare(s)})` : formatShare(s));
+                }
+                return parts.join(' ');
+            },
+        };
+    };
     // Dense series would otherwise stamp a label on every single point; echarts drops the
     // ones that would collide and keeps the rest readable.
-    const valueLabelLayout = echartShowValues ? { hideOverlap: true } : undefined;
+    const valueLabelLayout = echartShowValues || echartShowStackPercent ? { hideOverlap: true } : undefined;
+    /** Line labels hang on the symbols — echarts creates none while `showSymbol` is off. A
+     *  percentage-only chart therefore needs them on the stacked series, and only there. */
+    const labelSymbols = (s: { stack?: boolean }) => echartShowValues || (echartShowStackPercent && !!s.stack);
 
     // ── Single widget-level range shared by all series (frontend-switchable unless locked) ──
     // Falls back to the first series' former per-series range so upgraded widgets keep their window.
@@ -636,8 +692,16 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
               )
             : [];
 
-        const jsonSeriesList = echartSeries.map((s, idx) => {
+        // Labels missing from a series stay null so the line breaks instead of silently shifting
+        // the remaining points onto the wrong categories.
+        const jsonData: StackDatum[][] = echartSeries.map((_s, idx) => {
+            if (jsonTimeAxis) return timePointsPerSeries[idx];
             const byLabel = new Map(pointsPerSeries[idx].map((p) => [p.label, p.value]));
+            return categories.map((c) => byLabel.get(c) ?? null);
+        });
+        const jsonShares = stackShares(echartSeries, jsonData);
+
+        const jsonSeriesList = echartSeries.map((s, idx) => {
             return {
                 name: s.name,
                 type: s.chartType === 'area' ? 'line' : s.chartType,
@@ -650,17 +714,15 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 // Stacked bands go without an outline — see `outlineWidthFor`.
                 lineStyle: { width: outlineWidthFor(s) },
                 itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
-                // Labels missing from this series stay null so the line breaks instead of
-                // silently shifting the remaining points onto the wrong categories.
-                data: jsonTimeAxis ? timePointsPerSeries[idx] : categories.map((c) => byLabel.get(c) ?? null),
+                data: jsonData[idx],
                 yAxisIndex: s.yAxisIndex ?? 0,
-                // Line labels hang on the symbols — echarts creates none while showSymbol is off.
-                showSymbol: echartShowValues,
+                showSymbol: labelSymbols(s),
                 // Above a stacked bar sits the next segment, so its label moves into the bar; on a
                 // stacked line "inside" is the point itself, which is no better than "top".
                 label: valueLabel(
                     (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
                     !!s.stack && s.chartType === 'bar',
+                    s.stack ? (i: number) => jsonShares[idx]?.[i] ?? null : undefined,
                 ),
                 labelLayout: valueLabelLayout,
             };
@@ -708,16 +770,17 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         seriesIndex: number;
                     }[];
                     if (!items?.length) return '';
-                    const lines = items
+                    const rows = items
                         .map((p) => ({ ...p, num: Array.isArray(p.value) ? p.value[1] : p.value }))
-                        .filter((p) => p.num !== null && p.num !== undefined)
-                        .map((p) => {
-                            const seriesCfg = echartSeries[p.seriesIndex];
-                            const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
-                            return `${p.marker} ${p.seriesName}: <b>${formatNum(p.num as number, decimals, numFmt)}${
-                                unit ? `\u202F${unit}` : ''
-                            }</b>`;
-                        });
+                        .filter((p) => p.num !== null && p.num !== undefined);
+                    const shareOf = tooltipShare(rows);
+                    const lines = rows.map((p) => {
+                        const seriesCfg = echartSeries[p.seriesIndex];
+                        const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+                        return `${p.marker} ${p.seriesName}: <b>${formatNum(p.num as number, decimals, numFmt)}${
+                            unit ? `\u202F${unit}` : ''
+                        }</b>${shareOf(p.seriesIndex, p.num as number)}`;
+                    });
                     const head = jsonTimeAxis
                         ? new Date(Number(items[0].axisValue)).toLocaleString(t('echart.dateLocale'), {
                               day: '2-digit',
@@ -837,6 +900,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         echartSeries.map((s, idx) => seriesData(idx, s.id)),
     );
     const hasStack = echartSeries.some((s) => s.stack);
+    const shares = stackShares(echartSeries, alignedData);
 
     const seriesList = echartSeries.map((s, idx) => {
         const data = alignedData[idx];
@@ -856,13 +920,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
             data,
             yAxisIndex: s.yAxisIndex ?? 0,
-            // Line labels hang on the symbols — echarts creates none while showSymbol is off.
-            showSymbol: echartShowValues,
+            showSymbol: labelSymbols(s),
             // Above a stacked bar sits the next segment, so its label moves into the bar; on a
             // stacked line "inside" is the point itself, which is no better than "top".
             label: valueLabel(
                 (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
                 !!s.stack && s.chartType === 'bar',
+                s.stack ? (i: number) => shares[idx]?.[i] ?? null : undefined,
             ),
             labelLayout: valueLabelLayout,
             // A lone delta bar (one bucket logged so far) would otherwise be stretched across
@@ -901,13 +965,17 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 if (!shown.length) return '';
                 const unitOf = (idx: number) =>
                     (echartSeries[idx]?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
+                const shareOf = tooltipShare(shown.map((p) => ({ seriesIndex: p.seriesIndex, num: p.value[1] })));
                 const lines = shown.map((p) => {
                     const unit = unitOf(p.seriesIndex);
                     // Stacked or not, echarts hands the formatter the series' own value, never the
                     // stacked one \u2014 the total is added below instead.
                     const raw = p.value[1];
                     const dispVal = typeof raw === 'number' ? formatNum(raw, decimals, numFmt) : raw;
-                    return `${p.marker} ${p.seriesName}: <b>${dispVal}${unit ? `\u202F${unit}` : ''}</b>`;
+                    return `${p.marker} ${p.seriesName}: <b>${dispVal}${unit ? `\u202F${unit}` : ''}</b>${shareOf(
+                        p.seriesIndex,
+                        typeof raw === 'number' ? raw : null,
+                    )}`;
                 });
                 // The point of stacking is the sum (150 W battery + 50 W grid = 200 W house), so
                 // spell it out \u2014 one line per stack, since each y axis stacks for itself.

@@ -118,3 +118,60 @@ export function alignStackedSeries(series: StackableSeries[], data: StackPoint[]
 
     return out;
 }
+
+/** A plotted value as the chart hands it over: `[timestamp, value]` on a time axis, a bare
+ *  number on a category axis, `null` where the series has nothing to show. */
+export type StackDatum = StackPoint | number | null;
+
+/** The number behind a plotted value, `null` where the series has nothing at that index. */
+function numberOf(p: StackDatum): number | null {
+    const v = Array.isArray(p) ? p[1] : p;
+    return typeof v === 'number' && Number.isFinite(v) ? v : null;
+}
+
+/**
+ * Share each stacked value has of its stack's total, per series and data index, `0`–`1`
+ * (issue #569).
+ *
+ * The share is `|value| / Σ|values of that stack at that index|`: taking magnitudes keeps the
+ * shares of a stack adding up to 100 % even when one member went negative (a battery charging
+ * against discharging bars), where a plain sum would blow the percentages past 100 or divide by
+ * a near-zero total.
+ *
+ * `null` wherever a percentage would be a lie: a series that isn't stacked, an index the series
+ * has no value at, a stack whose total is 0, and a stack with a single member — that one is
+ * always 100 % of itself. Expects the data already aligned (`alignStackedSeries`), since
+ * ECharts stacks by index and so does this.
+ */
+export function stackShares(series: StackableSeries[], data: StackDatum[][]): (number | null)[][] {
+    const out: (number | null)[][] = series.map((_, idx) => (data[idx] ?? []).map(() => null));
+
+    const groups = new Map<string, number[]>();
+    series.forEach((s, idx) => {
+        const id = stackIdFor(s);
+        if (!id || !data[idx]) return;
+        const g = groups.get(id);
+        if (g) g.push(idx);
+        else groups.set(id, [idx]);
+    });
+
+    for (const members of groups.values()) {
+        if (members.length < 2) continue;
+        const totals: number[] = [];
+        for (const idx of members) {
+            data[idx].forEach((p, i) => {
+                const v = numberOf(p);
+                if (v !== null) totals[i] = (totals[i] ?? 0) + Math.abs(v);
+            });
+        }
+        for (const idx of members) {
+            out[idx] = data[idx].map((p, i) => {
+                const v = numberOf(p);
+                const total = totals[i] ?? 0;
+                return v === null || total === 0 ? null : Math.abs(v) / total;
+            });
+        }
+    }
+
+    return out;
+}

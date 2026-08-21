@@ -1280,6 +1280,9 @@ export const en: Record<TranslationKey, string> = {
     'echart.alignLeft': 'Left',
     'echart.alignRight': 'Right',
     'echart.showValues': 'Show values at data points',
+    'echart.showStackPercent': 'Show percentage share of the stack',
+    'echart.showStackPercentHint':
+        'Share of the stack total at the same data point. Shown in brackets behind the value when values are on, on its own otherwise. Stacked series only, and only where at least two series share an axis.',
     'echart.unitHoursShort': 'Hrs',
     'echart.unitDaysShort': 'Days',
     'echart.daySingular': 'day',
