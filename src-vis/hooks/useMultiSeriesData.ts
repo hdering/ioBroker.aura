@@ -120,6 +120,12 @@ export interface SeriesDataResult {
     points?: JsonPoint[];
     /** Y-axis min/max the payload carries alongside its data — only for `source: 'json'`. */
     bounds?: JsonAxisBounds;
+    /**
+     * Calendar bucket the points were differenced over — only for `aggregate: 'delta'`. Reported
+     * rather than re-derived, because an `auto` bucket over a `total` window depends on the probed
+     * recording length, which only the fetch knows (issue #570).
+     */
+    deltaBucket?: DeltaBucket;
 }
 
 const RANGE_MS: Record<Exclude<EChartTimeRange, 'custom'>, number> = {
@@ -1007,6 +1013,7 @@ export function useMultiSeriesData(
                                     data: bars,
                                     current: bars.length > 0 ? bars[bars.length - 1][1] : null,
                                     loading: false,
+                                    deltaBucket: bucket,
                                 });
                                 return next;
                             });
@@ -1155,7 +1162,7 @@ export function useMultiSeriesData(
                             if (last[0] !== info.bucket || last[1] === diff) return prev;
                             const data: [number, number][] = [...existing.data.slice(0, -1), [info.bucket, diff]];
                             const next = new Map(prev);
-                            next.set(s.id, { data, current: diff, loading: false });
+                            next.set(s.id, { data, current: diff, loading: false, deltaBucket: info.unit });
                             return next;
                         });
                     });

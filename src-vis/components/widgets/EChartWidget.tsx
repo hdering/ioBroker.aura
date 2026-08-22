@@ -19,6 +19,13 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
 import {
+    bucketAxisLabel,
+    bucketAxisMinInterval,
+    bucketTooltipLabel,
+    coarsestBucket,
+    type ChartBucket,
+} from '../../utils/chartFormat';
+import {
     alignStackedSeries,
     areaOpacityFor,
     outlineWidthFor,
@@ -902,6 +909,19 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const hasStack = echartSeries.some((s) => s.stack);
     const shares = stackShares(echartSeries, alignedData);
 
+    // Bars of a `delta` series sit on a calendar grid (one per hour/day/…/year), so the axis must
+    // label that grid instead of whatever days echarts' own ticks happen to fall on (issue #570).
+    // The bucket comes from the fetch — an `auto` bucket over a `total` window depends on the
+    // probed recording length. The coarsest wins: it is the one that needs the sparser labels.
+    const axisBucket = isPreview
+        ? undefined
+        : coarsestBucket(
+              echartSeries
+                  .filter((s) => s.aggregate === 'delta')
+                  .map((s) => seriesDataMap.get(s.id)?.deltaBucket as ChartBucket | undefined),
+          );
+    const dateLocale = t('echart.dateLocale');
+
     const seriesList = echartSeries.map((s, idx) => {
         const data = alignedData[idx];
         return {
@@ -952,13 +972,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 }[];
                 if (!items?.length) return '';
                 const ts = items[0].axisValue;
-                const date = new Date(ts);
-                const timeStr = date.toLocaleString(t('echart.dateLocale'), {
-                    day: '2-digit',
-                    month: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                });
+                // A bucketed bar is a whole year / month / day of consumption — its headline is the
+                // bucket, not the second it happens to start at.
+                const timeStr = bucketTooltipLabel(ts, axisBucket ?? 'hour', dateLocale);
                 // Aligning a stack pads the series that hadn't started yet with nulls \u2014 a row
                 // reading "null" is noise, the series simply has nothing at this moment.
                 const shown = hasStack ? items.filter((p) => typeof p.value?.[1] === 'number') : items;
@@ -1015,10 +1031,22 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         xAxis: {
             type: 'time',
             show: echartShowXAxis,
-            axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+            axisLabel: {
+                show: echartShowXAxis,
+                color: '#888',
+                fontSize: 10,
+                // Monthly bars over several years put a label at every month start — echarts drops
+                // the ones that would collide instead of overprinting them.
+                ...(axisBucket
+                    ? { hideOverlap: true, formatter: (v: number) => bucketAxisLabel(v, axisBucket, dateLocale) }
+                    : {}),
+            },
             axisTick: { show: echartShowXAxis },
             axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
             splitLine: { show: false },
+            // Ticks have to land ON the bucket grid, or the formatter above finds nothing to label:
+            // a two-bar yearly chart would otherwise get month ticks, none of them a January.
+            ...(axisBucket ? { minInterval: bucketAxisMinInterval(axisBucket) } : {}),
             // Day mode: frame exactly the selected calendar day, even when data is sparse.
             ...(dayWindow ? { min: dayWindow.start, max: dayWindow.end } : {}),
         },
