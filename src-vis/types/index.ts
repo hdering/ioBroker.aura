@@ -256,11 +256,12 @@ export interface CustomCell {
     falseIcon?: string; // 'state-icon' / 'switch' (icon mode): Lucide icon for falsy value
     trueColor?: string; // 'state-icon' / 'switch' (icon mode): color for truthy value
     falseColor?: string; // 'state-icon' / 'switch' (icon mode): color for falsy value
-    // 'state-icon' active-state detection (issue #467)
-    stateMode?: 'boolean' | 'condition'; // default 'boolean' (truthy coercion); 'condition' uses operator + value
+    // active-state detection for 'state-icon' (issue #467), 'switch' and 'state-text' (issue #567)
+    stateMode?: 'boolean' | 'condition'; // default 'boolean' (truthy coercion: true/1/'true'/'1'/'on'); 'condition' uses operator + value
     stateOperator?: ConditionOperator; // 'condition' mode: comparison against stateValue
     stateValue?: string; // 'condition' mode: comparison value (parsed numerically where needed)
     // 'switch' type
+    statusDpId?: string; // 'switch' cell: read-back DP — state, label and colours come from here while clicks still write to dpId (split command/status devices, issue #567)
     controlMode?: 'toggle' | 'icon' | 'button'; // 'switch' cell: visual control style (default 'toggle')
     buttonTextColor?: string; // 'switch' cell (button mode): label text color (default #fff)
     buttonTrueColor?: string; // 'switch' cell (button mode): background for truthy value (falls back to color)

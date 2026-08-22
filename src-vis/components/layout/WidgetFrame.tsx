@@ -6166,7 +6166,8 @@ export function WidgetFrame({
     );
     const cellClipboard = useCellClipboard();
     const widgetFramePortalTarget = usePortalTarget();
-    const [customCellPickerOpen, setCustomCellPickerOpen] = useState(false);
+    // Which cell field the datapoint picker fills: the cell's own DP or the switch read-back DP (#567).
+    const [customCellPickerOpen, setCustomCellPickerOpen] = useState<'dpId' | 'statusDpId' | null>(null);
     const [customCellImagePickerOpen, setCustomCellImagePickerOpen] = useState(false);
     const [customCellIconPicker, setCustomCellIconPicker] = useState<'iconName' | 'trueIcon' | 'falseIcon' | null>(
         null,
@@ -17197,7 +17198,9 @@ export function WidgetFrame({
                                                         isUniversal={isUniversal}
                                                         onChange={(patch) => setCell(sel, patch)}
                                                         onOpenIconPicker={setCustomCellIconPicker}
-                                                        onOpenDpPicker={() => setCustomCellPickerOpen(true)}
+                                                        onOpenDpPicker={(field) =>
+                                                            setCustomCellPickerOpen(field ?? 'dpId')
+                                                        }
                                                         onOpenImagePicker={() => setCustomCellImagePickerOpen(true)}
                                                         onOpenConditions={() => setCustomCellCondOpen(true)}
                                                     />
@@ -18679,7 +18682,7 @@ export function WidgetFrame({
             )}
 
             {/* Custom-Grid DP picker */}
-            {customCellPickerOpen &&
+            {customCellPickerOpen !== null &&
                 selectedCustomCell !== null &&
                 (() => {
                     const fb =
@@ -18692,16 +18695,18 @@ export function WidgetFrame({
                     const idx = selectedCustomCell;
                     return (
                         <DatapointPicker
-                            currentValue={grid.cells[idx]?.dpId ?? ''}
+                            currentValue={grid.cells[idx]?.[customCellPickerOpen] ?? ''}
                             onSelect={(id) => {
                                 const next: CustomGridDef = {
                                     ...grid,
-                                    cells: grid.cells.map((c, i) => (i === idx ? { ...c, dpId: id } : c)),
+                                    cells: grid.cells.map((c, i) =>
+                                        i === idx ? { ...c, [customCellPickerOpen]: id } : c,
+                                    ),
                                 };
                                 onConfigChange({ ...config, options: { ...config.options, customGrid: next } });
-                                setCustomCellPickerOpen(false);
+                                setCustomCellPickerOpen(null);
                             }}
-                            onClose={() => setCustomCellPickerOpen(false)}
+                            onClose={() => setCustomCellPickerOpen(null)}
                         />
                     );
                 })()}

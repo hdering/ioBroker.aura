@@ -54,6 +54,8 @@ Werte zeigen `–`. Tokens siehe [Wert-Anzeige](./wert-anzeige.md#zeit-formatier
 | --- | --- | --- |
 | `controlMode` | `toggle` · `icon` · `button` | Schiebeschalter · Icon · Button |
 | `trueValue` / `falseValue` | z. B. `0`/`100`, `an`/`aus` | Schreibwerte; leer = `true`/`false` |
+| `statusDpId` | optional | Status-Datenpunkt: Zustand, Beschriftung und Farben kommen von hier, geschrieben wird auf den Datenpunkt oben |
+| `stateMode` | `boolean` · `condition` | Auswertung des Zustands: `true`/`1`/`on` · Vergleich mit `stateOperator` / `stateValue` |
 | `trueIcon` / `falseIcon`, `trueColor` / `falseColor` | nur `icon` | Icon und Farbe je Zustand |
 | `trueText` / `falseText` | nur `button` | Beschriftung je Zustand; leer = `AN`/`AUS` |
 | `buttonTrueColor` / `buttonFalseColor` | nur `button` | Hintergrundfarbe je Zustand |
@@ -61,6 +63,22 @@ Werte zeigen `–`. Tokens siehe [Wert-Anzeige](./wert-anzeige.md#zeit-formatier
 | `text`, `color`, `buttonTextColor` | nur `button` | zustandslose Altfelder; gelten, solange die AN/AUS-Felder leer sind |
 | `buttonWidth` | `auto` · `full` · `uniform` | Textbreite · Zellenbreite · längstes Label aller `uniform`-Buttons |
 | `momentary`, `momentaryDelay` | | Taster-Modus: Impuls statt Umschalten |
+
+#### Getrennte Schalt- und Status-Datenpunkte
+
+Beispiel Tasmota-Steckdose — `cmnd.POWER` nimmt nur Befehle an und fällt danach auf `null`, der Zustand steht
+in `stat.POWER`:
+
+| Feld | Wert |
+| --- | --- |
+| Datenpunkt | `mqtt.1.plug1.cmnd.POWER` |
+| `statusDpId` | `mqtt.1.plug1.stat.POWER` |
+| `trueValue` / `falseValue` | `1` / `0` |
+| `stateMode` | `boolean` (erkennt `ON`/`OFF`) oder `condition` mit `==` und `ON` |
+| `trueText` / `falseText` | `An` / `Aus` |
+
+Dasselbe `stateMode`-Feld gibt es bei `state-text` und `state-icon`, damit dort ebenfalls `ON`/`OFF` oder
+Zahlenwerte den Text bzw. das Icon bestimmen.
 
 ## Zellen verschieben & kopieren
 

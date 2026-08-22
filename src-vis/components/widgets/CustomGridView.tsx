@@ -14,7 +14,7 @@ import { applyValueTransform } from '../../utils/valueTransform';
 import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { useT } from '../../i18n';
 import { baseDpId } from '../../utils/dpRef';
-import { evaluateClause } from '../../utils/conditionEval';
+import { cellStateActive } from '../../utils/cellState';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, ChevronDown, Send } from 'lucide-react';
@@ -451,15 +451,25 @@ function SwitchCellView({
     rows: number;
     uniformCh?: number;
 }) {
-    const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
-    const cond = useCellConditionStyle(cell, value);
+    const own = useDatapoint(cell.dpId ?? '');
+    const setValue = own.setValue;
+    // Split command/status devices (MQTT plugs: writes land on cmnd.POWER, the real state
+    // is reported on stat.POWER) drive the look from a second DP — clicks still write to
+    // dpId. Without statusDpId both come from dpId as before (issue #567).
+    const statusRef = cell.statusDpId?.trim() ?? '';
+    const status = useDatapoint(statusRef);
+    const state = statusRef ? status.state : own.state;
+    const readValue = statusRef ? status.value : own.value;
+    const cond = useCellConditionStyle(cell, readValue);
     const btnRef = useRef<HTMLButtonElement | null>(null);
     const trueWrite = parseCellValue(cell.trueValue, true);
     const falseWrite = parseCellValue(cell.falseValue, false);
+    // An explicit AN-payload doubles as the state comparison, but only while reading the DP
+    // we write to — a status DP reports its own vocabulary and needs stateMode 'condition'.
     const on =
-        cell.trueValue !== undefined && cell.trueValue !== ''
-            ? String(value) === String(trueWrite)
-            : value === true || value === 1 || value === 'true' || value === '1';
+        cell.stateMode !== 'condition' && !statusRef && cell.trueValue !== undefined && cell.trueValue !== ''
+            ? String(readValue) === String(trueWrite)
+            : cellStateActive(cell, readValue, statusRef || (cell.dpId ?? ''));
     const doToggle = () => {
         if (cell.momentary) {
             const delay = cell.momentaryDelay ?? 500;
@@ -870,22 +880,9 @@ function StateIconCellView({
 }) {
     const { state, value } = useDatapoint(cell.dpId ?? '');
     const cond = useCellConditionStyle(cell, value);
-    // 'boolean' mode (default): historical truthy coercion. 'condition' mode: shared
-    // operator engine so numeric datapoints (e.g. a dimmer 0=off / >0=on) drive the
-    // icon. See issue #467.
-    const truthy =
-        cell.stateMode === 'condition'
-            ? evaluateClause(
-                  {
-                      datapoint: cell.dpId ?? '',
-                      operator: cell.stateOperator ?? '>',
-                      value: cell.stateValue ?? '0',
-                      valueType: 'static',
-                  },
-                  value,
-                  new Map(),
-              )
-            : value === true || value === 1 || value === 'true' || value === '1';
+    // 'boolean' mode (default): truthy coercion. 'condition' mode: shared operator engine
+    // so numeric datapoints (e.g. a dimmer 0=off / >0=on) drive the icon. See issue #467.
+    const truthy = cellStateActive(cell, value, cell.dpId ?? '');
     const iconName = truthy ? cell.trueIcon || cell.iconName : cell.falseIcon || cell.iconName;
     const baseColor = truthy
         ? cell.trueColor || cell.color || 'var(--accent)'
@@ -1284,7 +1281,9 @@ function StateTextCellView({
     const { state, value } = useDatapoint(cell.dpId ?? '');
     const cond = useCellConditionStyle(cell, value);
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-    const truthy = value === true || value === 1 || value === 'true' || value === '1';
+    // stateMode 'condition' lets string/numeric states (MQTT 'ON'/'OFF') pick the label
+    // instead of only the boolean shapes (issue #567).
+    const truthy = cellStateActive(cell, value, cell.dpId ?? '');
     const label = truthy ? (cell.trueText ?? '') : (cell.falseText ?? '');
     // Fallbacks must match the editor's default color swatches (#22c55e / #64748b),
     // so the preselected colors apply immediately without the user touching the picker.

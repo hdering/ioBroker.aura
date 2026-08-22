@@ -440,6 +440,80 @@ const inputSty: React.CSSProperties = {
     border: '1px solid var(--app-border)',
 };
 
+/** Shared active-state detection editor: boolean coercion vs. an operator/value comparison.
+ *  Used by 'state-icon' (#467) and by 'switch' / 'state-text' (#567). */
+function StateEvalRow({ cell, onChange }: { cell: CustomCell; onChange: (patch: Partial<CustomCell>) => void }) {
+    const mode = cell.stateMode ?? 'boolean';
+    return (
+        <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                Auswertung
+            </label>
+            <div className="flex gap-1">
+                {(
+                    [
+                        ['boolean', 'Boolean'],
+                        ['condition', 'Bedingung'],
+                    ] as const
+                ).map(([m, lbl]) => (
+                    <button
+                        key={m}
+                        onClick={() => onChange({ stateMode: m })}
+                        className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
+                        style={{
+                            background: mode === m ? 'var(--accent)' : 'var(--app-bg)',
+                            color: mode === m ? '#fff' : 'var(--text-secondary)',
+                            border: `1px solid ${mode === m ? 'var(--accent)' : 'var(--app-border)'}`,
+                        }}
+                    >
+                        {lbl}
+                    </button>
+                ))}
+            </div>
+            {mode === 'condition' && (
+                <div className="flex gap-1 items-center mt-1.5">
+                    <span className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                        Wert
+                    </span>
+                    <select
+                        value={cell.stateOperator ?? '>'}
+                        onChange={(e) => onChange({ stateOperator: e.target.value as CustomCell['stateOperator'] })}
+                        className="text-xs rounded-lg px-2 py-1.5 focus:outline-none shrink-0"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        {['==', '!=', '>', '>=', '<', '<='].map((op) => (
+                            <option key={op} value={op}>
+                                {op}
+                            </option>
+                        ))}
+                    </select>
+                    <input
+                        type="text"
+                        value={cell.stateValue ?? ''}
+                        onChange={(e) => onChange({ stateValue: e.target.value })}
+                        placeholder="0"
+                        className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    />
+                </div>
+            )}
+            {mode === 'boolean' && (
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    An bei true / 1 / "on". Andere Werte (z.B. "OPEN") über "Bedingung" mit == vergleichen.
+                </p>
+            )}
+        </div>
+    );
+}
+
 export interface CustomCellEditorProps {
     cell: CustomCell;
     index: number;
@@ -449,7 +523,7 @@ export interface CustomCellEditorProps {
     isUniversal: boolean;
     onChange: (patch: Partial<CustomCell>) => void;
     onOpenIconPicker: (slot: 'iconName' | 'trueIcon' | 'falseIcon') => void;
-    onOpenDpPicker: () => void;
+    onOpenDpPicker: (field?: 'dpId' | 'statusDpId') => void;
     onOpenImagePicker: () => void;
     onOpenConditions: () => void;
 }
@@ -648,7 +722,7 @@ export function CustomCellEditor({
                                 style={inputSty}
                             />
                             <button
-                                onClick={onOpenDpPicker}
+                                onClick={() => onOpenDpPicker('dpId')}
                                 className="text-xs px-2 py-1.5 rounded-lg shrink-0"
                                 style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
                                 title="Datenpunkt wählen"
@@ -840,7 +914,7 @@ export function CustomCellEditor({
                             style={inputSty}
                         />
                         <button
-                            onClick={onOpenDpPicker}
+                            onClick={() => onOpenDpPicker('dpId')}
                             className="text-xs px-2 py-1.5 rounded-lg shrink-0"
                             style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
                         >
@@ -883,6 +957,43 @@ export function CustomCellEditor({
                         </div>
                     )}
                 </div>
+            )}
+
+            {cell.type === 'switch' && (
+                <>
+                    <div>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Status-Datenpunkt (optional)
+                        </label>
+                        <div className="flex gap-1">
+                            <input
+                                type="text"
+                                value={cell.statusDpId ?? ''}
+                                onChange={(e) => onChange({ statusDpId: e.target.value || undefined })}
+                                placeholder="z.B. mqtt.1.plug1.stat.POWER"
+                                className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={inputSty}
+                            />
+                            <button
+                                onClick={() => onOpenDpPicker('statusDpId')}
+                                className="text-xs px-2 py-1.5 rounded-lg shrink-0"
+                                style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                            >
+                                <Database size={12} />
+                            </button>
+                            <JsonPathButton
+                                value={cell.statusDpId}
+                                onChange={(ref) => onChange({ statusDpId: ref })}
+                                size={12}
+                            />
+                        </div>
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            Zustand, Beschriftung und Farben kommen von hier, geschaltet wird weiter auf den Datenpunkt
+                            oben. Leer = beides derselbe Datenpunkt.
+                        </p>
+                    </div>
+                    <StateEvalRow cell={cell} onChange={onChange} />
+                </>
             )}
 
             {cell.type === 'switch' && (
@@ -1615,75 +1726,8 @@ export function CustomCellEditor({
                     const stateMode = cell.stateMode ?? 'boolean';
                     return (
                         <>
-                            {/* Active-state detection: boolean vs numeric condition (issue #467) */}
-                            <div>
-                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                                    Auswertung
-                                </label>
-                                <div className="flex gap-1">
-                                    {(
-                                        [
-                                            ['boolean', 'Boolean'],
-                                            ['condition', 'Bedingung'],
-                                        ] as const
-                                    ).map(([mode, lbl]) => (
-                                        <button
-                                            key={mode}
-                                            onClick={() => onChange({ stateMode: mode })}
-                                            className="flex-1 text-[10px] py-1 rounded-lg transition-colors"
-                                            style={{
-                                                background: stateMode === mode ? 'var(--accent)' : 'var(--app-bg)',
-                                                color: stateMode === mode ? '#fff' : 'var(--text-secondary)',
-                                                border: `1px solid ${stateMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
-                                            }}
-                                        >
-                                            {lbl}
-                                        </button>
-                                    ))}
-                                </div>
-                                {stateMode === 'condition' && (
-                                    <div className="flex gap-1 items-center mt-1.5">
-                                        <span
-                                            className="text-[11px] shrink-0"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                        >
-                                            Wert
-                                        </span>
-                                        <select
-                                            value={cell.stateOperator ?? '>'}
-                                            onChange={(e) =>
-                                                onChange({
-                                                    stateOperator: e.target.value as CustomCell['stateOperator'],
-                                                })
-                                            }
-                                            className="text-xs rounded-lg px-2 py-1.5 focus:outline-none shrink-0"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-primary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                        >
-                                            {['==', '!=', '>', '>=', '<', '<='].map((op) => (
-                                                <option key={op} value={op}>
-                                                    {op}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <input
-                                            type="text"
-                                            value={cell.stateValue ?? ''}
-                                            onChange={(e) => onChange({ stateValue: e.target.value })}
-                                            placeholder="0"
-                                            className="flex-1 min-w-0 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
-                                            style={{
-                                                background: 'var(--app-bg)',
-                                                color: 'var(--text-primary)',
-                                                border: '1px solid var(--app-border)',
-                                            }}
-                                        />
-                                    </div>
-                                )}
-                            </div>
+                            {/* Active-state detection: boolean vs. operator/value comparison (issue #467) */}
+                            <StateEvalRow cell={cell} onChange={onChange} />
                             <div className="flex gap-2">
                                 <div className="flex-1 min-w-0">
                                     <label
@@ -2119,6 +2163,7 @@ export function CustomCellEditor({
             {/* State-Text: trueText / falseText + colors */}
             {cell.type === 'state-text' && (
                 <>
+                    <StateEvalRow cell={cell} onChange={onChange} />
                     <div className="flex gap-2">
                         <div className="flex-1 min-w-0">
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
