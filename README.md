@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.48.3 (2026-08-22)
+- 🌟 **New feature:** Custom layout - switch cells in button mode can now carry separate captions, background and text colours for ON / true / 1 and OFF / false / 0
+- 🌟 **New feature:** Dynamic list - the datapoint search can now filter by custom enum categories (e.g. enum.floors); floors that hold rooms resolve down to the datapoints of those rooms, and a category that carries its members directly can be picked as a whole ([#568](https://github.com/hdering/ioBroker.aura/issues/568))
+- 🌟 **New feature:** Advanced chart - new "Show percentage share of the stack" option labels each stacked value with its share of the stack total, alone or in brackets behind the value, and adds it to the tooltip ([#569](https://github.com/hdering/ioBroker.aura/issues/569))
+- 🌟 **New feature:** HTML - the HTML code can now contain live datapoint placeholders: {any.dp.id} for any state, {dp} for the widget's own value datapoint, both with an optional JSON path ({dp}#battery.soc); placeholders are also filled in HTML that comes from a datapoint
+
+
 ### 0.48.2 (2026-08-21)
 - 🌟 **New feature:** List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint ([#566](https://github.com/hdering/ioBroker.aura/issues/566))
 - Popups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses
@@ -228,16 +235,6 @@ Release v0.47.13
 - 🌟 **New feature:** List - separators can be added like a datapoint and dragged into place, splitting the list into sections; optional heading with position, font size, colour and rule on/off. Sorting then applies within a section ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
 
 
-### 0.45.0 (2026-08-14)
-- 🌟 **New feature:** Chart (advanced) - new "1 year" and "total" time ranges, selectable in the config and in the frontend range switcher ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
-- 🌟 **New feature:** Chart (advanced) - "total" charts everything the history adapter holds; the window start is detected per series instead of being configured ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
-- 🌟 **New feature:** Chart (advanced) - consumption series accept time unit "Automatic", deriving hour/day/month/year buckets from the active time range, plus a new "Per year" unit ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
-- 🌟 **New feature:** Chart (advanced) - time ranges beyond two months no longer lose data points to the query row limit
-- 🌟 **New feature:** Conditions - new "Reload widget" effect: embedded content (iframe, camera, image) reloads when the rule fires, including widgets inside an open popup ([#537](https://github.com/hdering/ioBroker.aura/issues/537))
-- 🌟 **New feature:** Conditions - new "Has changed" operator matching any new value of a datapoint, so a widget can reload whenever its data source moves ([#537](https://github.com/hdering/ioBroker.aura/issues/537))
-- 🌟 **New feature:** Shutter - optional "actual position" datapoint for actuators whose real position lives on a read-only DP (e.g. HmIP-BROLL channel 3) while commands keep going to the controllable one; auto-detect fills it ([#538](https://github.com/hdering/ioBroker.aura/issues/538))
-
-
 ## License
 
 MIT License
@@ -249,6 +246,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

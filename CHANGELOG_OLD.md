@@ -1,5 +1,14 @@
 # Changelog (older entries)
 
+## 0.45.0 (2026-08-14)
+- 🌟 **New feature:** Chart (advanced) - new "1 year" and "total" time ranges, selectable in the config and in the frontend range switcher ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
+- 🌟 **New feature:** Chart (advanced) - "total" charts everything the history adapter holds; the window start is detected per series instead of being configured ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
+- 🌟 **New feature:** Chart (advanced) - consumption series accept time unit "Automatic", deriving hour/day/month/year buckets from the active time range, plus a new "Per year" unit ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
+- 🌟 **New feature:** Chart (advanced) - time ranges beyond two months no longer lose data points to the query row limit
+- 🌟 **New feature:** Conditions - new "Reload widget" effect: embedded content (iframe, camera, image) reloads when the rule fires, including widgets inside an open popup ([#537](https://github.com/hdering/ioBroker.aura/issues/537))
+- 🌟 **New feature:** Conditions - new "Has changed" operator matching any new value of a datapoint, so a widget can reload whenever its data source moves ([#537](https://github.com/hdering/ioBroker.aura/issues/537))
+- 🌟 **New feature:** Shutter - optional "actual position" datapoint for actuators whose real position lives on a read-only DP (e.g. HmIP-BROLL channel 3) while commands keep going to the controllable one; auto-detect fills it ([#538](https://github.com/hdering/ioBroker.aura/issues/538))
+
 ## 0.44.3 (2026-08-13)
 - 🌟 **New feature:** Camera - info rows and grid tiles can now switch a datapoint too: a toggle (with optional custom on/off values) or a push button writing a fixed value, both with an optional icon and confirmation prompt ([#535](https://github.com/hdering/ioBroker.aura/issues/535))
 
