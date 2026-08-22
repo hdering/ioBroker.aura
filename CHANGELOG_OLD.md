@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.46.0 (2026-08-14)
+- 🌟 **New feature:** List and dynamic list - name pattern can now read the row label from another datapoint, e.g. `[[{{parent}}.DeviceName]]` ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
+- 🌟 **New feature:** List - separators can be added like a datapoint and dragged into place, splitting the list into sections; optional heading with position, font size, colour and rule on/off. Sorting then applies within a section ([#524](https://github.com/hdering/ioBroker.aura/issues/524))
+
 ## 0.45.0 (2026-08-14)
 - 🌟 **New feature:** Chart (advanced) - new "1 year" and "total" time ranges, selectable in the config and in the frontend range switcher ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
 - 🌟 **New feature:** Chart (advanced) - "total" charts everything the history adapter holds; the window start is detected per series instead of being configured ([#536](https://github.com/hdering/ioBroker.aura/issues/536))
