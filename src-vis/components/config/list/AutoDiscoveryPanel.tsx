@@ -116,6 +116,10 @@ export function AutoDiscoveryPanel({
 
     const apply = () => onApplied?.(discovery.apply());
 
+    // Only enum.rooms / enum.functions exist in this installation - the category filter
+    // has nothing to offer and says so instead of standing there empty.
+    const noCategories = !optLoading && availEnums.length === 0 && selEnums.length === 0;
+
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',
@@ -127,18 +131,16 @@ export function AutoDiscoveryPanel({
         <>
             {/* ── Filters ── */}
             <div className="grid grid-cols-2 gap-2">
-                <div className="col-span-2">
-                    <MultiSelect
-                        label="Adapter"
-                        options={availAdapters}
-                        selected={selAdapters}
-                        onChange={(v) => {
-                            setSelAdapters(v);
-                            resetSearch();
-                        }}
-                        loading={optLoading}
-                    />
-                </div>
+                <MultiSelect
+                    label="Adapter"
+                    options={availAdapters}
+                    selected={selAdapters}
+                    onChange={(v) => {
+                        setSelAdapters(v);
+                        resetSearch();
+                    }}
+                    loading={optLoading}
+                />
                 <MultiSelect
                     label={t('autolist.roles')}
                     options={availRoles}
@@ -169,28 +171,39 @@ export function AutoDiscoveryPanel({
                     }}
                     loading={optLoading}
                 />
-                {(availEnums.length > 0 || selEnums.length > 0) && (
-                    <div className="col-span-2">
-                        <MultiSelect
-                            label={t('autolist.categories')}
-                            options={availEnums.map((e) => ({
-                                value: e.id,
-                                label: e.label,
-                                group: e.categoryLabel,
-                            }))}
-                            selected={selEnums}
-                            onChange={(v) => {
-                                setSelEnums(v);
-                                resetSearch();
-                            }}
-                            loading={optLoading}
-                        />
-                        <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            {t('autolist.categoriesHint')}
-                        </p>
-                    </div>
-                )}
+                {/* Always rendered, even with nothing to choose: hiding the field made
+                    "where is it?" the first question instead of "why is it empty?". */}
                 <div>
+                    <MultiSelect
+                        label={t('autolist.categories')}
+                        options={availEnums.map((e) => ({
+                            value: e.id,
+                            label: e.label,
+                            group: e.categoryLabel,
+                        }))}
+                        selected={selEnums}
+                        onChange={(v) => {
+                            setSelEnums(v);
+                            resetSearch();
+                        }}
+                        loading={optLoading}
+                        placeholder={noCategories ? t('autolist.categoriesNone') : undefined}
+                    />
+                    <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        {noCategories ? t('autolist.categoriesNoneHint') : t('autolist.categoriesHint')}
+                    </p>
+                </div>
+                <MultiSelect
+                    label="Typen"
+                    options={availTypes}
+                    selected={selTypes}
+                    onChange={(v) => {
+                        setSelTypes(v);
+                        resetSearch();
+                    }}
+                    loading={optLoading}
+                />
+                <div className="col-span-2">
                     <label className="text-xs mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('autolist.idContains')} <span className="opacity-60">(kommagetrennt, OR)</span>
                     </label>
@@ -214,18 +227,6 @@ export function AutoDiscoveryPanel({
                             setIdPat((p) => appendPattern(p, v));
                             resetSearch();
                         }}
-                    />
-                </div>
-                <div className="col-span-2">
-                    <MultiSelect
-                        label="Typen"
-                        options={availTypes}
-                        selected={selTypes}
-                        onChange={(v) => {
-                            setSelTypes(v);
-                            resetSearch();
-                        }}
-                        loading={optLoading}
                     />
                 </div>
             </div>

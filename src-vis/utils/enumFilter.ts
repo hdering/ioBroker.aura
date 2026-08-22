@@ -49,14 +49,19 @@ function resolveName(name: string | Record<string, string> | undefined, fallback
 }
 
 /**
- * Is this a user-defined category entry? Everything under `enum.` that is neither
- * a room nor a function, and at least one level below the category root — the root
- * itself (`enum.floors`) is the heading, not a choice.
+ * Is this id part of a user-defined category tree? Everything under `enum.` that is
+ * neither a room nor a function - the category root (`enum.floors`) included, since
+ * some installations assign their rooms directly to it instead of to a storey below.
  */
 export function isCustomEnumId(id: string | undefined): boolean {
     if (!id || !id.startsWith('enum.')) return false;
     if (BUILTIN_TREES.some((t) => id === t || id.startsWith(`${t}.`))) return false;
-    return id.split('.').length >= 3;
+    return id.split('.').length >= 2;
+}
+
+/** `enum.floors` - the heading of a category, not an entry below it. */
+export function isCategoryRoot(id: string): boolean {
+    return id.split('.').length === 2;
 }
 
 /** `enum.floors.og.left` → `enum.floors`. */
@@ -157,13 +162,16 @@ export function matchesEnumFilter(selected: string[], memberships: Set<string>):
 /**
  * The entries of the category dropdown, grouped by category and sorted by name.
  * Categories whose enums hold nothing (empty containers) are left out — they would
- * only ever return an empty search.
+ * only ever return an empty search. A category root joins the list when the members
+ * hang off it directly rather than off an entry below it.
  */
 export function collectEnumFilterOptions(objects: (EnumObjectLike | undefined)[]): EnumFilterOption[] {
     const names = new Map<string, string>();
+    const ownMembers = new Set<string>();
     for (const obj of objects) {
         if (!obj?._id?.startsWith('enum.')) continue;
         names.set(obj._id, resolveName(obj.common?.name, obj._id.split('.').pop() ?? obj._id));
+        if (obj.common?.members?.length) ownMembers.add(obj._id);
     }
     const index = buildEnumMemberIndex(objects);
     const nonEmpty = new Set<string>();
@@ -172,6 +180,10 @@ export function collectEnumFilterOptions(objects: (EnumObjectLike | undefined)[]
     const out: EnumFilterOption[] = [];
     for (const [id, label] of names) {
         if (!isCustomEnumId(id) || !nonEmpty.has(id)) continue;
+        // A category root is normally just the heading, and offering it next to its
+        // own entries would add a choice that matches all of them. It becomes a real
+        // choice only where the members hang directly off the root.
+        if (isCategoryRoot(id) && !ownMembers.has(id)) continue;
         const category = enumCategoryOf(id);
         // Nested entries keep their path so 'Links' under two floors stays tellable
         // apart: 'Obergeschoss › Links'.

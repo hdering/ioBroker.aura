@@ -18,7 +18,7 @@ const bundle = join(cache, `aura-enum-filter-${process.pid}.mjs`);
 await build({
     stdin: {
         contents:
-            "export { collectEnumFilterOptions, buildEnumMemberIndex, enumIdsForObject, matchesEnumFilter, isCustomEnumId, splitEnumFilter } from './src-vis/utils/enumFilter.ts';",
+            "export { collectEnumFilterOptions, buildEnumMemberIndex, enumIdsForObject, matchesEnumFilter, isCustomEnumId, isCategoryRoot, splitEnumFilter } from './src-vis/utils/enumFilter.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -34,6 +34,7 @@ const {
     enumIdsForObject,
     matchesEnumFilter,
     isCustomEnumId,
+    isCategoryRoot,
     splitEnumFilter,
 } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
@@ -84,9 +85,11 @@ const ENUMS = [
         !opts.some((o) => o.id.startsWith('enum.rooms.') || o.id.startsWith('enum.functions.')),
     );
     check(
-        'the category root itself is not selectable',
-        !opts.some((o) => o.id === 'enum.floors') && isCustomEnumId('enum.floors') === false,
+        'a category root that only holds other enums is not selectable',
+        !opts.some((o) => o.id === 'enum.floors') && isCategoryRoot('enum.floors'),
+        'it would duplicate the choice its own entries already offer',
     );
+    check('built-in trees stay out entirely', !isCustomEnumId('enum.rooms.bad') && !isCustomEnumId('enum.functions'));
     check(
         'empty categories are left out',
         !opts.some((o) => o.id.startsWith('enum.leer')),
@@ -137,6 +140,52 @@ const ENUMS = [
         'nested entries keep their path in the label',
         opts.find((o) => o.id === 'enum.floors.og.links')?.label,
         'Obergeschoss › Links',
+    );
+}
+
+// Members may hang off the category root itself instead of an entry below it - then
+// the root IS the choice, otherwise the category would have nothing to select.
+{
+    const flat = [
+        e('enum.etage', 'Etage', ['enum.rooms.bad']),
+        e('enum.rooms', 'Räume'),
+        e('enum.rooms.bad', 'Bad', ['hm-rpc.0.BAD']),
+    ];
+    const opts = collectEnumFilterOptions(flat);
+    eq(
+        'a root with its own members is selectable',
+        opts.map((o) => o.id),
+        ['enum.etage'],
+    );
+    eq('and is its own category', opts[0].categoryLabel, 'Etage');
+    const index = buildEnumMemberIndex(flat);
+    check(
+        'and matches through the room it holds',
+        matchesEnumFilter(['enum.etage'], enumIdsForObject('hm-rpc.0.BAD.1.ACTUAL_TEMPERATURE', index)),
+    );
+}
+
+// A root with own members AND entries below offers both - the root as the whole
+// category, the entries as the finer cut.
+{
+    const both = [e('enum.floors', 'Stockwerke', ['dev.0.KELLER']), e('enum.floors.og', 'Obergeschoss', ['dev.0.OG'])];
+    eq(
+        'root and entries can coexist',
+        collectEnumFilterOptions(both)
+            .map((o) => o.id)
+            .sort(),
+        ['enum.floors', 'enum.floors.og'],
+    );
+    const index = buildEnumMemberIndex(both);
+    check(
+        'the root also covers what its entries hold',
+        matchesEnumFilter(['enum.floors'], enumIdsForObject('dev.0.OG.STATE', index)) &&
+            matchesEnumFilter(['enum.floors'], enumIdsForObject('dev.0.KELLER.STATE', index)),
+    );
+    check(
+        'the entry only covers its own',
+        matchesEnumFilter(['enum.floors.og'], enumIdsForObject('dev.0.OG.STATE', index)) &&
+            !matchesEnumFilter(['enum.floors.og'], enumIdsForObject('dev.0.KELLER.STATE', index)),
     );
 }
 

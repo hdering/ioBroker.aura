@@ -1477,8 +1477,10 @@ export const en: Record<TranslationKey, string> = {
     'autolist.room': 'Room',
     'autolist.func': 'Function',
     'autolist.categories': 'Custom categories',
-    'autolist.categoriesHint':
-        'Custom enum categories (e.g. floors). Several within one category: OR, across categories: AND.',
+    'autolist.categoriesHint': 'e.g. floors. Several per category: OR, across categories: AND.',
+    'autolist.categoriesNone': 'no custom categories found',
+    'autolist.categoriesNoneHint':
+        'Only enum.rooms and enum.functions exist. A custom category needs members below enum.<category>.',
     'autolist.idPh': 'e.g. hm-rpc, shelly',
     'autolist.search': 'Search',
     'autolist.noneFound': 'No datapoints found',

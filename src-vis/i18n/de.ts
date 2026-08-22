@@ -1482,8 +1482,10 @@ export const de = {
     'autolist.room': 'Raum',
     'autolist.func': 'Funktion',
     'autolist.categories': 'Eigene Kategorien',
-    'autolist.categoriesHint':
-        'Eigene enum-Kategorien (z. B. Stockwerke). Mehrere in einer Kategorie: ODER, über Kategorien hinweg: UND.',
+    'autolist.categoriesHint': 'z. B. Stockwerke. Mehrere je Kategorie: ODER, über Kategorien: UND.',
+    'autolist.categoriesNone': 'keine eigenen Kategorien gefunden',
+    'autolist.categoriesNoneHint':
+        'Es gibt nur enum.rooms und enum.functions. Eine eigene Kategorie braucht Mitglieder unter enum.<Kategorie>.',
     'autolist.idPh': 'z.B. hm-rpc, shelly',
     'autolist.search': 'Suchen',
     'autolist.noneFound': 'Keine Datenpunkte gefunden',

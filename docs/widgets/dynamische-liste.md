@@ -79,7 +79,7 @@ Ohne Platzhalter gilt derselbe Datenpunkt für jede Zeile (Außentemperatur, Str
 
 Dialog **Datenpunkte verwalten** → Tab **Suchen & Filter**. Mehrere Werte je Feld kommagetrennt; ID-Muster akzeptiert Text (Teilstring) oder `/regex/`.
 
-Neben Raum und Funktion steht jede selbst angelegte enum-Kategorie zur Auswahl (z. B. `enum.floors` für Stockwerke). Enthält ein Eintrag Räume statt Datenpunkte, werden diese mit aufgelöst — ein Stockwerk findet also die Datenpunkte seiner Räume.
+Neben Raum und Funktion steht jede selbst angelegte enum-Kategorie zur Auswahl (z. B. `enum.floors` für Stockwerke). Enthält ein Eintrag Räume statt Datenpunkte, werden diese mit aufgelöst — ein Stockwerk findet also die Datenpunkte seiner Räume. Hängen die Mitglieder direkt an der Kategorie (`enum.etage` ohne Ebene darunter), ist die Kategorie selbst der Auswahleintrag. Gibt es außer `enum.rooms` und `enum.functions` nichts, bleibt das Feld leer und sagt das auch.
 
 | Option | Standard | |
 | --- | --- | --- |
