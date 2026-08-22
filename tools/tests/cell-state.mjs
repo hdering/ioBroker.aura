@@ -16,7 +16,7 @@ mkdirSync(cache, { recursive: true });
 const bundle = join(cache, `aura-cell-state-${process.pid}.mjs`);
 await build({
     stdin: {
-        contents: "export { isTruthyState, cellStateActive } from './src-vis/utils/cellState.ts';",
+        contents: "export { isTruthyState, isTruthyStateLoose, cellStateActive } from './src-vis/utils/cellState.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -26,7 +26,7 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { isTruthyState, cellStateActive } = await import(pathToFileURL(bundle).href);
+const { isTruthyState, isTruthyStateLoose, cellStateActive } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -76,6 +76,30 @@ const eq = (name, got, want) =>
     const ge = { type: 'state-text', stateMode: 'condition', stateOperator: '>=', stateValue: '50' };
     eq('>= 50 with 50', cellStateActive(ge, 50, 'x'), true);
     eq('>= 50 with 49', cellStateActive(ge, 49, 'x'), false);
+}
+
+// -- 5. Loose mode: the standalone widgets, which used to call Boolean(value) --
+{
+    // Still on: everything Boolean() accepted and a device may legitimately report.
+    eq('loose: true', isTruthyStateLoose(true), true);
+    eq('loose: 100 (dimmer level)', isTruthyStateLoose(100), true);
+    eq("loose: 'ON'", isTruthyStateLoose('ON'), true);
+    eq("loose: 'ein'", isTruthyStateLoose('ein'), true);
+    // Fixed: these read as on under Boolean() and never should have.
+    eq("loose: 'OFF' is off", isTruthyStateLoose('OFF'), false);
+    eq("loose: 'false' is off", isTruthyStateLoose('false'), false);
+    eq("loose: '0' is off", isTruthyStateLoose('0'), false);
+    eq("loose: '' is off", isTruthyStateLoose(''), false);
+    eq('loose: 0 is off', isTruthyStateLoose(0), false);
+    eq('loose: null is off', isTruthyStateLoose(null), false);
+    // The caller picks the mode; the condition path is identical in both.
+    eq('loose flag reaches cellStateActive', cellStateActive({}, 100, 'x', true), true);
+    eq('strict flag rejects 100', cellStateActive({}, 100, 'x'), false);
+    eq(
+        'condition mode ignores the loose flag',
+        cellStateActive({ stateMode: 'condition', stateOperator: '==', stateValue: 'ON' }, 'OFF', 'x', true),
+        false,
+    );
 }
 
 const failed = results.filter((r) => !r.ok);

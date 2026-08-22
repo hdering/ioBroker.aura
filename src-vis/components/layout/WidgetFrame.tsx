@@ -6112,6 +6112,8 @@ export function WidgetFrame({
         | null
     >(null);
     const [imageFilePicker, setImageFilePicker] = useState(false);
+    // Switch widget: picker for the optional read-back datapoint (#567).
+    const [switchStatusDpPicker, setSwitchStatusDpPicker] = useState(false);
     const [pendingTypeChange, setPendingTypeChange] = useState<{
         suggestedType: WidgetType;
         currentType: WidgetType;
@@ -9285,6 +9287,129 @@ export function WidgetFrame({
                                 </p>
                             </div>
                         )}
+                        {config.type === 'switch' &&
+                            (() => {
+                                const o = config.options ?? {};
+                                const set = (patch: Record<string, unknown>) =>
+                                    onConfigChange({ ...config, options: { ...o, ...patch } });
+                                const sMode = (o.stateMode as 'boolean' | 'condition') ?? 'boolean';
+                                const fieldCls = 'text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+                                const fieldSty = {
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                };
+                                return (
+                                    <>
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Status-Datenpunkt (optional)
+                                            </label>
+                                            <div className="flex gap-1">
+                                                <input
+                                                    type="text"
+                                                    value={(o.statusDp as string) ?? ''}
+                                                    onChange={(e) => set({ statusDp: e.target.value || undefined })}
+                                                    placeholder="z.B. mqtt.1.plug1.stat.POWER"
+                                                    className={`flex-1 min-w-0 ${fieldCls}`}
+                                                    style={fieldSty}
+                                                />
+                                                <button
+                                                    onClick={() => setSwitchStatusDpPicker(true)}
+                                                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-secondary)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                >
+                                                    <Database size={13} />
+                                                </button>
+                                            </div>
+                                            <p
+                                                className="text-[10px] mt-1"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            >
+                                                Separater Status-DP für Geräte, die Schalten und Rückmeldung trennen
+                                                (z.B. Tasmota: cmnd.POWER schaltet, stat.POWER meldet ON/OFF). Zustand
+                                                und Farben kommen dann von hier – geschrieben wird weiter auf den
+                                                Hauptdatenpunkt. Leer = Hauptdatenpunkt.
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label
+                                                className="text-[11px] font-medium mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Auswertung
+                                            </label>
+                                            <div className="flex gap-1">
+                                                {(
+                                                    [
+                                                        ['boolean', 'Automatisch'],
+                                                        ['condition', 'Bedingung'],
+                                                    ] as const
+                                                ).map(([mode, lbl]) => (
+                                                    <button
+                                                        key={mode}
+                                                        onClick={() => set({ stateMode: mode })}
+                                                        className="flex-1 text-[11px] py-1.5 rounded-lg transition-colors"
+                                                        style={{
+                                                            background:
+                                                                sMode === mode ? 'var(--accent)' : 'var(--app-bg)',
+                                                            color: sMode === mode ? '#fff' : 'var(--text-secondary)',
+                                                            border: `1px solid ${sMode === mode ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                        }}
+                                                    >
+                                                        {lbl}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            {sMode === 'condition' ? (
+                                                <div className="flex gap-1 items-center mt-1.5">
+                                                    <span
+                                                        className="text-[11px] shrink-0"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        An wenn
+                                                    </span>
+                                                    <select
+                                                        value={(o.stateOperator as string) ?? '>'}
+                                                        onChange={(e) => set({ stateOperator: e.target.value })}
+                                                        className={`shrink-0 ${fieldCls}`}
+                                                        style={fieldSty}
+                                                    >
+                                                        {['==', '!=', '>', '>=', '<', '<='].map((op) => (
+                                                            <option key={op} value={op}>
+                                                                {op}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <input
+                                                        type="text"
+                                                        value={(o.stateValue as string) ?? ''}
+                                                        onChange={(e) => set({ stateValue: e.target.value })}
+                                                        placeholder="ON"
+                                                        className={`flex-1 min-w-0 ${fieldCls}`}
+                                                        style={fieldSty}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <p
+                                                    className="text-[10px] mt-1"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                                >
+                                                    An bei true, Zahlen ungleich 0 und Texten wie ON; aus bei false, 0,
+                                                    off und leer. Andere Werte über Bedingung vergleichen.
+                                                </p>
+                                            )}
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         {(config.type === 'value' || config.type === 'chart') && (
                             <ValueFormatRow
                                 unit={config.options?.unit as string | undefined}
@@ -18384,6 +18509,18 @@ export function WidgetFrame({
                         </CenteredModal>
                     );
                 })()}
+
+            {/* Switch widget: read-back datapoint picker */}
+            {switchStatusDpPicker && (
+                <DatapointPicker
+                    currentValue={(config.options?.statusDp as string) ?? ''}
+                    onSelect={(id) => {
+                        onConfigChange({ ...config, options: { ...config.options, statusDp: id } });
+                        setSwitchStatusDpPicker(false);
+                    }}
+                    onClose={() => setSwitchStatusDpPicker(false)}
+                />
+            )}
 
             {/* Image file picker */}
             {imageFilePicker && (

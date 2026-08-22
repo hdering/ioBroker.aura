@@ -7,6 +7,7 @@ import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtil
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
 import { StatusBadges } from './StatusBadges';
+import { cellStateActive, type StateEvalConfig } from '../../utils/cellState';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
@@ -35,7 +36,23 @@ export function SwitchWidget({ config }: WidgetProps) {
     const offValue = o.offValue as string | undefined;
     const trueWrite = parseVal(onValue, true);
     const falseWrite = parseVal(offValue, false);
-    const isOn = onValue !== undefined && onValue !== '' ? String(value) === String(trueWrite) : Boolean(value);
+    // Devices that split command and status (MQTT/Tasmota plugs: cmnd.POWER takes the write
+    // and falls back to null, stat.POWER reports ON/OFF) point statusDp at the read-back DP.
+    // State, label and colours then come from there while every write stays on the main DP.
+    const statusDp = ((o.statusDp as string) ?? '').trim();
+    const status = useDatapoint(statusDp);
+    const readValue = statusDp ? status.value : value;
+    const stateEval: StateEvalConfig = {
+        stateMode: o.stateMode as StateEvalConfig['stateMode'],
+        stateOperator: o.stateOperator as StateEvalConfig['stateOperator'],
+        stateValue: o.stateValue as string | undefined,
+    };
+    // The AN write value doubles as the state comparison, but only while reading the DP we
+    // write to — a status DP reports its own vocabulary (issue #567).
+    const isOn =
+        stateEval.stateMode !== 'condition' && !statusDp && onValue !== undefined && onValue !== ''
+            ? String(readValue) === String(trueWrite)
+            : cellStateActive(stateEval, readValue, statusDp || config.datapoint, true);
 
     const toggle = () => {
         if (momentary) {

@@ -65,6 +65,20 @@ Klassischer Schiebeschalter oder Icon-Taster — bei `controlMode: icon` werden 
 
 ![](./assets/schalter/icon-modus.png)
 
+### Schreibwerte & Status
+
+Geräte, die Schalten und Rückmeldung trennen (Tasmota: `cmnd.POWER` nimmt nur Befehle an und fällt danach auf
+`null`, `stat.POWER` meldet `ON`/`OFF`), bekommen den Status-DP zusätzlich zum Hauptdatenpunkt.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `onValue` / `offValue` | `true` / `false` | Schreibwerte, z. B. `1` / `0` |
+| `statusDp` | — | Status-Datenpunkt: Zustand und Farben kommen von hier, geschrieben wird weiter auf den Hauptdatenpunkt |
+| `stateMode` | `boolean` | `boolean` = an bei `true`, Zahlen ≠ 0 und Texten wie `ON`; `condition` = Vergleich |
+| `stateOperator` / `stateValue` | `>` / `0` | Vergleich bei `stateMode: condition`, z. B. `==` und `ON` |
+
+Gilt für alle Layouts (Default, Card, Compact, Custom).
+
 ### Taster
 
 Statt zu toggeln schreibt der Schalter kurz `true` und nach `momentaryDelay` wieder `false`. Praktisch für Skript-Trigger oder Impuls-Relais.
