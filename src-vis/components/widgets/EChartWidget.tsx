@@ -118,6 +118,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartShowYAxisRight = echartShowYAxis && ((o.echartShowYAxisRight as boolean | undefined) ?? true);
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
+    // Charts whose values, axes and time span keep changing look broken while echarts morphs
+    // one state into the next, so the animation can be switched off entirely (issue #574).
+    const echartAnimation = (o.echartAnimation as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     // Rolling payloads can be sorted newest-first, so the "current" value is then the leftmost
     // point instead of the rightmost one (issue #549). Position of the block is free as well.
@@ -462,6 +465,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
         const gaugeOption: Record<string, unknown> = {
             backgroundColor: 'transparent',
+            animation: echartAnimation,
             series: [
                 {
                     type: 'gauge',
@@ -550,6 +554,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
         const compOption: Record<string, unknown> = {
             backgroundColor: 'transparent',
+            animation: echartAnimation,
             tooltip: {
                 trigger: 'axis',
                 backgroundColor: 'var(--app-surface, #1e1e1e)',
@@ -763,6 +768,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
         const jsonOption: Record<string, unknown> = {
             backgroundColor: 'transparent',
+            animation: echartAnimation,
             tooltip: {
                 trigger: 'axis',
                 backgroundColor: 'var(--app-surface, #1e1e1e)',
@@ -957,6 +963,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
     const option: Record<string, unknown> = {
         backgroundColor: 'transparent',
+        animation: echartAnimation,
         tooltip: {
             trigger: 'axis',
             backgroundColor: 'var(--app-surface, #1e1e1e)',

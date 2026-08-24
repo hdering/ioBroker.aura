@@ -227,6 +227,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const usesRightAxis = series.some((s) => (s.yAxisIndex ?? 0) === 1);
     const echartShowXAxis = (o.echartShowXAxis as boolean | undefined) ?? true;
     const echartShowGridLines = (o.echartShowGridLines as boolean | undefined) ?? true;
+    const echartAnimation = (o.echartAnimation as boolean | undefined) ?? true;
     const echartShowCurrent = (o.echartShowCurrent as boolean | undefined) ?? true;
     const echartCurrentFrom = (o.echartCurrentFrom as 'last' | 'first' | undefined) ?? 'last';
     const echartCurrentAlign = (o.echartCurrentAlign as 'right' | 'left' | undefined) ?? 'right';
@@ -1472,6 +1473,23 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         <span
                             className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                             style={{ left: echartShowGridLines ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
+
+                {/* Animation */}
+                <div className="flex items-center justify-between mb-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('echart.animation')}
+                    </label>
+                    <button
+                        onClick={() => setO({ echartAnimation: !echartAnimation })}
+                        className="relative w-9 h-5 rounded-full transition-colors"
+                        style={{ background: echartAnimation ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: echartAnimation ? '18px' : '2px' }}
                         />
                     </button>
                 </div>

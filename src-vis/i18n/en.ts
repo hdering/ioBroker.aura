@@ -1283,6 +1283,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.gridLines': 'Horizontal grid lines',
     'echart.areaOpacity': 'Area opacity: {value}%',
     'echart.areaOpacityAuto': 'Area opacity: auto ({value}%)',
+    'echart.animation': 'Animation',
     'echart.showCurrentValue': 'Show current value',
     'echart.currentValueSource': 'Current value is',
     'echart.currentValueFirst': 'First value',

@@ -1288,6 +1288,7 @@ export const de = {
     'echart.gridLines': 'Horizontale Linien',
     'echart.areaOpacity': 'Flächen-Deckkraft: {value} %',
     'echart.areaOpacityAuto': 'Flächen-Deckkraft: Auto ({value} %)',
+    'echart.animation': 'Animation',
     'echart.showCurrentValue': 'Aktuellen Wert anzeigen',
     'echart.currentValueSource': 'Aktueller Wert ist',
     'echart.currentValueFirst': 'Erster Wert',

@@ -112,6 +112,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartShowValues`       | im Vergleichs-Modus `true`, sonst `false` | Werte am Datenpunkt anzeigen (Format und Einheit wie im Tooltip; überlappende Beschriftungen entfallen) |
 | `echartShowStackPercent` | `false`                                   | prozentualen Anteil an der Stapelsumme anzeigen (nur gestapelte Serien, siehe [Stapeln](#stapeln))      |
 | `echartShowLegend`       | `true`                                    | Legende anzeigen                                                                                        |
+| `echartAnimation`        | `true`                                    | Aufbau- und Übergangsanimation; aus, wenn Werte, Achsen oder Zeitraum ständig wechseln                  |
 | `decimals`               | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung                         |
 
 ### Serien
