@@ -135,17 +135,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 )}
                 tabs={[
                     {
-                        key: 'rowconds',
-                        label: 'Bedingungen',
-                        node: (
-                            <RowConditionsPanel
-                                rules={opts.rowConditions}
-                                sampleDp={(opts.entries ?? []).find((e) => !!e.id)?.id}
-                                onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
-                            />
-                        ),
-                    },
-                    {
                         key: 'discovery',
                         label: 'Suchen & Filter',
                         node: (api) => (
@@ -157,6 +146,17 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                                     if (firstNewId) api.select(firstNewId);
                                     api.goToEntries();
                                 }}
+                            />
+                        ),
+                    },
+                    {
+                        key: 'rowconds',
+                        label: 'Bedingungen',
+                        node: (
+                            <RowConditionsPanel
+                                rules={opts.rowConditions}
+                                sampleDp={(opts.entries ?? []).find((e) => !!e.id)?.id}
+                                onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
                             />
                         ),
                     },
