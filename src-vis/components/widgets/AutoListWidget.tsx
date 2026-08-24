@@ -170,6 +170,8 @@ export interface AutoListOptions
     publishCount?: boolean;
     /** Backend display filter — independent from frontend valueFilter. Default 'all'. */
     backendValueFilter?: string;
+    /** Hide the frontend filter chip in the widget header. Default false. */
+    hideFilterButton?: boolean;
     /** Show an aggregate line of numeric values from visible entries below the title. */
     showSum?: boolean;
     /** Which aggregates to show. Default (undefined/empty) = sum only. */
@@ -1142,9 +1144,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const backendValueFilter = opts.backendValueFilter ?? 'all';
     const effectiveFilter = editMode ? backendValueFilter : valueFilter;
     // The search is a frontend-only affordance; the editor preview ignores it. A term
-    // typed before the admin hid the field is dropped too - otherwise it would keep
-    // filtering with no way left to clear it.
-    const effectiveSearch = editMode || opts.hideFilterSearch ? '' : searchTerm;
+    // typed before the admin hid the field (or the whole chip) is dropped too -
+    // otherwise it would keep filtering with no way left to clear it.
+    const searchReachable = !opts.hideFilterSearch && !opts.hideFilterButton;
+    const effectiveSearch = editMode || !searchReachable ? '' : searchTerm;
 
     const visibleEntries = useMemo(() => {
         let result =
@@ -1387,16 +1390,18 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                     {masterSwitch}
-                    <ListFilterChip
-                        choices={filterChoices}
-                        value={valueFilter}
-                        onChange={setViewFilter}
-                        search={searchTerm}
-                        onSearchChange={setSearchTerm}
-                        showSearch={!opts.hideFilterSearch}
-                        searchPlaceholder={opts.filterSearchPlaceholder}
-                        label={filterModeLabel(valueFilter, filterChoices)}
-                    />
+                    {!opts.hideFilterButton && (
+                        <ListFilterChip
+                            choices={filterChoices}
+                            value={valueFilter}
+                            onChange={setViewFilter}
+                            search={searchTerm}
+                            onSearchChange={setSearchTerm}
+                            showSearch={!opts.hideFilterSearch}
+                            searchPlaceholder={opts.filterSearchPlaceholder}
+                            label={filterModeLabel(valueFilter, filterChoices)}
+                        />
+                    )}
                     <button
                         onClick={runSync}
                         title="Jetzt synchronisieren"

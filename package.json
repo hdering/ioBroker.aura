@@ -82,6 +82,7 @@
     "test:expr": "node tools/tests/expr.mjs",
     "test:bindings-live": "node tools/tests/bindings-live.mjs",
     "test:list-filter": "node tools/tests/list-filter.mjs",
+    "test:list-title": "node tools/tests/list-title-align.mjs",
     "test:list-enums": "node tools/tests/list-enum-filter.mjs",
     "test:camera-actions": "node tools/tests/camera-actions.mjs",
     "test:condition-refresh": "node tools/tests/condition-refresh.mjs",

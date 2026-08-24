@@ -179,6 +179,7 @@ Frontend-Filter als Chip im Header (nicht zu verwechseln mit der Datenpunkt-Such
 | `hideBuiltinFilters` | `false` | `Nur aktive`/`Nur inaktive` aus dem Menü nehmen |
 | `hideFilterSearch` | `false` | Freitextfeld im Menü ausblenden |
 | `filterSearchPlaceholder` | `Suchen …` | Platzhalter des Freitextfelds |
+| `hideFilterButton` | `false` | Filter-Chip ausblenden |
 | `backendValueFilter` | `all` | Vorschau-Filter im Editor |
 
 Freitext trifft Name, Datenpunkt-ID, Wert und alle Werte der [zweiten Zeile](#zweite-zeile-zusatzliche-datenpunkte).

@@ -6,3 +6,6 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+
+- Static & dynamic list - title alignment (left/centre/right) now actually moves the header title (#575)
+- Dynamic list - the frontend filter chip can be hidden, like the static list already could (#575)

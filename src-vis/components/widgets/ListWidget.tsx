@@ -1074,7 +1074,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 style={{
                                     color: 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                    flex: statsAlign === 'left' ? '0 1 auto' : '1 1 auto',
+                                    // A shrink-to-fit box would swallow textAlign, so the
+                                    // title only keeps its natural width while it is left
+                                    // aligned and the stats want to sit right behind it.
+                                    flex: titleAlign === 'left' && statsAlign === 'left' ? '0 1 auto' : '1 1 auto',
                                 }}
                             >
                                 {config.title || 'Statische Liste'}

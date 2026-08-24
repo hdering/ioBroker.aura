@@ -632,7 +632,6 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     setOpts={setOpts}
                     rows={filterRows}
                     storageKey="aura-staticlist-filter-modal"
-                    showChipToggle
                 />
 
                 {/* ── Sortierung ── */}

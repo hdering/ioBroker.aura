@@ -50,7 +50,6 @@ export function ListFilterSection({
     setOpts,
     rows,
     storageKey,
-    showChipToggle,
 }: {
     opts: ListFilterSectionOptions;
     setOpts: (patch: Partial<ListFilterSectionOptions>) => void;
@@ -58,8 +57,6 @@ export function ListFilterSection({
     rows: EditorFilterRow[];
     /** localStorage key for the dialog size. */
     storageKey: string;
-    /** Only the static list can hide the filter chip in the frontend. */
-    showChipToggle?: boolean;
 }) {
     const [open, setOpen] = useState(false);
     const buttonRef = useRef<HTMLButtonElement>(null);
@@ -140,17 +137,15 @@ export function ListFilterSection({
                 </div>
             </div>
 
-            {showChipToggle && (
-                <div className="flex items-center justify-between gap-2">
-                    <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                        Filter-Button im Frontend anzeigen
-                    </label>
-                    <Toggle
-                        on={!(opts.hideFilterButton ?? false)}
-                        onClick={() => setOpts({ hideFilterButton: !(opts.hideFilterButton ?? false) })}
-                    />
-                </div>
-            )}
+            <div className="flex items-center justify-between gap-2">
+                <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                    Filter-Button im Frontend anzeigen
+                </label>
+                <Toggle
+                    on={!(opts.hideFilterButton ?? false)}
+                    onClick={() => setOpts({ hideFilterButton: !(opts.hideFilterButton ?? false) })}
+                />
+            </div>
 
             <div className="flex items-center justify-between gap-2">
                 <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
