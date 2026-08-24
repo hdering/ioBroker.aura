@@ -74,6 +74,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showLocation` | `true` | Ort anzeigen (Default/Card) |
 | `showSummary` | `true` | Termin-Titel anzeigen (Card) |
 | `showMore` | `true` | „+N weitere" anzeigen (Card) |
+| `autoHeight` | `false` | Höhe folgt dem Inhalt statt der eingestellten Zellenhöhe (nicht bei Custom); die eingestellte Höhe wird dann überschrieben |
 
 ### Hervorhebung
 

@@ -28,6 +28,18 @@ import { reportMetric } from '../../utils/perfMetrics';
 // Default gap — overridden by config at runtime
 const DEFAULT_MARGIN = 10;
 
+/**
+ * Widgets with the "Höhe automatisch an Inhalt anpassen" option: they publish their
+ * rendered content height to autoHeightStore and the grid item is sized to it instead
+ * of the stored gridPos.h. The calendar's custom layout is excluded — CustomGridView is
+ * height:100% and needs a definite box.
+ */
+function usesContentAutoHeight(w?: WidgetConfig): boolean {
+    if (!w || w.options?.autoHeight !== true) return false;
+    if (w.type === 'statusoverview') return true;
+    return w.type === 'calendar' && (w.layout ?? 'default') !== 'custom';
+}
+
 interface DashboardProps {
     readonly?: boolean;
     editMode?: boolean;
@@ -445,8 +457,7 @@ export function Dashboard({
                                                                     wl !== 'custom' &&
                                                                     wl !== 'minimal' &&
                                                                     wl !== 'compact') ||
-                                                                (ew.type === 'statusoverview' &&
-                                                                    ew.options?.autoHeight === true);
+                                                                usesContentAutoHeight(ew);
                                                             return (
                                                                 <div
                                                                     key={w.id}
@@ -719,10 +730,10 @@ export function Dashboard({
                                                 h = Math.max(1, headerRows);
                                                 minH = Math.min(minH, h);
                                             }
-                                            // Content auto-height (e.g. Statusübersicht): size the item to the
-                                            // widget's measured content instead of the stored height. The widget
+                                            // Content auto-height (Statusübersicht, Kalender): size the item to
+                                            // the widget's measured content instead of the stored height. The widget
                                             // reports its content px; add the frame chrome (padding top+bottom + border).
-                                            if (w.type === 'statusoverview' && w.options?.autoHeight === true) {
+                                            if (usesContentAutoHeight(w)) {
                                                 const px = autoHeights[w.id];
                                                 if (px && px > 0) {
                                                     const total = px + widgetPadding * 2 + 2;
@@ -770,7 +781,7 @@ export function Dashboard({
                                                 const derivedH =
                                                     hasGroupChildren(w) ||
                                                     hasGroupChildren(mirrorSrc) ||
-                                                    (w.type === 'statusoverview' && w.options?.autoHeight === true);
+                                                    usesContentAutoHeight(w);
                                                 const h = derivedH ? w.gridPos.h : pos.h;
                                                 return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
                                             });

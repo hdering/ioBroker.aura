@@ -698,6 +698,31 @@ function CalendarEditPanel({
                 />
             </div>
 
+            {/* ── Höhe automatisch an Inhalt anpassen ── */}
+            {config.layout !== 'custom' && (
+                <div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                            Höhe automatisch an Inhalt anpassen
+                        </span>
+                        <button
+                            onClick={() => setOpts({ autoHeight: !o.autoHeight })}
+                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                            style={{ background: o.autoHeight ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                style={{ left: o.autoHeight ? '14px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        Das Widget wird so hoch wie sein Inhalt, statt eine feste Höhe zu füllen. Die eingestellte Höhe
+                        wird dann automatisch überschrieben und lässt sich nicht mehr manuell ändern.
+                    </p>
+                </div>
+            )}
+
             {/* ── Mehrtägige Termine ── */}
             <div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>

@@ -6,6 +6,7 @@ import { useT } from '../../i18n';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
+import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { NS } from '../../utils/namespace';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
@@ -699,7 +700,7 @@ function AgendaCalName({
 
 export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const t = useT();
-    const autoHeight = usePopupAutoHeight();
+    const popupAutoHeight = usePopupAutoHeight();
     const options = config.options ?? {};
     const refreshInterval = (options.refreshInterval as number) ?? 30;
     const maxEvents = (options.maxEvents as number) ?? 5;
@@ -868,13 +869,51 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     // Agenda name column: 0 = auto (as wide as the widest name), else % of the row
     const calNameWidth = Math.max(0, Math.min(60, (options.calNameWidth as number) || 0));
 
+    // Widget option "Höhe automatisch an Inhalt anpassen" (mirrors Statusübersicht):
+    // the widget grows with its content and the Dashboard sizes the grid item to the
+    // measured height. The custom layout is excluded — CustomGridView is height:100%
+    // and would collapse to 0 without a definite box.
+    const contentAutoHeight = options.autoHeight === true && layout !== 'custom';
+    const autoHeight = popupAutoHeight || contentAutoHeight;
+
     const listFillCls = autoHeight ? '' : 'aura-scroll flex-1 overflow-y-auto min-h-0';
     const listRootCls = autoHeight ? '' : 'h-full overflow-hidden';
+    const rootHCls = autoHeight ? '' : 'h-full';
+    // Empty/loading placeholders fill the box; with auto height they'd be razor-thin.
+    const emptyCls = autoHeight ? 'py-2' : 'flex-1';
+
+    // Publish the rendered content height so the Dashboard can size the grid item.
+    // Only for the widget option — inside an auto-height popup the dialog measures the
+    // embedded copy itself, and reporting there would resize the dashboard item too.
+    const measureOn = contentAutoHeight && !popupAutoHeight;
+    const widgetId = config.id;
+    const roRef = useRef<ResizeObserver | null>(null);
+    const measureRef = useCallback(
+        (el: HTMLDivElement | null) => {
+            if (roRef.current) {
+                roRef.current.disconnect();
+                roRef.current = null;
+            }
+            if (!el || !measureOn) {
+                useAutoHeightStore.getState().clear(widgetId);
+                return;
+            }
+            const report = () => useAutoHeightStore.getState().setHeight(widgetId, el.offsetHeight);
+            report();
+            const ro = new ResizeObserver(report);
+            ro.observe(el);
+            roRef.current = ro;
+        },
+        [measureOn, widgetId],
+    );
+    // No unmount effect on top of this: React calls the ref with null when the widget
+    // goes away (disconnect + clear above), and a second clear from an effect cleanup
+    // would wipe a height that the re-attached ref had just reported (StrictMode).
 
     // ── no sources configured ────────────────────────────────────────────────
     if (sources.length === 0) {
         return (
-            <div className="aura-widget-row flex flex-col h-full">
+            <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
@@ -893,7 +932,9 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                         )}
                     </div>
                 )}
-                <div className="flex flex-col items-center justify-center flex-1 gap-2 text-center">
+                <div
+                    className={`flex flex-col items-center justify-center ${autoHeight ? 'py-4' : 'flex-1'} gap-2 text-center`}
+                >
                     <CalendarDays size={22} style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
                     <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.configure')}</p>
                 </div>
@@ -904,7 +945,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     // ── full error (all sources failed) ─────────────────────────────────────
     if (errors.length > 0 && events.length === 0) {
         return (
-            <div className="aura-widget-row flex flex-col h-full gap-1.5 overflow-hidden">
+            <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1.5 ${listRootCls}`}>
                 <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                         {showIcon && (
@@ -927,7 +968,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                         <Spinner loading={loading} />
                     </button>
                 </div>
-                <div className="flex items-start gap-1.5 flex-1 overflow-hidden">
+                <div className={`flex items-start gap-1.5 ${autoHeight ? '' : 'flex-1 overflow-hidden'}`}>
                     <AlertCircle size={13} className="shrink-0 mt-0.5" style={{ color: 'var(--accent-red)' }} />
                     <p className="leading-tight" style={{ color: 'var(--accent-red)', fontSize: fs(10) }}>
                         {errors[0]}
@@ -963,7 +1004,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     // ── MINIMAL ──────────────────────────────────────────────────────────────
     if (layout === 'minimal') {
         return (
-            <div className="aura-widget-row flex flex-col h-full">
+            <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
@@ -982,7 +1023,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                         )}
                     </div>
                 )}
-                <div className="flex flex-col items-center justify-center flex-1 gap-1">
+                <div className={`flex flex-col items-center justify-center ${autoHeight ? 'py-2' : 'flex-1'} gap-1`}>
                     <p
                         className="font-black tabular-nums leading-none"
                         style={{ color: 'var(--accent)', fontSize: fs(30) }}
@@ -1005,7 +1046,8 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         const showDate = options.showDate !== false;
         return (
             <div
-                className={`flex items-center gap-2 h-full${meta ? ` ${meta.className}` : ''}`}
+                ref={measureRef}
+                className={`flex items-center gap-2 ${rootHCls}${meta ? ` ${meta.className}` : ''}`}
                 data-calendar-event={meta?.dataAttr}
             >
                 {important && !hideImportantIcon ? (
@@ -1061,7 +1103,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         const showMore = options.showMore !== false;
 
         return (
-            <div className="aura-widget-row flex flex-col h-full">
+            <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
                 {/* header row */}
                 <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
@@ -1087,7 +1129,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 </div>
 
                 {/* centered content */}
-                <div className="flex-1 flex flex-col justify-center">
+                <div className={`${autoHeight ? 'py-1' : 'flex-1'} flex flex-col justify-center`}>
                     {next ? (
                         <div className={meta?.className} data-calendar-event={meta?.dataAttr}>
                             {showCalName && next.showSourceName && next.sourceName && (
@@ -1156,7 +1198,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     // ── AGENDA ───────────────────────────────────────────────────────────────
     if (layout === 'agenda') {
         return (
-            <div className={`aura-widget-row flex flex-col gap-1 ${listRootCls}`}>
+            <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1 ${listRootCls}`}>
                 <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                         {showIcon && (
@@ -1180,11 +1222,11 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                     </button>
                 </div>
                 {loading && events.length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className={`${emptyCls} flex items-center justify-center`}>
                         <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.loading')}</p>
                     </div>
                 ) : visibleEvents.length === 0 ? (
-                    <div className="flex-1 flex items-center justify-center">
+                    <div className={`${emptyCls} flex items-center justify-center`}>
                         <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>{t('calendar.noEvents')}</p>
                     </div>
                 ) : (
@@ -1290,7 +1332,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
 
     // ── DEFAULT ──────────────────────────────────────────────────────────────
     return (
-        <div className={`aura-widget-row flex flex-col gap-1.5 ${listRootCls}`}>
+        <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1.5 ${listRootCls}`}>
             <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
                 <div className="flex items-center gap-1 min-w-0 flex-1">
                     {showIcon && (
@@ -1315,11 +1357,11 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
             </div>
 
             {loading && events.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center">
+                <div className={`${emptyCls} flex items-center justify-center`}>
                     <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>Lädt…</p>
                 </div>
             ) : visibleEvents.length === 0 ? (
-                <div className="flex-1 flex items-center justify-center">
+                <div className={`${emptyCls} flex items-center justify-center`}>
                     <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>
                         {t('calendar.noDays', { days: daysAhead })}
                     </p>
