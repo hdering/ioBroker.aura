@@ -42,7 +42,7 @@ import { tabBarShowsOnOwn } from './utils/tabBarVisible';
 import type { Tab } from './store/dashboardStore';
 import type { FrontendSettings } from './store/configStore';
 
-import { discardPending, isScreenshotMode, withSuppressedDirty } from './store/persistManager';
+import { discardPending, isScreenshotMode } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { markWidgetPresetsHydrated } from './store/widgetPresetsStore';
 import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
@@ -52,7 +52,7 @@ import { ToastLayer } from './components/messages/ToastLayer';
 import { MessageBell } from './components/layout/MessageBell';
 import type { MessageScope } from './store/messagesStore';
 import { NS } from './utils/namespace';
-import { themeModeOverride, writeCachedThemeMode, revertSeededThemeMode } from './utils/themeModeCache';
+import { themeModeOverride, useThemeModeStore, writeCachedThemeMode, type ThemeMode } from './utils/themeModeCache';
 import { baseDpId } from './utils/dpRef';
 import { initPerfMetrics, setPerfTracking, reportBackendPing } from './utils/perfMetrics';
 import { setBreakdownTracking, recordBackendCall } from './utils/perfBreakdown';
@@ -347,7 +347,6 @@ export default function App() {
     const navigate = useNavigate();
     const { frontend } = useConfigStore();
     const { setTheme } = useThemeStore();
-    const clearSectionSettings = useDashboardStore((s) => s.clearSectionSettings);
     const { connected, subscribe } = useIoBroker();
     const { clientId, clientName } = useConnectionStore();
 
@@ -633,14 +632,24 @@ export default function App() {
     // Custom JS — runs always in frontend; installs window.aura helper API.
     useCustomJs(layout?.id, section?.id, false);
 
-    // Apply per-layout theme overrides on top of global ThemeProvider vars.
+    // Apply per-layout / per-section theme overrides on top of global ThemeProvider vars.
     // Written as a scoped <style> rule ([data-aura-app="frontend"] { ... }) so that
     // CSS custom-property inheritance overrides :root values without conflicting with
     // ThemeProvider's effect on document.documentElement (parent effects run after child effects).
+    // Both scopes matter: reading only section.settings here meant a design picked
+    // for a whole layout never reached the frontend at all (#573).
     const layoutThemeRef = useRef<HTMLStyleElement | null>(null);
+    const layoutSettings = layout?.settings;
+    const sectionSettings = section?.settings;
+    const scopedFontScale = sectionSettings?.fontScale ?? layoutSettings?.fontScale;
     useEffect(() => {
-        const ls = section?.settings;
-        if (!ls?.themeId && !ls?.customVars && !ls?.fontScale) {
+        const overridden =
+            sectionSettings?.themeId !== undefined ||
+            sectionSettings?.customVars !== undefined ||
+            layoutSettings?.themeId !== undefined ||
+            layoutSettings?.customVars !== undefined ||
+            scopedFontScale !== undefined;
+        if (!overridden) {
             if (layoutThemeRef.current) layoutThemeRef.current.textContent = '';
             return;
         }
@@ -654,9 +663,9 @@ export default function App() {
             .filter(([, v]) => v)
             .map(([k, v]) => `  ${k}: ${v};`)
             .join('\n');
-        const fontScaleDecl = ls?.fontScale !== undefined ? `\n  --font-scale: ${ls.fontScale};` : '';
+        const fontScaleDecl = scopedFontScale !== undefined ? `\n  --font-scale: ${scopedFontScale};` : '';
         layoutThemeRef.current.textContent = `[data-aura-app="frontend"] {\n${declarations}${fontScaleDecl}\n}`;
-    }, [layout?.id, section?.id, section?.settings, currentTheme, effectiveCustomVars]);
+    }, [layoutSettings, sectionSettings, scopedFontScale, currentTheme, effectiveCustomVars]);
 
     // ── Load config from ioBroker on first connect ────────────────────────────
     // Frontend is read-only — clear the pending Map after loading remote config.
@@ -709,69 +718,46 @@ export default function App() {
         applyIfFollowing();
         mq.addEventListener('change', applyIfFollowing);
         const unsub = useThemeStore.subscribe(applyIfFollowing);
+        // Also react to the mode datapoint being cleared — browser sync takes
+        // over again the moment the explicit override goes away.
+        const unsubMode = useThemeModeStore.subscribe(applyIfFollowing);
         return () => {
             mq.removeEventListener('change', applyIfFollowing);
             unsub();
+            unsubMode();
         };
     }, [setTheme]);
 
     // ── Datapoint-driven dark/light mode ──────────────────────────────────────
-    // Subscribes to aura.0.config.themeMode.frontend ('dark'|'light'|''). Mirrors
-    // the Sun/Moon button: switches global theme and clears the active layout's
-    // themeId override (otherwise the per-layout scoped CSS would mask the
-    // global change).
-    //
-    // Stickiness: also subscribes to the theme store. When loadConfigFromIoBroker
-    // (or any other source) rehydrates themeId to a different value while a DP
-    // override is active, we snap back so the DP truly wins. Without this guard
-    // the frontend briefly flashes to the DP value, then reverts to the saved
-    // theme once the config arrives.
-    const layoutId = layout?.id;
-    const sectionId = section?.id;
-    const sectionThemeId = section?.settings?.themeId;
+    // Subscribes to aura.0.config.themeMode.frontend ('dark'|'light'|''). The
+    // value is a *mode*, not a design: it lives in its own store and is applied
+    // on top of the effective theme (resolveThemeModeId), so a design whose
+    // polarity already matches stays untouched and the saved themeId is never
+    // overwritten. Before that, one press of the header sun/moon button pinned
+    // the device to the plain dark/light preset for good and made every design
+    // picked in the admin look like it had no effect (#573).
     useEffect(() => {
         // Documentation screenshots pick their own theme; the instance behind the dev proxy
         // must not pull them back to whatever it is set to (that is why the frontend shots
         // used to come out dark). Every other write is blocked in screenshot mode too.
         if (isScreenshotMode()) return;
-        const applyOverride = () => {
-            const v = themeModeOverride.value;
-            if (!v) return;
-            // Suppressed: a DP-driven theme is per-device viewing state, not an
-            // unsaved config edit. Without this every nightly switch left
-            // `aura-theme` flagged dirty on that device, so an admin opened there
-            // later would write the frozen blob back.
-            withSuppressedDirty(() => {
-                if (useThemeStore.getState().themeId !== v) setTheme(v);
-                if (layoutId && sectionId && sectionThemeId) clearSectionSettings(layoutId, sectionId, 'themeId');
-            });
-        };
-        const unsubDP = subscribeStateDirect(`${NS}.config.themeMode.frontend`, (state) => {
+        return subscribeStateDirect(`${NS}.config.themeMode.frontend`, (state) => {
             if (state?.val == null) return;
             const raw = state.val;
-            if (raw === '') {
-                themeModeOverride.value = null;
-                writeCachedThemeMode(null);
-                revertSeededThemeMode(); // undo a boot seed the DP no longer backs
-                return;
-            }
-            if (raw === 'dark' || raw === 'light') themeModeOverride.value = raw;
+            let mode: ThemeMode | null;
+            if (raw === '') mode = null;
+            else if (raw === 'dark' || raw === 'light') mode = raw;
             else if (raw === true || raw === 1)
-                themeModeOverride.value = 'dark'; // legacy boolean
+                mode = 'dark'; // legacy boolean
             else if (raw === false || raw === 0)
-                themeModeOverride.value = 'light'; // legacy boolean
+                mode = 'light'; // legacy boolean
             else return;
+            themeModeOverride.value = mode;
             // Remember it so the next reload paints this mode before the socket
             // is even connected (see applyCachedThemeMode in main.tsx).
-            writeCachedThemeMode(themeModeOverride.value);
-            applyOverride();
+            writeCachedThemeMode(mode);
         });
-        const unsubStore = useThemeStore.subscribe(applyOverride);
-        return () => {
-            unsubDP();
-            unsubStore();
-        };
-    }, [setTheme, layoutId, sectionId, sectionThemeId, clearSectionSettings]);
+    }, []);
 
     // Activate tab when URL slug changes
     useEffect(() => {
@@ -1205,13 +1191,12 @@ export default function App() {
                                 )}
                                 <button
                                     onClick={() => {
-                                        const nextId = currentTheme.dark ? 'light' : 'dark';
-                                        themeModeOverride.value = nextId; // seed before setTheme so snap-back doesn't revert
-                                        writeCachedThemeMode(nextId);
-                                        setTheme(nextId);
-                                        if (layout && section?.settings?.themeId)
-                                            clearSectionSettings(layout.id, section.id, 'themeId');
-                                        setStateDirect(`${NS}.config.themeMode.frontend`, nextId);
+                                        // Flip the mode only — the design stays whatever the
+                                        // admin configured, so toggling back restores it (#573).
+                                        const nextMode: ThemeMode = currentTheme.dark ? 'light' : 'dark';
+                                        themeModeOverride.value = nextMode;
+                                        writeCachedThemeMode(nextMode);
+                                        setStateDirect(`${NS}.config.themeMode.frontend`, nextMode);
                                     }}
                                     className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
                                     style={{

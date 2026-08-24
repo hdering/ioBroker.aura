@@ -4,6 +4,7 @@ import { useThemeStore } from '../store/themeStore';
 import type { FrontendSettings } from '../store/configStore';
 import type { LayoutSettings } from '../store/dashboardStore';
 import type { ThemeVars } from '../themes';
+import { resolveThemeModeId, useThemeModeStore } from '../utils/themeModeCache';
 
 // ── 3-level keys: overridable per layout AND per section (section wins) ──────
 const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
@@ -109,16 +110,34 @@ export function useEffectiveSettings(layoutId?: string, sectionId?: string): Fro
     return { ...global, ...patch };
 }
 
+/**
+ * The global theme id with the datapoint-driven dark/light mode applied. Used
+ * wherever no layout/section context exists (ThemeProvider's :root vars).
+ */
+export function useGlobalThemeId(): string {
+    const themeId = useThemeStore((s) => s.themeId);
+    const darkId = useThemeStore((s) => s.browserDarkThemeId);
+    const lightId = useThemeStore((s) => s.browserLightThemeId);
+    const mode = useThemeModeStore((s) => s.mode);
+    return resolveThemeModeId(themeId, mode, darkId, lightId);
+}
+
 /** Effective theme ID: global → layout → section (falls back up the chain). */
 export function useEffectiveThemeId(layoutId?: string, sectionId?: string): string {
     const globalId = useThemeStore((s) => s.themeId);
     const followBrowser = useThemeStore((s) => s.followBrowser);
+    const darkId = useThemeStore((s) => s.browserDarkThemeId);
+    const lightId = useThemeStore((s) => s.browserLightThemeId);
+    const mode = useThemeModeStore((s) => s.mode);
     const ls = useLayoutSettingsObj(layoutId);
     const ss = useSectionSettingsObj(layoutId, sectionId);
     // When followBrowser is active, the global themeId is already managed by the
-    // browser-sync effect — overrides must not fight it.
-    if (followBrowser) return globalId;
-    return ss?.themeId ?? ls?.themeId ?? globalId;
+    // browser-sync effect — overrides must not fight it (the admin greys the
+    // preset pickers out and says so).
+    const base = followBrowser ? globalId : (ss?.themeId ?? ls?.themeId ?? globalId);
+    // The dark/light mode datapoint wins over the design, but only when the
+    // design has the wrong polarity — a dark design stays put in dark mode.
+    return resolveThemeModeId(base, mode, darkId, lightId);
 }
 
 /** Effective custom theme vars: global → layout → section. */

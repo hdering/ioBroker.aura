@@ -1,12 +1,54 @@
-import { useThemeStore } from '../store/themeStore';
-import { withSuppressedDirty } from '../store/persistManager';
+import { create } from 'zustand';
+import { getTheme } from '../themes';
 
 export type ThemeMode = 'dark' | 'light';
 
-// Module-level cache of the active themeMode.frontend DP override. Lets the DP
-// listener win over delayed config rehydrations and the followBrowser effect,
-// which would otherwise overwrite the DP-driven setTheme call.
-export const themeModeOverride: { value: ThemeMode | null } = { value: null };
+// ── Datapoint-driven dark/light mode ─────────────────────────────────────────
+// `<ns>.config.themeMode.frontend` carries a *mode*, not a theme: it says
+// "show something dark now", it does not pick the design. Kept in its own
+// (non-persisted) store so every consumer re-renders when it changes without
+// the mode ever touching the saved themeId — writing it into themeStore used to
+// overwrite the design chosen in the admin, so a device that had ever used the
+// header sun/moon button ignored every theme preset from then on (#573).
+interface ThemeModeState {
+    mode: ThemeMode | null;
+    setMode: (mode: ThemeMode | null) => void;
+}
+
+export const useThemeModeStore = create<ThemeModeState>((set) => ({
+    mode: null,
+    setMode: (mode) => set({ mode }),
+}));
+
+/** Non-React accessor for the active mode (effects, event handlers, boot code). */
+export const themeModeOverride = {
+    get value(): ThemeMode | null {
+        return useThemeModeStore.getState().mode;
+    },
+    set value(mode: ThemeMode | null) {
+        useThemeModeStore.getState().setMode(mode);
+    },
+};
+
+/**
+ * Resolve a saved theme id against an active dark/light mode.
+ *
+ * A design whose polarity already matches the requested mode is kept as is — a
+ * dark mode does not have to mean the plain `dark` preset. Only when the design
+ * has the wrong polarity does the configured counterpart (the same pair the
+ * browser sync uses) step in.
+ */
+export function resolveThemeModeId(
+    themeId: string,
+    mode: ThemeMode | null,
+    darkThemeId: string,
+    lightThemeId: string,
+): string {
+    if (!mode) return themeId;
+    const wantDark = mode === 'dark';
+    if (getTheme(themeId).dark === wantDark) return themeId;
+    return wantDark ? darkThemeId : lightThemeId;
+}
 
 // Last value seen on <ns>.config.themeMode.frontend, remembered per device.
 // The DP only reaches the app once the socket is connected and the initial
@@ -21,10 +63,6 @@ const CACHE_KEY = 'aura-theme-mode';
 // and read by the inline boot script in index.html so the pre-React splash
 // matches the theme instead of always being dark.
 export const BOOT_COLORS_KEY = 'aura-boot-colors';
-
-/** themeId the store had before applyCachedThemeMode() seeded the cached mode. */
-let themeIdBeforeSeed: string | null = null;
-let seededMode: ThemeMode | null = null;
 
 export function readCachedThemeMode(): ThemeMode | null {
     try {
@@ -45,33 +83,12 @@ export function writeCachedThemeMode(mode: ThemeMode | null): void {
 }
 
 /**
- * Apply the cached DP mode synchronously — call before React mounts so the very
- * first paint uses it. Writes through zustand persist (hence localStorage), but
- * with the dirty flag suppressed: a DP-driven theme is per-device viewing state,
- * not an unsaved config edit.
+ * Apply the cached DP mode — call before React mounts so the very first paint
+ * uses it. Only the mode store is touched, so a stale cache can no longer
+ * outlive the datapoint: as soon as the DP arrives (or turns out to be empty)
+ * the mode is corrected and the saved design reappears untouched.
  */
 export function applyCachedThemeMode(): void {
     const mode = readCachedThemeMode();
-    if (!mode) return;
-    themeModeOverride.value = mode;
-    const current = useThemeStore.getState().themeId;
-    if (current === mode) return;
-    themeIdBeforeSeed = current;
-    seededMode = mode;
-    withSuppressedDirty(() => useThemeStore.setState({ themeId: mode }));
-}
-
-/**
- * Undo the seed when the DP turns out to be cleared while this device was off.
- * Only reverts when nothing else has picked a theme since — a config load or an
- * explicit switch is a better answer than the pre-seed value.
- */
-export function revertSeededThemeMode(): void {
-    const prev = themeIdBeforeSeed;
-    const seeded = seededMode;
-    themeIdBeforeSeed = null;
-    seededMode = null;
-    if (!prev || !seeded) return;
-    if (useThemeStore.getState().themeId !== seeded) return;
-    withSuppressedDirty(() => useThemeStore.setState({ themeId: prev }));
+    if (mode) useThemeModeStore.setState({ mode });
 }

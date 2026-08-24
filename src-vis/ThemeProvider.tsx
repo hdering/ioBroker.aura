@@ -1,13 +1,16 @@
 import { useEffect } from 'react';
 import { useThemeStore } from './store/themeStore';
 import { useConfigStore } from './store/configStore';
+import { useGlobalThemeId } from './hooks/useEffectiveSettings';
 import { getTheme } from './themes';
 import { BOOT_COLORS_KEY } from './utils/themeModeCache';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const { themeId, customVars } = useThemeStore();
+    const customVars = useThemeStore((s) => s.customVars);
     const fontScale = useConfigStore((s) => s.frontend.fontScale ?? 1);
-    const theme = getTheme(themeId);
+    // Global theme with the dark/light-mode datapoint applied — the saved
+    // themeId itself is never rewritten by the mode (#573).
+    const theme = getTheme(useGlobalThemeId());
 
     useEffect(() => {
         const root = document.documentElement;

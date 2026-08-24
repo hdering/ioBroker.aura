@@ -17,6 +17,14 @@ Jedes Layout hat eigene Tabs und Widgets — ideal für verschiedene Tablets ode
 
 Preset wählen (Dark, Hell, Lovelace, AMOLED, Glass, Material 3, Catppuccin, Liquid Glass …) und einzelne CSS-Variablen feinjustieren (App, Widget-Karte, Text, Akzentfarben).
 
+Welches Design das Frontend zeigt, entscheidet diese Reihenfolge:
+
+| Vorrang | Quelle | |
+| --- | --- | --- |
+| 1 | `aura.0.config.themeMode.frontend` | Hell/Dunkel-Modus (auch der Button im Header). Ersetzt nur Designs der anderen Helligkeit — durch das unter „Theme folgt Browser" eingestellte Hell- bzw. Dunkel-Theme. Leerer Wert = kein Modus |
+| 2 | Theme folgt Browser | Überschreibt alle Presets, global wie pro Layout und Bereich |
+| 3 | Bereich → Layout → Global | Geltungsbereich links; der engste gesetzte Wert gewinnt |
+
 ## Typografie & Spacing
 
 ![](./assets/layouts-typo.png)

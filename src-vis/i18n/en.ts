@@ -534,6 +534,17 @@ export const en: Record<TranslationKey, string> = {
     'theme.preset.desc':
         'A preset sets all design variables at once: page and card backgrounds, borders, shadows, corner radius, text colors and the accent colors (blue/green/yellow/red) used by widgets. The colored dots show each theme’s card and accent colors. After picking a preset you can fine-tune individual variables below.',
 
+    'theme.preset.browserActive':
+        'The theme follows the browser setting (light/dark). While that is on, the preset picked here is overwritten on every load — including per-layout and per-section overrides.',
+    'theme.preset.browserAction': 'Open setting',
+    'theme.preset.modeDark':
+        'Dark mode is active via {ns}.config.themeMode.frontend, so light designs are replaced by “{theme}” in the frontend.',
+    'theme.preset.modeLight':
+        'Light mode is active via {ns}.config.themeMode.frontend, so dark designs are replaced by “{theme}” in the frontend.',
+    'theme.preset.modeAction': 'Reset mode',
+    'theme.browserSync.overrides':
+        'While this is on, every theme preset is ignored — globally as well as per layout and per section.',
+
     'theme.vars.title': 'Customize CSS Variables',
     'theme.vars.app': 'App',
     'theme.vars.widget': 'Widget Card',

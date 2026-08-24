@@ -97,7 +97,8 @@
     "test:energy-bar": "node tools/tests/energy-balance-bar.mjs",
     "test:energy-counter": "node tools/tests/energy-counter-increase.mjs",
     "test:map-style": "node tools/tests/map-style-chips.mjs",
-    "test:theme-flicker": "node tools/tests/theme-mode-flicker.mjs"
+    "test:theme-flicker": "node tools/tests/theme-mode-flicker.mjs",
+    "test:theme-scope": "node tools/tests/theme-scope.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",

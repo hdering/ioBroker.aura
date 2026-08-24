@@ -1,7 +1,12 @@
 import { useThemeStore } from '../../../../store/themeStore';
 import { THEMES } from '../../../../themes';
+import { useT } from '../../../../i18n';
+
+/** Anchor id so other cards can point the user at this switch. */
+export const BROWSER_SYNC_ANCHOR = 'browser-theme-sync';
 
 export function BrowserThemeSyncSection() {
+    const t = useT();
     const {
         followBrowser,
         browserDarkThemeId,
@@ -22,6 +27,7 @@ export function BrowserThemeSyncSection() {
 
     return (
         <div
+            id={BROWSER_SYNC_ANCHOR}
             className="rounded-xl p-4 space-y-3"
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         >
@@ -45,6 +51,11 @@ export function BrowserThemeSyncSection() {
                     />
                 </button>
             </div>
+            {followBrowser && (
+                <p className="text-xs leading-relaxed" style={{ color: 'var(--accent-yellow)' }}>
+                    {t('theme.browserSync.overrides')}
+                </p>
+            )}
             {followBrowser && (
                 <div className="flex gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
