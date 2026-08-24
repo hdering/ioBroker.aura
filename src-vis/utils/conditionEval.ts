@@ -5,6 +5,14 @@ import type { WidgetCondition, ConditionClause } from '../types';
 // useTabConditionStyle (tabs) and useBadges (badge visibility) so the operator
 // semantics stay identical across all three.
 
+/**
+ * Token that stands for the element's own value — the widget's main datapoint, a
+ * cell's own DP, a list row's DP. Lives here, in the leaf module, so the pure
+ * evaluation side can be used without pulling in the value-source machinery (which
+ * reaches the settings store through formatValue).
+ */
+export const OWN_DP_TOKEN = '{dp}';
+
 export function evaluateClause(clause: ConditionClause, raw: unknown, values: Map<string, unknown>): boolean {
     const str = String(raw ?? '');
     const num = Number(raw);

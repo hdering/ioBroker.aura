@@ -4,7 +4,9 @@ import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
-import type { WidgetProps, ioBrokerState } from '../../types';
+import type { WidgetProps, ioBrokerState, ElementConditionRule } from '../../types';
+import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
+import { partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
@@ -50,7 +52,7 @@ import {
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { ConfirmOverlay } from './ConfirmOverlay';
-import { EntrySubLine, type EntrySubDp } from './EntrySubLine';
+import { EntrySubLine, subCondKey, type EntrySubDp } from './EntrySubLine';
 import { useTemplateValues } from '../../hooks/useTemplateValues';
 import { ListFilterChip } from './ListFilterChip';
 import {
@@ -109,6 +111,8 @@ export interface StaticListEntry extends EntryControlConfig {
      * Ignored by the badges (minimal) layout, where a row is a single pill.
      */
     subDps?: EntrySubDp[];
+    /** Conditional formatting of this row (issue #572). */
+    conditions?: ElementConditionRule[];
     /**
      * This row is a separator, not a datapoint: a rule across the full width that opens
      * a new section. It lives in `entries` like any other row, so it is added, dragged,
@@ -189,6 +193,13 @@ export interface StaticListOptions
     wrapText?: boolean;
     /** When wrapText is on: minimum % of the row reserved for the label (10..90). Value gets the rest. Default 50. */
     labelMinPercent?: number;
+    /**
+     * Conditional formatting applied to EVERY row (issue #572). Clause datapoints may
+     * use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one
+     * rule work for a whole list. Rules on the entry itself are applied afterwards and
+     * therefore win per field.
+     */
+    rowConditions?: ElementConditionRule[];
     // Group action options (groupSwitch, groupActionType, …) come from GroupActionConfigOpts.
 }
 
@@ -346,6 +357,7 @@ function EntryValue({
     valueMaxPct,
     listTransform,
     card,
+    cond,
 }: {
     entry: StaticListEntry;
     val: ioBrokerState['val'];
@@ -364,6 +376,8 @@ function EntryValue({
     listTransform?: ValueTransformSettings;
     /** Card layout: cells are narrow (min 90px), so width-hungry controls fill them. */
     card?: boolean;
+    /** Conditional formatting for this row's value (issue #572). */
+    cond?: ElementCondResult;
 }) {
     const t = useT();
     // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
@@ -386,6 +400,13 @@ function EntryValue({
     // controls write their value back and must stay on the raw one. Thresholds
     // follow the shown value, so they are configured in display units.
     const disp = entryValueText(entry, listTransform, val, decimals, numFmt, t);
+    // A condition beats the colour scale — the scale is the default, the rule is the
+    // exception. Inline weight/style also beat the Tailwind font classes below.
+    const condColor = cond?.color;
+    const condFont = {
+        fontWeight: cond?.bold ? 700 : undefined,
+        fontStyle: cond?.italic ? ('italic' as const) : undefined,
+    };
     // An entry without its own scale falls back to the list-wide one; an empty
     // array counts as "none" so an imported entry cannot block the fallback.
     const entryThresholds = entry.colorThresholds?.length ? entry.colorThresholds : globalThresholds;
@@ -411,6 +432,19 @@ function EntryValue({
             onCancel={() => setPendingWrite(null)}
         />
     ) : null;
+
+    // A rule may replace the value outright — "true" becomes "ONLINE". No control is
+    // drawn for it then: the row states a fact instead of offering a switch.
+    if (cond?.hide) return null;
+    if (cond?.text !== undefined)
+        return (
+            <span
+                className={textValueCls}
+                style={{ ...valueMaxStyle, ...condFont, color: condColor ?? 'var(--text-primary)' }}
+            >
+                {cond.text}
+            </span>
+        );
 
     // Reusable: clickable icon as toggle (used when switchStyle === 'icon').
     // The on/off states can each use their own configured icon; both fall back
@@ -464,7 +498,7 @@ function EntryValue({
                 entry={entry}
                 val={disp.value}
                 className={textValueCls}
-                style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
+                style={{ ...valueMaxStyle, ...condFont, color: 'var(--text-primary)' }}
             />
         );
     if (displayType === 'datepicker')
@@ -479,7 +513,8 @@ function EntryValue({
                 className={textValueCls}
                 style={{
                     ...valueMaxStyle,
-                    color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
+                    ...condFont,
+                    color: condColor ?? thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
                 }}
             >
                 {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
@@ -494,7 +529,11 @@ function EntryValue({
             return (
                 <span
                     className={textValueCls}
-                    style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}
+                    style={{
+                        ...valueMaxStyle,
+                        ...condFont,
+                        color: condColor ?? thresholdColor ?? 'var(--text-primary)',
+                    }}
                 >
                     {Math.round(num)}
                     {entry.unit ?? '%'}
@@ -514,7 +553,7 @@ function EntryValue({
                 />
                 <span
                     className="text-[10px] w-8 text-right tabular-nums"
-                    style={{ color: thresholdColor ?? 'var(--text-secondary)' }}
+                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-secondary)' }}
                 >
                     {Math.round(num)}
                     {entry.unit ?? '%'}
@@ -650,7 +689,11 @@ function EntryValue({
             return (
                 <span
                     className={textValueCls}
-                    style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}
+                    style={{
+                        ...valueMaxStyle,
+                        ...condFont,
+                        color: condColor ?? thresholdColor ?? 'var(--text-primary)',
+                    }}
                 >
                     {Math.round(val)}
                     {entry.unit ?? '%'}
@@ -670,7 +713,7 @@ function EntryValue({
                 />
                 <span
                     className="text-[10px] w-8 text-right tabular-nums"
-                    style={{ color: thresholdColor ?? 'var(--text-secondary)' }}
+                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-secondary)' }}
                 >
                     {Math.round(val)}
                     {entry.unit ?? '%'}
@@ -685,7 +728,8 @@ function EntryValue({
             className={textValueCls}
             style={{
                 ...valueMaxStyle,
-                color: thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
+                ...condFont,
+                color: condColor ?? thresholdColor ?? (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
             }}
         >
             {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
@@ -720,6 +764,32 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         [entries],
     );
     const subValues = useTemplateValues(subDpRefs);
+    const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
+
+    // ── Conditional formatting (issue #572) ──────────────────────────────────
+    // One hook for the whole list — rows and their second-line datapoints alike.
+    // Per row the list-wide rules come first and the entry's own ones after, so the
+    // entry wins per field simply by being later in the array.
+    const condItems = useMemo<ElementCondInput[]>(() => {
+        const listRules = opts.rowConditions ?? [];
+        const out: ElementCondInput[] = [];
+        for (const e of entries) {
+            const rules = e.conditions?.length ? [...listRules, ...e.conditions] : listRules;
+            if (rules.length) out.push({ key: e.id, dp: e.id, value: states[e.id]?.val ?? null, rules });
+            for (const sub of e.subDps ?? []) {
+                if (!sub?.id || !sub.conditions?.length) continue;
+                out.push({
+                    key: subCondKey(e.id, sub.id),
+                    dp: sub.id,
+                    value: subValues[sub.id] ?? null,
+                    rules: sub.conditions,
+                });
+            }
+        }
+        return out;
+    }, [entries, opts.rowConditions, states, subValues]);
+    const conds = useElementConditionStyles(condItems);
+
     const subLineFor = (entry: StaticListEntry) =>
         entry.subDps?.some((s) => !!s?.id) ? (
             <EntrySubLine
@@ -728,9 +798,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                 listTransform={opts}
                 decimals={defaultDecimals}
                 numFmt={globalNumFmt}
+                entryId={entry.id}
+                conds={conds}
             />
         ) : null;
-    const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
     const [resolvedRooms, setResolvedRooms] = useState<Record<string, string[]>>({});
     const [lastChangedTs, setLastChangedTs] = useState(0);
@@ -1163,13 +1234,20 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             if (isDivider(entry))
                                 return <SectionBreak key={entry.id} entry={entry} variant="grid" first={i === 0} />;
                             const val = states[entry.id]?.val ?? null;
+                            const rc = conds.get(entry.id);
+                            if (rowHidden(rc)) return null;
+                            const cIcon = partOf(rc, 'icon');
+                            const cName = partOf(rc, 'name');
+                            const cValue = partOf(rc, 'value');
                             const label = getLabel(entry);
-                            const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+                            const iconName = cIcon.icon ?? entry.icon;
+                            const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
                             const eOn = isActive(val);
                             const entryActiveColor = entry.activeColor || globalActiveColor;
                             const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
                             const stateBg =
-                                (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg) ||
+                                (rc?.row?.bg ??
+                                    (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg)) ||
                                 'var(--app-bg)';
                             const entryIconSize = entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
@@ -1196,15 +1274,26 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     <span
                                         className={`flex items-center gap-1 leading-tight ${labelWrapCls}${entryFontSize ? '' : ' text-[10px]'}`}
                                         style={{
-                                            color: 'var(--text-secondary)',
+                                            color: cName.color ?? 'var(--text-secondary)',
                                             fontSize: entryFontSize ?? undefined,
+                                            fontWeight: cName.bold ? 700 : undefined,
+                                            fontStyle: cName.italic ? 'italic' : undefined,
                                         }}
                                     >
-                                        {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0" />}
-                                        {label}
+                                        {EntryIcon && (
+                                            <EntryIcon
+                                                size={entryIconSize}
+                                                className="shrink-0"
+                                                style={{
+                                                    color: cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)',
+                                                }}
+                                            />
+                                        )}
+                                        {!cName.hide && (cName.text ?? label)}
                                     </span>
                                     <div className="flex items-center justify-center">
                                         <EntryValue
+                                            cond={cValue}
                                             entry={entry}
                                             val={val}
                                             writable={entry.writable !== false}
@@ -1261,17 +1350,23 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             if (isDivider(entry))
                                 return <SectionBreak key={entry.id} entry={entry} variant="grid" first={i === 0} />;
                             const val = states[entry.id]?.val ?? null;
+                            const rc = conds.get(entry.id);
+                            if (rowHidden(rc)) return null;
+                            const cIcon = partOf(rc, 'icon');
+                            const cName = partOf(rc, 'name');
+                            const cValue = partOf(rc, 'value');
                             const label = getLabel(entry);
                             // Counted, not i % 2: a section break spans both columns and
                             // starts a fresh grid row (see compactCols).
                             const isRight = compactCols[i] === 1;
-                            const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+                            const iconName = cIcon.icon ?? entry.icon;
+                            const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
                             const eOn = isActive(val);
                             const entryActiveColor = entry.activeColor || globalActiveColor;
                             const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-                            const stateBg = eOn
-                                ? entry.activeBg || globalActiveBg
-                                : entry.inactiveBg || globalInactiveBg;
+                            const stateBg =
+                                rc?.row?.bg ??
+                                (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
                             const entryIconSize = entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
                             const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
@@ -1301,18 +1396,22 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             <EntryIcon
                                                 size={entryIconSize}
                                                 className="shrink-0"
-                                                style={{ color: 'var(--text-secondary)' }}
+                                                style={{
+                                                    color: cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)',
+                                                }}
                                             />
                                         )}
                                         <div className="flex-1 min-w-0" style={labelContainerStyle}>
                                             <span
                                                 className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
                                                 style={{
-                                                    color: 'var(--text-primary)',
+                                                    color: cName.color ?? 'var(--text-primary)',
                                                     fontSize: entryFontSize ?? undefined,
+                                                    fontWeight: cName.bold ? 700 : undefined,
+                                                    fontStyle: cName.italic ? 'italic' : undefined,
                                                 }}
                                             >
-                                                {label}
+                                                {!cName.hide && (cName.text ?? label)}
                                             </span>
                                             {lcTs > 0 && (
                                                 <span
@@ -1327,6 +1426,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             )}
                                         </div>
                                         <EntryValue
+                                            cond={cValue}
                                             entry={entry}
                                             val={val}
                                             writable={entry.writable !== false}
@@ -1368,6 +1468,11 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             if (isDivider(entry))
                                 return <SectionBreak key={entry.id} entry={entry} variant="wrap" first={i === 0} />;
                             const val = states[entry.id]?.val ?? null;
+                            const rc = conds.get(entry.id);
+                            if (rowHidden(rc)) return null;
+                            const cIcon = partOf(rc, 'icon');
+                            const cName = partOf(rc, 'name');
+                            const cValue = partOf(rc, 'value');
                             const label = getLabel(entry);
                             const writable = entry.writable !== false;
                             const trueLabel = entry.trueLabel ?? opts.trueText;
@@ -1441,9 +1546,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const entryActiveColor = entry.activeColor || globalActiveColor;
                             const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
                             const eOn = isActive(val);
-                            const stateBg = eOn
-                                ? entry.activeBg || globalActiveBg
-                                : entry.inactiveBg || globalInactiveBg;
+                            const stateBg =
+                                rc?.row?.bg ??
+                                (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
                             const pillColor = contactMatch
                                 ? contactMatch.color
                                 : stateMatch
@@ -1519,21 +1624,40 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         fontSize: entryFontSize ?? undefined,
                                     }}
                                 >
-                                    {EntryIcon && <EntryIcon size={entryIconSize} className="shrink-0 opacity-70" />}
-                                    <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>
-                                        {label}
-                                    </span>
+                                    {EntryIcon && (
+                                        <EntryIcon
+                                            size={entryIconSize}
+                                            className="shrink-0 opacity-70"
+                                            style={{ color: cIcon.iconColor ?? cIcon.color }}
+                                        />
+                                    )}
                                     <span
-                                        className="font-semibold tabular-nums"
+                                        className="opacity-70 truncate"
                                         style={{
-                                            color:
-                                                forceSwitch || isBoolLike || roleDisplay
-                                                    ? 'inherit'
-                                                    : 'var(--text-primary)',
+                                            maxWidth: 80,
+                                            color: cName.color,
+                                            fontWeight: cName.bold ? 700 : undefined,
+                                            fontStyle: cName.italic ? 'italic' : undefined,
                                         }}
                                     >
-                                        {valueStr}
+                                        {!cName.hide && (cName.text ?? label)}
                                     </span>
+                                    {!cValue.hide && (
+                                        <span
+                                            className="font-semibold tabular-nums"
+                                            style={{
+                                                color:
+                                                    cValue.color ??
+                                                    (forceSwitch || isBoolLike || roleDisplay
+                                                        ? 'inherit'
+                                                        : 'var(--text-primary)'),
+                                                fontWeight: cValue.bold ? 700 : undefined,
+                                                fontStyle: cValue.italic ? 'italic' : undefined,
+                                            }}
+                                        >
+                                            {cValue.text ?? valueStr}
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}
@@ -1557,12 +1681,20 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         if (isDivider(entry))
                             return <SectionBreak key={entry.id} entry={entry} variant="stack" first={i === 0} />;
                         const val = states[entry.id]?.val ?? null;
+                        const rc = conds.get(entry.id);
+                        if (rowHidden(rc)) return null;
+                        const cIcon = partOf(rc, 'icon');
+                        const cName = partOf(rc, 'name');
+                        const cValue = partOf(rc, 'value');
                         const label = getLabel(entry);
-                        const EntryIcon = entry.icon ? getWidgetIcon(entry.icon, null!) : null;
+                        const iconName = cIcon.icon ?? entry.icon;
+                        const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
                         const eOn = isActive(val);
                         const entryActiveColor = entry.activeColor || globalActiveColor;
                         const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-                        const stateBg = eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg;
+                        const stateBg =
+                            rc?.row?.bg ??
+                            (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
 
                         const entryIconSize = entry.iconSize ?? 13;
                         const entryFontSize = entry.fontSize;
@@ -1591,18 +1723,20 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         <EntryIcon
                                             size={entryIconSize}
                                             className="shrink-0 mt-0.5"
-                                            style={{ color: 'var(--text-secondary)' }}
+                                            style={{ color: cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)' }}
                                         />
                                     )}
                                     <div className="flex-1 min-w-0" style={labelContainerStyle}>
                                         <div
                                             className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
                                             style={{
-                                                color: 'var(--text-primary)',
+                                                color: cName.color ?? 'var(--text-primary)',
                                                 fontSize: entryFontSize ?? undefined,
+                                                fontWeight: cName.bold ? 700 : undefined,
+                                                fontStyle: cName.italic ? 'italic' : undefined,
                                             }}
                                         >
-                                            {label}
+                                            {!cName.hide && (cName.text ?? label)}
                                         </div>
                                         {opts.showRoom && (resolvedRooms[entry.id]?.join(', ') || null) && (
                                             <div
@@ -1633,6 +1767,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         )}
                                     </div>
                                     <EntryValue
+                                        cond={cValue}
                                         entry={entry}
                                         val={val}
                                         writable={entry.writable !== false}

@@ -1,6 +1,8 @@
 import { Fragment, useEffect, useMemo, useState, useCallback } from 'react';
 import { RefreshCw, List } from 'lucide-react';
-import type { WidgetProps, ioBrokerObject, ioBrokerState } from '../../types';
+import type { WidgetProps, ioBrokerObject, ioBrokerState, ElementConditionRule } from '../../types';
+import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
+import { partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
@@ -38,7 +40,7 @@ import {
     type GroupActionConfigOpts,
 } from '../../utils/groupTargets';
 import { GroupActionControl } from './GroupActionControl';
-import { EntrySubLine, type EntrySubDp } from './EntrySubLine';
+import { EntrySubLine, subCondKey, type EntrySubDp } from './EntrySubLine';
 import { useTemplateValues } from '../../hooks/useTemplateValues';
 import { resolveSubDpTemplate } from '../../utils/subDpTemplate';
 import { ListFilterChip } from './ListFilterChip';
@@ -101,6 +103,12 @@ export interface AutoListEntry extends EntryControlConfig {
     /** Extra display-only datapoints on a second line. Replaces options.subDpTemplate
      *  for this entry; empty/unset = the template applies. */
     subDps?: EntrySubDp[];
+    /** Icon in front of the name. Falls back to options.entryIcon (issue #572). */
+    icon?: string;
+    /** Icon size in px. Default 13. */
+    iconSize?: number;
+    /** Conditional formatting of this row (issue #572). */
+    conditions?: ElementConditionRule[];
 }
 
 export interface AutoListOptions
@@ -200,6 +208,18 @@ export interface AutoListOptions
     /** Template rows whose resolved datapoint does not exist are left out instead of
      *  rendering a dash (a device without BATTERY). Default true. */
     subDpTemplateHideMissing?: boolean;
+    /** Icon in front of every row's name — the rows come from a filter, so setting
+     *  one per entry is not an option for 40 discovered datapoints (issue #572). */
+    entryIcon?: string;
+    /** Size of that icon in px. Default 13. */
+    entryIconSize?: number;
+    /**
+     * Conditional formatting applied to EVERY row (issue #572). Clause datapoints may
+     * use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one
+     * rule work for a whole discovered list. Rules on the entry itself are applied
+     * afterwards and therefore win per field.
+     */
+    rowConditions?: ElementConditionRule[];
     // Group action options (groupSwitch, groupActionType, …) come from GroupActionConfigOpts.
 }
 
@@ -524,6 +544,7 @@ function EntryValue({
     wrap,
     valueMaxPct,
     listTransform,
+    cond,
 }: {
     entry: AutoListEntry;
     val: ioBrokerState['val'];
@@ -540,10 +561,29 @@ function EntryValue({
     valueMaxPct?: number;
     /** List-wide value conversion / time format; the entry's own settings win. */
     listTransform?: ValueTransformSettings;
+    /** Conditional formatting for this row's value (issue #572). */
+    cond?: ElementCondResult;
 }) {
     const t = useT();
     // Display-only conversion — text output only, never the writing controls.
     const disp = entryValueText(entry, listTransform, val, decimals, numFmt, t);
+    // A condition beats the colour scale — the scale is the default, the rule the
+    // exception. Inline weight/style also beat the Tailwind font classes below.
+    const condColor = cond?.color;
+    const condFont = {
+        fontWeight: cond?.bold ? 700 : undefined,
+        fontStyle: cond?.italic ? ('italic' as const) : undefined,
+    };
+    // A rule may replace the value outright — "true" becomes "ONLINE". No control is
+    // drawn for it then: the row states a fact instead of offering a switch. No hook
+    // runs below this point, so the early return is safe.
+    if (cond?.hide) return null;
+    if (cond?.text !== undefined)
+        return (
+            <span className="text-xs font-medium tabular-nums" style={{ color: condColor, ...condFont }}>
+                {cond.text}
+            </span>
+        );
     // For text-style value spans: drop shrink-0 + allow wrapping when wrap=true.
     // maxWidth caps the value (default 50%) so the label always keeps a guaranteed share.
     const textValueCls = wrap
@@ -584,7 +624,7 @@ function EntryValue({
                 entry={entry}
                 val={disp.value}
                 className={textValueCls}
-                style={{ ...valueMaxStyle, color: 'var(--text-primary)' }}
+                style={{ ...valueMaxStyle, ...condFont, color: 'var(--text-primary)' }}
             />
         );
     if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} />;
@@ -656,7 +696,11 @@ function EntryValue({
             return (
                 <span
                     className={textValueCls}
-                    style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}
+                    style={{
+                        ...valueMaxStyle,
+                        ...condFont,
+                        color: condColor ?? thresholdColor ?? 'var(--text-primary)',
+                    }}
                 >
                     {Math.round(val)}
                     {entry.unit ?? '%'}
@@ -676,7 +720,7 @@ function EntryValue({
                 />
                 <span
                     className="text-[10px] w-8 text-right tabular-nums"
-                    style={{ color: thresholdColor ?? 'var(--text-secondary)' }}
+                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-secondary)' }}
                 >
                     {Math.round(val)}
                     {entry.unit ?? '%'}
@@ -686,7 +730,10 @@ function EntryValue({
     }
 
     return (
-        <span className={textValueCls} style={{ ...valueMaxStyle, color: thresholdColor ?? 'var(--text-primary)' }}>
+        <span
+            className={textValueCls}
+            style={{ ...valueMaxStyle, ...condFont, color: condColor ?? thresholdColor ?? 'var(--text-primary)' }}
+        >
             {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
         </span>
     );
@@ -709,6 +756,7 @@ function CardEntryValue({
     wrap,
     valueMaxPct: _valueMaxPct,
     listTransform,
+    cond,
 }: {
     entry: AutoListEntry;
     val: ioBrokerState['val'];
@@ -726,10 +774,29 @@ function CardEntryValue({
     valueMaxPct?: number;
     /** List-wide value conversion / time format; the entry's own settings win. */
     listTransform?: ValueTransformSettings;
+    /** Conditional formatting for this row's value (issue #572). */
+    cond?: ElementCondResult;
 }) {
     const t = useT();
     // Display-only conversion — text output only, never the writing controls.
     const disp = entryValueText(entry, listTransform, val, decimals, numFmt, t);
+    // A condition beats the colour scale — the scale is the default, the rule the
+    // exception. Inline weight/style also beat the Tailwind font classes below.
+    const condColor = cond?.color;
+    const condFont = {
+        fontWeight: cond?.bold ? 700 : undefined,
+        fontStyle: cond?.italic ? ('italic' as const) : undefined,
+    };
+    // A rule may replace the value outright — "true" becomes "ONLINE". No control is
+    // drawn for it then: the row states a fact instead of offering a switch. No hook
+    // runs below this point, so the early return is safe.
+    if (cond?.hide) return null;
+    if (cond?.text !== undefined)
+        return (
+            <span className="text-xs font-medium tabular-nums" style={{ color: condColor, ...condFont }}>
+                {cond.text}
+            </span>
+        );
     // Card text values: add break-words when wrap=true so long single tokens still break.
     const cardTextWrap = wrap ? 'break-words [overflow-wrap:anywhere]' : '';
     const trueLabel = entry.trueLabel ?? trueText;
@@ -766,7 +833,7 @@ function CardEntryValue({
                 entry={entry}
                 val={disp.value}
                 className={`text-xl font-bold tabular-nums text-center leading-none ${cardTextWrap}`}
-                style={{ color: 'var(--text-primary)' }}
+                style={{ color: condColor ?? 'var(--text-primary)', ...condFont }}
             />
         );
     if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth />;
@@ -826,7 +893,7 @@ function CardEntryValue({
             return (
                 <span
                     className="text-xl font-bold tabular-nums"
-                    style={{ color: thresholdColor ?? 'var(--text-primary)' }}
+                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-primary)' }}
                 >
                     {Math.round(val)}
                     <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
@@ -839,7 +906,7 @@ function CardEntryValue({
             <div className="w-full flex flex-col items-center gap-1">
                 <span
                     className="text-xl font-bold tabular-nums"
-                    style={{ color: thresholdColor ?? 'var(--text-primary)' }}
+                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-primary)' }}
                 >
                     {Math.round(val)}
                     <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
@@ -862,7 +929,7 @@ function CardEntryValue({
     return (
         <span
             className={`text-xl font-bold tabular-nums text-center leading-none ${cardTextWrap}`}
-            style={{ color: thresholdColor ?? 'var(--text-primary)' }}
+            style={{ color: condColor ?? thresholdColor ?? 'var(--text-primary)', ...condFont }}
         >
             {disp.text ?? '–'}
             {entry.unit && !disp.isTime && (
@@ -994,6 +1061,30 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     }, [templateIdKey]);
 
     const hideMissingSubDps = opts.subDpTemplateHideMissing !== false;
+    // ── Conditional formatting (issue #572) ──────────────────────────────────
+    // One hook for the whole list — rows and their second-line datapoints alike.
+    // Per row the list-wide rules come first and the entry's own ones after, so the
+    // entry wins per field simply by being later in the array.
+    const condItems = useMemo<ElementCondInput[]>(() => {
+        const listRules = opts.rowConditions ?? [];
+        const out: ElementCondInput[] = [];
+        for (const e of entries) {
+            const rules = e.conditions?.length ? [...listRules, ...e.conditions] : listRules;
+            if (rules.length) out.push({ key: e.id, dp: e.id, value: states[e.id]?.val ?? null, rules });
+            for (const sub of entrySubDps.get(e.id) ?? []) {
+                if (!sub?.id || !sub.conditions?.length) continue;
+                out.push({
+                    key: subCondKey(e.id, sub.id),
+                    dp: sub.id,
+                    value: subValues[sub.id] ?? null,
+                    rules: sub.conditions,
+                });
+            }
+        }
+        return out;
+    }, [entries, opts.rowConditions, states, subValues, entrySubDps]);
+    const conds = useElementConditionStyles(condItems);
+
     const subLineFor = (entry: AutoListEntry) => {
         const list = entrySubDps.get(entry.id);
         if (!list?.length) return null;
@@ -1013,6 +1104,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 listTransform={opts}
                 decimals={decimals}
                 numFmt={numFmt}
+                entryId={entry.id}
+                conds={conds}
             />
         );
     };
@@ -1504,14 +1597,27 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     {sec.entries.map((entry) => {
                                         const state = states[entry.id] ?? null;
                                         const val = state?.val ?? null;
+                                        const rc = conds.get(entry.id);
+                                        if (rowHidden(rc)) return null;
+                                        const cIcon = partOf(rc, 'icon');
+                                        const cName = partOf(rc, 'name');
+                                        const cValue = partOf(rc, 'value');
+                                        // The dynamic list had no row icon at all (issue #572): it comes from the
+                                        // entry, from the list-wide default, or from a rule.
+                                        const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
+                                        const EntryIcon =
+                                            iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
+                                        const entryIconSize = entry.iconSize ?? opts.entryIconSize ?? 13;
                                         const label = getLabel(entry);
                                         const eOn = isActive(val);
                                         const entryActiveColor = entry.activeColor || globalActiveColor;
                                         const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
                                         const stateBg =
-                                            (eOn
+                                            rc?.row?.bg ??
+                                            ((eOn
                                                 ? entry.activeBg || globalActiveBg
-                                                : entry.inactiveBg || globalInactiveBg) || 'var(--app-bg)';
+                                                : entry.inactiveBg || globalInactiveBg) ||
+                                                'var(--app-bg)');
                                         const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
                                         const rowProps = rowPopup.row(
                                             entry.id,
@@ -1533,13 +1639,30 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 {...rowProps}
                                             >
                                                 <span
-                                                    className={`text-[10px] leading-tight ${labelWrapCls}`}
-                                                    style={{ color: 'var(--text-secondary)' }}
+                                                    className={`flex items-center gap-1 text-[10px] leading-tight ${labelWrapCls}`}
+                                                    style={{
+                                                        color: cName.color ?? 'var(--text-secondary)',
+                                                        fontWeight: cName.bold ? 700 : undefined,
+                                                        fontStyle: cName.italic ? 'italic' : undefined,
+                                                    }}
                                                 >
-                                                    {label}
+                                                    {EntryIcon && (
+                                                        <EntryIcon
+                                                            size={entryIconSize}
+                                                            className="shrink-0"
+                                                            style={{
+                                                                color:
+                                                                    cIcon.iconColor ??
+                                                                    cIcon.color ??
+                                                                    'var(--text-secondary)',
+                                                            }}
+                                                        />
+                                                    )}
+                                                    {!cName.hide && (cName.text ?? label)}
                                                 </span>
                                                 <div className="flex items-center justify-center">
                                                     <CardEntryValue
+                                                        cond={cValue}
                                                         entry={entry}
                                                         val={val}
                                                         writable={entry.writable !== false}
@@ -1612,14 +1735,24 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                 {sec.entries.map((entry, i) => {
                                     const state = states[entry.id] ?? null;
                                     const val = state?.val ?? null;
+                                    const rc = conds.get(entry.id);
+                                    if (rowHidden(rc)) return null;
+                                    const cIcon = partOf(rc, 'icon');
+                                    const cName = partOf(rc, 'name');
+                                    const cValue = partOf(rc, 'value');
+                                    // The dynamic list had no row icon at all (issue #572): it comes from the
+                                    // entry, from the list-wide default, or from a rule.
+                                    const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
+                                    const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
+                                    const entryIconSize = entry.iconSize ?? opts.entryIconSize ?? 13;
                                     const label = getLabel(entry);
                                     const isRight = i % 2 === 1;
                                     const eOn = isActive(val);
                                     const entryActiveColor = entry.activeColor || globalActiveColor;
                                     const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-                                    const stateBg = eOn
-                                        ? entry.activeBg || globalActiveBg
-                                        : entry.inactiveBg || globalInactiveBg;
+                                    const stateBg =
+                                        rc?.row?.bg ??
+                                        (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
                                     const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
                                     const rowProps = rowPopup.row(
                                         entry.id,
@@ -1649,12 +1782,28 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             {...rowProps}
                                         >
                                             <div className={`flex gap-1.5 ${wrap ? 'items-start' : 'items-center'}`}>
+                                                {EntryIcon && (
+                                                    <EntryIcon
+                                                        size={entryIconSize}
+                                                        className="shrink-0"
+                                                        style={{
+                                                            color:
+                                                                cIcon.iconColor ??
+                                                                cIcon.color ??
+                                                                'var(--text-secondary)',
+                                                        }}
+                                                    />
+                                                )}
                                                 <div className="flex-1 min-w-0" style={labelContainerStyle}>
                                                     <span
                                                         className={`block text-[11px] ${labelWrapCls}`}
-                                                        style={{ color: 'var(--text-primary)' }}
+                                                        style={{
+                                                            color: cName.color ?? 'var(--text-primary)',
+                                                            fontWeight: cName.bold ? 700 : undefined,
+                                                            fontStyle: cName.italic ? 'italic' : undefined,
+                                                        }}
                                                     >
-                                                        {label}
+                                                        {!cName.hide && (cName.text ?? label)}
                                                     </span>
                                                     {lcTs > 0 && (
                                                         <span
@@ -1672,6 +1821,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     )}
                                                 </div>
                                                 <EntryValue
+                                                    cond={cValue}
                                                     entry={entry}
                                                     val={val}
                                                     writable={entry.writable !== false}
@@ -1721,6 +1871,16 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                 {sec.entries.map((entry) => {
                                     const state = states[entry.id] ?? null;
                                     const val = state?.val ?? null;
+                                    const rc = conds.get(entry.id);
+                                    if (rowHidden(rc)) return null;
+                                    const cIcon = partOf(rc, 'icon');
+                                    const cName = partOf(rc, 'name');
+                                    const cValue = partOf(rc, 'value');
+                                    // The dynamic list had no row icon at all (issue #572): it comes from the
+                                    // entry, from the list-wide default, or from a rule.
+                                    const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
+                                    const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
+                                    const entryIconSize = entry.iconSize ?? opts.entryIconSize ?? 13;
                                     const label = getLabel(entry);
                                     const writable = entry.writable !== false;
                                     // Rich controls have no compact pill form — show their value, no toggle.
@@ -1775,9 +1935,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const entryActiveColor = entry.activeColor || globalActiveColor;
                                     const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
                                     const eOn = isActive(val);
-                                    const stateBg = eOn
-                                        ? entry.activeBg || globalActiveBg
-                                        : entry.inactiveBg || globalInactiveBg;
+                                    const stateBg =
+                                        rc?.row?.bg ??
+                                        (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
                                     const pillColor = contactMatch
                                         ? contactMatch.color
                                         : stateMatch
@@ -1789,11 +1949,16 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                               : hasLabels
                                                 ? entryInactiveColor
                                                 : null;
-                                    const BadgeIcon = contactMatch
-                                        ? getWidgetIcon(contactMatch.icon, null!)
-                                        : stateMatch?.icon
-                                          ? getWidgetIcon(stateMatch.icon, null!)
-                                          : null;
+                                    // A rule wins, then the display-type mapping, then the row icon.
+                                    const BadgeIcon = cIcon.hide
+                                        ? null
+                                        : cIcon.icon
+                                          ? getWidgetIcon(cIcon.icon, null!)
+                                          : contactMatch
+                                            ? getWidgetIcon(contactMatch.icon, null!)
+                                            : stateMatch?.icon
+                                              ? getWidgetIcon(stateMatch.icon, null!)
+                                              : EntryIcon;
                                     const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
                                     const lcText =
                                         lcTs > 0
@@ -1848,21 +2013,40 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 cursor: togglable || rowProps ? 'pointer' : 'default',
                                             }}
                                         >
-                                            {BadgeIcon && <BadgeIcon size={13} className="shrink-0 opacity-70" />}
-                                            <span className="opacity-70 truncate" style={{ maxWidth: 80 }}>
-                                                {label}
-                                            </span>
+                                            {BadgeIcon && (
+                                                <BadgeIcon
+                                                    size={entryIconSize}
+                                                    className="shrink-0 opacity-70"
+                                                    style={{ color: cIcon.iconColor ?? cIcon.color }}
+                                                />
+                                            )}
                                             <span
-                                                className="font-semibold tabular-nums"
+                                                className="opacity-70 truncate"
                                                 style={{
-                                                    color:
-                                                        isBoolLike || roleDisplay || stateMatch || contactMatch
-                                                            ? 'inherit'
-                                                            : 'var(--text-primary)',
+                                                    maxWidth: 80,
+                                                    color: cName.color,
+                                                    fontWeight: cName.bold ? 700 : undefined,
+                                                    fontStyle: cName.italic ? 'italic' : undefined,
                                                 }}
                                             >
-                                                {valueStr}
+                                                {!cName.hide && (cName.text ?? label)}
                                             </span>
+                                            {!cValue.hide && (
+                                                <span
+                                                    className="font-semibold tabular-nums"
+                                                    style={{
+                                                        color:
+                                                            cValue.color ??
+                                                            (isBoolLike || roleDisplay || stateMatch || contactMatch
+                                                                ? 'inherit'
+                                                                : 'var(--text-primary)'),
+                                                        fontWeight: cValue.bold ? 700 : undefined,
+                                                        fontStyle: cValue.italic ? 'italic' : undefined,
+                                                    }}
+                                                >
+                                                    {cValue.text ?? valueStr}
+                                                </span>
+                                            )}
                                         </button>
                                     );
                                 })}
@@ -1889,14 +2073,24 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                             {sec.entries.map((entry) => {
                                 const state = states[entry.id] ?? null;
                                 const val = state?.val ?? null;
+                                const rc = conds.get(entry.id);
+                                if (rowHidden(rc)) return null;
+                                const cIcon = partOf(rc, 'icon');
+                                const cName = partOf(rc, 'name');
+                                const cValue = partOf(rc, 'value');
+                                // The dynamic list had no row icon at all (issue #572): it comes from the
+                                // entry, from the list-wide default, or from a rule.
+                                const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
+                                const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
+                                const entryIconSize = entry.iconSize ?? opts.entryIconSize ?? 13;
                                 const label = getLabel(entry);
                                 const roomLabel = entry.rooms?.join(', ');
                                 const eOn = isActive(val);
                                 const entryActiveColor = entry.activeColor || globalActiveColor;
                                 const entryInactiveColor = entry.inactiveColor || globalInactiveColor;
-                                const stateBg = eOn
-                                    ? entry.activeBg || globalActiveBg
-                                    : entry.inactiveBg || globalInactiveBg;
+                                const stateBg =
+                                    rc?.row?.bg ??
+                                    (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
                                 const lcTs = showEntryLastChange ? state?.lc || state?.ts || 0 : 0;
                                 const rowProps = rowPopup.row(
                                     entry.id,
@@ -1920,12 +2114,26 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         {...rowProps}
                                     >
                                         <div className={`flex gap-2 ${wrap ? 'items-start' : 'items-center'}`}>
+                                            {EntryIcon && (
+                                                <EntryIcon
+                                                    size={entryIconSize}
+                                                    className="shrink-0 mt-0.5"
+                                                    style={{
+                                                        color:
+                                                            cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)',
+                                                    }}
+                                                />
+                                            )}
                                             <div className="flex-1 min-w-0" style={labelContainerStyle}>
                                                 <div
                                                     className={`text-xs ${labelWrapCls}`}
-                                                    style={{ color: 'var(--text-primary)' }}
+                                                    style={{
+                                                        color: cName.color ?? 'var(--text-primary)',
+                                                        fontWeight: cName.bold ? 700 : undefined,
+                                                        fontStyle: cName.italic ? 'italic' : undefined,
+                                                    }}
                                                 >
-                                                    {label}
+                                                    {!cName.hide && (cName.text ?? label)}
                                                 </div>
                                                 {opts.showRoom && (roomLabel || entry.id) && (
                                                     <div
@@ -1959,6 +2167,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 )}
                                             </div>
                                             <EntryValue
+                                                cond={cValue}
                                                 entry={entry}
                                                 val={val}
                                                 writable={entry.writable !== false}

@@ -87,9 +87,62 @@ Die ID lässt sich außerdem direkt ins Feld tippen.
 | `color` | `--text-secondary` | Textfarbe |
 | `valueTransform` / `valueFactor` / `valueOffset` / `valueTimeFormat` / `valueTimePattern` | Liste | eigene [Wert-Umrechnung](#wert-umrechnung-zeit) pro Zusatz-Datenpunkt |
 
+Zusätzlich pro Datenpunkt der zweiten Zeile:
+
+| Feld | |
+| --- | --- |
+| Werte-Zuordnung (`states`) | Tabelle `Wert → Text`, optional mit Icon und Farbe — z. B. `true` → `ONLINE`. Ersetzt den Werttext; die Einheit entfällt dann |
+| Bedingungen (`conditions`) | dieselben Regeln wie [je Zeile](#bedingungen-je-zeile), nur für diesen einen Wert |
+
+Die Werte-Zuordnung ist dieselbe Tabelle wie beim Darstellungstyp `Zustände` und wirkt an beiden Stellen
+gleich.
+
 Layouts `default` · `card` · `compact` zeigen die zweite Zeile. Das Badges-Layout (`minimal`) nicht —
 dort ist eine Zeile eine Pille. Die [dynamische Liste](./dynamische-liste#zweite-zeile-zusatzliche-datenpunkte)
 kennt dieselben Felder, zusätzlich als Vorlage für alle Einträge.
+
+### Bedingungen je Zeile
+
+Regeln, die auf einen Wert reagieren und Farbe, Icon oder Text einer Zeile ändern. Zwei Orte, gleiche
+Regeln:
+
+| Ort | Gilt für |
+| --- | --- |
+| Dialog **Datenpunkte verwalten** → Tab **Bedingungen** (`rowConditions`) | alle Zeilen |
+| Detail-Editor → Abschnitt **Bedingungen** (`entries[].conditions`) | nur diese Zeile |
+
+Die listenweiten Regeln laufen zuerst, die des Eintrags danach — **pro Eigenschaft gewinnt die letzte**.
+Ausblenden ist absorbierend.
+
+| Feld | |
+| --- | --- |
+| `target` | `row` (Standard) · `name` · `value` · `icon` — worauf die Regel wirkt |
+| `clauses` / `logic` | wie bei den [Widget-Bedingungen](../einstellungen/editor#bedingungen-marker-operatoren), inkl. Vergleich gegen einen zweiten Datenpunkt |
+| `color` · `bg` · `iconColor` | Textfarbe · Zeilenhintergrund (nur `row`) · Icon-Farbe |
+| `icon` | anderes Icon, solange die Regel greift |
+| `text` | ersetzt den angezeigten Text; die Einheit entfällt dabei |
+| `bold` · `italic` · `hide` | Schriftschnitt bzw. Element ausblenden |
+
+Eine Regel auf `row` gibt Textfarbe, Fett/Kursiv und Icon an Name, Wert und Icon weiter; Hintergrund und
+Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen sie.
+
+#### Datenpunkt einer Bedingung
+
+| Schreibweise | bedeutet |
+| --- | --- |
+| `{dp}` (leer) | Wert der Zeile selbst |
+| `hm-rpc.0.Gerät.UNREACH` | genau dieser Datenpunkt, in jeder Zeile derselbe |
+| `{{parent}}.UNREACH` | Nachbar-Datenpunkt **der jeweiligen Zeile** |
+| `{{dp}}` · `{{name}}` | vollständige ID bzw. letztes Segment der Zeile |
+
+Die doppelten Klammern sind dieselben Platzhalter wie in der [zweiten Zeile](#zweite-zeile-zusatzliche-datenpunkte).
+Zeilen, deren Datenpunkt einen Platzhalter nicht beantworten kann (kein Elternstrang), überspringen die
+Regel — statt gegen den wörtlichen Text zu vergleichen.
+
+::: tip Beispiel
+`{{parent}}.UNREACH` ist wahr → `target: icon`, Icon `CloudOff`, Icon-Farbe rot. Eine Regel, jede Zeile
+prüft ihr eigenes Gerät.
+:::
 
 ### Wert-Umrechnung / Zeit
 

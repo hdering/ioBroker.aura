@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 import { ValueFormatRow } from './ValueFormatRow';
 import { ValueTransformFields } from './ValueTransformFields';
 import { ColorThresholdsEditor } from './ColorThresholdsEditor';
@@ -10,6 +10,7 @@ import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import type { NameSource } from '../../utils/nameFilter';
 import { NameDisplayFields } from './NameDisplayFields';
+import { RowConditionsPanel } from './list/RowConditionsPanel';
 import { AutoEntryDetail } from './list/AutoEntryDetail';
 import { AutoDiscoveryPanel } from './list/AutoDiscoveryPanel';
 import { SubDpTemplatePanel } from './list/SubDpTemplatePanel';
@@ -44,6 +45,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     const opts = (config.options ?? { entries: [] }) as unknown as AutoListOptions;
 
     const [statIconPicker, setStatIconPicker] = useState<ListStat | null>(null);
+    const [entryIconPicker, setEntryIconPicker] = useState(false);
     const [resolvedNames, setResolvedNames] = useState<Record<string, string>>({});
 
     useEffect(() => {
@@ -133,6 +135,17 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 )}
                 tabs={[
                     {
+                        key: 'rowconds',
+                        label: 'Bedingungen',
+                        node: (
+                            <RowConditionsPanel
+                                rules={opts.rowConditions}
+                                sampleDp={(opts.entries ?? []).find((e) => !!e.id)?.id}
+                                onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
+                            />
+                        ),
+                    },
+                    {
                         key: 'discovery',
                         label: 'Suchen & Filter',
                         node: (api) => (
@@ -175,6 +188,69 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             />
 
             <ConfigSection title="Anzeige" defaultOpen>
+                {/* Row icon — the rows come from a filter, so one icon for all of them is
+                    the only setting that scales (issue #572). An entry may override it. */}
+                <div className="flex items-center justify-between gap-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Icon vor dem Namen
+                    </label>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        <input
+                            type="number"
+                            min={8}
+                            max={64}
+                            value={opts.entryIconSize ?? ''}
+                            onChange={(e) =>
+                                setOpts({ entryIconSize: e.target.value === '' ? undefined : Number(e.target.value) })
+                            }
+                            placeholder="13"
+                            title="Größe in px"
+                            className="w-12 text-[11px] rounded px-1.5 py-1 focus:outline-none"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        />
+                        <button
+                            onClick={() => setEntryIconPicker(true)}
+                            title={opts.entryIcon || 'Icon wählen'}
+                            className="flex items-center justify-center rounded hover:opacity-80"
+                            style={{
+                                width: 40,
+                                height: 25,
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            {opts.entryIcon ? (
+                                <Icon icon={toIconifyId(opts.entryIcon)} width={15} height={15} />
+                            ) : (
+                                <Plus size={13} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
+                            )}
+                        </button>
+                        {opts.entryIcon && (
+                            <button
+                                onClick={() => setOpts({ entryIcon: undefined })}
+                                title="Icon entfernen"
+                                className="hover:opacity-70"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <X size={12} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+                {entryIconPicker && (
+                    <IconPickerModal
+                        current={opts.entryIcon ?? ''}
+                        onSelect={(name) => {
+                            setOpts({ entryIcon: name || undefined });
+                            setEntryIconPicker(false);
+                        }}
+                        onClose={() => setEntryIconPicker(false)}
+                    />
+                )}
                 <div className="flex items-center justify-between">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                         Anzahl anzeigen

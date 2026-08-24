@@ -653,26 +653,49 @@ export interface WidgetCondition {
     reflow?: boolean; // if hiding: remove from grid so other widgets slide up
 }
 
-// ── Per-cell conditional formatting (Universal Widget) ────────────────────────
-// A single custom-grid cell can carry a list of these rules. Each rule combines
-// one or more ConditionClauses (own value when `datapoint` is empty, otherwise a
-// foreign DP) and, when matched, overrides the cell's appearance. Multiple
-// matching rules are merged in order (later rule wins per field), so effects can
-// be stacked. Reuses the same evaluateClause() operator engine as WidgetCondition.
+// ── Conditional formatting of a single element ────────────────────────────────
+// One rule combines ConditionClauses (own value when `datapoint` is empty or the
+// {dp} token, otherwise a foreign DP) and, when matched, overrides how ONE element
+// looks. Several matching rules are merged in order, later wins per field, so
+// effects stack. Same evaluateClause() operator engine as WidgetCondition.
+//
+// Carried by:
+//   CustomCell.conditions           — a custom-grid cell (any widget in layout 'custom')
+//   StaticListEntry.conditions      — one row of the static list
+//   AutoListEntry.conditions        — one row of the dynamic list
+//   options.rowConditions           — all rows of a list; clause DPs may use {{parent}}
+//   EntrySubDp.conditions           — one datapoint of a row's second line
+//
+// The name CellConditionRule is kept because it is what the stored configs
+// reference; ElementConditionRule is the alias the list code reads with.
+
+/**
+ * Which part of an element a rule paints. Cells have only one part and ignore it;
+ * a list row has four, matching how issue #572 phrases it ("Farbe des Wertes,
+ * Namens und Icons"). Default 'row' — background and hiding act on the whole row.
+ */
+export type ElementConditionTarget = 'row' | 'name' | 'value' | 'icon';
 
 export interface CellConditionRule {
     id: string;
     label?: string;
     logic?: 'AND' | 'OR'; // how to combine clauses (default 'AND')
-    clauses: ConditionClause[]; // empty `datapoint` = the cell's own value; otherwise a foreign DP ref
+    clauses: ConditionClause[]; // empty `datapoint` = the element's own value; otherwise a foreign DP ref
+    /** Which part of the element to paint. Ignored by custom-grid cells. */
+    target?: ElementConditionTarget;
     // Effects applied when the rule matches (undefined = no override):
     color?: string; // text / icon color
-    bg?: string; // cell background
+    bg?: string; // element background
     bold?: boolean;
     italic?: boolean;
-    icon?: string; // icon override (icon / state-icon cells)
-    hide?: boolean; // blank the cell content (background is kept)
+    icon?: string; // icon override (icon / state-icon cells, list row icon)
+    iconColor?: string; // icon colour, when it should differ from the text colour
+    text?: string; // replaces the displayed text ("true" → "ONLINE")
+    hide?: boolean; // blank the element (background is kept)
 }
+
+/** The list code's name for the same rule — see the comment above. */
+export type ElementConditionRule = CellConditionRule;
 
 // ── Badges ──────────────────────────────────────────────────────────────────
 // Small overlay indicators that sit on the edge/corner of a widget, group or

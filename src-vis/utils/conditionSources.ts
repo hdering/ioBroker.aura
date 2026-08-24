@@ -1,5 +1,5 @@
 import type { ConditionClause, WidgetConfig, ioBrokerState } from '../types';
-import { evaluateClause } from './conditionEval';
+import { evaluateClause, OWN_DP_TOKEN } from './conditionEval';
 import { computeListStats } from './listStats';
 import { isActiveVal } from './groupTargets';
 import type { TranslationKey } from '../i18n';
@@ -24,8 +24,10 @@ import type { TranslationKey } from '../i18n';
 // context, in which case a token resolves to nothing and its clause is false.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Token that stands for the widget's own (main) datapoint. Also used by cells. */
-export const OWN_DP_TOKEN = '{dp}';
+/** Token that stands for the widget's own (main) datapoint. Also used by cells and
+ *  list rows. Declared in conditionEval so pure consumers can import it without the
+ *  list-stats chain below. */
+export { OWN_DP_TOKEN };
 
 export type ListAgg = 'any' | 'all' | 'none' | 'count' | 'active' | 'sum' | 'avg' | 'min' | 'max';
 

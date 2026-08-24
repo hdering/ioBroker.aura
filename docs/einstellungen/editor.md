@@ -77,14 +77,33 @@ Der Editor bietet nur die Felder an, die der jeweilige Widget-Typ auch umsetzt.
 
 | Stufe | Quelle |
 | --- | --- |
-| 1 | Widget-Einstellungen (Icon, Farben, Farbschwellen) |
+| 1 | Widget-Einstellungen (Icon, Farben, Farbschwellen, Werte-Zuordnung) |
 | 2 | Widget-Bedingungen, in Reihenfolge |
+| 3 | Listenweite Zeilen-Regeln, in Reihenfolge |
+| 4 | Regeln am einzelnen Eintrag bzw. an der Zelle, in Reihenfolge |
 
 Alle zutreffenden Regeln werden der Reihe nach angewandt, **pro Eigenschaft gewinnt die letzte**. Eine
 Regel, die nur die Textfarbe setzt, lässt den Hintergrund der vorherigen stehen. Die Reihenfolge im
 Editor entscheidet also.
 
 Ausblenden ist davon ausgenommen: hat eine Regel ausgeblendet, blendet keine spätere wieder ein.
+
+## Bedingungen: Element-Ebene
+
+Widgets mit vielen gleichartigen Kindern bieten Bedingungen zusätzlich **pro Kind** — dort ist „Zeile 3
+rot" auf Widget-Ebene nicht sagbar.
+
+| Widget | Wo | Wirkt auf |
+| --- | --- | --- |
+| [Statische Liste](../widgets/liste#bedingungen-je-zeile) · [Dynamische Liste](../widgets/dynamische-liste) | Dialog **Datenpunkte verwalten** → Tab **Bedingungen** (alle Zeilen) bzw. Eintrag → **Bedingungen** | Ganze Zeile · Name · Wert · Icon |
+| Zweite Zeile beider Listen | Detail-Editor → **Zweite Zeile** → *Bedingungen* je Datenpunkt | dieser eine Wert |
+| [Universal](../widgets/universal-widget) / Custom-Layout | Zellen-Editor → **Bedingungen** | diese eine Zelle |
+
+Effekte einer Element-Regel: Textfarbe, Hintergrund (nur „Ganze Zeile"), Icon-Farbe, Icon, Text, Fett,
+Kursiv, Ausblenden.
+
+Eine Regel auf **Ganze Zeile** gibt Textfarbe, Fett/Kursiv und Icon an die Teile weiter; Hintergrund und
+Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen die Zeilen-Regel.
 
 ### Widget neu laden
 

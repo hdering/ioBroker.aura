@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { Plus, X } from 'lucide-react';
+import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../../types';
 import type { AutoListEntry } from '../../widgets/AutoListWidget';
 import { ColorField, DetailSection } from './listFieldUi';
@@ -5,10 +8,17 @@ import { ValueTransformButton } from '../ValueTransformButton';
 import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConfig';
 import { usesOnOffLabels } from '../../widgets/entryControls';
 import { RowClickEntryField } from '../RowClickSection';
+import { ElementConditionEditor, ROW_TARGETS } from '../ElementConditionEditor';
+import { IconPickerModal } from '../IconPickerModal';
+import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import { SubDpFields } from './SubDpFields';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { useT } from '../../../i18n';
 import type { EntrySubDp } from '../../widgets/EntrySubLine';
+
+function toIconifyId(name: string): string {
+    return name.includes(':') ? name : lucidePascalToIconify(name);
+}
 
 /**
  * Everything that configures ONE entry of the dynamic list - the block that used to
@@ -28,6 +38,7 @@ export function AutoEntryDetail({
     onUpdate: (patch: Partial<AutoListEntry>) => void;
 }) {
     const t = useT();
+    const [iconPickerOpen, setIconPickerOpen] = useState(false);
     // AN/AUS colors only apply to an explicit switch entry; hide for Auto/slider/value/shutter/…
     const dt = entry.displayType ?? 'auto';
     const isSwitch = dt === 'switch';
@@ -87,8 +98,43 @@ export function AutoEntryDetail({
             </DetailSection>
 
             <DetailSection title="Beschriftung">
-                {/* Bezeichnung breit + Einheit schmal nebeneinander */}
+                {/* Icon (kompakt) + Bezeichnung + Einheit in einer Zeile */}
                 <div className="flex items-end gap-1.5">
+                    <div className="shrink-0">
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Icon
+                        </label>
+                        <div className="relative" style={{ width: 40 }}>
+                            <button
+                                onClick={() => setIconPickerOpen(true)}
+                                title={entry.icon || 'Icon wählen'}
+                                className="w-full flex items-center justify-center rounded hover:opacity-80"
+                                style={{ ...iSty, height: 23 }}
+                            >
+                                {entry.icon ? (
+                                    <Icon icon={toIconifyId(entry.icon)} width={15} height={15} />
+                                ) : (
+                                    <Plus size={13} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
+                                )}
+                            </button>
+                            {entry.icon && (
+                                <button
+                                    onClick={() => onUpdate({ icon: undefined })}
+                                    title="Icon entfernen"
+                                    className="absolute -top-1 -right-1 flex items-center justify-center rounded-full hover:opacity-80"
+                                    style={{
+                                        width: 13,
+                                        height: 13,
+                                        background: 'var(--app-bg)',
+                                        border: '1px solid var(--app-border)',
+                                        color: 'var(--text-secondary)',
+                                    }}
+                                >
+                                    <X size={8} />
+                                </button>
+                            )}
+                        </div>
+                    </div>
                     <div className="flex-1 min-w-0">
                         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                             {t('endpoints.dp.label')}
@@ -193,6 +239,23 @@ export function AutoEntryDetail({
                 )}
             </DetailSection>
 
+            <DetailSection
+                title="Bedingungen"
+                badge={entry.conditions?.length ? String(entry.conditions.length) : undefined}
+            >
+                <p className="text-[9px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                    Nur für diese Zeile. Listenweite Regeln (Dialog → Tab „Bedingungen“) laufen davor, diese hier
+                    gewinnen je Eigenschaft.
+                </p>
+                <ElementConditionEditor
+                    rules={entry.conditions ?? []}
+                    onChange={(next) => onUpdate({ conditions: next.length ? next : undefined })}
+                    targets={ROW_TARGETS}
+                    ownHint="{dp} = Wert dieser Zeile; Pille umschalten für einen anderen Datenpunkt."
+                    intro="Noch keine Regel. Regeln reagieren auf den Zeilenwert (oder einen fremden Datenpunkt) und ändern Farbe, Icon, Text oder blenden die Zeile aus."
+                />
+            </DetailSection>
+
             <DetailSection title="Verhalten">
                 <RowClickEntryField
                     config={listConfig}
@@ -208,6 +271,17 @@ export function AutoEntryDetail({
                     listHidesTitle={!!listConfig.options?.rowPopupHideTitle}
                 />
             </DetailSection>
+
+            {iconPickerOpen && (
+                <IconPickerModal
+                    current={entry.icon ?? ''}
+                    onSelect={(name) => {
+                        onUpdate({ icon: name || undefined });
+                        setIconPickerOpen(false);
+                    }}
+                    onClose={() => setIconPickerOpen(false)}
+                />
+            )}
         </>
     );
 }

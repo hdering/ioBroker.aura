@@ -106,6 +106,8 @@
     "test:status-auto-height": "node tools/tests/status-overview-auto-height.mjs",
     "test:condition-set": "node tools/tests/condition-set.mjs",
     "test:condition-set-ui": "node tools/tests/condition-set-ui.mjs",
+    "test:row-conditions": "node tools/tests/row-conditions.mjs",
+    "test:row-conditions-ui": "node tools/tests/row-conditions-ui.mjs",
     "test:enum-json": "node tools/tests/enum-json-entries.mjs",
     "test:enum-json-ui": "node tools/tests/enum-json-widget.mjs"
   },

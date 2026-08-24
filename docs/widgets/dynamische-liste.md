@@ -70,10 +70,63 @@ In der Vorlage darf die Datenpunkt-ID Platzhalter enthalten, aufgelöst gegen de
 
 Ohne Platzhalter gilt derselbe Datenpunkt für jede Zeile (Außentemperatur, Strompreis). Ein Beispiel-Eintrag im Tab liefert die Auswahl der Geschwister-Datenpunkte und die Vorschau der aufgelösten IDs.
 
+Zusätzlich pro Datenpunkt der zweiten Zeile:
+
+| Feld | |
+| --- | --- |
+| Werte-Zuordnung (`states`) | Tabelle `Wert → Text`, optional mit Icon und Farbe — z. B. `true` → `ONLINE`. Ersetzt den Werttext; die Einheit entfällt dann |
+| Bedingungen (`conditions`) | dieselben Regeln wie [je Zeile](#bedingungen-je-zeile), nur für diesen einen Wert |
+
+Die Werte-Zuordnung ist dieselbe Tabelle wie beim Darstellungstyp `Zustände` und wirkt an beiden Stellen
+gleich.
+
 | Option | Standard | |
 | --- | --- | --- |
 | `subDpTemplate` | — | Vorlage für alle Einträge |
 | `subDpTemplateHideMissing` | `true` | Zeilen ohne den aufgelösten Datenpunkt bleiben leer statt `–` zu zeigen |
+
+### Bedingungen je Zeile
+
+Regeln, die auf einen Wert reagieren und Farbe, Icon oder Text einer Zeile ändern. Zwei Orte, gleiche
+Regeln:
+
+| Ort | Gilt für |
+| --- | --- |
+| Dialog **Datenpunkte verwalten** → Tab **Bedingungen** (`rowConditions`) | alle Zeilen |
+| Detail-Editor → Abschnitt **Bedingungen** (`entries[].conditions`) | nur diese Zeile |
+
+Die listenweiten Regeln laufen zuerst, die des Eintrags danach — **pro Eigenschaft gewinnt die letzte**.
+Ausblenden ist absorbierend.
+
+| Feld | |
+| --- | --- |
+| `target` | `row` (Standard) · `name` · `value` · `icon` — worauf die Regel wirkt |
+| `clauses` / `logic` | wie bei den [Widget-Bedingungen](../einstellungen/editor#bedingungen-marker-operatoren), inkl. Vergleich gegen einen zweiten Datenpunkt |
+| `color` · `bg` · `iconColor` | Textfarbe · Zeilenhintergrund (nur `row`) · Icon-Farbe |
+| `icon` | anderes Icon, solange die Regel greift |
+| `text` | ersetzt den angezeigten Text; die Einheit entfällt dabei |
+| `bold` · `italic` · `hide` | Schriftschnitt bzw. Element ausblenden |
+
+Eine Regel auf `row` gibt Textfarbe, Fett/Kursiv und Icon an Name, Wert und Icon weiter; Hintergrund und
+Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen sie.
+
+#### Datenpunkt einer Bedingung
+
+| Schreibweise | bedeutet |
+| --- | --- |
+| `{dp}` (leer) | Wert der Zeile selbst |
+| `hm-rpc.0.Gerät.UNREACH` | genau dieser Datenpunkt, in jeder Zeile derselbe |
+| `{{parent}}.UNREACH` | Nachbar-Datenpunkt **der jeweiligen Zeile** |
+| `{{dp}}` · `{{name}}` | vollständige ID bzw. letztes Segment der Zeile |
+
+Die doppelten Klammern sind dieselben Platzhalter wie in der [zweiten Zeile](#zweite-zeile-zusatzliche-datenpunkte).
+Zeilen, deren Datenpunkt einen Platzhalter nicht beantworten kann (kein Elternstrang), überspringen die
+Regel — statt gegen den wörtlichen Text zu vergleichen.
+
+::: tip Beispiel
+`{{parent}}.UNREACH` ist wahr → `target: icon`, Icon `CloudOff`, Icon-Farbe rot. Eine Regel, jede Zeile
+prüft ihr eigenes Gerät.
+:::
 
 ### Datenpunkt-Suche
 
@@ -140,6 +193,8 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 
 | Option | Standard | |
 | --- | --- | --- |
+| `entryIcon` | — | Icon vor dem Namen **jeder** Zeile ([Lucide](https://lucide.dev) / Iconify-ID); pro Eintrag im Detail-Editor überschreibbar |
+| `entryIconSize` | `13` | Größe dieses Icons in px |
 | `showTitle` | `true` | Titel anzeigen |
 | `showIcon` | `true` | Icon anzeigen |
 | `icon` | `List` | [Lucide-Icon](https://lucide.dev) |

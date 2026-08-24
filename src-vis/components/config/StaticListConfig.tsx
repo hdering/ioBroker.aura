@@ -20,6 +20,7 @@ import { NameDisplayFields } from './NameDisplayFields';
 import { ValueTransformFields } from './ValueTransformFields';
 import { ColorThresholdsEditor } from './ColorThresholdsEditor';
 import { StaticEntryDetail } from './list/StaticEntryDetail';
+import { RowConditionsPanel } from './list/RowConditionsPanel';
 import { DividerDetail } from './list/DividerDetail';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { ListFilterSection } from './list/ListFilterSection';
@@ -180,6 +181,17 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     );
                 }}
                 tabs={[
+                    {
+                        key: 'rowconds',
+                        label: 'Bedingungen',
+                        node: (
+                            <RowConditionsPanel
+                                rules={opts.rowConditions}
+                                sampleDp={entries.find((e) => !!e.id)?.id}
+                                onChange={(next) => setOpts({ rowConditions: next.length ? next : undefined })}
+                            />
+                        ),
+                    },
                     {
                         key: 'rowclick',
                         label: 'Klick auf Zeile',

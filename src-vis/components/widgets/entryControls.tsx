@@ -97,6 +97,15 @@ export interface EntryStateMap {
     color?: string;
 }
 
+/** The mapping that matches a value, if any. String equality, like StateDisplay. */
+export function matchStateMap(
+    states: EntryStateMap[] | undefined,
+    val: ioBrokerState['val'],
+): EntryStateMap | undefined {
+    if (!states?.length || val === null || val === undefined) return undefined;
+    return states.find((s) => String(s.value) === String(val));
+}
+
 /** Per-entry control config — mixed into StaticListEntry and AutoListEntry.
  *  Extends ValueTransformSettings: every entry can carry its own display-only
  *  value conversion / time formatting, overriding the list-wide default. */
@@ -223,6 +232,9 @@ export interface EntryValueText {
     isTime: boolean;
     /** Nothing configured on either level → callers may keep their raw-value path. */
     active: boolean;
+    /** The value→text mapping that produced the text, when one did. Carries the
+     *  colour and icon the caller may want to apply alongside the label. */
+    state?: EntryStateMap;
 }
 
 /** Resolve an entry's value into what the list should print for it. */
@@ -237,6 +249,11 @@ export function entryValueText(
     const tr = resolveValueTransform(entry, listDefault);
     const value = applyValueTransform(val, tr.factor, tr.offset) as ioBrokerState['val'];
     if (value === null || value === undefined) return { value, text: null, isTime: false, active: tr.active };
+    // A configured value→text table wins over formatting: it is what turns `true`
+    // into "ONLINE" (issue #572). Sitting here means the main value and the second
+    // line share it — EntrySubLine goes through the same function.
+    const mapped = matchStateMap(entry.states, value);
+    if (mapped?.label) return { value, text: mapped.label, isTime: false, active: tr.active, state: mapped };
     if (tr.timeFormat) {
         return {
             value,

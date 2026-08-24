@@ -12,6 +12,7 @@ import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConf
 import { usesOnOffLabels } from '../../widgets/entryControls';
 import { IconPickerModal } from '../IconPickerModal';
 import { RowClickEntryField } from '../RowClickSection';
+import { ElementConditionEditor, ROW_TARGETS } from '../ElementConditionEditor';
 import { SubDpFields } from './SubDpFields';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
@@ -535,6 +536,23 @@ export function StaticEntryDetail({
                         </p>
                     )}
                 </div>
+            </DetailSection>
+
+            <DetailSection
+                title="Bedingungen"
+                badge={entry.conditions?.length ? String(entry.conditions.length) : undefined}
+            >
+                <p className="text-[9px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                    Nur für diese Zeile. Listenweite Regeln (Dialog → Tab „Bedingungen“) laufen davor, diese hier
+                    gewinnen je Eigenschaft.
+                </p>
+                <ElementConditionEditor
+                    rules={entry.conditions ?? []}
+                    onChange={(next) => onUpdate({ conditions: next.length ? next : undefined })}
+                    targets={ROW_TARGETS}
+                    ownHint="{dp} = Wert dieser Zeile; Pille umschalten für einen anderen Datenpunkt."
+                    intro="Noch keine Regel. Regeln reagieren auf den Zeilenwert (oder einen fremden Datenpunkt) und ändern Farbe, Icon, Text oder blenden die Zeile aus."
+                />
             </DetailSection>
 
             <DetailSection title="Verhalten">

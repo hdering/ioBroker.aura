@@ -24,6 +24,8 @@ import { IconPickerModal } from '../IconPickerModal';
 import { ValueFormatRow } from '../ValueFormatRow';
 import { ValueTransformButton } from '../ValueTransformButton';
 import { ColorField } from './listFieldUi';
+import { ElementConditionEditor } from '../ElementConditionEditor';
+import { StateMapFields } from './StateMapFields';
 import { ensureDatapointCache, lookupDatapointEntry, type DatapointEntry } from '../../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import { subAll } from '../../../utils/popupPlaceholders';
@@ -379,6 +381,26 @@ export function SubDpFields({
                                         />
                                     </div>
                                 </div>
+
+                                {/* Value → text table and rules for this datapoint (issue #572).
+                                    The table runs through the same display pipeline as the main
+                                    value, so "true → ONLINE" is configured once and reads the same
+                                    in both lines. */}
+                                <StateMapFields states={sub.states} onChange={(next) => patch(i, { states: next })} />
+                                <details className="mt-1.5">
+                                    <summary
+                                        className="text-[10px] cursor-pointer select-none"
+                                        style={{ color: 'var(--accent)' }}
+                                    >
+                                        Bedingungen{sub.conditions?.length ? ` (${sub.conditions.length})` : ''}
+                                    </summary>
+                                    <ElementConditionEditor
+                                        rules={sub.conditions ?? []}
+                                        onChange={(next) => patch(i, { conditions: next.length ? next : undefined })}
+                                        ownHint="{dp} = Wert dieses Datenpunkts; Pille umschalten für einen anderen."
+                                        intro="Noch keine Regel. Regeln ändern Farbe, Icon oder Text dieses Werts."
+                                    />
+                                </details>
                             </div>
                         )}
                     </div>
