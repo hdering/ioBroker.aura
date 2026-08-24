@@ -300,13 +300,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         },
         [autoHeight, widgetId],
     );
-    useEffect(
-        () => () => {
-            roRef.current?.disconnect();
-            useAutoHeightStore.getState().clear(widgetId);
-        },
-        [widgetId],
-    );
+    // No unmount effect on top of this: React calls the ref with null when the widget
+    // goes away (disconnect + clear above), and a second clear from an effect cleanup
+    // would wipe a height that the re-attached ref had just reported (StrictMode
+    // double-invoke), which left the grid item at its stored height in dev.
     // ── Attention chip (the one "loud" element) ────────────────────────────────
     const chip = (
         <span
