@@ -416,6 +416,36 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         </div>
     );
 
+    // ── all-clear (the intended normal state) — only when filtering to alerts ────
+    // Defined before the layout branches so every layout can show it instead of an
+    // empty body when there is nothing to report.
+    const allClear = total === 0 && !showAll && !opts.showOkCategories;
+    const allClearBlock =
+        opts.showAllClear === false ? null : (
+            <div
+                className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center gap-1.5 text-center px-2`}
+            >
+                <ShieldCheck size={22} style={{ color: SEVERITY_COLOR.ok }} />
+                <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                    {opts.allClearText || 'Alles in Ordnung'}
+                </p>
+                <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    {enabledCats.map((c) => CATEGORY_META[c].label).join(' · ')} überwacht
+                </p>
+            </div>
+        );
+
+    // Card and minimal render a bare item container, so an empty one would show
+    // nothing at all — hand those layouts the all-clear block instead.
+    if (allClear && (layout === 'card' || layout === 'minimal')) {
+        return (
+            <div ref={measureRef} className={rootCls}>
+                {header}
+                {allClearBlock}
+            </div>
+        );
+    }
+
     // ── card layout: grid of tiles (mirrors the static-list card layout) ─────────
     if (layout === 'card') {
         return (
@@ -528,26 +558,13 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         );
     }
 
-    // ── all-clear (the intended normal state) — only when filtering to alerts ────
-    const allClear = total === 0 && !showAll && !opts.showOkCategories;
-
     return (
         <div ref={measureRef} className={rootCls}>
             {header}
             {rowPopup.node}
 
             {allClear ? (
-                <div
-                    className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center gap-1.5 text-center px-2`}
-                >
-                    <ShieldCheck size={22} style={{ color: SEVERITY_COLOR.ok }} />
-                    <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                        {opts.allClearText || 'Alles in Ordnung'}
-                    </p>
-                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {enabledCats.map((c) => CATEGORY_META[c].label).join(' · ')} überwacht
-                    </p>
-                </div>
+                allClearBlock
             ) : (
                 <div className={`${scrollCls} pr-0.5`}>
                     {layout === 'compact'

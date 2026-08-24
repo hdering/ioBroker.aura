@@ -578,19 +578,29 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                             Batterien, Lichter, offline), dann OK — innerhalb gleich sortiert nach Name.
                         </p>
                     </div>
-                    <div>
-                        <label className={labelCls} style={labelStyle}>
-                            Text bei {'„Alles in Ordnung“'}
-                        </label>
-                        <input
-                            type="text"
-                            value={o.allClearText ?? ''}
-                            onChange={(e) => set({ allClearText: e.target.value || undefined })}
-                            placeholder="Alles in Ordnung"
-                            className={inputCls}
-                            style={inputStyle}
-                        />
-                    </div>
+                    <Toggle
+                        checked={o.showAllClear !== false}
+                        onChange={(v) => set({ showAllClear: v ? undefined : false })}
+                        label={'Hinweis „Alles in Ordnung“ zeigen'}
+                    />
+                    <p className="text-[11px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        Aus: Liegt nichts an, bleibt das Widget leer (nur Titel und Zähler).
+                    </p>
+                    {o.showAllClear !== false && (
+                        <div>
+                            <label className={labelCls} style={labelStyle}>
+                                Text bei {'„Alles in Ordnung“'}
+                            </label>
+                            <input
+                                type="text"
+                                value={o.allClearText ?? ''}
+                                onChange={(e) => set({ allClearText: e.target.value || undefined })}
+                                placeholder="Alles in Ordnung"
+                                className={inputCls}
+                                style={inputStyle}
+                            />
+                        </div>
+                    )}
                 </div>
             </details>
 

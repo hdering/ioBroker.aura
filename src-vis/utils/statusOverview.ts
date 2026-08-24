@@ -112,6 +112,7 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     showSince?: boolean; // show how long a window/door has been open ("seit 5 min", default true)
     autoHeight?: boolean; // size the widget to its content in the stacked/mobile view (default false)
     showOkCategories?: boolean; // also list categories with no alerts (default false)
+    showAllClear?: boolean; // show the „Alles in Ordnung“ panel when nothing needs attention (default true)
     allClearText?: string;
     sortBy?: 'severity' | 'room'; // default 'severity'
 }

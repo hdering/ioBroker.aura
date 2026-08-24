@@ -10,3 +10,4 @@
 - Frontend design - a theme picked for a whole layout is now applied in the frontend; before that only per-section overrides had any effect (#573)
 - Frontend design - the header light/dark button and the themeMode.frontend datapoint now switch the *mode* only: a design that already matches the requested brightness is kept, and the configured design is no longer overwritten for good (#573)
 - Frontend design - the theme presets are greyed out with a hint while "theme follows browser" is on, and the admin says when a light/dark mode datapoint replaces the picked design (#573)
+- Status overview - the "All clear" message is now shown in the card and minimal layouts too; before that they stayed empty when nothing needed attention, and it can now be switched off entirely
