@@ -31,9 +31,24 @@ export function MultiSelect({
     const q = search.toLowerCase();
     const filtered = norm.filter((o) => o.label.toLowerCase().includes(q) || (o.group ?? '').toLowerCase().includes(q));
     const toggle = (v: string) => onChange(selected.includes(v) ? selected.filter((s) => s !== v) : [...selected, v]);
-    // Unknown values (an enum deleted in ioBroker) still show, as the raw id - hiding
-    // them would silently drop a filter the user cannot see any more.
-    const selectedText = selected.map((v) => norm.find((o) => o.value === v)?.label ?? v).join(', ');
+    // The group heading is only visible while the dropdown is open, so a closed field
+    // could not tell 'Bad' under one category from 'Bad' under another (issue #568).
+    // The summary therefore names each category once and lists its entries behind it:
+    // 'Stockwerke: Obergeschoss, Dachgeschoss · Heizkreise: Süd' - the comma is the
+    // OR inside a category, the middot the AND across them.
+    const selectedText = (() => {
+        const groups: { group?: string; labels: string[] }[] = [];
+        for (const v of selected) {
+            const opt = norm.find((o) => o.value === v);
+            // Unknown values (an enum deleted in ioBroker) still show, as the raw id -
+            // hiding them would silently drop a filter the user cannot see any more.
+            const label = opt?.label ?? v;
+            const bucket = groups.find((g) => g.group === opt?.group);
+            if (bucket) bucket.labels.push(label);
+            else groups.push({ group: opt?.group, labels: [label] });
+        }
+        return groups.map((g) => (g.group ? `${g.group}: ${g.labels.join(', ')}` : g.labels.join(', '))).join(' · ');
+    })();
 
     return (
         <div className="relative">
@@ -50,7 +65,7 @@ export function MultiSelect({
                     border: '1px solid var(--app-border)',
                 }}
             >
-                <span className="truncate flex-1 min-w-0">
+                <span className="truncate flex-1 min-w-0" title={selected.length ? selectedText : undefined}>
                     {loading ? 'Lade…' : selected.length === 0 ? (placeholder ?? 'Alle') : selectedText}
                 </span>
                 <ChevronDown
