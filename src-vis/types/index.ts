@@ -597,9 +597,35 @@ export interface ConditionStyle {
     accent?: string;
     bg?: string; // --widget-bg
     border?: string; // --widget-border
+    borderWidth?: string; // --widget-border-width, e.g. '2px'
+    radius?: string; // --widget-radius, e.g. '18px'
+    opacity?: string; // --widget-opacity, 0…1
     textPrimary?: string;
     textSecondary?: string;
 }
+
+// ── "Anzeige überschreiben" ──────────────────────────────────────────────────
+// Effects that cannot be expressed as a CSS variable because they replace a value
+// the widget reads out of its own config (issue #96). WidgetFrame merges them into
+// the *rendered* copy of the config only — the edit dialog and every onConfigChange
+// keep the raw values, exactly like the `[[dp]]` title substitution beside it.
+//
+// title / showTitle / icon / iconSize / showIcon need no per-widget wiring: every
+// widget already reads those options (44 read `icon`, 51 read `iconSize`, all via
+// getWidgetIcon). `valueText` does — a widget has to read `options.valueTextOverride`
+// for it to show up, which is why widgetRegistry declares per type which slots the
+// editor offers.
+export interface ConditionSet {
+    title?: string; // replaces config.title ([[dp]] tokens in it still resolve)
+    showTitle?: boolean;
+    icon?: string; // replaces options.icon
+    iconSize?: number;
+    showIcon?: boolean;
+    valueText?: string; // replaces the displayed value (widgets with the 'value' slot)
+}
+
+/** Which override slots a widget type actually honours — see widgetRegistry. */
+export type ConditionSlot = 'icon' | 'title' | 'value';
 
 export interface WidgetCondition {
     id: string;
@@ -607,6 +633,8 @@ export interface WidgetCondition {
     logic: 'AND' | 'OR'; // how to combine multiple clauses
     clauses: ConditionClause[];
     style: ConditionStyle;
+    /** Config values the rule overrides while it matches (issue #96). */
+    set?: ConditionSet;
     effect?: 'none' | 'pulse' | 'blink';
     // Remount the widget when the rule fires, so embedded content (iframe, camera,
     // image) re-fetches. Rules with a 'changed' clause fire on every change; all

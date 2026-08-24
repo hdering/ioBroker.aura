@@ -62,7 +62,7 @@ import {
     BellRing,
     type LucideIcon,
 } from 'lucide-react';
-import type { WidgetType } from './types';
+import type { WidgetType, ConditionSlot } from './types';
 
 export type AddMode =
     | 'datapoint' // requires an ioBroker state ID
@@ -100,6 +100,22 @@ export interface WidgetMeta {
     popupDefaults?: Record<string, string>;
     /** Deprecated/hidden: existing instances keep working, but it is filtered out of the "add widget" pickers */
     hidden?: boolean;
+    /**
+     * Which "Anzeige überschreiben" slots a condition may set on this type — the
+     * editor offers exactly these, so a configured override always has an effect.
+     * Omitted means the default DEFAULT_CONDITION_SLOTS; use conditionSlotsFor().
+     */
+    conditionSlots?: ConditionSlot[];
+}
+
+// Every widget except these reads options.icon / options.iconSize (46 of 55 do it
+// literally, the rest through config.options?.icon), so icon + title are the
+// default. 'value' is opt-in: it only works where the widget reads
+// options.valueTextOverride — see utils/conditionSet.
+export const DEFAULT_CONDITION_SLOTS: ConditionSlot[] = ['icon', 'title'];
+
+export function conditionSlotsFor(type: WidgetType): ConditionSlot[] {
+    return WIDGET_BY_TYPE[type]?.conditionSlots ?? DEFAULT_CONDITION_SLOTS;
 }
 
 export const WIDGET_GROUPS: { id: WidgetGroup; label: string }[] = [
@@ -111,6 +127,7 @@ export const WIDGET_GROUPS: { id: WidgetGroup; label: string }[] = [
 export const WIDGET_REGISTRY: WidgetMeta[] = [
     {
         type: 'switch',
+        conditionSlots: ['icon', 'title', 'value'],
         label: 'Schalter',
         shortLabel: 'Schalter',
         Icon: Zap,
@@ -189,6 +206,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'value',
+        conditionSlots: ['icon', 'title', 'value'],
         label: 'Wert-Anzeige',
         shortLabel: 'Wert',
         Icon: TrendingUp,
@@ -520,6 +538,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'windowcontact',
+        conditionSlots: ['icon', 'title', 'value'],
         label: 'Fenster-/Türkontakt',
         shortLabel: 'Kontakt',
         Icon: DoorOpen,
@@ -534,6 +553,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'binarysensor',
+        conditionSlots: ['icon', 'title', 'value'],
         label: 'Binärsensor',
         shortLabel: 'Sensor',
         Icon: ShieldAlert,
@@ -548,6 +568,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'stateimage',
+        conditionSlots: ['icon', 'title', 'value'],
         label: 'Zustandsbild',
         shortLabel: 'Zustandsbild',
         Icon: ToggleRight,
@@ -789,6 +810,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'map',
+        conditionSlots: ['title'],
         label: 'Karte',
         shortLabel: 'Karte',
         Icon: MapPin,
@@ -803,6 +825,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'statusoverview',
+        conditionSlots: ['title'],
         label: 'Statusübersicht',
         shortLabel: 'Status',
         Icon: ListChecks,
@@ -859,6 +882,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'mirror',
+        conditionSlots: [],
         label: 'Spiegel',
         shortLabel: 'Spiegel',
         Icon: CopyPlus,
@@ -873,6 +897,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'menu',
+        conditionSlots: ['title'],
         label: 'Menü',
         shortLabel: 'Menü',
         Icon: Menu,

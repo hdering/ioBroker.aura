@@ -5,6 +5,7 @@ import type { WidgetProps } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
+import { valueTextOverride } from '../../utils/conditionSet';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -79,6 +80,8 @@ export function WindowContactWidget({ config }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
 
     const cfg = getWcCfg(o, state);
+    // A condition rule may replace the state text ("Anzeige überschreiben").
+    const stateLabel = valueTextOverride(config) ?? cfg.label;
     const fb = WC_FALLBACK[state];
 
     // Extra DPs for custom layout – hooks must always run unconditionally
@@ -128,9 +131,9 @@ export function WindowContactWidget({ config }: WidgetProps) {
         return (
             <CustomGridView
                 config={config}
-                value={cfg.label}
+                value={stateLabel}
                 extraFields={{
-                    label: cfg.label,
+                    label: stateLabel,
                     open: state === 'open' ? 'Ja' : 'Nein',
                     tilted: state === 'tilted' ? 'Ja' : 'Nein',
                     closed: state === 'closed' ? 'Ja' : 'Nein',
@@ -171,7 +174,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
                     )}
                     {showLabel && (
                         <p className="aura-widget-value text-xs opacity-80" style={{ color: '#fff' }}>
-                            {cfg.label}
+                            {stateLabel}
                         </p>
                     )}
                 </div>
@@ -202,7 +205,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
                         className="aura-widget-value text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
                         style={{ background: `${cfg.color}22`, color: cfg.color, border: `1px solid ${cfg.color}55` }}
                     >
-                        {cfg.label}
+                        {stateLabel}
                     </span>
                 )}
                 <StatusBadges config={config} />
@@ -220,7 +223,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
                 {showIcon && <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} className="aura-widget-icon" />}
                 {showLabel && (
                     <span className="aura-widget-value text-xl font-bold" style={{ color: cfg.color }}>
-                        {cfg.label}
+                        {stateLabel}
                     </span>
                 )}
                 {showTitle && (
@@ -264,7 +267,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
             )}
             {showLabel && (
                 <span className="aura-widget-value text-base font-semibold" style={{ color: cfg.color }}>
-                    {cfg.label}
+                    {stateLabel}
                 </span>
             )}
             <StatusBadges config={config} />

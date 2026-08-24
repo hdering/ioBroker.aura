@@ -3,6 +3,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { valueTextOverride } from '../../utils/conditionSet';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -54,7 +55,8 @@ export function BinarySensorWidget({ config }: WidgetProps) {
     const colorOn = (opts.colorOn as string) || preset.colorOn;
     const colorOff = (opts.colorOff as string) || preset.colorOff;
 
-    const label = isActive ? labelOn : labelOff;
+    // A condition rule may replace the state text ("Anzeige überschreiben").
+    const label = valueTextOverride(config) ?? (isActive ? labelOn : labelOff);
     const color = isActive ? colorOn : colorOff;
     // Keep the icon component reference stable across active/inactive toggles.
     // A custom Iconify icon is cached by iconId+fallback, so flipping the

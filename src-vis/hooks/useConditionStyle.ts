@@ -14,7 +14,8 @@ import { bumpWidgetRefresh } from '../store/widgetRefreshStore';
 import { useMessagesStore } from '../store/messagesStore';
 import { draftToPayload } from '../components/config/MessageBuilder';
 import { isScreenshotMode } from '../store/persistManager';
-import type { WidgetCondition, ConditionStyle } from '../types';
+import { EMPTY_SET, isEmptySet } from '../utils/conditionSet';
+import type { WidgetCondition, ConditionStyle, ConditionSet } from '../types';
 
 // ── Debug logging ─────────────────────────────────────────────────────────────
 // End-user opt-in. Enable from DevTools console:
@@ -89,6 +90,9 @@ function styleToVars(style: ConditionStyle): Record<string, string> {
     if (style.accent) v['--accent'] = style.accent;
     if (style.bg) v['--widget-bg'] = style.bg;
     if (style.border) v['--widget-border'] = style.border;
+    if (style.borderWidth) v['--widget-border-width'] = style.borderWidth;
+    if (style.radius) v['--widget-radius'] = style.radius;
+    if (style.opacity) v['--widget-opacity'] = style.opacity;
     if (style.textPrimary) v['--text-primary'] = style.textPrimary;
     if (style.textSecondary) v['--text-secondary'] = style.textSecondary;
     return v;
@@ -174,13 +178,15 @@ export function useConditionReflowIds(): Set<string> {
 
 export interface ConditionResult {
     cssVars: Record<string, string>;
+    /** Config values the matching rules override — see utils/conditionSet. */
+    set: ConditionSet;
     effect: 'pulse' | 'blink' | null;
     hidden: boolean; // widget should be hidden
     reflow: boolean; // remove from grid so others slide up
 }
 
 // Module-level constant – same reference every time, lets React bail out of re-renders
-const EMPTY_RESULT: ConditionResult = { cssVars: {}, effect: null, hidden: false, reflow: false };
+const EMPTY_RESULT: ConditionResult = { cssVars: {}, set: EMPTY_SET, effect: null, hidden: false, reflow: false };
 
 // Shared "nothing changed" set for every evaluation that is not driven by a live
 // value arriving (initial load, getState resolution, manual recompute).
@@ -216,6 +222,10 @@ function computeResult(
     ctx?: DpSourceCtx,
 ): ConditionResult {
     const merged: Record<string, string> = {};
+    // Every matching rule is applied in order and later ones win per field — the
+    // same sparse-merge the cell rules use, so "rot wenn Alarm" and "anderes Icon
+    // wenn offline" can stack instead of cancelling each other out.
+    let set: ConditionSet | null = null;
     let effect: 'pulse' | 'blink' | null = null;
     let hidden = false;
     let reflow = false;
@@ -224,14 +234,21 @@ function computeResult(
         const matched = evaluateConditionWithSource(cond, values, ctx);
         if (matched) {
             Object.assign(merged, styleToVars(cond.style));
+            if (cond.set && !isEmptySet(cond.set)) {
+                set ??= {};
+                for (const [k, v] of Object.entries(cond.set)) {
+                    if (v !== undefined) (set as Record<string, unknown>)[k] = v;
+                }
+            }
             if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
         }
+        // Hiding is absorbing: once a rule hides the widget, no later rule brings it back.
         if (conditionHides(cond, matched)) {
             hidden = true;
             if (cond.reflow) reflow = true;
         }
     }
-    return { cssVars: merged, effect, hidden, reflow };
+    return { cssVars: merged, set: set ?? EMPTY_SET, effect, hidden, reflow };
 }
 
 export function useConditionStyle(
@@ -293,7 +310,7 @@ export function useConditionStyle(
         // remount cycle on initial paint (and inside group widgets, an actual
         // flicker loop: see issue #281).
         const initial: ConditionResult = mayHide
-            ? { cssVars: {}, effect: null, hidden: true, reflow: false }
+            ? { cssVars: {}, set: EMPTY_SET, effect: null, hidden: true, reflow: false }
             : EMPTY_RESULT;
         condLog('init (cache miss/partial — pessimistic in-place hide)', {
             widgetId,
@@ -348,7 +365,7 @@ export function useConditionStyle(
 
         const pessimistic = (): ConditionResult => {
             const mayHide = conditions.some((c) => c.hideWidget);
-            return mayHide ? { cssVars: {}, effect: null, hidden: true, reflow: false } : EMPTY_RESULT;
+            return mayHide ? { cssVars: {}, set: EMPTY_SET, effect: null, hidden: true, reflow: false } : EMPTY_RESULT;
         };
 
         // ── "Widget neu laden" rules (issue #537) ────────────────────────────
@@ -426,7 +443,8 @@ export function useConditionStyle(
                     prev.effect === next.effect &&
                     prev.hidden === next.hidden &&
                     prev.reflow === next.reflow &&
-                    JSON.stringify(prev.cssVars) === JSON.stringify(next.cssVars)
+                    JSON.stringify(prev.cssVars) === JSON.stringify(next.cssVars) &&
+                    JSON.stringify(prev.set) === JSON.stringify(next.set)
                 ) {
                     condLog('recompute (no change)', { widgetId, trigger, dp, allKnown });
                     return prev;

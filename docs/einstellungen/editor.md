@@ -49,14 +49,42 @@ Listen-Quellen stehen bei `Liste` und `Dynamische Liste` zur Verfügung. Das Que
 
 ## Bedingungen: Effekte
 
-Alles unterhalb der Klauseln greift, wenn die Regel zutrifft. Mehrere Regeln werden der Reihe nach angewandt.
+Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 
 | Effekt | Wirkung |
 | --- | --- |
-| Stil wenn aktiv | Akzent, Hintergrund, Rahmen, Text, Text 2 überschreiben |
+| Stil wenn aktiv | Akzent, Hintergrund, Rahmen, Rahmenbreite, Eckenradius, Deckkraft, Text, Text 2 |
+| Anzeige überschreiben | Titel, Icon, Icon-Größe, Titel/Icon zeigen, Wert-Text |
 | Effekt | `Pulsieren` · `Blinken` |
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
+
+## Bedingungen: Anzeige überschreiben
+
+Ersetzt Werte, die das Widget aus seiner eigenen Konfiguration liest — nur für die Anzeige.
+Gespeichert bleibt die Einstellung; trifft die Regel nicht mehr zu, steht wieder das Original da.
+
+| Feld | Wirkt in |
+| --- | --- |
+| Titel | allen Widgets; `[[dp]]` im Text wird live aufgelöst |
+| Titel zeigen · Icon zeigen | `unverändert` · `anzeigen` · `ausblenden` |
+| Icon · Icon-Größe | allen Widgets mit eigenem Icon — nicht Karte, Statusübersicht, Menü, Spiegel |
+| Wert-Text | Wert-Anzeige, Schalter, Binärsensor, Fenster-/Türkontakt, Zustandsbild; ersetzt den Werttext, die Einheit entfällt dabei |
+
+Der Editor bietet nur die Felder an, die der jeweilige Widget-Typ auch umsetzt.
+
+## Bedingungen: Vorrang
+
+| Stufe | Quelle |
+| --- | --- |
+| 1 | Widget-Einstellungen (Icon, Farben, Farbschwellen) |
+| 2 | Widget-Bedingungen, in Reihenfolge |
+
+Alle zutreffenden Regeln werden der Reihe nach angewandt, **pro Eigenschaft gewinnt die letzte**. Eine
+Regel, die nur die Textfarbe setzt, lässt den Hintergrund der vorherigen stehen. Die Reihenfolge im
+Editor entscheidet also.
+
+Ausblenden ist davon ausgenommen: hat eine Regel ausgeblendet, blendet keine spätere wieder ein.
 
 ### Widget neu laden
 

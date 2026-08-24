@@ -15,6 +15,7 @@ import { applyValueTransform } from '../../utils/valueTransform';
 import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
 import { extractJsonPath } from '../../utils/dpRef';
+import { valueTextOverride } from '../../utils/conditionSet';
 import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { useTemplateSpecials } from '../../hooks/useTemplateSpecials';
@@ -34,7 +35,11 @@ export function ValueWidget({ config }: WidgetProps) {
     const showIcon = o.showIcon !== false;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const showValue = o.showValue !== false;
-    const showUnit = o.showUnit !== false;
+    // A condition rule may replace the whole value text ("Anzeige überschreiben").
+    // It then *is* the text, so the unit is not appended to it — same reasoning as
+    // the time display, where a unit behind "14:32" would be nonsense.
+    const valueOverride = valueTextOverride(config);
+    const showUnit = o.showUnit !== false && valueOverride === undefined;
     const iconSize = (o.iconSize as number) || 20;
     const valueFontSize = Number(o.valueFontSize) || 0;
     const valueSizeStyle = valueFontSize > 0 ? { fontSize: `${valueFontSize}px`, lineHeight: 1.1 } : undefined;
@@ -53,7 +58,11 @@ export function ValueWidget({ config }: WidgetProps) {
         ? (formatTimeDisplay(tValue, timeFormat, t, o.valueTimePattern as string | undefined) ?? '–')
         : null;
 
+    // A condition rule may replace the whole value text ("Anzeige überschreiben").
+    // It wins over formatting and time display, but not over the threshold colour —
+    // colours are a separate effect with their own field.
     const displayValue =
+        valueOverride ??
         timeStr ??
         (tValue === null ? '–' : typeof tValue === 'number' ? formatNum(tValue, decimals, numFmt) : String(tValue));
 

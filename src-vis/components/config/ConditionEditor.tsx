@@ -2,7 +2,16 @@ import { useState } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, Database } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
 import { JsonPathButton } from './JsonPathButton';
-import type { WidgetCondition, ConditionClause, ConditionOperator, ConditionStyle } from '../../types';
+import { IconPickerModal } from './IconPickerModal';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
+import type {
+    WidgetCondition,
+    ConditionClause,
+    ConditionOperator,
+    ConditionSet,
+    ConditionSlot,
+    ConditionStyle,
+} from '../../types';
 import {
     clauseSourceOptions,
     dropOwnDpToken,
@@ -36,12 +45,23 @@ const OPERATORS: { value: ConditionOperator; label: () => string; noValue?: bool
 
 const CHANGED_ONLY = new Set<ConditionOperator>(['changed']);
 
+/** Stable empty default — a fresh array each render would remount the rule list. */
+const NO_SLOTS: ConditionSlot[] = [];
+
 const STYLE_FIELDS: { key: keyof ConditionStyle; labelKey: string }[] = [
     { key: 'accent', labelKey: 'cond.colorAccent' },
     { key: 'bg', labelKey: 'cond.colorBg' },
     { key: 'border', labelKey: 'cond.colorBorder' },
     { key: 'textPrimary', labelKey: 'cond.colorText' },
     { key: 'textSecondary', labelKey: 'cond.colorText2' },
+];
+
+// Not colours, so not ColorField: these take a CSS length resp. a factor and mirror
+// the same three keys the static "Erweitert" panel offers (WidgetFrame STYLE_FIELDS).
+const STYLE_TEXT_FIELDS: { key: keyof ConditionStyle; labelKey: string; placeholder: string }[] = [
+    { key: 'borderWidth', labelKey: 'cond.styleBorderWidth', placeholder: '2px' },
+    { key: 'radius', labelKey: 'cond.styleRadius', placeholder: '18px' },
+    { key: 'opacity', labelKey: 'cond.styleOpacity', placeholder: '0.5' },
 ];
 
 const inputStyle: React.CSSProperties = {
@@ -382,6 +402,203 @@ export function ColorField({
     );
 }
 
+// ── "Anzeige überschreiben" fields ────────────────────────────────────────────
+// The colour effects above travel as CSS variables and therefore reach every widget
+// type. These do not: they replace a value the widget reads out of its own config,
+// so widgetRegistry declares per type which of them actually arrive (issue #96).
+
+function LabeledRow({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <div className="flex items-center gap-1.5">
+            <label className="text-[10px] w-16 shrink-0 truncate" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </label>
+            {children}
+        </div>
+    );
+}
+
+function TextField({
+    label,
+    value,
+    placeholder,
+    onChange,
+}: {
+    label: string;
+    value: string | undefined;
+    placeholder: string;
+    onChange: (v: string | undefined) => void;
+}) {
+    return (
+        <LabeledRow label={label}>
+            <input
+                type="text"
+                value={value ?? ''}
+                onChange={(e) => onChange(e.target.value || undefined)}
+                placeholder={placeholder}
+                className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
+                style={inputStyle}
+            />
+        </LabeledRow>
+    );
+}
+
+/** on / off / "leave alone" — an unset override must not silently mean `false`. */
+function TriStateField({
+    label,
+    value,
+    onChange,
+}: {
+    label: string;
+    value: boolean | undefined;
+    onChange: (v: boolean | undefined) => void;
+}) {
+    const t = useT();
+    return (
+        <LabeledRow label={label}>
+            <select
+                value={value === undefined ? '' : value ? '1' : '0'}
+                onChange={(e) => onChange(e.target.value === '' ? undefined : e.target.value === '1')}
+                className={`${cls} flex-1`}
+                style={inputStyle}
+            >
+                <option value="">{t('cond.setUnchanged')}</option>
+                <option value="1">{t('cond.setOn')}</option>
+                <option value="0">{t('cond.setOff')}</option>
+            </select>
+        </LabeledRow>
+    );
+}
+
+export function IconField({
+    label,
+    value,
+    placeholder,
+    onChange,
+}: {
+    label: string;
+    value: string | undefined;
+    placeholder: string;
+    onChange: (v: string | undefined) => void;
+}) {
+    const [open, setOpen] = useState(false);
+    const Preview = value ? getWidgetIcon(value, null!) : null;
+    return (
+        <LabeledRow label={label}>
+            <button
+                onClick={() => setOpen(true)}
+                className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1 rounded text-[10px]"
+                style={inputStyle}
+            >
+                {Preview ? (
+                    <Preview size={13} style={{ flexShrink: 0 }} />
+                ) : (
+                    <span style={{ width: 13, height: 13, display: 'inline-block', flexShrink: 0 }} />
+                )}
+                <span
+                    className="flex-1 truncate text-left"
+                    style={{ color: value ? 'var(--text-primary)' : 'var(--text-secondary)' }}
+                >
+                    {value ?? placeholder}
+                </span>
+            </button>
+            {value && (
+                <button
+                    onClick={() => onChange(undefined)}
+                    className="shrink-0 hover:opacity-60"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <Trash2 size={10} />
+                </button>
+            )}
+            {open && (
+                <IconPickerModal
+                    current={value ?? ''}
+                    onSelect={(name) => {
+                        onChange(name || undefined);
+                        setOpen(false);
+                    }}
+                    onClose={() => setOpen(false)}
+                />
+            )}
+        </LabeledRow>
+    );
+}
+
+export function conditionSetCount(set: ConditionSet | undefined): number {
+    if (!set) return 0;
+    return Object.values(set).filter((v) => v !== undefined).length;
+}
+
+function ConditionSetFields({
+    set,
+    slots,
+    onChange,
+}: {
+    set: ConditionSet | undefined;
+    slots: ConditionSlot[];
+    onChange: (patch: Partial<ConditionSet>) => void;
+}) {
+    const t = useT();
+    const s = set ?? {};
+    return (
+        <div className="space-y-1.5">
+            {slots.includes('title') && (
+                <>
+                    <TextField
+                        label={t('cond.setTitle')}
+                        value={s.title}
+                        placeholder={t('cond.setTitlePlaceholder')}
+                        onChange={(v) => onChange({ title: v })}
+                    />
+                    <TriStateField
+                        label={t('cond.setShowTitle')}
+                        value={s.showTitle}
+                        onChange={(v) => onChange({ showTitle: v })}
+                    />
+                </>
+            )}
+            {slots.includes('icon') && (
+                <>
+                    <IconField
+                        label={t('cond.setIcon')}
+                        value={s.icon}
+                        placeholder={t('cond.setIconPlaceholder')}
+                        onChange={(v) => onChange({ icon: v })}
+                    />
+                    <LabeledRow label={t('cond.setIconSize')}>
+                        <input
+                            type="number"
+                            min={8}
+                            max={200}
+                            value={s.iconSize ?? ''}
+                            onChange={(e) =>
+                                onChange({ iconSize: e.target.value === '' ? undefined : Number(e.target.value) })
+                            }
+                            placeholder="auto"
+                            className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
+                            style={inputStyle}
+                        />
+                    </LabeledRow>
+                    <TriStateField
+                        label={t('cond.setShowIcon')}
+                        value={s.showIcon}
+                        onChange={(v) => onChange({ showIcon: v })}
+                    />
+                </>
+            )}
+            {slots.includes('value') && (
+                <TextField
+                    label={t('cond.setValueText')}
+                    value={s.valueText}
+                    placeholder={t('cond.setValueTextPlaceholder')}
+                    onChange={(v) => onChange({ valueText: v })}
+                />
+            )}
+        </div>
+    );
+}
+
 // ── Single condition rule ─────────────────────────────────────────────────────
 
 function ConditionRule({
@@ -390,18 +607,29 @@ function ConditionRule({
     onDelete,
     context = 'widget',
     sourceCtx,
+    slots,
 }: {
     condition: WidgetCondition;
     onChange: (c: WidgetCondition) => void;
     onDelete: () => void;
     context?: 'widget' | 'tab';
     sourceCtx?: DpSourceCtx;
+    slots: ConditionSlot[];
 }) {
     const t = useT();
     const [open, setOpen] = useState(true);
 
     const setStyle = (patch: Partial<ConditionStyle>) =>
         onChange({ ...condition, style: { ...condition.style, ...patch } });
+
+    // A cleared field must disappear from the set, not linger as `undefined`: the
+    // runtime merges by "key present", and an empty object would keep the rule
+    // marked as overriding something.
+    const setSet = (patch: Partial<ConditionSet>) => {
+        const next = { ...(condition.set ?? {}), ...patch } as Record<string, unknown>;
+        for (const k of Object.keys(next)) if (next[k] === undefined) delete next[k];
+        onChange({ ...condition, set: Object.keys(next).length ? (next as ConditionSet) : undefined });
+    };
 
     const updateClause = (i: number, c: ConditionClause) =>
         onChange({ ...condition, clauses: condition.clauses.map((cl, j) => (j === i ? c : cl)) });
@@ -511,7 +739,31 @@ function ConditionRule({
                                 onChange={(v) => setStyle({ [key]: v })}
                             />
                         ))}
+                        {context !== 'tab' &&
+                            STYLE_TEXT_FIELDS.map(({ key, labelKey, placeholder }) => (
+                                <TextField
+                                    key={key}
+                                    label={t(labelKey as Parameters<typeof t>[0])}
+                                    value={condition.style[key]}
+                                    placeholder={placeholder}
+                                    onChange={(v) => setStyle({ [key]: v })}
+                                />
+                            ))}
                     </div>
+
+                    {/* Override what the widget shows — icon, title, value (issue #96) */}
+                    {context !== 'tab' && slots.length > 0 && (
+                        <>
+                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                            <p
+                                className="text-[10px] font-semibold uppercase tracking-wider"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                {t('cond.overrideDisplay')}
+                            </p>
+                            <ConditionSetFields set={condition.set} slots={slots} onChange={setSet} />
+                        </>
+                    )}
 
                     {/* Effect */}
                     <div className="flex items-center gap-2">
@@ -731,10 +983,23 @@ interface ConditionEditorProps {
     context?: 'widget' | 'tab';
     /** Value sources of the owning widget (main DP / list entries). Omitted for tabs. */
     sourceCtx?: DpSourceCtx;
+    /**
+     * Override slots the owning widget type honours — conditionSlotsFor(type).
+     * Empty (the default) hides the "Anzeige uberschreiben" block entirely, which is
+     * what tabs and sections want.
+     */
+    slots?: ConditionSlot[];
     style?: React.CSSProperties;
 }
 
-export function ConditionEditor({ conditions, onChange, context = 'widget', sourceCtx, style }: ConditionEditorProps) {
+export function ConditionEditor({
+    conditions,
+    onChange,
+    context = 'widget',
+    sourceCtx,
+    slots = NO_SLOTS,
+    style,
+}: ConditionEditorProps) {
     const t = useT();
     const update = (i: number, c: WidgetCondition) => onChange(conditions.map((x, j) => (j === i ? c : x)));
 
@@ -765,6 +1030,7 @@ export function ConditionEditor({ conditions, onChange, context = 'widget', sour
                     onDelete={() => remove(i)}
                     context={context}
                     sourceCtx={sourceCtx}
+                    slots={slots}
                 />
             ))}
 

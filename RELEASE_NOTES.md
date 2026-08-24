@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 Selection field - entries can now be read from a datapoint holding JSON instead of the manual list (#577)
+Conditions - rules can now override a widget's title, icon, icon size and value text, plus border width, corner radius and opacity (#96)

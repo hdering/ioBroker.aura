@@ -5,6 +5,7 @@ import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { valueTextOverride } from '../../utils/conditionSet';
 import { resolveImageSource } from '../../utils/assetUrl';
 import { StatusBadges } from './StatusBadges';
 import { cellStateActive, type StateEvalConfig } from '../../utils/cellState';
@@ -87,6 +88,9 @@ export function SwitchWidget({ config }: WidgetProps) {
     const onImage = o.onImage as string | undefined;
     const offImage = o.offImage as string | undefined;
     const stateImage = isOn ? onImage : offImage;
+    // A condition rule may replace the state text ("Anzeige überschreiben"). It also
+    // drives the accessible name, so what is read out matches what is shown.
+    const stateLabel = valueTextOverride(config) ?? (isOn ? 'AN' : 'AUS');
 
     // Bedienelement für Icon- oder Bild-Modus (gemeinsamer Button-Wrapper)
     const iconControlButton = (extraClass = '') => (
@@ -94,7 +98,7 @@ export function SwitchWidget({ config }: WidgetProps) {
             onClick={handleToggle}
             className={`aura-widget-action nodrag flex items-center justify-center shrink-0 transition-transform hover:scale-110 focus:outline-none ${extraClass}`}
             style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0 }}
-            aria-label={isOn ? 'AN' : 'AUS'}
+            aria-label={stateLabel}
         >
             {isImageMode && stateImage ? (
                 <img
@@ -113,7 +117,7 @@ export function SwitchWidget({ config }: WidgetProps) {
             <div className="relative w-full h-full">
                 <CustomGridView
                     config={config}
-                    value={isOn ? 'AN' : 'AUS'}
+                    value={stateLabel}
                     extraFields={{ battery, reach }}
                     extraComponents={{
                         icon: showIcon ? (
@@ -195,7 +199,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                             className="aura-widget-value text-xs opacity-70"
                             style={{ color: isOn ? '#fff' : 'var(--text-secondary)' }}
                         >
-                            {isOn ? 'AN' : 'AUS'}
+                            {stateLabel}
                         </p>
                     )}
                 </div>
@@ -293,7 +297,7 @@ export function SwitchWidget({ config }: WidgetProps) {
                         className="aura-widget-value text-base font-semibold"
                         style={{ color: isOn ? 'var(--accent-green)' : 'var(--text-secondary)' }}
                     >
-                        {isOn ? 'AN' : 'AUS'}
+                        {stateLabel}
                     </span>
                 )}
                 {isIconMode || isImageMode ? (

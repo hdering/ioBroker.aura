@@ -4,6 +4,7 @@ import { evaluateClause } from '../../utils/conditionEval';
 import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
+import { valueTextOverride } from '../../utils/conditionSet';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
@@ -83,6 +84,8 @@ export function StateImageWidget({ config }: WidgetProps) {
     };
 
     const cfg = isActive ? trueCfg : falseCfg;
+    // A condition rule may replace the state text ("Anzeige überschreiben").
+    const stateLabel = valueTextOverride(config) ?? cfg.label;
 
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 
@@ -90,9 +93,9 @@ export function StateImageWidget({ config }: WidgetProps) {
         return (
             <CustomGridView
                 config={config}
-                value={cfg.label}
+                value={stateLabel}
                 extraFields={{
-                    label: cfg.label,
+                    label: stateLabel,
                     battery,
                     reach,
                 }}
@@ -127,7 +130,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                     )}
                     {showLabel && (
                         <p className="aura-widget-value text-xs" style={{ color: cfg.color }}>
-                            {cfg.label}
+                            {stateLabel}
                         </p>
                     )}
                 </div>
@@ -158,7 +161,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                         className="aura-widget-value text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
                         style={{ background: `${cfg.color}22`, color: cfg.color, border: `1px solid ${cfg.color}55` }}
                     >
-                        {cfg.label}
+                        {stateLabel}
                     </span>
                 )}
                 <StatusBadges config={config} />
@@ -176,7 +179,7 @@ export function StateImageWidget({ config }: WidgetProps) {
                 {showIcon && <StateDisplay cfg={cfg} size={iconSize} className="aura-widget-icon" />}
                 {showLabel && (
                     <span className="aura-widget-value text-xl font-bold" style={{ color: cfg.color }}>
-                        {cfg.label}
+                        {stateLabel}
                     </span>
                 )}
                 {showTitle && (
@@ -217,7 +220,7 @@ export function StateImageWidget({ config }: WidgetProps) {
             )}
             {showLabel && (
                 <span className="aura-widget-value text-base font-semibold" style={{ color: cfg.color }}>
-                    {cfg.label}
+                    {stateLabel}
                 </span>
             )}
             <StatusBadges config={config} />

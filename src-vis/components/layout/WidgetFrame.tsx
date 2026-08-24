@@ -86,7 +86,7 @@ import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
 import { detectMediaDevices, type DetectedMediaDevice } from '../../utils/mediaDeviceDetectors';
-import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE } from '../../widgetRegistry';
+import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE, conditionSlotsFor } from '../../widgetRegistry';
 import { detectType } from '../../utils/widgetDetection';
 import { DP_TEMPLATES, findMainDpForSecondary, autoDetectStatusDps, autoDetectLightDps } from '../../utils/dpTemplates';
 import { AutoListConfig } from '../config/AutoListConfig';
@@ -116,6 +116,7 @@ import {
 } from '../../hooks/useChartHistory';
 import { useConditionStyle, notifyHiddenState } from '../../hooks/useConditionStyle';
 import { widgetSourceCtx } from '../../utils/conditionSources';
+import { applyConditionSet, stripRenderOverrides } from '../../utils/conditionSet';
 import {
     getSources,
     extractCalNames,
@@ -6311,7 +6312,22 @@ export function WidgetFrame({
     // `[[dp]]` tokens in the name resolve here, at the render boundary, so every widget
     // type shows live values without wiring anything up itself. Only the rendered copy
     // is substituted — the edit dialog and every onConfigChange keep the raw title.
-    const resolvedTitle = useResolvedTitle(config.title);
+    // A condition's title override goes in first, so it may carry live tokens too.
+    const resolvedTitle = useResolvedTitle(conditionResult.set.title ?? config.title);
+    // The body renders from a derived config: resolved title plus whatever the
+    // matching rules override (icon, size, value text — issue #96). Everything the
+    // body writes back is stripped of those again, so a rule that currently paints a
+    // different icon can never persist it into the layout.
+    const renderConfig = useMemo(
+        () => applyConditionSet(config, resolvedTitle, conditionResult.set),
+        [config, resolvedTitle, conditionResult.set],
+    );
+    const onBodyConfigChange = useCallback(
+        (next: WidgetConfig) => onConfigChange(stripRenderOverrides(next, config, renderConfig)),
+        [onConfigChange, config, renderConfig],
+    );
+    // Which override slots this widget type honours — the editor offers only these.
+    const conditionSlots = useMemo(() => conditionSlotsFor(config.type), [config.type]);
     const currentLayout = config.layout ?? 'default';
     const overrides = config.options?.styleOverride as Record<string, string> | undefined;
 
@@ -6484,16 +6500,25 @@ export function WidgetFrame({
     const isHeaderlessChrome = isHeaderlessGroup || isHeaderlessMenu;
     // Card bg/border: group children > button widget > plain widget. Each element
     // var falls back to the base widget var so the default look is unchanged.
-    const cardBg = inGroup
-        ? 'var(--widget-in-group-bg, var(--widget-bg))'
-        : isButton
-          ? 'var(--button-bg, var(--widget-bg))'
-          : 'var(--widget-bg)';
-    const cardBorderColor = inGroup
-        ? 'var(--widget-in-group-border, var(--widget-border))'
-        : isButton
-          ? 'var(--button-border, var(--widget-border))'
-          : 'var(--widget-border)';
+    // A condition that paints the background/border has to win over the group's and
+    // the button's shared colour var — those are set on an ancestor, so the fallback
+    // chain would swallow the rule and it would silently do nothing inside a group.
+    const condBg = !!conditionResult.cssVars['--widget-bg'];
+    const condBorder = !!conditionResult.cssVars['--widget-border'];
+    const cardBg = condBg
+        ? 'var(--widget-bg)'
+        : inGroup
+          ? 'var(--widget-in-group-bg, var(--widget-bg))'
+          : isButton
+            ? 'var(--button-bg, var(--widget-bg))'
+            : 'var(--widget-bg)';
+    const cardBorderColor = condBorder
+        ? 'var(--widget-border)'
+        : inGroup
+          ? 'var(--widget-in-group-border, var(--widget-border))'
+          : isButton
+            ? 'var(--button-border, var(--widget-border))'
+            : 'var(--widget-border)';
     const transparencyStrength = isTransparent
         ? Math.max(0, Math.min(100, Number(config.options?.transparency ?? 100)))
         : 100;
@@ -6617,6 +6642,8 @@ export function WidgetFrame({
                           borderColor: isTransparent && editMode ? 'var(--app-border)' : 'transparent',
                           padding: isHeader || isNoPad ? undefined : widgetPadding,
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
+                          // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
+                          opacity: 'var(--widget-opacity, 1)',
                           ...cssOverride,
                           ...(!editMode && conditionResult.hidden && !conditionResult.reflow
                               ? { visibility: 'hidden', pointerEvents: 'none' }
@@ -6632,6 +6659,8 @@ export function WidgetFrame({
                           borderColor: cardBorderColor,
                           padding: isNoPad ? undefined : widgetPadding,
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
+                          // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
+                          opacity: 'var(--widget-opacity, 1)',
                           ...cssOverride,
                           ...(!editMode && conditionResult.hidden && !conditionResult.reflow
                               ? { visibility: 'hidden', pointerEvents: 'none' }
@@ -6806,15 +6835,9 @@ export function WidgetFrame({
                     >
                         <Widget
                             key={`r${refreshNonce}`}
-                            config={
-                                config.options?.hideTitle
-                                    ? { ...config, title: '' }
-                                    : resolvedTitle === config.title
-                                      ? config
-                                      : { ...config, title: resolvedTitle }
-                            }
+                            config={renderConfig}
                             editMode={editMode}
-                            onConfigChange={onConfigChange}
+                            onConfigChange={onBodyConfigChange}
                             onLastChange={setLastChangedTs}
                             onNeedsActionButton={requestActionButton}
                         />
@@ -18982,6 +19005,7 @@ export function WidgetFrame({
                     <ConditionEditor
                         conditions={conditions}
                         sourceCtx={sourceCtx}
+                        slots={conditionSlots}
                         onChange={(next) =>
                             onConfigChange({ ...config, options: { ...config.options, conditions: next } })
                         }

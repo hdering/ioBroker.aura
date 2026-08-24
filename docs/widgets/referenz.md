@@ -169,7 +169,7 @@ Gelten für nahezu alle Widgets (außer reinen Layout-/Spezial-Widgets ohne Date
 | Option             | Typ                 | Standard           |                                                |
 | ------------------ | ------------------- | ------------------ | ---------------------------------------------- |
 | `clickAction`      | `ClickAction`       | `{ kind: "none" }` | Klick/Tap-Aktion (Popup, Link, DP schreiben …) |
-| `conditions`       | `WidgetCondition[]` | `[]`               | Bedingte Farb-/Sichtbarkeits-Styles            |
+| `conditions`       | `WidgetCondition[]` | `[]`               | Bedingte Stile, Anzeige-Overrides, Sichtbarkeit |
 | `badges`           | `BadgeDef[]`        | `[]`               | Overlay-Indikatoren an der Kartenecke          |
 | `batteryDp`        | `datapoint`         | `—`                | Batterie-Badge                                 |
 | `unreachDp`        | `datapoint`         | `—`                | Erreichbarkeits-Badge                          |
