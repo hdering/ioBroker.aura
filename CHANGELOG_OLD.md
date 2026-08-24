@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.47.2 (2026-08-15)
+- Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off
+
 ## 0.47.1 (2026-08-15)
 - 🌟 **New feature:** Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped
 - 🌟 **New feature:** Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment

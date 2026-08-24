@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.49.2 (2026-08-24)
+- 🌟 **New feature:** Chart (advanced) - new option to switch off the chart animation ([#574](https://github.com/hdering/ioBroker.aura/issues/574))
+
+
 ### 0.49.1 (2026-08-24)
 - Static & dynamic list - title alignment (left/centre/right) now actually moves the header title ([#575](https://github.com/hdering/ioBroker.aura/issues/575))
 - Dynamic list - the frontend filter chip can be hidden, like the static list already could ([#575](https://github.com/hdering/ioBroker.aura/issues/575))
@@ -233,10 +237,6 @@ Release v0.47.13
 - 🌟 **New feature:** Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint ([#429](https://github.com/hdering/ioBroker.aura/issues/429))
 
 
-### 0.47.2 (2026-08-15)
-- Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off
-
-
 ## License
 
 MIT License
@@ -248,6 +248,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
