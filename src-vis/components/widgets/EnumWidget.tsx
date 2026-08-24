@@ -1,7 +1,9 @@
+import { useMemo } from 'react';
 import { ListChecks } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
+import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
@@ -104,7 +106,31 @@ export function EnumWidget({ config }: WidgetProps) {
     const entryDisplay = (o.entryDisplay as 'text' | 'icon-text' | 'icon' | undefined) ?? 'text';
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
-    const entries = (o.entries as EnumEntry[] | undefined) ?? [];
+
+    // Entries come either from the manually maintained list or from a datapoint
+    // holding JSON (issue #577). The JSON DP is only subscribed in that mode.
+    const fromJson = o.entriesSource === 'json';
+    const { value: entriesRaw } = useDatapoint(fromJson ? ((o.entriesDp as string) ?? '') : '');
+    const manualEntries = o.entries as EnumEntry[] | undefined;
+    const valueKey = o.entriesValueKey as string | undefined;
+    const labelKey = o.entriesLabelKey as string | undefined;
+    const colorKey = o.entriesColorKey as string | undefined;
+    const iconKey = o.entriesIconKey as string | undefined;
+    const imageKey = o.entriesImageKey as string | undefined;
+    const jsonEntries = useMemo(
+        () =>
+            fromJson
+                ? parseEnumEntriesJson(entriesRaw, {
+                      value: valueKey,
+                      label: labelKey,
+                      color: colorKey,
+                      icon: iconKey,
+                      image: imageKey,
+                  })
+                : [],
+        [fromJson, entriesRaw, valueKey, labelKey, colorKey, iconKey, imageKey],
+    );
+    const entries = fromJson ? jsonEntries : (manualEntries ?? []);
 
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, ListChecks);
 
