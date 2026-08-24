@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.47.1 (2026-08-15)
+- 🌟 **New feature:** Messages - title and text now render HTML, so a notice can carry a table, a list or emphasis; scripts and event handlers are stripped
+- 🌟 **New feature:** Messages - new look options: accent bar, fully filled card, outline or no accent, plus custom colours and text alignment
+
 ## 0.47.0 (2026-08-14)
 - 🌟 **New feature:** Messages - scripts can raise info, warning and error notices in the dashboard by writing to aura.0.messages.send; they show as toasts in one of nine screen positions, with an optional countdown, forced confirmation, action buttons and a shared history ([#429](https://github.com/hdering/ioBroker.aura/issues/429))
 - 🌟 **New feature:** Messages widget - lists the message history with severity, time-range and unread filters; a click opens the full message
