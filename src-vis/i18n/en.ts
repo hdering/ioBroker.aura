@@ -1424,6 +1424,10 @@ export const en: Record<TranslationKey, string> = {
     'calendar.updated': 'Updated: {time}',
     'calendar.noDays': 'No events in the next {days} days',
 
+    // Datapoint bindings: momentDate(..., true) swaps the weekday for these.
+    'expr.today': 'Today',
+    'expr.yesterday': 'Yesterday',
+
     'cal.day.0': 'Sun',
     'cal.day.1': 'Mon',
     'cal.day.2': 'Tue',

@@ -9500,6 +9500,12 @@ export function WidgetFrame({
                                         {'„–“'}
                                     </p>
                                     <p>
+                                        Rechnen: <code>{'{0_userdata.0.Netz;round(0)}'}</code> ·{' '}
+                                        <code>{'{a:dp1;b:dp2;a + b}'}</code> ·{' '}
+                                        <code>{"{{ dp < 0 ? '#0f0' : '#f00' }}"}</code> — alle Operationen: Doku →
+                                        Widgets → Bindings &amp; Berechnungen
+                                    </p>
+                                    <p>
                                         Beispiel:{' '}
                                         <code>{'<span style="color:{color};font-size:2em">{dp}</span> {unit}'}</code>
                                     </p>

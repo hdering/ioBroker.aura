@@ -1,7 +1,9 @@
 import { useEffect, useMemo } from 'react';
 import { Code2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import { useTemplateValues } from '../../hooks/useTemplateValues';
+import { useT } from '../../i18n';
+import { useTemplateStates } from '../../hooks/useTemplateValues';
+import { useTemplateSpecials } from '../../hooks/useTemplateSpecials';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
 import { resolveHtmlAssets } from '../../utils/assetUrl';
@@ -43,7 +45,9 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     const mainDp = (opts.valueDatapoint as string) || config.datapoint || '';
     const { value: mainValue } = useDatapoint(mainDp);
     const tokenRefs = useMemo(() => extractTemplateDpRefs(rawHtml), [rawHtml]);
-    const tokenValues = useTemplateValues(tokenRefs);
+    const tokenStates = useTemplateStates(tokenRefs);
+    const specials = useTemplateSpecials(config);
+    const t = useT();
 
     const fmt = (v: unknown): string => {
         if (v === null || v === undefined) return '–';
@@ -55,15 +59,19 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     // src the same way as the standalone image widget does. (issue #519)
     const html = useMemo(() => {
         if (!rawHtml) return rawHtml;
-        const filled = renderTemplate(
-            rawHtml,
-            mainDp ? { dp: fmt(mainValue) } : {},
-            (ref) => fmt(tokenValues[ref]),
-            (name, path) => (name === 'dp' ? fmt(extractJsonPath(mainValue, path)) : '–'),
-        );
+        const filled = renderTemplate(rawHtml, {
+            vars: mainDp ? { dp: fmt(mainValue) } : {},
+            resolve: (ref) => fmt(tokenStates[ref]?.val),
+            resolveVarPath: (name, path) => (name === 'dp' ? fmt(extractJsonPath(mainValue, path)) : '–'),
+            // Calculating forms work on raw values: a display-formatted "1.234,5"
+            // could not be multiplied, and a decimal comma would wreck SVG geometry.
+            resolveRaw: (ref, field) => tokenStates[ref]?.[field] ?? null,
+            rawVars: { dp: mainValue ?? null, ...specials },
+            ops: { formatNum: (v, d) => formatNum(v, d, numFmt), decimals, t },
+        });
         return resolveHtmlAssets(filled);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rawHtml, tokenValues, mainValue, mainDp, decimals, numFmt]);
+    }, [rawHtml, tokenStates, mainValue, mainDp, decimals, numFmt, specials, t]);
 
     // The sandboxed srcDoc frame is its own document, so clicks in the rendered
     // HTML never reach the frame's click action — ask for the action button.

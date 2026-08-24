@@ -1429,6 +1429,10 @@ export const de = {
     'calendar.updated': 'Aktualisiert: {time}',
     'calendar.noDays': 'Keine Termine in den nächsten {days} Tagen',
 
+    // Datapoint bindings: momentDate(..., true) swaps the weekday for these.
+    'expr.today': 'Heute',
+    'expr.yesterday': 'Gestern',
+
     'cal.day.0': 'So',
     'cal.day.1': 'Mo',
     'cal.day.2': 'Di',

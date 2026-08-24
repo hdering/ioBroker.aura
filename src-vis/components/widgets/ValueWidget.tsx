@@ -16,7 +16,8 @@ import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
 import { extractJsonPath } from '../../utils/dpRef';
 import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
-import { useTemplateValues } from '../../hooks/useTemplateValues';
+import { useTemplateStates } from '../../hooks/useTemplateValues';
+import { useTemplateSpecials } from '../../hooks/useTemplateSpecials';
 
 export function ValueWidget({ config }: WidgetProps) {
     const t = useT();
@@ -70,29 +71,30 @@ export function ValueWidget({ config }: WidgetProps) {
     // can be applied to any element, e.g. an icon), {unit} = configured unit. Any
     // other {<id>} token is a foreign datapoint, subscribed live below.
     const extraRefs = useMemo(() => extractTemplateDpRefs(htmlTemplate), [htmlTemplate]);
-    const extraValues = useTemplateValues(extraRefs);
+    const extraStates = useTemplateStates(extraRefs);
+    const specials = useTemplateSpecials(config);
+    const fmtToken = (v: unknown): string => {
+        if (v === null || v === undefined) return '–';
+        return typeof v === 'number' ? formatNum(v, decimals, numFmt) : String(v);
+    };
     const htmlValueNode = htmlTemplate ? (
         <div
             dangerouslySetInnerHTML={{
                 __html: resolveHtmlAssets(
                     proxifyHtmlAssets(
-                        renderTemplate(
-                            htmlTemplate,
-                            { dp: displayValue, color: accentColor, unit: unit ?? '' },
-                            (ref) => {
-                                const v = extraValues[ref];
-                                if (v === null || v === undefined) return '–';
-                                return typeof v === 'number' ? formatNum(v, decimals, numFmt) : String(v);
-                            },
+                        renderTemplate(htmlTemplate, {
+                            vars: { dp: displayValue, color: accentColor, unit: unit ?? '' },
+                            resolve: (ref) => fmtToken(extraStates[ref]?.val),
                             // `{dp}#soc` — a JSON path into the widget's own value, so an
                             // object datapoint can feed several spots of one template.
-                            (name, path) => {
-                                if (name !== 'dp') return '–';
-                                const v = extractJsonPath(value, path);
-                                if (v === null || v === undefined) return '–';
-                                return typeof v === 'number' ? formatNum(v, decimals, numFmt) : String(v);
-                            },
-                        ),
+                            resolveVarPath: (name, path) =>
+                                name === 'dp' ? fmtToken(extractJsonPath(value, path)) : '–',
+                            // Calculations see the untransformed raw values, never the
+                            // display strings — see utils/htmlTemplate.
+                            resolveRaw: (ref, field) => extraStates[ref]?.[field] ?? null,
+                            rawVars: { dp: value ?? null, color: accentColor, unit: unit ?? '', ...specials },
+                            ops: { formatNum: (v, d) => formatNum(v, d, numFmt), decimals, t },
+                        }),
                     ),
                 ),
             }}

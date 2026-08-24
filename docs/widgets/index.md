@@ -71,6 +71,7 @@
 
 ## Konzepte
 
+- [Bindings & Berechnungen](./bindings) — Datenpunkt-Platzhalter im HTML, mit Rechnen, Runden, Farben und Datum
 - [Custom-Layout](./custom-layout) — Widgets mit freier Zellen-Matrix gestalten
 
 ## Datenpunkt-Wert im Widget-Namen

@@ -241,6 +241,10 @@
     "text": "Konzepte",
     "items": [
       {
+        "text": "Bindings & Berechnungen",
+        "link": "/widgets/bindings"
+      },
+      {
         "text": "Custom-Layout",
         "link": "/widgets/custom-layout"
       }

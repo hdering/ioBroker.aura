@@ -12,3 +12,5 @@
 - Frontend design - the theme presets are greyed out with a hint while "theme follows browser" is on, and the admin says when a light/dark mode datapoint replaces the picked design (#573)
 - Status overview - the "All clear" message is now shown in the card and minimal layouts too; before that they stayed empty when nothing needed attention, and it can now be switched off entirely
 - Calendar - new option "adjust height to content": the widget grows with its entries instead of filling a fixed cell height, like the status overview
+- HTML and value widget - placeholders can now calculate: vis-style operation chains {id;round(1)}, named variables {a:id1;b:id2;a * b} and inline {{ ... }} expressions with Math functions, comparisons and filters (#571)
+- HTML and value widget - the .ts / .lc suffixes render a datapoint's update and last-change timestamp, e.g. {id.lc;date(HH:mm)} (#571)

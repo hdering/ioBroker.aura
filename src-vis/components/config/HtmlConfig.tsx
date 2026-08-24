@@ -187,7 +187,24 @@ function PlaceholderHint() {
                     {'{0_userdata.0.Akku?soc}'}
                 </span>
             </p>
-            <p style={{ opacity: 0.75 }}>CSS-Klammern wie {'{ color: red }'} bleiben unangetastet.</p>
+            <p>
+                Rechnen:{' '}
+                <span className={code} style={codeSty}>
+                    {'{0_userdata.0.Netz;round(0)}'}
+                </span>{' '}
+                ·{' '}
+                <span className={code} style={codeSty}>
+                    {'{a:dp1;b:dp2;a + b}'}
+                </span>{' '}
+                ·{' '}
+                <span className={code} style={codeSty}>
+                    {"{{ 0_userdata.0.Netz < 0 ? '#0f0' : '#f00' }}"}
+                </span>
+            </p>
+            <p style={{ opacity: 0.75 }}>
+                CSS-Klammern wie {'{ color: red }'} bleiben unangetastet. Alle Operationen und Funktionen: Doku →
+                Widgets → Bindings &amp; Berechnungen.
+            </p>
         </div>
     );
 }

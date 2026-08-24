@@ -92,6 +92,10 @@ Zahlen werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte 
 
 Beispiel: `<span style="color:{color};font-size:2em">{dp}</span> {unit}`
 
+Platzhalter können auch rechnen (`{dp;round(0)}`, `{a:dp1;b:dp2;a + b}`,
+`{{ dp * 2 }}`) — Operationen, Funktionen und Rezepte stehen unter
+[Bindings & Berechnungen](./bindings).
+
 ### Schwellwerte
 
 Färbt den angezeigten (transformierten) Wert abhängig von seiner Höhe.
