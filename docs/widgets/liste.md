@@ -363,20 +363,32 @@ Panel **Filter & Sortierung** → **Eigene Filter**. Jeder Filter erscheint als 
 
 | `rules[]` | Standard | |
 | --- | --- | --- |
-| `source` | `main` | `main` · `sub` (weitere DPs) · `both` |
+| `source` | `main` | `main` · `sub` (weitere DPs) · `both` · `name` (angezeigter Zeilenname) |
 | `subKey` | — | leer = alle weiteren DPs; sonst Bezeichnung oder DP-Endung (`BATTERY`) |
-| `operator` | — | `==` `!=` `>` `>=` `<` `<=` `contains` `true` `false` `active` `inactive` `empty` `notEmpty` |
+| `operator` | — | `==` `!=` `>` `>=` `<` `<=` `contains` `enthält nicht` `true` `false` `active` `inactive` `empty` `notEmpty` |
 | `value` | — | Vergleichswert (entfällt bei `active`/`inactive`/`true`/`false`/`empty`/`notEmpty`) |
 | `every` | `false` | bei mehreren geprüften Werten müssen alle passen |
+
+Der Zeilenname ist der **angezeigte** — ein `[[…]]` im Namensmuster ist bereits durch seinen Wert
+ersetzt, wenn eine Regel ihn sieht. Damit lassen sich Zeilen auch **ausschließen**, was das Suchfeld
+nicht kann: `Name` · `enthält nicht` · `Offline` blendet jede Zeile aus, in deren Namen „Offline" steht.
+
+`enthält nicht` ist eine verneinende Regel und gilt für **alle** geprüften Werte: trifft einer zu, fällt
+die Zeile weg. Der Schalter „alle müssen passen" hat darauf keine Wirkung.
 
 ### Sortierung
 
 | Option | Standard | |
 | --- | --- | --- |
-| `sortBy` | `none` | `none` · `label` · `value` |
+| `sortBy` | `none` | `none` · `label` (Name) · `value` (Wert) · `sub:<Bezeichnung>` (Datenpunkt der 2. Zeile) |
 | `sortOrder` | `asc` | `asc` · `desc` |
-| `sortBy2` | `none` | zweites Sortierkriterium |
+| `sortBy2` | `none` | zweites Sortierkriterium, gleiche Werte |
 | `sortOrder2` | `asc` | Richtung des zweiten Kriteriums |
+
+Der Schlüssel hinter `sub:` ist die **Bezeichnung** des Datenpunkts oder das letzte Segment seiner ID —
+dieselbe Konvention wie `subKey` bei den [eigenen Filtern](#eigene-filter). Ein Vorlagen-Eintrag
+`{{parent}}.BATTERY` wird also als `BATTERY` angesprochen und in jeder Zeile gegen ihr eigenes Gerät
+aufgelöst. Zeilen ohne diesen Datenpunkt sortieren sich als „kein Wert" ein.
 
 Bei `none` gilt die manuelle Reihenfolge aus dem Dialog **Datenpunkte verwalten**.
 

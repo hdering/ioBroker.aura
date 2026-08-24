@@ -51,8 +51,11 @@ import {
     matchesFilterMode,
     matchesSearch,
     normalizeFilterMode,
+    sortSubKey,
+    subValueByKey,
     type ListFilterOptions,
     type ListFilterRow,
+    type ListSortKey,
 } from '../../utils/listFilter';
 import { useRowPopup } from '../../hooks/useRowPopup';
 import type { RowClickSetting, RowPopupOptions } from '../../utils/rowClickAction';
@@ -156,9 +159,9 @@ export interface AutoListOptions
     valueFilter?: string;
     showTitle?: boolean;
     showCount?: boolean;
-    sortBy?: 'none' | 'label' | 'value';
+    sortBy?: ListSortKey;
     sortOrder?: 'asc' | 'desc';
-    sortBy2?: 'none' | 'label' | 'value';
+    sortBy2?: ListSortKey;
     sortOrder2?: 'asc' | 'desc';
     filterAdapters?: string;
     cardMinWidth?: number;
@@ -1258,10 +1261,23 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         const sortBy2 = opts.sortBy2 ?? 'none';
         const sortOrder2 = opts.sortOrder2 ?? 'asc';
         if (sortBy !== 'none') {
-            const cmpFor = (key: 'label' | 'value', a: AutoListEntry, b: AutoListEntry) =>
-                key === 'label'
+            // Second-line values are looked up once per row, not once per comparison.
+            const subsCache = new Map<string, ReturnType<typeof filterRow>['subs']>();
+            const subsOf = (e: AutoListEntry) => {
+                let cached = subsCache.get(e.id);
+                if (!cached) {
+                    cached = filterRow(e).subs ?? [];
+                    subsCache.set(e.id, cached);
+                }
+                return cached;
+            };
+            const cmpFor = (key: string, a: AutoListEntry, b: AutoListEntry) => {
+                const sk = sortSubKey(key);
+                if (sk !== null) return compareVals(subValueByKey(subsOf(a), sk), subValueByKey(subsOf(b), sk));
+                return key === 'label'
                     ? getLabel(a).localeCompare(getLabel(b), undefined, { numeric: true, sensitivity: 'base' })
                     : compareVals(states[a.id]?.val ?? null, states[b.id]?.val ?? null);
+            };
             result = [...result].sort((a, b) => {
                 const cmp1 = cmpFor(sortBy, a, b);
                 if (cmp1 !== 0) return sortOrder === 'desc' ? -cmp1 : cmp1;

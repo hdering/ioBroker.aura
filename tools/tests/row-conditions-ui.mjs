@@ -114,6 +114,17 @@ const iconColors = (widget) =>
         widget,
     );
 
+/**
+ * Iconify fetches its icon sets, so a row icon appears a moment after the row. The
+ * colour assertions below would otherwise race the download.
+ */
+const iconsReady = (widget, min) =>
+    page
+        .waitForFunction(([w, n]) => document.querySelectorAll(`.aura-widget-${w} svg`).length >= n, [widget, min], {
+            timeout: 10000,
+        })
+        .catch(() => {});
+
 await mock({
     'demo.dev1.STATE': true,
     'demo.dev2.STATE': false,
@@ -141,6 +152,8 @@ await settle();
     check('static: true became ONLINE', body.includes('ONLINE'), body.replace(/\n/g, ' | '));
     check('static: false became OFFLINE', body.includes('OFFLINE'), body.replace(/\n/g, ' | '));
 
+    // Header icon + filter chip + one per visible row.
+    await iconsReady('rc-list', 4);
     const colors = await iconColors('rc-list');
     check(
         'static: {{parent}}.UNREACH recolours exactly one row icon',
@@ -163,9 +176,8 @@ await settle();
 {
     const body = await textOf('rc-auto');
     check('dynamic: rows render', body.includes('Auto-Eins'), body.replace(/\n/g, ' | '));
-    const icons = await page.evaluate(
-        () => document.querySelectorAll('.aura-widget-rc-auto .aura-widget-body svg, .aura-widget-rc-auto svg').length,
-    );
+    await iconsReady('rc-auto', 3);
+    const icons = await page.evaluate(() => document.querySelectorAll('.aura-widget-rc-auto svg').length);
     // Header icon plus one per row — before this change the rows had none at all.
     check('dynamic: rows have an icon now', icons >= 3, `svg count ${icons}`);
 }

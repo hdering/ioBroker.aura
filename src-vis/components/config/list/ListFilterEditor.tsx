@@ -57,7 +57,7 @@ function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
 }
 
-const SOURCES: ListFilterSource[] = ['main', 'sub', 'both'];
+const SOURCES: ListFilterSource[] = ['main', 'sub', 'both', 'name'];
 
 export function ListFilterEditor({
     presets,
@@ -338,7 +338,7 @@ export function ListFilterEditor({
                                                 </button>
                                             </div>
 
-                                            {source !== 'main' && (
+                                            {source !== 'main' && source !== 'name' && (
                                                 <div className="flex items-center gap-1">
                                                     <select
                                                         value={
@@ -419,7 +419,7 @@ export function ListFilterEditor({
                                                 )}
                                             </div>
 
-                                            {source !== 'main' && (
+                                            {source !== 'main' && source !== 'name' && (
                                                 <div className="flex items-center justify-between gap-2">
                                                     <label
                                                         className="text-[9px]"

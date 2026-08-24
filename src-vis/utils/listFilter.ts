@@ -17,13 +17,17 @@
  */
 import { isActiveVal } from './groupTargets';
 import { evaluateClause } from './conditionEval';
-import type { ConditionClause, ConditionOperator } from '../types';
+import type { ConditionClause, ConditionOperator, ioBrokerState } from '../types';
 
-/** Condition operators plus the two "is there a value at all" checks. */
-export type ListFilterOperator = ConditionOperator | 'empty' | 'notEmpty';
+/**
+ * Condition operators plus the list-specific ones: the two "is there a value at
+ * all" checks and `notContains`, which is what an EXCLUDING filter needs — the
+ * free-text search can only ever narrow down to matches (issue #572).
+ */
+export type ListFilterOperator = ConditionOperator | 'empty' | 'notEmpty' | 'notContains';
 
-/** Which value(s) of a row a rule reads. */
-export type ListFilterSource = 'main' | 'sub' | 'both';
+/** Which value(s) of a row a rule reads. `name` is the rendered row name. */
+export type ListFilterSource = 'main' | 'sub' | 'both' | 'name';
 
 export interface ListFilterRule {
     /** Default 'main' — the row's own datapoint. */
@@ -102,6 +106,7 @@ export const LIST_FILTER_OPERATORS: { value: ListFilterOperator; label: string; 
     { value: '<', label: 'ist kleiner als', needsValue: true },
     { value: '<=', label: 'ist kleiner/gleich', needsValue: true },
     { value: 'contains', label: 'enthält Text', needsValue: true },
+    { value: 'notContains', label: 'enthält Text nicht', needsValue: true },
     { value: 'true', label: 'ist true / 1' },
     { value: 'false', label: 'ist false / 0' },
     { value: 'empty', label: 'hat keinen Wert' },
@@ -116,6 +121,7 @@ export const SOURCE_LABELS: Record<ListFilterSource, string> = {
     main: 'Haupt-Datenpunkt',
     sub: 'Weitere Datenpunkte',
     both: 'Beide',
+    name: 'Name',
 };
 
 /** Value as the search / the comparison sees it. */
@@ -152,9 +158,38 @@ export function subMatchesKey(sub: ListFilterCandidate, subKey?: string): boolea
     return id.endsWith(`.${key}`) || label.includes(key);
 }
 
+export const SUB_SORT_PREFIX = 'sub:';
+
+/**
+ * What a list sorts by. Beside name and value a key may point at a datapoint of
+ * the second line (issue #572), written as `sub:<key>` — the key being the
+ * datapoint's label or the last segment of its id, the same convention a filter
+ * rule's `subKey` uses.
+ */
+export type ListSortKey = 'none' | 'label' | 'value' | `sub:${string}`;
+
+/** The second-line key a sort setting points at, or null. */
+export function sortSubKey(sortBy: string | undefined): string | null {
+    return sortBy?.startsWith(SUB_SORT_PREFIX) ? sortBy.slice(SUB_SORT_PREFIX.length) : null;
+}
+
+/**
+ * Live value of the second-line datapoint a sort key names, or null.
+ *
+ * The candidates are widened to `unknown` for the operator engine, but they always
+ * come from an ioBroker state — the sort comparator needs that narrower type back.
+ */
+export function subValueByKey(subs: ListFilterCandidate[] | undefined, key: string): ioBrokerState['val'] {
+    const hit = (subs ?? []).find((c) => subMatchesKey(c, key));
+    return (hit ? hit.value : null) as ioBrokerState['val'];
+}
+
 /** Candidate values a rule compares against, in row order. */
 function ruleCandidates(rule: ListFilterRule, row: ListFilterRow): unknown[] {
     const source = rule.source ?? 'main';
+    // The name is the RENDERED one — both widgets pass getLabel(), so a `[[dp]]`
+    // token in the name pattern is already resolved when a rule sees it.
+    if (source === 'name') return [row.label ?? ''];
     const out: unknown[] = [];
     if (source === 'main' || source === 'both') out.push(row.value);
     if (source === 'sub' || source === 'both') {
@@ -176,6 +211,14 @@ export function ruleMatches(rule: ListFilterRule, row: ListFilterRow): boolean {
         if (!candidates.length) return rule.operator === 'empty';
         const test = (v: unknown) => (rule.operator === 'empty' ? !hasValue(v) : hasValue(v));
         return rule.every ? candidates.every(test) : candidates.some(test);
+    }
+    if (rule.operator === 'notContains') {
+        // A negative rule is about ALL candidates: "no value of this row contains X".
+        // `every` therefore has no meaning here, and a row with nothing to look at
+        // passes — it cannot contain the text.
+        const needle = (rule.value ?? '').toLowerCase();
+        if (!needle) return true;
+        return candidates.every((v) => !valueText(v).toLowerCase().includes(needle));
     }
     // Every other operator needs a value to compare. A null candidate is dropped
     // rather than compared: `!=` against a missing value would otherwise report

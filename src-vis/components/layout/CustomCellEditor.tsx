@@ -529,9 +529,19 @@ export interface CustomCellEditorProps {
 }
 
 // Value-bearing / icon cell types that support per-cell conditional formatting.
+// Every type whose renderer actually reads the rules (see CustomGridView). The
+// static ones — title/unit/text/field/icon/image/button — have no own value, so a
+// clause there reads the widget's main datapoint or a foreign one.
 const CELL_CONDITION_TYPES = new Set<CustomCell['type']>([
     'dp',
     'value',
+    'title',
+    'unit',
+    'text',
+    'field',
+    'icon',
+    'image',
+    'button',
     'progress',
     'state-text',
     'state-icon',

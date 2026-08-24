@@ -11,3 +11,6 @@ Conditions - rules can now override a widget's title, icon, icon size and value 
 Lists - conditions per row: colour, icon, text and visibility of name, value and icon; clause datapoints may use {{parent}} and are resolved per row (#572)
 Dynamic list - rows can now show an icon in front of the name, list-wide or per entry (#572)
 Lists - second line: value-to-text table (true becomes ONLINE) and its own conditions per datapoint (#572)
+Lists - a custom filter can now read the row name and exclude with "does not contain", which the search field cannot do (#572)
+Lists - sorting can use a datapoint of the second line (#572)
+Universal - conditions are now offered for title, unit, text, field, icon, image and button cells as well

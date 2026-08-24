@@ -99,6 +99,10 @@ rot" auf Widget-Ebene nicht sagbar.
 | Zweite Zeile beider Listen | Detail-Editor → **Zweite Zeile** → *Bedingungen* je Datenpunkt | dieser eine Wert |
 | [Universal](../widgets/universal-widget) / Custom-Layout | Zellen-Editor → **Bedingungen** | diese eine Zelle |
 
+Im Custom-Layout bieten alle wertführenden Zellen Bedingungen, dazu `Titel` · `Einheit` · `Text` ·
+`Feld` · `Icon` · `Bild` · `Button`. Diese haben keinen eigenen Wert — eine Klausel dort liest den
+Haupt-Datenpunkt des Widgets oder einen frei angegebenen.
+
 Effekte einer Element-Regel: Textfarbe, Hintergrund (nur „Ganze Zeile"), Icon-Farbe, Icon, Text, Fett,
 Kursiv, Ausblenden.
 

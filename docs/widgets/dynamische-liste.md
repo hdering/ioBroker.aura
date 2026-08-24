@@ -241,16 +241,23 @@ Freitext trifft Name, Datenpunkt-ID, Wert und alle Werte der [zweiten Zeile](#zw
 
 ### Eigene Filter
 
-Panel **Filter & Sortierung** → **Eigene Filter**. Aufbau und Optionen (`filterPresets[]`, `rules[]`) wie bei der [statischen Liste](./liste#eigene-filter). Regeln mit `source: sub` prüfen die Datenpunkte der zweiten Zeile — auch die per Vorlage aufgelösten, `subKey` trifft dann die Bezeichnung oder die DP-Endung (`{{parent}}.BATTERY` → `BATTERY`).
+Panel **Filter & Sortierung** → **Eigene Filter**. Aufbau und Optionen (`filterPresets[]`, `rules[]`) wie bei der [statischen Liste](./liste#eigene-filter) —
+inklusive `source: name` und `enthält nicht`, mit denen sich Zeilen anhand ihres Namens **ausschließen**
+lassen. Regeln mit `source: sub` prüfen die Datenpunkte der zweiten Zeile — auch die per Vorlage aufgelösten, `subKey` trifft dann die Bezeichnung oder die DP-Endung (`{{parent}}.BATTERY` → `BATTERY`).
 
 ### Sortierung
 
 | Option | Standard | |
 | --- | --- | --- |
-| `sortBy` | `none` | `none` · `label` · `value` |
+| `sortBy` | `none` | `none` · `label` (Name) · `value` (Wert) · `sub:<Bezeichnung>` (Datenpunkt der 2. Zeile) |
 | `sortOrder` | `asc` | `asc` · `desc` |
-| `sortBy2` | `none` | zweites Sortierkriterium |
+| `sortBy2` | `none` | zweites Sortierkriterium, gleiche Werte |
 | `sortOrder2` | `asc` | Richtung des zweiten Kriteriums |
+
+Der Schlüssel hinter `sub:` ist die **Bezeichnung** des Datenpunkts oder das letzte Segment seiner ID —
+dieselbe Konvention wie `subKey` bei den [eigenen Filtern](#eigene-filter). Ein Vorlagen-Eintrag
+`{{parent}}.BATTERY` wird also als `BATTERY` angesprochen und in jeder Zeile gegen ihr eigenes Gerät
+aufgelöst. Zeilen ohne diesen Datenpunkt sortieren sich als „kein Wert" ein.
 
 ### Summe
 

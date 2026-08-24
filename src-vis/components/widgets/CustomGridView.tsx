@@ -271,12 +271,21 @@ function LastChangeCellView({
 /** Renders an image from a static URL/base64 or from a datapoint value (URL / path / base64). */
 function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
     const { value: dpValue } = useDatapoint(cell.dpId ?? '');
+    const cond = useCellConditionStyle(cell, dpValue);
     // A configured datapoint takes precedence; its value carries the image (URL / path / base64).
     const src = (() => {
         if (cell.dpId && dpValue != null) return resolveImageSource(String(dpValue));
         return cell.imageUrl ? resolveImageSource(cell.imageUrl) : '';
     })();
-    if (!src) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
+    if (!src || cond.hide)
+        return (
+            <div
+                className={`aura-custom-cell-${index}`}
+                style={
+                    cond.hide ? withCondBg(cellWrapStyle(cell, index, cols, rows), cond) : emptyCellStyle(index, cols)
+                }
+            />
+        );
 
     // Explicit pixel dimensions override the cell-filling default; cellWrapStyle
     // already flex-centers (respecting align/valign) so the image positions correctly.
@@ -292,7 +301,10 @@ function ImageCellView({ cell, index, cols, rows }: { cell: CustomCell; index: n
           }
         : { width: '100%', height: '100%', objectFit: cell.objectFit ?? 'contain', display: 'block' };
     return (
-        <div className={`aura-custom-cell-${index}`} style={{ ...cellWrapStyle(cell, index, cols, rows), padding: 0 }}>
+        <div
+            className={`aura-custom-cell-${index}`}
+            style={withCondBg({ ...cellWrapStyle(cell, index, cols, rows), padding: 0 }, cond)}
+        >
             <img src={src} alt="" style={imgStyle} />
         </div>
     );
@@ -400,6 +412,8 @@ function StaticCellView({
     if (cell.type === 'empty' || !content)
         return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
 
+    // A rule may replace the text outright — the same effect a list row's value has.
+    const shown = cond.text ?? content;
     const fallbackColor = cell.type === 'value' && valueColor ? valueColor : 'var(--text-primary)';
     const textSty = cellTextStyle(cell, fallbackColor, cond);
     const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
@@ -409,11 +423,11 @@ function StaticCellView({
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
             {cell.showLastChange && lc ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 1, alignItems: alignItemsFromCell(cell) }}>
-                    <span style={textSty}>{content}</span>
+                    <span style={textSty}>{shown}</span>
                     <LastChangeLine lc={lc} fmt={cell.lastChangeFormat ?? 'relative'} />
                 </div>
             ) : (
-                <span style={textSty}>{content}</span>
+                <span style={textSty}>{shown}</span>
             )}
         </div>
     );
@@ -828,19 +842,24 @@ function SliderCellView({
 
 /** Button that writes a fixed payload to a DP on click. */
 function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-    const { state, setValue } = useDatapoint(cell.dpId ?? '');
+    const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
+    const cond = useCellConditionStyle(cell, value);
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
     const onClick = () => setValue(parseCellValue(cell.sendValue, ''));
-    const wrap = cell.showLastChange
-        ? { ...cellWrapStyle(cell, index, cols, rows), flexDirection: 'column' as const, gap: 2 }
-        : cellWrapStyle(cell, index, cols, rows);
+    const wrap = withCondBg(
+        cell.showLastChange
+            ? { ...cellWrapStyle(cell, index, cols, rows), flexDirection: 'column' as const, gap: 2 }
+            : cellWrapStyle(cell, index, cols, rows),
+        cond,
+    );
+    if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrap} />;
     return (
         <div className={`aura-custom-cell-${index}`} style={wrap}>
             <button
                 onClick={onClick}
                 className="nodrag px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-85 transition-opacity"
                 style={{
-                    background: cell.color || 'var(--accent)',
+                    background: cond.color || cell.color || 'var(--accent)',
                     color: '#fff',
                     border: 'none',
                     cursor: 'pointer',
@@ -848,7 +867,7 @@ function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
                     fontWeight: cell.bold ? 'bold' : undefined,
                 }}
             >
-                {cell.text || '⏵'}
+                {cond.text ?? cell.text ?? '⏵'}
             </button>
             {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
         </div>
@@ -856,12 +875,29 @@ function ButtonCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
 }
 
 /** Static Lucide / Iconify icon. */
-function IconCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
-    const Icon = getWidgetIcon(cell.iconName, HelpCircle);
+function IconCellView({
+    cell,
+    index,
+    cols,
+    rows,
+    mainDpId,
+}: {
+    cell: CustomCell;
+    index: number;
+    cols: number;
+    rows: number;
+    /** The widget's own datapoint — a static icon has none, so `{dp}` means this. */
+    mainDpId?: string;
+}) {
+    const { state: mainState } = useDatapoint(mainDpId ?? '');
+    const cond = useCellConditionStyle(cell, mainState?.val, mainDpId);
+    const Icon = getWidgetIcon(cond.icon || cell.iconName, HelpCircle);
     const size = cell.fontSize ?? 28;
+    const wrapSty = withCondBg(cellWrapStyle(cell, index, cols, rows), cond);
+    if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
     return (
-        <div className={`aura-custom-cell-${index}`} style={cellWrapStyle(cell, index, cols, rows)}>
-            <Icon size={size} style={{ color: cell.color || 'var(--text-primary)' }} />
+        <div className={`aura-custom-cell-${index}`} style={wrapSty}>
+            <Icon size={size} style={{ color: cond.iconColor || cond.color || cell.color || 'var(--text-primary)' }} />
         </div>
     );
 }
@@ -1615,7 +1651,16 @@ export function CustomGridView({
                     case 'button':
                         return <ButtonCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
                     case 'icon':
-                        return <IconCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
+                        return (
+                            <IconCellView
+                                key={i}
+                                cell={cell}
+                                index={i}
+                                cols={cols}
+                                rows={rows}
+                                mainDpId={config.datapoint}
+                            />
+                        );
                     case 'state-icon':
                         return <StateIconCellView key={i} cell={cell} index={i} cols={cols} rows={rows} />;
                     case 'datepicker':

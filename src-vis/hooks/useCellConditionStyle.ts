@@ -22,6 +22,10 @@ export interface CellCondResult {
     bold?: boolean;
     italic?: boolean;
     icon?: string;
+    /** Icon colour, when it should differ from the text colour. */
+    iconColor?: string;
+    /** Replaces the cell's text — the same effect a list row's value has. */
+    text?: string;
     hide?: boolean;
 }
 
@@ -77,6 +81,8 @@ function evalRules(
         if (rule.bold !== undefined) merged.bold = rule.bold;
         if (rule.italic !== undefined) merged.italic = rule.italic;
         if (rule.icon) merged.icon = rule.icon;
+        if (rule.iconColor) merged.iconColor = rule.iconColor;
+        if (rule.text !== undefined && rule.text !== '') merged.text = rule.text;
         if (rule.hide) merged.hide = true;
     }
     return any ? merged : EMPTY;
