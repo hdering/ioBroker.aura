@@ -23,6 +23,8 @@ export const de = {
     'common.copy': 'Kopieren',
     'common.export': 'Exportieren',
     'common.move': 'Verschieben',
+    'common.moveUp': 'Nach oben',
+    'common.moveDown': 'Nach unten',
     'common.reset': 'Zurücksetzen',
     'common.remove': 'Entfernen',
     'common.sizeSmall': 'Klein',

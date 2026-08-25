@@ -25,6 +25,8 @@ export const en: Record<TranslationKey, string> = {
     'common.copy': 'Copy',
     'common.export': 'Export',
     'common.move': 'Move',
+    'common.moveUp': 'Move up',
+    'common.moveDown': 'Move down',
     'common.reset': 'Reset',
     'common.remove': 'Remove',
     'common.sizeSmall': 'Small',

@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Plus, X, Search } from 'lucide-react';
+import { Plus, X, Search, ArrowUp, ArrowDown } from 'lucide-react';
 import type { LayoutMenuItem, LayoutSettings } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 import { ToggleRow, SubGroup } from '../shared/SettingControls';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { DatapointPicker } from '../../../../components/config/DatapointPicker';
+import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
 
 // layoutDrawer* keys reset together by the per-scope "reset" button.
 const DRAWER_KEYS: (keyof LayoutSettings)[] = [
@@ -40,11 +41,17 @@ function LayoutMenuItemRow({
     item,
     onUpdate,
     onRemove,
+    onMove,
+    canMoveUp,
+    canMoveDown,
     t,
 }: {
     item: LayoutMenuItem;
     onUpdate: (patch: Partial<LayoutMenuItem>) => void;
     onRemove: () => void;
+    onMove: (dir: -1 | 1) => void;
+    canMoveUp: boolean;
+    canMoveDown: boolean;
     t: ReturnType<typeof useT>;
 }) {
     const [expanded, setExpanded] = useState(false);
@@ -84,6 +91,24 @@ function LayoutMenuItemRow({
                 <span className="text-xs flex-1 font-medium" style={{ color: 'var(--text-primary)' }}>
                     {typeLabel}
                 </span>
+                <button
+                    onClick={() => onMove(-1)}
+                    disabled={!canMoveUp}
+                    title={t('common.moveUp')}
+                    className="shrink-0 disabled:opacity-25 hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <ArrowUp size={12} />
+                </button>
+                <button
+                    onClick={() => onMove(1)}
+                    disabled={!canMoveDown}
+                    title={t('common.moveDown')}
+                    className="shrink-0 disabled:opacity-25 hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <ArrowDown size={12} />
+                </button>
                 <button
                     onClick={() => setExpanded((e) => !e)}
                     className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
@@ -345,6 +370,9 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
     };
     const removeItem = (id: string) => {
         updateFrontend({ layoutDrawerItems: items.filter((it) => it.id !== id) });
+    };
+    const moveItem = (id: string, dir: -1 | 1) => {
+        updateFrontend({ layoutDrawerItems: moveMenuItem(items, id, dir) });
     };
     const addItem = (type: LayoutMenuItem['type']) => {
         const newItem: LayoutMenuItem = {
@@ -910,6 +938,9 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                     item={item}
                                     onUpdate={(patch) => updateItem(item.id, patch)}
                                     onRemove={() => removeItem(item.id)}
+                                    onMove={(dir) => moveItem(item.id, dir)}
+                                    canMoveUp={canMoveMenuItem(items, item.id, -1)}
+                                    canMoveDown={canMoveMenuItem(items, item.id, 1)}
                                     t={t}
                                 />
                             ))}

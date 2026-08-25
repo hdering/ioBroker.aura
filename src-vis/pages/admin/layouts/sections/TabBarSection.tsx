@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Search } from 'lucide-react';
+import { Plus, X, Search, ArrowUp, ArrowDown } from 'lucide-react';
 import {
     useDashboardStore,
     resolveTabBarSettings,
@@ -12,6 +12,7 @@ import { ColorPicker } from '../../../../components/common/ColorPicker';
 import { DatapointPicker } from '../../../../components/config/DatapointPicker';
 import { AutoGrowTextarea } from '../shared/SettingControls';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
+import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
 
 // ── OverrideDot ───────────────────────────────────────────────────────────────
 // Small marker shown next to a field that overrides the global value (layout scope).
@@ -89,11 +90,17 @@ function TabBarItemRow({
     item,
     onUpdate,
     onRemove,
+    onMove,
+    canMoveUp,
+    canMoveDown,
     t,
 }: {
     item: TabBarItem;
     onUpdate: (patch: Partial<TabBarItem>) => void;
     onRemove: () => void;
+    onMove: (dir: -1 | 1) => void;
+    canMoveUp: boolean;
+    canMoveDown: boolean;
     t: ReturnType<typeof useT>;
 }) {
     const [expanded, setExpanded] = useState(false);
@@ -135,6 +142,24 @@ function TabBarItemRow({
                 <span className="text-xs flex-1 font-medium" style={{ color: 'var(--text-primary)' }}>
                     {typeLabel}
                 </span>
+                <button
+                    onClick={() => onMove(-1)}
+                    disabled={!canMoveUp}
+                    title={t('common.moveUp')}
+                    className="shrink-0 disabled:opacity-25 hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <ArrowUp size={12} />
+                </button>
+                <button
+                    onClick={() => onMove(1)}
+                    disabled={!canMoveDown}
+                    title={t('common.moveDown')}
+                    className="shrink-0 disabled:opacity-25 hover:opacity-70"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <ArrowDown size={12} />
+                </button>
                 <button
                     onClick={() => setExpanded((e) => !e)}
                     className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
@@ -380,6 +405,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
     };
     const removeItem = (id: string) => {
         update({ items: (tbs.items ?? []).filter((it) => it.id !== id) });
+    };
+    const moveItem = (id: string, dir: -1 | 1) => {
+        update({ items: moveMenuItem(tbs.items ?? [], id, dir) });
     };
     const addItem = (type: TabBarItem['type']) => {
         const newItem: TabBarItem = {
@@ -793,6 +821,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                                 item={item}
                                 onUpdate={(patch) => updateItem(item.id, patch)}
                                 onRemove={() => removeItem(item.id)}
+                                onMove={(dir) => moveItem(item.id, dir)}
+                                canMoveUp={canMoveMenuItem(tbs.items ?? [], item.id, -1)}
+                                canMoveDown={canMoveMenuItem(tbs.items ?? [], item.id, 1)}
                                 t={t}
                             />
                         ))}
