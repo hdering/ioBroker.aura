@@ -34,6 +34,12 @@ updates:
       # Adopting it needs an ESM config migration; block the major for now.
       - dependency-name: "@vitejs/plugin-react"
         update-types: ["version-update:semver-major"]
+      # zustand v5 sends the production build into a React error #185 render
+      # loop on every route (dev build is fine, so CI does not catch it); we
+      # pinned back to v4 in #368. A retry needs a live profiler session on the
+      # loop, not a dependency bump.
+      - dependency-name: "zustand"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
