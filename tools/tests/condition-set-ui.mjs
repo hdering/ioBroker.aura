@@ -173,6 +173,22 @@ await mock({ [ALARM]: false });
 await settle();
 eq('style: and go away again', await fontOf('.aura-widget-title'), plain);
 
+// ── 8b. hiding the value ────────────────────────────────────────────────────
+// Only the value widget had an own showValue; the others needed wiring, or
+// "ausblenden" would have been a setting that does nothing.
+await show([rule('r1', { showValue: false })]);
+await mock({ [ALARM]: false });
+await settle();
+eq('value visible while the rule sleeps', await text('.aura-widget-value'), '21.5°C');
+await mock({ [ALARM]: true });
+await settle();
+// The value widget drops the element entirely; widgets without an own showValue
+// render it empty. Both count as hidden.
+check('value hidden by the rule', !(await text('.aura-widget-value')), String(await text('.aura-widget-value')));
+await mock({ [ALARM]: false });
+await settle();
+eq('value comes back', await text('.aura-widget-value'), '21.5°C');
+
 // ── 9. the same overrides inside a custom layout ────────────────────────────
 // A custom layout draws its own title cell and normally ignores showTitle — the
 // user placed the cell, after all. A rule that hides the title still has to reach

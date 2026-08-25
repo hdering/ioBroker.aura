@@ -5,7 +5,7 @@ import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetProps } from '../../types';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { valueTextOverride } from '../../utils/conditionSet';
+import { valueHidden, valueTextOverride } from '../../utils/conditionSet';
 import { resolveImageSource } from '../../utils/assetUrl';
 import { StatusBadges } from './StatusBadges';
 import { cellStateActive, type StateEvalConfig } from '../../utils/cellState';
@@ -90,7 +90,7 @@ export function SwitchWidget({ config }: WidgetProps) {
     const stateImage = isOn ? onImage : offImage;
     // A condition rule may replace the state text ("Anzeige überschreiben"). It also
     // drives the accessible name, so what is read out matches what is shown.
-    const stateLabel = valueTextOverride(config) ?? (isOn ? 'AN' : 'AUS');
+    const stateLabel = valueHidden(config) ? '' : (valueTextOverride(config) ?? (isOn ? 'AN' : 'AUS'));
 
     // Bedienelement für Icon- oder Bild-Modus (gemeinsamer Button-Wrapper)
     const iconControlButton = (extraClass = '') => (

@@ -4,7 +4,7 @@ import { evaluateClause } from '../../utils/conditionEval';
 import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
-import { valueTextOverride } from '../../utils/conditionSet';
+import { valueHidden, valueTextOverride } from '../../utils/conditionSet';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
@@ -85,7 +85,7 @@ export function StateImageWidget({ config }: WidgetProps) {
 
     const cfg = isActive ? trueCfg : falseCfg;
     // A condition rule may replace the state text ("Anzeige überschreiben").
-    const stateLabel = valueTextOverride(config) ?? cfg.label;
+    const stateLabel = valueHidden(config) ? '' : (valueTextOverride(config) ?? cfg.label);
 
     const { battery, reach, batteryIcon, reachIcon, statusBadges } = useStatusFields(config);
 

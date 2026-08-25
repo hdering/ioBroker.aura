@@ -5,7 +5,7 @@ import type { WidgetProps } from '../../types';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
-import { valueTextOverride } from '../../utils/conditionSet';
+import { valueHidden, valueTextOverride } from '../../utils/conditionSet';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
@@ -81,7 +81,7 @@ export function WindowContactWidget({ config }: WidgetProps) {
 
     const cfg = getWcCfg(o, state);
     // A condition rule may replace the state text ("Anzeige überschreiben").
-    const stateLabel = valueTextOverride(config) ?? cfg.label;
+    const stateLabel = valueHidden(config) ? '' : (valueTextOverride(config) ?? cfg.label);
     const fb = WC_FALLBACK[state];
 
     // Extra DPs for custom layout – hooks must always run unconditionally

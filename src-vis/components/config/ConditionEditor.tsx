@@ -394,15 +394,21 @@ export function ColorField({
                 className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0 font-mono"
                 style={inputStyle}
             />
-            {value && (
-                <button
-                    onClick={() => onChange(undefined)}
-                    className="shrink-0 hover:opacity-60"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    <Trash2 size={10} />
-                </button>
-            )}
+            {/* Always rendered, only hidden — otherwise the input jumps in width the
+                moment a colour is set or cleared. */}
+            <button
+                onClick={() => onChange(undefined)}
+                className="shrink-0 hover:opacity-60"
+                aria-hidden={!value}
+                tabIndex={value ? 0 : -1}
+                style={{
+                    color: 'var(--text-secondary)',
+                    visibility: value ? 'visible' : 'hidden',
+                    pointerEvents: value ? 'auto' : 'none',
+                }}
+            >
+                <Trash2 size={10} />
+            </button>
         </div>
     );
 }
@@ -427,11 +433,18 @@ function TextField({
     label,
     value,
     placeholder,
+    title,
+    trailingSlot,
     onChange,
 }: {
     label: string;
     value: string | undefined;
     placeholder: string;
+    /** For rows that continue the one above and therefore carry no visible label. */
+    title?: string;
+    /** Reserve the trailing delete-button slot, so this row lines up with the
+     *  colour rows above it instead of reaching 31 px further right. */
+    trailingSlot?: boolean;
     onChange: (v: string | undefined) => void;
 }) {
     return (
@@ -441,9 +454,11 @@ function TextField({
                 value={value ?? ''}
                 onChange={(e) => onChange(e.target.value || undefined)}
                 placeholder={placeholder}
+                title={title}
                 className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
                 style={inputStyle}
             />
+            {trailingSlot && <span aria-hidden className="shrink-0" style={{ width: 10 }} />}
         </LabeledRow>
     );
 }
@@ -605,7 +620,8 @@ function ConditionSetFields({
                     />
                     {s.showTitle === true && (
                         <TextField
-                            label={t('cond.setTitle')}
+                            label=""
+                            title={t('cond.setTitle')}
                             value={s.title}
                             placeholder={current?.title || t('cond.setTitlePlaceholder')}
                             onChange={(v) => onChange({ title: v })}
@@ -627,7 +643,7 @@ function ConditionSetFields({
                         }
                     />
                     {s.showIcon === true && (
-                        <LabeledRow label={t('cond.setIcon')}>
+                        <LabeledRow label="">
                             <IconButton
                                 value={s.icon}
                                 fallback={current?.icon}
@@ -652,12 +668,24 @@ function ConditionSetFields({
                 </>
             )}
             {slots.includes('value') && (
-                <TextField
-                    label={t('cond.setValueText')}
-                    value={s.valueText}
-                    placeholder={t('cond.setValueTextPlaceholder')}
-                    onChange={(v) => onChange({ valueText: v })}
-                />
+                <>
+                    <TriStateField
+                        label={t('cond.setShowValue')}
+                        value={s.showValue}
+                        onChange={(v) =>
+                            onChange(v === undefined ? { showValue: v, valueText: undefined } : { showValue: v })
+                        }
+                    />
+                    {s.showValue === true && (
+                        <TextField
+                            label=""
+                            title={t('cond.setValueText')}
+                            value={s.valueText}
+                            placeholder={t('cond.setValueTextPlaceholder')}
+                            onChange={(v) => onChange({ valueText: v })}
+                        />
+                    )}
+                </>
             )}
         </div>
     );
@@ -787,11 +815,13 @@ function ConditionRule({
                     {/* Separator */}
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
 
-                    {/* Two columns of effects. A colour row is label + swatch + hex and needs
-                        about a third of the dialog; letting it span the full width only made
-                        the panel taller and harder to scan. Stacks again below `md`. */}
+                    {/* Two columns of effects. A colour row is label + swatch + hex and does
+                        not need the full 1024 px; spanning it only made the panel taller and
+                        harder to scan. Both columns fill their half exactly — capping them
+                        left a void on the right, which read as a cut-off panel. Stacks again
+                        below `md`. */}
                     <div className="grid gap-x-5 gap-y-4 md:grid-cols-2">
-                        <div className="space-y-1.5 max-w-sm">
+                        <div className="space-y-1.5">
                             <p
                                 className="text-[10px] font-semibold uppercase tracking-wider"
                                 style={{ color: 'var(--text-secondary)' }}
@@ -813,6 +843,7 @@ function ConditionRule({
                                         label={t(labelKey as Parameters<typeof t>[0])}
                                         value={condition.style[key]}
                                         placeholder={placeholder}
+                                        trailingSlot
                                         onChange={(v) => setStyle({ [key]: v })}
                                     />
                                 ))}
@@ -854,7 +885,7 @@ function ConditionRule({
 
                         {/* Override what the widget shows — icon, title, value (issue #96) */}
                         {context !== 'tab' && slots.length > 0 && (
-                            <div className="space-y-1.5 max-w-sm">
+                            <div className="space-y-1.5">
                                 <p
                                     className="text-[10px] font-semibold uppercase tracking-wider"
                                     style={{ color: 'var(--text-secondary)' }}

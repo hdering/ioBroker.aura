@@ -19,6 +19,7 @@ const OPTION_KEYS: Record<string, string> = {
     iconSize: 'iconSize',
     showIcon: 'showIcon',
     valueText: 'valueTextOverride',
+    showValue: 'showValue',
 };
 
 export const EMPTY_SET: ConditionSet = {};
@@ -95,6 +96,14 @@ export function stripRenderOverrides(next: WidgetConfig, raw: WidgetConfig, deri
     }
     if (opts) out = { ...out, options: opts };
     return out;
+}
+
+/**
+ * A rule hides the widget's value. Only the value widget had an own `showValue`
+ * option; the others read this so "ausblenden" is not a setting that does nothing.
+ */
+export function valueHidden(config: WidgetConfig): boolean {
+    return config.options?.showValue === false;
 }
 
 /**

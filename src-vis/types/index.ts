@@ -625,6 +625,7 @@ export interface ConditionSet {
     iconSize?: number;
     showIcon?: boolean;
     valueText?: string; // replaces the displayed value (widgets with the 'value' slot)
+    showValue?: boolean;
 }
 
 /** Which override slots a widget type actually honours — see widgetRegistry. */

@@ -66,15 +66,15 @@ Gespeichert bleibt die Einstellung; trifft die Regel nicht mehr zu, steht wieder
 
 | Feld | Wirkt in |
 | --- | --- |
-| Titel zeigen · Icon zeigen | `unverändert` · `anzeigen` · `ausblenden` |
-| Titel | allen Widgets; `[[dp]]` im Text wird live aufgelöst |
-| Icon · Icon-Größe | allen Widgets mit eigenem Icon — nicht Karte, Statusübersicht, Menü, Spiegel |
+| Titel · Icon · Wert | `unverändert` · `anpassen` · `ausblenden` |
+| Titel-Text | allen Widgets; `[[dp]]` im Text wird live aufgelöst |
+| Icon-Auswahl · Größe | allen Widgets mit eigenem Icon — nicht Karte, Statusübersicht, Menü, Spiegel |
 | Wert-Text | Wert-Anzeige, Schalter, Binärsensor, Fenster-/Türkontakt, Zustandsbild; ersetzt den Werttext, die Einheit entfällt dabei |
 
-`… zeigen` ist das Tor für den ganzen Block: bei `unverändert` rührt die Regel Titel bzw. Icon nicht an
-und bietet die Detailfelder gar nicht erst an. Sie erscheinen bei `anzeigen`; ein Zurückstellen auf
-`unverändert` verwirft, was dort stand — sonst würde hinter dem Wort „unverändert" doch etwas
-überschrieben.
+`Titel`, `Icon` und `Wert` sind das Tor für ihren Block: bei `unverändert` rührt die Regel sie nicht an
+und bietet das Textfeld gar nicht erst an. Es erscheint bei `anpassen` — was das Element zugleich
+sichtbar schaltet. Ein Zurückstellen auf `unverändert` verwirft, was dort stand, sonst würde hinter dem
+Wort „unverändert" doch etwas überschrieben.
 
 Leere Felder zeigen als Platzhalter das, was das Widget heute anzeigt: den aktuellen Titel, das aktuelle
 Icon (ausgegraut), die aktuelle Größe.

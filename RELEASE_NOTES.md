@@ -16,5 +16,5 @@ Lists - sorting can use a datapoint of the second line (#572)
 Universal - conditions are now offered for title, unit, text, field, icon, image and button cells as well
 Conditions - the widget level gained bold/italic and the element level gained pulse/blink, so both offer the same set
 Conditions - the rule dialog now puts style and display overrides side by side instead of stacking them full width
-Conditions - unset colour fields now show an empty swatch instead of a blue one; the display overrides preview what the widget shows today and only offer their detail fields once "show" is set
+Conditions - unset colour fields now show an empty swatch instead of a blue one; title, icon and value each offer unchanged/adjust/hide and preview what the widget shows today
 Conditions - hiding the title now works in a custom layout too
