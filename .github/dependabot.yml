@@ -40,6 +40,12 @@ updates:
       # loop, not a dependency bump.
       - dependency-name: "zustand"
         update-types: ["version-update:semver-major"]
+      # TypeScript 7 (the Go port) cannot even be installed here:
+      # @typescript-eslint declares peer typescript ">=4.8.4 <6.1.0" and reaches
+      # us through @iobroker/eslint-config, so `npm ci` dies with ERESOLVE
+      # (#585). Revisit once typescript-eslint supports TS 7.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
