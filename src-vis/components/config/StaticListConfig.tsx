@@ -215,7 +215,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                 ]}
             />
 
-            <ConfigSection title="Anzeige" defaultOpen>
+            <ConfigSection title="Anzeige">
                 <div className="flex items-center justify-between">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                         Anzahl anzeigen

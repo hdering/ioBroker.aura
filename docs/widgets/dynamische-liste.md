@@ -47,6 +47,8 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Zweite Zeile | Vorlage für zusätzliche Datenpunkte in allen Zeilen (siehe unten) |
 | Namen | Namensmuster und Namens-Filter — Platzhalter wie bei der [statischen Liste](./liste#namen), inklusive `[[{{parent}}.DeviceName]]` für Namen aus einem eigenen Datenpunkt |
 
+Das Icon vor dem Namen wird je Datenpunkt im Abschnitt **Beschriftung** gesetzt (`entries[].icon`, [Lucide](https://lucide.dev) / Iconify-ID), die Größe daneben in px (`entries[].iconSize`, Standard `13`).
+
 Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Zweite Zeile** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Verhalten** (letzte Änderung, Klick auf Zeile).
 
 ### Zweite Zeile (zusätzliche Datenpunkte)
@@ -195,8 +197,6 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 
 | Option | Standard | |
 | --- | --- | --- |
-| `entryIcon` | — | Icon vor dem Namen **jeder** Zeile ([Lucide](https://lucide.dev) / Iconify-ID); pro Eintrag im Detail-Editor überschreibbar |
-| `entryIconSize` | `13` | Größe dieses Icons in px |
 | `showTitle` | `true` | Titel anzeigen |
 | `showIcon` | `true` | Icon anzeigen |
 | `icon` | `List` | [Lucide-Icon](https://lucide.dev) |

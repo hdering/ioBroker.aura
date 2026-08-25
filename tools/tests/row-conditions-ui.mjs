@@ -65,12 +65,9 @@ const autoList = {
     gridPos: { x: 0, y: 11, w: 14, h: 8 },
     options: {
         entries: [
-            { id: 'demo.dev1.STATE', label: 'Auto-Eins' },
-            { id: 'demo.dev2.STATE', label: 'Auto-Zwei' },
+            { id: 'demo.dev1.STATE', label: 'Auto-Eins', icon: 'Lightbulb', iconSize: 16 },
+            { id: 'demo.dev2.STATE', label: 'Auto-Zwei', icon: 'Lightbulb', iconSize: 16 },
         ],
-        // The dynamic list had no row icon at all before this change.
-        entryIcon: 'Lightbulb',
-        entryIconSize: 16,
         rowConditions: [rule('auto-name', 'name', [clause('{{parent}}.UNREACH', 'true')], { color: '#ff00ff' })],
         syncIntervalMin: 999,
     },
@@ -178,7 +175,7 @@ await settle();
     check('dynamic: rows render', body.includes('Auto-Eins'), body.replace(/\n/g, ' | '));
     await iconsReady('rc-auto', 3);
     const icons = await page.evaluate(() => document.querySelectorAll('.aura-widget-rc-auto svg').length);
-    // Header icon plus one per row — before this change the rows had none at all.
+    // Header icon plus one per row — the row icon is a per-datapoint setting.
     check('dynamic: rows have an icon now', icons >= 3, `svg count ${icons}`);
 }
 

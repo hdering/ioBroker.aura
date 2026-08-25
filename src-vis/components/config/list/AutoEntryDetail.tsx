@@ -135,6 +135,26 @@ export function AutoEntryDetail({
                             )}
                         </div>
                     </div>
+                    {entry.icon && (
+                        <div className="w-11 shrink-0">
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                px
+                            </label>
+                            <input
+                                type="number"
+                                min={8}
+                                max={64}
+                                className={iCls}
+                                style={iSty}
+                                placeholder="13"
+                                title="Icon-Größe in px"
+                                value={entry.iconSize ?? ''}
+                                onChange={(e) =>
+                                    onUpdate({ iconSize: e.target.value === '' ? undefined : Number(e.target.value) })
+                                }
+                            />
+                        </div>
+                    )}
                     <div className="flex-1 min-w-0">
                         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                             {t('endpoints.dp.label')}

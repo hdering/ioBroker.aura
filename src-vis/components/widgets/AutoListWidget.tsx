@@ -106,7 +106,7 @@ export interface AutoListEntry extends EntryControlConfig {
     /** Extra display-only datapoints on a second line. Replaces options.subDpTemplate
      *  for this entry; empty/unset = the template applies. */
     subDps?: EntrySubDp[];
-    /** Icon in front of the name. Falls back to options.entryIcon (issue #572). */
+    /** Icon in front of the name — the only place a row icon is configured (issue #572). */
     icon?: string;
     /** Icon size in px. Default 13. */
     iconSize?: number;
@@ -211,10 +211,11 @@ export interface AutoListOptions
     /** Template rows whose resolved datapoint does not exist are left out instead of
      *  rendering a dash (a device without BATTERY). Default true. */
     subDpTemplateHideMissing?: boolean;
-    /** Icon in front of every row's name — the rows come from a filter, so setting
-     *  one per entry is not an option for 40 discovered datapoints (issue #572). */
+    /** Legacy list-wide row icon. The editor only offers the per-datapoint icon now
+     *  and migrates a stored value onto the entries; kept so unmigrated lists still
+     *  render their icon (see AutoListConfig). */
     entryIcon?: string;
-    /** Size of that icon in px. Default 13. */
+    /** Legacy size of that icon in px. Default 13. */
     entryIconSize?: number;
     /**
      * Conditional formatting applied to EVERY row (issue #572). Clause datapoints may
