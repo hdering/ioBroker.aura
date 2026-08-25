@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type React from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
 import { ClauseRow, ColorField, newClause } from './ConditionEditor';
 import { IconPickerModal } from './IconPickerModal';
@@ -36,6 +37,35 @@ const TARGET_LABELS: Record<ElementConditionTarget, string> = {
     icon: 'Icon',
 };
 
+const fieldStyle: React.CSSProperties = {
+    background: 'var(--app-bg)',
+    color: 'var(--text-primary)',
+    border: '1px solid var(--app-border)',
+};
+
+function SectionLabel({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+    return (
+        <p
+            className={`text-[10px] font-semibold uppercase tracking-wider ${className}`}
+            style={{ color: 'var(--text-secondary)' }}
+        >
+            {children}
+        </p>
+    );
+}
+
+/** Label column of the same width the shared ColorField uses, so rows line up. */
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <div className="flex items-center gap-1.5">
+            <label className="text-[10px] w-16 shrink-0 truncate" style={{ color: 'var(--text-secondary)' }}>
+                {label}
+            </label>
+            {children}
+        </div>
+    );
+}
+
 function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
     return (
         <button
@@ -51,6 +81,8 @@ function Toggle({ on, onClick, label }: { on: boolean; onClick: () => void; labe
         </button>
     );
 }
+
+type Mode = 'unchanged' | 'adjust' | 'hide';
 
 function RuleEditor({
     rule,
@@ -75,6 +107,21 @@ function RuleEditor({
     const deleteClause = (i: number) => update({ clauses: rule.clauses.filter((_, j) => j !== i) });
     const addClause = () => update({ clauses: [...rule.clauses, newOwnClause()] });
     const toggleLogic = () => update({ logic: rule.logic === 'OR' ? 'AND' : 'OR' });
+
+    // Same three-way switch as the widget rules. It is derived rather than stored:
+    // a rule that overrides text or icon *is* adjusting the element, and "anpassen"
+    // with nothing filled in yet has nothing worth persisting. Picking it only has
+    // to survive until the fields are filled, so local state is enough.
+    const derivedMode: Mode = rule.hide ? 'hide' : rule.text !== undefined || rule.icon ? 'adjust' : 'unchanged';
+    const [modePick, setModePick] = useState<Mode | null>(null);
+    const mode = modePick ?? derivedMode;
+    const setMode = (m: Mode) => {
+        setModePick(m);
+        // Back to "unverändert" drops the overrides — a text left behind an
+        // untouched element would still paint.
+        if (m === 'unchanged') update({ hide: undefined, text: undefined, icon: undefined });
+        else update({ hide: m === 'hide' ? true : undefined });
+    };
 
     const target = rule.target ?? 'row';
     const paintsIcon = targets.length === 0 || target === 'row' || target === 'icon';
@@ -130,7 +177,7 @@ function RuleEditor({
             </div>
 
             {open && (
-                <div className="p-3 space-y-3" style={{ background: 'var(--app-bg)' }}>
+                <div className="p-3 space-y-3 aura-rule-body" style={{ background: 'var(--app-bg)' }}>
                     {/* Clauses */}
                     <div className="space-y-1.5">
                         {rule.clauses.map((clause, i) => (
@@ -159,145 +206,166 @@ function RuleEditor({
 
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
 
-                    {targets.length > 0 && (
-                        <div className="flex items-center gap-1.5">
-                            <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                Wirkt auf
-                            </label>
+                    {/* Same two-column split as the widget-wide rules: the style on the
+                        left, what the element shows on the right. */}
+                    <div className="aura-rule-cols">
+                        <div className="space-y-1.5">
+                            <SectionLabel>Stil wenn aktiv</SectionLabel>
+                            {paintsText && (
+                                <ColorField
+                                    label="Textfarbe"
+                                    value={rule.color}
+                                    compact
+                                    onChange={(v) => update({ color: v })}
+                                />
+                            )}
+                            {target === 'row' && (
+                                <ColorField
+                                    label="Hintergrund"
+                                    value={rule.bg}
+                                    compact
+                                    onChange={(v) => update({ bg: v })}
+                                />
+                            )}
+                            {paintsIcon && (
+                                <ColorField
+                                    label="Icon-Farbe"
+                                    value={rule.iconColor}
+                                    compact
+                                    onChange={(v) => update({ iconColor: v })}
+                                />
+                            )}
+                            {paintsText && (
+                                <div className="flex items-center gap-1.5 pt-0.5">
+                                    <Toggle
+                                        on={!!rule.bold}
+                                        onClick={() => update({ bold: !rule.bold })}
+                                        label="Fett"
+                                    />
+                                    <Toggle
+                                        on={!!rule.italic}
+                                        onClick={() => update({ italic: !rule.italic })}
+                                        label="Kursiv"
+                                    />
+                                </div>
+                            )}
+
+                            {/* A section of its own, as in the widget dialog — on one line
+                                with a stub label it read like a leftover of the block above. */}
+                            <div className="h-px mt-2" style={{ background: 'var(--app-border)' }} />
+                            <SectionLabel className="pt-1">Effekt</SectionLabel>
                             <select
-                                value={target}
-                                onChange={(e) => update({ target: e.target.value as ElementConditionTarget })}
-                                className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
+                                value={rule.effect ?? 'none'}
+                                onChange={(e) =>
+                                    update({
+                                        effect:
+                                            e.target.value === 'none'
+                                                ? undefined
+                                                : (e.target.value as 'pulse' | 'blink'),
+                                    })
+                                }
+                                className="w-full text-[11px] rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={fieldStyle}
                             >
-                                {targets.map((tg) => (
-                                    <option key={tg} value={tg}>
-                                        {TARGET_LABELS[tg]}
-                                    </option>
-                                ))}
+                                <option value="none">Kein Effekt</option>
+                                <option value="pulse">Pulsieren</option>
+                                <option value="blink">Blinken</option>
                             </select>
                         </div>
-                    )}
 
-                    {/* Effects */}
-                    <p
-                        className="text-[10px] font-semibold uppercase tracking-wider"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        Wenn erfüllt
-                    </p>
-                    <div className="space-y-1.5">
-                        {paintsText && (
-                            <ColorField label="Textfarbe" value={rule.color} onChange={(v) => update({ color: v })} />
-                        )}
-                        {target === 'row' && (
-                            <ColorField label="Hintergrund" value={rule.bg} onChange={(v) => update({ bg: v })} />
-                        )}
-                        {paintsIcon && (
-                            <ColorField
-                                label="Icon-Farbe"
-                                value={rule.iconColor}
-                                onChange={(v) => update({ iconColor: v })}
-                            />
-                        )}
-                    </div>
-                    {paintsText && (
-                        <div className="flex items-center gap-1.5">
-                            <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                Text
-                            </label>
-                            <input
-                                type="text"
-                                value={rule.text ?? ''}
-                                onChange={(e) => update({ text: e.target.value || undefined })}
-                                placeholder="unverändert"
-                                className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                        </div>
-                    )}
-                    <div className="flex items-center gap-1.5">
-                        <Toggle on={!!rule.bold} onClick={() => update({ bold: !rule.bold })} label="Fett" />
-                        <Toggle on={!!rule.italic} onClick={() => update({ italic: !rule.italic })} label="Kursiv" />
-                        <Toggle on={!!rule.hide} onClick={() => update({ hide: !rule.hide })} label="Ausblenden" />
-                    </div>
-                    {/* The same two the widget rules offer — kept in step on purpose. */}
-                    <div className="flex items-center gap-1.5">
-                        <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                            Effekt
-                        </label>
-                        <select
-                            value={rule.effect ?? 'none'}
-                            onChange={(e) =>
-                                update({
-                                    effect:
-                                        e.target.value === 'none' ? undefined : (e.target.value as 'pulse' | 'blink'),
-                                })
-                            }
-                            className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-primary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            <option value="none">Kein Effekt</option>
-                            <option value="pulse">Pulsieren</option>
-                            <option value="blink">Blinken</option>
-                        </select>
-                    </div>
-                    {paintsIcon && (
-                        <div className="flex items-center gap-1.5">
-                            <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                Icon
-                            </label>
-                            <button
-                                onClick={() => setShowIcon(true)}
-                                className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    border: '1px solid var(--app-border)',
-                                    color: 'var(--text-primary)',
-                                }}
-                            >
-                                {IconPrev ? (
-                                    <IconPrev
-                                        size={14}
-                                        style={{
-                                            flexShrink: 0,
-                                            color: rule.iconColor || rule.color || 'var(--text-primary)',
-                                        }}
+                        <div className="space-y-1.5">
+                            <SectionLabel>Element</SectionLabel>
+                            {targets.length > 0 && (
+                                <Row label="Wirkt auf">
+                                    <select
+                                        value={target}
+                                        onChange={(e) => update({ target: e.target.value as ElementConditionTarget })}
+                                        className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
+                                        style={fieldStyle}
+                                    >
+                                        {targets.map((tg) => (
+                                            <option key={tg} value={tg}>
+                                                {TARGET_LABELS[tg]}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </Row>
+                            )}
+                            <Row label="Sichtbar">
+                                <select
+                                    value={mode}
+                                    onChange={(e) => setMode(e.target.value as Mode)}
+                                    className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
+                                    style={fieldStyle}
+                                >
+                                    <option value="unchanged">unverändert</option>
+                                    <option value="adjust">anpassen</option>
+                                    <option value="hide">ausblenden</option>
+                                </select>
+                            </Row>
+                            {/* Content only once the element is actively adjusted — a field
+                                behind the word "unverändert" would change it after all. */}
+                            {mode === 'adjust' && paintsText && (
+                                <Row label="Text">
+                                    <input
+                                        type="text"
+                                        value={rule.text ?? ''}
+                                        onChange={(e) => update({ text: e.target.value || undefined })}
+                                        placeholder="unverändert"
+                                        className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
+                                        style={fieldStyle}
                                     />
-                                ) : (
-                                    <span style={{ width: 14, height: 14, display: 'inline-block', flexShrink: 0 }} />
-                                )}
-                                <span
-                                    className="flex-1 truncate text-[11px] text-left"
-                                    style={{ color: rule.icon ? 'var(--text-primary)' : 'var(--text-secondary)' }}
-                                >
-                                    {rule.icon ?? 'Icon wählen …'}
-                                </span>
-                            </button>
-                            {rule.icon && (
-                                <button
-                                    onClick={() => update({ icon: undefined })}
-                                    className="shrink-0 hover:opacity-60"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                    title="Icon entfernen"
-                                >
-                                    <Trash2 size={12} />
-                                </button>
+                                </Row>
+                            )}
+                            {mode === 'adjust' && paintsIcon && (
+                                <Row label="Icon">
+                                    <button
+                                        onClick={() => setShowIcon(true)}
+                                        className="flex-1 min-w-0 flex items-center gap-2 px-1.5 py-1 rounded"
+                                        style={fieldStyle}
+                                    >
+                                        {IconPrev ? (
+                                            <IconPrev
+                                                size={13}
+                                                style={{
+                                                    flexShrink: 0,
+                                                    color: rule.iconColor || rule.color || 'var(--text-primary)',
+                                                }}
+                                            />
+                                        ) : (
+                                            <span
+                                                style={{
+                                                    width: 13,
+                                                    height: 13,
+                                                    display: 'inline-block',
+                                                    flexShrink: 0,
+                                                }}
+                                            />
+                                        )}
+                                        <span
+                                            className="flex-1 truncate text-[10px] text-left"
+                                            style={{
+                                                color: rule.icon ? 'var(--text-primary)' : 'var(--text-secondary)',
+                                            }}
+                                        >
+                                            {rule.icon ?? 'Icon wählen …'}
+                                        </span>
+                                    </button>
+                                    {rule.icon && (
+                                        <button
+                                            onClick={() => update({ icon: undefined })}
+                                            className="shrink-0 hover:opacity-60"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                            title="Icon entfernen"
+                                        >
+                                            <Trash2 size={12} />
+                                        </button>
+                                    )}
+                                </Row>
                             )}
                         </div>
-                    )}
+                    </div>
+
                     {showIcon && (
                         <IconPickerModal
                             current={rule.icon ?? ''}

@@ -126,8 +126,10 @@ Im Custom-Layout bieten alle wertführenden Zellen Bedingungen, dazu `Titel` · 
 `Feld` · `Icon` · `Bild` · `Button`. Diese haben keinen eigenen Wert — eine Klausel dort liest den
 Haupt-Datenpunkt des Widgets oder einen frei angegebenen.
 
-Effekte einer Element-Regel: Textfarbe, Hintergrund (nur „Ganze Zeile"), Icon-Farbe, Icon, Text, Fett,
-Kursiv, Effekt (`Pulsieren` · `Blinken`), Ausblenden.
+Der Regel-Dialog ist derselbe wie auf Widget-Ebene: links **Stil wenn aktiv** (Textfarbe, Hintergrund
+— nur bei „Ganze Zeile" —, Icon-Farbe, Fett, Kursiv) und darunter **Effekt** (`Pulsieren` · `Blinken`),
+rechts **Element** mit `Wirkt auf` und `Sichtbar` (`unverändert` · `anpassen` · `ausblenden`). Text und
+Icon erscheinen erst bei `anpassen`, damit hinter dem Wort „unverändert" nichts steht, das doch wirkt.
 
 Schriftschnitt und Effekt gibt es auf beiden Ebenen — nur der Umfang unterscheidet sich: Farben und
 Sichtbarkeit wirken auf der Widget-Ebene auf die ganze Karte, auf der Element-Ebene auf genau ein Teil.
