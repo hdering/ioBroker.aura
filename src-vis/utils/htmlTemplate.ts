@@ -36,6 +36,7 @@
 import { joinDpRef, splitDpRef } from './dpRef';
 import {
     applyOpChain,
+    canonicalIdent,
     evalExpr,
     exprRefs,
     exprToString,
@@ -59,8 +60,11 @@ const TEMPLATE_RE = /\{\{([\s\S]*?)\}\}|\{([^{}]+)\}(#[A-Za-z_$][\w$]*(?:\.[\w$]
 const POPUP_TOKEN_RE = /^\w+$/;
 
 // State ID: namespace char + at least one further dot-segment, no whitespace.
-// `#` is allowed inside a segment because some adapters use it (Shelly).
-const DP_ID_RE = /^[A-Za-z0-9_][\w#-]*(?:\.[\w#-]+)+$/;
+// `#` is allowed inside a segment because some adapters use it (Shelly). Letters are
+// Unicode for the reason spelled out over the twin of this regex in expr.ts (#578) —
+// what keeps CSS out of the binding machinery is the whitespace test and the required
+// dot-segment, and neither of those cares how wide the letter class is.
+const DP_ID_RE = /^[\p{L}\p{N}_][\p{L}\p{N}\p{M}_#-]*(?:\.[\p{L}\p{N}\p{M}_#-]+)+$/u;
 
 // A `#…` tail only counts as a JSON path if it reads like one.
 const HASH_PATH_RE = /^[A-Za-z_$][\w$]*(?:\.[\w$]+|\[\d+\])*$/;
@@ -119,8 +123,9 @@ function parseToken(inner: string, suffix: string | undefined): Token | null {
     }
 
     // A var name is a single word, so anything with a dot-segment is a state ID.
-    if (DP_ID_RE.test(base)) return { varName: null, ref: joinDpRef(base, path), path, suffixUsed };
-    return { varName: base, ref: null, path, suffixUsed };
+    const ident = canonicalIdent(base);
+    if (DP_ID_RE.test(ident)) return { varName: null, ref: joinDpRef(ident, path), path, suffixUsed };
+    return { varName: ident, ref: null, path, suffixUsed };
 }
 
 // ── bindings with a `;` ───────────────────────────────────────────────────────
@@ -185,14 +190,18 @@ function parseSource(text: string): Source | null {
     return { varName: null, ref: token.ref, field: 'val' };
 }
 
-// `name: <source>` — the vis way of binding a datapoint to a variable.
-const DECL_RE = /^\s*([A-Za-z_$][\w$]*)\s*:\s*(\S+)\s*$/;
+// `name: <source>` — the vis way of binding a datapoint to a variable. The name may
+// carry the same Unicode letters an id may, so that `{küche:0_userdata.0.EG_Küche;…}`
+// declares a variable the expression half can actually address. Widening the name
+// costs the CSS guard nothing: a part only becomes a declaration when parseSource
+// accepts its *value* as a real state id, which `color:red` never is.
+const DECL_RE = /^\s*([\p{L}_$][\p{L}\p{N}\p{M}_$]*)\s*:\s*(\S+)\s*$/u;
 
 function parseDeclaration(part: string): Declaration | null {
     const m = DECL_RE.exec(part);
     if (!m) return null;
     const source = parseSource(m[2]);
-    return source ? { name: m[1], ...source } : null;
+    return source ? { name: canonicalIdent(m[1]), ...source } : null;
 }
 
 const BINDING_CACHE = new Map<string, Binding | null>();

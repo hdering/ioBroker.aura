@@ -102,6 +102,10 @@ const STATES = {
     '0_userdata.0.Blau': { val: 12, ts: 0, lc: 0 },
     '0_userdata.0.Zeit': { val: +STAMP, ts: 0, lc: 0 },
     'shelly.0.SHSW-25#4C7525#1.Relay0.Switch': { val: true, ts: 0, lc: 0 },
+    // ioBroker forbids only []*,;'"`<>\? in an id, so these two are ordinary states
+    // — they come verbatim from issue #578.
+    '0_userdata.0.Haus.Außen_Dach.Sensor.temperature': { val: 12.5, ts: 0, lc: +STAMP },
+    '0_userdata.0.Haus.EG_Küche.Sensor.temperature': { val: 22.5, ts: 0, lc: 0 },
 };
 
 const ctx = (vars = {}) => ({
@@ -359,6 +363,35 @@ const str = (src, vars, declared) => exprToString(ev(src, vars, declared));
         'Akku 87 %',
     );
     eq('recipe: bar height in an svg', str('180 - 180 * Math.min(0_userdata.0.Rot / 255, 1)'), '109.411764706');
+}
+
+// ── 15. ids that are not ASCII (#578) ─────────────────────────────────────────
+{
+    const AUSSEN = '0_userdata.0.Haus.Außen_Dach.Sensor.temperature';
+    const KUECHE = '0_userdata.0.Haus.EG_Küche.Sensor.temperature';
+
+    eq('non-ascii: id resolves', ev(KUECHE), 22.5);
+    eq('non-ascii: id in arithmetic', ev(`${KUECHE} - ${AUSSEN}`), 10);
+    eq('non-ascii: collected as a ref', exprRefs(`${KUECHE} > 20`), [{ ref: KUECHE, field: 'val' }]);
+    eq('non-ascii: ß in a segment', ev(`${AUSSEN} * 2`), 25);
+    // The `.lc` suffix still splits off the id rather than being read as a segment.
+    eq('non-ascii: .lc suffix', exprRefs(`${AUSSEN}.lc`), [{ ref: AUSSEN, field: 'lc' }]);
+    eq('non-ascii: .lc value', ev(`${AUSSEN}.lc`), +STAMP);
+
+    // `ü` also exists as `u` + combining diaeresis. The two are indistinguishable on
+    // screen but are different subscription keys, so a template that arrived
+    // decomposed must still reach the datapoint the user meant.
+    const decomposed = KUECHE.normalize('NFD');
+    check('non-ascii: the decomposed spelling really differs', decomposed !== KUECHE);
+    eq('non-ascii: decomposed id folds to the same ref', exprRefs(decomposed), [{ ref: KUECHE, field: 'val' }]);
+    eq('non-ascii: decomposed id resolves', ev(decomposed), 22.5);
+
+    // Cyrillic is as legal an ioBroker id as German, so the letter class is Unicode
+    // rather than a German special case.
+    check('non-ascii: cyrillic id parses', parseExpr('0_userdata.0.Кухня.temp') !== null);
+    // Widening *letters* must not widen punctuation — stray symbols still fail.
+    check('non-ascii: stray symbol still rejected', parseExpr('1 € 2') === null);
+    check('non-ascii: stray section sign still rejected', parseExpr('1 § 2') === null);
 }
 
 const failed = results.filter((r) => !r.ok);

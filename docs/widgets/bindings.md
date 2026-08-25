@@ -108,6 +108,16 @@ Das kostet keine zusätzliche Subscription — die Zeitstempel kommen mit dem We
 Genau deshalb ist `dp1-dp2` **eine** ID und keine Subtraktion. In Ausdrücken immer `dp1 - dp2` schreiben. Betroffen ist nur `-`; `+ * / %` sind eindeutig.
 :::
 
+Umlaute, `ß` und andere Nicht-ASCII-Buchstaben (z. B. kyrillische) sind gültige ioBroker-IDs und funktionieren in allen vier Schreibweisen:
+
+```html
+{0_userdata.0.Haus.EG_Küche.Sensor.temperature}
+```
+
+::: tip Trotzdem besser vermeiden
+Für neue Datenpunkte sind ASCII-Namen die ruhigere Wahl — Skripte, Exporte und Fremdadapter gehen nicht alle so gelassen damit um.
+:::
+
 ### Fehlende Werte
 
 | Schreibweise | fehlender Datenpunkt ergibt |

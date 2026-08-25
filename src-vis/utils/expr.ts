@@ -52,7 +52,14 @@ export const RESERVED_VARS: readonly string[] = ['dp', 'color', 'unit', 'languag
 
 // State id: namespace char + at least one further dot-segment, no whitespace.
 // `#` and `-` are legal inside a segment because adapters use them (Shelly).
-const DP_ID_RE = /^[A-Za-z0-9_][\w#-]*(?:\.[\w#-]+)+$/;
+//
+// Letters are Unicode, not ASCII: ioBroker forbids only []*,;'"`<>\? in an id, so
+// `0_userdata.0.EG_Küche.temperature` and Cyrillic names are perfectly legal states.
+// Reading them as ASCII made every such binding fall through to the variable branch
+// and render nothing at all (#578). Combining marks are allowed inside a segment so
+// a decomposed spelling still tokenises as one id — canonicalIdent folds it to NFC
+// before this test decides.
+const DP_ID_RE = /^[\p{L}\p{N}_][\p{L}\p{N}\p{M}_#-]*(?:\.[\p{L}\p{N}\p{M}_#-]+)+$/u;
 
 // Pathological input protection. The grammar has no loops, so these bounds plus a
 // recursion limit are all that stand between a template and a hung render.
@@ -165,10 +172,22 @@ const PUNCT = [
     '>',
 ];
 
-const WORD_CH = /[A-Za-z0-9_$#]/;
+const WORD_CH = /[\p{L}\p{N}\p{M}_$#]/u;
 
 function isWordChar(c: string | undefined): boolean {
     return !!c && WORD_CH.test(c);
+}
+
+/**
+ * Fold hand-typed identifier text to the spelling ioBroker stores. `ü` exists both as
+ * one code point and as `u` + combining diaeresis; the two are indistinguishable on
+ * screen but are different subscription keys, so every id and variable name that comes
+ * out of template text passes through here before it is tested, looked up or turned
+ * into a ref. String literals do not — their content is display text, not an
+ * identifier, and normalising it would edit what the user wrote.
+ */
+export function canonicalIdent(text: string): string {
+    return text.normalize('NFC');
 }
 
 /** Throws on anything the grammar does not cover — callers turn that into `null`. */
@@ -218,7 +237,7 @@ function tokenize(src: string): Token[] {
                     chain += sep + src.slice(j, k);
                     j = k;
                 }
-                out.push({ t: 'id', v: chain });
+                out.push({ t: 'id', v: canonicalIdent(chain) });
             }
             i = j;
         } else {

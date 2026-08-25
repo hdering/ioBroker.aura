@@ -62,6 +62,9 @@ const STATES = {
     '0_userdata.0.Blau': { val: 12, ts: 0, lc: 0 },
     '0_userdata.0.Netz': { val: -1234.56, ts: 0, lc: 0 },
     'shelly.0.SHSW-25#4C7525#1.Relay0.Switch': { val: true, ts: 0, lc: 0 },
+    // Legal ioBroker ids that are not ASCII — verbatim from issue #578.
+    '0_userdata.0.Haus.Außen_Dach.Sensor.temperature': { val: 12.5, ts: 0, lc: 0 },
+    '0_userdata.0.Haus.EG_Küche.Sensor.temperature': { val: 22.5, ts: 0, lc: 0 },
 };
 const OWN = { temperature: 21.4, battery: { soc: 87 } };
 
@@ -273,6 +276,44 @@ const renderPlain = (tpl) =>
     check('body: colour computed', out.includes('fill="#00ff00"'), out);
     check('body: chain rendered', out.includes('>-1235 W<'), out);
     check('body: inline style untouched', out.includes('style="font: 12px sans-serif"'), out);
+}
+
+// ── 11. ids that are not ASCII (#578) ─────────────────────────────────────────
+{
+    const AUSSEN = '0_userdata.0.Haus.Außen_Dach.Sensor.temperature';
+    const KUECHE = '0_userdata.0.Haus.EG_Küche.Sensor.temperature';
+
+    // Every spelling a binding has must reach such an id, not just the plain token.
+    eq('non-ascii: extract plain id', extractTemplateDpRefs(`<b>{${AUSSEN}}</b>`), [AUSSEN]);
+    eq('non-ascii: render plain id', render(`<b>{${AUSSEN}}</b> °C`), '<b>12.5</b> °C');
+    eq('non-ascii: render without the calculating context', renderPlain(`{${KUECHE}}`), '22.5');
+    eq('non-ascii: operation chain', render(`{${KUECHE};round(0)}`), '23');
+    eq('non-ascii: named variables', render(`{a:${AUSSEN};b:${KUECHE};b - a}`), '10');
+    eq('non-ascii: expression form', render(`{{ ${KUECHE} - ${AUSSEN} }}`), '10');
+    eq(
+        'non-ascii: expression subscribes to both',
+        extractTemplateDpRefs(`{{ ${KUECHE} - ${AUSSEN} }}`).sort(),
+        [AUSSEN, KUECHE].sort(),
+    );
+    // A declared name may carry the same letters the id may, so it can be addressed
+    // by the expression half of the binding.
+    eq('non-ascii: declaration name', render(`{küche:${KUECHE};küche * 2}`), '45');
+
+    // `ü` as `u` + combining diaeresis is the same datapoint — it must land on the
+    // same subscription key instead of silently rendering nothing.
+    const decomposed = KUECHE.normalize('NFD');
+    check('non-ascii: the decomposed spelling really differs', decomposed !== KUECHE);
+    eq('non-ascii: decomposed id folds to the same ref', extractTemplateDpRefs(`{${decomposed}}`), [KUECHE]);
+    eq('non-ascii: decomposed id renders', render(`{${decomposed}}`), '22.5');
+
+    // The CSS guard must not have loosened along with the letter class: German
+    // property text still has to survive untouched.
+    for (const css of ['{ farbe: rot }', '{größe:12px;rand:0}', '{schriftgröße:1.5em;zeilenhöhe:2}']) {
+        eq(`non-ascii css untouched: ${css}`, render(css), css);
+        eq(`non-ascii css has no refs: ${css}`, extractTemplateDpRefs(css), []);
+    }
+    eq('non-ascii: a single umlaut word is no id', extractTemplateDpRefs('{Küche}'), []);
+    eq('non-ascii: unknown umlaut var stays verbatim', render('{Küche}'), '{Küche}');
 }
 
 const failed = results.filter((r) => !r.ok);

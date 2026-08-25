@@ -18,3 +18,4 @@ Conditions - the widget level gained bold/italic and the element level gained pu
 Conditions - the rule dialog now puts style and display overrides side by side instead of stacking them full width
 Conditions - unset colour fields now show an empty swatch instead of a blue one; title, icon and value each offer unchanged/adjust/hide and preview what the widget shows today
 Conditions - hiding the title now works in a custom layout too
+HTML and value widgets - bindings now work with umlauts and other non-ASCII letters in datapoint ids (#578)
