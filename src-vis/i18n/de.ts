@@ -1327,6 +1327,10 @@ export const de = {
     'echart.alignLeft': 'Links',
     'echart.alignRight': 'Rechts',
     'echart.showValues': 'Werte am Datenpunkt anzeigen',
+    'echart.seriesShowValues': 'Werte am Datenpunkt',
+    'echart.seriesShowValuesAuto': 'Auto ({value})',
+    'echart.labelIntervalAll': 'Beschriftung: jeder Wert',
+    'echart.labelInterval': 'Beschriftung: jeder {value}. Wert',
     'echart.showStackPercent': 'Prozentualen Anteil am Stapel anzeigen',
     'echart.showStackPercentHint':
         'Anteil des Werts an der Stapelsumme desselben Zeitpunkts. Zusammen mit den Werten in Klammern dahinter, sonst allein. Nur für gestapelte Serien mit mindestens zwei Serien je Achse.',

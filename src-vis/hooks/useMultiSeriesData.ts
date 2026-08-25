@@ -39,6 +39,18 @@ export interface EChartSeriesConfig {
      */
     stackOutline?: boolean;
     /**
+     * Draw the value at every data point of this series, overriding the widget-wide
+     * `echartShowValues` (issue #584). Unset = follow the widget. A bar chart with a temperature
+     * line over it usually wants the numbers on the bars only.
+     */
+    showValues?: boolean;
+    /**
+     * Label only every n-th point (default 1 = every point, issue #584). Counted back from the
+     * newest point, so the latest value always keeps its label. Only acts where the series has
+     * more than one point — a comparison bar is never thinned out.
+     */
+    labelInterval?: number;
+    /**
      * Fill opacity of an area in percent (10–100), unset = the default of `areaOpacityFor`: a
      * stacked band is opaque so it shows the colour it was given, a single area stays a wash to
      * see through (issue #557). Only meaningful for an area.

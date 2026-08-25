@@ -35,6 +35,13 @@ const CHART_TYPES: { id: EChartSeriesConfig['chartType']; label: () => string }[
     { id: 'scatter', label: () => t('echart.scatter') },
 ];
 
+/** Tri-state of a series' value labels: unset follows the widget switch (issue #584). */
+const SERIES_VALUE_MODES: { key: string; value: boolean | undefined }[] = [
+    { key: 'auto', value: undefined },
+    { key: 'on', value: true },
+    { key: 'off', value: false },
+];
+
 function generateId(): string {
     return Math.random().toString(36).slice(2, 9);
 }
@@ -937,6 +944,77 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                         </div>
                                                     </div>
                                                 )}
+
+                                                {/* Values at the data points, per series: the bars want their
+                                                    numbers, the temperature line over them does not (issue #584). */}
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('echart.seriesShowValues')}
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {SERIES_VALUE_MODES.map((m) => {
+                                                            const active = s.showValues === m.value;
+                                                            return (
+                                                                <button
+                                                                    key={m.key}
+                                                                    onClick={() =>
+                                                                        updateSeries(s.id, { showValues: m.value })
+                                                                    }
+                                                                    className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                                                    style={{
+                                                                        background: active
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                        color: active
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                    }}
+                                                                >
+                                                                    {m.value === undefined
+                                                                        ? t('echart.seriesShowValuesAuto', {
+                                                                              value: echartShowValues
+                                                                                  ? t('common.on')
+                                                                                  : t('common.off'),
+                                                                          })
+                                                                        : t(m.value ? 'common.on' : 'common.off')}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                    {/* Thinning out one bar of a comparison chart would drop the
+                                                        whole series, so the interval stays out of that mode. */}
+                                                    {!isComparison && (s.showValues ?? echartShowValues) && (
+                                                        <div className="mt-1.5">
+                                                            <label
+                                                                className="text-[11px] mb-1 block"
+                                                                style={{ color: 'var(--text-secondary)' }}
+                                                            >
+                                                                {(s.labelInterval ?? 1) > 1
+                                                                    ? t('echart.labelInterval', {
+                                                                          value: s.labelInterval ?? 1,
+                                                                      })
+                                                                    : t('echart.labelIntervalAll')}
+                                                            </label>
+                                                            <input
+                                                                type="range"
+                                                                min={1}
+                                                                max={10}
+                                                                step={1}
+                                                                value={s.labelInterval ?? 1}
+                                                                onChange={(e) =>
+                                                                    updateSeries(s.id, {
+                                                                        labelInterval: Number(e.target.value),
+                                                                    })
+                                                                }
+                                                                className="w-full accent-[var(--accent)]"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
 
                                                 {isJson && (
                                                     <div>

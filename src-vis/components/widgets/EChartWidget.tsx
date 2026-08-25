@@ -131,6 +131,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Value labels at the data points. Comparison charts have always drawn them, so they stay
     // on there unless switched off explicitly; timeseries and JSON default to off (issue #543).
     const echartShowValues = (o.echartShowValues as boolean | undefined) ?? echartMode === 'comparison';
+    /**
+     * Per series the widget switch is only the default: bars usually want their numbers while the
+     * temperature line over them reads better as a plain curve (issue #584).
+     */
+    const seriesShowValues = (s?: { showValues?: boolean }) => s?.showValues ?? echartShowValues;
     // Share of the stack total at the same data point, next to the value or instead of it
     // (issue #569). Only stacked series get one — see `stackShares`.
     const echartShowStackPercent = (o.echartShowStackPercent as boolean | undefined) ?? false;
@@ -172,9 +177,29 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
      * `share` yields this series' share of its stack at a data index, and is only passed for
      * series that are actually stacked.
      */
-    const valueLabel = (unit: string, inside = false, share?: (dataIndex: number) => number | null) => {
+    const valueLabel = (
+        unit: string,
+        opts: {
+            /** Write the label into the mark instead of above it. */
+            inside?: boolean;
+            share?: (dataIndex: number) => number | null;
+            /** Series the label belongs to — brings its own switch and its label interval. */
+            series?: EChartSeriesConfig;
+            /**
+             * Point count of that series, so "every n-th" counts back from the newest point.
+             * Omitted where one data item is a whole series (comparison mode) and thinning out
+             * would silence entire bars.
+             */
+            count?: number;
+        } = {},
+    ) => {
+        const { inside = false, share, series, count } = opts;
+        const show = seriesShowValues(series);
         const withShare = echartShowStackPercent && !!share;
-        if (!echartShowValues && !withShare) return { show: false };
+        if (!show && !withShare) return { show: false };
+        // A dense series turns into a wall of numbers; every second or third point is enough to
+        // read it by (issue #584). Counted from the last point, which keeps its label.
+        const interval = count === undefined ? 1 : Math.max(1, Math.round(series?.labelInterval ?? 1));
         return {
             show: true,
             position: inside ? 'inside' : 'top',
@@ -183,12 +208,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             formatter: (p: { value: number | [number, number] | null; dataIndex: number }) => {
                 const v = Array.isArray(p.value) ? p.value[1] : p.value;
                 if (v === null || v === undefined) return '';
+                if (interval > 1 && ((count ?? 0) - 1 - p.dataIndex) % interval !== 0) return '';
                 const parts: string[] = [];
-                if (echartShowValues) parts.push(`${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`);
+                if (show) parts.push(`${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`);
                 if (withShare) {
                     const s = share(p.dataIndex);
                     // Both on: the percentage is the aside, so it goes in brackets behind the value.
-                    if (s !== null) parts.push(echartShowValues ? `(${formatShare(s)})` : formatShare(s));
+                    if (s !== null) parts.push(show ? `(${formatShare(s)})` : formatShare(s));
                 }
                 return parts.join(' ');
             },
@@ -196,10 +222,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     };
     // Dense series would otherwise stamp a label on every single point; echarts drops the
     // ones that would collide and keeps the rest readable.
-    const valueLabelLayout = echartShowValues || echartShowStackPercent ? { hideOverlap: true } : undefined;
+    const valueLabelLayout =
+        echartSeries.some((s) => seriesShowValues(s)) || echartShowStackPercent ? { hideOverlap: true } : undefined;
     /** Line labels hang on the symbols — echarts creates none while `showSymbol` is off. A
      *  percentage-only chart therefore needs them on the stacked series, and only there. */
-    const labelSymbols = (s: { stack?: boolean }) => echartShowValues || (echartShowStackPercent && !!s.stack);
+    const labelSymbols = (s: EChartSeriesConfig) => seriesShowValues(s) || (echartShowStackPercent && !!s.stack);
 
     // ── Single widget-level range shared by all series (frontend-switchable unless locked) ──
     // Falls back to the first series' former per-series range so upgraded widgets keep their window.
@@ -546,9 +573,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // Comparison mode: categorical bar chart — each series = one bar with its current value
     if (echartMode === 'comparison') {
         const categories = echartSeries.map((s) => s.name);
+        // One bar per series, so the per-series label switch has to sit on the data item — the
+        // series-level label below covers all bars at once (issue #584).
         const values = echartSeries.map((s, idx) => ({
             value: seriesCurrent(idx, s.id),
             itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
+            label: valueLabel(echartLeftUnit, { series: s }),
         }));
         const hasData = values.some((v) => v.value !== null);
 
@@ -731,11 +761,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 showSymbol: labelSymbols(s),
                 // Above a stacked bar sits the next segment, so its label moves into the bar; on a
                 // stacked line "inside" is the point itself, which is no better than "top".
-                label: valueLabel(
-                    (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
-                    !!s.stack && s.chartType === 'bar',
-                    s.stack ? (i: number) => jsonShares[idx]?.[i] ?? null : undefined,
-                ),
+                label: valueLabel((s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit, {
+                    inside: !!s.stack && s.chartType === 'bar',
+                    share: s.stack ? (i: number) => jsonShares[idx]?.[i] ?? null : undefined,
+                    series: s,
+                    count: jsonData[idx].length,
+                }),
                 labelLayout: valueLabelLayout,
             };
         });
@@ -949,11 +980,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             showSymbol: labelSymbols(s),
             // Above a stacked bar sits the next segment, so its label moves into the bar; on a
             // stacked line "inside" is the point itself, which is no better than "top".
-            label: valueLabel(
-                (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
-                !!s.stack && s.chartType === 'bar',
-                s.stack ? (i: number) => shares[idx]?.[i] ?? null : undefined,
-            ),
+            label: valueLabel((s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit, {
+                inside: !!s.stack && s.chartType === 'bar',
+                share: s.stack ? (i: number) => shares[idx]?.[i] ?? null : undefined,
+                series: s,
+                count: data.length,
+            }),
             labelLayout: valueLabelLayout,
             // A lone delta bar (one bucket logged so far) would otherwise be stretched across
             // the whole plot area, since echarts derives bar width from the point spacing.
