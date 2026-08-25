@@ -63,10 +63,50 @@ const STYLE_FIELDS: { key: ColorKey; labelKey: string }[] = [
 
 // Not colours, so not ColorField: these take a CSS length resp. a factor and mirror
 // the same three keys the static "Erweitert" panel offers (WidgetFrame STYLE_FIELDS).
-const STYLE_TEXT_FIELDS: { key: TextKey; labelKey: string; placeholder: string }[] = [
-    { key: 'borderWidth', labelKey: 'cond.styleBorderWidth', placeholder: '2px' },
-    { key: 'radius', labelKey: 'cond.styleRadius', placeholder: '18px' },
-    { key: 'opacity', labelKey: 'cond.styleOpacity', placeholder: '0.5' },
+// Free text here meant guessing a unit and a plausible size. The steps below are
+// what a card can usefully take; an older, hand-typed value survives as an extra
+// option (see SelectField) instead of being silently dropped.
+const STYLE_TEXT_FIELDS: {
+    key: TextKey;
+    labelKey: string;
+    hintKey?: string;
+    options: { v: string; label?: string }[];
+}[] = [
+    {
+        key: 'borderWidth',
+        labelKey: 'cond.styleBorderWidth',
+        options: [{ v: '0px' }, { v: '1px' }, { v: '2px' }, { v: '3px' }, { v: '4px' }, { v: '6px' }, { v: '8px' }],
+    },
+    {
+        key: 'radius',
+        labelKey: 'cond.styleRadius',
+        options: [
+            { v: '0px' },
+            { v: '4px' },
+            { v: '8px' },
+            { v: '12px' },
+            { v: '16px' },
+            { v: '20px' },
+            { v: '24px' },
+            { v: '999px', label: 'rund' },
+        ],
+    },
+    {
+        key: 'opacity',
+        labelKey: 'cond.styleOpacity',
+        // It multiplies with the alpha of the colours above — worth saying, because
+        // the two look like they do the same thing and then compound.
+        hintKey: 'cond.styleOpacityHint',
+        options: [
+            { v: '1', label: '100 %' },
+            { v: '0.9', label: '90 %' },
+            { v: '0.75', label: '75 %' },
+            { v: '0.5', label: '50 %' },
+            { v: '0.35', label: '35 %' },
+            { v: '0.25', label: '25 %' },
+            { v: '0.1', label: '10 %' },
+        ],
+    },
 ];
 
 const inputStyle: React.CSSProperties = {
@@ -369,10 +409,17 @@ export function ClauseRow({
 export function ColorField({
     label,
     value,
+    compact,
     onChange,
 }: {
     label: string;
     value: string | undefined;
+    /**
+     * Swatch only, no hex field. For rows where the colour is the whole point —
+     * the picker shows and takes the code. Costs the ability to type a CSS
+     * variable there, which the card-wide fields keep.
+     */
+    compact?: boolean;
     onChange: (v: string | undefined) => void;
 }) {
     return (
@@ -387,14 +434,16 @@ export function ColorField({
                 className="w-6 h-6 rounded cursor-pointer border-0 p-0 shrink-0"
                 title={label}
             />
-            <input
-                type="text"
-                value={value ?? ''}
-                onChange={(e) => onChange(e.target.value || undefined)}
-                placeholder="auto"
-                className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0 font-mono"
-                style={inputStyle}
-            />
+            {!compact && (
+                <input
+                    type="text"
+                    value={value ?? ''}
+                    onChange={(e) => onChange(e.target.value || undefined)}
+                    placeholder="auto"
+                    className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0 font-mono"
+                    style={inputStyle}
+                />
+            )}
             {/* Always rendered, only hidden — otherwise the input jumps in width the
                 moment a colour is set or cleared. */}
             <button
@@ -410,6 +459,9 @@ export function ColorField({
             >
                 <Trash2 size={10} />
             </button>
+            {/* Without the hex field the row would otherwise stretch the delete button
+                to the far right, away from the swatch it belongs to. */}
+            {compact && <span className="flex-1" />}
         </div>
     );
 }
@@ -419,10 +471,14 @@ export function ColorField({
 // type. These do not: they replace a value the widget reads out of its own config,
 // so widgetRegistry declares per type which of them actually arrive (issue #96).
 
-function LabeledRow({ label, children }: { label: string; children: React.ReactNode }) {
+function LabeledRow({ label, title, children }: { label: string; title?: string; children: React.ReactNode }) {
     return (
         <div className="flex items-center gap-1.5">
-            <label className="text-[10px] w-16 shrink-0 truncate" style={{ color: 'var(--text-secondary)' }}>
+            <label
+                className="text-[10px] w-16 shrink-0 truncate"
+                title={title}
+                style={{ color: 'var(--text-secondary)' }}
+            >
                 {label}
             </label>
             {children}
@@ -435,7 +491,6 @@ function TextField({
     value,
     placeholder,
     title,
-    trailingSlot,
     onChange,
 }: {
     label: string;
@@ -443,9 +498,6 @@ function TextField({
     placeholder: string;
     /** For rows that continue the one above and therefore carry no visible label. */
     title?: string;
-    /** Reserve the trailing delete-button slot, so this row lines up with the
-     *  colour rows above it instead of reaching 31 px further right. */
-    trailingSlot?: boolean;
     onChange: (v: string | undefined) => void;
 }) {
     return (
@@ -459,7 +511,47 @@ function TextField({
                 className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
                 style={inputStyle}
             />
-            {trailingSlot && <span aria-hidden className="shrink-0" style={{ width: 10 }} />}
+        </LabeledRow>
+    );
+}
+
+/**
+ * A pick-list for the numeric card properties. A value that is not among the steps
+ * — typed before these were a select, or written by hand into the layout JSON —
+ * is offered as an extra option, so opening the dialog never rewrites it.
+ */
+function SelectField({
+    label,
+    value,
+    options,
+    hint,
+    onChange,
+}: {
+    label: string;
+    value: string | undefined;
+    options: { v: string; label?: string }[];
+    hint?: string;
+    onChange: (v: string | undefined) => void;
+}) {
+    const t = useT();
+    const known = options.some((o) => o.v === value);
+    return (
+        <LabeledRow label={label} title={hint}>
+            <select
+                value={value ?? ''}
+                onChange={(e) => onChange(e.target.value || undefined)}
+                title={hint}
+                className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
+                style={inputStyle}
+            >
+                <option value="">{t('cond.setUnchanged')}</option>
+                {options.map((o) => (
+                    <option key={o.v} value={o.v}>
+                        {o.label ?? o.v}
+                    </option>
+                ))}
+                {value && !known && <option value={value}>{value}</option>}
+            </select>
         </LabeledRow>
     );
 }
@@ -711,6 +803,7 @@ function ElementBlock({
                             <ColorField
                                 label={isIcon ? t('cond.partIconColor') : t('cond.partColor')}
                                 value={e.color}
+                                compact
                                 onChange={(v) => set({ color: v })}
                             />
                             {!isIcon && (
@@ -877,17 +970,18 @@ function ConditionRule({
                                     key={key}
                                     label={t(labelKey as Parameters<typeof t>[0])}
                                     value={condition.style[key]}
+                                    compact
                                     onChange={(v) => setStyle({ [key]: v })}
                                 />
                             ))}
                             {context !== 'tab' &&
-                                STYLE_TEXT_FIELDS.map(({ key, labelKey, placeholder }) => (
-                                    <TextField
+                                STYLE_TEXT_FIELDS.map(({ key, labelKey, hintKey, options }) => (
+                                    <SelectField
                                         key={key}
                                         label={t(labelKey as Parameters<typeof t>[0])}
                                         value={condition.style[key]}
-                                        placeholder={placeholder}
-                                        trailingSlot
+                                        options={options}
+                                        hint={hintKey ? t(hintKey as Parameters<typeof t>[0]) : undefined}
                                         onChange={(v) => setStyle({ [key]: v })}
                                     />
                                 ))}
@@ -904,27 +998,28 @@ function ConditionRule({
                                     label={t('cond.styleItalic')}
                                 />
                             </div>
-                            {/* Belongs to the style, so it sits in the style column. */}
-                            <div className="flex items-center gap-1.5">
-                                <label
-                                    className="text-[10px] w-16 shrink-0 truncate"
-                                    style={{ color: 'var(--text-secondary)' }}
-                                >
-                                    {t('cond.effect')}
-                                </label>
-                                <select
-                                    value={condition.effect ?? 'none'}
-                                    onChange={(e) =>
-                                        onChange({ ...condition, effect: e.target.value as WidgetCondition['effect'] })
-                                    }
-                                    className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
-                                    style={inputStyle}
-                                >
-                                    <option value="none">{t('cond.noEffect')}</option>
-                                    <option value="pulse">{t('cond.pulse')}</option>
-                                    <option value="blink">{t('cond.blink')}</option>
-                                </select>
-                            </div>
+                            {/* A section of its own — as one line with a stub label it read
+                                like a leftover of the block above. */}
+                            <div className="h-px mt-2" style={{ background: 'var(--app-border)' }} />
+                            <p
+                                className="text-[10px] font-semibold uppercase tracking-wider pt-1"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                {t('cond.effect')}
+                            </p>
+                            <select
+                                value={condition.effect ?? 'none'}
+                                onChange={(e) =>
+                                    onChange({ ...condition, effect: e.target.value as WidgetCondition['effect'] })
+                                }
+                                className="w-full text-[11px] rounded-lg px-2 py-1.5 focus:outline-none"
+                                style={inputStyle}
+                            >
+                                <option value="none">{t('cond.noEffect')}</option>
+                                <option value="pulse">{t('cond.pulse')}</option>
+                                <option value="blink">{t('cond.blink')}</option>
+                                <option value="border">{t('cond.borderPulse')}</option>
+                            </select>
                         </div>
 
                         {/* Override what the widget shows — icon, title, value (issue #96) */}

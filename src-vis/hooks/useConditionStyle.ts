@@ -185,7 +185,7 @@ export interface ConditionResult {
     italic: boolean;
     /** Per-element appearance, keyed by element. */
     parts: Partial<Record<ConditionPart, ElementLook>>;
-    effect: 'pulse' | 'blink' | null;
+    effect: 'pulse' | 'blink' | 'border' | null;
     hidden: boolean; // widget should be hidden
     reflow: boolean; // remove from grid so others slide up
 }
@@ -260,7 +260,7 @@ function computeResult(
     let bold = false;
     let italic = false;
     let parts: Partial<Record<ConditionPart, ElementLook>> | null = null;
-    let effect: 'pulse' | 'blink' | null = null;
+    let effect: 'pulse' | 'blink' | 'border' | null = null;
     let hidden = false;
     let reflow = false;
     applySourceValues(values, ctx);
@@ -291,7 +291,7 @@ function computeResult(
                     Object.assign((parts[part] ??= {}), look);
                 }
             }
-            if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
+            if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink' | 'border';
         }
         // Hiding is absorbing: once a rule hides the widget, no later rule brings it back.
         if (conditionHides(cond, matched)) {

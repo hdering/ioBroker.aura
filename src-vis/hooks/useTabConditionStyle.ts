@@ -22,7 +22,7 @@ export interface TabConditionResult {
     cssVars: Record<string, string>;
     bold: boolean;
     italic: boolean;
-    effect: 'pulse' | 'blink' | null;
+    effect: 'pulse' | 'blink' | 'border' | null;
     hidden: boolean;
 }
 
@@ -67,7 +67,7 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
             const merged: Record<string, string> = {};
             let bold = false;
             let italic = false;
-            let effect: 'pulse' | 'blink' | null = null;
+            let effect: 'pulse' | 'blink' | 'border' | null = null;
             let hidden = false;
 
             for (const cond of conds) {
@@ -79,7 +79,7 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
                     Object.assign(merged, styleToTabVars(cond.style));
                     if (cond.style.bold !== undefined) bold = cond.style.bold;
                     if (cond.style.italic !== undefined) italic = cond.style.italic;
-                    if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
+                    if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink' | 'border';
                 }
                 if (conditionHides(cond, matched)) hidden = true;
             }

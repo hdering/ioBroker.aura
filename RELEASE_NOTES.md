@@ -19,3 +19,4 @@ Conditions - the rule dialog now puts the card style and the element blocks side
 Conditions - hiding the title now works in a custom layout too
 HTML and value widgets - bindings now work with umlauts and other non-ASCII letters in datapoint ids (#578)
 Conditions - a rule now configures a widget's title, icon and value each in one place: visibility, text or icon, colour and weight; unset colour fields show an empty swatch and every field previews what the widget shows today
+Conditions - a new effect pulses only the frame instead of the whole card, and border width, corner radius and opacity are picked from a list (#96)

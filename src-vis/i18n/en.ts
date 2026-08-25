@@ -1098,6 +1098,8 @@ export const en: Record<TranslationKey, string> = {
     'cond.styleBorderWidth': 'Border width',
     'cond.styleRadius': 'Corner radius',
     'cond.styleOpacity': 'Opacity',
+    'cond.styleOpacityHint':
+        'Dims the whole card, content included. For a translucent surface alone, give the colour above an alpha value instead – the two multiply.',
     'cond.styleBold': 'Bold',
     'cond.partTarget': 'Element',
     'cond.partNone': 'whole card',
@@ -1125,6 +1127,7 @@ export const en: Record<TranslationKey, string> = {
     'cond.noEffect': 'No effect',
     'cond.pulse': 'Pulse',
     'cond.blink': 'Blink',
+    'cond.borderPulse': 'Border pulses',
     'cond.refreshWidget': 'Reload widget',
     'cond.refreshWidgetHint': 'Reload embedded content (iframe, camera, image) when the rule fires',
     'cond.notify': 'Send a message',

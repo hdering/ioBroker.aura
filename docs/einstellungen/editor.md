@@ -55,9 +55,17 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 | --- | --- |
 | Stil wenn aktiv | die ganze Karte: Akzent, Hintergrund, Rahmen, Rahmenbreite, Eckenradius, Deckkraft, Text, Text 2, Fett, Kursiv |
 | Elemente | je Element: Sichtbarkeit, Text bzw. Icon, Farbe, Schriftschnitt |
-| Effekt | `Pulsieren` · `Blinken` |
+| Effekt | `Pulsieren` · `Blinken` · `Nur Rand pulsiert` |
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
+
+`Nur Rand pulsiert` lässt den Inhalt lesbar und blinkt nur einen Ring um die Karte — in der
+Rahmenfarbe der Regel, sonst im Akzent. `Pulsieren` und `Blinken` blenden dagegen die ganze Karte.
+
+Rahmenbreite, Eckenradius und Deckkraft sind Auswahllisten; ein von Hand eingetragener Wert bleibt
+als zusätzlicher Eintrag stehen. **Deckkraft** blendet die ganze Karte ab, Inhalt eingeschlossen —
+soll nur eine Fläche durchscheinen, gehört das als Alpha in die Farbe selbst. Beides zusammen
+multipliziert sich.
 
 ## Bedingungen: Elemente
 
@@ -120,9 +128,9 @@ Haupt-Datenpunkt des Widgets oder einen frei angegebenen.
 Effekte einer Element-Regel: Textfarbe, Hintergrund (nur „Ganze Zeile"), Icon-Farbe, Icon, Text, Fett,
 Kursiv, Effekt (`Pulsieren` · `Blinken`), Ausblenden.
 
-Beide Ebenen bieten denselben Satz an Schriftschnitt und Effekt — nur der Umfang unterscheidet sich:
-Farben und Sichtbarkeit wirken auf der Widget-Ebene auf die ganze Karte, auf der Element-Ebene auf
-genau ein Teil.
+Schriftschnitt und Effekt gibt es auf beiden Ebenen — nur der Umfang unterscheidet sich: Farben und
+Sichtbarkeit wirken auf der Widget-Ebene auf die ganze Karte, auf der Element-Ebene auf genau ein Teil.
+`Nur Rand pulsiert` bleibt der Widget-Ebene vorbehalten: ein Text oder ein Icon hat keinen Rahmen.
 
 Eine Regel auf **Ganze Zeile** gibt Textfarbe, Fett/Kursiv und Icon an die Teile weiter; Hintergrund und
 Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen die Zeilen-Regel.

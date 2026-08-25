@@ -6415,6 +6415,15 @@ export function WidgetFrame({
             // Condition-driven overrides (higher priority, applied on top)
             ...conditionResult.cssVars,
             ...partVars,
+            // The pulsing ring follows the rule's own colours: an explicit border
+            // colour first, then the accent — a rule that flags something usually
+            // sets one of the two.
+            '--cond-ring':
+                conditionResult.effect === 'border'
+                    ? (conditionResult.cssVars['--widget-border'] ??
+                      conditionResult.cssVars['--accent'] ??
+                      'var(--accent)')
+                    : undefined,
         }).filter(([, v]) => v !== undefined && v !== ''),
     ) as React.CSSProperties;
 
@@ -6645,7 +6654,7 @@ export function WidgetFrame({
     return (
         <div
             ref={focusRef}
-            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${partClasses} ${isFocused ? 'aura-widget-focused' : ''}`}
+            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${partClasses} ${isFocused ? 'aura-widget-focused' : ''}`}
             onClick={handleWidgetClick}
             style={
                 isHeader || isTransparent

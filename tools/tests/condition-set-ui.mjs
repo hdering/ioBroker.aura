@@ -296,6 +296,43 @@ await mock({ [ALARM]: false });
 await settle();
 check('custom layout: and brings it back', (await customText()).includes('Lampe'));
 
+// ── Effect "only the border pulses" ────────────────────────────────────────
+// The other two effects fade the whole card; this one must leave the content at
+// full opacity and animate a ring instead — and only outside edit mode.
+const ringWidget = {
+    ...widget([{ ...rule('rb', undefined, { accent: '#ef4444' }), effect: 'border' }]),
+    id: 'cs-ring',
+};
+await mock({ [ALARM]: false });
+await page.evaluate((w) => window.__auraShot.showWidgets([w]), ringWidget);
+await settle();
+const ring = () =>
+    page.evaluate(() => {
+        const el = document.querySelector('.aura-widget-cs-ring');
+        const cs = getComputedStyle(el);
+        return {
+            cls: el.className.includes('aura-cond-ring'),
+            anim: cs.animationName,
+            outline: cs.outlineWidth,
+            opacity: cs.opacity,
+            color: cs.getPropertyValue('--cond-ring').trim(),
+        };
+    });
+eq('border effect: no ring while the rule sleeps', (await ring()).cls, false);
+
+await mock({ [ALARM]: true });
+await settle();
+const on = await ring();
+eq('border effect: the ring class is set', on.cls, true);
+eq('border effect: the ring animates', on.anim, 'auraCondRingPulse');
+eq('border effect: the ring is 2px wide', on.outline, '2px');
+eq('border effect: the card keeps full opacity', on.opacity, '1');
+eq('border effect: the ring takes the accent of the rule', on.color, '#ef4444');
+
+await mock({ [ALARM]: false });
+await settle();
+eq('border effect: the ring goes again', (await ring()).cls, false);
+
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

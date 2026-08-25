@@ -97,6 +97,26 @@ iframe {
     font-style: italic !important;
 }
 
+/* "Nur der Rand pulsiert" — the card keeps its opacity, so the content stays
+   readable while the frame signals. Drawn as an outline, not as the border: the
+   border colour is an inline style on the frame and its width is a theme variable
+   that some themes set to 0px — an outline is independent of both and costs no
+   layout. */
+.aura-cond-ring {
+    outline: 2px solid transparent;
+    outline-offset: -2px;
+    animation: auraCondRingPulse 1.5s ease-in-out infinite;
+}
+@keyframes auraCondRingPulse {
+    0%,
+    100% {
+        outline-color: var(--cond-ring, var(--accent));
+    }
+    50% {
+        outline-color: transparent;
+    }
+}
+
 @keyframes tabPulse {
     0%,
     100% {

@@ -1101,6 +1101,8 @@ export const de = {
     'cond.styleBorderWidth': 'Rahmenbreite',
     'cond.styleRadius': 'Eckenradius',
     'cond.styleOpacity': 'Deckkraft',
+    'cond.styleOpacityHint':
+        'Blendet die ganze Karte ab, Inhalt eingeschlossen. Soll nur eine Fläche durchscheinen, statt dessen die Farbe oben mit Alpha setzen – beides zusammen multipliziert sich.',
     'cond.styleBold': 'Fett',
     'cond.partTarget': 'Element',
     'cond.partNone': 'ganze Karte',
@@ -1128,6 +1130,7 @@ export const de = {
     'cond.noEffect': 'Kein Effekt',
     'cond.pulse': 'Pulsieren',
     'cond.blink': 'Blinken',
+    'cond.borderPulse': 'Nur Rand pulsiert',
     'cond.refreshWidget': 'Widget neu laden',
     'cond.refreshWidgetHint': 'Eingebettete Inhalte (iFrame, Kamera, Bild) neu laden, wenn die Regel auslöst',
     'cond.notify': 'Meldung senden',

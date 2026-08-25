@@ -403,7 +403,7 @@ export function TabBar({
 
                     return (
                         <div
-                            className={`group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''}`}
+                            className={`group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''} ${!editMode && effect === 'border' ? 'aura-cond-ring' : ''}`}
                             style={{
                                 ...(cssVars as React.CSSProperties),
                                 ...ts,

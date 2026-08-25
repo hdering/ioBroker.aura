@@ -672,7 +672,8 @@ export interface WidgetCondition {
     style: ConditionStyle;
     /** What the rule does to the widget's elements while it matches (issue #96). */
     elements?: Partial<Record<ConditionPart, ConditionElement>>;
-    effect?: 'none' | 'pulse' | 'blink';
+    /** `border` pulses the frame alone, so the content stays readable. */
+    effect?: 'none' | 'pulse' | 'blink' | 'border';
     // Remount the widget when the rule fires, so embedded content (iframe, camera,
     // image) re-fetches. Rules with a 'changed' clause fire on every change; all
     // others fire on the rising edge of the match (issue #537).
