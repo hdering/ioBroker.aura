@@ -28,6 +28,13 @@ interface Props {
     fallback?: string;
     /** Enable the transparency slider (default true). */
     alpha?: boolean;
+    /**
+     * Nothing is configured — paint the "no colour" glyph instead of `value`.
+     * A field that falls back to a theme colour would otherwise show that fallback
+     * as a solid swatch, which reads as a colour the user picked. `value` is still
+     * what the popover opens with.
+     */
+    unset?: boolean;
     title?: string;
     /** Extra classes on the swatch button (carry sizing from the old input). */
     className?: string;
@@ -44,6 +51,17 @@ interface Props {
  */
 const PICKER_OPEN_EVENT = 'aura:colorpicker-open';
 let pickerSeq = 0;
+
+/**
+ * "No colour" glyph: a slash on an opaque surface. Deliberately NOT the
+ * checkerboard above — that one already means "alpha 0" here, and showing it for
+ * an unset field would conflate transparent with unconfigured.
+ */
+const SLASH = 'color-mix(in srgb, var(--text-secondary) 65%, transparent)';
+const NO_COLOR: React.CSSProperties = {
+    backgroundColor: 'var(--app-bg)',
+    backgroundImage: `linear-gradient(to top right, transparent calc(50% - 0.75px), ${SLASH} calc(50% - 0.75px), ${SLASH} calc(50% + 0.75px), transparent calc(50% + 0.75px))`,
+};
 
 const CHECKERBOARD: React.CSSProperties = {
     backgroundImage:
@@ -121,6 +139,7 @@ export function ColorPicker({
     onChange,
     fallback = '#888888',
     alpha: alphaEnabled = true,
+    unset,
     title,
     className,
     style,
@@ -178,7 +197,7 @@ export function ColorPicker({
                         width: '100%',
                         height: '100%',
                         borderRadius: 'inherit',
-                        background: swatchColor,
+                        ...(unset ? NO_COLOR : { background: swatchColor }),
                     }}
                 />
             </button>

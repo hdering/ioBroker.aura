@@ -19006,6 +19006,11 @@ export function WidgetFrame({
                         conditions={conditions}
                         sourceCtx={sourceCtx}
                         slots={conditionSlots}
+                        current={{
+                            title: config.title,
+                            icon: config.options?.icon as string | undefined,
+                            iconSize: config.options?.iconSize as number | undefined,
+                        }}
                         onChange={(next) =>
                             onConfigChange({ ...config, options: { ...config.options, conditions: next } })
                         }

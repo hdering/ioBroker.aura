@@ -121,6 +121,7 @@ export function ColorField({
             <div className="flex items-center gap-1">
                 <ColorPicker
                     value={value?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? fallback}
+                    unset={!value}
                     onChange={(v) => onChange(v)}
                     className="w-7 h-6 rounded cursor-pointer shrink-0"
                     style={{ border: '1px solid var(--app-border)', padding: '1px' }}

@@ -381,6 +381,7 @@ export function ColorField({
             </label>
             <ColorPicker
                 value={value ?? '#3b82f6'}
+                unset={!value}
                 onChange={(v) => onChange(v)}
                 className="w-6 h-6 rounded cursor-pointer border-0 p-0 shrink-0"
                 title={label}
@@ -474,28 +475,35 @@ function TriStateField({
     );
 }
 
-export function IconField({
-    label,
+/**
+ * Icon chooser. With nothing chosen it previews `fallback` — the icon the widget
+ * shows today — greyed out, so it is visible what an override would replace.
+ */
+export function IconButton({
     value,
+    fallback,
     placeholder,
     onChange,
 }: {
-    label: string;
     value: string | undefined;
+    /** The widget's own icon, shown as a ghost preview while `value` is unset. */
+    fallback?: string;
     placeholder: string;
     onChange: (v: string | undefined) => void;
 }) {
     const [open, setOpen] = useState(false);
-    const Preview = value ? getWidgetIcon(value, null!) : null;
+    const shown = value || fallback;
+    const Preview = shown ? getWidgetIcon(shown, null!) : null;
     return (
-        <LabeledRow label={label}>
+        <>
             <button
                 onClick={() => setOpen(true)}
+                title={!value && fallback ? fallback : undefined}
                 className="flex-1 min-w-0 flex items-center gap-2 px-2 py-1 rounded text-[10px]"
                 style={inputStyle}
             >
                 {Preview ? (
-                    <Preview size={13} style={{ flexShrink: 0 }} />
+                    <Preview size={13} style={{ flexShrink: 0, opacity: value ? 1 : 0.45 }} />
                 ) : (
                     <span style={{ width: 13, height: 13, display: 'inline-block', flexShrink: 0 }} />
                 )}
@@ -525,6 +533,21 @@ export function IconField({
                     onClose={() => setOpen(false)}
                 />
             )}
+        </>
+    );
+}
+
+export function IconField(props: {
+    label: string;
+    value: string | undefined;
+    fallback?: string;
+    placeholder: string;
+    onChange: (v: string | undefined) => void;
+}) {
+    const { label, ...rest } = props;
+    return (
+        <LabeledRow label={label}>
+            <IconButton {...rest} />
         </LabeledRow>
     );
 }
@@ -550,61 +573,77 @@ export function conditionSetCount(set: ConditionSet | undefined): number {
     return Object.values(set).filter((v) => v !== undefined).length;
 }
 
+/** What the widget shows today — previewed so an override has something to replace. */
+export interface ConditionSetCurrent {
+    title?: string;
+    icon?: string;
+    iconSize?: number;
+}
+
 function ConditionSetFields({
     set,
     slots,
+    current,
     onChange,
 }: {
     set: ConditionSet | undefined;
     slots: ConditionSlot[];
+    current?: ConditionSetCurrent;
     onChange: (patch: Partial<ConditionSet>) => void;
 }) {
     const t = useT();
     const s = set ?? {};
+    // "… zeigen" comes first: it decides whether the thing is on screen at all. Set
+    // to "ausblenden" there is nothing left to configure, so the detail fields go.
     return (
         <div className="space-y-1.5">
             {slots.includes('title') && (
                 <>
-                    <TextField
-                        label={t('cond.setTitle')}
-                        value={s.title}
-                        placeholder={t('cond.setTitlePlaceholder')}
-                        onChange={(v) => onChange({ title: v })}
-                    />
                     <TriStateField
                         label={t('cond.setShowTitle')}
                         value={s.showTitle}
                         onChange={(v) => onChange({ showTitle: v })}
                     />
+                    {s.showTitle !== false && (
+                        <TextField
+                            label={t('cond.setTitle')}
+                            value={s.title}
+                            placeholder={current?.title || t('cond.setTitlePlaceholder')}
+                            onChange={(v) => onChange({ title: v })}
+                        />
+                    )}
                 </>
             )}
             {slots.includes('icon') && (
                 <>
-                    <IconField
-                        label={t('cond.setIcon')}
-                        value={s.icon}
-                        placeholder={t('cond.setIconPlaceholder')}
-                        onChange={(v) => onChange({ icon: v })}
-                    />
-                    <LabeledRow label={t('cond.setIconSize')}>
-                        <input
-                            type="number"
-                            min={8}
-                            max={200}
-                            value={s.iconSize ?? ''}
-                            onChange={(e) =>
-                                onChange({ iconSize: e.target.value === '' ? undefined : Number(e.target.value) })
-                            }
-                            placeholder="auto"
-                            className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
-                            style={inputStyle}
-                        />
-                    </LabeledRow>
                     <TriStateField
                         label={t('cond.setShowIcon')}
                         value={s.showIcon}
                         onChange={(v) => onChange({ showIcon: v })}
                     />
+                    {s.showIcon !== false && (
+                        <LabeledRow label={t('cond.setIcon')}>
+                            <IconButton
+                                value={s.icon}
+                                fallback={current?.icon}
+                                placeholder={t('cond.setIconPlaceholder')}
+                                onChange={(v) => onChange({ icon: v })}
+                            />
+                            <input
+                                type="number"
+                                min={8}
+                                max={200}
+                                value={s.iconSize ?? ''}
+                                onChange={(e) =>
+                                    onChange({ iconSize: e.target.value === '' ? undefined : Number(e.target.value) })
+                                }
+                                placeholder={current?.iconSize ? String(current.iconSize) : 'px'}
+                                title={t('cond.setIconSize')}
+                                className="w-11 shrink-0 text-[10px] rounded px-1.5 py-1 focus:outline-none text-center"
+                                style={inputStyle}
+                            />
+                        </LabeledRow>
+                    )}
                 </>
             )}
             {slots.includes('value') && (
@@ -628,6 +667,7 @@ function ConditionRule({
     context = 'widget',
     sourceCtx,
     slots,
+    current,
 }: {
     condition: WidgetCondition;
     onChange: (c: WidgetCondition) => void;
@@ -635,6 +675,7 @@ function ConditionRule({
     context?: 'widget' | 'tab';
     sourceCtx?: DpSourceCtx;
     slots: ConditionSlot[];
+    current?: ConditionSetCurrent;
 }) {
     const t = useT();
     const [open, setOpen] = useState(true);
@@ -815,7 +856,12 @@ function ConditionRule({
                                 >
                                     {t('cond.overrideDisplay')}
                                 </p>
-                                <ConditionSetFields set={condition.set} slots={slots} onChange={setSet} />
+                                <ConditionSetFields
+                                    set={condition.set}
+                                    slots={slots}
+                                    current={current}
+                                    onChange={setSet}
+                                />
                             </div>
                         )}
                     </div>
@@ -1025,6 +1071,8 @@ interface ConditionEditorProps {
      * what tabs and sections want.
      */
     slots?: ConditionSlot[];
+    /** What the widget shows today — previewed behind the override fields. */
+    current?: ConditionSetCurrent;
     style?: React.CSSProperties;
 }
 
@@ -1034,6 +1082,7 @@ export function ConditionEditor({
     context = 'widget',
     sourceCtx,
     slots = NO_SLOTS,
+    current,
     style,
 }: ConditionEditorProps) {
     const t = useT();
@@ -1067,6 +1116,7 @@ export function ConditionEditor({
                     context={context}
                     sourceCtx={sourceCtx}
                     slots={slots}
+                    current={current}
                 />
             ))}
 

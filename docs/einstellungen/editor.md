@@ -66,10 +66,14 @@ Gespeichert bleibt die Einstellung; trifft die Regel nicht mehr zu, steht wieder
 
 | Feld | Wirkt in |
 | --- | --- |
-| Titel | allen Widgets; `[[dp]]` im Text wird live aufgelöst |
 | Titel zeigen · Icon zeigen | `unverändert` · `anzeigen` · `ausblenden` |
+| Titel | allen Widgets; `[[dp]]` im Text wird live aufgelöst |
 | Icon · Icon-Größe | allen Widgets mit eigenem Icon — nicht Karte, Statusübersicht, Menü, Spiegel |
 | Wert-Text | Wert-Anzeige, Schalter, Binärsensor, Fenster-/Türkontakt, Zustandsbild; ersetzt den Werttext, die Einheit entfällt dabei |
+
+Steht `… zeigen` auf `ausblenden`, entfallen die zugehörigen Felder — es gäbe nichts anzuzeigen.
+Leere Felder zeigen als Platzhalter das, was das Widget heute anzeigt: den aktuellen Titel, das aktuelle
+Icon (ausgegraut), die aktuelle Größe.
 
 Der Editor bietet nur die Felder an, die der jeweilige Widget-Typ auch umsetzt.
 
