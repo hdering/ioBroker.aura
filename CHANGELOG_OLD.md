@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.47.6 (2026-08-17)
+- 🌟 **New feature:** Advanced chart - stacked areas are drawn without an outline, so a series sitting at 0 no longer looks like a line; the outline can be switched back on per series, and line width can now be set to 0 ([#541](https://github.com/hdering/ioBroker.aura/issues/541))
+- 🌟 **New feature:** Advanced chart - the right Y axis can be left unlabelled while still scaling its series, and the axis labels now take exactly the width they need instead of a fixed strip, so short labels no longer leave an empty band and long ones are no longer cut off ([#541](https://github.com/hdering/ioBroker.aura/issues/541))
+- Date picker - a "HH:mm" field can now be picked in every browser: it always shows a button, and where the browser has no time picker of its own (Firefox) an hour/minute list opens instead of nothing; applies to the widget, custom layout cells and the timer event editor ([#544](https://github.com/hdering/ioBroker.aura/issues/544))
+
 ## 0.47.5 (2026-08-16)
 - 🌟 **New feature:** Advanced chart - new option to show the values at the data points, now available in the JSON and timeseries modes as well ([#543](https://github.com/hdering/ioBroker.aura/issues/543))
 
