@@ -73,7 +73,7 @@ export const SORT_SOURCE_LABELS: Record<ListSortSource, string> = {
 export const SORT_MODES: { value: ListSortMode; label: string; hint: string }[] = [
     { value: 'auto', label: 'Automatisch', hint: 'Zahlen numerisch, Text alphabetisch (mit Zahlen darin)' },
     { value: 'number', label: 'Als Zahl', hint: 'Text wird in eine Zahl gewandelt; was keine ist, gilt als ohne Wert' },
-    { value: 'text', label: 'Als Text', hint: 'Rein alphabetisch — „10" steht damit vor „9"' },
+    { value: 'text', label: 'Als Text', hint: 'Rein alphabetisch — „10“ steht damit vor „9“' },
     { value: 'active', label: 'Aktiv / Inaktiv', hint: 'An / > 0 zuerst, Rest danach' },
     { value: 'custom', label: 'Eigene Reihenfolge', hint: 'Werte in der Reihenfolge, in der sie unten stehen' },
 ];
