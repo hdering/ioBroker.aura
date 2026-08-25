@@ -59,8 +59,9 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
 
-`Nur Rand pulsiert` lässt den Inhalt lesbar und blinkt nur einen Ring um die Karte — in der
-Rahmenfarbe der Regel, sonst im Akzent. `Pulsieren` und `Blinken` blenden dagegen die ganze Karte.
+`Nur Rand pulsiert` lässt den Inhalt lesbar und pulst nur einen Ring um die Karte. Die **Rand-Farbe**
+steht direkt unter der Auswahl; ohne sie nimmt der Ring die Rahmenfarbe der Regel, sonst den Akzent.
+`Pulsieren` und `Blinken` blenden dagegen die ganze Karte ab — also auch das, was sie anzeigt.
 
 Rahmenbreite, Eckenradius und Deckkraft sind Auswahllisten; ein von Hand eingetragener Wert bleibt
 als zusätzlicher Eintrag stehen. **Deckkraft** blendet die ganze Karte ab, Inhalt eingeschlossen —

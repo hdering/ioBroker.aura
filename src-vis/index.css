@@ -98,22 +98,37 @@ iframe {
 }
 
 /* "Nur der Rand pulsiert" — the card keeps its opacity, so the content stays
-   readable while the frame signals. Drawn as an outline, not as the border: the
-   border colour is an inline style on the frame and its width is a theme variable
-   that some themes set to 0px — an outline is independent of both and costs no
-   layout. */
+   readable while the frame signals. Same shape as the deep-link highlight above:
+   a solid ring plus a soft halo, which reads from across the room where a thin
+   line does not.
+
+   It lives on a pseudo-element rather than on the card, because the card's own
+   box-shadow is an inline style that an animation would replace for good — and
+   the ring must not cost the widget its drop shadow. --cond-ring is set by the
+   frame from the rule (Rand-Farbe, else the border colour, else the accent). */
 .aura-cond-ring {
-    outline: 2px solid transparent;
-    outline-offset: -2px;
-    animation: auraCondRingPulse 1.5s ease-in-out infinite;
+    /* so the halo is not painted over by the next widget in the grid */
+    z-index: 1;
+}
+.aura-cond-ring::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    animation: auraCondRingPulse 1.6s ease-in-out infinite;
 }
 @keyframes auraCondRingPulse {
     0%,
     100% {
-        outline-color: var(--cond-ring, var(--accent));
+        box-shadow:
+            0 0 0 0 var(--cond-ring, var(--accent)),
+            0 0 0 0 color-mix(in srgb, var(--cond-ring, var(--accent)) 45%, transparent);
     }
     50% {
-        outline-color: transparent;
+        box-shadow:
+            0 0 0 3px var(--cond-ring, var(--accent)),
+            0 0 0 12px color-mix(in srgb, var(--cond-ring, var(--accent)) 22%, transparent);
     }
 }
 

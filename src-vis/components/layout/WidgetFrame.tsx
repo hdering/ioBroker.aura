@@ -6415,12 +6415,13 @@ export function WidgetFrame({
             // Condition-driven overrides (higher priority, applied on top)
             ...conditionResult.cssVars,
             ...partVars,
-            // The pulsing ring follows the rule's own colours: an explicit border
-            // colour first, then the accent — a rule that flags something usually
-            // sets one of the two.
+            // Unless the rule names a ring colour, the ring follows the colours it
+            // does set: the border first, then the accent — a rule that flags
+            // something usually sets one of the two.
             '--cond-ring':
                 conditionResult.effect === 'border'
-                    ? (conditionResult.cssVars['--widget-border'] ??
+                    ? (conditionResult.cssVars['--cond-ring'] ??
+                      conditionResult.cssVars['--widget-border'] ??
                       conditionResult.cssVars['--accent'] ??
                       'var(--accent)')
                     : undefined,

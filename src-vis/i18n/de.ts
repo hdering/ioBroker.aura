@@ -1131,6 +1131,7 @@ export const de = {
     'cond.pulse': 'Pulsieren',
     'cond.blink': 'Blinken',
     'cond.borderPulse': 'Nur Rand pulsiert',
+    'cond.ringColor': 'Rand-Farbe',
     'cond.refreshWidget': 'Widget neu laden',
     'cond.refreshWidgetHint': 'Eingebettete Inhalte (iFrame, Kamera, Bild) neu laden, wenn die Regel auslöst',
     'cond.notify': 'Meldung senden',

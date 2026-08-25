@@ -13,6 +13,10 @@ function styleToTabVars(style: ConditionStyle): Record<string, string> {
     // borderWidth / radius / opacity are widget-frame properties; a tab button has no
     // equivalent, so the editor hides those fields in the tab context instead of
     // emitting variables nothing reads.
+    // Same precedence as the widget frame: an explicit ring colour, else whichever
+    // colour the rule does set. Read only by the effect `border`.
+    const ring = style.ringColor ?? style.border ?? style.accent;
+    if (ring) v['--cond-ring'] = ring;
     if (style.textPrimary) v['--tab-text'] = style.textPrimary;
     if (style.textSecondary) v['--tab-text2'] = style.textSecondary;
     return v;

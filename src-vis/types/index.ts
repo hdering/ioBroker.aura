@@ -594,6 +594,8 @@ export interface ConditionClause {
 }
 
 export interface ConditionStyle {
+    /** Colour of the pulsing ring — only read by the effect `border`. */
+    ringColor?: string;
     accent?: string;
     bg?: string; // --widget-bg
     border?: string; // --widget-border

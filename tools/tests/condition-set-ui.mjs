@@ -310,10 +310,12 @@ const ring = () =>
     page.evaluate(() => {
         const el = document.querySelector('.aura-widget-cs-ring');
         const cs = getComputedStyle(el);
+        // The ring lives on a pseudo-element so the card keeps its own box-shadow.
+        const after = getComputedStyle(el, '::after');
         return {
             cls: el.className.includes('aura-cond-ring'),
-            anim: cs.animationName,
-            outline: cs.outlineWidth,
+            anim: after.animationName,
+            shadow: cs.boxShadow,
             opacity: cs.opacity,
             color: cs.getPropertyValue('--cond-ring').trim(),
         };
@@ -325,13 +327,30 @@ await settle();
 const on = await ring();
 eq('border effect: the ring class is set', on.cls, true);
 eq('border effect: the ring animates', on.anim, 'auraCondRingPulse');
-eq('border effect: the ring is 2px wide', on.outline, '2px');
+check('border effect: the card keeps its own shadow', on.shadow !== 'none', on.shadow);
 eq('border effect: the card keeps full opacity', on.opacity, '1');
 eq('border effect: the ring takes the accent of the rule', on.color, '#ef4444');
 
 await mock({ [ALARM]: false });
 await settle();
 eq('border effect: the ring goes again', (await ring()).cls, false);
+
+// A ring colour of its own beats the colours the rule sets for the card.
+await page.evaluate((w) => window.__auraShot.showWidgets([w]), {
+    ...ringWidget,
+    options: {
+        ...ringWidget.options,
+        conditions: [
+            {
+                ...rule('rb', undefined, { accent: '#ef4444', ringColor: '#3b82f6' }),
+                effect: 'border',
+            },
+        ],
+    },
+});
+await mock({ [ALARM]: true });
+await settle();
+eq('border effect: an explicit ring colour wins', (await ring()).color, '#3b82f6');
 
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

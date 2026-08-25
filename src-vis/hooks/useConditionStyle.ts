@@ -90,6 +90,7 @@ function styleToVars(style: ConditionStyle): Record<string, string> {
     if (style.accent) v['--accent'] = style.accent;
     if (style.bg) v['--widget-bg'] = style.bg;
     if (style.border) v['--widget-border'] = style.border;
+    if (style.ringColor) v['--cond-ring'] = style.ringColor;
     if (style.borderWidth) v['--widget-border-width'] = style.borderWidth;
     if (style.radius) v['--widget-radius'] = style.radius;
     if (style.opacity) v['--widget-opacity'] = style.opacity;

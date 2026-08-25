@@ -1128,6 +1128,7 @@ export const en: Record<TranslationKey, string> = {
     'cond.pulse': 'Pulse',
     'cond.blink': 'Blink',
     'cond.borderPulse': 'Border pulses',
+    'cond.ringColor': 'Ring colour',
     'cond.refreshWidget': 'Reload widget',
     'cond.refreshWidgetHint': 'Reload embedded content (iframe, camera, image) when the rule fires',
     'cond.notify': 'Send a message',

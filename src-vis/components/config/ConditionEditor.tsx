@@ -1020,6 +1020,15 @@ function ConditionRule({
                                 <option value="blink">{t('cond.blink')}</option>
                                 <option value="border">{t('cond.borderPulse')}</option>
                             </select>
+                            {/* Only this effect has a ring to colour. */}
+                            {condition.effect === 'border' && (
+                                <ColorField
+                                    label={t('cond.ringColor')}
+                                    value={condition.style.ringColor}
+                                    compact
+                                    onChange={(v) => setStyle({ ringColor: v })}
+                                />
+                            )}
                         </div>
 
                         {/* Override what the widget shows — icon, title, value (issue #96) */}
