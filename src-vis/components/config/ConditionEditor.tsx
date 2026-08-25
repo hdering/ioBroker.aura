@@ -741,81 +741,83 @@ function ConditionRule({
                     {/* Separator */}
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
 
-                    {/* Style — label */}
-                    <p
-                        className="text-[10px] font-semibold uppercase tracking-wider"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        {t('cond.activeStyle')}
-                    </p>
-
-                    {/* Color pickers */}
-                    <div className="space-y-1.5">
-                        {STYLE_FIELDS.map(({ key, labelKey }) => (
-                            <ColorField
-                                key={key}
-                                label={t(labelKey as Parameters<typeof t>[0])}
-                                value={condition.style[key]}
-                                onChange={(v) => setStyle({ [key]: v })}
-                            />
-                        ))}
-                        {context !== 'tab' &&
-                            STYLE_TEXT_FIELDS.map(({ key, labelKey, placeholder }) => (
-                                <TextField
-                                    key={key}
-                                    label={t(labelKey as Parameters<typeof t>[0])}
-                                    value={condition.style[key]}
-                                    placeholder={placeholder}
-                                    onChange={(v) => setStyle({ [key]: v })}
-                                />
-                            ))}
-                    </div>
-
-                    {/* The same two the element rules offer — kept in step on purpose. */}
-                    <div className="flex items-center gap-1.5">
-                        <StyleToggle
-                            on={!!condition.style.bold}
-                            onClick={() => setStyle({ bold: condition.style.bold ? undefined : true })}
-                            label={t('cond.styleBold')}
-                        />
-                        <StyleToggle
-                            on={!!condition.style.italic}
-                            onClick={() => setStyle({ italic: condition.style.italic ? undefined : true })}
-                            label={t('cond.styleItalic')}
-                        />
-                    </div>
-
-                    {/* Override what the widget shows — icon, title, value (issue #96) */}
-                    {context !== 'tab' && slots.length > 0 && (
-                        <>
-                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                    {/* Two columns of effects. A colour row is label + swatch + hex and needs
+                        about a third of the dialog; letting it span the full width only made
+                        the panel taller and harder to scan. Stacks again below `md`. */}
+                    <div className="grid gap-x-5 gap-y-4 md:grid-cols-2">
+                        <div className="space-y-1.5 max-w-sm">
                             <p
                                 className="text-[10px] font-semibold uppercase tracking-wider"
                                 style={{ color: 'var(--text-secondary)' }}
                             >
-                                {t('cond.overrideDisplay')}
+                                {t('cond.activeStyle')}
                             </p>
-                            <ConditionSetFields set={condition.set} slots={slots} onChange={setSet} />
-                        </>
-                    )}
+                            {STYLE_FIELDS.map(({ key, labelKey }) => (
+                                <ColorField
+                                    key={key}
+                                    label={t(labelKey as Parameters<typeof t>[0])}
+                                    value={condition.style[key]}
+                                    onChange={(v) => setStyle({ [key]: v })}
+                                />
+                            ))}
+                            {context !== 'tab' &&
+                                STYLE_TEXT_FIELDS.map(({ key, labelKey, placeholder }) => (
+                                    <TextField
+                                        key={key}
+                                        label={t(labelKey as Parameters<typeof t>[0])}
+                                        value={condition.style[key]}
+                                        placeholder={placeholder}
+                                        onChange={(v) => setStyle({ [key]: v })}
+                                    />
+                                ))}
+                            {/* The same two the element rules offer — kept in step on purpose. */}
+                            <div className="flex items-center gap-1.5 pt-0.5">
+                                <StyleToggle
+                                    on={!!condition.style.bold}
+                                    onClick={() => setStyle({ bold: condition.style.bold ? undefined : true })}
+                                    label={t('cond.styleBold')}
+                                />
+                                <StyleToggle
+                                    on={!!condition.style.italic}
+                                    onClick={() => setStyle({ italic: condition.style.italic ? undefined : true })}
+                                    label={t('cond.styleItalic')}
+                                />
+                            </div>
+                            {/* Belongs to the style, so it sits in the style column. */}
+                            <div className="flex items-center gap-1.5">
+                                <label
+                                    className="text-[10px] w-16 shrink-0 truncate"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('cond.effect')}
+                                </label>
+                                <select
+                                    value={condition.effect ?? 'none'}
+                                    onChange={(e) =>
+                                        onChange({ ...condition, effect: e.target.value as WidgetCondition['effect'] })
+                                    }
+                                    className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
+                                    style={inputStyle}
+                                >
+                                    <option value="none">{t('cond.noEffect')}</option>
+                                    <option value="pulse">{t('cond.pulse')}</option>
+                                    <option value="blink">{t('cond.blink')}</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    {/* Effect */}
-                    <div className="flex items-center gap-2">
-                        <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                            {t('cond.effect')}
-                        </label>
-                        <select
-                            value={condition.effect ?? 'none'}
-                            onChange={(e) =>
-                                onChange({ ...condition, effect: e.target.value as WidgetCondition['effect'] })
-                            }
-                            className={`${cls} flex-1`}
-                            style={inputStyle}
-                        >
-                            <option value="none">{t('cond.noEffect')}</option>
-                            <option value="pulse">{t('cond.pulse')}</option>
-                            <option value="blink">{t('cond.blink')}</option>
-                        </select>
+                        {/* Override what the widget shows — icon, title, value (issue #96) */}
+                        {context !== 'tab' && slots.length > 0 && (
+                            <div className="space-y-1.5 max-w-sm">
+                                <p
+                                    className="text-[10px] font-semibold uppercase tracking-wider"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('cond.overrideDisplay')}
+                                </p>
+                                <ConditionSetFields set={condition.set} slots={slots} onChange={setSet} />
+                            </div>
+                        )}
                     </div>
 
                     {/* Reload widget — embedded content (iframe/camera/image) re-fetches */}
