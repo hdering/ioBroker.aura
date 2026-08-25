@@ -249,17 +249,16 @@ lassen. Regeln mit `source: sub` prüfen die Datenpunkte der zweiten Zeile — a
 
 ### Sortierung
 
-| Option | Standard | |
-| --- | --- | --- |
-| `sortBy` | `none` | `none` · `label` (Name) · `value` (Wert) · `sub:<Bezeichnung>` (Datenpunkt der 2. Zeile) |
-| `sortOrder` | `asc` | `asc` · `desc` |
-| `sortBy2` | `none` | zweites Sortierkriterium, gleiche Werte |
-| `sortOrder2` | `asc` | Richtung des zweiten Kriteriums |
+Panel **Filter & Sortierung** → **Sortierung**. Kriterien-Kette und Optionen (`sortRules[]`) wie bei der
+[statischen Liste](./liste#sortierung) — inklusive `mode: custom` für eine eigene Werte-Reihenfolge und
+`empty` für Zeilen ohne Wert. Der Dialog zeigt live die entstehende Reihenfolge.
 
-Der Schlüssel hinter `sub:` ist die **Bezeichnung** des Datenpunkts oder das letzte Segment seiner ID —
-dieselbe Konvention wie `subKey` bei den [eigenen Filtern](#eigene-filter). Ein Vorlagen-Eintrag
-`{{parent}}.BATTERY` wird also als `BATTERY` angesprochen und in jeder Zeile gegen ihr eigenes Gerät
-aufgelöst. Zeilen ohne diesen Datenpunkt sortieren sich als „kein Wert" ein.
+Ein Kriterium mit `source: sub` liest die Datenpunkte der zweiten Zeile — auch die per
+[Vorlage](#zweite-zeile-zusatzliche-datenpunkte) aufgelösten. `subKey` trifft dann die Bezeichnung oder
+die DP-Endung (`{{parent}}.BATTERY` → `BATTERY`), leer = erster weiterer DP der Zeile.
+
+Die älteren Optionen `sortBy` / `sortOrder` / `sortBy2` / `sortOrder2` wirken unverändert weiter; die
+erste Änderung im Dialog ersetzt sie durch `sortRules[]`.
 
 ### Summe
 

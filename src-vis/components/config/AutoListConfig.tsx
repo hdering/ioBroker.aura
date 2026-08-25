@@ -11,7 +11,7 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import type { NameSource } from '../../utils/nameFilter';
 import { NameDisplayFields } from './NameDisplayFields';
 import { RowConditionsPanel } from './list/RowConditionsPanel';
-import { SortFields, subSortKeys } from './list/SortFields';
+import { ListSortSection } from './list/ListSortSection';
 import { AutoEntryDetail } from './list/AutoEntryDetail';
 import { AutoDiscoveryPanel } from './list/AutoDiscoveryPanel';
 import { SubDpTemplatePanel } from './list/SubDpTemplatePanel';
@@ -742,11 +742,12 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                     rows={filterRows}
                     storageKey="aura-autolist-filter-modal"
                 />
-                {/* ── Sortierung ── */}
-                <SortFields
+                {/* ── Sortierung (eigener Dialog) ── */}
+                <ListSortSection
                     opts={opts}
-                    subKeys={subSortKeys([opts.subDpTemplate, ...(opts.entries ?? []).map((e) => e.subDps)])}
-                    onChange={setOpts}
+                    setOpts={setOpts}
+                    rows={filterRows}
+                    storageKey="aura-autolist-sort-modal"
                 />
             </ConfigSection>
             <ConfigSection title="Veröffentlichen">

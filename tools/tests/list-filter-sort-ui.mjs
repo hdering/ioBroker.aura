@@ -6,6 +6,10 @@
 // The pure test covers the rules; this one covers the wiring: that the comparator
 // really reaches a datapoint of the second line, and that a name rule filters the
 // RENDERED name — the one a `[[dp]]` token in the name pattern produced.
+//
+// It also covers the sort chain that replaced the two fixed sort slots: that the
+// widget honours `sortRules`, that a stored `sortBy` still sorts the same, and that
+// a chain wins over it.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -100,6 +104,30 @@ eq('the id segment works as a key too', await order(), ['Beta Offline', 'Gamma',
 await mock({ 'demo.a.BATTERY': 1 });
 await settle();
 eq('sorting follows the datapoint', await order(), ['Alpha', 'Beta Offline', 'Gamma']);
+
+// ── the sort chain ───────────────────────────────────────────────────────────
+await mock({ 'demo.a.BATTERY': 80 });
+
+await show({ sortRules: [{ source: 'sub', subKey: 'Akku' }] });
+eq('chain: a sub criterion sorts the rendered list', await order(), ['Beta Offline', 'Gamma', 'Alpha']);
+
+await show({ sortRules: [{ source: 'sub', subKey: 'Akku', order: 'desc' }] });
+eq('chain: descending', await order(), ['Alpha', 'Gamma', 'Beta Offline']);
+
+// Equal main values, so the second criterion is the one that orders the rows.
+await show({ sortRules: [{ source: 'value' }, { source: 'name', order: 'desc' }] });
+eq('chain: the second criterion breaks the tie', await order(), ['Gamma', 'Beta Offline', 'Alpha']);
+
+// A hand-written order over a text datapoint — alphabetically this would be A/B/G.
+await mock({ 'demo.a.STATE': 'OK', 'demo.b.STATE': 'ERROR', 'demo.c.STATE': 'WARN' });
+await show({ sortRules: [{ source: 'value', mode: 'custom', values: ['ERROR', 'WARN', 'OK'] }] });
+eq('chain: a hand-written value order', await order(), ['Beta Offline', 'Gamma', 'Alpha']);
+
+// A chain overrides a stored legacy setting instead of adding to it.
+await show({ sortBy: 'sub:Akku', sortOrder: 'asc', sortRules: [{ source: 'name', order: 'desc' }] });
+eq('chain: wins over the old sortBy pair', await order(), ['Gamma', 'Beta Offline', 'Alpha']);
+
+await mock({ 'demo.a.STATE': 1, 'demo.b.STATE': 1, 'demo.c.STATE': 1 });
 
 // ── excluding rows by name ───────────────────────────────────────────────────
 const preset = {

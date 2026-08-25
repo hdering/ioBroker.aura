@@ -110,6 +110,7 @@
     "test:row-conditions-ui": "node tools/tests/row-conditions-ui.mjs",
     "test:list-filter-sort": "node tools/tests/list-filter-sort.mjs",
     "test:list-filter-sort-ui": "node tools/tests/list-filter-sort-ui.mjs",
+        "test:list-sort-rules": "node tools/tests/list-sort-rules.mjs",
     "test:enum-json": "node tools/tests/enum-json-entries.mjs",
     "test:enum-json-ui": "node tools/tests/enum-json-widget.mjs"
   },

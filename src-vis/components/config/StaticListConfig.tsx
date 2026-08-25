@@ -21,7 +21,8 @@ import { ValueTransformFields } from './ValueTransformFields';
 import { ColorThresholdsEditor } from './ColorThresholdsEditor';
 import { StaticEntryDetail } from './list/StaticEntryDetail';
 import { RowConditionsPanel } from './list/RowConditionsPanel';
-import { SortFields, sortByLabel, subSortKeys } from './list/SortFields';
+import { ListSortSection } from './list/ListSortSection';
+import { sortSummary } from '../../utils/listSort';
 import { DividerDetail } from './list/DividerDetail';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { ListFilterSection } from './list/ListFilterSection';
@@ -129,6 +130,9 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
     // With separators in the list the manual order keeps mattering even while a sort
     // order is active — the sections are placed by hand and only sorted within.
     const hasDividers = entries.some((e) => isDivider(e));
+    // What the manage-datapoints dialog warns with: a sort chain overrides the
+    // hand-made order, so it has to say so where that order is dragged around.
+    const sortText = sortSummary(opts);
 
     const reorderEntries = (fromIdx: number, toIdx: number) => {
         if (fromIdx === toIdx) return;
@@ -156,11 +160,11 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                 onAddDivider={addDivider}
                 onReorder={reorderEntries}
                 sortHint={
-                    (opts.sortBy ?? 'none') === 'none'
+                    !sortText
                         ? undefined
                         : hasDividers
-                          ? `Sortierung „${sortByLabel(opts.sortBy)}“ ist aktiv — sie wirkt innerhalb eines Abschnitts. Die Reihenfolge der Trennlinien und Abschnitte bleibt manuell.`
-                          : `Sortierung „${sortByLabel(opts.sortBy)}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn Sortierung auf „Keine“ steht.`
+                          ? `Sortierung „${sortText}“ ist aktiv — sie wirkt innerhalb eines Abschnitts. Die Reihenfolge der Trennlinien und Abschnitte bleibt manuell.`
+                          : `Sortierung „${sortText}“ ist aktiv — manuelle Reihenfolge wirkt erst, wenn kein Sortierkriterium gesetzt ist.`
                 }
                 keepDraggable={hasDividers}
                 renderDetail={(id, api) => {
@@ -647,16 +651,17 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                     storageKey="aura-staticlist-filter-modal"
                 />
 
-                {/* ── Sortierung ── */}
-                <SortFields
+                {/* ── Sortierung (eigener Dialog) ── */}
+                <ListSortSection
                     opts={opts}
-                    subKeys={subSortKeys([...(opts.entries ?? []).map((e) => e.subDps)])}
-                    onChange={setOpts}
+                    setOpts={setOpts}
+                    rows={filterRows}
+                    storageKey="aura-staticlist-sort-modal"
                     hint={
                         /* Only worth saying once a separator exists — otherwise it describes
                            a case the user has not built. */
                         hasDividers ? (
-                            <p className="text-[10px] mb-1.5" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                                 Mit Trennlinien wird <strong>innerhalb</strong> eines Abschnitts sortiert — die
                                 Abschnitte selbst bleiben in ihrer Reihenfolge stehen.
                             </p>

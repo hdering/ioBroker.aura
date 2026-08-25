@@ -380,21 +380,43 @@ die Zeile weg. Der Schalter „alle müssen passen" hat darauf keine Wirkung.
 
 ### Sortierung
 
-| Option | Standard | |
+Panel **Filter & Sortierung** → **Sortierung**. Eine Kette von Kriterien: das erste entscheidet, die
+folgenden nur bei Gleichstand. Der Dialog zeigt live die daraus entstehende Reihenfolge.
+
+| `sortRules[]` | Standard | |
 | --- | --- | --- |
-| `sortBy` | `none` | `none` · `label` (Name) · `value` (Wert) · `sub:<Bezeichnung>` (Datenpunkt der 2. Zeile) |
-| `sortOrder` | `asc` | `asc` · `desc` |
-| `sortBy2` | `none` | zweites Sortierkriterium, gleiche Werte |
-| `sortOrder2` | `asc` | Richtung des zweiten Kriteriums |
+| `source` | `value` | `value` (Wert) · `name` (angezeigter Zeilenname) · `sub` (Datenpunkt der 2. Zeile) |
+| `subKey` | — | bei `sub`: Bezeichnung oder DP-Endung (`BATTERY`); leer = erster weiterer DP der Zeile |
+| `order` | `asc` | `asc` · `desc` |
+| `mode` | `auto` | `auto` · `number` · `text` · `active` · `custom` |
+| `values[]` | — | bei `mode: custom`: Werte in gewünschter Reihenfolge |
+| `empty` | `last` | `last` · `first` — wohin Zeilen ohne Wert kommen |
 
-Der Schlüssel hinter `sub:` ist die **Bezeichnung** des Datenpunkts oder das letzte Segment seiner ID —
-dieselbe Konvention wie `subKey` bei den [eigenen Filtern](#eigene-filter). Ein Vorlagen-Eintrag
+| `mode` | |
+| --- | --- |
+| `auto` | Zahlen numerisch, Text alphabetisch (Zahlen darin numerisch) |
+| `number` | Text wird zur Zahl; was keine ist, gilt als ohne Wert |
+| `text` | rein alphabetisch — `10` steht damit vor `9` |
+| `active` | aktive (an / > 0) zuerst, `desc` dreht es |
+| `custom` | Reihenfolge aus `values[]`, nicht aufgeführte Werte dahinter |
+
+Der Schlüssel in `subKey` ist die **Bezeichnung** des Datenpunkts oder das letzte Segment seiner ID —
+dieselbe Konvention wie bei den [eigenen Filtern](#eigene-filter). Ein Vorlagen-Eintrag
 `{{parent}}.BATTERY` wird also als `BATTERY` angesprochen und in jeder Zeile gegen ihr eigenes Gerät
-aufgelöst. Zeilen ohne diesen Datenpunkt sortieren sich als „kein Wert" ein.
+aufgelöst.
 
-Bei `none` gilt die manuelle Reihenfolge aus dem Dialog **Datenpunkte verwalten**.
+Zeilen ohne Wert kommen **in beiden Richtungen** ans Ende (`empty: last`) — sonst startet jede Liste
+„schlechtester Akku zuerst" mit den Geräten, die gar keinen Akku haben.
+
+Ohne Kriterium gilt die manuelle Reihenfolge aus dem Dialog **Datenpunkte verwalten**.
 
 Sind [Trennlinien](#trennlinien-abschnitte) gesetzt, wirkt die Sortierung **innerhalb eines Abschnitts** — die Abschnitte selbst bleiben in der konfigurierten Reihenfolge stehen.
+
+::: tip Bestehende Dashboards
+Die älteren Optionen `sortBy` / `sortOrder` / `sortBy2` / `sortOrder2` (`none` · `label` · `value` ·
+`sub:<Bezeichnung>`) wirken unverändert weiter. Der Dialog zeigt sie als Kette an; die erste Änderung
+darin ersetzt sie durch `sortRules[]`.
+:::
 
 ### Summe
 

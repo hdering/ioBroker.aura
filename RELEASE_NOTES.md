@@ -12,7 +12,7 @@ Lists - conditions per row: colour, icon, text and visibility of name, value and
 Dynamic list - rows can now show an icon in front of the name, set per datapoint together with its size (#572)
 Lists - second line: value-to-text table (true becomes ONLINE) and its own conditions per datapoint (#572)
 Lists - a custom filter can now read the row name and exclude with "does not contain", which the search field cannot do (#572)
-Lists - sorting can use a datapoint of the second line (#572)
+Lists - sorting is now a dialog with a chain of criteria: row name, value or a datapoint of the second line, compared as number, text, active first or an order you type out; rows without a value stay at the end (#572)
 Universal - conditions are now offered for title, unit, text, field, icon, image and button cells as well
 Conditions - the widget level gained bold/italic and the element level gained pulse/blink, so both offer the same set
 Conditions - the rule dialog now puts the card style and the element blocks side by side instead of stacking them full width

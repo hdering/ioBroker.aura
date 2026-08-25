@@ -62,12 +62,10 @@ import {
     matchesFilterMode,
     matchesSearch,
     normalizeFilterMode,
-    sortSubKey,
-    subValueByKey,
     type ListFilterOptions,
     type ListFilterRow,
-    type ListSortKey,
 } from '../../utils/listFilter';
+import { effectiveSortRules, makeSortComparator, type ListSortOptions } from '../../utils/listSort';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -137,7 +135,7 @@ export interface StaticListEntry extends EntryControlConfig {
 }
 
 export interface StaticListOptions
-    extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings, ListFilterOptions {
+    extends GroupActionConfigOpts, RowPopupOptions, ValueTransformSettings, ListFilterOptions, ListSortOptions {
     entries: StaticListEntry[];
     /**
      * Filter the frontend starts with: 'all' (default), the built-ins 'active' /
@@ -152,10 +150,6 @@ export interface StaticListOptions
     namePattern?: string;
     /** Text rules applied to the token values before substitution (see utils/nameFilter). */
     nameFilters?: NameFilterRule[];
-    sortBy?: ListSortKey;
-    sortOrder?: 'asc' | 'desc';
-    sortBy2?: ListSortKey;
-    sortOrder2?: 'asc' | 'desc';
     /** Global default label for on/true/>0 state (fallback when entry has no trueLabel). */
     trueText?: string;
     /** Global default label for off/false/0 state (fallback when entry has no falseLabel). */
@@ -219,14 +213,6 @@ function isActive(val: ioBrokerState['val']): boolean {
     if (typeof val === 'number') return val > 0;
     if (typeof val === 'string') return val !== '' && val !== '0' && val.toLowerCase() !== 'false';
     return false;
-}
-
-function compareVals(a: ioBrokerState['val'], b: ioBrokerState['val']): number {
-    if (a === null || a === undefined) return 1;
-    if (b === null || b === undefined) return -1;
-    if (typeof a === 'boolean' && typeof b === 'boolean') return (a ? 1 : 0) - (b ? 1 : 0);
-    if (typeof a === 'number' && typeof b === 'number') return a - b;
-    return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' });
 }
 
 // ── Section breaks ─────────────────────────────────────────────────────────────
@@ -940,38 +926,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                           matchesSearch(row, effectiveSearch)
                       );
                   });
-        const sortBy = opts.sortBy ?? 'none';
-        const sortOrder = opts.sortOrder ?? 'asc';
-        const sortBy2 = opts.sortBy2 ?? 'none';
-        const sortOrder2 = opts.sortOrder2 ?? 'asc';
-        if (sortBy !== 'none') {
-            // Second-line values are looked up once per row, not once per comparison.
-            const subsCache = new Map<string, ReturnType<typeof filterRow>['subs']>();
-            const subsOf = (e: StaticListEntry) => {
-                let cached = subsCache.get(e.id);
-                if (!cached) {
-                    cached = filterRow(e).subs ?? [];
-                    subsCache.set(e.id, cached);
-                }
-                return cached;
-            };
-            const cmpFor = (key: string, a: StaticListEntry, b: StaticListEntry) => {
-                const sk = sortSubKey(key);
-                if (sk !== null) return compareVals(subValueByKey(subsOf(a), sk), subValueByKey(subsOf(b), sk));
-                return key === 'label'
-                    ? getLabel(a).localeCompare(getLabel(b), undefined, { numeric: true, sensitivity: 'base' })
-                    : compareVals(states[a.id]?.val ?? null, states[b.id]?.val ?? null);
-            };
-            result = sortWithinSections(result, (a, b) => {
-                const cmp1 = cmpFor(sortBy, a, b);
-                if (cmp1 !== 0) return sortOrder === 'desc' ? -cmp1 : cmp1;
-                if (sortBy2 !== 'none' && sortBy2 !== sortBy) {
-                    const cmp2 = cmpFor(sortBy2, a, b);
-                    return sortOrder2 === 'desc' ? -cmp2 : cmp2;
-                }
-                return 0;
-            });
-        }
+        // The rule chain (or the legacy sortBy pair mapped onto it) — the row it reads
+        // is the one the filters see, built once per entry rather than per comparison.
+        const cmp = makeSortComparator(effectiveSortRules(opts), filterRow, (e) => e.id);
+        if (cmp) result = sortWithinSections(result, cmp);
         return pruneEmptySections(result);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
@@ -981,6 +939,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         effectiveFilter,
         effectiveSearch,
         opts.filterPresets,
+        opts.sortRules,
         opts.sortBy,
         opts.sortOrder,
         opts.sortBy2,
