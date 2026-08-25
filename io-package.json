@@ -286,6 +286,19 @@
       "native": {}
     },
     {
+      "_id": "info.version",
+      "type": "state",
+      "common": {
+        "name": "Installed adapter version",
+        "type": "string",
+        "role": "info.version",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
       "_id": "config",
       "type": "channel",
       "common": {

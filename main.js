@@ -2185,6 +2185,31 @@ class Aura extends utils.Adapter {
             native: {},
         });
 
+        // ── Installed adapter version ────────────────────────────────────────
+        // Read-only mirror of package.json/io-package common.version so the
+        // running version can be bound anywhere in the frontend (or read by
+        // scripts) without a sendTo round-trip. Written on every start, so an
+        // upgrade updates it as soon as the new instance comes up.
+        await this.setObjectNotExistsAsync('info.version', {
+            type: 'state',
+            common: {
+                name: 'Installed adapter version',
+                type: 'string',
+                role: 'info.version',
+                read: true,
+                write: false,
+                def: '',
+            },
+            native: {},
+        });
+        let installedVersion = '';
+        try {
+            installedVersion = require('./package.json').version || '';
+        } catch {
+            /* ignore — leave empty */
+        }
+        await this.setStateAsync('info.version', { val: installedVersion, ack: true });
+
         // ── Theme mode DPs ───────────────────────────────────────────────────
         // Independent control: frontend (tablets/users) and admin (editor) each
         // have their own DP so scheduling one doesn't affect the other.
