@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.47.3 (2026-08-15)
+- 🌟 **New feature:** Messages - can now be sent with sendTo('aura.0','notify',{...}) as well; the call answers with the assigned id, and notifyAck / notifyDismiss confirm or close a message from a script ([#429](https://github.com/hdering/ioBroker.aura/issues/429))
+- 🌟 **New feature:** Settings - Admin -> Messages now shows ready-to-copy setState and sendTo lines for the message you just built, plus a reference of every message datapoint ([#429](https://github.com/hdering/ioBroker.aura/issues/429))
+
 ## 0.47.2 (2026-08-15)
 - Messages - height now sets the card height instead of only capping it, and content taller than the card scrolls rather than being cut off
 
