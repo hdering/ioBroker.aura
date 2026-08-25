@@ -29,6 +29,7 @@ export interface ElementCondResult {
     icon?: string;
     iconColor?: string;
     text?: string;
+    effect?: 'pulse' | 'blink';
     hide?: boolean;
 }
 
@@ -101,6 +102,7 @@ function applyEffects(into: ElementCondResult, rule: ElementConditionRule): void
     if (rule.icon) into.icon = rule.icon;
     if (rule.iconColor) into.iconColor = rule.iconColor;
     if (rule.text !== undefined && rule.text !== '') into.text = rule.text;
+    if (rule.effect && rule.effect !== 'none') into.effect = rule.effect;
     // Hiding is absorbing — a later rule never brings the element back.
     if (rule.hide) into.hide = true;
 }
@@ -163,6 +165,7 @@ export function partOf(
         color: row.color,
         bold: row.bold,
         italic: row.italic,
+        effect: row.effect,
         ...(target === 'icon' ? { icon: row.icon, iconColor: row.iconColor } : null),
     };
     return own ? { ...base, ...stripUndefined(own) } : base;
@@ -172,6 +175,17 @@ function stripUndefined(o: ElementCondResult): ElementCondResult {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(o)) if (v !== undefined) out[k] = v;
     return out as ElementCondResult;
+}
+
+/**
+ * The inline animation an element effect produces. Inline rather than a class:
+ * every render site already spreads a style object for the colour, so this rides
+ * along instead of threading a className through a dozen components.
+ */
+export function condAnimation(part: ElementCondResult | undefined): string | undefined {
+    if (part?.effect === 'pulse') return 'auraCondPulse 1.5s ease-in-out infinite';
+    if (part?.effect === 'blink') return 'blink 1s step-end infinite';
+    return undefined;
 }
 
 /** True when any rule hides the whole row. */

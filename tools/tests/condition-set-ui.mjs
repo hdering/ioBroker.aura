@@ -151,6 +151,28 @@ await mock({ [ALARM]: false });
 await settle();
 eq('style: opacity is dropped again', await cssVar('--widget-opacity'), null);
 
+// ── 8. bold / italic, the two the element rules always had ──────────────────
+const fontOf = (sel) =>
+    page.evaluate((s) => {
+        const el = document.querySelector(`.aura-widget-cs-test ${s}`);
+        if (!el) return null;
+        const cs = getComputedStyle(el);
+        return `${cs.fontWeight}/${cs.fontStyle}`;
+    }, sel);
+
+await show([rule('r1', {}, { bold: true, italic: true })]);
+await mock({ [ALARM]: false });
+await settle();
+const plain = await fontOf('.aura-widget-title');
+await mock({ [ALARM]: true });
+await settle();
+eq('style: bold and italic reach the title', await fontOf('.aura-widget-title'), '700/italic');
+check('style: they were not there before', plain !== '700/italic', String(plain));
+
+await mock({ [ALARM]: false });
+await settle();
+eq('style: and go away again', await fontOf('.aura-widget-title'), plain);
+
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

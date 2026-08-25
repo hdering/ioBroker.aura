@@ -1101,6 +1101,8 @@ export const de = {
     'cond.styleBorderWidth': 'Rahmenbreite',
     'cond.styleRadius': 'Eckenradius',
     'cond.styleOpacity': 'Deckkraft',
+    'cond.styleBold': 'Fett',
+    'cond.styleItalic': 'Kursiv',
     'cond.overrideDisplay': 'Anzeige überschreiben',
     'cond.setTitle': 'Titel',
     'cond.setTitlePlaceholder': 'unverändert',

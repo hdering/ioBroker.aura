@@ -1098,6 +1098,8 @@ export const en: Record<TranslationKey, string> = {
     'cond.styleBorderWidth': 'Border width',
     'cond.styleRadius': 'Corner radius',
     'cond.styleOpacity': 'Opacity',
+    'cond.styleBold': 'Bold',
+    'cond.styleItalic': 'Italic',
     'cond.overrideDisplay': 'Override display',
     'cond.setTitle': 'Title',
     'cond.setTitlePlaceholder': 'unchanged',

@@ -12,7 +12,7 @@ import type { NumberFormat } from '../../utils/formatValue';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { entryValueText, type EntryStateMap } from './entryControls';
 import type { ElementCondResult, RowCondResult } from '../../utils/rowConditions';
-import { partOf } from '../../utils/rowConditions';
+import { condAnimation, partOf } from '../../utils/rowConditions';
 
 /** One extra datapoint rendered in an entry's second line. Display only. */
 export interface EntrySubDp extends ValueTransformSettings {
@@ -84,6 +84,7 @@ function SubDpItem({
                 fontSize,
                 fontWeight: cond?.bold ? 700 : undefined,
                 fontStyle: cond?.italic ? 'italic' : undefined,
+                animation: condAnimation(cond),
             }}
             title={sub.label ? `${sub.label} ${text}` : text}
         >

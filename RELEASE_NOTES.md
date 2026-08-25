@@ -14,3 +14,4 @@ Lists - second line: value-to-text table (true becomes ONLINE) and its own condi
 Lists - a custom filter can now read the row name and exclude with "does not contain", which the search field cannot do (#572)
 Lists - sorting can use a datapoint of the second line (#572)
 Universal - conditions are now offered for title, unit, text, field, icon, image and button cells as well
+Conditions - the widget level gained bold/italic and the element level gained pulse/blink, so both offer the same set

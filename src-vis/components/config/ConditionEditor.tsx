@@ -48,7 +48,11 @@ const CHANGED_ONLY = new Set<ConditionOperator>(['changed']);
 /** Stable empty default — a fresh array each render would remount the rule list. */
 const NO_SLOTS: ConditionSlot[] = [];
 
-const STYLE_FIELDS: { key: keyof ConditionStyle; labelKey: string }[] = [
+/** ConditionStyle keys that hold a colour resp. a plain CSS value. */
+type ColorKey = 'accent' | 'bg' | 'border' | 'textPrimary' | 'textSecondary';
+type TextKey = 'borderWidth' | 'radius' | 'opacity';
+
+const STYLE_FIELDS: { key: ColorKey; labelKey: string }[] = [
     { key: 'accent', labelKey: 'cond.colorAccent' },
     { key: 'bg', labelKey: 'cond.colorBg' },
     { key: 'border', labelKey: 'cond.colorBorder' },
@@ -58,7 +62,7 @@ const STYLE_FIELDS: { key: keyof ConditionStyle; labelKey: string }[] = [
 
 // Not colours, so not ColorField: these take a CSS length resp. a factor and mirror
 // the same three keys the static "Erweitert" panel offers (WidgetFrame STYLE_FIELDS).
-const STYLE_TEXT_FIELDS: { key: keyof ConditionStyle; labelKey: string; placeholder: string }[] = [
+const STYLE_TEXT_FIELDS: { key: TextKey; labelKey: string; placeholder: string }[] = [
     { key: 'borderWidth', labelKey: 'cond.styleBorderWidth', placeholder: '2px' },
     { key: 'radius', labelKey: 'cond.styleRadius', placeholder: '18px' },
     { key: 'opacity', labelKey: 'cond.styleOpacity', placeholder: '0.5' },
@@ -525,6 +529,22 @@ export function IconField({
     );
 }
 
+function StyleToggle({ on, onClick, label }: { on: boolean; onClick: () => void; label: string }) {
+    return (
+        <button
+            onClick={onClick}
+            className="text-[11px] px-2 py-1 rounded-lg transition-colors"
+            style={{
+                background: on ? 'var(--accent)' : 'var(--app-bg)',
+                color: on ? '#fff' : 'var(--text-secondary)',
+                border: `1px solid ${on ? 'var(--accent)' : 'var(--app-border)'}`,
+            }}
+        >
+            {label}
+        </button>
+    );
+}
+
 export function conditionSetCount(set: ConditionSet | undefined): number {
     if (!set) return 0;
     return Object.values(set).filter((v) => v !== undefined).length;
@@ -749,6 +769,20 @@ function ConditionRule({
                                     onChange={(v) => setStyle({ [key]: v })}
                                 />
                             ))}
+                    </div>
+
+                    {/* The same two the element rules offer — kept in step on purpose. */}
+                    <div className="flex items-center gap-1.5">
+                        <StyleToggle
+                            on={!!condition.style.bold}
+                            onClick={() => setStyle({ bold: condition.style.bold ? undefined : true })}
+                            label={t('cond.styleBold')}
+                        />
+                        <StyleToggle
+                            on={!!condition.style.italic}
+                            onClick={() => setStyle({ italic: condition.style.italic ? undefined : true })}
+                            label={t('cond.styleItalic')}
+                        />
                     </div>
 
                     {/* Override what the widget shows — icon, title, value (issue #96) */}

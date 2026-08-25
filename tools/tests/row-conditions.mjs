@@ -20,7 +20,7 @@ const bundle = join(cache, `aura-rowcond-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: [
-            'export { resolveRuleRefs, ruleForeignRefs, evalRowRules, partOf, rowHidden, isOwnRef, ELEMENT_TARGETS }',
+            'export { resolveRuleRefs, ruleForeignRefs, evalRowRules, partOf, rowHidden, isOwnRef, condAnimation, ELEMENT_TARGETS }',
             "  from './src-vis/utils/rowConditions.ts';",
         ].join('\n'),
         resolveDir: process.cwd(),
@@ -32,9 +32,8 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { resolveRuleRefs, ruleForeignRefs, evalRowRules, partOf, rowHidden, isOwnRef, ELEMENT_TARGETS } = await import(
-    pathToFileURL(bundle).href
-);
+const { resolveRuleRefs, ruleForeignRefs, evalRowRules, partOf, rowHidden, isOwnRef, condAnimation, ELEMENT_TARGETS } =
+    await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -201,6 +200,29 @@ check('isOwnRef: a neighbour', isOwnRef('hm-rpc.0.Thermostat.UNREACH', ROW) === 
     eq('partOf: a row icon colour reaches the icon part', partOf(res, 'icon').iconColor, '#ff0');
     eq('partOf: the icon does not leak into the name', partOf(res, 'name').icon, undefined);
 }
+
+// ── pulse / blink, the effects the widget level always had ──────────────────
+{
+    const res = evalRowRules([rule('r', [clause('{dp}', 'active')], { effect: 'blink' })], ROW, 1, noValues);
+    eq('effect: stored on the row', res.row?.effect, 'blink');
+    eq('effect: reaches the parts', partOf(res, 'value').effect, 'blink');
+    eq('effect: becomes an animation', condAnimation(partOf(res, 'value')), 'blink 1s step-end infinite');
+}
+{
+    const res = evalRowRules(
+        [rule('r', [clause('{dp}', 'active')], { target: 'icon', effect: 'pulse' })],
+        ROW,
+        1,
+        noValues,
+    );
+    eq('effect: pulse on one part only', condAnimation(res.icon), 'auraCondPulse 1.5s ease-in-out infinite');
+    eq('effect: the other parts stay still', condAnimation(partOf(res, 'name')), undefined);
+}
+{
+    const res = evalRowRules([rule('r', [clause('{dp}', 'active')], { effect: 'none' })], ROW, 1, noValues);
+    eq('effect: "none" is not an effect', res.row?.effect, undefined);
+}
+eq('effect: nothing matched, nothing animates', condAnimation(undefined), undefined);
 
 eq('targets', ELEMENT_TARGETS, ['row', 'name', 'value', 'icon']);
 

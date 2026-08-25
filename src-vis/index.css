@@ -33,6 +33,31 @@ iframe {
     }
 }
 
+/* Condition effect on ONE element — a list row, a grid cell, a value in the second
+   line. The widget-level equivalents are Tailwind's animate-pulse and `blink` above;
+   these are applied as an inline animation, so they need a name of their own. */
+@keyframes auraCondPulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* A widget-level condition may set the whole card bold/italic. Inheritance alone is
+   not enough: most widgets give their texts an explicit Tailwind weight, which would
+   win over an inherited one — hence the descendant selector and !important. */
+.aura-cond-bold,
+.aura-cond-bold * {
+    font-weight: 700 !important;
+}
+.aura-cond-italic,
+.aura-cond-italic * {
+    font-style: italic !important;
+}
+
 @keyframes tabPulse {
     0%,
     100% {

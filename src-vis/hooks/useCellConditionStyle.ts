@@ -26,6 +26,7 @@ export interface CellCondResult {
     iconColor?: string;
     /** Replaces the cell's text — the same effect a list row's value has. */
     text?: string;
+    effect?: 'pulse' | 'blink';
     hide?: boolean;
 }
 
@@ -83,6 +84,7 @@ function evalRules(
         if (rule.icon) merged.icon = rule.icon;
         if (rule.iconColor) merged.iconColor = rule.iconColor;
         if (rule.text !== undefined && rule.text !== '') merged.text = rule.text;
+        if (rule.effect && rule.effect !== 'none') merged.effect = rule.effect;
         if (rule.hide) merged.hide = true;
     }
     return any ? merged : EMPTY;

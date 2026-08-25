@@ -387,7 +387,7 @@ export function TabBar({
     const renderTabs = () =>
         tabs.map((tab, idx) => (
             <TabConditionWrapper key={tab.id} tab={tab}>
-                {({ cssVars, effect, hidden }) => {
+                {({ cssVars, bold, italic, effect, hidden }) => {
                     // Frontend or readonly preview: hide disabled / hidden / condition-hidden tabs
                     // (hidden tabs stay reachable via their direct slug URL — they are only
                     //  removed from the tab bar, not from the layout)
@@ -403,7 +403,7 @@ export function TabBar({
 
                     return (
                         <div
-                            className={`group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'}`}
+                            className={`group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''}`}
                             style={{
                                 ...(cssVars as React.CSSProperties),
                                 ...ts,

@@ -138,7 +138,16 @@ function emptyCellStyle(index: number, cols: number): React.CSSProperties {
 
 /** Merge a matched per-cell condition's background into the cell wrapper style. */
 function withCondBg(base: React.CSSProperties, cond: CellCondResult): React.CSSProperties {
-    return cond.bg ? { ...base, background: cond.bg, borderRadius: 6 } : base;
+    // Also the single place a cell's pulse/blink is applied: every cell type wraps
+    // itself with this, so the effect needs no threading through each of them.
+    const animation =
+        cond.effect === 'pulse'
+            ? 'auraCondPulse 1.5s ease-in-out infinite'
+            : cond.effect === 'blink'
+              ? 'blink 1s step-end infinite'
+              : undefined;
+    if (!cond.bg && !animation) return base;
+    return { ...base, ...(cond.bg ? { background: cond.bg, borderRadius: 6 } : null), animation };
 }
 
 function alignItemsFromCell(cell: CustomCell): React.CSSProperties['alignItems'] {

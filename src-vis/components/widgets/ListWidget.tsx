@@ -6,7 +6,7 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import type { WidgetProps, ioBrokerState, ElementConditionRule } from '../../types';
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
-import { partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
+import { condAnimation, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
@@ -409,6 +409,7 @@ function EntryValue({
     const condFont = {
         fontWeight: cond?.bold ? 700 : undefined,
         fontStyle: cond?.italic ? ('italic' as const) : undefined,
+        animation: condAnimation(cond),
     };
     // An entry without its own scale falls back to the list-wide one; an empty
     // array counts as "none" so an imported entry cannot block the fallback.
@@ -1282,6 +1283,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     className="rounded-xl p-2.5 flex flex-col gap-2 relative"
                                     style={{
                                         background: stateBg,
+                                        animation: condAnimation(rc?.row),
                                         border: '1px solid var(--widget-border)',
                                         cursor: rowProps ? 'pointer' : undefined,
                                     }}
@@ -1294,6 +1296,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             fontSize: entryFontSize ?? undefined,
                                             fontWeight: cName.bold ? 700 : undefined,
                                             fontStyle: cName.italic ? 'italic' : undefined,
+                                            animation: condAnimation(cName),
                                         }}
                                     >
                                         {EntryIcon && (
@@ -1302,6 +1305,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                 className="shrink-0"
                                                 style={{
                                                     color: cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)',
+                                                    animation: condAnimation(cIcon),
                                                 }}
                                             />
                                         )}
@@ -1400,6 +1404,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     className="flex flex-col gap-1 px-2 py-1.5"
                                     style={{
                                         background: stateBg,
+                                        animation: condAnimation(rc?.row),
                                         borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
                                         borderLeft:
                                             showDividers && isRight ? '1px solid var(--widget-border)' : undefined,
@@ -1414,6 +1419,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                 className="shrink-0"
                                                 style={{
                                                     color: cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)',
+                                                    animation: condAnimation(cIcon),
                                                 }}
                                             />
                                         )}
@@ -1425,6 +1431,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                     fontSize: entryFontSize ?? undefined,
                                                     fontWeight: cName.bold ? 700 : undefined,
                                                     fontStyle: cName.italic ? 'italic' : undefined,
+                                                    animation: condAnimation(cName),
                                                 }}
                                             >
                                                 {!cName.hide && (cName.text ?? label)}
@@ -1644,7 +1651,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         <EntryIcon
                                             size={entryIconSize}
                                             className="shrink-0 opacity-70"
-                                            style={{ color: cIcon.iconColor ?? cIcon.color }}
+                                            style={{
+                                                color: cIcon.iconColor ?? cIcon.color,
+                                                animation: condAnimation(cIcon),
+                                            }}
                                         />
                                     )}
                                     <span
@@ -1654,6 +1664,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             color: cName.color,
                                             fontWeight: cName.bold ? 700 : undefined,
                                             fontStyle: cName.italic ? 'italic' : undefined,
+                                            animation: condAnimation(cName),
                                         }}
                                     >
                                         {!cName.hide && (cName.text ?? label)}
@@ -1669,6 +1680,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                         : 'var(--text-primary)'),
                                                 fontWeight: cValue.bold ? 700 : undefined,
                                                 fontStyle: cValue.italic ? 'italic' : undefined,
+                                                animation: condAnimation(cValue),
                                             }}
                                         >
                                             {cValue.text ?? valueStr}
@@ -1729,6 +1741,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 className="flex flex-col gap-1 px-3 py-2"
                                 style={{
                                     background: stateBg,
+                                    animation: condAnimation(rc?.row),
                                     borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
                                     cursor: rowProps ? 'pointer' : undefined,
                                 }}
@@ -1739,7 +1752,10 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         <EntryIcon
                                             size={entryIconSize}
                                             className="shrink-0 mt-0.5"
-                                            style={{ color: cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)' }}
+                                            style={{
+                                                color: cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)',
+                                                animation: condAnimation(cIcon),
+                                            }}
                                         />
                                     )}
                                     <div className="flex-1 min-w-0" style={labelContainerStyle}>
@@ -1750,6 +1766,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                 fontSize: entryFontSize ?? undefined,
                                                 fontWeight: cName.bold ? 700 : undefined,
                                                 fontStyle: cName.italic ? 'italic' : undefined,
+                                                animation: condAnimation(cName),
                                             }}
                                         >
                                             {!cName.hide && (cName.text ?? label)}

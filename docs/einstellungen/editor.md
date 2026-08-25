@@ -53,7 +53,7 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 
 | Effekt | Wirkung |
 | --- | --- |
-| Stil wenn aktiv | Akzent, Hintergrund, Rahmen, Rahmenbreite, Eckenradius, Deckkraft, Text, Text 2 |
+| Stil wenn aktiv | Akzent, Hintergrund, Rahmen, Rahmenbreite, Eckenradius, Deckkraft, Text, Text 2, Fett, Kursiv |
 | Anzeige überschreiben | Titel, Icon, Icon-Größe, Titel/Icon zeigen, Wert-Text |
 | Effekt | `Pulsieren` · `Blinken` |
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
@@ -104,7 +104,11 @@ Im Custom-Layout bieten alle wertführenden Zellen Bedingungen, dazu `Titel` · 
 Haupt-Datenpunkt des Widgets oder einen frei angegebenen.
 
 Effekte einer Element-Regel: Textfarbe, Hintergrund (nur „Ganze Zeile"), Icon-Farbe, Icon, Text, Fett,
-Kursiv, Ausblenden.
+Kursiv, Effekt (`Pulsieren` · `Blinken`), Ausblenden.
+
+Beide Ebenen bieten denselben Satz an Schriftschnitt und Effekt — nur der Umfang unterscheidet sich:
+Farben und Sichtbarkeit wirken auf der Widget-Ebene auf die ganze Karte, auf der Element-Ebene auf
+genau ein Teil.
 
 Eine Regel auf **Ganze Zeile** gibt Textfarbe, Fett/Kursiv und Icon an die Teile weiter; Hintergrund und
 Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen die Zeilen-Regel.

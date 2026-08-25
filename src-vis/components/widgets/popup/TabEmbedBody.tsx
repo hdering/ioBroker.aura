@@ -27,7 +27,15 @@ const CONTENT_HEIGHT_TYPES = new Set(['list', 'autolist']);
 const NO_CONDITIONS: WidgetCondition[] = [];
 
 // Default verdict for a widget whose probe hasn't reported yet (visible).
-const EMPTY_COND: ConditionResult = { cssVars: {}, set: {}, effect: null, hidden: false, reflow: false };
+const EMPTY_COND: ConditionResult = {
+    cssVars: {},
+    set: {},
+    bold: false,
+    italic: false,
+    effect: null,
+    hidden: false,
+    reflow: false,
+};
 
 /**
  * Build an `options` patch for persisting an in-popup widget edit (e.g. adding a

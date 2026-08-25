@@ -602,6 +602,9 @@ export interface ConditionStyle {
     opacity?: string; // --widget-opacity, 0…1
     textPrimary?: string;
     textSecondary?: string;
+    /** Whole-card text style. Not a CSS variable — see the .aura-cond-* rules. */
+    bold?: boolean;
+    italic?: boolean;
 }
 
 // ── "Anzeige überschreiben" ──────────────────────────────────────────────────
@@ -691,6 +694,8 @@ export interface CellConditionRule {
     icon?: string; // icon override (icon / state-icon cells, list row icon)
     iconColor?: string; // icon colour, when it should differ from the text colour
     text?: string; // replaces the displayed text ("true" → "ONLINE")
+    /** Same two effects the widget level offers, applied to this element alone. */
+    effect?: 'none' | 'pulse' | 'blink';
     hide?: boolean; // blank the element (background is kept)
 }
 

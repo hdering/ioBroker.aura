@@ -229,6 +229,31 @@ function RuleEditor({
                         <Toggle on={!!rule.italic} onClick={() => update({ italic: !rule.italic })} label="Kursiv" />
                         <Toggle on={!!rule.hide} onClick={() => update({ hide: !rule.hide })} label="Ausblenden" />
                     </div>
+                    {/* The same two the widget rules offer — kept in step on purpose. */}
+                    <div className="flex items-center gap-1.5">
+                        <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            Effekt
+                        </label>
+                        <select
+                            value={rule.effect ?? 'none'}
+                            onChange={(e) =>
+                                update({
+                                    effect:
+                                        e.target.value === 'none' ? undefined : (e.target.value as 'pulse' | 'blink'),
+                                })
+                            }
+                            className="flex-1 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-primary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <option value="none">Kein Effekt</option>
+                            <option value="pulse">Pulsieren</option>
+                            <option value="blink">Blinken</option>
+                        </select>
+                    </div>
                     {paintsIcon && (
                         <div className="flex items-center gap-1.5">
                             <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>

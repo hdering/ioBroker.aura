@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState, useCallback } from 'react';
 import { RefreshCw, List } from 'lucide-react';
 import type { WidgetProps, ioBrokerObject, ioBrokerState, ElementConditionRule } from '../../types';
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
-import { partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
+import { condAnimation, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
@@ -576,6 +576,7 @@ function EntryValue({
     const condFont = {
         fontWeight: cond?.bold ? 700 : undefined,
         fontStyle: cond?.italic ? ('italic' as const) : undefined,
+        animation: condAnimation(cond),
     };
     // A rule may replace the value outright — "true" becomes "ONLINE". No control is
     // drawn for it then: the row states a fact instead of offering a switch. No hook
@@ -789,6 +790,7 @@ function CardEntryValue({
     const condFont = {
         fontWeight: cond?.bold ? 700 : undefined,
         fontStyle: cond?.italic ? ('italic' as const) : undefined,
+        animation: condAnimation(cond),
     };
     // A rule may replace the value outright — "true" becomes "ONLINE". No control is
     // drawn for it then: the row states a fact instead of offering a switch. No hook
@@ -1649,6 +1651,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 className="rounded-xl p-2.5 flex flex-col gap-2 relative"
                                                 style={{
                                                     background: stateBg,
+                                                    animation: condAnimation(rc?.row),
                                                     border: '1px solid var(--widget-border)',
                                                     cursor: rowProps ? 'pointer' : undefined,
                                                 }}
@@ -1660,6 +1663,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         color: cName.color ?? 'var(--text-secondary)',
                                                         fontWeight: cName.bold ? 700 : undefined,
                                                         fontStyle: cName.italic ? 'italic' : undefined,
+                                                        animation: condAnimation(cName),
                                                     }}
                                                 >
                                                     {EntryIcon && (
@@ -1671,6 +1675,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                                     cIcon.iconColor ??
                                                                     cIcon.color ??
                                                                     'var(--text-secondary)',
+                                                                animation: condAnimation(cIcon),
                                                             }}
                                                         />
                                                     )}
@@ -1786,6 +1791,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             className="flex flex-col gap-1 px-2 py-1.5"
                                             style={{
                                                 background: stateBg,
+                                                animation: condAnimation(rc?.row),
                                                 borderBottom: showDividers
                                                     ? '1px solid var(--widget-border)'
                                                     : undefined,
@@ -1807,6 +1813,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                                 cIcon.iconColor ??
                                                                 cIcon.color ??
                                                                 'var(--text-secondary)',
+                                                            animation: condAnimation(cIcon),
                                                         }}
                                                     />
                                                 )}
@@ -1817,6 +1824,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                             color: cName.color ?? 'var(--text-primary)',
                                                             fontWeight: cName.bold ? 700 : undefined,
                                                             fontStyle: cName.italic ? 'italic' : undefined,
+                                                            animation: condAnimation(cName),
                                                         }}
                                                     >
                                                         {!cName.hide && (cName.text ?? label)}
@@ -2033,7 +2041,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 <BadgeIcon
                                                     size={entryIconSize}
                                                     className="shrink-0 opacity-70"
-                                                    style={{ color: cIcon.iconColor ?? cIcon.color }}
+                                                    style={{
+                                                        color: cIcon.iconColor ?? cIcon.color,
+                                                        animation: condAnimation(cIcon),
+                                                    }}
                                                 />
                                             )}
                                             <span
@@ -2043,6 +2054,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     color: cName.color,
                                                     fontWeight: cName.bold ? 700 : undefined,
                                                     fontStyle: cName.italic ? 'italic' : undefined,
+                                                    animation: condAnimation(cName),
                                                 }}
                                             >
                                                 {!cName.hide && (cName.text ?? label)}
@@ -2058,6 +2070,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                                 : 'var(--text-primary)'),
                                                         fontWeight: cValue.bold ? 700 : undefined,
                                                         fontStyle: cValue.italic ? 'italic' : undefined,
+                                                        animation: condAnimation(cValue),
                                                     }}
                                                 >
                                                     {cValue.text ?? valueStr}
@@ -2124,6 +2137,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         className="flex flex-col gap-1 px-3 py-2"
                                         style={{
                                             background: stateBg,
+                                            animation: condAnimation(rc?.row),
                                             borderBottom: showDividers ? '1px solid var(--widget-border)' : undefined,
                                             cursor: rowProps ? 'pointer' : undefined,
                                         }}
@@ -2137,6 +2151,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     style={{
                                                         color:
                                                             cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)',
+                                                        animation: condAnimation(cIcon),
                                                     }}
                                                 />
                                             )}
@@ -2147,6 +2162,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         color: cName.color ?? 'var(--text-primary)',
                                                         fontWeight: cName.bold ? 700 : undefined,
                                                         fontStyle: cName.italic ? 'italic' : undefined,
+                                                        animation: condAnimation(cName),
                                                     }}
                                                 >
                                                     {!cName.hide && (cName.text ?? label)}

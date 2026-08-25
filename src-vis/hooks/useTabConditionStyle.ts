@@ -20,11 +20,13 @@ function styleToTabVars(style: ConditionStyle): Record<string, string> {
 
 export interface TabConditionResult {
     cssVars: Record<string, string>;
+    bold: boolean;
+    italic: boolean;
     effect: 'pulse' | 'blink' | null;
     hidden: boolean;
 }
 
-const EMPTY_RESULT: TabConditionResult = { cssVars: {}, effect: null, hidden: false };
+const EMPTY_RESULT: TabConditionResult = { cssVars: {}, bold: false, italic: false, effect: null, hidden: false };
 
 export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditionResult {
     const { subscribe, getState } = useIoBroker();
@@ -32,7 +34,7 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
     const [result, setResult] = useState<TabConditionResult>(() => {
         if (!conditions?.length) return EMPTY_RESULT;
         const mayHide = conditions.some((c) => c.hideWidget);
-        return mayHide ? { cssVars: {}, effect: null, hidden: true } : EMPTY_RESULT;
+        return mayHide ? { cssVars: {}, bold: false, italic: false, effect: null, hidden: true } : EMPTY_RESULT;
     });
 
     useEffect(() => {
@@ -63,6 +65,8 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
 
         const recompute = () => {
             const merged: Record<string, string> = {};
+            let bold = false;
+            let italic = false;
             let effect: 'pulse' | 'blink' | null = null;
             let hidden = false;
 
@@ -73,6 +77,8 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
                 const matched = evaluateConditionWithSource(cond, valuesRef.current, undefined);
                 if (matched) {
                     Object.assign(merged, styleToTabVars(cond.style));
+                    if (cond.style.bold !== undefined) bold = cond.style.bold;
+                    if (cond.style.italic !== undefined) italic = cond.style.italic;
                     if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';
                 }
                 if (conditionHides(cond, matched)) hidden = true;
@@ -80,11 +86,13 @@ export function useTabConditionStyle(conditions?: WidgetCondition[]): TabConditi
             setResult((prev) => {
                 if (
                     prev.effect === effect &&
+                    prev.bold === bold &&
+                    prev.italic === italic &&
                     prev.hidden === hidden &&
                     JSON.stringify(prev.cssVars) === JSON.stringify(merged)
                 )
                     return prev;
-                return { cssVars: merged, effect, hidden };
+                return { cssVars: merged, bold, italic, effect, hidden };
             });
         };
 
