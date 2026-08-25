@@ -643,18 +643,27 @@ function ConditionPartFields({
             </LabeledRow>
             {part && (
                 <>
-                    <ColorField label={t('cond.colorText')} value={st.color} onChange={(v) => set({ color: v })} />
+                    <ColorField
+                        label={part === 'icon' ? t('cond.partIconColor') : t('cond.partColor')}
+                        value={st.color}
+                        onChange={(v) => set({ color: v })}
+                    />
                     <div className="flex items-center gap-1.5 pt-0.5">
-                        <StyleToggle
-                            on={!!st.bold}
-                            onClick={() => set({ bold: !st.bold })}
-                            label={t('cond.styleBold')}
-                        />
-                        <StyleToggle
-                            on={!!st.italic}
-                            onClick={() => set({ italic: !st.italic })}
-                            label={t('cond.styleItalic')}
-                        />
+                        {/* An icon is an SVG — a font weight or slant does nothing to it. */}
+                        {part !== 'icon' && (
+                            <>
+                                <StyleToggle
+                                    on={!!st.bold}
+                                    onClick={() => set({ bold: !st.bold })}
+                                    label={t('cond.styleBold')}
+                                />
+                                <StyleToggle
+                                    on={!!st.italic}
+                                    onClick={() => set({ italic: !st.italic })}
+                                    label={t('cond.styleItalic')}
+                                />
+                            </>
+                        )}
                         <StyleToggle
                             on={!!st.hide}
                             onClick={() => set({ hide: !st.hide })}

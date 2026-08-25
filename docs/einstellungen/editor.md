@@ -68,7 +68,8 @@ Wer nur den Titel rot will, wählt darunter ein **Element**:
 | Feld | |
 | --- | --- |
 | Element | `ganze Karte` (Standard) · `Titel` · `Icon` · `Wert` |
-| Textfarbe · Fett · Kursiv · Ausblenden | gelten dann nur für dieses eine Element |
+| Textfarbe · Fett · Kursiv · Ausblenden | bei `Titel` und `Wert` |
+| Icon-Farbe · Ausblenden | bei `Icon` — ein Icon ist eine Grafik, Schriftschnitt tut ihm nichts |
 
 Angeboten werden nur Elemente, die der Widget-Typ auch hat — die [Karte](../widgets/karte) etwa hat
 weder Titel noch Icon. Ein Wechsel des Elements verwirft die vorherigen Einstellungen; für Karte **und**

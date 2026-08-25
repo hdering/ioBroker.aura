@@ -55,12 +55,6 @@ iframe {
 .aura-cond-icon-color .aura-widget-icon {
     color: var(--cond-icon-color) !important;
 }
-.aura-cond-icon-bold .aura-widget-icon {
-    font-weight: 700 !important;
-}
-.aura-cond-icon-italic .aura-widget-icon {
-    font-style: italic !important;
-}
 .aura-cond-icon-hide .aura-widget-icon {
     display: none !important;
 }
