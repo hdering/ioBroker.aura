@@ -5,6 +5,8 @@ import { JsonPathButton } from './JsonPathButton';
 import { IconPickerModal } from './IconPickerModal';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type {
+    ConditionPart,
+    ConditionPartStyle,
     WidgetCondition,
     ConditionClause,
     ConditionOperator,
@@ -590,6 +592,81 @@ export interface ConditionSetCurrent {
     iconSize?: number;
 }
 
+const PART_LABELS: Record<ConditionPart, string> = { title: 'Titel', icon: 'Icon', value: 'Wert' };
+
+/**
+ * Paint ONE element instead of the whole card. The colours above are CSS variables
+ * and therefore hit everything the widget draws; this reaches a single element
+ * through the class it already carries.
+ */
+function ConditionPartFields({
+    part,
+    style,
+    slots,
+    onChange,
+}: {
+    part: ConditionPart | undefined;
+    style: ConditionPartStyle | undefined;
+    slots: ConditionSlot[];
+    onChange: (patch: Pick<WidgetCondition, 'part' | 'partStyle'>) => void;
+}) {
+    const t = useT();
+    const st = style ?? {};
+    const set = (patch: Partial<ConditionPartStyle>) => {
+        const next = { ...st, ...patch } as Record<string, unknown>;
+        for (const k of Object.keys(next)) if (next[k] === undefined || next[k] === false) delete next[k];
+        onChange({ part, partStyle: Object.keys(next).length ? (next as ConditionPartStyle) : undefined });
+    };
+    return (
+        <>
+            <LabeledRow label={t('cond.partTarget')}>
+                <select
+                    value={part ?? ''}
+                    // Switching the element drops what was set for the old one — it would
+                    // otherwise keep painting from behind a select that no longer names it.
+                    onChange={(e) =>
+                        onChange({
+                            part: (e.target.value || undefined) as ConditionPart | undefined,
+                            partStyle: undefined,
+                        })
+                    }
+                    className={`${cls} flex-1`}
+                    style={inputStyle}
+                >
+                    <option value="">{t('cond.partNone')}</option>
+                    {slots.map((sl) => (
+                        <option key={sl} value={sl}>
+                            {PART_LABELS[sl]}
+                        </option>
+                    ))}
+                </select>
+            </LabeledRow>
+            {part && (
+                <>
+                    <ColorField label={t('cond.colorText')} value={st.color} onChange={(v) => set({ color: v })} />
+                    <div className="flex items-center gap-1.5 pt-0.5">
+                        <StyleToggle
+                            on={!!st.bold}
+                            onClick={() => set({ bold: !st.bold })}
+                            label={t('cond.styleBold')}
+                        />
+                        <StyleToggle
+                            on={!!st.italic}
+                            onClick={() => set({ italic: !st.italic })}
+                            label={t('cond.styleItalic')}
+                        />
+                        <StyleToggle
+                            on={!!st.hide}
+                            onClick={() => set({ hide: !st.hide })}
+                            label={t('cond.partHide')}
+                        />
+                    </div>
+                </>
+            )}
+        </>
+    );
+}
+
 function ConditionSetFields({
     set,
     slots,
@@ -860,6 +937,18 @@ function ConditionRule({
                                     label={t('cond.styleItalic')}
                                 />
                             </div>
+                            {context !== 'tab' && slots.length > 0 && (
+                                <>
+                                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+                                    <ConditionPartFields
+                                        part={condition.part}
+                                        style={condition.partStyle}
+                                        slots={slots}
+                                        onChange={(patch) => onChange({ ...condition, ...patch })}
+                                    />
+                                </>
+                            )}
+
                             {/* Belongs to the style, so it sits in the style column. */}
                             <div className="flex items-center gap-1.5">
                                 <label

@@ -297,10 +297,16 @@ function TitleRow({
 }) {
     return (
         <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-            {showIcon && <TitleIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showIcon && (
+                <TitleIcon
+                    className="aura-widget-icon"
+                    size={iconSize}
+                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                />
+            )}
             {showTitle && (
                 <p
-                    className="text-xs truncate flex-1 min-w-0"
+                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
                     style={{
                         color: 'var(--text-secondary)',
                         textAlign: titleAlign as React.CSSProperties['textAlign'],
@@ -357,7 +363,12 @@ export function TrashScheduleWidget({ config }: WidgetProps) {
                     className="flex flex-col items-center justify-center flex-1 gap-2"
                     style={{ color: 'var(--text-secondary)' }}
                 >
-                    <TitleIcon size={32} strokeWidth={1} style={{ color: 'var(--text-secondary)' }} />
+                    <TitleIcon
+                        className="aura-widget-icon"
+                        size={32}
+                        strokeWidth={1}
+                        style={{ color: 'var(--text-secondary)' }}
+                    />
                     <span className="text-xs opacity-60">
                         {!config.datapoint ? 'Datenpunkt wählen' : 'Keine Einträge im Zeitplan'}
                     </span>

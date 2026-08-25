@@ -81,6 +81,11 @@ const attr = (sel, name) =>
         ([s, a]) => document.querySelector(`.aura-widget-cs-test ${s}`)?.getAttribute(a) ?? null,
         [sel, name],
     );
+const colorOf = (sel) =>
+    page.evaluate((s) => {
+        const el = document.querySelector(`.aura-widget-cs-test ${s}`);
+        return el ? getComputedStyle(el).color : null;
+    }, sel);
 const cssVar = (name) =>
     page.evaluate((n) => {
         const el = document.querySelector('.aura-widget-cs-test');
@@ -172,6 +177,53 @@ check('style: they were not there before', plain !== '700/italic', String(plain)
 await mock({ [ALARM]: false });
 await settle();
 eq('style: and go away again', await fontOf('.aura-widget-title'), plain);
+
+// ── 8a. painting ONE element instead of the whole card ──────────────────────
+// The card-wide colours are CSS variables and hit everything the widget draws;
+// this reaches a single element through the class it already carries.
+const partRule = (part, partStyle) => ({ ...rule('rp', {}), part, partStyle });
+
+await show([partRule('title', { color: '#ff00ff', bold: true })]);
+await mock({ [ALARM]: false });
+await settle();
+const titleBefore = await fontOf('.aura-widget-title');
+await mock({ [ALARM]: true });
+await settle();
+eq('part: the title takes the rule colour', await colorOf('.aura-widget-title'), 'rgb(255, 0, 255)');
+eq('part: and its weight', (await fontOf('.aura-widget-title'))?.split('/')[0], '700');
+check(
+    'part: the value is left alone',
+    (await colorOf('.aura-widget-value')) !== 'rgb(255, 0, 255)',
+    String(await colorOf('.aura-widget-value')),
+);
+await mock({ [ALARM]: false });
+await settle();
+eq('part: released again', await fontOf('.aura-widget-title'), titleBefore);
+
+await show([partRule('value', { color: '#00ffff' })]);
+await mock({ [ALARM]: true });
+await settle();
+eq('part: the value can be targeted too', await colorOf('.aura-widget-value'), 'rgb(0, 255, 255)');
+check(
+    'part: and then the title is left alone',
+    (await colorOf('.aura-widget-title')) !== 'rgb(0, 255, 255)',
+    String(await colorOf('.aura-widget-title')),
+);
+
+await show([partRule('icon', { hide: true })]);
+await mock({ [ALARM]: true });
+await settle();
+// display:none leaves the element (and its width attribute) in the DOM.
+const displayOf = (sel) =>
+    page.evaluate((x) => {
+        const el = document.querySelector(`.aura-widget-cs-test ${x}`);
+        return el ? getComputedStyle(el).display : null;
+    }, sel);
+eq('part: hiding one element', await displayOf('.aura-widget-icon'), 'none');
+await mock({ [ALARM]: false });
+await settle();
+await iconReady();
+check('part: the icon comes back', (await displayOf('.aura-widget-icon')) !== 'none');
 
 // ── 8b. hiding the value ────────────────────────────────────────────────────
 // Only the value widget had an own showValue; the others needed wiring, or

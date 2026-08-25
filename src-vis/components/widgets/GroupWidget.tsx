@@ -442,10 +442,16 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     }}
                 />
             )}
-            {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />}
+            {showIcon && (
+                <WidgetIcon
+                    className="aura-widget-icon"
+                    size={iconSize}
+                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                />
+            )}
             {showTitle && config.title && (
                 <span
-                    className="text-xs font-semibold truncate flex-1 min-w-0"
+                    className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
                     style={{ textAlign: titleAlign as React.CSSProperties['textAlign'] }}
                 >
                     {config.title}

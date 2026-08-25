@@ -217,8 +217,14 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                             titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start',
                     }}
                 >
-                    {showIcon && <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />}
-                    {config.title && <span>{config.title}</span>}
+                    {showIcon && (
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ color: 'var(--text-secondary)' }}
+                        />
+                    )}
+                    {config.title && <span className="aura-widget-title">{config.title}</span>}
                 </div>
             )}
 

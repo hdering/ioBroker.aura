@@ -15,7 +15,7 @@ import { useMessagesStore } from '../store/messagesStore';
 import { draftToPayload } from '../components/config/MessageBuilder';
 import { isScreenshotMode } from '../store/persistManager';
 import { EMPTY_SET, isEmptySet } from '../utils/conditionSet';
-import type { WidgetCondition, ConditionStyle, ConditionSet } from '../types';
+import type { WidgetCondition, ConditionStyle, ConditionSet, ConditionPart, ConditionPartStyle } from '../types';
 
 // ── Debug logging ─────────────────────────────────────────────────────────────
 // End-user opt-in. Enable from DevTools console:
@@ -183,13 +183,26 @@ export interface ConditionResult {
     /** Whole-card text style — applied as a class, not as a variable. */
     bold: boolean;
     italic: boolean;
+    /** Per-element styling, keyed by the element the rules named. */
+    parts: Partial<Record<ConditionPart, ConditionPartStyle>>;
     effect: 'pulse' | 'blink' | null;
     hidden: boolean; // widget should be hidden
     reflow: boolean; // remove from grid so others slide up
 }
 
+const EMPTY_PARTS: Partial<Record<ConditionPart, ConditionPartStyle>> = {};
+
 // Module-level constant – same reference every time, lets React bail out of re-renders
-const EMPTY_RESULT: ConditionResult = { cssVars: {}, set: EMPTY_SET, bold: false, italic: false, effect: null, hidden: false, reflow: false };
+const EMPTY_RESULT: ConditionResult = {
+    cssVars: {},
+    set: EMPTY_SET,
+    bold: false,
+    italic: false,
+    parts: EMPTY_PARTS,
+    effect: null,
+    hidden: false,
+    reflow: false,
+};
 
 // Shared "nothing changed" set for every evaluation that is not driven by a live
 // value arriving (initial load, getState resolution, manual recompute).
@@ -231,6 +244,7 @@ function computeResult(
     let set: ConditionSet | null = null;
     let bold = false;
     let italic = false;
+    let parts: Partial<Record<ConditionPart, ConditionPartStyle>> | null = null;
     let effect: 'pulse' | 'blink' | null = null;
     let hidden = false;
     let reflow = false;
@@ -241,6 +255,13 @@ function computeResult(
             Object.assign(merged, styleToVars(cond.style));
             if (cond.style.bold !== undefined) bold = cond.style.bold;
             if (cond.style.italic !== undefined) italic = cond.style.italic;
+            if (cond.part && cond.partStyle) {
+                parts ??= {};
+                const into = (parts[cond.part] ??= {});
+                for (const [k, v] of Object.entries(cond.partStyle)) {
+                    if (v !== undefined) (into as Record<string, unknown>)[k] = v;
+                }
+            }
             if (cond.set && !isEmptySet(cond.set)) {
                 set ??= {};
                 for (const [k, v] of Object.entries(cond.set)) {
@@ -255,7 +276,16 @@ function computeResult(
             if (cond.reflow) reflow = true;
         }
     }
-    return { cssVars: merged, set: set ?? EMPTY_SET, bold, italic, effect, hidden, reflow };
+    return {
+        cssVars: merged,
+        set: set ?? EMPTY_SET,
+        bold,
+        italic,
+        parts: parts ?? EMPTY_PARTS,
+        effect,
+        hidden,
+        reflow,
+    };
 }
 
 export function useConditionStyle(
@@ -317,7 +347,16 @@ export function useConditionStyle(
         // remount cycle on initial paint (and inside group widgets, an actual
         // flicker loop: see issue #281).
         const initial: ConditionResult = mayHide
-            ? { cssVars: {}, set: EMPTY_SET, bold: false, italic: false, effect: null, hidden: true, reflow: false }
+            ? {
+                  cssVars: {},
+                  set: EMPTY_SET,
+                  bold: false,
+                  italic: false,
+                  parts: EMPTY_PARTS,
+                  effect: null,
+                  hidden: true,
+                  reflow: false,
+              }
             : EMPTY_RESULT;
         condLog('init (cache miss/partial — pessimistic in-place hide)', {
             widgetId,
@@ -372,7 +411,18 @@ export function useConditionStyle(
 
         const pessimistic = (): ConditionResult => {
             const mayHide = conditions.some((c) => c.hideWidget);
-            return mayHide ? { cssVars: {}, set: EMPTY_SET, bold: false, italic: false, effect: null, hidden: true, reflow: false } : EMPTY_RESULT;
+            return mayHide
+                ? {
+                      cssVars: {},
+                      set: EMPTY_SET,
+                      bold: false,
+                      italic: false,
+                      parts: EMPTY_PARTS,
+                      effect: null,
+                      hidden: true,
+                      reflow: false,
+                  }
+                : EMPTY_RESULT;
         };
 
         // ── "Widget neu laden" rules (issue #537) ────────────────────────────
@@ -450,6 +500,7 @@ export function useConditionStyle(
                     prev.effect === next.effect &&
                     prev.bold === next.bold &&
                     prev.italic === next.italic &&
+                    JSON.stringify(prev.parts) === JSON.stringify(next.parts) &&
                     prev.hidden === next.hidden &&
                     prev.reflow === next.reflow &&
                     JSON.stringify(prev.cssVars) === JSON.stringify(next.cssVars) &&

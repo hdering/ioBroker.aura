@@ -530,7 +530,9 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
         </button>
     );
 
-    const iconNode = showIcon ? <WidgetIcon size={iconSize} style={{ color: statusCol, flexShrink: 0 }} /> : null;
+    const iconNode = showIcon ? (
+        <WidgetIcon className="aura-widget-icon" size={iconSize} style={{ color: statusCol, flexShrink: 0 }} />
+    ) : null;
 
     const modal = editing && (
         <TimerEventModal
@@ -578,7 +580,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                     {iconNode}
                     {showTitle && (
                         <p
-                            className="text-[11px] flex-1 truncate"
+                            className="aura-widget-title text-[11px] flex-1 truncate"
                             style={{
                                 color: 'var(--text-primary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],
@@ -678,7 +680,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
                 {iconNode}
                 {showTitle && (
                     <p
-                        className="text-xs flex-1 truncate"
+                        className="aura-widget-title text-xs flex-1 truncate"
                         style={{
                             color: 'var(--text-primary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],

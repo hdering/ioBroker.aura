@@ -803,7 +803,11 @@ export function WeatherWidget({ config }: WidgetProps) {
             <span style={{ fontSize: '2.4em', lineHeight: 1 }}>{tomorrowInfo.emoji}</span>
         ) : null;
         const cellWidgetIcon = (
-            <WidgetIcon size={Math.max(16, iconSize * scale)} style={{ color: 'var(--text-secondary)' }} />
+            <WidgetIcon
+                className="aura-widget-icon"
+                size={Math.max(16, iconSize * scale)}
+                style={{ color: 'var(--text-secondary)' }}
+            />
         );
         const cellWarnings = showWarnings ? (
             <WarningsPanel warnings={warnings} loading={warningsLoading} t={t} scale={scale} />
@@ -1024,11 +1028,15 @@ export function WeatherWidget({ config }: WidgetProps) {
             {(showTitle || showIcon) && (
                 <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                     {showIcon && (
-                        <WidgetIcon size={iconSize * scale} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize * scale}
+                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                        />
                     )}
                     {showTitle && (
                         <p
-                            className="truncate flex-1 min-w-0"
+                            className="aura-widget-title truncate flex-1 min-w-0"
                             style={{
                                 color: 'var(--text-secondary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],

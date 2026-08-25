@@ -32,6 +32,7 @@ const EMPTY_COND: ConditionResult = {
     set: {},
     bold: false,
     italic: false,
+    parts: {},
     effect: null,
     hidden: false,
     reflow: false,

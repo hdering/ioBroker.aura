@@ -917,11 +917,15 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
-                            <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
                         )}
                         {showTitle && (
                             <p
-                                className="text-xs truncate flex-1 min-w-0"
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
                                 style={{
                                     color: 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
@@ -949,11 +953,15 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                         {showIcon && (
-                            <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
                         )}
                         {showTitle && (
                             <p
-                                className="font-medium truncate flex-1 min-w-0"
+                                className="aura-widget-title font-medium truncate flex-1 min-w-0"
                                 style={{
                                     color: 'var(--text-primary)',
                                     fontSize: fs(11),
@@ -1008,11 +1016,15 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
-                            <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
                         )}
                         {showTitle && (
                             <p
-                                className="text-xs truncate flex-1 min-w-0"
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
                                 style={{
                                     color: 'var(--text-secondary)',
                                     textAlign: titleAlign as React.CSSProperties['textAlign'],
@@ -1108,11 +1120,15 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                         {showIcon && (
-                            <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
                         )}
                         {showTitle && (
                             <p
-                                className="truncate flex-1 min-w-0"
+                                className="aura-widget-title truncate flex-1 min-w-0"
                                 style={{
                                     color: 'var(--text-secondary)',
                                     fontSize: fs(11),
@@ -1202,11 +1218,15 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                         {showIcon && (
-                            <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
                         )}
                         {showTitle && (
                             <p
-                                className="font-medium truncate flex-1 min-w-0"
+                                className="aura-widget-title font-medium truncate flex-1 min-w-0"
                                 style={{
                                     color: 'var(--text-secondary)',
                                     fontSize: fs(11),
@@ -1336,11 +1356,15 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
             <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
                 <div className="flex items-center gap-1 min-w-0 flex-1">
                     {showIcon && (
-                        <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                        />
                     )}
                     {showTitle && (
                         <p
-                            className="font-medium truncate flex-1 min-w-0"
+                            className="aura-widget-title font-medium truncate flex-1 min-w-0"
                             style={{
                                 color: 'var(--text-secondary)',
                                 fontSize: fs(11),

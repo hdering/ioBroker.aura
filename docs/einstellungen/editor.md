@@ -54,10 +54,25 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 | Effekt | Wirkung |
 | --- | --- |
 | Stil wenn aktiv | Akzent, Hintergrund, Rahmen, Rahmenbreite, Eckenradius, Deckkraft, Text, Text 2, Fett, Kursiv |
+| Element | statt der ganzen Karte nur Titel, Icon oder Wert einfärben |
 | Anzeige überschreiben | Titel, Icon, Icon-Größe, Titel/Icon zeigen, Wert-Text |
 | Effekt | `Pulsieren` · `Blinken` |
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
+
+## Bedingungen: einzelnes Element
+
+Die Farben unter „Stil wenn aktiv" sind CSS-Variablen und treffen deshalb alles, was das Widget zeichnet.
+Wer nur den Titel rot will, wählt darunter ein **Element**:
+
+| Feld | |
+| --- | --- |
+| Element | `ganze Karte` (Standard) · `Titel` · `Icon` · `Wert` |
+| Textfarbe · Fett · Kursiv · Ausblenden | gelten dann nur für dieses eine Element |
+
+Angeboten werden nur Elemente, die der Widget-Typ auch hat — die [Karte](../widgets/karte) etwa hat
+weder Titel noch Icon. Ein Wechsel des Elements verwirft die vorherigen Einstellungen; für Karte **und**
+Titel nimmt man zwei Regeln, wie bei den Listen-Zeilen auch.
 
 ## Bedingungen: Anzeige überschreiben
 

@@ -6385,6 +6385,23 @@ export function WidgetFrame({
         return () => clearInterval(iv);
     }, [showLastChange, lastChangedTs]);
 
+    // Per-element styling rides on classes + variables the .aura-cond-* rules read.
+    const partClasses = Object.entries(conditionResult.parts)
+        .flatMap(([part, st]) =>
+            [
+                st.color ? `aura-cond-${part}-color` : '',
+                st.bold ? `aura-cond-${part}-bold` : '',
+                st.italic ? `aura-cond-${part}-italic` : '',
+                st.hide ? `aura-cond-${part}-hide` : '',
+            ].filter(Boolean),
+        )
+        .join(' ');
+    const partVars = Object.fromEntries(
+        Object.entries(conditionResult.parts)
+            .filter(([, st]) => !!st.color)
+            .map(([part, st]) => [`--cond-${part}-color`, st.color as string]),
+    );
+
     const cssOverride = Object.fromEntries(
         Object.entries({
             // Static style overrides from options.styleOverride
@@ -6397,6 +6414,7 @@ export function WidgetFrame({
             '--accent': overrides?.accent,
             // Condition-driven overrides (higher priority, applied on top)
             ...conditionResult.cssVars,
+            ...partVars,
         }).filter(([, v]) => v !== undefined && v !== ''),
     ) as React.CSSProperties;
 
@@ -6627,7 +6645,7 @@ export function WidgetFrame({
     return (
         <div
             ref={focusRef}
-            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${isFocused ? 'aura-widget-focused' : ''}`}
+            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${partClasses} ${isFocused ? 'aura-widget-focused' : ''}`}
             onClick={handleWidgetClick}
             style={
                 isHeader || isTransparent

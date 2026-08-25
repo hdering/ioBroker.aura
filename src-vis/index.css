@@ -33,6 +33,51 @@ iframe {
     }
 }
 
+/*
+ * A condition rule may paint ONE element of a widget instead of the whole card.
+ * Every widget marks its title, icon and value with these classes, so the rule
+ * reaches them from the frame root without a line of code per widget type. The
+ * !important is needed because most widgets set the colour inline.
+ */
+.aura-cond-title-color .aura-widget-title {
+    color: var(--cond-title-color) !important;
+}
+.aura-cond-title-bold .aura-widget-title {
+    font-weight: 700 !important;
+}
+.aura-cond-title-italic .aura-widget-title {
+    font-style: italic !important;
+}
+.aura-cond-title-hide .aura-widget-title {
+    display: none !important;
+}
+
+.aura-cond-icon-color .aura-widget-icon {
+    color: var(--cond-icon-color) !important;
+}
+.aura-cond-icon-bold .aura-widget-icon {
+    font-weight: 700 !important;
+}
+.aura-cond-icon-italic .aura-widget-icon {
+    font-style: italic !important;
+}
+.aura-cond-icon-hide .aura-widget-icon {
+    display: none !important;
+}
+
+.aura-cond-value-color .aura-widget-value {
+    color: var(--cond-value-color) !important;
+}
+.aura-cond-value-bold .aura-widget-value {
+    font-weight: 700 !important;
+}
+.aura-cond-value-italic .aura-widget-value {
+    font-style: italic !important;
+}
+.aura-cond-value-hide .aura-widget-value {
+    display: none !important;
+}
+
 /* Condition effect on ONE element — a list row, a grid cell, a value in the second
    line. The widget-level equivalents are Tailwind's animate-pulse and `blink` above;
    these are applied as an inline animation, so they need a name of their own. */

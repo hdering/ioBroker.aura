@@ -810,7 +810,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'map',
-        conditionSlots: ['title'],
+        conditionSlots: [],
         label: 'Karte',
         shortLabel: 'Karte',
         Icon: MapPin,
@@ -897,7 +897,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'menu',
-        conditionSlots: ['title'],
+        conditionSlots: [],
         label: 'Menü',
         shortLabel: 'Menü',
         Icon: Menu,

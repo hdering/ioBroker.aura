@@ -631,6 +631,21 @@ export interface ConditionSet {
 /** Which override slots a widget type actually honours — see widgetRegistry. */
 export type ConditionSlot = 'icon' | 'title' | 'value';
 
+/**
+ * A single element of a widget a rule can paint on its own, instead of colouring
+ * the whole card through the CSS variables. Reaches the element through the class
+ * every widget puts on it (`aura-widget-title` & co.) — see the .aura-cond-* rules
+ * in index.css — so it needs no wiring per widget type.
+ */
+export type ConditionPart = ConditionSlot;
+
+export interface ConditionPartStyle {
+    color?: string;
+    bold?: boolean;
+    italic?: boolean;
+    hide?: boolean;
+}
+
 export interface WidgetCondition {
     id: string;
     label?: string;
@@ -639,6 +654,9 @@ export interface WidgetCondition {
     style: ConditionStyle;
     /** Config values the rule overrides while it matches (issue #96). */
     set?: ConditionSet;
+    /** One element the rule paints instead of the whole card. */
+    part?: ConditionPart;
+    partStyle?: ConditionPartStyle;
     effect?: 'none' | 'pulse' | 'blink';
     // Remount the widget when the rule fires, so embedded content (iframe, camera,
     // image) re-fetches. Rules with a 'changed' clause fire on every change; all
