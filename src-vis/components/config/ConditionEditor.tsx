@@ -568,11 +568,6 @@ function StyleToggle({ on, onClick, label }: { on: boolean; onClick: () => void;
     );
 }
 
-export function conditionSetCount(set: ConditionSet | undefined): number {
-    if (!set) return 0;
-    return Object.values(set).filter((v) => v !== undefined).length;
-}
-
 /** What the widget shows today — previewed so an override has something to replace. */
 export interface ConditionSetCurrent {
     title?: string;
@@ -593,8 +588,10 @@ function ConditionSetFields({
 }) {
     const t = useT();
     const s = set ?? {};
-    // "… zeigen" comes first: it decides whether the thing is on screen at all. Set
-    // to "ausblenden" there is nothing left to configure, so the detail fields go.
+    // "… zeigen" is the gate for the whole block: `unverändert` means the rule does
+    // not touch the title/icon at all, so its detail fields are not offered — and
+    // switching back to it clears what was entered. Leaving a stored override behind
+    // an "unverändert" select would be exactly the lie the label denies.
     return (
         <div className="space-y-1.5">
             {slots.includes('title') && (
@@ -602,9 +599,11 @@ function ConditionSetFields({
                     <TriStateField
                         label={t('cond.setShowTitle')}
                         value={s.showTitle}
-                        onChange={(v) => onChange({ showTitle: v })}
+                        onChange={(v) =>
+                            onChange(v === undefined ? { showTitle: v, title: undefined } : { showTitle: v })
+                        }
                     />
-                    {s.showTitle !== false && (
+                    {s.showTitle === true && (
                         <TextField
                             label={t('cond.setTitle')}
                             value={s.title}
@@ -619,9 +618,15 @@ function ConditionSetFields({
                     <TriStateField
                         label={t('cond.setShowIcon')}
                         value={s.showIcon}
-                        onChange={(v) => onChange({ showIcon: v })}
+                        onChange={(v) =>
+                            onChange(
+                                v === undefined
+                                    ? { showIcon: v, icon: undefined, iconSize: undefined }
+                                    : { showIcon: v },
+                            )
+                        }
                     />
-                    {s.showIcon !== false && (
+                    {s.showIcon === true && (
                         <LabeledRow label={t('cond.setIcon')}>
                             <IconButton
                                 value={s.icon}

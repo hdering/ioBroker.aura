@@ -173,6 +173,46 @@ await mock({ [ALARM]: false });
 await settle();
 eq('style: and go away again', await fontOf('.aura-widget-title'), plain);
 
+// ── 9. the same overrides inside a custom layout ────────────────────────────
+// A custom layout draws its own title cell and normally ignores showTitle — the
+// user placed the cell, after all. A rule that hides the title still has to reach
+// it, which it did not.
+const customWidget = {
+    id: 'cs-custom',
+    type: 'switch',
+    title: 'Lampe',
+    datapoint: 'demo.csSwitch',
+    gridPos: { x: 0, y: 0, w: 12, h: 6 },
+    layout: 'custom',
+    options: {
+        icon: 'Lightbulb',
+        customGrid: {
+            cols: 1,
+            rows: 2,
+            cells: [{ type: 'title' }, { type: 'value' }],
+        },
+        conditions: [rule('r1', { showTitle: false })],
+    },
+};
+
+await mock({ 'demo.csSwitch': true, [ALARM]: false });
+await page.evaluate((w) => window.__auraShot.showWidgets([w]), customWidget);
+await settle();
+const customText = () => page.evaluate(() => document.querySelector('.aura-widget-cs-custom')?.innerText ?? '');
+check('custom layout: the title is there while the rule sleeps', (await customText()).includes('Lampe'));
+
+await mock({ [ALARM]: true });
+await settle();
+check(
+    'custom layout: the rule hides the title cell',
+    !(await customText()).includes('Lampe'),
+    (await customText()).replace(/\n/g, ' | '),
+);
+
+await mock({ [ALARM]: false });
+await settle();
+check('custom layout: and brings it back', (await customText()).includes('Lampe'));
+
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

@@ -71,9 +71,16 @@ Gespeichert bleibt die Einstellung; trifft die Regel nicht mehr zu, steht wieder
 | Icon · Icon-Größe | allen Widgets mit eigenem Icon — nicht Karte, Statusübersicht, Menü, Spiegel |
 | Wert-Text | Wert-Anzeige, Schalter, Binärsensor, Fenster-/Türkontakt, Zustandsbild; ersetzt den Werttext, die Einheit entfällt dabei |
 
-Steht `… zeigen` auf `ausblenden`, entfallen die zugehörigen Felder — es gäbe nichts anzuzeigen.
+`… zeigen` ist das Tor für den ganzen Block: bei `unverändert` rührt die Regel Titel bzw. Icon nicht an
+und bietet die Detailfelder gar nicht erst an. Sie erscheinen bei `anzeigen`; ein Zurückstellen auf
+`unverändert` verwirft, was dort stand — sonst würde hinter dem Wort „unverändert" doch etwas
+überschrieben.
+
 Leere Felder zeigen als Platzhalter das, was das Widget heute anzeigt: den aktuellen Titel, das aktuelle
 Icon (ausgegraut), die aktuelle Größe.
+
+Im [Custom-Layout](../widgets/custom-layout) wirkt `Titel zeigen: ausblenden` auf die Titel-Zelle, obwohl
+die sonst unabhängig von `showTitle` platziert wird.
 
 Der Editor bietet nur die Felder an, die der jeweilige Widget-Typ auch umsetzt.
 

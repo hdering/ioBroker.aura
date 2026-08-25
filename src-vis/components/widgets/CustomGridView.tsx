@@ -1714,7 +1714,11 @@ export function CustomGridView({
                                 index={i}
                                 cols={cols}
                                 rows={rows}
-                                title={config.title}
+                                // A title cell is placed by hand, so it normally ignores showTitle
+                                // — but a condition that hides the title has to reach it here too,
+                                // otherwise "Titel zeigen: ausblenden" silently does nothing in a
+                                // custom layout.
+                                title={config.options?.showTitle === false ? '' : config.title}
                                 value={value}
                                 rawValue={rawValue}
                                 unit={unit}
