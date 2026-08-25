@@ -254,23 +254,29 @@ function RuleEditor({
                                 with a stub label it read like a leftover of the block above. */}
                             <div className="h-px mt-2" style={{ background: 'var(--app-border)' }} />
                             <SectionLabel className="pt-1">Effekt</SectionLabel>
-                            <select
-                                value={rule.effect ?? 'none'}
-                                onChange={(e) =>
-                                    update({
-                                        effect:
-                                            e.target.value === 'none'
-                                                ? undefined
-                                                : (e.target.value as 'pulse' | 'blink'),
-                                    })
-                                }
-                                className="w-full text-[11px] rounded-lg px-2 py-1.5 focus:outline-none"
-                                style={fieldStyle}
-                            >
-                                <option value="none">Kein Effekt</option>
-                                <option value="pulse">Pulsieren</option>
-                                <option value="blink">Blinken</option>
-                            </select>
+                            {/* In a Row like every other field, even without a label of its
+                                own — otherwise this one select runs the full column while
+                                the fields opposite start 64 px in, and the two blocks stop
+                                reading as the same grid. */}
+                            <Row label="">
+                                <select
+                                    value={rule.effect ?? 'none'}
+                                    onChange={(e) =>
+                                        update({
+                                            effect:
+                                                e.target.value === 'none'
+                                                    ? undefined
+                                                    : (e.target.value as 'pulse' | 'blink'),
+                                        })
+                                    }
+                                    className="flex-1 text-[10px] rounded px-1.5 py-1 focus:outline-none min-w-0"
+                                    style={fieldStyle}
+                                >
+                                    <option value="none">Kein Effekt</option>
+                                    <option value="pulse">Pulsieren</option>
+                                    <option value="blink">Blinken</option>
+                                </select>
+                            </Row>
                         </div>
 
                         <div className="space-y-1.5">

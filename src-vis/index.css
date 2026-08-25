@@ -140,7 +140,7 @@ iframe {
 }
 .aura-rule-cols {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.75rem;
     /* The datapoint manager gives this panel its full width; without a cap the
        selects grow to 600 px and the form stops reading as a form. */
@@ -148,7 +148,7 @@ iframe {
 }
 @container (min-width: 26rem) {
     .aura-rule-cols {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
