@@ -152,7 +152,7 @@ export function ListSortEditor({
                     className="text-[11px] rounded-lg px-2.5 py-2"
                     style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
                 >
-                    Keine Sortierung – die Liste bleibt in der Reihenfolge aus „Datenpunkte verwalten“.
+                    Keine Sortierung – die Liste bleibt in der Reihenfolge aus {'„Datenpunkte verwalten“'}.
                 </p>
             )}
 

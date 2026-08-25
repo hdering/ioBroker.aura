@@ -251,7 +251,7 @@ function EntryRow({
                     {entry.aggregate === 'consumption' && (
                         <p className="text-[9px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
                             Summiert den Zuwachs des Zählers im Zeitraum. Passt für fortlaufende Zähler ebenso wie für
-                            Tageszähler, die um Mitternacht auf 0 zurückspringen — „Differenz“ liefert dort einen
+                            Tageszähler, die um Mitternacht auf 0 zurückspringen — {'„Differenz“'} liefert dort einen
                             negativen Wert.
                         </p>
                     )}

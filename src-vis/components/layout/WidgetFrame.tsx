@@ -2747,7 +2747,7 @@ function IframeInteractionSelect({
             {mode !== 'action' && (
                 <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                     Bedienbarer Inhalt darf scrollen — passt die Seite nicht exakt, zeigt der Desktop-Browser dafür eine
-                    Scrollleiste. „Nur Klick-Aktion“ blendet sie aus.
+                    Scrollleiste. {'„Nur Klick-Aktion“'} blendet sie aus.
                 </p>
             )}
         </div>
@@ -10438,7 +10438,7 @@ export function WidgetFrame({
                                                         className="text-[10px] mt-1"
                                                         style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                                                     >
-                                                        Sichtbar, sobald „Wert als Badge“ aktiv ist
+                                                        Sichtbar, sobald {'„Wert als Badge“'} aktiv ist
                                                     </p>
                                                 )}
                                             </div>

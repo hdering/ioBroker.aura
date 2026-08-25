@@ -543,7 +543,7 @@ export function StaticEntryDetail({
                 badge={entry.conditions?.length ? String(entry.conditions.length) : undefined}
             >
                 <p className="text-[9px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                    Nur für diese Zeile. Listenweite Regeln (Dialog → Tab „Bedingungen“) laufen davor, diese hier
+                    Nur für diese Zeile. Listenweite Regeln (Dialog → Tab {'„Bedingungen“'}) laufen davor, diese hier
                     gewinnen je Eigenschaft.
                 </p>
                 <ElementConditionEditor

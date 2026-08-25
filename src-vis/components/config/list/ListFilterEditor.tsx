@@ -142,7 +142,7 @@ export function ListFilterEditor({
                     className="text-[11px] rounded-lg px-2.5 py-2"
                     style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
                 >
-                    Noch keine eigenen Filter. Das Menü zeigt nur „Alle“, „Nur aktive“ und „Nur inaktive“.
+                    Noch keine eigenen Filter. Das Menü zeigt nur {'„Alle“'}, {'„Nur aktive“'} und {'„Nur inaktive“'}.
                 </p>
             )}
 

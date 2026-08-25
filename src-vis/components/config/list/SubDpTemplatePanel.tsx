@@ -82,7 +82,7 @@ export function SubDpTemplatePanel({
 
             {entries.length === 0 ? (
                 <p className="text-[11px]" style={label}>
-                    Noch keine Datenpunkte – im Tab „Suchen &amp; Filter“ welche finden.
+                    Noch keine Datenpunkte – im Tab {'„Suchen & Filter“'} welche finden.
                 </p>
             ) : (
                 <div>
