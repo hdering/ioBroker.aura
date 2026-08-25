@@ -14,8 +14,8 @@ import { bumpWidgetRefresh } from '../store/widgetRefreshStore';
 import { useMessagesStore } from '../store/messagesStore';
 import { draftToPayload } from '../components/config/MessageBuilder';
 import { isScreenshotMode } from '../store/persistManager';
-import { EMPTY_SET, isEmptySet } from '../utils/conditionSet';
-import type { WidgetCondition, ConditionStyle, ConditionSet, ConditionPart, ConditionPartStyle } from '../types';
+import { EMPTY_SET } from '../utils/conditionSet';
+import type { WidgetCondition, ConditionStyle, ConditionSet, ConditionPart, ConditionElement } from '../types';
 
 // ── Debug logging ─────────────────────────────────────────────────────────────
 // End-user opt-in. Enable from DevTools console:
@@ -183,14 +183,29 @@ export interface ConditionResult {
     /** Whole-card text style — applied as a class, not as a variable. */
     bold: boolean;
     italic: boolean;
-    /** Per-element styling, keyed by the element the rules named. */
-    parts: Partial<Record<ConditionPart, ConditionPartStyle>>;
+    /** Per-element appearance, keyed by element. */
+    parts: Partial<Record<ConditionPart, ElementLook>>;
     effect: 'pulse' | 'blink' | null;
     hidden: boolean; // widget should be hidden
     reflow: boolean; // remove from grid so others slide up
 }
 
-const EMPTY_PARTS: Partial<Record<ConditionPart, ConditionPartStyle>> = {};
+/** The half of a ConditionElement that becomes a class on the frame root. */
+export interface ElementLook {
+    color?: string;
+    bold?: boolean;
+    italic?: boolean;
+    hide?: boolean;
+}
+
+const EMPTY_PARTS: Partial<Record<ConditionPart, ElementLook>> = {};
+
+/** Which ConditionSet keys an element feeds. */
+const SET_KEYS: Record<ConditionPart, { show: keyof ConditionSet; text?: keyof ConditionSet }> = {
+    title: { show: 'showTitle', text: 'title' },
+    icon: { show: 'showIcon' },
+    value: { show: 'showValue', text: 'valueText' },
+};
 
 // Module-level constant – same reference every time, lets React bail out of re-renders
 const EMPTY_RESULT: ConditionResult = {
@@ -244,7 +259,7 @@ function computeResult(
     let set: ConditionSet | null = null;
     let bold = false;
     let italic = false;
-    let parts: Partial<Record<ConditionPart, ConditionPartStyle>> | null = null;
+    let parts: Partial<Record<ConditionPart, ElementLook>> | null = null;
     let effect: 'pulse' | 'blink' | null = null;
     let hidden = false;
     let reflow = false;
@@ -255,17 +270,25 @@ function computeResult(
             Object.assign(merged, styleToVars(cond.style));
             if (cond.style.bold !== undefined) bold = cond.style.bold;
             if (cond.style.italic !== undefined) italic = cond.style.italic;
-            if (cond.part && cond.partStyle) {
-                parts ??= {};
-                const into = (parts[cond.part] ??= {});
-                for (const [k, v] of Object.entries(cond.partStyle)) {
-                    if (v !== undefined) (into as Record<string, unknown>)[k] = v;
+            for (const [part, el] of Object.entries(cond.elements ?? {}) as [ConditionPart, ConditionElement][]) {
+                if (!el) continue;
+                const keys = SET_KEYS[part];
+                // Half of an element drives the render copy of the config …
+                if (el.show !== undefined) (set ??= {})[keys.show] = el.show as never;
+                if (el.text !== undefined && keys.text) (set ??= {})[keys.text] = el.text as never;
+                if (part === 'icon') {
+                    if (el.icon !== undefined) (set ??= {}).icon = el.icon;
+                    if (el.iconSize !== undefined) (set ??= {}).iconSize = el.iconSize;
                 }
-            }
-            if (cond.set && !isEmptySet(cond.set)) {
-                set ??= {};
-                for (const [k, v] of Object.entries(cond.set)) {
-                    if (v !== undefined) (set as Record<string, unknown>)[k] = v;
+                // … the other half becomes a class on the frame root.
+                const look: ElementLook = {};
+                if (el.color) look.color = el.color;
+                if (el.bold !== undefined) look.bold = el.bold;
+                if (el.italic !== undefined) look.italic = el.italic;
+                if (el.show === false) look.hide = true;
+                if (Object.keys(look).length) {
+                    parts ??= {};
+                    Object.assign((parts[part] ??= {}), look);
                 }
             }
             if (cond.effect && cond.effect !== 'none') effect = cond.effect as 'pulse' | 'blink';

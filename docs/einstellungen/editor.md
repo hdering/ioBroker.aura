@@ -53,52 +53,39 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 
 | Effekt | Wirkung |
 | --- | --- |
-| Stil wenn aktiv | Akzent, Hintergrund, Rahmen, Rahmenbreite, Eckenradius, Deckkraft, Text, Text 2, Fett, Kursiv |
-| Element | statt der ganzen Karte nur Titel, Icon oder Wert einfärben |
-| Anzeige überschreiben | Titel, Icon, Icon-Größe, Titel/Icon zeigen, Wert-Text |
+| Stil wenn aktiv | die ganze Karte: Akzent, Hintergrund, Rahmen, Rahmenbreite, Eckenradius, Deckkraft, Text, Text 2, Fett, Kursiv |
+| Elemente | je Element: Sichtbarkeit, Text bzw. Icon, Farbe, Schriftschnitt |
 | Effekt | `Pulsieren` · `Blinken` |
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
 
-## Bedingungen: einzelnes Element
+## Bedingungen: Elemente
 
-Die Farben unter „Stil wenn aktiv" sind CSS-Variablen und treffen deshalb alles, was das Widget zeichnet.
-Wer nur den Titel rot will, wählt darunter ein **Element**:
+Rechts im Regel-Panel steht ein Block je Element — **Titel**, **Icon**, **Wert**. Darin liegt alles über
+dieses eine Element beisammen: ob es zu sehen ist, was es zeigt, wie es aussieht. Die Farben unter
+„Stil wenn aktiv" sind dagegen CSS-Variablen und treffen alles, was das Widget zeichnet.
 
 | Feld | |
 | --- | --- |
-| Element | `ganze Karte` (Standard) · `Titel` · `Icon` · `Wert` |
-| Textfarbe · Fett · Kursiv · Ausblenden | bei `Titel` und `Wert` |
-| Icon-Farbe · Ausblenden | bei `Icon` — ein Icon ist eine Grafik, Schriftschnitt tut ihm nichts |
+| Sichtbar | `unverändert` · `anpassen` · `ausblenden` — die einzige Stelle zum Ausblenden |
+| Text | bei `Titel` und `Wert`, sobald `anpassen` gewählt ist; `[[dp]]` wird live aufgelöst. Beim Wert entfällt dann die Einheit |
+| Icon · Größe | bei `Icon`, sobald `anpassen` gewählt ist |
+| Textfarbe · Fett · Kursiv | bei `Titel` und `Wert` |
+| Icon-Farbe | bei `Icon` — ein Icon ist eine Grafik, Schriftschnitt tut ihm nichts |
+
+Die Farbe hängt **nicht** an `anpassen`: ein Element einzufärben soll es nicht zugleich sichtbar
+schalten. Nur bei `ausblenden` entfällt sie — dann gibt es nichts zu färben. Ein Zurückstellen auf
+`unverändert` verwirft Text bzw. Icon, sonst würde hinter dem Wort doch etwas überschrieben.
 
 Angeboten werden nur Elemente, die der Widget-Typ auch hat — die [Karte](../widgets/karte) etwa hat
-weder Titel noch Icon. Ein Wechsel des Elements verwirft die vorherigen Einstellungen; für Karte **und**
-Titel nimmt man zwei Regeln, wie bei den Listen-Zeilen auch.
+weder Titel noch Icon. Eine Regel darf mehrere Elemente gleichzeitig anfassen.
 
-## Bedingungen: Anzeige überschreiben
+Was eine Regel setzt, gilt nur für die Anzeige: gespeichert bleibt die Einstellung des Widgets, und
+trifft die Regel nicht mehr zu, steht wieder das Original da. Leere Felder zeigen als Platzhalter, was
+das Widget heute anzeigt — den aktuellen Titel, das aktuelle Icon (ausgegraut), die aktuelle Größe.
 
-Ersetzt Werte, die das Widget aus seiner eigenen Konfiguration liest — nur für die Anzeige.
-Gespeichert bleibt die Einstellung; trifft die Regel nicht mehr zu, steht wieder das Original da.
-
-| Feld | Wirkt in |
-| --- | --- |
-| Titel · Icon · Wert | `unverändert` · `anpassen` · `ausblenden` |
-| Titel-Text | allen Widgets; `[[dp]]` im Text wird live aufgelöst |
-| Icon-Auswahl · Größe | allen Widgets mit eigenem Icon — nicht Karte, Statusübersicht, Menü, Spiegel |
-| Wert-Text | Wert-Anzeige, Schalter, Binärsensor, Fenster-/Türkontakt, Zustandsbild; ersetzt den Werttext, die Einheit entfällt dabei |
-
-`Titel`, `Icon` und `Wert` sind das Tor für ihren Block: bei `unverändert` rührt die Regel sie nicht an
-und bietet das Textfeld gar nicht erst an. Es erscheint bei `anpassen` — was das Element zugleich
-sichtbar schaltet. Ein Zurückstellen auf `unverändert` verwirft, was dort stand, sonst würde hinter dem
-Wort „unverändert" doch etwas überschrieben.
-
-Leere Felder zeigen als Platzhalter das, was das Widget heute anzeigt: den aktuellen Titel, das aktuelle
-Icon (ausgegraut), die aktuelle Größe.
-
-Im [Custom-Layout](../widgets/custom-layout) wirkt `Titel zeigen: ausblenden` auf die Titel-Zelle, obwohl
-die sonst unabhängig von `showTitle` platziert wird.
-
-Der Editor bietet nur die Felder an, die der jeweilige Widget-Typ auch umsetzt.
+Im [Custom-Layout](../widgets/custom-layout) wirkt `Sichtbar: ausblenden` auch auf die Titel-Zelle,
+obwohl die sonst unabhängig von `showTitle` platziert wird.
 
 ## Bedingungen: Vorrang
 

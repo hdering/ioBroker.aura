@@ -25,14 +25,14 @@ const check = (name, ok, detail = '') => {
 };
 const eq = (name, got, want) => check(name, got === want, got === want ? '' : `got ${got}, want ${want}`);
 
-function rule(id, set, style = {}) {
+function rule(id, elements, style = {}) {
     return {
         id,
         label: id,
         logic: 'AND',
         clauses: [{ datapoint: ALARM, operator: 'true', value: '' }],
         style,
-        set,
+        elements,
         effect: 'none',
     };
 }
@@ -95,7 +95,13 @@ const cssVar = (name) =>
 await mock({ [VAL]: 21.5, [ALARM]: false });
 
 // ── 1. Baseline: no rule matches ─────────────────────────────────────────────
-await show([rule('r1', { icon: 'AlertTriangle', iconSize: 40, title: 'Alarm', valueText: 'STÖRUNG' })]);
+await show([
+    rule('r1', {
+        title: { show: true, text: 'Alarm' },
+        icon: { show: true, icon: 'AlertTriangle', iconSize: 40 },
+        value: { show: true, text: 'STÖRUNG' },
+    }),
+]);
 
 await iconReady();
 eq('baseline: own title', await text('.aura-widget-title'), 'Küche');
@@ -121,13 +127,13 @@ eq('revert: icon size', await attr('.aura-widget-icon', 'width'), '20');
 eq('revert: value and unit', await text('.aura-widget-value'), '21.5°C');
 
 // ── 4. A title override may carry a live [[dp]] token ────────────────────────
-await show([rule('r1', { title: 'Alarm [[demo.csValue]]°' })]);
+await show([rule('r1', { title: { show: true, text: 'Alarm [[demo.csValue]]°' } })]);
 await mock({ [ALARM]: true });
 await settle();
 eq('title override resolves [[dp]]', await text('.aura-widget-title'), 'Alarm 21.5°');
 
 // ── 5. Hiding title and icon ─────────────────────────────────────────────────
-await show([rule('r1', { showTitle: false, showIcon: false })]);
+await show([rule('r1', { title: { show: false }, icon: { show: false } })]);
 await mock({ [ALARM]: true });
 await settle();
 eq('showTitle false removes the title', await text('.aura-widget-title'), null);
@@ -138,7 +144,10 @@ await settle();
 check('both come back when the rule stops matching', (await text('.aura-widget-title')) === 'Küche');
 
 // ── 6. Several matching rules stack, later wins per field ────────────────────
-await show([rule('r1', { title: 'Erst', iconSize: 40 }), rule('r2', { title: 'Zuletzt' })]);
+await show([
+    rule('r1', { title: { show: true, text: 'Erst' }, icon: { show: true, iconSize: 40 } }),
+    rule('r2', { title: { show: true, text: 'Zuletzt' } }),
+]);
 await mock({ [ALARM]: true });
 await settle();
 eq('stacking: the later rule wins for the shared field', await text('.aura-widget-title'), 'Zuletzt');
@@ -181,7 +190,7 @@ eq('style: and go away again', await fontOf('.aura-widget-title'), plain);
 // ── 8a. painting ONE element instead of the whole card ──────────────────────
 // The card-wide colours are CSS variables and hit everything the widget draws;
 // this reaches a single element through the class it already carries.
-const partRule = (part, partStyle) => ({ ...rule('rp', {}), part, partStyle });
+const partRule = (part, look) => rule('rp', { [part]: look });
 
 await show([partRule('title', { color: '#ff00ff', bold: true })]);
 await mock({ [ALARM]: false });
@@ -210,7 +219,7 @@ check(
     String(await colorOf('.aura-widget-title')),
 );
 
-await show([partRule('icon', { hide: true })]);
+await show([partRule('icon', { show: false })]);
 await mock({ [ALARM]: true });
 await settle();
 // display:none leaves the element (and its width attribute) in the DOM.
@@ -219,7 +228,13 @@ const displayOf = (sel) =>
         const el = document.querySelector(`.aura-widget-cs-test ${x}`);
         return el ? getComputedStyle(el).display : null;
     }, sel);
-eq('part: hiding one element', await displayOf('.aura-widget-icon'), 'none');
+// Hiding now goes through the widget's own showIcon, so the element is gone
+// entirely; the CSS class is the fallback for widgets that ignore the option.
+check(
+    'part: hiding one element',
+    ['none', null].includes(await displayOf('.aura-widget-icon')),
+    String(await displayOf('.aura-widget-icon')),
+);
 await mock({ [ALARM]: false });
 await settle();
 await iconReady();
@@ -228,7 +243,7 @@ check('part: the icon comes back', (await displayOf('.aura-widget-icon')) !== 'n
 // ── 8b. hiding the value ────────────────────────────────────────────────────
 // Only the value widget had an own showValue; the others needed wiring, or
 // "ausblenden" would have been a setting that does nothing.
-await show([rule('r1', { showValue: false })]);
+await show([rule('r1', { value: { show: false } })]);
 await mock({ [ALARM]: false });
 await settle();
 eq('value visible while the rule sleeps', await text('.aura-widget-value'), '21.5°C');
@@ -259,7 +274,7 @@ const customWidget = {
             rows: 2,
             cells: [{ type: 'title' }, { type: 'value' }],
         },
-        conditions: [rule('r1', { showTitle: false })],
+        conditions: [rule('r1', { title: { show: false } })],
     },
 };
 

@@ -5,12 +5,11 @@ import { JsonPathButton } from './JsonPathButton';
 import { IconPickerModal } from './IconPickerModal';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type {
+    ConditionElement,
     ConditionPart,
-    ConditionPartStyle,
     WidgetCondition,
     ConditionClause,
     ConditionOperator,
-    ConditionSet,
     ConditionSlot,
     ConditionStyle,
 } from '../../types';
@@ -593,185 +592,144 @@ export interface ConditionSetCurrent {
 }
 
 const PART_LABELS: Record<ConditionPart, string> = { title: 'Titel', icon: 'Icon', value: 'Wert' };
+const PART_ORDER: ConditionPart[] = ['title', 'icon', 'value'];
 
-/**
- * Paint ONE element instead of the whole card. The colours above are CSS variables
- * and therefore hit everything the widget draws; this reaches a single element
- * through the class it already carries.
- */
-function ConditionPartFields({
-    part,
-    style,
-    slots,
-    onChange,
-}: {
-    part: ConditionPart | undefined;
-    style: ConditionPartStyle | undefined;
-    slots: ConditionSlot[];
-    onChange: (patch: Pick<WidgetCondition, 'part' | 'partStyle'>) => void;
-}) {
-    const t = useT();
-    const st = style ?? {};
-    const set = (patch: Partial<ConditionPartStyle>) => {
-        const next = { ...st, ...patch } as Record<string, unknown>;
-        for (const k of Object.keys(next)) if (next[k] === undefined || next[k] === false) delete next[k];
-        onChange({ part, partStyle: Object.keys(next).length ? (next as ConditionPartStyle) : undefined });
-    };
-    return (
-        <>
-            <LabeledRow label={t('cond.partTarget')}>
-                <select
-                    value={part ?? ''}
-                    // Switching the element drops what was set for the old one — it would
-                    // otherwise keep painting from behind a select that no longer names it.
-                    onChange={(e) =>
-                        onChange({
-                            part: (e.target.value || undefined) as ConditionPart | undefined,
-                            partStyle: undefined,
-                        })
-                    }
-                    className={`${cls} flex-1`}
-                    style={inputStyle}
-                >
-                    <option value="">{t('cond.partNone')}</option>
-                    {slots.map((sl) => (
-                        <option key={sl} value={sl}>
-                            {PART_LABELS[sl]}
-                        </option>
-                    ))}
-                </select>
-            </LabeledRow>
-            {part && (
-                <>
-                    <ColorField
-                        label={part === 'icon' ? t('cond.partIconColor') : t('cond.partColor')}
-                        value={st.color}
-                        onChange={(v) => set({ color: v })}
-                    />
-                    <div className="flex items-center gap-1.5 pt-0.5">
-                        {/* An icon is an SVG — a font weight or slant does nothing to it. */}
-                        {part !== 'icon' && (
-                            <>
-                                <StyleToggle
-                                    on={!!st.bold}
-                                    onClick={() => set({ bold: !st.bold })}
-                                    label={t('cond.styleBold')}
-                                />
-                                <StyleToggle
-                                    on={!!st.italic}
-                                    onClick={() => set({ italic: !st.italic })}
-                                    label={t('cond.styleItalic')}
-                                />
-                            </>
-                        )}
-                        <StyleToggle
-                            on={!!st.hide}
-                            onClick={() => set({ hide: !st.hide })}
-                            label={t('cond.partHide')}
-                        />
-                    </div>
-                </>
-            )}
-        </>
-    );
+/** True once a rule says anything at all about this element. */
+function elementTouched(el: ConditionElement | undefined): boolean {
+    return !!el && Object.values(el).some((v) => v !== undefined);
 }
 
-function ConditionSetFields({
-    set,
-    slots,
+/**
+ * Everything one element of a widget can be told to do, in one place: whether it is
+ * shown, what it shows, how it looks. Splitting that across two blocks meant hiding
+ * existed twice and one element had to be configured in two spots.
+ *
+ * Visibility and content ride the render copy of the config (utils/conditionSet);
+ * colour and weight become a class on the frame root, read by the .aura-cond-* rules
+ * against the class every widget puts on its title/icon/value.
+ */
+function ElementBlock({
+    part,
+    el,
     current,
     onChange,
 }: {
-    set: ConditionSet | undefined;
-    slots: ConditionSlot[];
+    part: ConditionPart;
+    el: ConditionElement | undefined;
     current?: ConditionSetCurrent;
-    onChange: (patch: Partial<ConditionSet>) => void;
+    onChange: (next: ConditionElement | undefined) => void;
 }) {
     const t = useT();
-    const s = set ?? {};
-    // "… zeigen" is the gate for the whole block: `unverändert` means the rule does
-    // not touch the title/icon at all, so its detail fields are not offered — and
-    // switching back to it clears what was entered. Leaving a stored override behind
-    // an "unverändert" select would be exactly the lie the label denies.
+    const e = el ?? {};
+    const touched = elementTouched(el);
+    const [open, setOpen] = useState(touched);
+    const isIcon = part === 'icon';
+
+    const set = (patch: Partial<ConditionElement>) => {
+        const next = { ...e, ...patch } as Record<string, unknown>;
+        for (const k of Object.keys(next)) {
+            // `show: false` is a decision (hide); a false flag is just "off".
+            if (next[k] === undefined || (next[k] === false && k !== 'show')) delete next[k];
+        }
+        onChange(Object.keys(next).length ? (next as ConditionElement) : undefined);
+    };
+
     return (
-        <div className="space-y-1.5">
-            {slots.includes('title') && (
-                <>
-                    <TriStateField
-                        label={t('cond.setShowTitle')}
-                        value={s.showTitle}
-                        onChange={(v) =>
-                            onChange(v === undefined ? { showTitle: v, title: undefined } : { showTitle: v })
-                        }
+        <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
+            <button
+                onClick={() => setOpen(!open)}
+                className="w-full flex items-center gap-1.5 px-2 py-1.5 text-[11px] hover:opacity-80"
+                style={{ background: 'var(--app-surface)', color: 'var(--text-primary)' }}
+            >
+                <span style={{ color: 'var(--text-secondary)' }}>
+                    {open ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                </span>
+                <span className="flex-1 text-left">{PART_LABELS[part]}</span>
+                {touched && (
+                    <span
+                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ background: e.color || 'var(--accent)' }}
                     />
-                    {s.showTitle === true && (
-                        <TextField
-                            label=""
-                            title={t('cond.setTitle')}
-                            value={s.title}
-                            placeholder={current?.title || t('cond.setTitlePlaceholder')}
-                            onChange={(v) => onChange({ title: v })}
-                        />
-                    )}
-                </>
-            )}
-            {slots.includes('icon') && (
-                <>
+                )}
+            </button>
+            {open && (
+                <div className="p-2 space-y-1.5" style={{ background: 'var(--app-bg)' }}>
                     <TriStateField
-                        label={t('cond.setShowIcon')}
-                        value={s.showIcon}
+                        label={t('cond.elVisible')}
+                        value={e.show}
+                        // Back to "unverändert" means the rule stops touching the content
+                        // too — a text left behind an untouched element would still paint.
                         onChange={(v) =>
-                            onChange(
+                            set(
                                 v === undefined
-                                    ? { showIcon: v, icon: undefined, iconSize: undefined }
-                                    : { showIcon: v },
+                                    ? { show: undefined, text: undefined, icon: undefined, iconSize: undefined }
+                                    : { show: v },
                             )
                         }
                     />
-                    {s.showIcon === true && (
-                        <LabeledRow label="">
-                            <IconButton
-                                value={s.icon}
-                                fallback={current?.icon}
-                                placeholder={t('cond.setIconPlaceholder')}
-                                onChange={(v) => onChange({ icon: v })}
-                            />
-                            <input
-                                type="number"
-                                min={8}
-                                max={200}
-                                value={s.iconSize ?? ''}
-                                onChange={(e) =>
-                                    onChange({ iconSize: e.target.value === '' ? undefined : Number(e.target.value) })
+                    {/* Content only once the element is actively shown. */}
+                    {e.show === true &&
+                        (isIcon ? (
+                            <LabeledRow label="">
+                                <IconButton
+                                    value={e.icon}
+                                    fallback={current?.icon}
+                                    placeholder={t('cond.setIconPlaceholder')}
+                                    onChange={(v) => set({ icon: v })}
+                                />
+                                <input
+                                    type="number"
+                                    min={8}
+                                    max={200}
+                                    value={e.iconSize ?? ''}
+                                    onChange={(ev) =>
+                                        set({ iconSize: ev.target.value === '' ? undefined : Number(ev.target.value) })
+                                    }
+                                    placeholder={current?.iconSize ? String(current.iconSize) : 'px'}
+                                    title={t('cond.setIconSize')}
+                                    className="w-11 shrink-0 text-[10px] rounded px-1.5 py-1 focus:outline-none text-center"
+                                    style={inputStyle}
+                                />
+                            </LabeledRow>
+                        ) : (
+                            <TextField
+                                label=""
+                                title={part === 'title' ? t('cond.setTitle') : t('cond.setValueText')}
+                                value={e.text}
+                                placeholder={
+                                    part === 'title'
+                                        ? current?.title || t('cond.setTitlePlaceholder')
+                                        : t('cond.setValueTextPlaceholder')
                                 }
-                                placeholder={current?.iconSize ? String(current.iconSize) : 'px'}
-                                title={t('cond.setIconSize')}
-                                className="w-11 shrink-0 text-[10px] rounded px-1.5 py-1 focus:outline-none text-center"
-                                style={inputStyle}
+                                onChange={(v) => set({ text: v })}
                             />
-                        </LabeledRow>
+                        ))}
+                    {/* Appearance is NOT gated on "anzeigen": colouring an element must
+                        not force it visible. Hidden, though, there is nothing to paint. */}
+                    {e.show !== false && (
+                        <>
+                            <ColorField
+                                label={isIcon ? t('cond.partIconColor') : t('cond.partColor')}
+                                value={e.color}
+                                onChange={(v) => set({ color: v })}
+                            />
+                            {!isIcon && (
+                                <div className="flex items-center gap-1.5 pt-0.5">
+                                    <StyleToggle
+                                        on={!!e.bold}
+                                        onClick={() => set({ bold: !e.bold })}
+                                        label={t('cond.styleBold')}
+                                    />
+                                    <StyleToggle
+                                        on={!!e.italic}
+                                        onClick={() => set({ italic: !e.italic })}
+                                        label={t('cond.styleItalic')}
+                                    />
+                                </div>
+                            )}
+                        </>
                     )}
-                </>
-            )}
-            {slots.includes('value') && (
-                <>
-                    <TriStateField
-                        label={t('cond.setShowValue')}
-                        value={s.showValue}
-                        onChange={(v) =>
-                            onChange(v === undefined ? { showValue: v, valueText: undefined } : { showValue: v })
-                        }
-                    />
-                    {s.showValue === true && (
-                        <TextField
-                            label=""
-                            title={t('cond.setValueText')}
-                            value={s.valueText}
-                            placeholder={t('cond.setValueTextPlaceholder')}
-                            onChange={(v) => onChange({ valueText: v })}
-                        />
-                    )}
-                </>
+                </div>
             )}
         </div>
     );
@@ -802,13 +760,13 @@ function ConditionRule({
     const setStyle = (patch: Partial<ConditionStyle>) =>
         onChange({ ...condition, style: { ...condition.style, ...patch } });
 
-    // A cleared field must disappear from the set, not linger as `undefined`: the
-    // runtime merges by "key present", and an empty object would keep the rule
-    // marked as overriding something.
-    const setSet = (patch: Partial<ConditionSet>) => {
-        const next = { ...(condition.set ?? {}), ...patch } as Record<string, unknown>;
-        for (const k of Object.keys(next)) if (next[k] === undefined) delete next[k];
-        onChange({ ...condition, set: Object.keys(next).length ? (next as ConditionSet) : undefined });
+    // A cleared element must disappear from the map, not linger as an empty object:
+    // the runtime merges by "key present".
+    const setElement = (part: ConditionPart, next: ConditionElement | undefined) => {
+        const els = { ...(condition.elements ?? {}) };
+        if (next) els[part] = next;
+        else delete els[part];
+        onChange({ ...condition, elements: Object.keys(els).length ? els : undefined });
     };
 
     const updateClause = (i: number, c: ConditionClause) =>
@@ -946,18 +904,6 @@ function ConditionRule({
                                     label={t('cond.styleItalic')}
                                 />
                             </div>
-                            {context !== 'tab' && slots.length > 0 && (
-                                <>
-                                    <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
-                                    <ConditionPartFields
-                                        part={condition.part}
-                                        style={condition.partStyle}
-                                        slots={slots}
-                                        onChange={(patch) => onChange({ ...condition, ...patch })}
-                                    />
-                                </>
-                            )}
-
                             {/* Belongs to the style, so it sits in the style column. */}
                             <div className="flex items-center gap-1.5">
                                 <label
@@ -988,14 +934,19 @@ function ConditionRule({
                                     className="text-[10px] font-semibold uppercase tracking-wider"
                                     style={{ color: 'var(--text-secondary)' }}
                                 >
-                                    {t('cond.overrideDisplay')}
+                                    {t('cond.elements')}
                                 </p>
-                                <ConditionSetFields
-                                    set={condition.set}
-                                    slots={slots}
-                                    current={current}
-                                    onChange={setSet}
-                                />
+                                {/* Fixed reading order, not the order the registry happens to
+                                    declare the slots in. */}
+                                {PART_ORDER.filter((part) => slots.includes(part)).map((part) => (
+                                    <ElementBlock
+                                        key={part}
+                                        part={part}
+                                        el={condition.elements?.[part]}
+                                        current={current}
+                                        onChange={(next) => setElement(part, next)}
+                                    />
+                                ))}
                             </div>
                         )}
                     </div>

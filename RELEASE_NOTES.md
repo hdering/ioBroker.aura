@@ -15,8 +15,7 @@ Lists - a custom filter can now read the row name and exclude with "does not con
 Lists - sorting can use a datapoint of the second line (#572)
 Universal - conditions are now offered for title, unit, text, field, icon, image and button cells as well
 Conditions - the widget level gained bold/italic and the element level gained pulse/blink, so both offer the same set
-Conditions - the rule dialog now puts style and display overrides side by side instead of stacking them full width
-Conditions - unset colour fields now show an empty swatch instead of a blue one; title, icon and value each offer unchanged/adjust/hide and preview what the widget shows today
+Conditions - the rule dialog now puts the card style and the element blocks side by side instead of stacking them full width
 Conditions - hiding the title now works in a custom layout too
 HTML and value widgets - bindings now work with umlauts and other non-ASCII letters in datapoint ids (#578)
-Conditions - a rule can paint a single element of a widget (title, icon or value) instead of the whole card
+Conditions - a rule now configures a widget's title, icon and value each in one place: visibility, text or icon, colour and weight; unset colour fields show an empty swatch and every field previews what the widget shows today

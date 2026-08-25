@@ -618,6 +618,9 @@ export interface ConditionStyle {
 // getWidgetIcon). `valueText` does — a widget has to read `options.valueTextOverride`
 // for it to show up, which is why widgetRegistry declares per type which slots the
 // editor offers.
+//
+// Derived, not stored: the rules carry `elements`, and computeResult() folds the
+// matching ones into this shape for applyConditionSet().
 export interface ConditionSet {
     title?: string; // replaces config.title ([[dp]] tokens in it still resolve)
     showTitle?: boolean;
@@ -632,18 +635,33 @@ export interface ConditionSet {
 export type ConditionSlot = 'icon' | 'title' | 'value';
 
 /**
- * A single element of a widget a rule can paint on its own, instead of colouring
- * the whole card through the CSS variables. Reaches the element through the class
- * every widget puts on it (`aura-widget-title` & co.) — see the .aura-cond-* rules
- * in index.css — so it needs no wiring per widget type.
+ * A single element of a widget: its title, its icon, the value it prints. A rule
+ * says per element what should happen to it — everything about one element lives
+ * in one place, instead of splitting visibility and content from appearance.
  */
 export type ConditionPart = ConditionSlot;
 
-export interface ConditionPartStyle {
+export interface ConditionElement {
+    /**
+     * `undefined` leaves the visibility alone, `true` shows the element (and opens
+     * the content fields), `false` hides it. The only way to hide — there is no
+     * second switch for it.
+     */
+    show?: boolean;
+    /** Replaces the text of the title resp. the value. */
+    text?: string;
+    /** Icon element only. */
+    icon?: string;
+    iconSize?: number;
+    /**
+     * Appearance. Travels as a class + variable on the frame root, read by the
+     * .aura-cond-* rules in index.css against the class every widget puts on its
+     * title/icon/value — so it needs no wiring per widget type. `bold`/`italic`
+     * are meaningless on the icon and not offered there.
+     */
     color?: string;
     bold?: boolean;
     italic?: boolean;
-    hide?: boolean;
 }
 
 export interface WidgetCondition {
@@ -652,11 +670,8 @@ export interface WidgetCondition {
     logic: 'AND' | 'OR'; // how to combine multiple clauses
     clauses: ConditionClause[];
     style: ConditionStyle;
-    /** Config values the rule overrides while it matches (issue #96). */
-    set?: ConditionSet;
-    /** One element the rule paints instead of the whole card. */
-    part?: ConditionPart;
-    partStyle?: ConditionPartStyle;
+    /** What the rule does to the widget's elements while it matches (issue #96). */
+    elements?: Partial<Record<ConditionPart, ConditionElement>>;
     effect?: 'none' | 'pulse' | 'blink';
     // Remount the widget when the rule fires, so embedded content (iframe, camera,
     // image) re-fetches. Rules with a 'changed' clause fire on every change; all

@@ -1102,6 +1102,8 @@ export const en: Record<TranslationKey, string> = {
     'cond.partTarget': 'Element',
     'cond.partNone': 'whole card',
     'cond.partHide': 'Hide',
+    'cond.elements': 'Elements',
+    'cond.elVisible': 'Visible',
     'cond.partColor': 'Text colour',
     'cond.partIconColor': 'Icon colour',
     'cond.styleItalic': 'Italic',

@@ -1105,6 +1105,8 @@ export const de = {
     'cond.partTarget': 'Element',
     'cond.partNone': 'ganze Karte',
     'cond.partHide': 'Ausblenden',
+    'cond.elements': 'Elemente',
+    'cond.elVisible': 'Sichtbar',
     'cond.partColor': 'Textfarbe',
     'cond.partIconColor': 'Icon-Farbe',
     'cond.styleItalic': 'Kursiv',
