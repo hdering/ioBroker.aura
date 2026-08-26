@@ -104,6 +104,7 @@
     "test:theme-scope": "node tools/tests/theme-scope.mjs",
     "test:calendar-auto-height": "node tools/tests/calendar-auto-height.mjs",
     "test:status-auto-height": "node tools/tests/status-overview-auto-height.mjs",
+    "test:status-window": "node tools/tests/status-overview-window.mjs",
     "test:condition-set": "node tools/tests/condition-set.mjs",
     "test:condition-set-ui": "node tools/tests/condition-set-ui.mjs",
     "test:row-conditions": "node tools/tests/row-conditions.mjs",

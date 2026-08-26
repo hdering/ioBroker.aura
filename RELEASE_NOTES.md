@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open

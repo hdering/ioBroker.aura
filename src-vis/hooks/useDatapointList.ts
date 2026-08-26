@@ -11,6 +11,11 @@ export interface DatapointEntry {
     rooms: string[]; // labels from enum.rooms.*
     funcs: string[]; // labels from enum.functions.*
     logging: string[]; // enabled logging adapter IDs, e.g. ['history.0', 'influxdb.0']
+    // Value → label map from `common.states`, normalised from all three ioBroker
+    // spellings (object, array, "0:a;1:b"). Only set when the datapoint has one, so
+    // structural detectors can recognise multi-state datapoints (e.g. a rotary handle's
+    // CLOSED/TILTED/OPEN enum) without a second object read.
+    states?: Record<string, string>;
     // false = the state's adapter instance is not enabled (disabled adapter, or an
     // orphaned/manually-imported state with no matching instance). Hidden by default
     // in the picker, shown when the user opts into "also show inactive". Undefined
@@ -68,6 +73,32 @@ function resolveName(name: string | Record<string, string> | undefined, fallback
     if (!name) return fallback;
     if (typeof name === 'string') return name;
     return name.de ?? name.en ?? Object.values(name)[0] ?? fallback;
+}
+
+/**
+ * Normalises `common.states` into a value → label map. ioBroker allows three
+ * spellings: an object, an array (index = value) and the legacy "0:a;1:b" string.
+ * Returns undefined when the datapoint has no enum, so the cache entry stays small.
+ */
+export function normalizeStates(raw: unknown): Record<string, string> | undefined {
+    const out: Record<string, string> = {};
+    if (Array.isArray(raw)) {
+        raw.forEach((label, i) => {
+            out[String(i)] = String(label);
+        });
+    } else if (typeof raw === 'string') {
+        raw.split(';').forEach((pair) => {
+            const sep = pair.indexOf(':');
+            if (sep < 1) return;
+            const key = pair.slice(0, sep).trim();
+            if (key) out[key] = pair.slice(sep + 1).trim();
+        });
+    } else if (raw && typeof raw === 'object') {
+        Object.entries(raw as Record<string, unknown>).forEach(([k, label]) => {
+            out[k.trim()] = String(label);
+        });
+    }
+    return Object.keys(out).length ? out : undefined;
 }
 
 async function loadAll(): Promise<DatapointEntry[]> {
@@ -188,6 +219,7 @@ async function loadAll(): Promise<DatapointEntry[]> {
                 type: common.type,
                 unit: common.unit,
                 role: common.role,
+                states: normalizeStates(common.states),
                 write: common.write !== false ? undefined : false,
                 rooms: [...roomsSet],
                 funcs: [...funcsSet],

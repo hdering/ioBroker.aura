@@ -55,6 +55,70 @@ function isReachableRole(r: string): boolean {
     );
 }
 
+/** Roles that mark a window/door contact directly. */
+function isWindowRole(r: string): boolean {
+    return r === 'sensor.window' || r === 'window' || r === 'sensor.door' || r === 'door';
+}
+
+export type ContactLevel = 'closed' | 'tilted' | 'open';
+
+/** Word matchers for the three contact states, matched against a `common.states` label. */
+const CONTACT_WORDS: Record<ContactLevel, RegExp> = {
+    closed: /(closed|geschlossen|^zu$|^dicht$)/,
+    tilted: /(tilted|gekippt|kipp)/,
+    open: /(open|offen|geöffnet|geoeffnet)/,
+};
+
+/**
+ * The contact level a datapoint's `common.states` enum maps a value to, or null when
+ * the datapoint has no such enum (or the value is not part of it).
+ */
+function levelFromStates(dp: DatapointEntry, val: unknown): ContactLevel | null {
+    const label = dp.states?.[String(val)];
+    if (!label) return null;
+    const l = label.toLowerCase().trim();
+    // tilted first: "gekippt" must not be swallowed by a broader open/closed match.
+    if (CONTACT_WORDS.tilted.test(l)) return 'tilted';
+    if (CONTACT_WORDS.closed.test(l)) return 'closed';
+    if (CONTACT_WORDS.open.test(l)) return 'open';
+    return null;
+}
+
+/**
+ * True when a datapoint carries a *tri-state* contact enum instead of a contact role:
+ * rotary handles (HmIP-SRH, HM-Sec-RHS) publish role `state` with
+ * `common.states` = { 0: CLOSED, 1: TILTED, 2: OPEN }, so a role check alone never
+ * sees them. Detected from the state labels, so it works for every adapter using the
+ * same wording. A plain closed/open enum is NOT matched — those either carry a contact
+ * role already or are a thermostat's derived WINDOW_STATE, which would only duplicate
+ * the real contact.
+ */
+export function hasContactStates(dp: DatapointEntry): boolean {
+    const labels = Object.values(dp.states ?? {}).map((l) => l.toLowerCase().trim());
+    if (labels.length < 2) return false;
+    return (
+        labels.some((l) => CONTACT_WORDS.tilted.test(l)) &&
+        labels.some((l) => CONTACT_WORDS.closed.test(l) || CONTACT_WORDS.open.test(l))
+    );
+}
+
+/**
+ * Resolves a contact value to closed/tilted/open. The datapoint's own enum wins; without
+ * one, anything that is not an explicit "closed" value counts as open — a numeric contact
+ * reporting 2 (HomeMatic OPEN) must not read as closed the way a plain truthy check does.
+ */
+export function contactLevel(dp: DatapointEntry, val: unknown): ContactLevel {
+    const fromStates = levelFromStates(dp, val);
+    if (fromStates) return fromStates;
+    if (val === null || val === undefined || val === false || val === 0) return 'closed';
+    if (typeof val === 'string') {
+        const s = val.toLowerCase().trim();
+        if (s === '' || s === '0' || s === 'false' || CONTACT_WORDS.closed.test(s)) return 'closed';
+        if (CONTACT_WORDS.tilted.test(s)) return 'tilted';
+    }
+    return 'open';
+}
+
 /** True when a role marks a smoke/fire/water/flood safety alarm. */
 function isAlarmRole(r: string): boolean {
     return (
@@ -174,7 +238,8 @@ export function categoryOf(
 
     if (opts.catAlarm !== false && isAlarmRole(r)) return 'alarm';
     if (opts.catWindow !== false) {
-        if (r === 'sensor.window' || r === 'window' || r === 'sensor.door' || r === 'door') return 'window';
+        if (isWindowRole(r)) return 'window';
+        if (hasContactStates(dp)) return 'window';
     }
     if (opts.catUnreach !== false) {
         // Explicit user patterns win (even the sticky twin, if the user really wants it).
@@ -298,9 +363,14 @@ export function evaluateItem(
     }
 
     if (cat === 'window') {
-        const rd = getRoleDisplay(dp.role, val);
-        if (!isOn(val))
+        const level = contactLevel(dp, val);
+        // Role labels stay in charge of the wording ("Geöffnet" for a door role), but they
+        // are asked with the resolved level — getRoleDisplay's own truthy check would read
+        // a numeric 2 (OPEN) as closed.
+        const rd = getRoleDisplay(dp.role, level !== 'closed');
+        if (level === 'closed')
             return includeOk ? { ...base, severity: 'ok', label: rd?.label ?? 'Geschlossen', color: OK } : null;
+        if (level === 'tilted') return { ...base, severity: 'warn', label: 'Gekippt', color: SEVERITY_COLOR.warn };
         return { ...base, severity: 'crit', label: rd?.label ?? 'Offen', color: rd?.color ?? SEVERITY_COLOR.crit };
     }
 
