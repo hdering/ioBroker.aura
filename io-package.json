@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.50.5",
+    "version": "0.50.6",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,18 +107,18 @@
       }
     ],
     "news": {
-      "0.50.5": {
-        "en": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "de": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "ru": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "pt": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "nl": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "fr": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "it": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "es": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "pl": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "uk": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in",
-        "zh-cn": "🌟 New feature: Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in"
+      "0.50.6": {
+        "en": "Release v0.50.6",
+        "de": "Release v0.50.6",
+        "ru": "Release v0.50.6",
+        "pt": "Release v0.50.6",
+        "nl": "Release v0.50.6",
+        "fr": "Release v0.50.6",
+        "it": "Release v0.50.6",
+        "es": "Release v0.50.6",
+        "pl": "Release v0.50.6",
+        "uk": "Release v0.50.6",
+        "zh-cn": "Release v0.50.6"
       },
       "0.50.4": {
         "en": "Calendar - entries are no longer cut off on the left edge, keep the same spacing left and right, and follow the configured widget padding; the highlight bar of important events is visible again (#590)\n🌟 New feature: Lists - row conditions can now change the icon size, per datapoint and list-wide, in the static and the dynamic list (#572)\n🌟 New feature: List - the icon size of a row can now be set per datapoint, not only for the switch display (#572)",
