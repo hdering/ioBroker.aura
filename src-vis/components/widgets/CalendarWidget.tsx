@@ -876,8 +876,17 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const contentAutoHeight = options.autoHeight === true && layout !== 'custom';
     const autoHeight = popupAutoHeight || contentAutoHeight;
 
-    const listFillCls = autoHeight ? '' : 'aura-scroll flex-1 overflow-y-auto min-h-0';
+    // Event rows bleed a few px past the content column (-mx) so the row background
+    // and the "important" accent bar reach into the widget's padding gutter. With a
+    // fixed height the list scrolls, and `overflow-y:auto` promotes `overflow-x` to
+    // `auto` — a LTR scroll container cannot scroll into negative space, so it cuts
+    // that overhang off on the left while keeping it on the right (#590). Widening
+    // the scroller *and* its clipping parent by the bleed keeps the overhang inside
+    // both clip boxes; the content column stays exactly where it was.
+    const rowBleed = 'px-2 -mx-2';
+    const listFillCls = autoHeight ? '' : `aura-scroll flex-1 overflow-y-auto min-h-0 ${rowBleed}`;
     const listRootCls = autoHeight ? '' : 'h-full overflow-hidden';
+    const eventRootCls = autoHeight ? '' : `h-full overflow-hidden ${rowBleed}`;
     const rootHCls = autoHeight ? '' : 'h-full';
     // Empty/loading placeholders fill the box; with auto height they'd be razor-thin.
     const emptyCls = autoHeight ? 'py-2' : 'flex-1';
@@ -1214,7 +1223,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     // ── AGENDA ───────────────────────────────────────────────────────────────
     if (layout === 'agenda') {
         return (
-            <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1 ${listRootCls}`}>
+            <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1 ${eventRootCls}`}>
                 <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                         {showIcon && (
@@ -1352,7 +1361,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
 
     // ── DEFAULT ──────────────────────────────────────────────────────────────
     return (
-        <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1.5 ${listRootCls}`}>
+        <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1.5 ${eventRootCls}`}>
             <div className="flex items-center justify-between shrink-0 gap-1 min-w-0">
                 <div className="flex items-center gap-1 min-w-0 flex-1">
                     {showIcon && (
