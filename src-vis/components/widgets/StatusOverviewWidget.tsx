@@ -7,6 +7,7 @@ import {
     Lightbulb,
     WifiOff,
     Siren,
+    RefreshCw,
     type LucideIcon,
 } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
@@ -29,6 +30,7 @@ import {
     passesScope,
     evaluateItem,
     compareItems,
+    isStatusLoading,
     CATEGORY_ORDER,
     SEVERITY_COLOR,
     type CategoryKey,
@@ -60,6 +62,13 @@ function formatSince(lc: number): string {
     return `seit ${d} d`;
 }
 
+/**
+ * How long the widget waits for the last datapoint values before it shows what it has.
+ * A getState round-trip has no timeout of its own, so a request lost on a dropped socket
+ * would otherwise keep the widget spinning forever.
+ */
+const LOADING_GRACE_MS = 20000;
+
 /** Candidate = a datapoint that structurally belongs to a category; alert state is decided live. */
 interface Candidate {
     dp: DatapointEntry;
@@ -86,6 +95,10 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
 
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
+    // Discovery finished (the datapoint cache is in) — see the loading block below.
+    const [discovered, setDiscovered] = useState(false);
+    // Grace period for the outstanding values expired (LOADING_GRACE_MS).
+    const [settled, setSettled] = useState(false);
     const [batteryInfo, setBatteryInfo] = useState<
         Record<
             string,
@@ -120,6 +133,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     ]);
     useEffect(() => {
         let cancelled = false;
+        setDiscovered(false);
         ensureDatapointCache().then((cache) => {
             if (cancelled) return;
             const hmBatterySerials = collectHmBatterySerials(cache);
@@ -131,6 +145,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                 found.push({ dp, cat });
             }
             setCandidates(found);
+            setDiscovered(true);
         });
         return () => {
             cancelled = true;
@@ -152,6 +167,15 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         return () => unsubs.forEach((u) => u());
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [candidateKey]);
+
+    // Safety valve for the loading state: getState has no timeout of its own, so a
+    // reply lost on a flaky connection would leave the widget spinning for good.
+    useEffect(() => {
+        setSettled(false);
+        if (!discovered) return;
+        const t = setTimeout(() => setSettled(true), LOADING_GRACE_MS);
+        return () => clearTimeout(t);
+    }, [discovered, candidateKey]);
 
     // ── Battery type resolution (device model → library, manual override first) ──
     const batteryCandidates = useMemo(() => candidates.filter((c) => c.cat === 'battery'), [candidates]);
@@ -231,6 +255,13 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         return out;
     }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet]);
 
+    // ── Loading ────────────────────────────────────────────────────────────────
+    // Over a slow (external) connection the datapoint discovery and the first value
+    // round-trips take a moment. Until they are in, "Alles in Ordnung" would be a lie —
+    // the widget says it is still loading and shows the verdict only once the data is in.
+    const loadedStates = candidates.reduce((n, c) => (states[c.dp.id] === undefined ? n : n + 1), 0);
+    const loading = isStatusLoading({ discovered, settled, loaded: loadedStates, expected: candidates.length });
+
     // Label pipeline: name pattern (incl. the `{{parent}}` variables) → live `[[dp]]`
     // values. The resolver is a hook, so it has to run above the layout branches below —
     // it collects the raw labels of every item and subscribes to them in one go.
@@ -305,7 +336,20 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // would wipe a height that the re-attached ref had just reported (StrictMode
     // double-invoke), which left the grid item at its stored height in dev.
     // ── Attention chip (the one "loud" element) ────────────────────────────────
-    const chip = (
+    // While loading it stays neutral: a green "OK" would claim a verdict the widget
+    // does not have yet. Already known hints are counted, the count can still grow.
+    const chip = loading ? (
+        <span
+            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0"
+            style={{
+                color: 'var(--text-secondary)',
+                background: 'color-mix(in srgb, var(--text-secondary) 12%, var(--widget-bg, var(--app-surface)))',
+            }}
+        >
+            <RefreshCw size={12} className="animate-spin" />
+            {total > 0 ? `${total} …` : 'Lädt…'}
+        </span>
+    ) : (
         <span
             className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold shrink-0 transition-colors"
             style={
@@ -416,7 +460,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // ── all-clear (the intended normal state) — only when filtering to alerts ────
     // Defined before the layout branches so every layout can show it instead of an
     // empty body when there is nothing to report.
-    const allClear = total === 0 && !showAll && !opts.showOkCategories;
+    const allClear = total === 0 && !showAll && !opts.showOkCategories && !loading;
     const allClearBlock =
         opts.showAllClear === false ? null : (
             <div
@@ -432,13 +476,31 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             </div>
         );
 
+    // Still loading and nothing to show yet: the same slot as the all-clear panel, so
+    // the widget looks busy instead of reporting a verdict it cannot have yet. Hints
+    // that are already in are listed right away (with the spinner in the header).
+    const showLoading = loading && items.length === 0;
+    const loadingBlock = (
+        <div
+            className={`${autoHeight ? 'py-6' : 'flex-1 min-h-0'} flex flex-col items-center justify-center gap-1.5 text-center px-2`}
+        >
+            <RefreshCw size={22} className="animate-spin" style={{ color: 'var(--text-secondary)' }} />
+            <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                Daten werden geladen…
+            </p>
+            <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                {discovered ? `${loadedStates} von ${candidates.length} Datenpunkten` : 'Datenpunkte werden gesucht'}
+            </p>
+        </div>
+    );
+
     // Card and minimal render a bare item container, so an empty one would show
-    // nothing at all — hand those layouts the all-clear block instead.
-    if (allClear && (layout === 'card' || layout === 'minimal')) {
+    // nothing at all — hand those layouts the all-clear (or loading) block instead.
+    if ((showLoading || allClear) && (layout === 'card' || layout === 'minimal')) {
         return (
             <div ref={measureRef} className={rootCls}>
                 {header}
-                {allClearBlock}
+                {showLoading ? loadingBlock : allClearBlock}
             </div>
         );
     }
@@ -560,7 +622,9 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
             {header}
             {rowPopup.node}
 
-            {allClear ? (
+            {showLoading ? (
+                loadingBlock
+            ) : allClear ? (
                 allClearBlock
             ) : (
                 <div className={`${scrollCls} pr-0.5`}>
@@ -607,7 +671,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                           })}
                 </div>
             )}
-            {editMode && candidates.length === 0 && (
+            {editMode && discovered && candidates.length === 0 && (
                 <p className="text-[10px] mt-1 shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                     Keine passenden Datenpunkte gefunden – Kategorien/Filter prüfen.
                 </p>

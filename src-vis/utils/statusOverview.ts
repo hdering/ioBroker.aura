@@ -399,6 +399,25 @@ export function evaluateItem(
     return null;
 }
 
+/**
+ * True while the widget must not claim a verdict yet: the datapoint scan is still
+ * running, or values are still missing. Over a slow (external) connection both take a
+ * moment, and "Alles in Ordnung" during that window is simply wrong — it flips to open
+ * windows and weak batteries the second the data lands.
+ *
+ * `settled` is the grace-period escape hatch: a getState reply lost on a flaky
+ * connection would otherwise keep the widget loading forever.
+ */
+export function isStatusLoading(p: {
+    discovered: boolean;
+    settled: boolean;
+    loaded: number;
+    expected: number;
+}): boolean {
+    if (!p.discovered) return true;
+    return !p.settled && p.loaded < p.expected;
+}
+
 const SEVERITY_RANK: Record<Severity, number> = { crit: 0, warn: 1, ok: 2 };
 
 /** Sort comparator for status items: by severity (crit first) then name, or by room then name. */

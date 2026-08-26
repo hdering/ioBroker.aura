@@ -2,7 +2,8 @@
 // rotary handles (HmIP-SRH, HM-Sec-RHS), which publish role `state` with a
 // CLOSED/TILTED/OPEN enum instead of a contact role and were therefore never listed.
 // Also covers the value side: a numeric 2 (HomeMatic OPEN) must not read as closed the
-// way a plain truthy check does.
+// way a plain truthy check does, and the loading rule that keeps the widget from
+// reporting "Alles in Ordnung" while the datapoints are still coming in.
 //
 //   node tools/tests/status-overview-window.mjs
 //
@@ -20,7 +21,7 @@ const bundle = join(cache, `aura-status-window-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: [
-            "export { categoryOf, evaluateItem, contactLevel, hasContactStates } from './src-vis/utils/statusOverview.ts';",
+            "export { categoryOf, evaluateItem, contactLevel, hasContactStates, isStatusLoading } from './src-vis/utils/statusOverview.ts';",
             "export { normalizeStates } from './src-vis/hooks/useDatapointList.ts';",
         ].join('\n'),
         resolveDir: process.cwd(),
@@ -45,7 +46,7 @@ await build({
         },
     ],
 });
-const { categoryOf, evaluateItem, contactLevel, hasContactStates, normalizeStates } = await import(
+const { categoryOf, evaluateItem, contactLevel, hasContactStates, isStatusLoading, normalizeStates } = await import(
     pathToFileURL(bundle).href
 );
 rmSync(bundle, { force: true });
@@ -180,6 +181,18 @@ const RHS = dp({
         ev(dp({ role: 'sensor.window', states: undefined }), 2)?.severity,
         'crit',
     );
+}
+
+// ── 5. Loading: no verdict before the data is in ─────────────────────
+{
+    const load = (over) => isStatusLoading({ discovered: true, settled: false, loaded: 0, expected: 0, ...over });
+    eq('datapoint scan still running', load({ discovered: false }), true);
+    eq('scan done, values outstanding', load({ loaded: 3, expected: 12 }), true);
+    eq('scan done, no candidates at all', load({}), false);
+    eq('all values in', load({ loaded: 12, expected: 12 }), false);
+    // Grace period: a getState reply lost on a flaky link must not spin forever.
+    eq('grace period expired', load({ settled: true, loaded: 3, expected: 12 }), false);
+    eq('grace period does not skip the scan', load({ discovered: false, settled: true }), true);
 }
 
 const failed = results.filter((r) => !r.ok);
