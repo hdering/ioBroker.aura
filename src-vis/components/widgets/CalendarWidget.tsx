@@ -876,17 +876,14 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const contentAutoHeight = options.autoHeight === true && layout !== 'custom';
     const autoHeight = popupAutoHeight || contentAutoHeight;
 
-    // Event rows bleed a few px past the content column (-mx) so the row background
-    // and the "important" accent bar reach into the widget's padding gutter. With a
-    // fixed height the list scrolls, and `overflow-y:auto` promotes `overflow-x` to
-    // `auto` — a LTR scroll container cannot scroll into negative space, so it cuts
-    // that overhang off on the left while keeping it on the right (#590). Widening
-    // the scroller *and* its clipping parent by the bleed keeps the overhang inside
-    // both clip boxes; the content column stays exactly where it was.
-    const rowBleed = 'px-2 -mx-2';
-    const listFillCls = autoHeight ? '' : `aura-scroll flex-1 overflow-y-auto min-h-0 ${rowBleed}`;
+    // Event rows bleed 6px past the content column so the row background and the
+    // "important" accent bar reach into the widget's padding gutter. With a fixed
+    // height the list is a scroll container, which both clips that overhang on the
+    // left and shortens the content box on the right by the reserved scrollbar
+    // gutter — see .aura-bleed-* in index.css, which cancels out both (#590).
+    const listFillCls = autoHeight ? '' : 'aura-scroll aura-bleed-scroll flex-1 overflow-y-auto min-h-0';
     const listRootCls = autoHeight ? '' : 'h-full overflow-hidden';
-    const eventRootCls = autoHeight ? '' : `h-full overflow-hidden ${rowBleed}`;
+    const eventRootCls = autoHeight ? '' : 'aura-bleed-clip h-full overflow-hidden';
     const rootHCls = autoHeight ? '' : 'h-full';
     // Empty/loading placeholders fill the box; with auto height they'd be razor-thin.
     const emptyCls = autoHeight ? 'py-2' : 'flex-1';
@@ -1419,11 +1416,13 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                             : meta.isToday || meta.isNext
                                               ? `${ev.sourceColor}18`
                                               : undefined,
+                                        // Border plus padding add up to the px-1.5 of a
+                                        // normal row, so the accent bar widens the row
+                                        // inwards and every summary stays on one column.
                                         ...(important
                                             ? {
                                                   borderLeft: `2px solid ${highlightColor}`,
-                                                  marginLeft: -8,
-                                                  paddingLeft: 6,
+                                                  paddingLeft: 4,
                                               }
                                             : {}),
                                     }}

@@ -10,6 +10,7 @@ import { ThemeProvider } from './ThemeProvider';
 import { lazyWithReload, installChunkErrorRecovery } from './utils/lazyWithReload';
 import { setScreenshotMode, isScreenshotMode } from './store/persistManager';
 import { applyCachedThemeMode } from './utils/themeModeCache';
+import { publishScrollbarGutter } from './utils/scrollbarGutter';
 import { FEATURES } from './featureFlags';
 
 // Recharts' ResponsiveContainer logs a "width(-1) and height(-1) of chart should be
@@ -40,6 +41,11 @@ if (import.meta.env.DEV && new URLSearchParams(window.location.search).has('shot
 // switch rendered the stored daytime theme first and visibly flipped to dark a
 // moment later. The live DP value still overrides this on arrival.
 if (!isScreenshotMode()) applyCachedThemeMode();
+
+// Publish the reserved scrollbar gutter as --aura-sbw before the first paint, so
+// scrollers whose rows bleed past the content box can keep their spacing even on
+// the left and right (see .aura-bleed-* in index.css).
+publishScrollbarGutter();
 
 // Admin pages are large (editors, pickers, echart configurators) and are not
 // needed by the public dashboard route. Lazy-loaded so the frontend bundle

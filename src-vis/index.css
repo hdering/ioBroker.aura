@@ -265,6 +265,37 @@ iframe {
     background: transparent;
 }
 
+/* ── Row bleed inside a scroll container ─────────────────────────────────────
+   List rows that bleed past the content column (negative margins, so the row
+   background and an accent bar reach into the widget's padding gutter) hit two
+   problems inside a scroller: `overflow-y: auto` promotes `overflow-x` to
+   `auto`, which cuts the overhang off on the left because a LTR scroll
+   container cannot scroll into negative space — and `scrollbar-gutter: stable`
+   permanently shortens the content box on the right, so the same row ends up
+   closer to the left widget edge than to the right one (#590).
+
+   Both helpers widen the box by the bleed without moving its content box, so
+   the overhang stays inside the clip box on either side. The scroller also
+   pushes the reserved gutter out of its content box with the measured
+   --aura-sbw (see utils/scrollbarGutter.ts) — the scrollbar then sits in the
+   widget's padding next to the rows instead of eating into them.
+   ─────────────────────────────────────────────────────────────────────────── */
+.aura-bleed-clip,
+.aura-bleed-scroll {
+    --aura-bleed: 6px;
+    margin-left: calc(-1 * var(--aura-bleed));
+    padding-left: var(--aura-bleed);
+    margin-right: calc(-1 * (var(--aura-bleed) + var(--aura-sbw, 0px)));
+}
+/* The clipping parent has no gutter of its own — it only has to be wide enough
+   to not cut off the scroller inside it. */
+.aura-bleed-clip {
+    padding-right: calc(var(--aura-bleed) + var(--aura-sbw, 0px));
+}
+.aura-bleed-scroll {
+    padding-right: var(--aura-bleed);
+}
+
 /* ── Touch devices: hide the native scrollbar under .aura-scroll-touch ───────
    Tablets/phones use overlay scrollbars that fade out, and Blink ignores
    ::-webkit-scrollbar in overlay mode (incl. the DevTools device toolbar), so a
