@@ -279,20 +279,42 @@ iframe {
    pushes the reserved gutter out of its content box with the measured
    --aura-sbw (see utils/scrollbarGutter.ts) — the scrollbar then sits in the
    widget's padding next to the rows instead of eating into them.
+
+   How far the box may grow is capped by --aura-widget-pad, the "Innenabstand
+   der Widgets" the frame actually applied: the reserved band has to end at the
+   card edge at the latest. With a padding too small to hold bleed + gutter the
+   right margin stops at the padding and the left one turns into an equal inset,
+   which keeps both sides even instead of pushing the rows out of the card.
    ─────────────────────────────────────────────────────────────────────────── */
+/* Host of such a list: caps the row overhang at the padding the card actually
+   has, so the rows never reach past the card edge. --aura-bleed-max is the
+   overhang the layout would like (6px by default, set per layout). */
+.aura-bleed-host {
+    --aura-bleed: min(var(--aura-bleed-max, 6px), var(--aura-widget-pad, 16px));
+}
+.aura-bleed-row {
+    margin-left: calc(-1 * var(--aura-bleed, 0px));
+    margin-right: calc(-1 * var(--aura-bleed, 0px));
+}
 .aura-bleed-clip,
 .aura-bleed-scroll {
-    --aura-bleed: 6px;
-    margin-left: calc(-1 * var(--aura-bleed));
-    padding-left: var(--aura-bleed);
-    margin-right: calc(-1 * (var(--aura-bleed) + var(--aura-sbw, 0px)));
+    --aura-bleed-r: min(var(--aura-widget-pad, 16px), calc(var(--aura-bleed) + var(--aura-sbw, 0px)));
+    /* the left side carries no gutter, so it bleeds that much less */
+    --aura-bleed-l: calc(var(--aura-bleed-r) - var(--aura-sbw, 0px));
+    margin-right: calc(-1 * var(--aura-bleed-r));
 }
 /* The clipping parent has no gutter of its own — it only has to be wide enough
-   to not cut off the scroller inside it. */
+   to not cut off the scroller inside it, and must keep its content box put
+   (the widget header lines up with it). Padding cannot go negative, so an inset
+   left side simply needs no widening here. */
 .aura-bleed-clip {
-    padding-right: calc(var(--aura-bleed) + var(--aura-sbw, 0px));
+    margin-left: calc(-1 * max(0px, var(--aura-bleed-l)));
+    padding-left: max(0px, var(--aura-bleed-l));
+    padding-right: var(--aura-bleed-r);
 }
 .aura-bleed-scroll {
+    margin-left: calc(-1 * var(--aura-bleed-l));
+    padding-left: var(--aura-bleed);
     padding-right: var(--aura-bleed);
 }
 

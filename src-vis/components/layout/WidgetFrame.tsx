@@ -6651,6 +6651,12 @@ export function WidgetFrame({
         framingType === 'iframe' ||
         framingType === 'map' ||
         framingType === 'echartsPreset';
+    // Publish the padding that is actually applied, so widget content can align to
+    // the card edge instead of assuming the default. Scrolling lists whose rows
+    // bleed into this gutter need it to stay inside the card (.aura-bleed-* in
+    // index.css) — with a small "Innenabstand der Widgets" a fixed bleed would
+    // push the rows and the scrollbar past the card border (#590).
+    const padVar = { '--aura-widget-pad': `${isHeader || isNoPad ? 0 : widgetPadding}px` } as React.CSSProperties;
 
     return (
         <div
@@ -6660,6 +6666,7 @@ export function WidgetFrame({
             style={
                 isHeader || isTransparent
                     ? {
+                          ...padVar,
                           background: isHeader ? 'var(--header-bg, transparent)' : transparentBg,
                           borderRadius:
                               isTransparent && (editMode || transparencyStrength < 100) ? 'var(--widget-radius)' : 0,
@@ -6678,6 +6685,7 @@ export function WidgetFrame({
                               : {}),
                       }
                     : {
+                          ...padVar,
                           background: cardBg,
                           borderRadius: 'var(--widget-radius)',
                           boxShadow: 'var(--widget-shadow)',

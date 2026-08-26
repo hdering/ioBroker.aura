@@ -876,14 +876,18 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const contentAutoHeight = options.autoHeight === true && layout !== 'custom';
     const autoHeight = popupAutoHeight || contentAutoHeight;
 
-    // Event rows bleed 6px past the content column so the row background and the
-    // "important" accent bar reach into the widget's padding gutter. With a fixed
-    // height the list is a scroll container, which both clips that overhang on the
-    // left and shortens the content box on the right by the reserved scrollbar
-    // gutter — see .aura-bleed-* in index.css, which cancels out both (#590).
+    // Event rows bleed past the content column so the row background and the
+    // "important" accent bar reach into the widget's padding gutter — capped at
+    // that padding, so a small "Innenabstand der Widgets" never lets a row past
+    // the card edge. With a fixed height the list is a scroll container, which
+    // additionally clips the overhang on the left and shortens the content box on
+    // the right by the reserved scrollbar gutter. See .aura-bleed-* in index.css,
+    // which cancels out both and keeps the spacing even (#590).
     const listFillCls = autoHeight ? '' : 'aura-scroll aura-bleed-scroll flex-1 overflow-y-auto min-h-0';
     const listRootCls = autoHeight ? '' : 'h-full overflow-hidden';
-    const eventRootCls = autoHeight ? '' : 'aura-bleed-clip h-full overflow-hidden';
+    const eventRootCls = `aura-bleed-host ${autoHeight ? '' : 'aura-bleed-clip h-full overflow-hidden'}`;
+    // The agenda rows are denser and overhang less than the default ones.
+    const agendaBleed = { '--aura-bleed-max': '4px' } as React.CSSProperties;
     const rootHCls = autoHeight ? '' : 'h-full';
     // Empty/loading placeholders fill the box; with auto height they'd be razor-thin.
     const emptyCls = autoHeight ? 'py-2' : 'flex-1';
@@ -1220,7 +1224,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     // ── AGENDA ───────────────────────────────────────────────────────────────
     if (layout === 'agenda') {
         return (
-            <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1 ${eventRootCls}`}>
+            <div ref={measureRef} className={`aura-widget-row flex flex-col gap-1 ${eventRootCls}`} style={agendaBleed}>
                 <div className="flex items-center justify-between shrink-0 mb-0.5 gap-1 min-w-0">
                     <div className="flex items-center gap-1 min-w-0 flex-1">
                         {showIcon && (
@@ -1277,7 +1281,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                 return (
                                     <div
                                         key={ev.uid}
-                                        className={`${meta.className} flex items-center gap-2 min-h-0 shrink-0 py-0.5 rounded px-1 -mx-1 transition-colors`}
+                                        className={`${meta.className} aura-bleed-row flex items-center gap-2 min-h-0 shrink-0 py-0.5 rounded px-1 transition-colors`}
                                         data-calendar-event={meta.dataAttr}
                                         style={{
                                             background: important
@@ -1408,7 +1412,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                             return (
                                 <div
                                     key={ev.uid}
-                                    className={`${meta.className} flex items-start gap-2 min-h-0 shrink-0 rounded-lg px-1.5 py-0.5 -mx-1.5 transition-colors`}
+                                    className={`${meta.className} aura-bleed-row flex items-start gap-2 min-h-0 shrink-0 rounded-lg px-1.5 py-0.5 transition-colors`}
                                     data-calendar-event={meta.dataAttr}
                                     style={{
                                         background: important

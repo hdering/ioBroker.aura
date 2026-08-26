@@ -149,9 +149,15 @@ const NO_PAD_TYPES = new Set(['header', 'group', 'panels', 'iframe', 'map', 'ech
  */
 function cardStyleFor(w: WidgetConfig, widgetPadding: number): CSSProperties {
     const isTransparent = !!w.options?.transparent;
+    // Same as in WidgetFrame: content that bleeds into the card padding needs to
+    // know how much of it there actually is (see .aura-bleed-* in index.css).
+    const padVar = {
+        '--aura-widget-pad': `${NO_PAD_TYPES.has(w.type) ? 0 : widgetPadding}px`,
+    } as CSSProperties;
     if (isTransparent) {
         const strength = Math.max(0, Math.min(100, Number(w.options?.transparency ?? 100)));
         return {
+            ...padVar,
             background:
                 strength >= 100
                     ? 'transparent'
@@ -160,6 +166,7 @@ function cardStyleFor(w: WidgetConfig, widgetPadding: number): CSSProperties {
     }
     const isButton = w.type === 'button';
     return {
+        ...padVar,
         background: isButton ? 'var(--button-bg, var(--widget-bg))' : 'var(--widget-bg)',
         borderRadius: 'var(--widget-radius)',
         boxShadow: 'var(--widget-shadow)',
