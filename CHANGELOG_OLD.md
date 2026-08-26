@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.47.8 (2026-08-18)
+- Date picker - custom patterns without a native field (e.g. `yyyy`, `dd.MM`) now open a picker list of their own instead of only accepting typed input
+- 🌟 **New feature:** Shutter - slat tilt for venetian blinds and external blinds: its own datapoint with value range and inversion, a vertical regulator beside the blind graphic (left or right), step buttons or a popover in the flat layouts, and an option for whether the slats already follow the regulator while dragging ([#547](https://github.com/hdering/ioBroker.aura/issues/547))
+- 🌟 **New feature:** Messages - unanswered messages now survive a page reload: per severity (errors by default) they reappear until someone confirms or closes them on any device
+
 ## 0.47.7 (2026-08-17)
 - Messages - editing the presentation defaults under Admin -> Messages now activates the Save button instead of writing every keystroke straight to the instance; Undo restores the stored values
 - 🌟 **New feature:** Messages - the send time can now be shown on the message card: pick the default under Admin -> Messages (clock, or date plus clock), and override it per message with `showTime` / `timeFormat`

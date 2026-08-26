@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.50.5 (2026-08-26)
+- 🌟 **New feature:** Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in
+
+
 ### 0.50.4 (2026-08-26)
 - Calendar - entries are no longer cut off on the left edge, keep the same spacing left and right, and follow the configured widget padding; the highlight bar of important events is visible again ([#590](https://github.com/hdering/ioBroker.aura/issues/590))
 - 🌟 **New feature:** Lists - row conditions can now change the icon size, per datapoint and list-wide, in the static and the dynamic list ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
@@ -241,12 +245,6 @@ Release v0.47.13
 - Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places ([#548](https://github.com/hdering/ioBroker.aura/issues/548))
 
 
-### 0.47.8 (2026-08-18)
-- Date picker - custom patterns without a native field (e.g. `yyyy`, `dd.MM`) now open a picker list of their own instead of only accepting typed input
-- 🌟 **New feature:** Shutter - slat tilt for venetian blinds and external blinds: its own datapoint with value range and inversion, a vertical regulator beside the blind graphic (left or right), step buttons or a popover in the flat layouts, and an option for whether the slats already follow the regulator while dragging ([#547](https://github.com/hdering/ioBroker.aura/issues/547))
-- 🌟 **New feature:** Messages - unanswered messages now survive a page reload: per severity (errors by default) they reappear until someone confirms or closes them on any device
-
-
 ## License
 
 MIT License
@@ -258,6 +256,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
