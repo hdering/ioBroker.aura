@@ -120,13 +120,14 @@ Ausblenden ist absorbierend.
 | `clauses` / `logic` | wie bei den [Widget-Bedingungen](../einstellungen/editor#bedingungen-marker-operatoren), inkl. Vergleich gegen einen zweiten Datenpunkt |
 | `color` · `bg` · `iconColor` | Textfarbe · Zeilenhintergrund (nur `row`) · Icon-Farbe |
 | `icon` | anderes Icon, solange die Regel greift |
+| `iconSize` | Icon-Größe in px, solange die Regel greift; leer lässt die eingestellte Größe |
 | `text` | ersetzt den angezeigten Text; die Einheit entfällt dabei |
 | `bold` · `italic` | Schriftschnitt |
 | `effect` | `pulse` · `blink` — lässt das Element pulsieren bzw. blinken |
 | `hide` | Element ausblenden |
 
-Eine Regel auf `row` gibt Textfarbe, Fett/Kursiv und Icon an Name, Wert und Icon weiter; Hintergrund und
-Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen sie.
+Eine Regel auf `row` gibt Textfarbe, Fett/Kursiv sowie Icon, Icon-Farbe und Icon-Größe an Name, Wert und
+Icon weiter; Hintergrund und Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen sie.
 
 #### Datenpunkt einer Bedingung
 
@@ -198,6 +199,8 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Einträge | Datenpunkte hinzufügen, per Drag & Drop sortieren, löschen; rechts der Detail-Editor (ID, Icon, Bezeichnung, Format, Darstellung, Farben, Schwellen). Ab 8 Einträgen mit Filterfeld |
 | Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
 | Namen | Namensmuster und Namens-Filter |
+
+Das Icon vor dem Namen wird je Datenpunkt im Abschnitt **Beschriftung** gesetzt (`entries[].icon`, [Lucide](https://lucide.dev) / Iconify-ID), die Größe daneben in px (`entries[].iconSize`, Standard `11`, im Default-Layout `13`).
 
 Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Farbschwellen** · **Verhalten** (letzte Änderung, Klick auf Zeile).
 

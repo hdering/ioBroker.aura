@@ -90,6 +90,7 @@ function RuleEditor({
     onDelete,
     targets,
     ownHint,
+    allowIconSize,
 }: {
     rule: ElementConditionRule;
     onChange: (r: ElementConditionRule) => void;
@@ -98,6 +99,8 @@ function RuleEditor({
     targets: ElementConditionTarget[];
     /** Explains what `{dp}` refers to in this context. */
     ownHint: string;
+    /** The host renders the icon at a size a rule may override. */
+    allowIconSize: boolean;
 }) {
     const [open, setOpen] = useState(true);
     const [showIcon, setShowIcon] = useState(false);
@@ -112,14 +115,18 @@ function RuleEditor({
     // a rule that overrides text or icon *is* adjusting the element, and "anpassen"
     // with nothing filled in yet has nothing worth persisting. Picking it only has
     // to survive until the fields are filled, so local state is enough.
-    const derivedMode: Mode = rule.hide ? 'hide' : rule.text !== undefined || rule.icon ? 'adjust' : 'unchanged';
+    const derivedMode: Mode = rule.hide
+        ? 'hide'
+        : rule.text !== undefined || rule.icon || rule.iconSize !== undefined
+          ? 'adjust'
+          : 'unchanged';
     const [modePick, setModePick] = useState<Mode | null>(null);
     const mode = modePick ?? derivedMode;
     const setMode = (m: Mode) => {
         setModePick(m);
         // Back to "unverändert" drops the overrides — a text left behind an
         // untouched element would still paint.
-        if (m === 'unchanged') update({ hide: undefined, text: undefined, icon: undefined });
+        if (m === 'unchanged') update({ hide: undefined, text: undefined, icon: undefined, iconSize: undefined });
         else update({ hide: m === 'hide' ? true : undefined });
     };
 
@@ -367,6 +374,27 @@ function RuleEditor({
                                             <Trash2 size={12} />
                                         </button>
                                     )}
+                                    {/* Size sits next to the picker, like in the widget dialog: it
+                                        resizes whatever icon the element shows, an override of its
+                                        own is not required. */}
+                                    {allowIconSize && (
+                                        <input
+                                            type="number"
+                                            min={6}
+                                            max={200}
+                                            value={rule.iconSize ?? ''}
+                                            onChange={(e) => {
+                                                // Same guard the entry editor uses: 0 or a typo is
+                                                // "no override", not an icon of zero pixels.
+                                                const n = Number(e.target.value);
+                                                update({ iconSize: isFinite(n) && n > 0 ? n : undefined });
+                                            }}
+                                            placeholder="px"
+                                            title="Icon-Größe in px — leer lässt die eingestellte Größe"
+                                            className="w-11 shrink-0 text-[10px] rounded px-1.5 py-1 focus:outline-none text-center"
+                                            style={fieldStyle}
+                                        />
+                                    )}
                                 </Row>
                             )}
                         </div>
@@ -394,6 +422,7 @@ export function ElementConditionEditor({
     targets = [],
     ownHint,
     intro,
+    allowIconSize = false,
 }: {
     rules: ElementConditionRule[];
     onChange: (next: ElementConditionRule[]) => void;
@@ -403,6 +432,11 @@ export function ElementConditionEditor({
     ownHint?: string;
     /** Shown instead of the generic empty-state text. */
     intro?: string;
+    /**
+     * Offer the icon size. Off by default: a custom-grid cell sizes its icon from the
+     * cell box, so the field would be one that does nothing there.
+     */
+    allowIconSize?: boolean;
 }) {
     const update = (i: number, r: ElementConditionRule) => onChange(rules.map((x, j) => (j === i ? r : x)));
     const remove = (i: number) => onChange(rules.filter((_, j) => j !== i));
@@ -436,6 +470,7 @@ export function ElementConditionEditor({
                     onDelete={() => remove(i)}
                     targets={targets}
                     ownHint={hint}
+                    allowIconSize={allowIconSize}
                 />
             ))}
 

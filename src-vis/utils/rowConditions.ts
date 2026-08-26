@@ -28,6 +28,7 @@ export interface ElementCondResult {
     italic?: boolean;
     icon?: string;
     iconColor?: string;
+    iconSize?: number;
     text?: string;
     effect?: 'pulse' | 'blink';
     hide?: boolean;
@@ -101,6 +102,7 @@ function applyEffects(into: ElementCondResult, rule: ElementConditionRule): void
     if (rule.italic !== undefined) into.italic = rule.italic;
     if (rule.icon) into.icon = rule.icon;
     if (rule.iconColor) into.iconColor = rule.iconColor;
+    if (rule.iconSize !== undefined) into.iconSize = rule.iconSize;
     if (rule.text !== undefined && rule.text !== '') into.text = rule.text;
     if (rule.effect && rule.effect !== 'none') into.effect = rule.effect;
     // Hiding is absorbing — a later rule never brings the element back.
@@ -166,7 +168,7 @@ export function partOf(
         bold: row.bold,
         italic: row.italic,
         effect: row.effect,
-        ...(target === 'icon' ? { icon: row.icon, iconColor: row.iconColor } : null),
+        ...(target === 'icon' ? { icon: row.icon, iconColor: row.iconColor, iconSize: row.iconSize } : null),
     };
     return own ? { ...base, ...stripUndefined(own) } : base;
 }

@@ -271,6 +271,7 @@ export function AutoEntryDetail({
                     rules={entry.conditions ?? []}
                     onChange={(next) => onUpdate({ conditions: next.length ? next : undefined })}
                     targets={ROW_TARGETS}
+                    allowIconSize
                     ownHint="{dp} = Wert dieser Zeile; Pille umschalten für einen anderen Datenpunkt."
                     intro="Noch keine Regel. Regeln reagieren auf den Zeilenwert (oder einen fremden Datenpunkt) und ändern Farbe, Icon, Text oder blenden die Zeile aus."
                 />

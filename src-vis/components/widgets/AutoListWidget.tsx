@@ -1585,7 +1585,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
                                         const EntryIcon =
                                             iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
-                                        const entryIconSize = entry.iconSize ?? opts.entryIconSize ?? 13;
+                                        const entryIconSize =
+                                            cIcon.iconSize ?? entry.iconSize ?? opts.entryIconSize ?? 13;
                                         const label = getLabel(entry);
                                         const eOn = isActive(val);
                                         const entryActiveColor = entry.activeColor || globalActiveColor;
@@ -1725,7 +1726,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     // entry, from the list-wide default, or from a rule.
                                     const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
                                     const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
-                                    const entryIconSize = entry.iconSize ?? opts.entryIconSize ?? 13;
+                                    const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? opts.entryIconSize ?? 13;
                                     const label = getLabel(entry);
                                     const isRight = i % 2 === 1;
                                     const eOn = isActive(val);
@@ -1864,7 +1865,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     // entry, from the list-wide default, or from a rule.
                                     const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
                                     const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
-                                    const entryIconSize = entry.iconSize ?? opts.entryIconSize ?? 13;
+                                    const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? opts.entryIconSize ?? 13;
                                     const label = getLabel(entry);
                                     const writable = entry.writable !== false;
                                     // Rich controls have no compact pill form — show their value, no toggle.
@@ -2071,7 +2072,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                 // entry, from the list-wide default, or from a rule.
                                 const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
                                 const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
-                                const entryIconSize = entry.iconSize ?? opts.entryIconSize ?? 13;
+                                const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? opts.entryIconSize ?? 13;
                                 const label = getLabel(entry);
                                 const roomLabel = entry.rooms?.join(', ');
                                 const eOn = isActive(val);

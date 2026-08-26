@@ -88,7 +88,13 @@ function SubDpItem({
             }}
             title={sub.label ? `${sub.label} ${text}` : text}
         >
-            {Icon && <Icon size={fontSize + 3} className="shrink-0" style={{ color: cond?.iconColor ?? color }} />}
+            {Icon && (
+                <Icon
+                    size={cond?.iconSize ?? fontSize + 3}
+                    className="shrink-0"
+                    style={{ color: cond?.iconColor ?? color }}
+                />
+            )}
             {sub.label && <span className="truncate opacity-80">{sub.label}</span>}
             <span className="tabular-nums truncate">{text}</span>
         </span>

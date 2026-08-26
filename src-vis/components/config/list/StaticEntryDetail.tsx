@@ -176,6 +176,30 @@ export function StaticEntryDetail({
                             )}
                         </div>
                     </div>
+                    {/* Größe des Zeilen-Icons, wie in der dynamischen Liste. Bei der
+                        Schalter-Darstellung bearbeitet das Feld unter "Darstellung"
+                        denselben Wert — dann steht es nur dort. */}
+                    {entry.icon && !isSwitch && (
+                        <div className="w-11 shrink-0">
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                px
+                            </label>
+                            <input
+                                type="number"
+                                min={8}
+                                max={64}
+                                className={iCls}
+                                style={iSty}
+                                placeholder="11"
+                                title="Icon-Größe in px"
+                                value={entry.iconSize ?? ''}
+                                onChange={(e) => {
+                                    const n = parseInt(e.target.value, 10);
+                                    onUpdate({ iconSize: isFinite(n) && n > 0 ? n : undefined });
+                                }}
+                            />
+                        </div>
+                    )}
                     <div className="flex-1 min-w-0">
                         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                             Bezeichnung
@@ -550,6 +574,7 @@ export function StaticEntryDetail({
                     rules={entry.conditions ?? []}
                     onChange={(next) => onUpdate({ conditions: next.length ? next : undefined })}
                     targets={ROW_TARGETS}
+                    allowIconSize
                     ownHint="{dp} = Wert dieser Zeile; Pille umschalten für einen anderen Datenpunkt."
                     intro="Noch keine Regel. Regeln reagieren auf den Zeilenwert (oder einen fremden Datenpunkt) und ändern Farbe, Icon, Text oder blenden die Zeile aus."
                 />

@@ -730,6 +730,7 @@ export interface CellConditionRule {
     italic?: boolean;
     icon?: string; // icon override (icon / state-icon cells, list row icon)
     iconColor?: string; // icon colour, when it should differ from the text colour
+    iconSize?: number; // icon size in px (list rows / second-line datapoints); undefined = the element's configured size
     text?: string; // replaces the displayed text ("true" → "ONLINE")
     /** Same two effects the widget level offers, applied to this element alone. */
     effect?: 'none' | 'pulse' | 'blink';

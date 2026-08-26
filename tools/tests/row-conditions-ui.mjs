@@ -31,7 +31,11 @@ const ROW_RULES = [
     rule('on', 'value', [clause('{dp}', 'true')], { text: 'ONLINE' }),
     rule('off', 'value', [clause('{dp}', 'false')], { text: 'OFFLINE' }),
     rule('hide', 'row', [clause('{{parent}}.HIDE', 'true')], { hide: true }),
-    rule('unreach', 'icon', [clause('{{parent}}.UNREACH', 'true')], { icon: 'CloudOff', iconColor: '#ff0000' }),
+    rule('unreach', 'icon', [clause('{{parent}}.UNREACH', 'true')], {
+        icon: 'CloudOff',
+        iconColor: '#ff0000',
+        iconSize: 26,
+    }),
 ];
 
 const staticList = {
@@ -42,7 +46,8 @@ const staticList = {
     gridPos: { x: 0, y: 0, w: 14, h: 10 },
     options: {
         entries: [
-            { id: 'demo.dev1.STATE', label: 'Eins', icon: 'Lightbulb' },
+            // An own icon size, so the rule below has something to beat.
+            { id: 'demo.dev1.STATE', label: 'Eins', icon: 'Lightbulb', iconSize: 18 },
             {
                 id: 'demo.dev2.STATE',
                 label: 'Zwei',
@@ -68,7 +73,10 @@ const autoList = {
             { id: 'demo.dev1.STATE', label: 'Auto-Eins', icon: 'Lightbulb', iconSize: 16 },
             { id: 'demo.dev2.STATE', label: 'Auto-Zwei', icon: 'Lightbulb', iconSize: 16 },
         ],
-        rowConditions: [rule('auto-name', 'name', [clause('{{parent}}.UNREACH', 'true')], { color: '#ff00ff' })],
+        rowConditions: [
+            rule('auto-name', 'name', [clause('{{parent}}.UNREACH', 'true')], { color: '#ff00ff' }),
+            rule('auto-size', 'icon', [clause('{{parent}}.UNREACH', 'true')], { iconSize: 26 }),
+        ],
         syncIntervalMin: 999,
     },
 };
@@ -108,6 +116,16 @@ const textOf = (widget) => page.evaluate((w) => document.querySelector(`.aura-wi
 const iconColors = (widget) =>
     page.evaluate(
         (w) => [...document.querySelectorAll(`.aura-widget-${w} svg`)].map((s) => getComputedStyle(s).color),
+        widget,
+    );
+
+/** Rendered box width of every icon — a rule may resize one. */
+const iconWidths = (widget) =>
+    page.evaluate(
+        (w) =>
+            [...document.querySelectorAll(`.aura-widget-${w} svg`)].map((s) =>
+                Math.round(s.getBoundingClientRect().width),
+            ),
         widget,
     );
 
@@ -157,6 +175,13 @@ await settle();
         colors.filter((c) => c === 'rgb(255, 0, 0)').length === 1,
         colors.join(' '),
     );
+
+    const widths = await iconWidths('rc-list');
+    check(
+        'static: the same rule resizes exactly that icon',
+        widths.filter((w) => w === 26).length === 1 && !widths.includes(18),
+        widths.join(' '),
+    );
 }
 
 // ── the effects follow the value ─────────────────────────────────────────────
@@ -167,6 +192,12 @@ await settle();
     check('static: the value text follows the datapoint', !body.includes('ONLINE'), body.replace(/\n/g, ' | '));
     const colors = await iconColors('rc-list');
     check('static: the icon rule releases the icon again', !colors.includes('rgb(255, 0, 0)'), colors.join(' '));
+    const widths = await iconWidths('rc-list');
+    check(
+        'static: and the row falls back to its own icon size',
+        !widths.includes(26) && widths.includes(18),
+        widths.join(' '),
+    );
 }
 
 // ── dynamic list ─────────────────────────────────────────────────────────────
@@ -187,6 +218,14 @@ check(
     (await colorOf('rc-auto', 'Auto-Zwei')) !== 'rgb(255, 0, 255)',
     String(await colorOf('rc-auto', 'Auto-Zwei')),
 );
+{
+    const widths = await iconWidths('rc-auto');
+    check(
+        'dynamic: a list-wide rule resizes only the matching row icon',
+        widths.filter((w) => w === 26).length === 1 && widths.includes(16),
+        widths.join(' '),
+    );
+}
 
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

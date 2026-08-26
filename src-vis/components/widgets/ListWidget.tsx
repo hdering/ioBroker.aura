@@ -1225,7 +1225,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 (rc?.row?.bg ??
                                     (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg)) ||
                                 'var(--app-bg)';
-                            const entryIconSize = entry.iconSize ?? 11;
+                            const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
                             const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
                             const rowProps = rowPopup.row(
@@ -1346,7 +1346,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const stateBg =
                                 rc?.row?.bg ??
                                 (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
-                            const entryIconSize = entry.iconSize ?? 11;
+                            const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
                             const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
                             const rowProps = rowPopup.row(
@@ -1550,7 +1550,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                   : null;
                             const clickable = writable && !roleDisplay && !forceValue && (forceSwitch || isBoolLike);
 
-                            const entryIconSize = entry.iconSize ?? 11;
+                            const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 11;
                             const entryFontSize = entry.fontSize;
                             const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
                             const lcText =
@@ -1683,7 +1683,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             rc?.row?.bg ??
                             (eOn ? entry.activeBg || globalActiveBg : entry.inactiveBg || globalInactiveBg);
 
-                        const entryIconSize = entry.iconSize ?? 13;
+                        const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 13;
                         const entryFontSize = entry.fontSize;
                         const lcTs = entry.showLastChange ? states[entry.id]?.lc || states[entry.id]?.ts || 0 : 0;
                         const rowProps = rowPopup.row(

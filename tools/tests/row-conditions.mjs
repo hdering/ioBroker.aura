@@ -201,6 +201,37 @@ check('isOwnRef: a neighbour', isOwnRef('hm-rpc.0.Thermostat.UNREACH', ROW) === 
     eq('partOf: the icon does not leak into the name', partOf(res, 'name').icon, undefined);
 }
 
+// ── icon size ────────────────────────────────────────────────────────────────
+{
+    // A size without an icon override is legal: it resizes whatever the row shows.
+    const res = evalRowRules(
+        [rule('r', [clause('{dp}', 'active')], { target: 'icon', iconSize: 28 })],
+        ROW,
+        1,
+        noValues,
+    );
+    eq('iconSize: an icon rule carries the size', res.icon?.iconSize, 28);
+    eq('iconSize: nothing else is touched', res.icon?.icon, undefined);
+}
+{
+    const res = evalRowRules([rule('r', [clause('{dp}', 'active')], { icon: 'Zap', iconSize: 22 })], ROW, 1, noValues);
+    eq('iconSize: a row rule reaches the icon part', partOf(res, 'icon').iconSize, 22);
+    eq('iconSize: the size does not leak into the name', partOf(res, 'name').iconSize, undefined);
+}
+{
+    const res = evalRowRules(
+        [
+            rule('lw', [clause('{dp}', 'active')], { target: 'icon', iconSize: 16, iconColor: '#f00' }),
+            rule('e', [clause('{dp}', 'active')], { target: 'icon', iconSize: 32 }),
+        ],
+        ROW,
+        1,
+        noValues,
+    );
+    eq('iconSize: the later rule wins', res.icon?.iconSize, 32);
+    eq('iconSize: the colour of the earlier rule survives', res.icon?.iconColor, '#f00');
+}
+
 // ── pulse / blink, the effects the widget level always had ──────────────────
 {
     const res = evalRowRules([rule('r', [clause('{dp}', 'active')], { effect: 'blink' })], ROW, 1, noValues);
