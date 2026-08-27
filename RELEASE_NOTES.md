@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Dynamic list - one icon for all rows (icon, size and colour), set in the new "Icon" tab of the datapoint dialog; a per-datapoint icon and conditions still override it
+- Color picker - dragging a colour no longer freezes the UI: the value now reaches the config at most every 120 ms, with the final one always applied

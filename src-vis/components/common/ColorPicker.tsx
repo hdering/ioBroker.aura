@@ -18,6 +18,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useOverlayZ } from '../../contexts/OverlayZContext';
+import { createThrottle } from '../../utils/throttleCommit';
 
 interface Props {
     /** Current color: `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()/rgba()` or a CSS var. */
@@ -134,6 +135,12 @@ function isCompleteColor(raw: string): boolean {
     return false;
 }
 
+/**
+ * How long the picker coalesces drag updates before handing one to the config.
+ * See utils/throttleCommit for why an unthrottled drag locks the main thread.
+ */
+const COMMIT_MS = 120;
+
 export function ColorPicker({
     value,
     onChange,
@@ -150,25 +157,53 @@ export function ColorPicker({
     const idRef = useRef(0);
     if (idRef.current === 0) idRef.current = ++pickerSeq;
 
+    // What the swatch and the popover render while a drag is in flight: the parent
+    // only learns the throttled value, so the UI would lag a whole window behind it.
+    const [live, setLive] = useState<string | null>(null);
+
+    const onChangeRef = useRef(onChange);
+    onChangeRef.current = onChange;
+    const throttleRef = useRef<ReturnType<typeof createThrottle<string>>>();
+    if (!throttleRef.current) throttleRef.current = createThrottle((v) => onChangeRef.current(v), COMMIT_MS);
+    const { push, flush } = throttleRef.current;
+
+    /** Hand the picker's final value over and drop the local copy. */
+    const settle = () => {
+        flush();
+        setLive(null);
+    };
+    // A value must never be lost because the picker went away mid-drag.
+    useEffect(() => () => flush(), [flush]);
+
     // Close this picker when another one opens.
     useEffect(() => {
         const onOtherOpen = (e: Event) => {
-            if ((e as CustomEvent<number>).detail !== idRef.current) setOpen(false);
+            if ((e as CustomEvent<number>).detail !== idRef.current) {
+                flush();
+                setLive(null);
+                setOpen(false);
+            }
         };
         window.addEventListener(PICKER_OPEN_EVENT, onOtherOpen);
         return () => window.removeEventListener(PICKER_OPEN_EVENT, onOtherOpen);
-    }, []);
+    }, [flush]);
 
     const toggle = () => {
         if (disabled) return;
-        setOpen((v) => {
-            const next = !v;
-            if (next) window.dispatchEvent(new CustomEvent(PICKER_OPEN_EVENT, { detail: idRef.current }));
-            return next;
-        });
+        // Not inside the setState updater: settle() has side effects and React may
+        // run an updater twice.
+        if (open) {
+            settle();
+            setOpen(false);
+            return;
+        }
+        window.dispatchEvent(new CustomEvent(PICKER_OPEN_EVENT, { detail: idRef.current }));
+        setOpen(true);
     };
 
-    const { hex6, alpha } = parseColor(value, fallback);
+    const { hex6, alpha } = parseColor(live ?? value, fallback);
+    // A colour picked in this session is a colour, whatever the parent still says.
+    const showUnset = unset && live === null;
 
     const swatchColor = combineColor(hex6, alphaEnabled ? alpha : 100);
 
@@ -197,7 +232,7 @@ export function ColorPicker({
                         width: '100%',
                         height: '100%',
                         borderRadius: 'inherit',
-                        ...(unset ? NO_COLOR : { background: swatchColor }),
+                        ...(showUnset ? NO_COLOR : { background: swatchColor }),
                     }}
                 />
             </button>
@@ -207,8 +242,15 @@ export function ColorPicker({
                     hex6={hex6}
                     alpha={alpha}
                     alphaEnabled={alphaEnabled}
-                    onChange={onChange}
-                    onClose={() => setOpen(false)}
+                    onChange={(v) => {
+                        setLive(v);
+                        push(v);
+                    }}
+                    onSettle={settle}
+                    onClose={() => {
+                        settle();
+                        setOpen(false);
+                    }}
                 />
             )}
         </>
@@ -221,13 +263,17 @@ function ColorPopover({
     alpha,
     alphaEnabled,
     onChange,
+    onSettle,
     onClose,
 }: {
     anchorRef: React.RefObject<HTMLButtonElement>;
     hex6: string;
     alpha: number;
     alphaEnabled: boolean;
+    /** Throttled on its way to the config - fine to call on every pointer move. */
     onChange: (value: string) => void;
+    /** End of an interaction (pointer released, field left): deliver the last value now. */
+    onSettle: () => void;
     onClose: () => void;
 }) {
     const portalTarget = usePortalTarget();
@@ -326,6 +372,7 @@ function ColorPopover({
                     type="color"
                     value={hex6}
                     onChange={(e) => onChange(combineColor(e.target.value, alphaEnabled ? alpha : 100))}
+                    onBlur={onSettle}
                     className="cursor-pointer rounded"
                     style={{ width: 40, height: 32, border: '1px solid var(--app-border)', padding: 1 }}
                 />
@@ -344,9 +391,13 @@ function ColorPopover({
                     onBlur={(e) => {
                         editingRef.current = false;
                         commitHex(e.target.value);
+                        onSettle();
                     }}
                     onKeyDown={(e) => {
-                        if (e.key === 'Enter') commitHex((e.target as HTMLInputElement).value);
+                        if (e.key === 'Enter') {
+                            commitHex((e.target as HTMLInputElement).value);
+                            onSettle();
+                        }
                     }}
                     spellCheck={false}
                     className="flex-1 min-w-0 text-xs rounded px-2 py-1.5 focus:outline-none"
@@ -390,6 +441,9 @@ function ColorPopover({
                             max={100}
                             value={alpha}
                             onChange={(e) => onChange(combineColor(hex6, Number(e.target.value)))}
+                            onPointerUp={onSettle}
+                            onKeyUp={onSettle}
+                            onBlur={onSettle}
                             className="absolute inset-0 w-full cursor-pointer"
                             style={{ margin: 0, background: 'transparent', accentColor: 'var(--accent, #3b82f6)' }}
                         />
