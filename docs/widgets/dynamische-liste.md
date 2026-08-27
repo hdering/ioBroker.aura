@@ -53,12 +53,12 @@ Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Besch
 
 ### Icon vor dem Namen
 
-Die Datenpunkte kommen aus einem Filter und ändern sich beim Sync, deshalb wird das Icon einmal für die ganze Liste gesetzt: Dialog → Tab **Icon** ([Lucide](https://lucide.dev) / Iconify-ID, Größe in px, Standard `13`).
+Die Datenpunkte kommen aus einem Filter und ändern sich beim Sync, deshalb wird das Icon einmal für die ganze Liste gesetzt: Dialog → Tab **Icon** ([Lucide](https://lucide.dev) / Iconify-ID, Größe in px, Standard `13`, dazu die Farbe).
 
 | Quelle | |
 | --- | --- |
-| `entryIcon` · `entryIconSize` | Dialog → Tab **Icon**: gilt für **alle** Zeilen |
-| `entries[].icon` · `entries[].iconSize` | Detail-Editor → Abschnitt **Beschriftung**: nur diese Zeile |
+| `entryIcon` · `entryIconSize` · `entryIconColor` | Dialog → Tab **Icon**: gilt für **alle** Zeilen |
+| `entries[].icon` · `entries[].iconSize` | Detail-Editor → Abschnitt **Beschriftung**: nur diese Zeile — die Farbe gibt es nur listenweit |
 | `icon` · `iconSize` · `iconColor` einer Bedingung | solange die Regel greift — gewinnt gegen beide |
 
 Der Tab zeigt eine Vorschau der ersten Zeilen und wie viele Datenpunkte ein eigenes Icon haben; **Eigene Icons entfernen** setzt sie zurück, damit die Vorgabe überall gilt.
@@ -218,6 +218,7 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `showCount` | `true` | Anzahl hinter dem Titel |
 | `entryIcon` | — | [Icon vor dem Namen](#icon-vor-dem-namen) — gilt für alle Zeilen |
 | `entryIconSize` | `13` | px |
+| `entryIconColor` | `--text-secondary` | Farbe des Zeilen-Icons (im Layout `minimal` sonst die Badge-Farbe) |
 | `showId` | `false` | Datenpunkt-ID unter dem Label |
 | `showRoom` | `false` | Räume unter dem Label |
 | `showEntryLastChange` | `false` | Zeitstempel der letzten Änderung je Eintrag |

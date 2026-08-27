@@ -7,17 +7,21 @@
  * This panel sets the default every discovered row starts with.
  *
  * Precedence in the widget (all four layouts): a condition rule beats the entry's own
- * icon, which beats this default — `cIcon.icon ?? entry.icon ?? opts.entryIcon`.
+ * icon, which beats this default — `cIcon.icon ?? entry.icon ?? opts.entryIcon`. The
+ * colour has no per-entry step, so there a rule beats `opts.entryIconColor` directly.
  */
 import { useMemo, useState } from 'react';
 import { Plus, X } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../IconPickerModal';
+import { ColorField } from './listFieldUi';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import type { AutoListOptions } from '../../widgets/AutoListWidget';
 
 const PREVIEW_ROWS = 6;
 const DEFAULT_SIZE = 13;
+/** What an icon without a colour renders as — the picker starts there. */
+const DEFAULT_COLOR = '#6b7280';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -38,6 +42,7 @@ export function ListIconPanel({
     const entries = (opts.entries ?? []).filter((e) => !!e?.id);
     const icon = opts.entryIcon;
     const size = opts.entryIconSize;
+    const color = opts.entryIconColor;
     const ownIconCount = entries.filter((e) => !!e.icon).length;
 
     const previewKey = entries.map((e) => `${e.id}|${e.icon ?? ''}|${e.iconSize ?? ''}`).join(',');
@@ -96,7 +101,13 @@ export function ListIconPanel({
                         </button>
                         {icon && (
                             <button
-                                onClick={() => onOptsChange({ entryIcon: undefined, entryIconSize: undefined })}
+                                onClick={() =>
+                                    onOptsChange({
+                                        entryIcon: undefined,
+                                        entryIconSize: undefined,
+                                        entryIconColor: undefined,
+                                    })
+                                }
                                 title="Icon entfernen"
                                 className="absolute -top-1.5 -right-1.5 flex items-center justify-center rounded-full hover:opacity-80"
                                 style={{
@@ -130,6 +141,16 @@ export function ListIconPanel({
                                     entryIconSize: e.target.value === '' ? undefined : Number(e.target.value),
                                 })
                             }
+                        />
+                    </div>
+                )}
+                {icon && (
+                    <div className="pb-0.5">
+                        <ColorField
+                            label="Farbe"
+                            value={color}
+                            fallback={DEFAULT_COLOR}
+                            onChange={(v) => onOptsChange({ entryIconColor: v })}
                         />
                     </div>
                 )}
@@ -174,7 +195,7 @@ export function ListIconPanel({
                                         icon={toIconifyId(p.icon)}
                                         width={p.size}
                                         height={p.size}
-                                        style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                        style={{ color: color ?? 'var(--text-secondary)', flexShrink: 0 }}
                                     />
                                 ) : (
                                     <span style={{ width: DEFAULT_SIZE, flexShrink: 0 }} />

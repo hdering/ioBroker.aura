@@ -216,6 +216,8 @@ export interface AutoListOptions
     entryIcon?: string;
     /** Size of that icon in px. Default 13. */
     entryIconSize?: number;
+    /** Colour of that icon. Unset = --text-secondary (the badge colour in `minimal`). */
+    entryIconColor?: string;
     /**
      * Conditional formatting applied to EVERY row (issue #572). Clause datapoints may
      * use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one
@@ -1685,6 +1687,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                                 color:
                                                                     cIcon.iconColor ??
                                                                     cIcon.color ??
+                                                                    opts.entryIconColor ??
                                                                     'var(--text-secondary)',
                                                                 animation: condAnimation(cIcon),
                                                             }}
@@ -1824,6 +1827,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                             color:
                                                                 cIcon.iconColor ??
                                                                 cIcon.color ??
+                                                                opts.entryIconColor ??
                                                                 'var(--text-secondary)',
                                                             animation: condAnimation(cIcon),
                                                         }}
@@ -2070,7 +2074,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     size={entryIconSize}
                                                     className="shrink-0 opacity-70"
                                                     style={{
-                                                        color: cIcon.iconColor ?? cIcon.color,
+                                                        color: cIcon.iconColor ?? cIcon.color ?? opts.entryIconColor,
                                                         animation: condAnimation(cIcon),
                                                     }}
                                                 />
@@ -2178,7 +2182,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     className="shrink-0 mt-0.5"
                                                     style={{
                                                         color:
-                                                            cIcon.iconColor ?? cIcon.color ?? 'var(--text-secondary)',
+                                                            cIcon.iconColor ??
+                                                            cIcon.color ??
+                                                            opts.entryIconColor ??
+                                                            'var(--text-secondary)',
                                                         animation: condAnimation(cIcon),
                                                     }}
                                                 />

@@ -6,7 +6,8 @@
 // The rows of a dynamic list come from a filter, so the icon is configured once for
 // the whole list (options.entryIcon / entryIconSize, editor tab "Icon"). Checked here
 // in every layout that draws a row icon: the default applies to each row, an entry's
-// own icon still wins, and a condition rule beats both.
+// own icon still wins, and a condition rule beats both. The colour (entryIconColor)
+// has no per-entry step, so there the rule beats the list-wide value directly.
 //
 // Datapoint values are injected into the in-memory cache via the screenshot harness
 // (__auraShot.mock) — no socket write, no real datapoint is touched.
@@ -28,6 +29,8 @@ const rule = (id, target, clauses, effects) => ({ id, logic: 'AND', target, clau
 const GLOBAL_SIZE = 19;
 const OWN_SIZE = 24;
 const RULE_SIZE = 28;
+const GLOBAL_COLOR = '#0000ff';
+const RULE_COLOR = '#ff0000';
 
 const listFor = (layout, y) => ({
     id: `ai-${layout}`,
@@ -45,10 +48,11 @@ const listFor = (layout, y) => ({
         ],
         entryIcon: 'Lightbulb',
         entryIconSize: GLOBAL_SIZE,
+        entryIconColor: GLOBAL_COLOR,
         rowConditions: [
             rule('unreach', 'icon', [clause('{{parent}}.UNREACH', 'true')], {
                 icon: 'CloudOff',
-                iconColor: '#ff0000',
+                iconColor: RULE_COLOR,
                 iconSize: RULE_SIZE,
             }),
         ],
@@ -134,6 +138,13 @@ for (const layout of LAYOUTS) {
         widths.filter((x) => x === OWN_SIZE).length === 1,
         widths.join(' '),
     );
+    const colors = await iconColors(w);
+    // Every row icon — the entry's own one included, the colour has no per-entry step.
+    check(
+        `${layout}: the list-wide colour paints every row icon`,
+        colors.filter((c) => c === 'rgb(0, 0, 255)').length === 3,
+        colors.join(' '),
+    );
 }
 
 // ── a rule beats the list-wide icon ──────────────────────────────────────────
@@ -150,7 +161,8 @@ for (const layout of LAYOUTS) {
     const colors = await iconColors(w);
     check(
         `${layout}: and recolours exactly that icon`,
-        colors.filter((c) => c === 'rgb(255, 0, 0)').length === 1,
+        colors.filter((c) => c === 'rgb(255, 0, 0)').length === 1 &&
+            colors.filter((c) => c === 'rgb(0, 0, 255)').length === 2,
         colors.join(' '),
     );
 }
