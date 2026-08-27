@@ -15,3 +15,5 @@ Dynamic list - the Schalter display now also works for string and enum datapoint
 Charts, lists and value display - new "show as negative" option in the value conversion, for figures that are logged as positive but belong below the zero line, such as grid feed-in or battery charging (#594)
 Advanced chart - consumption bars (delta aggregation) came out as a row of zeros when a negative display factor was set; the counter is now differenced before the sign is applied (#594)
 Advanced chart - the day navigation gained a date field, so a day can be picked directly instead of stepping there one day at a time (#594)
+Advanced chart - a bar axis now always includes zero, so bar lengths stay proportional to their values and a series drawn downwards keeps its zero line; pure line charts still fit their own range, and an explicit axis minimum still wins (#594)
+Advanced chart - horizontal grid lines were missing when every series was assigned to the right y axis (#594)

@@ -35,6 +35,7 @@ import {
 } from '../../utils/stackedSeries';
 import { openNativePicker } from '../common/DateTimeInput';
 import { transformSign } from '../../utils/valueTransform';
+import { axisIsZeroBased, gridLineAxis } from '../../utils/chartAxis';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
@@ -433,7 +434,11 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // A stack is read as "these parts add up to that whole", which only works from a zero
     // baseline: cut the axis at 100 and the bottom band looks like it floats, while the band
     // heights stop being proportional to the values (issue #541). An explicit min still wins.
-    const stackedOn = (axis: 0 | 1) => echartSeries.some((s) => s.stack && (s.yAxisIndex ?? 0) === axis);
+    // Bars and stacks are read from the zero line, and the grid lines have to come from an axis
+    // that actually carries series — see utils/chartAxis (issue #594).
+    const zeroBased = (axis: 0 | 1) => axisIsZeroBased(echartSeries, axis);
+    const gridAxis = gridLineAxis(echartSeries);
+    const showGridOn = (axis: 0 | 1) => echartShowYAxis && echartShowGridLines && gridAxis === axis;
 
     // `{value}` hands the tick through unformatted, and with min/max on "Auto" (`dataMin`/
     // `dataMax`) the outermost ticks are raw samples — 16.759028325055955 °C instead of
@@ -447,7 +452,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         type: 'value',
         // Fit the axis to the data range instead of forcing zero in — otherwise a
         // line at e.g. 200–250 sits at the top with the whole 0–200 band left blank.
-        scale: !stackedOn(0) || leftMin !== undefined,
+        // Bars and stacks are the exception; see `zeroBased`.
+        scale: !zeroBased(0) || leftMin !== undefined,
         axisLabel: {
             show: echartShowYAxis,
             color: '#888',
@@ -456,7 +462,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         },
         axisTick: { show: echartShowYAxis },
         axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
-        splitLine: { show: echartShowYAxis && echartShowGridLines, lineStyle: { color: '#333' } },
+        splitLine: { show: showGridOn(0), lineStyle: { color: '#333' } },
         ...(leftMin !== undefined ? { min: leftMin } : {}),
         ...(leftMax !== undefined ? { max: leftMax } : {}),
     };
@@ -464,7 +470,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const rightAxis: Record<string, unknown> = hasRightAxis
         ? {
               type: 'value',
-              scale: !stackedOn(1) || rightMin !== undefined,
+              scale: !zeroBased(1) || rightMin !== undefined,
               axisLabel: {
                   show: echartShowYAxisRight,
                   color: '#888',
@@ -473,7 +479,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
               },
               axisTick: { show: echartShowYAxisRight },
               axisLine: { show: echartShowYAxisRight, lineStyle: { color: '#444' } },
-              splitLine: { show: false },
+              splitLine: { show: showGridOn(1), lineStyle: { color: '#333' } },
               ...(rightMin !== undefined ? { min: rightMin } : {}),
               ...(rightMax !== undefined ? { max: rightMax } : {}),
           }

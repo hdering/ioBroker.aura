@@ -179,6 +179,20 @@ an der die Serie hängt.
 Bei `aggregate: delta` wird vor der Differenzbildung umgerechnet: der Faktor wirkt auf den Verbrauch,
 der Offset fällt heraus (die Differenz zweier verschobener Zählerstände ist dieselbe).
 
+### Skala der Y-Achse
+
+| Serien auf der Achse              | Skala                                                                              |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| Balken, gestapelt oder `delta`    | enthält immer die 0 — die Balkenlänge ist der Wert, die Nulllinie bleibt sichtbar  |
+| nur Linie / Fläche / Punkte       | passt sich dem Wertebereich an (eine Kurve bei 200–250 klebt sonst am oberen Rand) |
+| `echartLeftMin` / `echartLeftMax` | gesetzte Grenzen gewinnen in beiden Fällen                                         |
+
+Beide Y-Achsen entscheiden das für sich: Balken links und eine Temperaturkurve rechts behalten
+jede ihre passende Skala.
+
+Die horizontalen Hilfslinien zeichnet immer nur **eine** Achse — zwei verschieden skalierte Raster
+würden sich überkreuzen. Normalerweise die linke; hängen alle Serien an der rechten, übernimmt sie.
+
 #### Negativ darstellen
 
 Häkchen **Negativ darstellen (× −1)** im ƒx-Dialog. Zeichnet die Serie unter der Nulllinie —
@@ -206,7 +220,7 @@ für Einspeisung und Batterie-Ladung, die als positive Werte geliefert werden.
 | Datenquelle                    | Verlaufs-Adapter (history, influxdb, sql)                                                                                                                                                                                       |
 | Zeiteinheit                    | `deltaBucket` — Kalendergrenzen in lokaler Zeit                                                                                                                                                                                 |
 | Chart-Typ                      | beim Umschalten automatisch `bar`                                                                                                                                                                                               |
-| Y-Achse                        | `echartLeftMin: 0` setzen — die automatische Skala beginnt am kleinsten Balken                                                                                                                                                  |
+| Y-Achse                        | beginnt automatisch bei 0 (Balken werden von der Nulllinie gelesen)                                                                                                                                                             |
 | Rücksprung um Mitternacht      | Reset eines Tageszählers; der Anstieg danach zählt voll                                                                                                                                                                         |
 | Rücksprung innerhalb des Tages | bei einem täglich zurückspringenden Zähler der Reset des Tages (der Anstieg danach zählt voll); jeder weitere Rücksprung am selben Tag gilt als Ausreißer — weder er noch der Sprung zurück auf den alten Stand werden gewertet |
 | Buckets ohne Datensatz         | übersprungen; ihr Verbrauch fällt in den nächsten Bucket mit Daten                                                                                                                                                              |
@@ -244,7 +258,7 @@ Nur im Modus `json`.
 | `echartShowYAxis`                       | `true`   | Y-Achsen anzeigen                                                                       |
 | `echartShowYAxisRight`                  | `true`   | rechte Y-Achse beschriften; aus = nur die linke Skala, die rechte Achse skaliert weiter |
 | `echartShowXAxis`                       | `true`   | X-Achse anzeigen                                                                        |
-| `echartShowGridLines`                   | `true`   | horizontale Hilfslinien                                                                 |
+| `echartShowGridLines`                   | `true`   | horizontale Hilfslinien (von der Achse, an der die Serien hängen)                       |
 | `echartLeftUnit`                        | —        | Einheit der linken Y-Achse                                                              |
 | `echartRightUnit`                       | —        | Einheit der rechten Y-Achse                                                             |
 | `echartLeftMin` / `echartLeftMax`       | `auto`   | Skala links; Zahl oder `dataMin`/`dataMax`                                              |

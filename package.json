@@ -96,6 +96,7 @@
         "test:shutter-tilt": "node tools/tests/shutter-tilt.mjs",
         "test:chart-delta": "node tools/tests/chart-delta-reset.mjs",
         "test:chart-day-picker": "node tools/tests/chart-day-picker.mjs",
+        "test:chart-zero-line": "node tools/tests/chart-zero-line.mjs",
         "test:transform-sign": "node tools/tests/value-transform-sign.mjs",
         "test:chart-json-axis": "node tools/tests/chart-json-axis.mjs",
         "test:chart-axis-source": "node tools/tests/chart-axis-source.mjs",
