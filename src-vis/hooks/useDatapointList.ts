@@ -8,6 +8,12 @@ export interface DatapointEntry {
     unit?: string;
     role?: string;
     write?: boolean; // false = read-only (common.write === false)
+    // common.min / max / step. Only set when the datapoint declares them, so a
+    // detector can pre-fill a widget's value range (e.g. an AV receiver's dB volume
+    // scale of -80.5…16.5) instead of falling back to the 0…100 default.
+    min?: number;
+    max?: number;
+    step?: number;
     rooms: string[]; // labels from enum.rooms.*
     funcs: string[]; // labels from enum.functions.*
     logging: string[]; // enabled logging adapter IDs, e.g. ['history.0', 'influxdb.0']
@@ -28,9 +34,36 @@ let cache: DatapointEntry[] | null = null;
 let cacheTime = 0;
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+// Names of the channel/device objects above the states. loadAll() reads these rows
+// anyway (to compose the "Kanal › State" display name) – keeping them lets structural
+// detectors label a find with its real device name without a second object read.
+let objectNames: Map<string, string> = new Map();
+let deviceIds: Set<string> = new Set();
+
 export function invalidateDatapointCache() {
     cache = null;
     cacheTime = 0;
+    objectNames = new Map();
+    deviceIds = new Set();
+}
+
+/** Name of the channel or device object with exactly this id, or null. */
+export function lookupObjectName(id: string): string | null {
+    return objectNames.get(id) ?? null;
+}
+
+/**
+ * Name of the nearest `device` object above (or at) `id` – e.g. the receiver
+ * "Wohnzimmer" for a state inside its `player.netPlayer` channel. Channels are
+ * skipped on the way up, so the result is the physical device, not its subtree.
+ */
+export function lookupDeviceName(id: string): string | null {
+    const parts = id.split('.');
+    for (let i = parts.length; i >= 2; i--) {
+        const candidate = parts.slice(0, i).join('.');
+        if (deviceIds.has(candidate)) return objectNames.get(candidate) ?? null;
+    }
+    return null;
 }
 
 let loadInProgress: Promise<DatapointEntry[]> | null = null;
@@ -136,6 +169,8 @@ async function loadAll(): Promise<DatapointEntry[]> {
         const n = resolveName(obj.common.name, '');
         if (n) parentNames.set(id, n);
     }
+    objectNames = parentNames;
+    deviceIds = new Set(deviceResult.rows.map((r) => r.id));
 
     // Build memberId → { rooms, funcs } map from enums
     const enumMap = new Map<string, { rooms: string[]; funcs: string[] }>();
@@ -221,6 +256,9 @@ async function loadAll(): Promise<DatapointEntry[]> {
                 role: common.role,
                 states: normalizeStates(common.states),
                 write: common.write !== false ? undefined : false,
+                min: typeof common.min === 'number' ? common.min : undefined,
+                max: typeof common.max === 'number' ? common.max : undefined,
+                step: typeof common.step === 'number' ? common.step : undefined,
                 rooms: [...roomsSet],
                 funcs: [...funcsSet],
                 logging,

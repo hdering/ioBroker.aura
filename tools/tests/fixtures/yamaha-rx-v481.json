@@ -1,0 +1,2430 @@
+{
+ "yamaha.0.RX-V481": {
+  "type": "device",
+  "common": {
+   "name": "Wohnzimmer"
+  }
+ },
+ "yamaha.0.RX-V481.actualVolume": {
+  "type": "state",
+  "common": {
+   "name": "Volume (dB)",
+   "type": "number",
+   "role": "value",
+   "read": true,
+   "write": false,
+   "unit": "dB"
+  }
+ },
+ "yamaha.0.RX-V481.actualVolumeMode": {
+  "type": "state",
+  "common": {
+   "name": "Volume display mode",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": false,
+   "states": {
+    "db": "db",
+    "numeric": "numeric"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.advanced": {
+  "type": "channel",
+  "common": {
+   "name": "Advanced"
+  }
+ },
+ "yamaha.0.RX-V481.advanced.initialVolume": {
+  "type": "channel",
+  "common": {
+   "name": "Initial volume"
+  }
+ },
+ "yamaha.0.RX-V481.advanced.initialVolume.level": {
+  "type": "state",
+  "common": {
+   "name": "Initial volume level",
+   "type": "number",
+   "role": "level.volume",
+   "read": true,
+   "write": true,
+   "unit": "dB",
+   "min": -80.5,
+   "max": 16.5,
+   "step": 0.5
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames": {
+  "type": "channel",
+  "common": {
+   "name": "Input names"
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.audio1": {
+  "type": "state",
+  "common": {
+   "name": "Input name AUDIO1",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.audio2": {
+  "type": "state",
+  "common": {
+   "name": "Input name AUDIO2",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.av1": {
+  "type": "state",
+  "common": {
+   "name": "Input name AV1",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.av2": {
+  "type": "state",
+  "common": {
+   "name": "Input name AV2",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.av3": {
+  "type": "state",
+  "common": {
+   "name": "Input name AV3",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.av4": {
+  "type": "state",
+  "common": {
+   "name": "Input name AV4",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.hdmi1": {
+  "type": "state",
+  "common": {
+   "name": "Input name HDMI1",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.hdmi2": {
+  "type": "state",
+  "common": {
+   "name": "Input name HDMI2",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.hdmi3": {
+  "type": "state",
+  "common": {
+   "name": "Input name HDMI3",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.hdmi4": {
+  "type": "state",
+  "common": {
+   "name": "Input name HDMI4",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.inputNames.usb": {
+  "type": "state",
+  "common": {
+   "name": "Input name USB",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.advanced.maxVolume": {
+  "type": "state",
+  "common": {
+   "name": "Maximum volume",
+   "type": "number",
+   "role": "level.volume",
+   "read": true,
+   "write": true,
+   "unit": "dB",
+   "min": -30,
+   "max": 16.5,
+   "step": 5
+  }
+ },
+ "yamaha.0.RX-V481.advanced.speakerA": {
+  "type": "state",
+  "common": {
+   "name": "Speaker A",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.advanced.speakerB": {
+  "type": "state",
+  "common": {
+   "name": "Speaker B",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.advanced.speakers": {
+  "type": "channel",
+  "common": {
+   "name": "Speakers"
+  }
+ },
+ "yamaha.0.RX-V481.advanced.speakers.pattern1Swfr1": {
+  "type": "state",
+  "common": {
+   "name": "Speaker pattern 1 subwoofer 1",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": true,
+   "states": {
+    "None": "None",
+    "Use": "Use"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.hdmi": {
+  "type": "channel",
+  "common": {
+   "name": "HDMI"
+  }
+ },
+ "yamaha.0.RX-V481.hdmi.out1": {
+  "type": "state",
+  "common": {
+   "name": "HDMI OUT1",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.hdmi.out2": {
+  "type": "state",
+  "common": {
+   "name": "HDMI OUT2",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.info": {
+  "type": "channel",
+  "common": {
+   "name": "Info"
+  }
+ },
+ "yamaha.0.RX-V481.info.connection": {
+  "type": "state",
+  "common": {
+   "name": "Connected",
+   "type": "boolean",
+   "role": "indicator.reachable",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.info.firmware": {
+  "type": "state",
+  "common": {
+   "name": "Firmware version",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.info.model": {
+  "type": "state",
+  "common": {
+   "name": "Model",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.info.transports": {
+  "type": "channel",
+  "common": {
+   "name": "Transports"
+  }
+ },
+ "yamaha.0.RX-V481.info.transports.xml": {
+  "type": "state",
+  "common": {
+   "name": "XML connected",
+   "type": "boolean",
+   "role": "indicator.reachable",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.info.transports.ynca": {
+  "type": "state",
+  "common": {
+   "name": "YNCA connected",
+   "type": "boolean",
+   "role": "indicator.reachable",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.info.transports.yxc": {
+  "type": "state",
+  "common": {
+   "name": "YXC connected",
+   "type": "boolean",
+   "role": "indicator.reachable",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.input": {
+  "type": "state",
+  "common": {
+   "name": "Input",
+   "type": "string",
+   "role": "media.input",
+   "read": true,
+   "write": true,
+   "states": {
+    "AUDIO": "AUDIO",
+    "AUDIO1": "AUDIO1",
+    "AUDIO2": "AUDIO2",
+    "AUDIO3": "AUDIO3",
+    "AUDIO4": "AUDIO4",
+    "AUDIO5": "AUDIO5",
+    "AV1": "AV1",
+    "AV2": "AV2",
+    "AV3": "AV3",
+    "AV4": "AV4",
+    "AV5": "AV5",
+    "AV6": "AV6",
+    "AV7": "AV7",
+    "CD": "CD",
+    "COAXIAL1": "COAXIAL1",
+    "COAXIAL2": "COAXIAL2",
+    "DOCK": "DOCK",
+    "HDMI1": "HDMI1",
+    "HDMI2": "HDMI2",
+    "HDMI3": "HDMI3",
+    "HDMI4": "HDMI4",
+    "HDMI5": "HDMI5",
+    "HDMI6": "HDMI6",
+    "HDMI7": "HDMI7",
+    "LINE1": "LINE1",
+    "LINE2": "LINE2",
+    "LINE3": "LINE3",
+    "Main Zone Sync": "Main Zone Sync",
+    "MULTI CH": "MULTI CH",
+    "OPTICAL1": "OPTICAL1",
+    "OPTICAL2": "OPTICAL2",
+    "PHONO": "PHONO",
+    "TV": "TV",
+    "V-AUX": "V-AUX",
+    "AirPlay": "AirPlay",
+    "Bluetooth": "Bluetooth",
+    "Deezer": "Deezer",
+    "iPod": "iPod",
+    "iPod (USB)": "iPod (USB)",
+    "MusicCast Link": "MusicCast Link",
+    "Napster": "Napster",
+    "NET RADIO": "NET RADIO",
+    "Pandora": "Pandora",
+    "PC": "PC",
+    "Rhapsody": "Rhapsody",
+    "SERVER": "SERVER",
+    "SIRIUS": "SIRIUS",
+    "SIRIUS InternetRadio": "SIRIUS InternetRadio",
+    "SiriusXM": "SiriusXM",
+    "Spotify": "Spotify",
+    "TIDAL": "TIDAL",
+    "TUNER": "TUNER",
+    "UAW": "UAW",
+    "USB": "USB"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.inputText": {
+  "type": "state",
+  "common": {
+   "name": "Input name (display)",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom": {
+  "type": "channel",
+  "common": {
+   "name": "Multiroom"
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group": {
+  "type": "channel",
+  "common": {
+   "name": "MusicCast group (linked devices)"
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group.id": {
+  "type": "state",
+  "common": {
+   "name": "Group ID",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group.leave": {
+  "type": "state",
+  "common": {
+   "name": "Leave group",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group.linkDevice": {
+  "type": "state",
+  "common": {
+   "name": "Link a device (its IP)",
+   "type": "string",
+   "role": "text",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group.linkedDevices": {
+  "type": "state",
+  "common": {
+   "name": "Linked devices",
+   "type": "string",
+   "role": "json",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group.name": {
+  "type": "state",
+  "common": {
+   "name": "Group name",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group.role": {
+  "type": "state",
+  "common": {
+   "name": "Role (server/client)",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group.serverZone": {
+  "type": "state",
+  "common": {
+   "name": "Server zone (feeds the group)",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.group.streamingEnabled": {
+  "type": "state",
+  "common": {
+   "name": "Multiroom streaming enabled",
+   "type": "boolean",
+   "role": "indicator",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.masterPower": {
+  "type": "state",
+  "common": {
+   "name": "Master power (all zones)",
+   "type": "boolean",
+   "role": "switch.power",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.party": {
+  "type": "state",
+  "common": {
+   "name": "Party mode (all zones)",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2": {
+  "type": "channel",
+  "common": {
+   "name": "Zone 2"
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.actualVolume": {
+  "type": "state",
+  "common": {
+   "name": "Volume (dB)",
+   "type": "number",
+   "role": "value",
+   "read": true,
+   "write": false,
+   "unit": "dB"
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.actualVolumeMode": {
+  "type": "state",
+  "common": {
+   "name": "Volume display mode",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": false,
+   "states": {
+    "db": "db",
+    "numeric": "numeric"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.advanced": {
+  "type": "channel",
+  "common": {
+   "name": "Advanced"
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.advanced.maxVolume": {
+  "type": "state",
+  "common": {
+   "name": "Maximum volume",
+   "type": "number",
+   "role": "value",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.input": {
+  "type": "state",
+  "common": {
+   "name": "Input",
+   "type": "string",
+   "role": "media.input",
+   "read": true,
+   "write": true,
+   "states": {
+    "spotify": "spotify",
+    "juke": "juke",
+    "qobuz": "qobuz",
+    "airplay": "airplay",
+    "mc_link": "mc_link",
+    "server": "server",
+    "net_radio": "net_radio",
+    "bluetooth": "bluetooth",
+    "usb": "usb",
+    "tuner": "tuner",
+    "hdmi1": "hdmi1",
+    "hdmi2": "hdmi2",
+    "hdmi3": "hdmi3",
+    "hdmi4": "hdmi4",
+    "av1": "av1",
+    "av2": "av2",
+    "av3": "av3",
+    "av4": "av4",
+    "audio1": "audio1",
+    "audio2": "audio2",
+    "aux": "aux"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.inputText": {
+  "type": "state",
+  "common": {
+   "name": "Input name (display)",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.mute": {
+  "type": "state",
+  "common": {
+   "name": "Mute",
+   "type": "boolean",
+   "role": "media.mute",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.power": {
+  "type": "state",
+  "common": {
+   "name": "Power",
+   "type": "boolean",
+   "role": "switch.power",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zone2.volume": {
+  "type": "state",
+  "common": {
+   "name": "Volume",
+   "type": "number",
+   "role": "level.volume",
+   "read": true,
+   "write": true,
+   "min": 0,
+   "max": 161,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zoneB": {
+  "type": "channel",
+  "common": {
+   "name": "Zone B"
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zoneB.available": {
+  "type": "state",
+  "common": {
+   "name": "Zone B availability",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": false,
+   "states": {
+    "Not Connected": "Not Connected",
+    "Not Ready": "Not Ready",
+    "Ready": "Ready"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zoneB.mute": {
+  "type": "state",
+  "common": {
+   "name": "Zone B mute",
+   "type": "boolean",
+   "role": "media.mute",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zoneB.name": {
+  "type": "state",
+  "common": {
+   "name": "Zone B name",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zoneB.power": {
+  "type": "state",
+  "common": {
+   "name": "Zone B power",
+   "type": "boolean",
+   "role": "switch.power",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.multiroom.zoneB.volume": {
+  "type": "state",
+  "common": {
+   "name": "Zone B volume",
+   "type": "number",
+   "role": "level.volume",
+   "read": true,
+   "write": true,
+   "unit": "dB",
+   "min": -80.5,
+   "max": 16.5,
+   "step": 0.5
+  }
+ },
+ "yamaha.0.RX-V481.mute": {
+  "type": "state",
+  "common": {
+   "name": "Mute",
+   "type": "boolean",
+   "role": "media.mute",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player": {
+  "type": "channel",
+  "common": {
+   "name": "Media player"
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay": {
+  "type": "channel",
+  "common": {
+   "name": "AirPlay"
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay.album": {
+  "type": "state",
+  "common": {
+   "name": "Album",
+   "type": "string",
+   "role": "media.album",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay.artist": {
+  "type": "state",
+  "common": {
+   "name": "Artist",
+   "type": "string",
+   "role": "media.artist",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay.elapsedTime": {
+  "type": "state",
+  "common": {
+   "name": "Elapsed time",
+   "type": "string",
+   "role": "media.elapsed.text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay.next": {
+  "type": "state",
+  "common": {
+   "name": "Next",
+   "type": "boolean",
+   "role": "button.next",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay.playback": {
+  "type": "state",
+  "common": {
+   "name": "Playback",
+   "type": "number",
+   "role": "media.state",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Play",
+    "1": "Stop",
+    "2": "Pause"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay.prev": {
+  "type": "state",
+  "common": {
+   "name": "Previous",
+   "type": "boolean",
+   "role": "button.prev",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay.totalTime": {
+  "type": "state",
+  "common": {
+   "name": "Total time",
+   "type": "string",
+   "role": "media.duration.text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.airplay.track": {
+  "type": "state",
+  "common": {
+   "name": "Track",
+   "type": "string",
+   "role": "media.title",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth": {
+  "type": "channel",
+  "common": {
+   "name": "Bluetooth"
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.album": {
+  "type": "state",
+  "common": {
+   "name": "Album",
+   "type": "string",
+   "role": "media.album",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.artist": {
+  "type": "state",
+  "common": {
+   "name": "Artist",
+   "type": "string",
+   "role": "media.artist",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.connect": {
+  "type": "state",
+  "common": {
+   "name": "Connect",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.connected": {
+  "type": "state",
+  "common": {
+   "name": "Connected",
+   "type": "boolean",
+   "role": "indicator",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.next": {
+  "type": "state",
+  "common": {
+   "name": "Next",
+   "type": "boolean",
+   "role": "button.next",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.pairing": {
+  "type": "state",
+  "common": {
+   "name": "Start pairing",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.pairingCancel": {
+  "type": "state",
+  "common": {
+   "name": "Cancel pairing",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.playback": {
+  "type": "state",
+  "common": {
+   "name": "Playback",
+   "type": "number",
+   "role": "media.state",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Play",
+    "1": "Stop",
+    "2": "Pause"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.prev": {
+  "type": "state",
+  "common": {
+   "name": "Previous",
+   "type": "boolean",
+   "role": "button.prev",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.bluetooth.track": {
+  "type": "state",
+  "common": {
+   "name": "Track",
+   "type": "string",
+   "role": "media.title",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse": {
+  "type": "channel",
+  "common": {
+   "name": "Browse"
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.back": {
+  "type": "state",
+  "common": {
+   "name": "Back",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.busy": {
+  "type": "state",
+  "common": {
+   "name": "Busy",
+   "type": "boolean",
+   "role": "indicator",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.currentLine": {
+  "type": "state",
+  "common": {
+   "name": "Current line",
+   "type": "number",
+   "role": "value",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.home": {
+  "type": "state",
+  "common": {
+   "name": "Menu root",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.layer": {
+  "type": "state",
+  "common": {
+   "name": "Menu level",
+   "type": "number",
+   "role": "value",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.line1": {
+  "type": "state",
+  "common": {
+   "name": "Line 1",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.line2": {
+  "type": "state",
+  "common": {
+   "name": "Line 2",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.line3": {
+  "type": "state",
+  "common": {
+   "name": "Line 3",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.line4": {
+  "type": "state",
+  "common": {
+   "name": "Line 4",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.line5": {
+  "type": "state",
+  "common": {
+   "name": "Line 5",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.line6": {
+  "type": "state",
+  "common": {
+   "name": "Line 6",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.line7": {
+  "type": "state",
+  "common": {
+   "name": "Line 7",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.line8": {
+  "type": "state",
+  "common": {
+   "name": "Line 8",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.menuName": {
+  "type": "state",
+  "common": {
+   "name": "Menu name",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.pageDown": {
+  "type": "state",
+  "common": {
+   "name": "Page down",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.pageUp": {
+  "type": "state",
+  "common": {
+   "name": "Page up",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.path": {
+  "type": "state",
+  "common": {
+   "name": "Navigate path (e.g. Bookmarks>Radio Paradise)",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.rows": {
+  "type": "state",
+  "common": {
+   "name": "Rows (JSON)",
+   "type": "string",
+   "role": "json",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.selectLine": {
+  "type": "state",
+  "common": {
+   "name": "Select line (folder opens, item plays)",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 1,
+   "max": 8,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.source": {
+  "type": "state",
+  "common": {
+   "name": "Source",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": true,
+   "states": {
+    "netRadio": "Net Radio",
+    "server": "Media server",
+    "usb": "USB",
+    "juke": "JUKE",
+    "qobuz": "Qobuz"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.browse.totalItems": {
+  "type": "state",
+  "common": {
+   "name": "Total entries",
+   "type": "number",
+   "role": "value",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer": {
+  "type": "channel",
+  "common": {
+   "name": "Network player"
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.album": {
+  "type": "state",
+  "common": {
+   "name": "Album",
+   "type": "string",
+   "role": "media.album",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.albumArt": {
+  "type": "state",
+  "common": {
+   "name": "Album art",
+   "type": "string",
+   "role": "media.cover",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.artist": {
+  "type": "state",
+  "common": {
+   "name": "Artist",
+   "type": "string",
+   "role": "media.artist",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.elapsedTime": {
+  "type": "state",
+  "common": {
+   "name": "Elapsed time",
+   "type": "number",
+   "role": "media.elapsed",
+   "read": true,
+   "write": false,
+   "unit": "s"
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.next": {
+  "type": "state",
+  "common": {
+   "name": "Next",
+   "type": "boolean",
+   "role": "button.next",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.pause": {
+  "type": "state",
+  "common": {
+   "name": "Pause",
+   "type": "boolean",
+   "role": "button.pause",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.play": {
+  "type": "state",
+  "common": {
+   "name": "Play",
+   "type": "boolean",
+   "role": "button.play",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.playback": {
+  "type": "state",
+  "common": {
+   "name": "Playback",
+   "type": "number",
+   "role": "media.state",
+   "read": true,
+   "write": false,
+   "states": {
+    "0": "Play",
+    "1": "Stop",
+    "2": "Pause"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.preset": {
+  "type": "state",
+  "common": {
+   "name": "Recall preset",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 1
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.presets": {
+  "type": "state",
+  "common": {
+   "name": "Favourites (stored presets)",
+   "type": "string",
+   "role": "json",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.prev": {
+  "type": "state",
+  "common": {
+   "name": "Previous",
+   "type": "boolean",
+   "role": "button.prev",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.recallRecent": {
+  "type": "state",
+  "common": {
+   "name": "Recall recently played (number)",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 1
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.recent": {
+  "type": "state",
+  "common": {
+   "name": "Recently played",
+   "type": "string",
+   "role": "json",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.repeat": {
+  "type": "state",
+  "common": {
+   "name": "Repeat",
+   "type": "number",
+   "role": "media.mode.repeat",
+   "read": true,
+   "write": false,
+   "states": {
+    "0": "Off",
+    "1": "Single",
+    "2": "All"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.repeatToggle": {
+  "type": "state",
+  "common": {
+   "name": "Toggle repeat",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.shuffle": {
+  "type": "state",
+  "common": {
+   "name": "Shuffle",
+   "type": "boolean",
+   "role": "media.mode.shuffle",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.shuffleToggle": {
+  "type": "state",
+  "common": {
+   "name": "Toggle shuffle",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.source": {
+  "type": "state",
+  "common": {
+   "name": "Active network source",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.stop": {
+  "type": "state",
+  "common": {
+   "name": "Stop",
+   "type": "boolean",
+   "role": "button.stop",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.totalTime": {
+  "type": "state",
+  "common": {
+   "name": "Total time",
+   "type": "number",
+   "role": "media.duration",
+   "read": true,
+   "write": false,
+   "unit": "s"
+  }
+ },
+ "yamaha.0.RX-V481.player.netPlayer.track": {
+  "type": "state",
+  "common": {
+   "name": "Track",
+   "type": "string",
+   "role": "media.title",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio": {
+  "type": "channel",
+  "common": {
+   "name": "Net radio"
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.album": {
+  "type": "state",
+  "common": {
+   "name": "Album",
+   "type": "string",
+   "role": "media.album",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.bookmark": {
+  "type": "state",
+  "common": {
+   "name": "Bookmark current station",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.elapsedTime": {
+  "type": "state",
+  "common": {
+   "name": "Elapsed time",
+   "type": "string",
+   "role": "media.elapsed.text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.next": {
+  "type": "state",
+  "common": {
+   "name": "Next",
+   "type": "boolean",
+   "role": "button.next",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.playback": {
+  "type": "state",
+  "common": {
+   "name": "Playback",
+   "type": "number",
+   "role": "media.state",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Play",
+    "1": "Stop",
+    "2": "Pause"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.preset": {
+  "type": "state",
+  "common": {
+   "name": "Recall preset",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 0,
+   "max": 40,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.presetSave": {
+  "type": "state",
+  "common": {
+   "name": "Save to preset (0 = first free slot)",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 0,
+   "max": 40,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.prev": {
+  "type": "state",
+  "common": {
+   "name": "Previous",
+   "type": "boolean",
+   "role": "button.prev",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.station": {
+  "type": "state",
+  "common": {
+   "name": "Station",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.netRadio.track": {
+  "type": "state",
+  "common": {
+   "name": "Track",
+   "type": "string",
+   "role": "media.title",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.server": {
+  "type": "channel",
+  "common": {
+   "name": "Media server"
+  }
+ },
+ "yamaha.0.RX-V481.player.server.album": {
+  "type": "state",
+  "common": {
+   "name": "Album",
+   "type": "string",
+   "role": "media.album",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.server.artist": {
+  "type": "state",
+  "common": {
+   "name": "Artist",
+   "type": "string",
+   "role": "media.artist",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.server.elapsedTime": {
+  "type": "state",
+  "common": {
+   "name": "Elapsed time",
+   "type": "string",
+   "role": "media.elapsed.text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.server.next": {
+  "type": "state",
+  "common": {
+   "name": "Next",
+   "type": "boolean",
+   "role": "button.next",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.server.playback": {
+  "type": "state",
+  "common": {
+   "name": "Playback",
+   "type": "number",
+   "role": "media.state",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Play",
+    "1": "Stop",
+    "2": "Pause"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.server.prev": {
+  "type": "state",
+  "common": {
+   "name": "Previous",
+   "type": "boolean",
+   "role": "button.prev",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.server.repeat": {
+  "type": "state",
+  "common": {
+   "name": "Repeat",
+   "type": "number",
+   "role": "media.mode.repeat",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Off",
+    "1": "Single",
+    "2": "All"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.server.shuffle": {
+  "type": "state",
+  "common": {
+   "name": "Shuffle",
+   "type": "boolean",
+   "role": "media.mode.shuffle",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.server.track": {
+  "type": "state",
+  "common": {
+   "name": "Track",
+   "type": "string",
+   "role": "media.title",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify": {
+  "type": "channel",
+  "common": {
+   "name": "Spotify"
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify.album": {
+  "type": "state",
+  "common": {
+   "name": "Album",
+   "type": "string",
+   "role": "media.album",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify.artist": {
+  "type": "state",
+  "common": {
+   "name": "Artist",
+   "type": "string",
+   "role": "media.artist",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify.next": {
+  "type": "state",
+  "common": {
+   "name": "Next",
+   "type": "boolean",
+   "role": "button.next",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify.playback": {
+  "type": "state",
+  "common": {
+   "name": "Playback",
+   "type": "number",
+   "role": "media.state",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Play",
+    "1": "Stop",
+    "2": "Pause"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify.prev": {
+  "type": "state",
+  "common": {
+   "name": "Previous",
+   "type": "boolean",
+   "role": "button.prev",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify.repeat": {
+  "type": "state",
+  "common": {
+   "name": "Repeat",
+   "type": "number",
+   "role": "media.mode.repeat",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Off",
+    "1": "Single",
+    "2": "All"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify.shuffle": {
+  "type": "state",
+  "common": {
+   "name": "Shuffle",
+   "type": "boolean",
+   "role": "media.mode.shuffle",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.spotify.track": {
+  "type": "state",
+  "common": {
+   "name": "Track",
+   "type": "string",
+   "role": "media.title",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.usb": {
+  "type": "channel",
+  "common": {
+   "name": "USB"
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.album": {
+  "type": "state",
+  "common": {
+   "name": "Album",
+   "type": "string",
+   "role": "media.album",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.artist": {
+  "type": "state",
+  "common": {
+   "name": "Artist",
+   "type": "string",
+   "role": "media.artist",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.elapsedTime": {
+  "type": "state",
+  "common": {
+   "name": "Elapsed time",
+   "type": "string",
+   "role": "media.elapsed.text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.next": {
+  "type": "state",
+  "common": {
+   "name": "Next",
+   "type": "boolean",
+   "role": "button.next",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.playback": {
+  "type": "state",
+  "common": {
+   "name": "Playback",
+   "type": "number",
+   "role": "media.state",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Play",
+    "1": "Stop",
+    "2": "Pause"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.preset": {
+  "type": "state",
+  "common": {
+   "name": "Recall preset",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 0,
+   "max": 40,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.presetSave": {
+  "type": "state",
+  "common": {
+   "name": "Save to preset (0 = first free slot)",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 0,
+   "max": 40,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.prev": {
+  "type": "state",
+  "common": {
+   "name": "Previous",
+   "type": "boolean",
+   "role": "button.prev",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.repeat": {
+  "type": "state",
+  "common": {
+   "name": "Repeat",
+   "type": "number",
+   "role": "media.mode.repeat",
+   "read": true,
+   "write": true,
+   "states": {
+    "0": "Off",
+    "1": "Single",
+    "2": "All"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.shuffle": {
+  "type": "state",
+  "common": {
+   "name": "Shuffle",
+   "type": "boolean",
+   "role": "media.mode.shuffle",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.player.usb.track": {
+  "type": "state",
+  "common": {
+   "name": "Track",
+   "type": "string",
+   "role": "media.title",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.power": {
+  "type": "state",
+  "common": {
+   "name": "Power",
+   "type": "boolean",
+   "role": "switch.power",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.scene": {
+  "type": "channel",
+  "common": {
+   "name": "Scenes"
+  }
+ },
+ "yamaha.0.RX-V481.scene.name1": {
+  "type": "state",
+  "common": {
+   "name": "Scene 1 name",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.scene.name2": {
+  "type": "state",
+  "common": {
+   "name": "Scene 2 name",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.scene.name3": {
+  "type": "state",
+  "common": {
+   "name": "Scene 3 name",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.scene.name4": {
+  "type": "state",
+  "common": {
+   "name": "Scene 4 name",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.scene.recall": {
+  "type": "state",
+  "common": {
+   "name": "Recall scene",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 1,
+   "max": 12,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.sleep": {
+  "type": "state",
+  "common": {
+   "name": "Sleep timer",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": true,
+   "states": {
+    "Off": "Off",
+    "30 min": "30 min",
+    "60 min": "60 min",
+    "90 min": "90 min",
+    "120 min": "120 min"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.sound": {
+  "type": "channel",
+  "common": {
+   "name": "Sound"
+  }
+ },
+ "yamaha.0.RX-V481.sound.adaptiveDrc": {
+  "type": "state",
+  "common": {
+   "name": "Adaptive DRC",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": true,
+   "states": {
+    "Off": "Off",
+    "Auto": "Auto"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.sound.bass": {
+  "type": "state",
+  "common": {
+   "name": "Bass",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "unit": "dB"
+  }
+ },
+ "yamaha.0.RX-V481.sound.cinemaDsp3d": {
+  "type": "state",
+  "common": {
+   "name": "CINEMA DSP 3D",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.sound.contentsDisplay": {
+  "type": "state",
+  "common": {
+   "name": "Contents display",
+   "type": "boolean",
+   "role": "indicator",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.sound.dialogueLevel": {
+  "type": "state",
+  "common": {
+   "name": "Dialogue level",
+   "type": "number",
+   "role": "value",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.sound.dialogueLift": {
+  "type": "state",
+  "common": {
+   "name": "Dialogue lift",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 0,
+   "max": 5,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.sound.direct": {
+  "type": "state",
+  "common": {
+   "name": "Direct",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.sound.enhancer": {
+  "type": "state",
+  "common": {
+   "name": "Enhancer",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.sound.extraBass": {
+  "type": "state",
+  "common": {
+   "name": "Extra Bass",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.sound.linkAudioDelay": {
+  "type": "state",
+  "common": {
+   "name": "Link audio delay",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false,
+   "states": {
+    "audio_sync": "audio_sync",
+    "lip_sync": "lip_sync"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.sound.linkAudioQuality": {
+  "type": "state",
+  "common": {
+   "name": "Link audio quality",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false,
+   "states": {
+    "compressed": "compressed",
+    "uncompressed": "uncompressed"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.sound.linkControl": {
+  "type": "state",
+  "common": {
+   "name": "Link control",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false,
+   "states": {
+    "speed": "speed",
+    "standard": "standard",
+    "stability": "stability"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.sound.pureDirect": {
+  "type": "state",
+  "common": {
+   "name": "Pure Direct",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.sound.straight": {
+  "type": "state",
+  "common": {
+   "name": "Straight",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.sound.subwooferTrim": {
+  "type": "state",
+  "common": {
+   "name": "Subwoofer trim",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "unit": "dB",
+   "min": -6,
+   "max": 6,
+   "step": 0.5
+  }
+ },
+ "yamaha.0.RX-V481.sound.surroundDecoder": {
+  "type": "state",
+  "common": {
+   "name": "Surround decoder",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": true,
+   "states": {
+    "Auto": "Auto",
+    "Dolby PL": "Dolby PL",
+    "Dolby PLII Movie": "Dolby PLII Movie",
+    "Dolby PLII Music": "Dolby PLII Music",
+    "Dolby PLII Game": "Dolby PLII Game",
+    "Dolby PLIIx Movie": "Dolby PLIIx Movie",
+    "Dolby PLIIx Music": "Dolby PLIIx Music",
+    "Dolby PLIIx Game": "Dolby PLIIx Game",
+    "Dolby Surround": "Dolby Surround",
+    "DTS NEO:6 Cinema": "DTS NEO:6 Cinema",
+    "DTS NEO:6 Music": "DTS NEO:6 Music",
+    "DTS Neural:X": "DTS Neural:X",
+    "AURO-3D": "AURO-3D"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.sound.toneMode": {
+  "type": "state",
+  "common": {
+   "name": "Tone control mode",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": false,
+   "states": {
+    "manual": "manual"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.sound.treble": {
+  "type": "state",
+  "common": {
+   "name": "Treble",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "unit": "dB"
+  }
+ },
+ "yamaha.0.RX-V481.sound.ypaoVolume": {
+  "type": "state",
+  "common": {
+   "name": "YPAO Volume",
+   "type": "boolean",
+   "role": "switch",
+   "read": true,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.soundProgram": {
+  "type": "state",
+  "common": {
+   "name": "Sound program",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": true,
+   "states": {
+    "Action Game": "Action Game",
+    "Adventure": "Adventure",
+    "Arena": "Arena",
+    "Cellar Club": "Cellar Club",
+    "Chamber": "Chamber",
+    "Church in Freiburg": "Church in Freiburg",
+    "Church in Royaumont": "Church in Royaumont",
+    "Church in Tokyo": "Church in Tokyo",
+    "Disco": "Disco",
+    "Drama": "Drama",
+    "Enhanced": "Enhanced",
+    "Hall in Amsterdam": "Hall in Amsterdam",
+    "Hall in Frankfurt": "Hall in Frankfurt",
+    "Hall in Munich": "Hall in Munich",
+    "Hall in Munich A": "Hall in Munich A",
+    "Hall in Munich B": "Hall in Munich B",
+    "Hall in Stuttgart": "Hall in Stuttgart",
+    "Hall in USA A": "Hall in USA A",
+    "Hall in USA B": "Hall in USA B",
+    "Hall in Vienna": "Hall in Vienna",
+    "Mono Movie": "Mono Movie",
+    "Music Video": "Music Video",
+    "Pavilion": "Pavilion",
+    "Recital/Opera": "Recital/Opera",
+    "Roleplaying Game": "Roleplaying Game",
+    "Sci-Fi": "Sci-Fi",
+    "Spectacle": "Spectacle",
+    "Sports": "Sports",
+    "Standard": "Standard",
+    "Surround Decoder": "Surround Decoder",
+    "The Bottom Line": "The Bottom Line",
+    "The Roxy Theatre": "The Roxy Theatre",
+    "Village Gate": "Village Gate",
+    "Village Vanguard": "Village Vanguard",
+    "Warehouse Loft": "Warehouse Loft",
+    "2ch Stereo": "2ch Stereo",
+    "5ch Stereo": "5ch Stereo",
+    "7ch Stereo": "7ch Stereo",
+    "9ch Stereo": "9ch Stereo",
+    "11ch Stereo": "11ch Stereo",
+    "All-Ch Stereo": "All-Ch Stereo"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.tuner": {
+  "type": "channel",
+  "common": {
+   "name": "Tuner"
+  }
+ },
+ "yamaha.0.RX-V481.tuner.amFrequency": {
+  "type": "state",
+  "common": {
+   "name": "AM frequency",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "unit": "kHz"
+  }
+ },
+ "yamaha.0.RX-V481.tuner.audioMode": {
+  "type": "state",
+  "common": {
+   "name": "Audio mode",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.tuner.band": {
+  "type": "state",
+  "common": {
+   "name": "Band",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": true,
+   "states": {
+    "AM": "AM",
+    "FM": "FM"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.tuner.fmFrequency": {
+  "type": "state",
+  "common": {
+   "name": "FM frequency",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "unit": "MHz"
+  }
+ },
+ "yamaha.0.RX-V481.tuner.fmMode": {
+  "type": "state",
+  "common": {
+   "name": "FM mode",
+   "type": "string",
+   "role": "state",
+   "read": true,
+   "write": true,
+   "states": {
+    "Auto": "Auto",
+    "Mono": "Mono"
+   }
+  }
+ },
+ "yamaha.0.RX-V481.tuner.frequency": {
+  "type": "state",
+  "common": {
+   "name": "Frequency",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "unit": "kHz"
+  }
+ },
+ "yamaha.0.RX-V481.tuner.preset": {
+  "type": "state",
+  "common": {
+   "name": "Preset (recall by number)",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 0,
+   "max": 40
+  }
+ },
+ "yamaha.0.RX-V481.tuner.presetDown": {
+  "type": "state",
+  "common": {
+   "name": "Previous preset",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.tuner.presetSave": {
+  "type": "state",
+  "common": {
+   "name": "Save to preset (0 = first free slot)",
+   "type": "number",
+   "role": "level",
+   "read": true,
+   "write": true,
+   "min": 0,
+   "max": 40,
+   "step": 1
+  }
+ },
+ "yamaha.0.RX-V481.tuner.presetUp": {
+  "type": "state",
+  "common": {
+   "name": "Next preset",
+   "type": "boolean",
+   "role": "button",
+   "read": false,
+   "write": true
+  }
+ },
+ "yamaha.0.RX-V481.tuner.presets": {
+  "type": "state",
+  "common": {
+   "name": "Stored presets",
+   "type": "string",
+   "role": "json",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.tuner.rdsProgramType": {
+  "type": "state",
+  "common": {
+   "name": "RDS programme type",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.tuner.rdsService": {
+  "type": "state",
+  "common": {
+   "name": "RDS station",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.tuner.rdsText": {
+  "type": "state",
+  "common": {
+   "name": "RDS text",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.tuner.rdsTextB": {
+  "type": "state",
+  "common": {
+   "name": "RDS text B",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.tuner.stereo": {
+  "type": "state",
+  "common": {
+   "name": "Stereo reception",
+   "type": "boolean",
+   "role": "indicator",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.tuner.tuned": {
+  "type": "state",
+  "common": {
+   "name": "Tuned",
+   "type": "boolean",
+   "role": "indicator",
+   "read": true,
+   "write": false
+  }
+ },
+ "yamaha.0.RX-V481.volume": {
+  "type": "state",
+  "common": {
+   "name": "Volume",
+   "type": "number",
+   "role": "level.volume",
+   "read": true,
+   "write": true,
+   "unit": "dB",
+   "min": -80.5,
+   "max": 16.5,
+   "step": 0.5
+  }
+ },
+ "yamaha.0.RX-V481.zoneName": {
+  "type": "state",
+  "common": {
+   "name": "Zone name",
+   "type": "string",
+   "role": "text",
+   "read": true,
+   "write": true
+  }
+ },
+ "system.adapter.yamaha.0": {
+  "type": "instance",
+  "common": {
+   "name": "yamaha",
+   "enabled": true
+  }
+ }
+}

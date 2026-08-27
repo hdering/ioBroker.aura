@@ -8,3 +8,5 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 Image - datapoints holding raw SVG markup are now displayed, e.g. the guest WLAN QR code of fb-checkpresence (#592)
 Image - optional background colour behind the picture, keeps transparent SVGs such as QR codes readable on dark themes (#592)
+Mediaplayer - device detection now recognises any adapter that follows the ioBroker media roles (yamaha, denon, volumio, ...), including its volume range, mute and input (#593)
+Mediaplayer - play/pause button now reads playback states that are a numbered enum, e.g. a Yamaha receiver reporting 0 = Play (#593)

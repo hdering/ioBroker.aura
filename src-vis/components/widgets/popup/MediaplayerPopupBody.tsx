@@ -1,6 +1,7 @@
 import { Music, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
 import { useDatapoint } from '../../../hooks/useDatapoint';
 import { useIoBroker } from '../../../hooks/useIoBroker';
+import { isPlaybackActive } from '../../../utils/mediaPlayback';
 import type { WidgetConfig } from '../../../types';
 
 interface Props {
@@ -19,7 +20,7 @@ export function MediaplayerPopupBody({ widget }: Props) {
     const { value: rawVol } = useDatapoint((o.volumeDp as string) ?? '');
     const { value: muted } = useDatapoint((o.muteDp as string) ?? '');
 
-    const isPlaying = playState === true || playState === 1 || playState === 'play' || playState === 'playing';
+    const isPlaying = isPlaybackActive(playState, o.playValue);
     const isMuted = Boolean(muted);
 
     const volMin = (o.volumeMin as number) ?? 0;

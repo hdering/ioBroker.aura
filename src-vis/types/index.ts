@@ -356,6 +356,7 @@ export interface ioBrokerObject {
         unit?: string;
         min?: number;
         max?: number;
+        step?: number;
         read?: boolean;
         write?: boolean;
         enabled?: boolean; // instance: whether the adapter instance is enabled

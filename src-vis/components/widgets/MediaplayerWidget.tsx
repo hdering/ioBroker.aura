@@ -9,6 +9,7 @@ import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { resolveImageSource } from '../../utils/assetUrl';
+import { isPlaybackActive } from '../../utils/mediaPlayback';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -204,10 +205,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     const { value: mediaProgressStr } = useDatapoint((o.mediaProgressStrDp as string) ?? '');
     const { value: mediaLengthStr } = useDatapoint((o.mediaLengthStrDp as string) ?? '');
 
-    const isPlaying = useMemo(
-        () => playState === true || playState === 1 || playState === 'play' || playState === 'playing',
-        [playState],
-    );
+    const isPlaying = useMemo(() => isPlaybackActive(playState, o.playValue), [playState, o.playValue]);
 
     const progressPct = useMemo(() => {
         if (typeof mediaLength === 'number' && mediaLength > 0 && typeof mediaProgress === 'number') {
