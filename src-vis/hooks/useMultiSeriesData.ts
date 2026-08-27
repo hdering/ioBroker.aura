@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { getHistoryDirect, getStateFromCache, getObjectDirect, type HistoryEntry } from './useIoBroker';
 import { detectHistoryAdapters, TOTAL_FLOOR_MS, type DetectedAdapter } from './useChartHistory';
-import { applyValueTransform } from '../utils/valueTransform';
+import { applyValueTransform, transformMagnitude, transformSign } from '../utils/valueTransform';
 import type { ioBrokerState } from '../types';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'total' | 'custom';
@@ -100,7 +100,8 @@ export interface EChartSeriesConfig {
      * and Wh→kWh are both ×0.001).
      *
      * A `delta` series is converted before differencing, so the offset cancels out — as it must:
-     * a shifted counter reading consumes exactly as much per bucket as an unshifted one.
+     * a shifted counter reading consumes exactly as much per bucket as an unshifted one. Its SIGN
+     * is applied afterwards instead — see `deltaTransform`.
      */
     valueTransform?: string;
     valueFactor?: number;
@@ -110,6 +111,24 @@ export interface EChartSeriesConfig {
 /** A series' raw number as it should be displayed — see `valueFactor` / `valueOffset`. */
 function seriesValue(s: EChartSeriesConfig, raw: number): number {
     return applyValueTransform(raw, s.valueFactor, s.valueOffset);
+}
+
+/**
+ * The same conversion split into magnitude and sign, for the `delta` path (issue #594).
+ *
+ * A negative factor — "draw feed-in / battery charging below the zero line" — turns a rising
+ * counter into a falling one, and `bucketDeltas` reads every step of a falling counter as a reset
+ * or a glitch: the series came out as a row of zeros. So the counter is differenced on its
+ * MAGNITUDE and the sign lands on the finished bars. For a positive factor that is the very same
+ * number (`f·(a−b) = f·a − f·b`), so nothing about an existing chart changes.
+ */
+export function deltaTransform(s: EChartSeriesConfig): { factor: number; sign: 1 | -1 } {
+    return { factor: transformMagnitude(s.valueFactor) ?? 1, sign: transformSign(s.valueFactor) };
+}
+
+/** A counter reading in the magnitude space `bucketDeltas` differences in. */
+function deltaMagnitude(s: EChartSeriesConfig, raw: number): number {
+    return applyValueTransform(raw, deltaTransform(s).factor, s.valueOffset);
 }
 
 /** One label/value pair of a JSON-sourced series. */
@@ -844,7 +863,8 @@ export function useMultiSeriesData(
     // and the calendar unit it was bucketed by — lets a live state update grow the current bar
     // without a refetch. The unit is recorded rather than re-derived, so an `auto` or `total` series
     // (whose bucket depends on the probed window length) can't disagree with the fetch that filled
-    // the bar.
+    // the bar. `base` is a MAGNITUDE, like everything `bucketDeltas` sees — the series' sign is put
+    // back on when the growing bar is published (issue #594).
     const deltaBaseRef = useRef<Map<string, { bucket: number; base: number; unit: DeltaBucket }>>(new Map());
 
     // Fetch history for all series
@@ -996,19 +1016,26 @@ export function useMultiSeriesData(
                             )
                             // Converted here, at the single point every downstream path flows through:
                             // the plotted points, the delta bucketing and the "current" value all
-                            // derive from `data` (issue #540).
-                            .map((e): [number, number] => [e.ts, seriesValue(s, e.val as number)])
+                            // derive from `data` (issue #540). A delta series is differenced on the
+                            // magnitude — its sign goes onto the finished bars (issue #594).
+                            .map((e): [number, number] => [
+                                e.ts,
+                                isDelta ? deltaMagnitude(s, e.val as number) : seriesValue(s, e.val as number),
+                            ])
                             .sort((a, b) => a[0] - b[0]);
 
                         if (isDelta) {
+                            const { sign } = deltaTransform(s);
                             const { points, lastBucket, lastBase } = bucketDeltas(data, bucket, deltaWindowStart);
                             // Same edge trim as below, but applied to the finished bars: the run-up
                             // bucket has already served its purpose as the difference baseline.
-                            const bars = hasAbsWindow
-                                ? points.filter(
-                                      (p) => p[0] >= (s.historyStart as number) && p[0] < (s.historyEnd as number),
-                                  )
-                                : points;
+                            const bars = (
+                                hasAbsWindow
+                                    ? points.filter(
+                                          (p) => p[0] >= (s.historyStart as number) && p[0] < (s.historyEnd as number),
+                                      )
+                                    : points
+                            ).map(([ts, v]): [number, number] => [ts, v * sign]);
                             if (lastBucket !== null && lastBase !== null) {
                                 deltaBaseRef.current.set(s.id, {
                                     bucket: lastBucket,
@@ -1163,8 +1190,11 @@ export function useMultiSeriesData(
                         const info = deltaBaseRef.current.get(s.id);
                         if (!info || bucketStart(state.ts, info.unit) !== info.bucket) return;
                         // `info.base` came out of already-converted history, so the live reading has
-                        // to be converted too before the two are differenced.
-                        const diff = Math.max(0, seriesValue(s, state.val as number) - info.base);
+                        // to be converted too before the two are differenced — in the same magnitude
+                        // space the bars were differenced in, with the sign put back on afterwards
+                        // (issue #594).
+                        const { sign } = deltaTransform(s);
+                        const diff = Math.max(0, deltaMagnitude(s, state.val as number) - info.base) * sign;
                         setResultsMap((prev) => {
                             const existing = prev.get(s.id);
                             if (!existing || existing.loading || existing.data.length === 0) return prev;

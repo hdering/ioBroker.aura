@@ -1,6 +1,13 @@
 import { useT } from '../../i18n';
 import { useDatapoint } from '../../hooks/useDatapoint';
-import { VALUE_TRANSFORM_PRESETS, applyValueTransform, matchValueTransformPreset } from '../../utils/valueTransform';
+import {
+    VALUE_TRANSFORM_PRESETS,
+    applyValueTransform,
+    chooseTransformPreset,
+    selectedTransformPreset,
+    toggleTransformSign,
+    transformSign,
+} from '../../utils/valueTransform';
 import { TIME_DISPLAY_PRESETS, formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 
 export interface ValueTransformPatch {
@@ -61,14 +68,10 @@ export function ValueTransformFields({
     // Live value of the edited datapoint so the automatic time detection is verifiable
     // right here. Passing an empty ref is a no-op in the hook.
     const { value: previewVal } = useDatapoint(allowTimeFormat ? (dpId ?? '') : '');
-    // The stored preset id wins (several presets share a factor, e.g. Wh→kWh and W→kW are both ×0.001).
-    // Fall back to factor/offset matching only for configs saved before the id was stored.
-    const selected =
-        presetId === 'custom'
-            ? 'custom'
-            : presetId && VALUE_TRANSFORM_PRESETS.some((p) => p.id === presetId)
-              ? presetId
-              : matchValueTransformPreset(factor, offset);
+    // "Draw as negative" is the SIGN of the factor, not a flag of its own — see `transformSign`.
+    // The dropdown picks the conversion, the checkbox flips it below the zero line (issue #594).
+    const inverted = transformSign(factor) === -1;
+    const selected = selectedTransformPreset(presetId, factor, offset);
 
     const sty: React.CSSProperties = inputStyle ?? {
         background: 'var(--app-bg)',
@@ -78,27 +81,12 @@ export function ValueTransformFields({
     const labelSty = { color: 'var(--text-secondary)' };
 
     const choose = (id: string) => {
-        if (id === 'custom') {
-            onPatch({ valueTransform: 'custom', valueFactor: factor ?? 1, valueOffset: offset });
-            return;
-        }
-        const p = VALUE_TRANSFORM_PRESETS.find((x) => x.id === id);
-        if (!p || p.id === 'none') {
-            onPatch({
-                valueTransform: explicitNone ? 'none' : undefined,
-                valueFactor: undefined,
-                valueOffset: undefined,
-            });
-            return;
-        }
-        const patch: ValueTransformPatch = {
-            valueTransform: p.id,
-            valueFactor: p.factor,
-            valueOffset: p.offset || undefined,
-        };
-        if (fillUnit && p.unit) patch.unit = p.unit;
-        onPatch(patch);
+        const { unit, ...patch } = chooseTransformPreset(id, { factor, offset }, explicitNone);
+        onPatch(fillUnit && unit ? { ...patch, unit } : patch);
     };
+
+    /** Flip the sign of whatever conversion is configured; ×1 becomes ×−1 and back. */
+    const toggleInvert = () => onPatch(toggleTransformSign({ factor, offset, presetId }));
 
     const selectedTime = hasTimeDisplay(timeFormat) ? (timeFormat as string) : 'none';
     const chooseTime = (id: string) => {
@@ -141,6 +129,10 @@ export function ValueTransformFields({
                     <option value="custom">Eigene…</option>
                 </select>
             </div>
+            <label className="flex items-center gap-2 text-[11px] cursor-pointer" style={labelSty}>
+                <input type="checkbox" checked={inverted} onChange={toggleInvert} className="cursor-pointer" />
+                Negativ darstellen (× −1)
+            </label>
             {selected === 'custom' && (
                 <div className="flex gap-2">
                     <div className="flex-1">

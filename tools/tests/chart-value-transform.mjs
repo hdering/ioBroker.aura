@@ -40,14 +40,18 @@ await page.evaluate(() => window.__auraShot.enableHistory(true));
  * the fabricated history is generated per id at fetch time, and reusing one would keep serving
  * the series generated for the previous case's value.
  */
-async function show(widget, values) {
+async function show(widget, values, history) {
     await page.evaluate(
-        ([w, vals]) => {
+        ([w, vals, hist]) => {
             window.__auraShot.mock(vals);
             window.__auraShot.mockServerState(vals);
+            // A counter has to be served point by point: the wobble generator cannot shape a
+            // monotonic series, and the `delta` aggregation reads nothing else.
+            if (hist) window.__auraShot.mockHistory(hist);
+            else window.__auraShot.enableHistory(true);
             window.__auraShot.showWidgets([w]);
         },
-        [widget, values],
+        [widget, values, history ?? null],
     );
     const read = () => {
         const el = document.querySelector('.react-grid-item');
@@ -188,6 +192,53 @@ const powerSeries = (dp, patch = {}) => ({
     );
     check('converted series shows 1.5', /1[.,]5\d?/.test(text), text);
     check('untouched series stays at 2400', shows(text, '2400'), text);
+}
+
+// ── 7. A counter drawn below the zero line (issue #594) ──────────────────────
+//
+// Feed-in and battery charging are logged as RISING kWh counters and wanted as negative bars.
+// The factor used to be applied to the counter BEFORE differencing, which made it fall - and a
+// falling counter is read as one long reset, so every bar came out as 0.
+{
+    // Six hours of a meter climbing 2 kWh per hour, sampled every quarter of an hour.
+    const now = Date.now();
+    const hour = 3_600_000;
+    const start = Math.floor((now - 6 * hour) / hour) * hour;
+    const counter = [];
+    for (let ts = start, v = 5000; ts <= now; ts += hour / 4, v += 0.5) counter.push([ts, Number(v.toFixed(2))]);
+
+    const meterSeries = (dp, patch) => ({
+        ...powerSeries(dp, patch),
+        chartType: 'bar',
+        aggregate: 'delta',
+        deltaBucket: 'hour',
+        historyRange: '6h',
+    });
+
+    const up = await show(
+        echart('delta-up', [meterSeries('demo.feedin1')], { echartLeftUnit: 'kWh', echartRange: '6h' }),
+        { 'demo.feedin1': counter[counter.length - 1][1] },
+        { 'demo.feedin1': counter },
+    );
+    // The open bucket is only as full as the hour is old, so the bar is somewhere in 0 < v <= 2.
+    check(
+        'delta baseline - consumption of the bucket, not the meter reading',
+        /(^|[^-\d])[1-9]\d*[.,]\d\d/.test(up) && !shows(up, '5000'),
+        up,
+    );
+
+    const down = await show(
+        echart('delta-down', [meterSeries('demo.feedin2', { valueTransform: 'custom', valueFactor: -1 })], {
+            echartLeftUnit: 'kWh',
+            echartRange: '6h',
+        }),
+        { 'demo.feedin2': counter[counter.length - 1][1] },
+        { 'demo.feedin2': counter },
+    );
+    // A minus in front of a non-zero number: before the fix the whole series collapsed to 0,00.
+    check('negative factor - bars are drawn below zero', /-\s?[1-9]\d*[.,]?\d*/.test(down), down);
+    check('negative factor - series did not collapse to zeros', !/^[^\d-]*0[.,]00(\s|$)/.test(down), down);
+    check('negative factor - the meter reading stays out of it', !shows(down, '5000'), down);
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));

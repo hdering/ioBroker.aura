@@ -30,7 +30,7 @@ const bundle = join(cache, `aura-delta-${process.pid}.mjs`);
 await build({
     stdin: {
         contents:
-            "export { bucketDeltas, bucketStart, resolveDeltaBucket, deltaFetchStep, deltaFetchCount, looksLikeResettingCounter } from './src-vis/hooks/useMultiSeriesData.ts';",
+            "export { bucketDeltas, bucketStart, resolveDeltaBucket, deltaFetchStep, deltaFetchCount, looksLikeResettingCounter, deltaTransform } from './src-vis/hooks/useMultiSeriesData.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -53,8 +53,15 @@ await build({
         },
     ],
 });
-const { bucketDeltas, bucketStart, resolveDeltaBucket, deltaFetchStep, deltaFetchCount, looksLikeResettingCounter } =
-    await import(pathToFileURL(bundle).href);
+const {
+    bucketDeltas,
+    bucketStart,
+    resolveDeltaBucket,
+    deltaFetchStep,
+    deltaFetchCount,
+    looksLikeResettingCounter,
+    deltaTransform,
+} = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -288,6 +295,52 @@ check('classify - a plain rising meter is not', looksLikeResettingCounter(meter)
         return deltaFetchCount(step, ms) >= (step >= 86_400_000 ? days * 4 : ms / step);
     };
     check('row budget covers the window', [1, 30, 125, 365, 3 * 365, 13 * 365].every(covers));
+}
+
+// -- 13. a series drawn below the zero line (issue #594) -------------------------------------
+//
+// "Feed-in" and "battery charging" are logged as RISING counters and wanted as negative bars.
+// The factor used to be applied before differencing, which turned the counter into a falling one
+// - and bucketDeltas reads every step of a falling counter as a reset or a glitch, so the whole
+// series came out as zeros. Magnitude is differenced, the sign lands on the finished bars.
+{
+    const neg = deltaTransform({ valueFactor: -1 });
+    check('negative factor - split into magnitude and sign', neg.factor === 1 && neg.sign === -1, JSON.stringify(neg));
+    const kilo = deltaTransform({ valueFactor: -0.001 });
+    check(
+        'negative factor - keeps the conversion it is combined with',
+        near(kilo.factor, 0.001) && kilo.sign === -1,
+        JSON.stringify(kilo),
+    );
+    for (const [label, cfg] of [
+        ['unset', {}],
+        ['plain', { valueFactor: 1 }],
+        ['positive', { valueFactor: 0.001 }],
+        ['not a number', { valueFactor: Number.NaN }],
+    ]) {
+        const r = deltaTransform(cfg);
+        check(`${label} factor - sign stays positive`, r.sign === 1, JSON.stringify(r));
+    }
+
+    // The whole point: the same meter, drawn downwards, must give the mirrored bars - not zeros.
+    const mag = bucketDeltas(meter, 'day', day(0)).points;
+    const drawn = mag.map(([ts, v]) => [ts, v * deltaTransform({ valueFactor: -1 }).sign]);
+    check(
+        'negative factor - bars are the mirrored consumption, not zeros',
+        mag.length > 0 && drawn.every(([, v], i) => near(v, -mag[i][1])) && drawn.some(([, v]) => v < 0),
+        JSON.stringify(drawn.map(([, v]) => round(v))),
+    );
+    // Pre-scaling the way the old code did is what produced the zeros - kept as the regression.
+    const preScaled = bucketDeltas(
+        meter.map(([ts, v]) => [ts, v * -1]),
+        'day',
+        day(0),
+    ).points;
+    check(
+        'negative factor - differencing the flipped counter is what used to fail',
+        preScaled.every(([, v]) => v === 0),
+        JSON.stringify(preScaled.map(([, v]) => round(v))),
+    );
 }
 
 const failed = results.filter((r) => !r.ok);

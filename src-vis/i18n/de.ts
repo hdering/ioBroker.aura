@@ -1308,6 +1308,7 @@ export const de = {
     'echart.dayPrevTitle': 'Einen Tag zurück',
     'echart.dayTodayTitle': 'Zum aktuellen Tag',
     'echart.dayNextTitle': 'Einen Tag vor',
+    'echart.dayPickTitle': 'Datum wählen',
     'echart.dateLocale': 'de-DE',
     'echart.moveUp': 'Nach oben',
     'echart.moveDown': 'Nach unten',

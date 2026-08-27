@@ -12,3 +12,6 @@ Mediaplayer - device detection now recognises any adapter that follows the ioBro
 Mediaplayer - play/pause button now reads playback states that are a numbered enum, e.g. a Yamaha receiver reporting 0 = Play (#593)
 Static and dynamic list - the Schalter display now offers the same options as the Schalter widget: own write values per state (e.g. 0/255, ON/OFF), a separate status datapoint for devices that split command and feedback, condition-based on/off evaluation and an icon or image instead of the slide toggle (#591)
 Dynamic list - the Schalter display now also works for string and enum datapoints and gained the switch style, on/off icons, icon size and confirmation prompt the static list already had (#591)
+Charts, lists and value display - new "show as negative" option in the value conversion, for figures that are logged as positive but belong below the zero line, such as grid feed-in or battery charging (#594)
+Advanced chart - consumption bars (delta aggregation) came out as a row of zeros when a negative display factor was set; the counter is now differenced before the sign is applied (#594)
+Advanced chart - the day navigation gained a date field, so a day can be picked directly instead of stepping there one day at a time (#594)

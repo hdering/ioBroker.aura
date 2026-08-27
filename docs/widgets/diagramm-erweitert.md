@@ -179,6 +179,19 @@ an der die Serie hängt.
 Bei `aggregate: delta` wird vor der Differenzbildung umgerechnet: der Faktor wirkt auf den Verbrauch,
 der Offset fällt heraus (die Differenz zweier verschobener Zählerstände ist dieselbe).
 
+#### Negativ darstellen
+
+Häkchen **Negativ darstellen (× −1)** im ƒx-Dialog. Zeichnet die Serie unter der Nulllinie —
+für Einspeisung und Batterie-Ladung, die als positive Werte geliefert werden.
+
+|                           |                                                                                     |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| Gespeichert als           | negatives `valueFactor` (× −1)                                                      |
+| Mit Umrechnung kombiniert | ja — `Wh → kWh` negativ ist `−0.001`                                                |
+| Bei `aggregate: delta`    | der Zählerstand wird unverändert differenziert, das Vorzeichen kommt auf die Balken |
+| Gestapelt                 | positive Serien nach oben, negative nach unten                                      |
+| Wertelabels               | wandern unter den Balken                                                            |
+
 ### Verbrauch aus Zählerständen
 
 `aggregate: delta` für Zähler. Statt des Zählerstands wird der Zuwachs je Zeiteinheit gezeichnet — also der Verbrauch bzw. Ertrag pro Stunde, Tag, Woche, Monat oder Jahr.
@@ -245,15 +258,19 @@ Reihenfolge, wenn mehrere Quellen gesetzt sind: **Datenpunkt** → **min/max-Blo
 
 Ein gemeinsamer Zeitraum für alle Serien.
 
-| Option                   | Standard |                                                                                  |
-| ------------------------ | -------- | -------------------------------------------------------------------------------- |
-| `echartRange`            | `24h`    | `1h` · `6h` · `24h` · `7d` · `30d` · `1y` · `total` · `custom`                   |
-| `echartRangeCustomValue` | `24`     | nur bei `custom`                                                                 |
-| `echartRangeCustomUnit`  | `h`      | `h` · `d`, nur bei `custom`                                                      |
-| `lockRange`              | `false`  | Zeitraum-Umschalter im Frontend ausblenden                                       |
-| `echartVisibleRanges`    | alle     | Welche Presets der Frontend-Umschalter anbietet, z. B. `["6h","24h","7d","30d"]` |
-| `echartDayNav`           | `false`  | Tages-Navigation im Frontend (◀ Heute ▶) — einzelne Kalendertage durchblättern   |
-| `autoHistoryInstance`    | `false`  | History-Instanz je Serie automatisch erkennen                                    |
+| Option                   | Standard |                                                                                   |
+| ------------------------ | -------- | --------------------------------------------------------------------------------- |
+| `echartRange`            | `24h`    | `1h` · `6h` · `24h` · `7d` · `30d` · `1y` · `total` · `custom`                    |
+| `echartRangeCustomValue` | `24`     | nur bei `custom`                                                                  |
+| `echartRangeCustomUnit`  | `h`      | `h` · `d`, nur bei `custom`                                                       |
+| `lockRange`              | `false`  | Zeitraum-Umschalter im Frontend ausblenden                                        |
+| `echartVisibleRanges`    | alle     | Welche Presets der Frontend-Umschalter anbietet, z. B. `["6h","24h","7d","30d"]`  |
+| `echartDayNav`           | `false`  | Tages-Navigation im Frontend (◀ Heute ▶ 📅) — einzelne Kalendertage durchblättern |
+| `autoHistoryInstance`    | `false`  | History-Instanz je Serie automatisch erkennen                                     |
+
+Die Tages-Navigation zeigt neben ◀ Heute ▶ das aktive Datum. Ein Klick darauf öffnet die
+Datumsauswahl des Browsers und springt direkt auf den gewählten Tag — Tage in der Zukunft sind
+gesperrt, ◀ und ▶ laufen danach von dort weiter.
 
 `total` (Umschalter: **Gesamt**) zeichnet alles, was der Verlaufs-Adapter hergibt.
 

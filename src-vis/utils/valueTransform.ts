@@ -93,6 +93,84 @@ export function matchValueTransformPreset(factor?: number, offset?: number): str
     return hit ? hit.id : 'custom';
 }
 
+// ── Drawing a value below the zero line (issue #594) ─────────────────────────────────────────
+//
+// "Show as negative" — feed-in and battery charging are logged as positive numbers and belong
+// under the axis — is kept as the SIGN of `valueFactor`, not as a flag of its own. Every consumer
+// of the factor then gets it without knowing about it, and it composes with a unit conversion:
+// Wh → kWh drawn downwards is simply ×−0.001. Magnitude and sign are edited separately, so the
+// two halves are split out here rather than being re-derived at each call site.
+
+/** The sign a value is drawn with. Anything but a genuinely negative factor is upwards. */
+export function transformSign(factor?: number): 1 | -1 {
+    return typeof factor === 'number' && Number.isFinite(factor) && factor < 0 ? -1 : 1;
+}
+
+/** The conversion without its sign — `undefined` where no factor is configured. */
+export function transformMagnitude(factor?: number): number | undefined {
+    return typeof factor === 'number' && Number.isFinite(factor) ? Math.abs(factor) : undefined;
+}
+
+/** What a transform patch may carry; `unit` is a suggestion the caller may ignore. */
+export interface ValueTransformPatchCore {
+    valueTransform?: string;
+    valueFactor?: number;
+    valueOffset?: number;
+    unit?: string;
+}
+
+/**
+ * Which entry of the dropdown is showing. The stored preset id wins (several presets share a
+ * factor, e.g. Wh→kWh and W→kW are both ×0.001); older configs fall back to matching, on the
+ * MAGNITUDE — so a plain ×−1 reads as "Keine, negativ" instead of pushing the list to "Eigene…".
+ */
+export function selectedTransformPreset(presetId?: string, factor?: number, offset?: number): string {
+    if (presetId === 'custom') return 'custom';
+    if (presetId && VALUE_TRANSFORM_PRESETS.some((p) => p.id === presetId)) return presetId;
+    return matchValueTransformPreset(transformMagnitude(factor), offset);
+}
+
+/** Picking a conversion — it carries the sign over, or "Wh → kWh" would undo the inversion. */
+export function chooseTransformPreset(
+    id: string,
+    current: { factor?: number; offset?: number },
+    explicitNone = false,
+): ValueTransformPatchCore {
+    const sign = transformSign(current.factor);
+    if (id === 'custom') {
+        return { valueTransform: 'custom', valueFactor: current.factor ?? sign, valueOffset: current.offset };
+    }
+    const p = VALUE_TRANSFORM_PRESETS.find((x) => x.id === id);
+    if (!p || p.id === 'none') {
+        // "Keine" and negative still is a conversion — ×−1 — so it must not be stored as the
+        // literal 'none', which `resolveValueTransform` reads as "switch the wider default off"
+        // and which would throw the sign away with it.
+        return {
+            valueTransform: sign === -1 ? undefined : explicitNone ? 'none' : undefined,
+            valueFactor: sign === -1 ? -1 : undefined,
+            valueOffset: undefined,
+        };
+    }
+    return { valueTransform: p.id, valueFactor: p.factor * sign, valueOffset: p.offset || undefined, unit: p.unit };
+}
+
+/** Flipping the "negative" checkbox: the magnitude and the chosen preset stay put. */
+export function toggleTransformSign(current: {
+    factor?: number;
+    offset?: number;
+    presetId?: string;
+}): ValueTransformPatchCore {
+    const next = -(current.factor ?? 1);
+    // Back at a plain ×1 nothing is configured any more — drop the factor rather than store the
+    // no-op. 'none' may only stand again once there is no factor left for it to switch off.
+    const plain = next === 1 && current.offset === undefined;
+    return {
+        valueTransform: plain || current.presetId !== 'none' ? current.presetId : undefined,
+        valueFactor: plain ? undefined : next,
+        valueOffset: current.offset,
+    };
+}
+
 /**
  * Merge a per-datapoint transform with a list-wide default. The two halves
  * (factor/offset and time format) resolve independently, each taken as a whole

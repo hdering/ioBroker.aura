@@ -6,25 +6,30 @@ Zeigt einen Datenpunktwert als Zahl oder Text an (read-only). Mit Einheit, optio
 
 ## Datenpunkt
 
-| Feld | Pflicht | Typ | |
-| --- | --- | --- | --- |
-| `datapoint` | ja | beliebig | angezeigter Wert; Zahlen werden gerundet, sonst als Text ausgegeben |
+| Feld        | Pflicht | Typ      |                                                                     |
+| ----------- | ------- | -------- | ------------------------------------------------------------------- |
+| `datapoint` | ja      | beliebig | angezeigter Wert; Zahlen werden gerundet, sonst als Text ausgegeben |
 
 ## Layouts
 
 ### Default
+
 Titel/Icon oben, darunter der Wert mit Einheit. Inhalts- und Titelposition über `contentPosition`/`titlePosition` justierbar — für mittlere Zellen.
 
 ### Card
+
 Akzent-Leiste links, Titel/Icon oben, großer Wert mit hervorgehobener Einheit — für prominente Kacheln.
 
 ### Compact
+
 Eine Zeile mit Icon, Titel und Wert — für Listen mit vielen Werten.
 
 ### Minimal
+
 Nur die Zahl, sehr groß, mit kleinem Titel darunter — für sehr kleine Zellen.
 
 ### Custom
+
 Icon und Wert frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
 
 ## Einstellungen
@@ -35,29 +40,32 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Anzeige
 
-| Option | Standard | |
-| --- | --- | --- |
-| `showTitle` | `true` | Titel anzeigen |
-| `showIcon` | `true` | Icon anzeigen |
-| `showValue` | `true` | Wert anzeigen |
-| `showUnit` | `true` | Einheit anzeigen |
-| `icon` | layoutabhängig | [Lucide-Icon](https://lucide.dev) |
-| `iconSize` | `20` | px |
-| `valueFontSize` | `0` | px; `0` = automatische Größe je Layout |
-| `titleAlign` | `left` | `left` · `center` · `right` |
-| `unit` | — | Einheit hinter dem Wert |
-| `decimals` | globale Vorgabe | Nachkommastellen |
-| `contentPosition` | — | Inhalts-Ausrichtung (nur Default) |
-| `titlePosition` | — | Titel-Position (nur Default) |
+| Option            | Standard        |                                        |
+| ----------------- | --------------- | -------------------------------------- |
+| `showTitle`       | `true`          | Titel anzeigen                         |
+| `showIcon`        | `true`          | Icon anzeigen                          |
+| `showValue`       | `true`          | Wert anzeigen                          |
+| `showUnit`        | `true`          | Einheit anzeigen                       |
+| `icon`            | layoutabhängig  | [Lucide-Icon](https://lucide.dev)      |
+| `iconSize`        | `20`            | px                                     |
+| `valueFontSize`   | `0`             | px; `0` = automatische Größe je Layout |
+| `titleAlign`      | `left`          | `left` · `center` · `right`            |
+| `unit`            | —               | Einheit hinter dem Wert                |
+| `decimals`        | globale Vorgabe | Nachkommastellen                       |
+| `contentPosition` | —               | Inhalts-Ausrichtung (nur Default)      |
+| `titlePosition`   | —               | Titel-Position (nur Default)           |
 
 ### Werte-Transformation
 
 Reine Anzeige-Umrechnung `Wert × Faktor + Offset`; der Datenpunkt selbst bleibt unverändert.
 
-| Option | Standard | |
-| --- | --- | --- |
-| `valueFactor` | `1` | Multiplikator |
-| `valueOffset` | `0` | Summand |
+Das Häkchen **Negativ darstellen (× −1)** kehrt das Vorzeichen um (gespeichert als negatives
+`valueFactor`) und lässt sich mit jeder Umrechnung kombinieren.
+
+| Option        | Standard |               |
+| ------------- | -------- | ------------- |
+| `valueFactor` | `1`      | Multiplikator |
+| `valueOffset` | `0`      | Summand       |
 
 ### Zeit-Formatierung
 
@@ -65,28 +73,28 @@ Zeigt einen Zeit-Datenpunkt als Uhrzeit und/oder Datum. Zeitstempel (Sekunden/Mi
 ISO-Zeitangaben (`2026-08-01T14:32:07+02:00`) und `HH:mm` werden automatisch erkannt; nicht lesbare Werte
 zeigen `–`. Wird nach Faktor/Offset angewendet und gilt auch für `{dp}` im HTML-Template.
 
-| Option | Standard | |
-| --- | --- | --- |
-| `valueTimeFormat` | — | `time` (14:32) · `time-sec` · `date` (01.08.2026) · `date-long` (Samstag, 1. August 2026) · `datetime` · `datetime-sec` · `custom` |
-| `valueTimePattern` | — | Token-Muster, nur bei `custom` |
+| Option             | Standard |                                                                                                                                    |
+| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `valueTimeFormat`  | —        | `time` (14:32) · `time-sec` · `date` (01.08.2026) · `date-long` (Samstag, 1. August 2026) · `datetime` · `datetime-sec` · `custom` |
+| `valueTimePattern` | —        | Token-Muster, nur bei `custom`                                                                                                     |
 
 Tokens für `valueTimePattern`: `HH` `mm` `ss` · `hh` · `dd` `MM` `yyyy` `yy` · `EEEE` (Wochentag) · `EE` ·
 `MMMM` (Monat) · `ww` (KW). Beispiel: `EEEE, dd.MM. HH:mm` → `Samstag, 01.08. 14:32`
 
 ### HTML-Template
 
-| Option | Standard | |
-| --- | --- | --- |
-| `htmlTemplate` | — | freies HTML mit Platzhaltern (siehe unten) |
+| Option         | Standard |                                            |
+| -------------- | -------- | ------------------------------------------ |
+| `htmlTemplate` | —        | freies HTML mit Platzhaltern (siehe unten) |
 
 Verfügbare Platzhalter:
 
-| Platzhalter | ersetzt durch |
-| --- | --- |
-| `{dp}` | eigener Wert des Widgets |
+| Platzhalter         | ersetzt durch                                                                                                       |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `{dp}`              | eigener Wert des Widgets                                                                                            |
 | `{beliebige.dp.id}` | Wert eines beliebigen anderen Datenpunkts, z. B. `{alias.0.Raeume.Draussen.Suedseite.ACTUAL}` (wird live abonniert) |
-| `{color}` | aktuelle Schwellwert-Farbe — so lässt sich die Farbe frei auf Icon, Text o. Ä. anwenden statt nur auf den Wert |
-| `{unit}` | konfigurierte Einheit |
+| `{color}`           | aktuelle Schwellwert-Farbe — so lässt sich die Farbe frei auf Icon, Text o. Ä. anwenden statt nur auf den Wert      |
+| `{unit}`            | konfigurierte Einheit                                                                                               |
 
 Zahlen werden mit den eingestellten Nachkommastellen formatiert, fehlende Werte als „–". Ein JSON-Pfad-Suffix ist erlaubt — `{0_userdata.0.batterie?soc}`, `{0_userdata.0.batterie#soc}` und `{0_userdata.0.batterie}#soc` sind gleichwertig, und auch `{dp}#battery.soc` greift in einen Objekt-Wert des eigenen Datenpunkts.
 
@@ -100,9 +108,9 @@ Platzhalter können auch rechnen (`{dp;round(0)}`, `{a:dp1;b:dp2;a + b}`,
 
 Färbt den angezeigten (transformierten) Wert abhängig von seiner Höhe.
 
-| Option | Standard | |
-| --- | --- | --- |
-| `colorThresholds` | — | Liste aus `[Schwelle, Farbe]`, z. B. `[[20,"#0f0"],[100,"#f00"]]` |
+| Option            | Standard |                                                                   |
+| ----------------- | -------- | ----------------------------------------------------------------- |
+| `colorThresholds` | —        | Liste aus `[Schwelle, Farbe]`, z. B. `[[20,"#0f0"],[100,"#f00"]]` |
 
 ### Status-Datenpunkte
 

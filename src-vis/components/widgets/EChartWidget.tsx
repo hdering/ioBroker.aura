@@ -1,6 +1,6 @@
 import ReactECharts from 'echarts-for-react';
 import { useRef, useState, useEffect } from 'react';
-import { BarChart2, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
+import { BarChart2, CalendarDays, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import {
     useMultiSeriesData,
@@ -33,6 +33,8 @@ import {
     stackShares,
     type StackDatum,
 } from '../../utils/stackedSeries';
+import { openNativePicker } from '../common/DateTimeInput';
+import { transformSign } from '../../utils/valueTransform';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
@@ -200,9 +202,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         // A dense series turns into a wall of numbers; every second or third point is enough to
         // read it by (issue #584). Counted from the last point, which keeps its label.
         const interval = count === undefined ? 1 : Math.max(1, Math.round(series?.labelInterval ?? 1));
+        // A series drawn below the zero line (value factor ×−1, issue #594) has its "top" AT the
+        // axis, so a label placed there lands inside the bars above it — put it under the mark.
+        const drawsNegative = transformSign(series?.valueFactor) === -1;
         return {
             show: true,
-            position: inside ? 'inside' : 'top',
+            position: inside ? 'inside' : drawsNegative ? 'bottom' : 'top',
             color: inside ? '#fff' : '#888',
             fontSize: 10,
             formatter: (p: { value: number | [number, number] | null; dataIndex: number }) => {
@@ -260,6 +265,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         e.setDate(e.getDate() + 1);
         return { start: d.getTime(), end: e.getTime() };
     })();
+    const dayInputRef = useRef<HTMLInputElement>(null);
 
     // Reset frontend selection when the admin config changes
     useEffect(() => {
@@ -1159,6 +1165,25 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         background: active ? 'var(--accent)' : 'var(--app-border)',
         color: active ? '#fff' : 'var(--text-secondary)',
     });
+    // …and jump straight to a date instead of stepping there (issue #594). `dayOffset` stays the one
+    // source of truth, so a picked date is only turned into its distance from today. Rounded, because
+    // the two DST switch days are 23 and 25 hours long.
+    const isoDay = (ms: number): string => {
+        const d = new Date(ms);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+    const midnight = (d: Date): number => {
+        const x = new Date(d);
+        x.setHours(0, 0, 0, 0);
+        return x.getTime();
+    };
+    const pickDay = (iso: string) => {
+        if (!iso) return;
+        const [y, m, d] = iso.split('-').map(Number);
+        if (!y || !m || !d) return;
+        const picked = midnight(new Date(y, m - 1, d));
+        setDayOffset(Math.min(0, Math.round((picked - midnight(new Date())) / 86_400_000)));
+    };
     const dayNavControls =
         dayNav && hasHistory ? (
             <div className="flex items-center gap-1 shrink-0">
@@ -1187,18 +1212,35 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 >
                     <ChevronRight size={12} />
                 </button>
-                {dayWindow && (
-                    <span
-                        className="text-[10px] font-medium ml-1 whitespace-nowrap"
-                        style={{ color: 'var(--text-secondary)' }}
+                {/* The date is the picker's trigger — a field of its own would not fit the header on
+                    a narrow widget. The input has to stay rendered for showPicker(), so it is
+                    collapsed rather than hidden, and sits under the button it belongs to. */}
+                <span className="relative inline-flex items-center ml-1">
+                    <input
+                        ref={dayInputRef}
+                        type="date"
+                        className="nodrag absolute bottom-0 left-0 w-0 h-0 p-0 border-0 opacity-0 pointer-events-none"
+                        tabIndex={-1}
+                        aria-hidden
+                        value={dayWindow ? isoDay(dayWindow.start) : ''}
+                        max={isoDay(Date.now())}
+                        onChange={(e) => pickDay(e.target.value)}
+                    />
+                    <button
+                        className="nodrag flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium whitespace-nowrap hover:opacity-80 transition-opacity"
+                        style={navBtnStyle(false)}
+                        title={t('echart.dayPickTitle')}
+                        onClick={() => openNativePicker(dayInputRef.current)}
                     >
-                        {new Date(dayWindow.start).toLocaleDateString(t('echart.dateLocale'), {
-                            weekday: 'short',
-                            day: '2-digit',
-                            month: '2-digit',
-                        })}
-                    </span>
-                )}
+                        <CalendarDays size={12} />
+                        {dayWindow &&
+                            new Date(dayWindow.start).toLocaleDateString(t('echart.dateLocale'), {
+                                weekday: 'short',
+                                day: '2-digit',
+                                month: '2-digit',
+                            })}
+                    </button>
+                </span>
             </div>
         ) : null;
 

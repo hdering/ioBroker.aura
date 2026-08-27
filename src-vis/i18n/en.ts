@@ -1303,6 +1303,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.dayPrevTitle': 'Previous day',
     'echart.dayTodayTitle': 'Go to current day',
     'echart.dayNextTitle': 'Next day',
+    'echart.dayPickTitle': 'Pick a date',
     'echart.dateLocale': 'en-GB',
     'echart.moveUp': 'Move up',
     'echart.moveDown': 'Move down',

@@ -72,6 +72,28 @@ function canOpenPicker(kind: PickerKind): boolean {
  */
 let nativeTimePicker: boolean | null = null;
 
+/**
+ * Open a field's own picker, falling back to the caret. For callers that draw
+ * their own trigger around a field rather than using the component below — the
+ * advanced chart's day navigation opens its date field from the date label
+ * (issue #594). Returns whether showPicker() was reached at all.
+ *
+ * The input has to be RENDERED for this: showPicker() throws on a `display:none`
+ * field, so collapse it (size, opacity) instead of hiding it.
+ */
+export function openNativePicker(el: HTMLInputElement | null): boolean {
+    if (!el) return false;
+    try {
+        el.showPicker();
+        return true;
+    } catch {
+        // Blocked (no user activation), or the engine has no picker for this type —
+        // at least put the caret in the field so the value stays editable.
+        el.focus();
+        return false;
+    }
+}
+
 const pad = (n: number) => String(n).padStart(2, '0');
 const numbers = (count: number): PickerItem[] =>
     Array.from({ length: count }, (_, i) => ({ value: pad(i), label: pad(i) }));
@@ -127,15 +149,7 @@ export function DateTimeInput({
             setOwnList(true);
             return;
         }
-        let called = false;
-        try {
-            el.showPicker();
-            called = true;
-        } catch {
-            // Blocked (no user activation) or unsupported after all — at least
-            // put the caret in the field so the value stays editable.
-            el.focus();
-        }
+        const called = openNativePicker(el);
         if (kind !== 'time') return;
         if (!CAN_SEE_OPEN) {
             // No way to tell whether it opened. Blink/WebKit have a time picker;
