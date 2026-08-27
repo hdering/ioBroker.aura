@@ -115,6 +115,20 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.50.7 (2026-08-27)
+- 🌟 **New feature:** Image - datapoints holding raw SVG markup are now displayed, e.g. the guest WLAN QR code of fb-checkpresence ([#592](https://github.com/hdering/ioBroker.aura/issues/592))
+- Image - optional background colour behind the picture, keeps transparent SVGs such as QR codes readable on dark themes ([#592](https://github.com/hdering/ioBroker.aura/issues/592))
+- 🌟 **New feature:** Mediaplayer - device detection now recognises any adapter that follows the ioBroker media roles (yamaha, denon, volumio, ...), including its volume range, mute and input ([#593](https://github.com/hdering/ioBroker.aura/issues/593))
+- Mediaplayer - play/pause button now reads playback states that are a numbered enum, e.g. a Yamaha receiver reporting 0 = Play ([#593](https://github.com/hdering/ioBroker.aura/issues/593))
+- Static and dynamic list - the Switch display now offers the same options as the Switch widget: own write values per state (e.g. 0/255, ON/OFF), a separate status datapoint for devices that split command and feedback, condition-based on/off evaluation and an icon or image instead of the slide toggle ([#591](https://github.com/hdering/ioBroker.aura/issues/591))
+- 🌟 **New feature:** Dynamic list - the Switch display now also works for string and enum datapoints and gained the switch style, on/off icons, icon size and confirmation prompt the static list already had ([#591](https://github.com/hdering/ioBroker.aura/issues/591))
+- Charts, lists and value display - new "show as negative" option in the value conversion, for figures that are logged as positive but belong below the zero line, such as grid feed-in or battery charging ([#594](https://github.com/hdering/ioBroker.aura/issues/594))
+- Advanced chart - consumption bars (delta aggregation) came out as a row of zeros when a negative display factor was set; the counter is now differenced before the sign is applied ([#594](https://github.com/hdering/ioBroker.aura/issues/594))
+- Advanced chart - the day navigation gained a date field, so a day can be picked directly instead of stepping there one day at a time ([#594](https://github.com/hdering/ioBroker.aura/issues/594))
+- Advanced chart - a bar axis now always includes zero, so bar lengths stay proportional to their values and a series drawn downwards keeps its zero line; pure line charts still fit their own range, and an explicit axis minimum still wins ([#594](https://github.com/hdering/ioBroker.aura/issues/594))
+- Advanced chart - horizontal grid lines were missing when every series was assigned to the right y axis ([#594](https://github.com/hdering/ioBroker.aura/issues/594))
+
+
 ### 0.50.6 (2026-08-26)
 Release v0.50.6
 
@@ -241,10 +255,6 @@ Release v0.47.13
 - Chart (advanced) - the current value can be taken from the first instead of the last data point, and shown on the left or the right ([#549](https://github.com/hdering/ioBroker.aura/issues/549))
 
 
-### 0.47.10 (2026-08-18)
-- Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield ([#545](https://github.com/hdering/ioBroker.aura/issues/545))
-
-
 ## License
 
 MIT License
@@ -256,6 +266,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

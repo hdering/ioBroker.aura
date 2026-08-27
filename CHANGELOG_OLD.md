@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.47.10 (2026-08-18)
+- Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield ([#545](https://github.com/hdering/ioBroker.aura/issues/545))
+
 ## 0.47.9 (2026-08-18)
 - Chart (advanced) - axis labels and the gauge readout now follow the configured decimal places ([#548](https://github.com/hdering/ioBroker.aura/issues/548))
 
