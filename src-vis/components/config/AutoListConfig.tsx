@@ -15,6 +15,7 @@ import { ListSortSection } from './list/ListSortSection';
 import { AutoEntryDetail } from './list/AutoEntryDetail';
 import { AutoDiscoveryPanel } from './list/AutoDiscoveryPanel';
 import { SubDpTemplatePanel } from './list/SubDpTemplatePanel';
+import { ListIconPanel } from './list/ListIconPanel';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { ListFilterSection } from './list/ListFilterSection';
 import type { EditorFilterRow } from './list/ListFilterEditor';
@@ -59,23 +60,6 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     const setOpts = (patch: Partial<AutoListOptions>) => {
         onConfigChange({ ...config, options: { ...opts, ...patch } });
     };
-
-    // The list-wide row icon is gone from the editor — an icon is a per-datapoint
-    // setting now. Push a stored global down onto every entry that has none of its
-    // own once on mount, so existing lists keep their icons; the widget keeps
-    // honouring unmigrated configs (see AutoListWidget's legacy fallback).
-    useEffect(() => {
-        if (opts.entryIcon === undefined && opts.entryIconSize === undefined) return;
-        setOpts({
-            entries: (opts.entries ?? []).map((e) => {
-                const icon = e.icon ?? opts.entryIcon;
-                return icon ? { ...e, icon, iconSize: e.iconSize ?? opts.entryIconSize } : e;
-            }),
-            entryIcon: undefined,
-            entryIconSize: undefined,
-        });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     // Datapoint search state. Owned here, not by the dialog, so filter drafts and
     // results survive closing it - and so the uncached filter-option scan runs once.
@@ -139,7 +123,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 hint="Datenpunkte suchen, übernehmen und im Detail konfigurieren."
                 entries={opts.entries ?? []}
                 resolvedNames={resolvedNames}
-                entriesTabIndex={1}
+                entriesTabIndex={2}
                 onRemove={removeEntry}
                 onRemoveAll={() => setOpts({ entries: [] })}
                 emptyState={'Noch keine Datenpunkte – im Tab „Suchen & Filter“ welche finden.'}
@@ -167,6 +151,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         ),
                     },
                     {
+                        key: 'icon',
+                        label: 'Icon',
+                        node: <ListIconPanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
+                    },
+                    {
                         key: 'rowconds',
                         label: 'Bedingungen',
                         node: (
@@ -178,14 +167,14 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         ),
                     },
                     {
-                        key: 'rowclick',
-                        label: 'Klick auf Zeile',
-                        node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
-                    },
-                    {
                         key: 'subline',
                         label: 'Zweite Zeile',
                         node: <SubDpTemplatePanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
+                    },
+                    {
+                        key: 'rowclick',
+                        label: 'Klick auf Zeile',
+                        node: <RowClickSection config={config} opts={opts} onChange={setOpts} />,
                     },
                     {
                         key: 'names',

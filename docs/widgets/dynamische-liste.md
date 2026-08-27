@@ -42,14 +42,26 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Tab | |
 | --- | --- |
 | Suchen & Filter | Datenpunkt-Suche, Ausschlüsse, Trefferliste, Übernehmen — dazu Sync-Intervall und „Nur relevante DPs" |
+| Icon | Icon vor dem Namen für alle Zeilen (siehe unten) |
 | Einträge | Gefundene Datenpunkte; rechts der Detail-Editor (Bezeichnung, Einheit, Darstellung, Farben) |
-| Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
+| Bedingungen | Regeln für alle Zeilen (siehe unten) |
 | Zweite Zeile | Vorlage für zusätzliche Datenpunkte in allen Zeilen (siehe unten) |
+| Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
 | Namen | Namensmuster und Namens-Filter — Platzhalter wie bei der [statischen Liste](./liste#namen), inklusive `[[{{parent}}.DeviceName]]` für Namen aus einem eigenen Datenpunkt |
 
-Das Icon vor dem Namen wird je Datenpunkt im Abschnitt **Beschriftung** gesetzt (`entries[].icon`, [Lucide](https://lucide.dev) / Iconify-ID), die Größe daneben in px (`entries[].iconSize`, Standard `13`).
-
 Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Zweite Zeile** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Verhalten** (letzte Änderung, Klick auf Zeile).
+
+### Icon vor dem Namen
+
+Die Datenpunkte kommen aus einem Filter und ändern sich beim Sync, deshalb wird das Icon einmal für die ganze Liste gesetzt: Dialog → Tab **Icon** ([Lucide](https://lucide.dev) / Iconify-ID, Größe in px, Standard `13`).
+
+| Quelle | |
+| --- | --- |
+| `entryIcon` · `entryIconSize` | Dialog → Tab **Icon**: gilt für **alle** Zeilen |
+| `entries[].icon` · `entries[].iconSize` | Detail-Editor → Abschnitt **Beschriftung**: nur diese Zeile |
+| `icon` · `iconSize` · `iconColor` einer Bedingung | solange die Regel greift — gewinnt gegen beide |
+
+Der Tab zeigt eine Vorschau der ersten Zeilen und wie viele Datenpunkte ein eigenes Icon haben; **Eigene Icons entfernen** setzt sie zurück, damit die Vorgabe überall gilt.
 
 ### Zweite Zeile (zusätzliche Datenpunkte)
 
@@ -204,6 +216,8 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `showCount` | `true` | Anzahl hinter dem Titel |
+| `entryIcon` | — | [Icon vor dem Namen](#icon-vor-dem-namen) — gilt für alle Zeilen |
+| `entryIconSize` | `13` | px |
 | `showId` | `false` | Datenpunkt-ID unter dem Label |
 | `showRoom` | `false` | Räume unter dem Label |
 | `showEntryLastChange` | `false` | Zeitstempel der letzten Änderung je Eintrag |

@@ -122,7 +122,8 @@
     "test:enum-json-ui": "node tools/tests/enum-json-widget.mjs",
     "test:menu-item-order": "node tools/tests/menu-item-order.mjs",
     "test:image-source": "node tools/tests/image-source.mjs",
-    "test:media-detect": "node tools/tests/media-role-detect.mjs"
+    "test:media-detect": "node tools/tests/media-role-detect.mjs",
+    "test:autolist-icon": "node tools/tests/autolist-icon.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",

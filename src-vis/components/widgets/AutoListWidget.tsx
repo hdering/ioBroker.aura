@@ -208,11 +208,13 @@ export interface AutoListOptions
     /** Template rows whose resolved datapoint does not exist are left out instead of
      *  rendering a dash (a device without BATTERY). Default true. */
     subDpTemplateHideMissing?: boolean;
-    /** Legacy list-wide row icon. The editor only offers the per-datapoint icon now
-     *  and migrates a stored value onto the entries; kept so unmigrated lists still
-     *  render their icon (see AutoListConfig). */
+    /**
+     * Row icon for EVERY entry — the rows come from a filter and change on each sync,
+     * so the icon is configured once for the list (tab "Icon"). An entry's own `icon`
+     * wins, a condition rule wins over both.
+     */
     entryIcon?: string;
-    /** Legacy size of that icon in px. Default 13. */
+    /** Size of that icon in px. Default 13. */
     entryIconSize?: number;
     /**
      * Conditional formatting applied to EVERY row (issue #572). Clause datapoints may
@@ -1628,8 +1630,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         const cIcon = partOf(rc, 'icon');
                                         const cName = partOf(rc, 'name');
                                         const cValue = partOf(rc, 'value');
-                                        // The dynamic list had no row icon at all (issue #572): it comes from the
-                                        // entry, from the list-wide default, or from a rule.
+                                        // The row icon comes from a rule, from the entry, or from the
+                                        // list-wide default (tab "Icon").
                                         const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
                                         const EntryIcon =
                                             iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
@@ -1771,8 +1773,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const cIcon = partOf(rc, 'icon');
                                     const cName = partOf(rc, 'name');
                                     const cValue = partOf(rc, 'value');
-                                    // The dynamic list had no row icon at all (issue #572): it comes from the
-                                    // entry, from the list-wide default, or from a rule.
+                                    // The row icon comes from a rule, from the entry, or from the
+                                    // list-wide default (tab "Icon").
                                     const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
                                     const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
                                     const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? opts.entryIconSize ?? 13;
@@ -1911,8 +1913,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const cIcon = partOf(rc, 'icon');
                                     const cName = partOf(rc, 'name');
                                     const cValue = partOf(rc, 'value');
-                                    // The dynamic list had no row icon at all (issue #572): it comes from the
-                                    // entry, from the list-wide default, or from a rule.
+                                    // The row icon comes from a rule, from the entry, or from the
+                                    // list-wide default (tab "Icon").
                                     const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
                                     const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
                                     const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? opts.entryIconSize ?? 13;
@@ -2133,8 +2135,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                 const cIcon = partOf(rc, 'icon');
                                 const cName = partOf(rc, 'name');
                                 const cValue = partOf(rc, 'value');
-                                // The dynamic list had no row icon at all (issue #572): it comes from the
-                                // entry, from the list-wide default, or from a rule.
+                                // The row icon comes from a rule, from the entry, or from the
+                                // list-wide default (tab "Icon").
                                 const iconName = cIcon.icon ?? entry.icon ?? opts.entryIcon;
                                 const EntryIcon = iconName && !cIcon.hide ? getWidgetIcon(iconName, null!) : null;
                                 const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? opts.entryIconSize ?? 13;

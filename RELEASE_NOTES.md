@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Dynamic list - one icon for all rows, set in the new "Icon" tab of the datapoint dialog; a per-datapoint icon and conditions still override it
