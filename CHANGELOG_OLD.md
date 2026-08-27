@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.47.11 (2026-08-18)
+- Chart (advanced) - the current value can be taken from the first instead of the last data point, and shown on the left or the right ([#549](https://github.com/hdering/ioBroker.aura/issues/549))
+
 ## 0.47.10 (2026-08-18)
 - Advanced chart - the consumption aggregation now also handles counters that reset every day, e.g. a PV day yield ([#545](https://github.com/hdering/ioBroker.aura/issues/545))
 
