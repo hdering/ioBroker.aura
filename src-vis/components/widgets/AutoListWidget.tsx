@@ -67,10 +67,15 @@ import {
     TimeDisplay,
     InputControl,
     DateEntryControl,
+    SwitchControl,
     entryDateText,
     formatEntryTime,
     entryValueText,
     resolveContactDisplay,
+    switchEntryActive,
+    switchReadValue,
+    switchStatusDp,
+    switchWriteValues,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
 } from './entryControls';
@@ -106,8 +111,6 @@ export interface AutoListEntry extends EntryControlConfig {
     subDps?: EntrySubDp[];
     /** Icon in front of the name — the only place a row icon is configured (issue #572). */
     icon?: string;
-    /** Icon size in px. Default 13. */
-    iconSize?: number;
     /** Conditional formatting of this row (issue #572). */
     conditions?: ElementConditionRule[];
 }
@@ -522,6 +525,7 @@ export async function discoverDatapoints(
 function EntryValue({
     entry,
     val,
+    statusVal,
     writable,
     setState,
     thresholds,
@@ -538,6 +542,8 @@ function EntryValue({
 }: {
     entry: AutoListEntry;
     val: ioBrokerState['val'];
+    /** Live value of the switch display's status datapoint, when one is configured. */
+    statusVal?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     thresholds?: ColorThreshold[];
@@ -620,6 +626,22 @@ function EntryValue({
         );
     if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} />;
     if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} />;
+    // Forced "Schalter": the shared control, so a string/enum datapoint gets a toggle
+    // too — the automatic path below only ever recognises the boolean-ish shapes.
+    if (dt === 'switch')
+        return (
+            <SwitchControl
+                entry={entry}
+                val={val}
+                statusVal={statusVal}
+                writable={writable}
+                setState={setState}
+                activeColor={activeColor}
+                inactiveColor={inactiveColor}
+                trueLabel={trueLabel}
+                falseLabel={falseLabel}
+            />
+        );
 
     // Role-based display for sensors (window, door, motion, smoke, …)
     if (isBoolLike && !hasLabels) {
@@ -735,6 +757,7 @@ function EntryValue({
 function CardEntryValue({
     entry,
     val,
+    statusVal,
     writable,
     setState,
     thresholds,
@@ -751,6 +774,8 @@ function CardEntryValue({
 }: {
     entry: AutoListEntry;
     val: ioBrokerState['val'];
+    /** Live value of the switch display's status datapoint, when one is configured. */
+    statusVal?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     thresholds?: ColorThreshold[];
@@ -830,6 +855,22 @@ function CardEntryValue({
         );
     if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth />;
     if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth />;
+    // Forced "Schalter" — see the row variant; `card` makes it fill the cell.
+    if (dt === 'switch')
+        return (
+            <SwitchControl
+                entry={entry}
+                val={val}
+                statusVal={statusVal}
+                writable={writable}
+                setState={setState}
+                activeColor={activeColor}
+                inactiveColor={inactiveColor}
+                trueLabel={trueLabel}
+                falseLabel={falseLabel}
+                card
+            />
+        );
 
     // Role-based display for sensors
     if (isBoolLike && !hasLabels) {
@@ -1109,17 +1150,24 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         [config, opts, onConfigChange],
     );
 
-    const entryKey = entries.map((e) => e.id).join(',');
+    // A switch entry may read its state from a separate status datapoint (Tasmota &
+    // co.) — those ids go into the same states map, so every layout (incl. the badges,
+    // which draw no control of their own) sees the feedback value.
+    const statusIds = [...new Set(entries.map(switchStatusDp).filter(Boolean))].filter(
+        (id) => !entries.some((e) => e.id === id),
+    );
+    const entryKey = [...entries.map((e) => e.id), ...statusIds].join(',');
     // NB: keyed on entryKey only — no prevKey guard. A prevKey ref survives the
     // StrictMode mount→unmount→remount cycle and would make the remount skip
     // re-subscribing (after the unmount tore the subscriptions down), leaving
     // the list with zero live subscriptions in dev.
     useEffect(() => {
         if (entries.length === 0) return;
-        entries.forEach((e) => getState(e.id).then((s) => setStates((prev) => ({ ...prev, [e.id]: s }))));
-        const unsubs = entries.map((e) =>
-            subscribe(e.id, (s) => {
-                setStates((prev) => ({ ...prev, [e.id]: s }));
+        const subIds = [...entries.map((e) => e.id), ...statusIds];
+        subIds.forEach((id) => getState(id).then((s) => setStates((prev) => ({ ...prev, [id]: s }))));
+        const unsubs = subIds.map((id) =>
+            subscribe(id, (s) => {
+                setStates((prev) => ({ ...prev, [id]: s }));
                 if (s) setLastChangedTs((prev) => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
             }),
         );
@@ -1647,6 +1695,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         cond={cValue}
                                                         entry={entry}
                                                         val={val}
+                                                        statusVal={states[switchStatusDp(entry)]?.val}
                                                         writable={entry.writable !== false}
                                                         setState={setState}
                                                         thresholds={globalThresholds}
@@ -1809,6 +1858,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     cond={cValue}
                                                     entry={entry}
                                                     val={val}
+                                                    statusVal={states[switchStatusDp(entry)]?.val}
                                                     writable={entry.writable !== false}
                                                     setState={setState}
                                                     thresholds={globalThresholds}
@@ -1877,6 +1927,18 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const isBool = typeof val === 'boolean';
                                     const isBoolLike = isBool || (typeof val === 'number' && (val === 0 || val === 1));
                                     const on = val === true || val === 1;
+                                    // A badge draws no control, so it evaluates the switch itself —
+                                    // through the shared rule, so status DP, write values and the
+                                    // condition mode work here exactly as in the other layouts.
+                                    const forceSwitch = entry.displayType === 'switch';
+                                    const switchStatusVal = states[switchStatusDp(entry)]?.val;
+                                    const switchActive = forceSwitch
+                                        ? switchEntryActive(
+                                              entry,
+                                              switchReadValue(entry, val, switchStatusVal),
+                                              entry.id,
+                                          )
+                                        : isBoolLike && on;
                                     // Multi-state mapping (window handle etc.): match the value to a
                                     // configured state so the badge shows its label + color + icon.
                                     const stateMatch =
@@ -1896,7 +1958,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                               ? entryDateText(entry, val)
                                               : null;
                                     const roleDisplay =
-                                        !stateMatch && !contactMatch && isBoolLike && !hasLabels
+                                        !stateMatch && !contactMatch && !forceSwitch && isBoolLike && !hasLabels
                                             ? getRoleDisplay(entry.role, val)
                                             : null;
                                     // Untouched entries keep printing the raw value unrounded —
@@ -1910,8 +1972,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                               ? (stateMatch.label ?? String(stateMatch.value))
                                               : roleDisplay
                                                 ? roleDisplay.label
-                                                : isBoolLike && hasLabels
-                                                  ? on
+                                                : forceSwitch || (isBoolLike && hasLabels)
+                                                  ? switchActive
                                                       ? trueLabel || 'AN'
                                                       : falseLabel || 'AUS'
                                                   : plainText != null
@@ -1929,7 +1991,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                           ? (stateMatch.color ?? null)
                                           : roleDisplay
                                             ? roleDisplay.color
-                                            : isBoolLike && on
+                                            : switchActive
                                               ? entryActiveColor
                                               : hasLabels
                                                 ? entryInactiveColor
@@ -1961,7 +2023,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                         writable &&
                                         !roleDisplay &&
                                         !lockValue &&
-                                        isBoolLike &&
+                                        (forceSwitch || isBoolLike) &&
                                         !rowPopup.explicit(entry.clickAction);
                                     const rowProps = togglable
                                         ? undefined
@@ -1979,7 +2041,10 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             {...rowProps}
                                             onClick={(e) => {
                                                 if (togglable) {
-                                                    if (isBool) setState(entry.id, !on);
+                                                    if (forceSwitch) {
+                                                        const w = switchWriteValues(entry, val);
+                                                        setState(entry.id, switchActive ? w.off : w.on);
+                                                    } else if (isBool) setState(entry.id, !on);
                                                     else setState(entry.id, on ? 0 : 1);
                                                     return;
                                                 }
@@ -2163,6 +2228,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 cond={cValue}
                                                 entry={entry}
                                                 val={val}
+                                                statusVal={states[switchStatusDp(entry)]?.val}
                                                 writable={entry.writable !== false}
                                                 setState={setState}
                                                 thresholds={globalThresholds}

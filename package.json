@@ -52,6 +52,8 @@
     "test:message-defaults": "node tools/tests/admin-message-defaults.mjs",
     "test:group-fit": "node tools/tests/group-fit.mjs",
     "test:cell-state": "node tools/tests/cell-state.mjs",
+    "test:list-switch": "node tools/tests/list-switch.mjs",
+    "test:list-switch-ui": "node tools/tests/list-switch-ui.mjs",
     "test:dp-popup": "node tools/tests/dp-popup-trigger.mjs",
     "test:dp-cache": "node tools/tests/dp-cache-freshness.mjs",
     "test:wake-reload": "node tools/tests/wake-reload.mjs",

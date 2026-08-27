@@ -6,6 +6,29 @@ Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. Jeder Eintra
 
 Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `momentary` · `switch` · `slider` · `value` · `time` · `datepicker` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
 
+### Darstellung Schalter
+
+`displayType: 'switch'` macht die Zeile zum Schalter — dieselben Möglichkeiten wie das
+[Schalter-Widget](./schalter), nur pro Listenzeile. Gilt auch für die
+[dynamische Liste](./dynamische-liste) und für das Badges-Layout, in dem die ganze Zeile schaltet.
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `switchStyle` | `slide` | `slide` (Schiebeschalter) · `icon` (klickbares Icon) · `image` (klickbares Bild) |
+| `trueIcon` / `falseIcon` | Power | Icon je Zustand (bei `icon` und `image`) |
+| `onImage` / `offImage` | — | Bild je Zustand (bei `image`); ohne Bild greift das Icon |
+| `iconSize` | `22` | Größe von Icon/Bild in px |
+| `onValue` / `offValue` | — | Schreibwerte, z. B. `0`/`255`, `ON`/`OFF`. Leer = wie der Datenpunkt (`true`/`false` bzw. `1`/`0`) |
+| `statusDp` | — | Separater Status-Datenpunkt für Geräte, die Schalten und Rückmeldung trennen (Tasmota: `cmnd.POWER` schaltet, `stat.POWER` meldet) |
+| `stateMode` | `boolean` | `boolean` (an bei `true`, Zahl ungleich 0, `ON`) · `condition` (Vergleich) |
+| `stateOperator` / `stateValue` | `>` / `0` | Vergleich bei `stateMode: condition` |
+| `trueLabel` / `falseLabel` | — | Texte statt des Schiebeschalters (Pille) |
+| `confirm` / `confirmText` | `false` | Sicherheitsabfrage vor dem Schalten |
+
+Ist `onValue` gesetzt und kein `statusDp` konfiguriert, gilt die Zeile als **an**, wenn der Wert genau
+dem AN-Wert entspricht. Geschrieben wird immer auf den Datenpunkt der Zeile — ein `statusDp` meldet nur.
+Die Gruppen-Aktion (Master-Schalter) verwendet dieselben Werte.
+
 ### Darstellung Eingabefeld
 
 `displayType: 'input'` macht die Zeile zum Eingabefeld — dieselben Möglichkeiten wie das [Eingabefeld-Widget](./eingabefeld), nur pro Listenzeile. Im Badges-Layout wird stattdessen der reine Wert angezeigt. Gilt auch für die [dynamische Liste](./dynamische-liste).

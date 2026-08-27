@@ -45,8 +45,6 @@ export function StaticEntryDetail({
     onChangeId: (newId: string, unit?: string, role?: string, writable?: boolean) => void;
 }) {
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
-    const [trueIconPickerOpen, setTrueIconPickerOpen] = useState(false);
-    const [falseIconPickerOpen, setFalseIconPickerOpen] = useState(false);
     const [dpPickerOpen, setDpPickerOpen] = useState(false);
     // The datapoint id doubles as the entry's React key, so writing it on every
     // keystroke remounted the row and stole the focus after a single character.
@@ -79,8 +77,6 @@ export function StaticEntryDetail({
         listOpts.valueTransform !== undefined ||
         listOpts.valueFactor !== undefined ||
         listOpts.valueTimeFormat !== undefined;
-    // Confirmation prompt is offered for switch-like controls (switch, momentary).
-    const isSwitchLike = isSwitch || entry.displayType === 'momentary';
     // The on/off label pair is only ever read for boolean-ish entries.
     const showOnOffLabels = usesOnOffLabels(entry, lookupDatapointEntry(entry.id)?.type);
     const subDpCount = (entry.subDps ?? []).filter((s) => !!s?.id).length;
@@ -292,132 +288,6 @@ export function StaticEntryDetail({
                     </div>
                 )}
 
-                {/* Schalter-Stil (nur wenn Darstellung Schalter oder Auto bool) */}
-                {isSwitch && (
-                    <div>
-                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Schalter-Stil
-                        </label>
-                        <div className="flex gap-1">
-                            {(['slide', 'icon'] as const).map((v) => {
-                                const lbl = v === 'slide' ? 'Schiebeschalter' : 'Icon';
-                                const active = (entry.switchStyle ?? 'slide') === v;
-                                return (
-                                    <button
-                                        key={v}
-                                        onClick={() => onUpdate({ switchStyle: v === 'slide' ? undefined : v })}
-                                        className="flex-1 text-[10px] py-1 rounded transition-colors"
-                                        style={{
-                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                            color: active ? '#fff' : 'var(--text-secondary)',
-                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                        }}
-                                    >
-                                        {lbl}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {/* Icons AN/AUS (nur bei Schalter-Stil Icon) */}
-                {isSwitch && (entry.switchStyle ?? 'slide') === 'icon' && (
-                    <div className="grid grid-cols-2 gap-1.5">
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Icon AN
-                            </label>
-                            <div className="relative">
-                                <button
-                                    onClick={() => setTrueIconPickerOpen(true)}
-                                    title={entry.trueIcon || 'Icon wählen'}
-                                    className="w-full flex items-center justify-center rounded hover:opacity-80"
-                                    style={{ ...iSty, height: 28 }}
-                                >
-                                    {entry.trueIcon ? (
-                                        <Icon icon={toIconifyId(entry.trueIcon)} width={16} height={16} />
-                                    ) : (
-                                        <Plus size={13} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
-                                    )}
-                                </button>
-                                {entry.trueIcon && (
-                                    <button
-                                        onClick={() => onUpdate({ trueIcon: undefined })}
-                                        title="Icon entfernen"
-                                        className="absolute -top-1 -right-1 flex items-center justify-center rounded-full hover:opacity-80"
-                                        style={{
-                                            width: 13,
-                                            height: 13,
-                                            background: 'var(--app-bg)',
-                                            border: '1px solid var(--app-border)',
-                                            color: 'var(--text-secondary)',
-                                        }}
-                                    >
-                                        <X size={8} />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                        <div>
-                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                Icon AUS
-                            </label>
-                            <div className="relative">
-                                <button
-                                    onClick={() => setFalseIconPickerOpen(true)}
-                                    title={entry.falseIcon || 'Icon wählen'}
-                                    className="w-full flex items-center justify-center rounded hover:opacity-80"
-                                    style={{ ...iSty, height: 28 }}
-                                >
-                                    {entry.falseIcon ? (
-                                        <Icon icon={toIconifyId(entry.falseIcon)} width={16} height={16} />
-                                    ) : (
-                                        <Plus size={13} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
-                                    )}
-                                </button>
-                                {entry.falseIcon && (
-                                    <button
-                                        onClick={() => onUpdate({ falseIcon: undefined })}
-                                        title="Icon entfernen"
-                                        className="absolute -top-1 -right-1 flex items-center justify-center rounded-full hover:opacity-80"
-                                        style={{
-                                            width: 13,
-                                            height: 13,
-                                            background: 'var(--app-bg)',
-                                            border: '1px solid var(--app-border)',
-                                            color: 'var(--text-secondary)',
-                                        }}
-                                    >
-                                        <X size={8} />
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Icon-Größe (nur für Schalter-Darstellung) */}
-                {isSwitch && (
-                    <div>
-                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            Icon-Größe (px)
-                        </label>
-                        <input
-                            type="number"
-                            min={8}
-                            max={96}
-                            className="w-20 text-[10px] rounded px-2 py-0.5 focus:outline-none font-mono"
-                            style={iSty}
-                            placeholder="Auto"
-                            value={entry.iconSize ?? ''}
-                            onChange={(e) => {
-                                const n = parseInt(e.target.value, 10);
-                                onUpdate({ iconSize: isFinite(n) && n > 0 ? n : undefined });
-                            }}
-                        />
-                    </div>
-                )}
                 {isSwitch && (
                     <div className="grid grid-cols-2 gap-1.5">
                         <ColorField
@@ -444,35 +314,6 @@ export function StaticEntryDetail({
                             fallback="#1f2937"
                             onChange={(v) => onUpdate({ inactiveBg: v })}
                         />
-                    </div>
-                )}
-                {/* Sicherheitsabfrage (nur für Schalter/Taster) */}
-                {isSwitchLike && (
-                    <div>
-                        <div className="flex items-center justify-between">
-                            <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                Sicherheitsabfrage
-                            </label>
-                            <button
-                                onClick={() => onUpdate({ confirm: !entry.confirm })}
-                                className="relative w-9 h-5 rounded-full transition-colors"
-                                style={{ background: entry.confirm ? 'var(--accent)' : 'var(--app-border)' }}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
-                                    style={{ left: entry.confirm ? '18px' : '2px' }}
-                                />
-                            </button>
-                        </div>
-                        {entry.confirm && (
-                            <input
-                                className="w-full text-[10px] rounded px-2 py-0.5 focus:outline-none mt-1"
-                                style={iSty}
-                                placeholder="Wirklich schalten?"
-                                value={entry.confirmText ?? ''}
-                                onChange={(e) => onUpdate({ confirmText: e.target.value || undefined })}
-                            />
-                        )}
                     </div>
                 )}
             </DetailSection>
@@ -622,26 +463,6 @@ export function StaticEntryDetail({
                         setIconPickerOpen(false);
                     }}
                     onClose={() => setIconPickerOpen(false)}
-                />
-            )}
-            {trueIconPickerOpen && (
-                <IconPickerModal
-                    current={entry.trueIcon ?? ''}
-                    onSelect={(name) => {
-                        onUpdate({ trueIcon: name || undefined });
-                        setTrueIconPickerOpen(false);
-                    }}
-                    onClose={() => setTrueIconPickerOpen(false)}
-                />
-            )}
-            {falseIconPickerOpen && (
-                <IconPickerModal
-                    current={entry.falseIcon ?? ''}
-                    onSelect={(name) => {
-                        onUpdate({ falseIcon: name || undefined });
-                        setFalseIconPickerOpen(false);
-                    }}
-                    onClose={() => setFalseIconPickerOpen(false)}
                 />
             )}
             {dpPickerOpen && (

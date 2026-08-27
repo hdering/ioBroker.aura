@@ -2,9 +2,11 @@
  * Shared per-entry control types for the static and dynamic list widgets.
  *
  * The list "Darstellung" (displayType) decides how a single entry's value is
- * rendered/controlled. Besides the built-in auto/switch/slider/value modes the
- * lists support these richer controls, all rendered by the small components
- * below so both list widgets share one implementation:
+ * rendered/controlled. Besides the built-in auto/slider/value modes the lists
+ * support these richer controls, all rendered by the small components below so
+ * both list widgets share one implementation:
+ *   - switch    → on/off control with the Schalter widget's full option set
+ *                 (write values, status DP, condition mode, slide/icon/image)
  *   - shutter   → ▲ ■ ▼ buttons writing to separate up/stop/down DPs
  *   - stepper   → −/+ buttons stepping a numeric DP (min/max/step)
  *   - buttons   → fixed value presets (Off/Eco/Comfort, 0/50/100 …)
@@ -14,9 +16,18 @@
  *   - input     → free text / number entry, like the standalone Eingabefeld widget
  */
 import { useEffect, useRef, useState } from 'react';
-import { ChevronUp, ChevronDown, Square, Minus, Plus, Send } from 'lucide-react';
+import { ChevronUp, ChevronDown, Square, Minus, Plus, Send, Power } from 'lucide-react';
 import type { ioBrokerState } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { resolveImageSource } from '../../utils/assetUrl';
+import {
+    parseWrite,
+    switchEntryActive,
+    switchReadValue,
+    switchStatusDp,
+    switchWriteValues,
+    type SwitchEntryConfig,
+} from '../../utils/switchEntry';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { useT } from '../../i18n';
 import { formatTimeDisplay, TIME_DASH } from '../../utils/timeDisplay';
@@ -109,12 +120,17 @@ export function matchStateMap(
 /** Per-entry control config — mixed into StaticListEntry and AutoListEntry.
  *  Extends ValueTransformSettings: every entry can carry its own display-only
  *  value conversion / time formatting, overriding the list-wide default. */
-export interface EntryControlConfig extends ValueTransformSettings {
+export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryConfig {
     displayType?: EntryDisplayType;
     /** Switch-like controls (switch, momentary): require a confirmation tap before writing. */
     confirm?: boolean;
     /** Custom prompt shown in the confirmation overlay. Falls back to a default text. */
     confirmText?: string;
+    // ── switch (on/off) ───────────────────────────────────────────────────────
+    // The option set itself lives in utils/switchEntry (SwitchEntryConfig), so the
+    // group master switch and the unit test can apply the same rule (issue #591).
+    /** Size in px of the row icon and of the icon/image switch. Unset = per-layout default. */
+    iconSize?: number;
     // ── shutter ──────────────────────────────────────────────────────────────
     /**
      * Shutter control model:
@@ -205,17 +221,9 @@ export interface EntryControlConfig extends ValueTransformSettings {
 
 type SetState = (id: string, v: boolean | number | string) => void;
 
-/** Coerce a configured write value (often a raw string from the editor) into the
- *  proper boolean/number/string before writing. Exported because other widgets
- *  with configurable write values (camera action rows) need the same coercion. */
-export function parseWrite(v: string | number | boolean | undefined, fallback: boolean | number | string) {
-    if (v === undefined || v === '') return fallback;
-    if (typeof v !== 'string') return v;
-    if (v === 'true') return true;
-    if (v === 'false') return false;
-    const n = Number(v);
-    return v.trim() !== '' && Number.isFinite(n) ? n : v;
-}
+// Re-exported so the widgets that already import their write-value coercion from
+// here (camera action rows) keep one import site.
+export { parseWrite, switchEntryActive, switchReadValue, switchStatusDp, switchWriteValues };
 
 // ── Display-only value conversion ────────────────────────────────────────────
 // Same feature as the Werte-Anzeige widget: an entry (or the whole list) can
@@ -276,6 +284,149 @@ const btnStyle: React.CSSProperties = {
     color: 'var(--text-secondary)',
     border: '1px solid var(--widget-border)',
 };
+
+// ── Switch (on/off) ─────────────────────────────────────────────────────────
+// The "Schalter" display with the same option set as the standalone Schalter
+// widget (issue #591): free write values per state, a separate status datapoint
+// for devices that split command and feedback, condition-based evaluation and a
+// slide / icon / image control. Shared by both lists AND by their badge layouts,
+// which draw no control of their own but must agree on state and write value.
+
+export function SwitchControl({
+    entry,
+    val,
+    statusVal,
+    writable,
+    setState,
+    activeColor,
+    inactiveColor,
+    trueLabel,
+    falseLabel,
+    card,
+}: {
+    entry: EntryControlConfig & { id: string };
+    val: ioBrokerState['val'];
+    /** Live value of `entry.statusDp`, when one is configured. */
+    statusVal?: ioBrokerState['val'];
+    writable: boolean;
+    setState: SetState;
+    activeColor: string;
+    inactiveColor: string;
+    trueLabel?: string;
+    falseLabel?: string;
+    /** Card layouts stack vertically: the control fills its cell. */
+    card?: boolean;
+}) {
+    const anchorRef = useRef<HTMLButtonElement>(null);
+    const active = switchEntryActive(entry, switchReadValue(entry, val, statusVal), entry.id);
+    // Writes always target the entry's own datapoint — a status DP only reports.
+    const write = () => {
+        const w = switchWriteValues(entry, val);
+        setState(entry.id, active ? w.off : w.on);
+    };
+    const { run, pending, confirm, cancel } = useConfirmAction(write, !!entry.confirm);
+    const onClick = writable ? run : undefined;
+    const cursor = writable ? 'pointer' : 'default';
+    const label = active ? trueLabel || 'AN' : falseLabel || 'AUS';
+    const overlay = pending ? (
+        <ConfirmOverlay popup anchorRef={anchorRef} text={entry.confirmText} onConfirm={confirm} onCancel={cancel} />
+    ) : null;
+    const style = entry.switchStyle ?? 'slide';
+
+    if (style === 'icon' || style === 'image') {
+        const size = entry.iconSize ?? 22;
+        const image = active ? entry.onImage : entry.offImage;
+        const StateIcon = getWidgetIcon(active ? entry.trueIcon : entry.falseIcon, Power);
+        return (
+            <>
+                <button
+                    ref={anchorRef}
+                    onClick={onClick}
+                    className={`flex items-center justify-center ${card ? 'mx-auto' : 'shrink-0'}`}
+                    style={{
+                        color: active ? activeColor : inactiveColor,
+                        cursor,
+                        background: 'transparent',
+                        padding: 2,
+                    }}
+                    aria-pressed={active}
+                    aria-label={label}
+                >
+                    {style === 'image' && image ? (
+                        <img
+                            src={resolveImageSource(image)}
+                            style={{ width: size, height: size, objectFit: 'contain' }}
+                            alt=""
+                        />
+                    ) : (
+                        <StateIcon size={size} strokeWidth={active ? 2.5 : 1.75} />
+                    )}
+                </button>
+                {overlay}
+            </>
+        );
+    }
+
+    // Labelled pill — the on/off texts replace the toggle, as in the auto path.
+    if (trueLabel || falseLabel) {
+        const fill = active ? activeColor : inactiveColor;
+        return (
+            <>
+                <button
+                    ref={anchorRef}
+                    onClick={onClick}
+                    className={
+                        card
+                            ? 'w-full py-1.5 rounded-lg text-xs font-semibold'
+                            : 'shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium'
+                    }
+                    style={{ background: `color-mix(in srgb, ${fill} 18%, transparent)`, color: fill, cursor }}
+                >
+                    {label}
+                </button>
+                {overlay}
+            </>
+        );
+    }
+
+    if (card)
+        return (
+            <>
+                <button
+                    ref={anchorRef}
+                    onClick={onClick}
+                    className="w-full py-1.5 rounded-lg text-xs font-semibold"
+                    style={{
+                        background: active ? activeColor : 'var(--app-border)',
+                        color: active ? '#fff' : 'var(--text-secondary)',
+                        cursor,
+                    }}
+                >
+                    {label}
+                </button>
+                {overlay}
+            </>
+        );
+
+    return (
+        <>
+            <button
+                ref={anchorRef}
+                onClick={onClick}
+                className={`shrink-0 relative w-9 h-[18px] rounded-full transition-colors ${writable ? '' : 'pointer-events-none'}`}
+                style={{ background: active ? activeColor : 'var(--app-border)' }}
+                aria-pressed={active}
+                aria-label={label}
+            >
+                <span
+                    className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
+                    style={{ left: active ? 'calc(100% - 16px)' : '2px' }}
+                />
+            </button>
+            {overlay}
+        </>
+    );
+}
 
 // ── Shutter ─────────────────────────────────────────────────────────────────
 

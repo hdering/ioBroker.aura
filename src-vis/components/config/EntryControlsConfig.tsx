@@ -8,6 +8,7 @@ import { X, Database, Wand2, Plus } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
+import { ImagePathHint } from './ImagePathHint';
 import { ColorPicker } from '../common/ColorPicker';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { getObjectDirect } from '../../hooks/useIoBroker';
@@ -15,6 +16,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { useT } from '../../i18n';
 import { TIME_DISPLAY_PRESETS, formatTimeDisplay } from '../../utils/timeDisplay';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
+import type { ConditionOperator } from '../../types';
 import type { EntryControlConfig, EntryDisplayType, EntryPreset, EntryStateMap } from '../widgets/entryControls';
 import { entryDateText } from '../widgets/entryControls';
 import { DATE_PATTERN_TOKENS, FORMAT_LABELS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
@@ -221,8 +223,11 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
         dt === 'time' ? formatTimeDisplay(timeVal, entry.timeFormat || 'time', t, entry.timePattern) : null;
     const datePreview = dt === 'datepicker' ? entryDateText(entry, timeVal ?? null) : null;
     const sMode = entry.shutterMode ?? 'commands';
+    const switchStyle = entry.switchStyle ?? 'slide';
+    const switchStateMode = entry.stateMode ?? 'boolean';
     const inputSubmitMode = entry.inputSubmitMode ?? 'submit';
-    const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp'>(null);
+    const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp' | 'statusDp'>(null);
+    const [switchIconFor, setSwitchIconFor] = useState<null | 'trueIcon' | 'falseIcon'>(null);
     const [statePickFor, setStatePickFor] = useState<number | null>(null);
     const [contactIconPickFor, setContactIconPickFor] = useState<ContactState | null>(null);
     const [autoMsg, setAutoMsg] = useState<string | null>(null);
@@ -334,6 +339,282 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
                     })}
                 </div>
             </div>
+
+            {/* ── Schalter ── */}
+            {/* Same option set as the standalone Schalter widget (issue #591), so a
+                list row can drive a plug that expects ON/OFF, 0/255 or a split
+                command/status pair instead of a plain boolean. */}
+            {dt === 'switch' && (
+                <div className="space-y-1.5">
+                    <div>
+                        <Label>Schalter-Stil</Label>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    ['slide', 'Schiebeschalter'],
+                                    ['icon', 'Icon'],
+                                    ['image', 'Bild'],
+                                ] as const
+                            ).map(([v, lbl]) => {
+                                const active = switchStyle === v;
+                                return (
+                                    <button
+                                        key={v}
+                                        onClick={() => onUpdate({ switchStyle: v === 'slide' ? undefined : v })}
+                                        className="flex-1 text-[10px] py-1 rounded transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {lbl}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    {switchStyle !== 'slide' && (
+                        <>
+                            <div className="grid grid-cols-3 gap-1.5 items-end">
+                                {(['trueIcon', 'falseIcon'] as const).map((key) => (
+                                    <div key={key}>
+                                        <Label>{key === 'trueIcon' ? 'Icon AN' : 'Icon AUS'}</Label>
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setSwitchIconFor(key)}
+                                                title={entry[key] || 'Icon wählen'}
+                                                className="w-full flex items-center justify-center rounded hover:opacity-80"
+                                                style={{ ...iSty, height: 28 }}
+                                            >
+                                                {entry[key] ? (
+                                                    <Icon icon={toIconifyId(entry[key]!)} width={16} height={16} />
+                                                ) : (
+                                                    <Plus
+                                                        size={13}
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                    />
+                                                )}
+                                            </button>
+                                            {entry[key] && (
+                                                <button
+                                                    onClick={() => onUpdate({ [key]: undefined })}
+                                                    title="Icon entfernen"
+                                                    className="absolute -top-1 -right-1 flex items-center justify-center rounded-full hover:opacity-80"
+                                                    style={{
+                                                        width: 13,
+                                                        height: 13,
+                                                        background: 'var(--app-bg)',
+                                                        border: '1px solid var(--app-border)',
+                                                        color: 'var(--text-secondary)',
+                                                    }}
+                                                >
+                                                    <X size={8} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                                <div>
+                                    <Label>Größe (px)</Label>
+                                    <input
+                                        type="number"
+                                        min={8}
+                                        max={96}
+                                        className={`${iCls} tabular-nums`}
+                                        style={iSty}
+                                        placeholder="22"
+                                        value={entry.iconSize ?? ''}
+                                        onChange={(e) => {
+                                            const n = parseInt(e.target.value, 10);
+                                            onUpdate({ iconSize: Number.isFinite(n) && n > 0 ? n : undefined });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                            {switchStyle === 'image' && (
+                                <div className="space-y-1.5">
+                                    {(['onImage', 'offImage'] as const).map((key) => {
+                                        const img = entry[key] ?? '';
+                                        return (
+                                            <div key={key}>
+                                                <Label>{key === 'onImage' ? 'Bild AN' : 'Bild AUS'}</Label>
+                                                <div className="flex items-center gap-1.5">
+                                                    {img && (
+                                                        <img
+                                                            src={img}
+                                                            alt=""
+                                                            className="shrink-0 rounded"
+                                                            style={{
+                                                                width: 24,
+                                                                height: 24,
+                                                                objectFit: 'contain',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        />
+                                                    )}
+                                                    <input
+                                                        className={`${iCls} font-mono min-w-0`}
+                                                        style={iSty}
+                                                        placeholder="https://…/bild.png · /adapter/… · data:image/…"
+                                                        value={img}
+                                                        onChange={(e) =>
+                                                            onUpdate({ [key]: e.target.value.trim() || undefined })
+                                                        }
+                                                    />
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        title="Bild hochladen"
+                                                        onChange={(e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (!file) return;
+                                                            const reader = new FileReader();
+                                                            reader.onload = () =>
+                                                                onUpdate({ [key]: reader.result as string });
+                                                            reader.readAsDataURL(file);
+                                                        }}
+                                                        className="w-16 shrink-0 text-[9px] cursor-pointer"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                    <ImagePathHint />
+                                    <p
+                                        className="text-[9px] leading-tight"
+                                        style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                    >
+                                        Ohne Bild greift das Icon des jeweiligen Zustands.
+                                    </p>
+                                </div>
+                            )}
+                        </>
+                    )}
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                            <Label>Wert AN (Standard: true)</Label>
+                            <input
+                                className={`${iCls} font-mono`}
+                                style={iSty}
+                                placeholder="true"
+                                value={entry.onValue ?? ''}
+                                onChange={(e) => onUpdate({ onValue: e.target.value || undefined })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Wert AUS (Standard: false)</Label>
+                            <input
+                                className={`${iCls} font-mono`}
+                                style={iSty}
+                                placeholder="false"
+                                value={entry.offValue ?? ''}
+                                onChange={(e) => onUpdate({ offValue: e.target.value || undefined })}
+                            />
+                        </div>
+                    </div>
+                    <p className="text-[9px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        Schreibwerte, z.B. 0/100, 0/255, ON/OFF. Leer = wie der Datenpunkt (true/false bzw. 1/0).
+                    </p>
+                    <DpRow
+                        label="Status-Datenpunkt (optional)"
+                        value={entry.statusDp}
+                        onPick={() => setPickFor('statusDp')}
+                    />
+                    {entry.statusDp && (
+                        <button
+                            onClick={() => onUpdate({ statusDp: undefined })}
+                            className="text-[9px] hover:opacity-70"
+                            style={{ color: 'var(--accent)' }}
+                        >
+                            Status-Datenpunkt entfernen
+                        </button>
+                    )}
+                    <p className="text-[9px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        Für Geräte, die Schalten und Rückmeldung trennen (Tasmota: cmnd.POWER schaltet, stat.POWER
+                        meldet ON/OFF). Zustand und Farben kommen dann von hier, geschrieben wird weiter auf den
+                        Datenpunkt der Zeile.
+                    </p>
+                    <div>
+                        <Label>Auswertung</Label>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    ['boolean', 'Automatisch'],
+                                    ['condition', 'Bedingung'],
+                                ] as const
+                            ).map(([mode, lbl]) => {
+                                const active = switchStateMode === mode;
+                                return (
+                                    <button
+                                        key={mode}
+                                        onClick={() =>
+                                            onUpdate({ stateMode: mode === 'boolean' ? undefined : 'condition' })
+                                        }
+                                        className="flex-1 text-[10px] py-1 rounded transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {lbl}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                        {switchStateMode === 'condition' ? (
+                            <div className="flex items-center gap-1 mt-1">
+                                <span className="text-[9px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                    An wenn
+                                </span>
+                                <select
+                                    value={entry.stateOperator ?? '>'}
+                                    onChange={(e) => onUpdate({ stateOperator: e.target.value as ConditionOperator })}
+                                    className={`${iCls} shrink-0 w-14`}
+                                    style={iSty}
+                                >
+                                    {(['==', '!=', '>', '>=', '<', '<='] as const).map((op) => (
+                                        <option key={op} value={op}>
+                                            {op}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input
+                                    className={`${iCls} font-mono min-w-0`}
+                                    style={iSty}
+                                    placeholder="ON"
+                                    value={entry.stateValue ?? ''}
+                                    onChange={(e) => onUpdate({ stateValue: e.target.value })}
+                                />
+                            </div>
+                        ) : (
+                            <p
+                                className="text-[9px] leading-tight mt-1"
+                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                            >
+                                An bei true, Zahlen ungleich 0 und Texten wie ON; aus bei false, 0, off und leer. Andere
+                                Werte über {'„Bedingung“'} vergleichen.
+                            </p>
+                        )}
+                    </div>
+                    <ToggleRow
+                        label="Sicherheitsabfrage"
+                        checked={!!entry.confirm}
+                        onChange={(v) => onUpdate({ confirm: v || undefined })}
+                    />
+                    {entry.confirm && (
+                        <input
+                            className={iCls}
+                            style={iSty}
+                            placeholder="Wirklich schalten?"
+                            value={entry.confirmText ?? ''}
+                            onChange={(e) => onUpdate({ confirmText: e.target.value || undefined })}
+                        />
+                    )}
+                </div>
+            )}
 
             {/* ── Datum/Zeit ── */}
             {dt === 'time' && (
@@ -793,6 +1074,20 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
                             </div>
                         </div>
                     )}
+                    <ToggleRow
+                        label="Sicherheitsabfrage"
+                        checked={!!entry.confirm}
+                        onChange={(v) => onUpdate({ confirm: v || undefined })}
+                    />
+                    {entry.confirm && (
+                        <input
+                            className={iCls}
+                            style={iSty}
+                            placeholder="Wirklich auslösen?"
+                            value={entry.confirmText ?? ''}
+                            onChange={(e) => onUpdate({ confirmText: e.target.value || undefined })}
+                        />
+                    )}
                 </div>
             )}
 
@@ -1128,6 +1423,16 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
                         setPickFor(null);
                     }}
                     onClose={() => setPickFor(null)}
+                />
+            )}
+            {switchIconFor && (
+                <IconPickerModal
+                    current={entry[switchIconFor] ?? ''}
+                    onSelect={(name) => {
+                        onUpdate({ [switchIconFor]: name || undefined });
+                        setSwitchIconFor(null);
+                    }}
+                    onClose={() => setSwitchIconFor(null)}
                 />
             )}
             {statePickFor !== null && (

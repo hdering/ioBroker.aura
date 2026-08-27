@@ -8,6 +8,7 @@
  * (GroupMasterSwitch) operate on GroupTarget[] regardless of source.
  */
 import type { ioBrokerState, WidgetConfig } from '../types';
+import { switchEntryActive, switchWriteValues, type SwitchEntryConfig } from './switchEntry';
 
 /** Config keys controlling how group actions write to different DP kinds.
  *  Stored on a list widget's options or a group widget's options. */
@@ -98,8 +99,10 @@ function parseSwitchVal(raw: unknown, fallback: boolean): boolean | number | str
     return String(raw);
 }
 
-/** Minimal entry shape shared by StaticListEntry and AutoListEntry. */
-interface ListEntryLike {
+/** Minimal entry shape shared by StaticListEntry and AutoListEntry.
+ *  Extends SwitchEntryConfig so a switch row's own write values and evaluation
+ *  mode reach the master switch unchanged (issue #591). */
+interface ListEntryLike extends SwitchEntryConfig {
     id: string;
     label?: string;
     role?: string;
@@ -149,8 +152,16 @@ export function listEntryTarget(
     )
         return null;
     if (dt === 'switch') {
-        const isBool = typeof val === 'boolean';
-        return { id: entry.id, active: isActiveVal(val), onWrite: isBool ? true : 1, offWrite: isBool ? false : 0 };
+        // A switch row carries its own write values and evaluation mode (issue #591) —
+        // the master switch must send and compare exactly what the row does. The status
+        // DP is not read here: an entry whose main DP has no value is dropped above.
+        const w = switchWriteValues(entry, val);
+        return {
+            id: entry.id,
+            active: switchEntryActive(entry, val, entry.id),
+            onWrite: w.on,
+            offWrite: w.off,
+        };
     }
     if (dt === 'slider') {
         return { id: entry.id, active: isActiveVal(val), onWrite: dimmerOn, offWrite: 0 };

@@ -43,10 +43,15 @@ import {
     TimeDisplay,
     InputControl,
     DateEntryControl,
+    SwitchControl,
     entryDateText,
     formatEntryTime,
     entryValueText,
     resolveContactDisplay,
+    switchEntryActive,
+    switchReadValue,
+    switchStatusDp,
+    switchWriteValues,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
 } from './entryControls';
@@ -89,16 +94,8 @@ export interface StaticListEntry extends EntryControlConfig {
     activeBg?: string;
     /** Per-DP entry background when off/false/0. Overrides global inactiveBg. */
     inactiveBg?: string;
-    /** Per-DP icon size in px (entry icon + switch icon). Falls back to per-layout default. */
-    iconSize?: number;
     /** Per-DP label font size in px. Falls back to per-layout default. */
     fontSize?: number;
-    /** When switch is shown: 'slide' = toggle (default), 'icon' = clickable power icon. */
-    switchStyle?: 'slide' | 'icon';
-    /** Icon-style switch only: icon shown in the on/true/>0 state. Falls back to Power. */
-    trueIcon?: string;
-    /** Icon-style switch only: icon shown in the off/false/0 state. Falls back to Power. */
-    falseIcon?: string;
     /** Show last-change timestamp under this entry. */
     showLastChange?: boolean;
     /** Per-row click action. Overrides the list-wide setting; undefined = inherit. */
@@ -333,6 +330,7 @@ function pruneEmptySections(rows: StaticListEntry[]): StaticListEntry[] {
 function EntryValue({
     entry,
     val,
+    statusVal,
     writable,
     setState,
     globalThresholds,
@@ -350,6 +348,8 @@ function EntryValue({
 }: {
     entry: StaticListEntry;
     val: ioBrokerState['val'];
+    /** Live value of the switch display's status datapoint, when one is configured. */
+    statusVal?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     globalThresholds?: ColorThreshold[];
@@ -552,65 +552,22 @@ function EntryValue({
         );
     }
 
-    // Forced "Schalter" — toggle / labeled pill
-    if (displayType === 'switch') {
-        const forcedOn = on || (typeof val === 'number' && val > 0);
-        const writeToggle = () => {
-            if (isBool) setState(entry.id, !forcedOn);
-            else if (typeof val === 'number') setState(entry.id, forcedOn ? 0 : 1);
-            else setState(entry.id, !forcedOn);
-        };
-        if (switchStyle === 'icon') return renderIconToggle(forcedOn, writeToggle);
-        if (hasLabels) {
-            const fill = forcedOn ? activeColor : inactiveColor;
-            return (
-                <>
-                    <button
-                        ref={confirmAnchorRef}
-                        onClick={writable ? guardWrite(writeToggle) : undefined}
-                        className="shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium"
-                        style={{
-                            background: `color-mix(in srgb, ${fill} 18%, transparent)`,
-                            color: fill,
-                            cursor: writable ? 'pointer' : 'default',
-                        }}
-                    >
-                        {forcedOn ? trueLabel || 'AN' : falseLabel || 'AUS'}
-                    </button>
-                    {confirmOverlay}
-                </>
-            );
-        }
-        if (!writable) {
-            return (
-                <span
-                    className="shrink-0 relative w-9 h-[18px] rounded-full pointer-events-none"
-                    style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white"
-                        style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }}
-                    />
-                </span>
-            );
-        }
+    // Forced "Schalter" — the shared control with the Schalter widget's option set
+    // (write values, status DP, condition mode, slide/icon/image; see entryControls).
+    if (displayType === 'switch')
         return (
-            <>
-                <button
-                    ref={confirmAnchorRef}
-                    onClick={guardWrite(writeToggle)}
-                    className="shrink-0 relative w-9 h-[18px] rounded-full transition-colors"
-                    style={{ background: forcedOn ? activeColor : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all"
-                        style={{ left: forcedOn ? 'calc(100% - 16px)' : '2px' }}
-                    />
-                </button>
-                {confirmOverlay}
-            </>
+            <SwitchControl
+                entry={entry}
+                val={val}
+                statusVal={statusVal}
+                writable={writable}
+                setState={setState}
+                activeColor={activeColor}
+                inactiveColor={inactiveColor}
+                trueLabel={trueLabel}
+                falseLabel={falseLabel}
+            />
         );
-    }
 
     // Role-based display for sensors (window, door, motion, smoke, …)
     if (isBoolLike && !hasLabels) {
@@ -812,13 +769,20 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // A prevKey ref survives the StrictMode mount→unmount→remount cycle and would
     // make the remount skip re-subscribing after the unmount cleaned up, leaving
     // the list with zero live subscriptions in dev.
-    const entryKey = entries.map((e) => e.id).join(',');
+    // A switch entry may read its state from a separate status datapoint (Tasmota &
+    // co.) — those ids go into the same states map, so every layout (incl. the badges,
+    // which draw no control of their own) sees the feedback value.
+    const statusIds = [...new Set(entries.map(switchStatusDp).filter(Boolean))].filter(
+        (id) => !entries.some((e) => e.id === id),
+    );
+    const entryKey = [...entries.map((e) => e.id), ...statusIds].join(',');
     useEffect(() => {
         if (entries.length === 0) return;
-        entries.forEach((e) => getState(e.id).then((s) => setStates((prev) => ({ ...prev, [e.id]: s }))));
-        const unsubs = entries.map((e) =>
-            subscribe(e.id, (s) => {
-                setStates((prev) => ({ ...prev, [e.id]: s }));
+        const subIds = [...entries.map((e) => e.id), ...statusIds];
+        subIds.forEach((id) => getState(id).then((s) => setStates((prev) => ({ ...prev, [id]: s }))));
+        const unsubs = subIds.map((id) =>
+            subscribe(id, (s) => {
+                setStates((prev) => ({ ...prev, [id]: s }));
                 if (s) setLastChangedTs((prev) => Math.max(prev, s.lc > 0 ? s.lc : s.ts));
             }),
         );
@@ -1275,6 +1239,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             cond={cValue}
                                             entry={entry}
                                             val={val}
+                                            statusVal={states[switchStatusDp(entry)]?.val}
                                             writable={entry.writable !== false}
                                             setState={setState}
                                             globalThresholds={globalThresholds}
@@ -1411,6 +1376,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             cond={cValue}
                                             entry={entry}
                                             val={val}
+                                            statusVal={states[switchStatusDp(entry)]?.val}
                                             writable={entry.writable !== false}
                                             setState={setState}
                                             globalThresholds={globalThresholds}
@@ -1498,8 +1464,13 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                       : null;
                             const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
                             const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
-                            const truthy = on || (typeof val === 'number' && val > 0);
-                            const switchActive = forceSwitch ? truthy : isBoolLike && on;
+                            // A badge draws no control, so it evaluates the switch itself —
+                            // through the shared rule, so status DP, write values and the
+                            // condition mode work here exactly as in the other layouts.
+                            const switchStatusVal = states[switchStatusDp(entry)]?.val;
+                            const switchActive = forceSwitch
+                                ? switchEntryActive(entry, switchReadValue(entry, val, switchStatusVal), entry.id)
+                                : isBoolLike && on;
                             // Untouched entries keep printing the raw value unrounded —
                             // that is the badge's established look.
                             const plainText = disp.active ? disp.text : val != null ? String(val) : null;
@@ -1582,9 +1553,8 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     onClick={(e) => {
                                         if (!togglable) return rowProps?.onClick(e);
                                         if (forceSwitch) {
-                                            if (isBool) setState(entry.id, !truthy);
-                                            else if (typeof val === 'number') setState(entry.id, truthy ? 0 : 1);
-                                            else setState(entry.id, !truthy);
+                                            const w = switchWriteValues(entry, val);
+                                            setState(entry.id, switchActive ? w.off : w.on);
                                         } else if (isBool) setState(entry.id, !on);
                                         else if (isBoolLike) setState(entry.id, on ? 0 : 1);
                                     }}
@@ -1762,6 +1732,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         cond={cValue}
                                         entry={entry}
                                         val={val}
+                                        statusVal={states[switchStatusDp(entry)]?.val}
                                         writable={entry.writable !== false}
                                         setState={setState}
                                         globalThresholds={globalThresholds}

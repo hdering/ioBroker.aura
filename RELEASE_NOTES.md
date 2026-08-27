@@ -10,3 +10,5 @@ Image - datapoints holding raw SVG markup are now displayed, e.g. the guest WLAN
 Image - optional background colour behind the picture, keeps transparent SVGs such as QR codes readable on dark themes (#592)
 Mediaplayer - device detection now recognises any adapter that follows the ioBroker media roles (yamaha, denon, volumio, ...), including its volume range, mute and input (#593)
 Mediaplayer - play/pause button now reads playback states that are a numbered enum, e.g. a Yamaha receiver reporting 0 = Play (#593)
+Static and dynamic list - the Schalter display now offers the same options as the Schalter widget: own write values per state (e.g. 0/255, ON/OFF), a separate status datapoint for devices that split command and feedback, condition-based on/off evaluation and an icon or image instead of the slide toggle (#591)
+Dynamic list - the Schalter display now also works for string and enum datapoints and gained the switch style, on/off icons, icon size and confirmation prompt the static list already had (#591)
