@@ -38,6 +38,15 @@ export function proxifyIfMixed(url: string): string {
  *  `/vis.0/…`, `/<adapter>.admin/…`) only exists on the web backend. */
 const AURA_LOCAL_PATH = /^\/(assets|fs|webfs|socket\.io|echarts|lib)\/|^\/(proxy|favicon\.svg|index\.html)([?#]|$)/i;
 
+/** Some adapters publish a graphic as raw SVG markup in a string state instead
+ *  of a URL or a base64 blob - fb-checkpresence's guest WLAN QR code
+ *  (`guest.wlanQR`) is the common one. Wrapped in a data URI the markup renders
+ *  through a plain `<img>`, which - unlike inlining it into the DOM - never runs
+ *  script or fetches remote refs from inside the SVG. (issue #592) */
+function looksLikeSvg(v: string): boolean {
+    return /^<(\?xml|!doctype|svg)[\s>]/i.test(v) && /<svg[\s>]/i.test(v);
+}
+
 /** Base64 payloads use the base64 alphabet only, are long and carry no file
  *  extension — a path always has a dot. Note that JPEG base64 starts with
  *  `/9j/`, so this check must run *before* the leading-slash path branch. */
@@ -61,6 +70,7 @@ function base64Mime(v: string): string {
  *  - `data:` / `blob:` → as-is
  *  - `http(s)://` / `//` → as-is (plain http proxied on HTTPS pages)
  *  - `aura-file:…` → `/fs/read` endpoint
+ *  - raw `<svg…>` markup → `data:image/svg+xml` URI
  *  - raw base64 blob → `data:` URI with a sniffed mime type
  *  - any other path (`/adapter/pirate-weather/icons/…`, `sonos/coverImage/x.png`)
  *    → `/webfs/…`. Such paths are served by the ioBroker web adapter, not by
@@ -72,6 +82,7 @@ export function resolveImageSource(raw: unknown): string {
     const v = raw.trim();
     if (!v) return '';
     if (v.startsWith('data:') || v.startsWith('blob:')) return v;
+    if (looksLikeSvg(v)) return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(v)}`;
     if (/^(https?:)?\/\//i.test(v)) return proxifyIfMixed(v);
     if (v.startsWith('aura-file:')) return resolveAssetUrl(v);
     if (looksLikeBase64(v)) return `data:${base64Mime(v)};base64,${v}`;

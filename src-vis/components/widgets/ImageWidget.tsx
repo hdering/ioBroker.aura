@@ -14,6 +14,10 @@ export function ImageWidget({ config }: WidgetProps) {
     const datapointId = (opts.imageDatapoint as string) ?? '';
     const fit = (opts.fit as FitMode) ?? 'contain';
     const refreshSeconds = (opts.refreshInterval as number) ?? 0;
+    // SVG sources are usually transparent (a QR code is bare black paths), so on
+    // a dark theme they vanish into the card. An explicit backdrop keeps them
+    // readable - and a QR code scannable. (issue #592)
+    const imageBackground = (opts.imageBackground as string) || undefined;
 
     const { value: dpValue } = useDatapoint(datapointId);
 
@@ -145,6 +149,7 @@ export function ImageWidget({ config }: WidgetProps) {
                     alignItems: fit === 'none' ? 'flex-start' : 'center',
                     justifyContent: fit === 'none' ? 'flex-start' : 'center',
                     position: 'relative',
+                    background: imageBackground,
                 }}
             >
                 <img

@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+Image - datapoints holding raw SVG markup are now displayed, e.g. the guest WLAN QR code of fb-checkpresence (#592)
+Image - optional background colour behind the picture, keeps transparent SVGs such as QR codes readable on dark themes (#592)

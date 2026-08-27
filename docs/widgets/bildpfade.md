@@ -12,6 +12,7 @@ Gilt überall, wo ein Bild als URL, Pfad oder Datenpunktwert angegeben wird: [Bi
 | Datei vom Aura-Server    | `aura-file:/opt/iobroker/iobroker-data/files/vis.0/Aura/icon.png` | Datei-Picker (Ordner-Symbol)               |
 | Data-URI                 | `data:image/png;base64,iVBORw0…`                                  | eingebettet                                |
 | Base64-Rohdaten          | `iVBORw0KGgo…`                                                    | z. B. Kamera-Snapshot aus einem Datenpunkt |
+| SVG-Markup               | `<svg xmlns="…">…</svg>`                                          | z. B. WLAN-QR-Code aus einem Datenpunkt    |
 
 ## Hinweise
 
@@ -20,4 +21,6 @@ Gilt überall, wo ein Bild als URL, Pfad oder Datenpunktwert angegeben wird: [Bi
 | Adapter- und Dateisystem-Pfade | werden intern über `/webfs` an den ioBroker-Web-Adapter weitergereicht — Aura läuft auf einem eigenen Port und liefert diese Dateien nicht selbst aus |
 | Base64-Erkennung               | greift nur bei langen Werten ohne Punkt; JPEG-Base64 (`/9j/…`) wird trotz führendem `/` korrekt erkannt                                               |
 | Mime-Typ                       | wird aus den Base64-Daten ermittelt (PNG, GIF, WebP, SVG, JPEG)                                                                                       |
+| SVG-Markup                     | wird als `data:image/svg+xml` eingebettet und über `<img>` angezeigt — Skripte im SVG laufen dabei nicht                                              |
+| Transparentes SVG              | im Bild-Widget kann eine Hintergrundfarbe hinterlegt werden, damit z. B. ein schwarzer QR-Code im dunklen Theme sichtbar bleibt                       |
 | JSON-Tabelle                   | `imagePathPrefix` je Spalte überschreibt die automatische Auflösung                                                                                   |

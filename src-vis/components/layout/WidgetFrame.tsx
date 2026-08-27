@@ -11527,9 +11527,9 @@ export function WidgetFrame({
                                                 className="text-[11px] mb-1 block"
                                                 style={{ color: 'var(--text-secondary)' }}
                                             >
-                                                Bild-URL, base64 oder lokale Datei{' '}
+                                                Bild-URL, base64, SVG oder lokale Datei{' '}
                                                 <span style={{ opacity: 0.6 }}>
-                                                    (https://… · data:image/… · Datei-Picker)
+                                                    (https://… · data:image/… · &lt;svg…&gt; · Datei-Picker)
                                                 </span>
                                             </label>
                                             <div className="flex gap-1">
@@ -11570,7 +11570,7 @@ export function WidgetFrame({
                                             >
                                                 Datenpunkt{' '}
                                                 <span style={{ opacity: 0.6 }}>
-                                                    (base64 oder URL, überschreibt Bild-URL)
+                                                    (base64, URL oder SVG-Markup, überschreibt Bild-URL)
                                                 </span>
                                             </label>
                                             <div className="flex gap-1">
@@ -11624,6 +11624,13 @@ export function WidgetFrame({
                                                 ))}
                                             </div>
                                         </div>
+                                        <CwColorField
+                                            label="Hintergrund (leer = transparent)"
+                                            value={o.imageBackground as string | undefined}
+                                            swatchFallback="#ffffff"
+                                            resetTitle="Hintergrund entfernen"
+                                            onChange={(v) => set({ imageBackground: v })}
+                                        />
                                         {imageUrl && !imageUrl.startsWith('data:') && imageUrl.startsWith('http') && (
                                             <div>
                                                 <label

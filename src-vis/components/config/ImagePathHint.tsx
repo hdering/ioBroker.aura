@@ -10,6 +10,7 @@ const IMAGE_PATH_EXAMPLES: { path: string; note: string }[] = [
     { path: 'aura-file:/opt/iobroker/…/icon.png', note: 'Datei vom Aura-Server – per Datei-Picker' },
     { path: 'data:image/png;base64,iVBORw0…', note: 'Data-URI' },
     { path: 'iVBORw0KGgo…', note: 'reine Base64-Daten, z.B. Kamera-Snapshot' },
+    { path: '<svg xmlns="…">…</svg>', note: 'SVG-Markup direkt aus dem Datenpunkt, z.B. WLAN-QR-Code' },
 ];
 
 export function ImagePathHint({ className }: { className?: string }) {
