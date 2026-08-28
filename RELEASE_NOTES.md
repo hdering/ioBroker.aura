@@ -9,3 +9,4 @@
 - Distribution chart - a group can now take its 100 % from a datapoint (a prepayment, a budget): the entries show their share of it and the unused part becomes a "Rest" segment (#596)
 - Fill level - scale minimum and maximum can now come from datapoints instead of fixed numbers (#596)
 - Gauge - the scale minimum and maximum datapoints are now offered in the editor (#596)
+- Editor - dialogs no longer open partly off screen after a switch to a smaller resolution: the remembered size is capped to the current window (and kept for the bigger screen), and a dialog can no longer be dragged out of reach

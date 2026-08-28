@@ -49,6 +49,7 @@ import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { panelActiveStateId } from '../../utils/publishPanelState';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
+import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
 import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
@@ -1674,31 +1675,17 @@ function CenteredModal({
     const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
     const dragOrigin = useRef<{ mx: number; my: number; rx: number; ry: number } | null>(null);
 
-    // Persisted size (only used when storageKey is set)
-    const [size, setSize] = useState<{ w: number; h: number } | null>(() => {
-        if (!storageKey) return null;
-        try {
-            const raw = localStorage.getItem(storageKey);
-            if (!raw) return null;
-            const parsed = JSON.parse(raw);
-            if (typeof parsed?.w === 'number' && typeof parsed?.h === 'number') {
-                return { w: parsed.w, h: parsed.h };
-            }
-        } catch {
-            /* ignore */
-        }
-        return null;
-    });
+    // Persisted size (only used when storageKey is set) - clamped to the current window,
+    // so a height remembered from a bigger screen cannot push the title bar out of view.
+    const [size, setSize] = usePersistedModalSize(storageKey);
     const resizeOrigin = useRef<{ mx: number; my: number; w: number; h: number } | null>(null);
 
+    // A dialog left open across a resolution change must stay grabbable.
     useEffect(() => {
-        if (!storageKey || !size) return;
-        try {
-            localStorage.setItem(storageKey, JSON.stringify(size));
-        } catch {
-            /* ignore */
-        }
-    }, [storageKey, size]);
+        const onResize = () => setPos((p) => (p ? clampModalPos(p, modalRef.current) : p));
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
@@ -1716,11 +1703,10 @@ function CenteredModal({
         dragOrigin.current = { mx: e.clientX, my: e.clientY, rx: rect.left, ry: rect.top };
 
         const onMove = (ev: MouseEvent) => {
-            if (!dragOrigin.current) return;
-            setPos({
-                x: dragOrigin.current.rx + ev.clientX - dragOrigin.current.mx,
-                y: dragOrigin.current.ry + ev.clientY - dragOrigin.current.my,
-            });
+            const o = dragOrigin.current;
+            if (!o) return;
+            // Keep the title bar on screen - a modal dragged fully off would be unreachable.
+            setPos(clampModalPos({ x: o.rx + ev.clientX - o.mx, y: o.ry + ev.clientY - o.my }, modalRef.current));
         };
         const onUp = () => {
             dragOrigin.current = null;
@@ -1770,7 +1756,7 @@ function CenteredModal({
         <div className="fixed inset-0 z-[9999] pointer-events-none">
             <div
                 ref={modalRef}
-                className={`pointer-events-auto flex flex-col rounded-xl shadow-2xl relative ${sizeClasses}`}
+                className={`aura-widget-edit-modal pointer-events-auto flex flex-col rounded-xl shadow-2xl relative ${sizeClasses}`}
                 style={{
                     background: 'var(--app-surface)',
                     border: '1px solid var(--app-border)',

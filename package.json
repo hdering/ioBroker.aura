@@ -51,6 +51,7 @@
     "test:messages-ui": "node tools/tests/messages.mjs",
     "test:message-defaults": "node tools/tests/admin-message-defaults.mjs",
     "test:group-fit": "node tools/tests/group-fit.mjs",
+    "test:modal-clamp": "node tools/tests/modal-viewport-clamp.mjs",
     "test:cell-state": "node tools/tests/cell-state.mjs",
     "test:list-switch": "node tools/tests/list-switch.mjs",
     "test:list-switch-ui": "node tools/tests/list-switch-ui.mjs",

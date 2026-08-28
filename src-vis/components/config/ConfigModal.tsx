@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { OverlayZContext } from '../../contexts/OverlayZContext';
+import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry';
 
 /**
  * Popup for sub-editors of a widget's options panel (battery assignment, name filters, …).
@@ -38,26 +39,15 @@ export function ConfigModal({
     const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
     const dragOrigin = useRef<{ mx: number; my: number; rx: number; ry: number } | null>(null);
 
-    const [size, setSize] = useState<{ w: number; h: number } | null>(() => {
-        if (!storageKey) return null;
-        try {
-            const parsed = JSON.parse(localStorage.getItem(storageKey) ?? 'null');
-            if (typeof parsed?.w === 'number' && typeof parsed?.h === 'number') return { w: parsed.w, h: parsed.h };
-        } catch {
-            /* ignore */
-        }
-        return null;
-    });
+    const [size, setSize] = usePersistedModalSize(storageKey);
     const resizeOrigin = useRef<{ mx: number; my: number; w: number; h: number } | null>(null);
 
+    // A dialog left open across a resolution change must stay grabbable.
     useEffect(() => {
-        if (!storageKey || !size) return;
-        try {
-            localStorage.setItem(storageKey, JSON.stringify(size));
-        } catch {
-            /* ignore */
-        }
-    }, [storageKey, size]);
+        const onResize = () => setPos((p) => (p ? clampModalPos(p, panelRef.current) : p));
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
 
     // Capture phase + stopPropagation: CenteredModal (the widget edit dialog that
     // usually sits below us) listens for Escape on `document` in the bubble phase.
@@ -82,15 +72,8 @@ export function ConfigModal({
         const onMove = (ev: MouseEvent) => {
             const o = dragOrigin.current;
             if (!o) return;
-            const r = panelRef.current?.getBoundingClientRect();
             // Keep the title bar on screen — a modal dragged fully off would be unreachable.
-            const maxX = Math.max(0, window.innerWidth - 80);
-            const maxY = Math.max(0, window.innerHeight - 40);
-            const minX = r ? -(r.width - 80) : 0;
-            setPos({
-                x: Math.min(maxX, Math.max(minX, o.rx + ev.clientX - o.mx)),
-                y: Math.min(maxY, Math.max(0, o.ry + ev.clientY - o.my)),
-            });
+            setPos(clampModalPos({ x: o.rx + ev.clientX - o.mx, y: o.ry + ev.clientY - o.my }, panelRef.current));
         };
         const onUp = () => {
             dragOrigin.current = null;
