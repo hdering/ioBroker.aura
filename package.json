@@ -129,6 +129,7 @@
     "test:image-source": "node tools/tests/image-source.mjs",
     "test:media-detect": "node tools/tests/media-role-detect.mjs",
     "test:autolist-icon": "node tools/tests/autolist-icon.mjs",
+    "test:autolist-display": "node tools/tests/autolist-display.mjs",
     "test:throttle": "node tools/tests/throttle-commit.mjs"
   },
   "dependencies": {

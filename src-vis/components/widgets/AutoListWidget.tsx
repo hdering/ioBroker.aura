@@ -80,6 +80,7 @@ import {
     type EntryControlConfig,
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
+import { applyListDisplay } from '../../utils/listDisplayDefaults';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -218,6 +219,13 @@ export interface AutoListOptions
     entryIconSize?: number;
     /** Colour of that icon. Unset = --text-secondary (the badge colour in `minimal`). */
     entryIconColor?: string;
+    /**
+     * Display type + its options for EVERY entry — same reason as `entryIcon`: the rows
+     * come from a filter, so the display is configured once for the list (tab
+     * "Darstellung"). An entry with its own `displayType` is configured completely on
+     * its own and ignores this block (see utils/listDisplayDefaults).
+     */
+    entryDisplay?: EntryControlConfig;
     /**
      * Conditional formatting applied to EVERY row (issue #572). Clause datapoints may
      * use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one
@@ -1001,7 +1009,13 @@ function RoomHeader({ room, style }: { room: string; style?: React.CSSProperties
 
 export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const opts = useMemo(() => (config.options ?? { entries: [] }) as unknown as AutoListOptions, [config.options]);
-    const entries = useMemo<AutoListEntry[]>(() => (opts.entries ?? []).filter((e) => !!e?.id), [opts.entries]);
+    // The list-wide display block is folded in here, once: everything downstream —
+    // rendering, the group master switch, the row conditions — then sees a row that
+    // already carries the display it should get.
+    const entries = useMemo<AutoListEntry[]>(
+        () => (opts.entries ?? []).filter((e) => !!e?.id).map((e) => applyListDisplay(e, opts.entryDisplay)),
+        [opts.entries, opts.entryDisplay],
+    );
     // Inside an auto-height popup-view: render the full list without an inner scrollbar
     // so the popup grid (and dialog) can grow to fit every row. Off elsewhere.
     const autoHeight = usePopupAutoHeight();

@@ -16,6 +16,7 @@ import { AutoEntryDetail } from './list/AutoEntryDetail';
 import { AutoDiscoveryPanel } from './list/AutoDiscoveryPanel';
 import { SubDpTemplatePanel } from './list/SubDpTemplatePanel';
 import { ListIconPanel } from './list/ListIconPanel';
+import { ListDisplayPanel } from './list/ListDisplayPanel';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import { ListFilterSection } from './list/ListFilterSection';
 import type { EditorFilterRow } from './list/ListFilterEditor';
@@ -123,7 +124,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                 hint="Datenpunkte suchen, übernehmen und im Detail konfigurieren."
                 entries={opts.entries ?? []}
                 resolvedNames={resolvedNames}
-                entriesTabIndex={2}
+                entriesTabIndex={3}
                 onRemove={removeEntry}
                 onRemoveAll={() => setOpts({ entries: [] })}
                 emptyState={'Noch keine Datenpunkte – im Tab „Suchen & Filter“ welche finden.'}
@@ -154,6 +155,11 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                         key: 'icon',
                         label: 'Icon',
                         node: <ListIconPanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
+                    },
+                    {
+                        key: 'display',
+                        label: 'Darstellung',
+                        node: <ListDisplayPanel opts={opts} onOptsChange={setOpts} resolvedNames={resolvedNames} />,
                     },
                     {
                         key: 'rowconds',

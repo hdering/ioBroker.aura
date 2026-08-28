@@ -10,3 +10,4 @@
 - Fill level - scale minimum and maximum can now come from datapoints instead of fixed numbers (#596)
 - Gauge - the scale minimum and maximum datapoints are now offered in the editor (#596)
 - Editor - dialogs no longer open partly off screen after a switch to a smaller resolution: the remembered size is capped to the current window (and kept for the bigger screen), and a dialog can no longer be dragged out of reach
+- Dynamic list - the display of the datapoints (switch, slider, value mapping ...) can now be set once for the whole list in the datapoint dialog, including that display's own settings; a single datapoint can still override it

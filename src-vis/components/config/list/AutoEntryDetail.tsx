@@ -15,6 +15,8 @@ import { SubDpFields } from './SubDpFields';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { useT } from '../../../i18n';
 import type { EntrySubDp } from '../../widgets/EntrySubLine';
+import type { EntryControlConfig } from '../../widgets/entryControls';
+import { applyListDisplay } from '../../../utils/listDisplayDefaults';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -39,21 +41,27 @@ export function AutoEntryDetail({
 }) {
     const t = useT();
     const [iconPickerOpen, setIconPickerOpen] = useState(false);
-    // AN/AUS colors only apply to an explicit switch entry; hide for Auto/slider/value/shutter/…
-    const dt = entry.displayType ?? 'auto';
+    // The list can carry a conversion of its own; "Keine" must then mean "off here",
+    // not "unset" (which would inherit it again).
+    const listOpts = (listConfig.options ?? {}) as Record<string, unknown>;
+    // The list-wide display (dialog → tab "Darstellung") applies to every row that
+    // picked none of its own. Everything below reads the display this row ends up
+    // with, so the on/off fields show up for an inherited switch too.
+    const listDisplay = listOpts.entryDisplay as EntryControlConfig | undefined;
+    const inheritedType = entry.displayType ? undefined : listDisplay?.displayType;
+    const effective = applyListDisplay(entry, listDisplay);
+    // AN/AUS colors only apply to a switch entry; hide for Auto/slider/value/shutter/…
+    const dt = effective.displayType ?? 'auto';
     const isSwitch = dt === 'switch';
     // Time formatting is part of the value text — the other display types either
     // bring their own (Datum/Zeit) or render a control instead of a value.
     const allowTimeFormat = dt === 'auto' || dt === 'value';
-    // The list can carry a conversion of its own; "Keine" must then mean "off here",
-    // not "unset" (which would inherit it again).
-    const listOpts = (listConfig.options ?? {}) as Record<string, unknown>;
     const listHasTransform =
         listOpts.valueTransform !== undefined ||
         listOpts.valueFactor !== undefined ||
         listOpts.valueTimeFormat !== undefined;
     // The on/off label pair is only ever read for boolean-ish entries.
-    const showOnOffLabels = usesOnOffLabels(entry, lookupDatapointEntry(entry.id)?.type);
+    const showOnOffLabels = usesOnOffLabels(effective, lookupDatapointEntry(entry.id)?.type);
     // Second line: this entry's own datapoints replace the list-wide template, so the
     // section says which of the two is in effect here.
     const subDpCount = (entry.subDps ?? []).filter((s) => !!s?.id).length;
@@ -199,8 +207,26 @@ export function AutoEntryDetail({
                 />
             </DetailSection>
 
-            <DetailSection title="Darstellung" badge={entryDisplayTypeLabel(entry.displayType)}>
-                <EntryControlsConfig entry={entry} onUpdate={onUpdate} hideLabel />
+            <DetailSection
+                title="Darstellung"
+                badge={
+                    inheritedType
+                        ? `${entryDisplayTypeLabel(inheritedType)} · Liste`
+                        : entryDisplayTypeLabel(entry.displayType)
+                }
+            >
+                {inheritedType && (
+                    <p className="text-[9px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                        Diese Zeile übernimmt die Darstellung der Liste (Tab {'„Darstellung“'}) samt deren
+                        Einstellungen. Eine eigene Darstellung hier ersetzt sie vollständig.
+                    </p>
+                )}
+                <EntryControlsConfig
+                    entry={entry}
+                    onUpdate={onUpdate}
+                    hideLabel
+                    autoLabel={inheritedType ? `Wie Liste (${entryDisplayTypeLabel(inheritedType)})` : undefined}
+                />
                 {showOnOffLabels && (
                     <div className="grid grid-cols-2 gap-1.5">
                         <div>

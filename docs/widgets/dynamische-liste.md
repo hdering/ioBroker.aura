@@ -6,7 +6,7 @@ Listet Datenpunkte automatisch anhand von Filtern (Rolle, ID-Muster, Raum, Funkt
 
 Kein Haupt-Datenpunkt — die Einträge (`entries[]`) werden über die Filter ermittelt und beim Sync ergänzt. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, `value.*`/`level`-Rollen immer als Wert dargestellt.
 
-Pro Eintrag lässt sich die Darstellung erzwingen (`displayType`) — inklusive `switch` für einen [Schalter](./liste#darstellung-schalter) mit eigenen Schreibwerten, Status-Datenpunkt und Icon-/Bild-Stil, `time` für Zeit-Datenpunkte (Uhrzeit / Datum / beides / eigenes Muster, siehe [Statische Liste](./liste#darstellung-datum-zeit)), `datepicker` für einen [Datumswähler](./liste#darstellung-datumswaehler) und `input` für ein [Eingabefeld](./liste#darstellung-eingabefeld) in der Zeile.
+Die Darstellung lässt sich erzwingen (`displayType`) — listenweit im Dialog → Tab **Darstellung** und pro Eintrag im Detail-Editor (siehe [Darstellung der Datenpunkte](#darstellung-der-datenpunkte)) — inklusive `switch` für einen [Schalter](./liste#darstellung-schalter) mit eigenen Schreibwerten, Status-Datenpunkt und Icon-/Bild-Stil, `time` für Zeit-Datenpunkte (Uhrzeit / Datum / beides / eigenes Muster, siehe [Statische Liste](./liste#darstellung-datum-zeit)), `datepicker` für einen [Datumswähler](./liste#darstellung-datumswaehler) und `input` für ein [Eingabefeld](./liste#darstellung-eingabefeld) in der Zeile.
 
 Pro Eintrag (Dialog **Datenpunkte verwalten** → Abschnitt **Datenpunkt**) lässt sich der Wert außerdem nur für die Anzeige umrechnen und/oder als Uhrzeit/Datum formatieren, siehe [Wert-Umrechnung / Zeit](./liste#wert-umrechnung-zeit). Ohne eigene Einstellung gilt die globale Umrechnung der Liste.
 
@@ -43,6 +43,7 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | --- | --- |
 | Suchen & Filter | Datenpunkt-Suche, Ausschlüsse, Trefferliste, Übernehmen — dazu Sync-Intervall und „Nur relevante DPs" |
 | Icon | Icon vor dem Namen für alle Zeilen (siehe unten) |
+| Darstellung | Darstellung aller Zeilen samt typabhängiger Felder (siehe unten) |
 | Einträge | Gefundene Datenpunkte; rechts der Detail-Editor (Bezeichnung, Einheit, Darstellung, Farben) |
 | Bedingungen | Regeln für alle Zeilen (siehe unten) |
 | Zweite Zeile | Vorlage für zusätzliche Datenpunkte in allen Zeilen (siehe unten) |
@@ -62,6 +63,32 @@ Die Datenpunkte kommen aus einem Filter und ändern sich beim Sync, deshalb wird
 | `icon` · `iconSize` · `iconColor` einer Bedingung | solange die Regel greift — gewinnt gegen beide |
 
 Der Tab zeigt eine Vorschau der ersten Zeilen und wie viele Datenpunkte ein eigenes Icon haben; **Eigene Icons entfernen** setzt sie zurück, damit die Vorgabe überall gilt.
+
+### Darstellung der Datenpunkte
+
+Wie beim Icon: die Datenpunkte kommen aus einem Filter und ändern sich beim Sync, deshalb wird die
+Darstellung einmal für die ganze Liste gesetzt — Dialog → Tab **Darstellung**, mit denselben Feldern wie
+im Detail-Editor (Typ plus alle typabhängigen Einstellungen).
+
+| Quelle | |
+| --- | --- |
+| `entryDisplay` | Dialog → Tab **Darstellung**: gilt für **alle** Zeilen ohne eigene Darstellung |
+| `entries[].displayType` | Detail-Editor → Abschnitt **Darstellung**: nur diese Zeile |
+
+Die Vorgabe wird pro Zeile **ganz oder gar nicht** übernommen: Eine Zeile mit eigener Darstellung ist
+vollständig selbst konfiguriert (eigener Schalter-Stil, eigene Werte-Zuordnung …) und ignoriert die
+Vorgabe. Zeilen ohne eigene Darstellung übernehmen Typ **und** dessen Einstellungen; ihr Detail-Editor
+zeigt statt `Auto` die Schaltfläche `Wie Liste (…)`.
+
+`Auto (keine Vorgabe)` entfernt die listenweite Darstellung wieder — jede Zeile wird dann wie zuvor
+automatisch aus Wert und Rolle abgeleitet. Der Tab zeigt eine Vorschau der ersten Zeilen mit ihrer
+Darstellung; **Eigene Darstellungen entfernen** setzt die Ausnahmen zurück.
+
+::: warning Zeilenspezifische Datenpunkte
+Befehls- und Status-Datenpunkte einer Darstellung (Rollladen `up`/`stop`/`down`, Status-DP eines
+Schalters) zeigen auf **einen** festen Datenpunkt und gelten dann für jede Zeile. Sie gehören pro
+Eintrag gesetzt; der Tab weist darauf hin, sobald einer eingetragen ist.
+:::
 
 ### Zweite Zeile (zusätzliche Datenpunkte)
 
@@ -219,6 +246,7 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `entryIcon` | — | [Icon vor dem Namen](#icon-vor-dem-namen) — gilt für alle Zeilen |
 | `entryIconSize` | `13` | px |
 | `entryIconColor` | `--text-secondary` | Farbe des Zeilen-Icons (im Layout `minimal` sonst die Badge-Farbe) |
+| `entryDisplay` | — | [Darstellung](#darstellung-der-datenpunkte) aller Zeilen ohne eigene — Typ plus dessen Einstellungen |
 | `showId` | `false` | Datenpunkt-ID unter dem Label |
 | `showRoom` | `false` | Räume unter dem Label |
 | `showEntryLastChange` | `false` | Zeitstempel der letzten Änderung je Eintrag |

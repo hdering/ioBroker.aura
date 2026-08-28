@@ -68,6 +68,9 @@ interface Props {
     /** Drop the internal "Darstellung" caption - for callers whose own section
      *  heading already says it (the datapoint dialog's detail pane). */
     hideLabel?: boolean;
+    /** Caption of the 'auto' choice. The dynamic list renames it to name the
+     *  list-wide display an entry without one of its own inherits. */
+    autoLabel?: string;
 }
 
 // ── Shutter auto-detection ────────────────────────────────────────────────────
@@ -213,7 +216,7 @@ function DpRow({ label, value, onPick }: { label: string; value?: string; onPick
     );
 }
 
-export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
+export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: Props) {
     const t = useT();
     const dt = entry.displayType ?? 'auto';
     // Live value of the entry's datapoint, so the automatic time detection is
@@ -333,7 +336,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel }: Props) {
                                     border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                                 }}
                             >
-                                {o.label}
+                                {o.value === 'auto' ? (autoLabel ?? o.label) : o.label}
                             </button>
                         );
                     })}
