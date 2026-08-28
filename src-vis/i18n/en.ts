@@ -1240,6 +1240,9 @@ export const en: Record<TranslationKey, string> = {
     'echart.modeJson': 'JSON',
     'echart.jsonHint': 'Values come straight from a JSON datapoint instead of a history adapter.',
     'echart.jsonSection': 'JSON source',
+    'echart.seriesSource': 'Data source',
+    'echart.sourceHistory': 'History',
+    'echart.sourceJson': 'JSON',
     'echart.jsonPath': 'Path to array (optional)',
     'echart.jsonPathPlaceholder': 'e.g. data.hours – empty = root',
     'echart.jsonShapeHelp': 'Which JSON shapes work?',
@@ -1259,6 +1262,9 @@ export const en: Record<TranslationKey, string> = {
     'echart.jsonTimeAxis': 'Label is a timestamp',
     'echart.jsonTimeAxisHint':
         'Time axis instead of categories — accepts epoch in ms or s and ISO dates. Entries without a valid timestamp are dropped.',
+    'echart.jsonMixedTimeOk': 'Label is a timestamp — the series is drawn on the same time axis as the history data.',
+    'echart.jsonMixedNeedsTime':
+        'The label is not a timestamp. In a timeseries chart every entry needs one (epoch in ms/s or an ISO date) — other entries are dropped. Pick the JSON mode for labels without a timestamp.',
     'echart.jsonAxisBounds': 'Take the y-axis bounds from the JSON',
     'echart.jsonAxisBoundsHint':
         'The datapoint may carry a min/max block next to its data. Applies to the axis of that series and overrules the fixed value — examples below.',

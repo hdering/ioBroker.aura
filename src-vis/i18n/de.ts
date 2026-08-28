@@ -1244,6 +1244,9 @@ export const de = {
     'echart.modeJson': 'JSON',
     'echart.jsonHint': 'Werte kommen direkt aus einem JSON-Datenpunkt statt aus einem History-Adapter.',
     'echart.jsonSection': 'JSON-Quelle',
+    'echart.seriesSource': 'Datenquelle',
+    'echart.sourceHistory': 'Verlauf',
+    'echart.sourceJson': 'JSON',
     'echart.jsonPath': 'Pfad zum Array (optional)',
     'echart.jsonPathPlaceholder': 'z. B. data.hours – leer = Wurzel',
     'echart.jsonShapeHelp': 'Welche JSON-Formen funktionieren?',
@@ -1263,6 +1266,10 @@ export const de = {
     'echart.jsonTimeAxis': 'Beschriftung ist ein Zeitstempel',
     'echart.jsonTimeAxisHint':
         'Zeitachse statt Kategorien — akzeptiert Epoch in ms oder s sowie ISO-Datum. Einträge ohne gültigen Zeitstempel entfallen.',
+    'echart.jsonMixedTimeOk':
+        'Beschriftung ist ein Zeitstempel — die Serie wird auf derselben Zeitachse wie die Verlaufsdaten gezeichnet.',
+    'echart.jsonMixedNeedsTime':
+        'Die Beschriftung ist kein Zeitstempel. In der Zeitreihe braucht jeder Eintrag einen Zeitstempel (Epoch in ms/s oder ISO-Datum) — andere Einträge entfallen. Ohne Zeitstempel den Modus JSON wählen.',
     'echart.jsonAxisBounds': 'Grenzen der Y-Achse aus dem JSON übernehmen',
     'echart.jsonAxisBoundsHint':
         'Der Datenpunkt darf neben den Daten einen Block mit min/max tragen. Gilt für die Achse der jeweiligen Serie und schlägt die feste Eingabe — Beispiele unten.',

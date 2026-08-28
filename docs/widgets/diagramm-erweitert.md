@@ -10,7 +10,7 @@ Das Widget hat keinen eigenen Haupt-Datenpunkt — jede Serie trägt ihren Daten
 | -------------------------------- | ------- | ------------------- | --------------------------------------------- |
 | `echartSeries[].datapointId`     | ja      | `number` · `string` | Datenpunkt der Serie (`string` im JSON-Modus) |
 | `echartSeries[].historyInstance` | nein    | —                   | History-Adapter; leer = Live-Daten            |
-| `echartSeries[].source`          | nein    | —                   | `history` (Standard) · `json`                 |
+| `echartSeries[].source`          | nein    | —                   | `history` (Standard) · `json` — je Serie      |
 
 ## Layouts
 
@@ -19,6 +19,24 @@ Das Diagramm-Verhalten steuert die Option `echartMode`; das Widget-Layout `gauge
 ### Timeseries
 
 Zeitachsen-Diagramm mit allen Serien über die Zeit — Standard.
+
+Je Serie ist die Datenquelle wählbar (`echartSeries[].source`), Verlauf und JSON-Datenpunkt lassen sich also mischen — z. B. Messwerte aus der InfluxDB plus Solarprognose aus einem JSON:
+
+| Serie              | `source`  |                                                                     |
+| ------------------ | --------- | ------------------------------------------------------------------- |
+| Messwerte          | `history` | Zeitraum-Umschalter und Tages-Navigation wirken nur auf diese       |
+| Prognose, Fahrplan | `json`    | ganzes Array aus dem Datenpunkt; die Beschriftung ist der Zeitpunkt |
+
+Voraussetzung für die JSON-Serie: die Beschriftungen sind Zeitstempel (Epoch in ms oder s, ISO-Datum). Einträge ohne gültigen Zeitstempel entfallen — der Editor sagt es, sobald er den Datenpunkt gelesen hat. Für Kategorie-Beschriftungen (`Mo`, `Di`) den Modus [JSON](#json) wählen.
+
+```json
+[
+    { "ts": "1785362400000", "val": 0 },
+    { "ts": "1785366000000", "val": 2.5 }
+]
+```
+
+Reicht die JSON-Serie in die Zukunft, dehnt sich die Zeitachse mit — die Verlaufsdaten enden bei „jetzt", die Prognose läuft weiter. Felder, Pfade und Achsengrenzen wie unter [JSON-Quelle](#json-quelle).
 
 ### Comparison
 
@@ -240,7 +258,9 @@ Bilder dazu: [Beispiele](#beispiele).
 
 ### JSON-Quelle
 
-Nur im Modus `json`.
+Für Serien mit `source: json` — im Modus `json` alle, im Modus `timeseries` die einzeln umgestellten.
+
+`echartJsonTimeAxis` gilt nur im Modus `json`; in der Zeitreihe ist die Zeitachse gesetzt.
 
 | Option                        | Standard    |                                                                   |
 | ----------------------------- | ----------- | ----------------------------------------------------------------- |

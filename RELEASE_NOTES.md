@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+
+- Advanced chart - a timeseries chart can now mix history series with JSON datapoint series on one time axis, e.g. measured values plus a solar forecast (#595)

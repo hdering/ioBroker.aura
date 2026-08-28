@@ -339,7 +339,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
     const allLoading = echartSeries.length > 0 && echartSeries.every((s) => seriesDataMap.get(s.id)?.loading);
-    const hasAnyData = echartSeries.some((s) => (seriesDataMap.get(s.id)?.data.length ?? 0) > 0);
+    // A JSON series fills `points`, never `data` — both count as "there is something to draw",
+    // or a timeseries chart fed only by JSON payloads would claim to have no data (issue #595).
+    const hasAnyData = echartSeries.some((s) => {
+        const r = seriesDataMap.get(s.id);
+        return (r?.data.length ?? 0) > 0 || (r?.points?.length ?? 0) > 0;
+    });
 
     // In the popup editor the series datapoints are {{placeholders}} that can't resolve,
     // so there is no real data. Render representative sample curves instead of "Keine Daten".
@@ -371,8 +376,25 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             [now, val],
         ];
     };
+    /**
+     * A JSON series' points as coordinates on the shared time axis (issue #595). Its labels are
+     * timestamps rather than display labels, so the payload plots next to history data without
+     * any resampling. Entries whose label is no timestamp are dropped: the time axis has no place
+     * to put them, and the pure JSON mode's category axis is not available here.
+     */
+    const jsonTimePoints = (id: string): [number, number][] =>
+        (seriesDataMap.get(id)?.points ?? [])
+            .map((p): [number, number] | null => {
+                const ts = parseTimeLabel(p.label);
+                return ts === null ? null : [ts, p.value];
+            })
+            .filter((p): p is [number, number] => p !== null)
+            .sort((a, b) => a[0] - b[0]);
     const seriesData = (idx: number, id: string): [number, number][] => {
         if (previewData) return previewData[idx];
+        // JSON series bring their whole dataset in the datapoint value — no history, and hence
+        // no flat-line fallback either: an empty payload simply has nothing to draw.
+        if (echartSeries[idx]?.source === 'json') return jsonTimePoints(id);
         const r = seriesDataMap.get(id);
         const data = r?.data ?? [];
         // A delta series has no "constant since the last log" reading to draw flat — an empty
@@ -387,6 +409,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         const fromFirst = echartCurrentFrom === 'first';
         if (previewData) {
             const pts = previewData[idx];
+            return (fromFirst ? pts[0] : pts[pts.length - 1])[1];
+        }
+        // On the time axis a JSON payload is read in chronological order, not in the order the
+        // array happens to be in — "last" has to mean the latest point, not the bottom row.
+        if (echartSeries[idx]?.source === 'json') {
+            const pts = jsonTimePoints(id);
+            if (pts.length === 0) return seriesDataMap.get(id)?.current ?? null;
             return (fromFirst ? pts[0] : pts[pts.length - 1])[1];
         }
         const entry = seriesDataMap.get(id);

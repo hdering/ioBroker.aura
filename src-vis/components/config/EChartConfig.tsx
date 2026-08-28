@@ -256,8 +256,16 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const frontendPresets = CHART_RANGES.filter((r) => r !== 'custom');
     const visibleRanges = (o.echartVisibleRanges as EChartTimeRange[] | undefined) ?? frontendPresets;
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
-    /** Switching the mode also flips every series' data source, so no series is left half-configured. */
+    /**
+     * Switching the mode normalises the series' data sources, so no series is left
+     * half-configured. `timeseries` is the exception: it carries both kinds side by side
+     * (issue #595), so it leaves every source as it is and lets the per-series switch decide.
+     */
     const setMode = (mode: 'timeseries' | 'comparison' | 'json') => {
+        if (mode === 'timeseries') {
+            setO({ echartMode: mode });
+            return;
+        }
         const source: EChartSeriesConfig['source'] = mode === 'json' ? 'json' : 'history';
         setO({ echartMode: mode, echartSeries: series.map((s) => ({ ...s, source })) });
     };
@@ -341,12 +349,14 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // Read the actual datapoint value of every JSON series to learn its structure: which keys
     // exist, which ones hold label and value, and whether the labels are timestamps. Without
     // this the two key fields are pure guesswork for anyone who hasn't read the docs.
-    const jsonProbeKey = isJson
-        ? series.map((s) => `${s.id}:${s.datapointId}:${s.jsonPath ?? ''}:${s.jsonAxisPath ?? ''}`).join(',')
-        : '';
+    // Probed per series, not per mode: a timeseries chart may hold JSON series next to history
+    // ones (issue #595), so the source flag decides — with the JSON mode forcing it on.
+    const jsonSeries = series.filter((s) => isJson || s.source === 'json');
+    const jsonProbeKey = jsonSeries
+        .map((s) => `${s.id}:${s.datapointId}:${s.jsonPath ?? ''}:${s.jsonAxisPath ?? ''}`)
+        .join(',');
     useEffect(() => {
-        if (!isJson) return;
-        for (const s of series) {
+        for (const s of jsonSeries) {
             if (!s.datapointId || s.datapointId.includes('{{')) continue;
             getStateDirect(s.datapointId)
                 .then((state) => {
@@ -405,7 +415,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                 });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [jsonProbeKey, isJson]);
+    }, [jsonProbeKey]);
 
     // Timestamp labels only make sense on a time axis — switch it on the first time we see them,
     // unless the user has already made a choice.
@@ -527,6 +537,13 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         const isExpanded = expandedId === s.id;
                         const adState = adapterStates[s.id];
                         const probe = jsonProbes[s.id];
+                        // JSON mode forces every series onto the payload source; in timeseries mode
+                        // each series decides for itself (issue #595).
+                        const seriesIsJson = isJson || s.source === 'json';
+                        // A JSON series on the shared time axis needs timestamp labels — a category
+                        // label has no x coordinate there and its point is dropped. Only reported
+                        // once the payload was actually read.
+                        const mixedProbe = seriesIsJson && !isJson && probe?.done && !probe.invalid ? probe : null;
                         const isTpl = (s.datapointId ?? '').includes('{{');
                         return (
                             <div
@@ -664,6 +681,43 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                 />
                                             </div>
                                         </div>
+
+                                        {/* Data source — a timeseries chart draws history and JSON
+                                            payloads on the same time axis (issue #595). The other
+                                            two modes have exactly one source, so they offer no choice. */}
+                                        {!isComparison && !isJson && (
+                                            <div>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('echart.seriesSource')}
+                                                </label>
+                                                <div className="flex gap-1">
+                                                    {(['history', 'json'] as const).map((src) => {
+                                                        const active = (s.source ?? 'history') === src;
+                                                        return (
+                                                            <button
+                                                                key={src}
+                                                                onClick={() => updateSeries(s.id, { source: src })}
+                                                                className="flex-1 text-[11px] py-1 rounded-md hover:opacity-80 transition-opacity"
+                                                                style={{
+                                                                    background: active
+                                                                        ? 'var(--accent)'
+                                                                        : 'var(--app-bg)',
+                                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                }}
+                                                            >
+                                                                {src === 'history'
+                                                                    ? t('echart.sourceHistory')
+                                                                    : t('echart.sourceJson')}
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         {/* Chart type — hidden in comparison mode */}
                                         {!isComparison && (
@@ -1016,7 +1070,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                     )}
                                                 </div>
 
-                                                {isJson && (
+                                                {seriesIsJson && (
                                                     <div>
                                                         <div
                                                             className="h-px my-1"
@@ -1050,37 +1104,58 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                                 />
                                                                 <JsonShapeHint />
                                                             </div>
-                                                            {/* Widget-level: the axis type is shared, so this toggle
-                                                                shows the same state in every series panel. */}
-                                                            <div>
-                                                                <label className="flex items-center gap-2 cursor-pointer">
-                                                                    <input
-                                                                        type="checkbox"
-                                                                        checked={jsonTimeAxis}
-                                                                        onChange={(e) =>
-                                                                            setO({
-                                                                                echartJsonTimeAxis: e.target.checked,
-                                                                            })
-                                                                        }
-                                                                        className="accent-[var(--accent)]"
-                                                                    />
-                                                                    <span
-                                                                        className="text-[11px]"
-                                                                        style={{ color: 'var(--text-secondary)' }}
+                                                            {/* Widget-level, and only a choice in the JSON mode: a
+                                                                timeseries chart always has a time axis, so a JSON
+                                                                series mixed into it (issue #595) has nothing to pick. */}
+                                                            {isJson && (
+                                                                <div>
+                                                                    <label className="flex items-center gap-2 cursor-pointer">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={jsonTimeAxis}
+                                                                            onChange={(e) =>
+                                                                                setO({
+                                                                                    echartJsonTimeAxis:
+                                                                                        e.target.checked,
+                                                                                })
+                                                                            }
+                                                                            className="accent-[var(--accent)]"
+                                                                        />
+                                                                        <span
+                                                                            className="text-[11px]"
+                                                                            style={{ color: 'var(--text-secondary)' }}
+                                                                        >
+                                                                            {t('echart.jsonTimeAxis')}
+                                                                        </span>
+                                                                    </label>
+                                                                    <p
+                                                                        className="text-[11px] mt-1"
+                                                                        style={{
+                                                                            color: 'var(--text-secondary)',
+                                                                            opacity: 0.7,
+                                                                        }}
                                                                     >
-                                                                        {t('echart.jsonTimeAxis')}
-                                                                    </span>
-                                                                </label>
+                                                                        {t('echart.jsonTimeAxisHint')}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                            {/* Mixed into a timeseries chart the labels have to BE
+                                                                timestamps — anything else has no place on the axis. */}
+                                                            {mixedProbe && (
                                                                 <p
-                                                                    className="text-[11px] mt-1"
+                                                                    className="text-[11px]"
                                                                     style={{
-                                                                        color: 'var(--text-secondary)',
-                                                                        opacity: 0.7,
+                                                                        color: mixedProbe.timeLike
+                                                                            ? 'var(--text-secondary)'
+                                                                            : 'var(--danger, #ef4444)',
+                                                                        opacity: mixedProbe.timeLike ? 0.8 : 1,
                                                                     }}
                                                                 >
-                                                                    {t('echart.jsonTimeAxisHint')}
+                                                                    {mixedProbe.timeLike
+                                                                        ? t('echart.jsonMixedTimeOk')
+                                                                        : t('echart.jsonMixedNeedsTime')}
                                                                 </p>
-                                                            </div>
+                                                            )}
                                                             <div className="flex gap-2">
                                                                 <div className="flex-1 min-w-0">
                                                                     <label
@@ -1237,7 +1312,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                                     </div>
                                                 )}
 
-                                                {!isJson && (
+                                                {!seriesIsJson && (
                                                     <div>
                                                         <div
                                                             className="h-px my-1"
