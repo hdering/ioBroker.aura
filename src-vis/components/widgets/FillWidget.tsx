@@ -62,7 +62,14 @@ function TankVertical({
     const TICKS = [0, 0.25, 0.5, 0.75, 1.0];
 
     return (
-        <svg viewBox="0 0 100 220" style={{ width: '100%', height: '100%' }} overflow="visible">
+        <svg
+            viewBox="0 0 100 220"
+            style={{ width: '100%', height: '100%' }}
+            overflow="visible"
+            data-aura-fill="vertical"
+            data-aura-fill-pct={Math.round(pct)}
+            data-aura-fill-max={max}
+        >
             <defs>
                 <clipPath id={clipId}>
                     <rect x={bx} y={by} width={bw} height={bh} rx={br} />
@@ -232,7 +239,14 @@ function TankHorizontal({
     const TICKS = [0, 0.25, 0.5, 0.75, 1.0];
 
     return (
-        <svg viewBox="0 0 220 80" style={{ width: '100%', height: '100%' }} overflow="visible">
+        <svg
+            viewBox="0 0 220 80"
+            style={{ width: '100%', height: '100%' }}
+            overflow="visible"
+            data-aura-fill="horizontal"
+            data-aura-fill-pct={Math.round(pct)}
+            data-aura-fill-max={max}
+        >
             <defs>
                 <clipPath id={clipId}>
                     <rect x={bx} y={by} width={bw} height={bh} rx={br} />
@@ -863,9 +877,28 @@ export function FillWidget({ config }: WidgetProps) {
     const { value } = useDatapoint(config.datapoint);
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
 
+    // Scale bounds may come from datapoints instead of fixed numbers — a budget, an
+    // electricity prepayment, a tank size the installation itself knows (issue #596).
+    const minDp = (opts.minDatapoint as string) ?? '';
+    const maxDp = (opts.maxDatapoint as string) ?? '';
+    const { value: minDpVal } = useDatapoint(minDp);
+    const { value: maxDpVal } = useDatapoint(maxDp);
+
+    // Display-only transform: live DP values are mapped into display space, while the
+    // static min/max and the zones stay as configured (entered in display units).
+    const factor = Number(opts.valueFactor ?? 1);
+    const offset = Number(opts.valueOffset ?? 0);
+    const tx = (n: number): number => n * factor + offset;
+    /** A bound's live value in display space, or null when the DP has nothing usable yet. */
+    const boundFromDp = (raw: unknown): number | null => {
+        if (raw === undefined || raw === null || raw === '') return null;
+        const n = typeof raw === 'number' ? raw : parseFloat(String(raw));
+        return isNaN(n) ? null : tx(n);
+    };
+
     const orientation = (opts.orientation as Orientation) ?? 'vertical';
-    const min = (opts.minValue as number) ?? 0;
-    const max = (opts.maxValue as number) ?? 100;
+    const min = (minDp ? boundFromDp(minDpVal) : null) ?? (opts.minValue as number) ?? 0;
+    const max = (maxDp ? boundFromDp(maxDpVal) : null) ?? (opts.maxValue as number) ?? 100;
     const unit = (opts.unit as string) ?? '%';
     const decimals = (opts.decimals as number) ?? defaultDecimals;
     const numFmt = (opts.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
@@ -887,11 +920,8 @@ export function FillWidget({ config }: WidgetProps) {
         ];
     })();
 
-    // Display-only transform: live value mapped into display space; min/max + zones stay in display units.
-    const factor = Number(opts.valueFactor ?? 1);
-    const offset = Number(opts.valueOffset ?? 0);
     const rawNum = typeof value === 'number' ? value : parseFloat(String(value ?? ''));
-    const numVal = isNaN(rawNum) ? NaN : rawNum * factor + offset;
+    const numVal = isNaN(rawNum) ? NaN : tx(rawNum);
     const safeVal = isNaN(numVal) ? min : Math.max(min, Math.min(max, numVal));
     const pct = max > min ? ((safeVal - min) / (max - min)) * 100 : 0;
 

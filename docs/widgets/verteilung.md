@@ -42,6 +42,20 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 `legendSide` je Gruppe ist die Grundlage des zweiseitigen Bilanz-Layouts: linke Gruppe `left`, rechte Gruppe `right`. Ein global gesetztes `legendSide` gewinnt über die Gruppen-Angabe.
 
+### Vorgabe (100 %)
+
+Ohne Vorgabe ist die Gruppensumme 100 %. Mit Vorgabe zeigen die Einträge ihren Anteil daran, und die Differenz erscheint als eigenes Segment — so wird aus der Verteilung eine Verbrauchsanzeige („147,12 € von 160 € Abschlag“).
+
+| Option                  | Standard  |                                                             |
+| ----------------------- | --------- | ----------------------------------------------------------- |
+| `bars[].totalDatapoint` | —         | Datenpunkt mit der 100-%-Vorgabe; gewinnt über `totalValue` |
+| `bars[].totalValue`     | —         | feste 100-%-Vorgabe ohne Datenpunkt                         |
+| `bars[].showRest`       | `true`    | Differenz als eigenes Segment anzeigen                      |
+| `bars[].restLabel`      | `Rest`    | Bezeichnung des Rest-Segments in der Legende                |
+| `bars[].restColor`      | `#94a3b8` | Farbe des Rest-Segments                                     |
+
+Die Vorgabe wird immer als aktueller Wert gelesen (wie `aggregate: last`), nicht über den Zeitraum aggregiert. Über der Vorgabe bleibt die Gruppe bei 100 %, der Rest verschwindet, und die Summenzeile nennt weiter den echten Anteil (`184,00 / 160,00 € · 115 %`). Beim Donut steht der Anteil in der Mitte.
+
 ### Eintrag
 
 | Option                   | Standard               |                                                |

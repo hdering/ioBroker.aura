@@ -33,6 +33,16 @@ export interface EnergyBar {
     entries: EnergyEntry[];
     /** Where this bar's legend sits relative to the bar. Default 'below'. */
     legendSide?: 'left' | 'right' | 'below' | 'top';
+    /** Datapoint holding this group's 100 % reference (a budget, a prepayment, a tank size). */
+    totalDatapoint?: string;
+    /** Static 100 % reference; used only when `totalDatapoint` is empty. */
+    totalValue?: number;
+    /** Label of the unused remainder in the legend. Default 'Rest'. */
+    restLabel?: string;
+    /** Colour of the remainder segment. Default REST_COLOR. */
+    restColor?: string;
+    /** Show the unused remainder as its own segment. Default true. */
+    showRest?: boolean;
 }
 
 /** What each legend row shows. Default 'icon-value'. */
@@ -82,6 +92,12 @@ export interface EnergyBalanceOptions {
 }
 
 const DEFAULT_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#84cc16'];
+
+/** Fallback colour of the "Rest" segment - readable on both themes without any config. */
+export const REST_COLOR = '#94a3b8';
+/** Synthetic entry ids: one per group for its reference datapoint and its remainder. */
+const targetEntryId = (barId: string) => `__target-${barId}`;
+const restEntryId = (barId: string) => `__rest-${barId}`;
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -177,8 +193,25 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const usingSample = editMode && !hasConfig;
     const bars = usingSample ? SAMPLE_BARS : configuredBars;
 
-    // One flat subscription/fetch across every entry of every bar (ids are unique).
-    const allEntries = useMemo(() => bars.flatMap((b) => b.entries ?? []), [bars]);
+    // One flat subscription/fetch across every entry of every bar (ids are unique). The
+    // per-group 100 % reference rides along as a synthetic 'last' entry: a reference is a
+    // current setpoint, not a window aggregate, so the hook serves it from the live state
+    // and keeps it updated without a history query (issue #596).
+    const allEntries = useMemo(
+        () => [
+            ...bars.flatMap((b) => b.entries ?? []),
+            ...bars
+                .filter((b) => !!b.totalDatapoint)
+                .map(
+                    (b): EnergyEntry => ({
+                        id: targetEntryId(b.id),
+                        datapointId: b.totalDatapoint as string,
+                        aggregate: 'last',
+                    }),
+                ),
+        ],
+        [bars],
+    );
     const valueMap = useEnergyBalanceValues(
         usingSample ? [] : allEntries,
         range,
@@ -266,8 +299,30 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                             percent: 0,
                         };
                     });
-                    const total = computed.reduce((sum, c) => sum + c.value, 0);
+                    const sum = computed.reduce((acc, c) => acc + c.value, 0);
+                    // A group can pin its 100 % to a reference instead of its own sum: the
+                    // entries then show their share of it and the unused part becomes a
+                    // "Rest" segment ("147 EUR of a 160 EUR prepayment").
+                    const targetRaw = bar.totalDatapoint
+                        ? getValue(targetEntryId(bar.id))
+                        : typeof bar.totalValue === 'number'
+                          ? bar.totalValue
+                          : null;
+                    const target = typeof targetRaw === 'number' && targetRaw > 0 ? targetRaw : null;
+                    // Past the reference the bar stays full and the remainder is gone, so an
+                    // overrun reads as 100 % rather than as a slice bulging out of the circle.
+                    const total = target !== null ? Math.max(target, sum) : sum;
+                    const rest = target !== null ? Math.max(0, target - sum) : 0;
+                    if (rest > 0 && bar.showRest !== false) {
+                        computed.push({
+                            entry: { id: restEntryId(bar.id), datapointId: '', label: bar.restLabel ?? 'Rest' },
+                            color: bar.restColor ?? REST_COLOR,
+                            value: rest,
+                            percent: 0,
+                        });
+                    }
                     for (const c of computed) c.percent = total > 0 ? (c.value / total) * 100 : 0;
+                    const usedPct = target !== null ? (sum / target) * 100 : 0;
 
                     const side = o.legendSide ?? bar.legendSide ?? 'below';
                     const legend = showLegend ? (
@@ -293,7 +348,10 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                 size={pieSize}
                                 center={
                                     chartStyle === 'donut' && showTotals
-                                        ? { value: formatNum(total, decimals, numFmt), unit }
+                                        ? target !== null
+                                            ? // With a reference the share of it is the headline number.
+                                              { value: String(Math.round(usedPct)), unit: '%' }
+                                            : { value: formatNum(total, decimals, numFmt), unit }
                                         : null
                                 }
                             />
@@ -309,8 +367,27 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                         </div>
                                     )}
                                     {showTotals && (
-                                        <div style={{ fontSize: 14, fontWeight: 700 }}>
-                                            {formatNum(total, decimals, numFmt)} {unit}
+                                        <div style={{ fontSize: 14, fontWeight: 700 }} data-aura-energy-total={bar.id}>
+                                            {target !== null ? (
+                                                <>
+                                                    {formatNum(sum, decimals, numFmt)} /{' '}
+                                                    {formatNum(target, decimals, numFmt)} {unit}
+                                                    <span
+                                                        style={{
+                                                            fontSize: 11,
+                                                            fontWeight: 600,
+                                                            marginLeft: 4,
+                                                            color: 'var(--text-secondary)',
+                                                        }}
+                                                    >
+                                                        {Math.round(usedPct)} %
+                                                    </span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {formatNum(total, decimals, numFmt)} {unit}
+                                                </>
+                                            )}
                                         </div>
                                     )}
                                 </div>

@@ -9,6 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Database, X, Plus, ChevronUp, ChevronDown, Settings2 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
+import { REST_COLOR } from '../widgets/EnergiebilanzWidget';
 import type { EnergyBalanceOptions, EnergyBar, LegendFormat } from '../widgets/EnergiebilanzWidget';
 import type { EnergyAggregate, EnergyEntry } from '../../hooks/useEnergyBalanceValues';
 import { ColorPicker } from '../common/ColorPicker';
@@ -348,6 +349,8 @@ function BarSection({
     onRefreshAdapters: (entryId: string, datapointId: string) => void;
 }) {
     const entries = bar.entries ?? [];
+    const [targetDpOpen, setTargetDpOpen] = useState(false);
+    const hasTarget = !!bar.totalDatapoint || typeof bar.totalValue === 'number';
 
     const setEntries = (next: EnergyEntry[]) => onUpdate({ entries: next });
     const addEntry = () =>
@@ -439,6 +442,97 @@ function BarSection({
             >
                 <Plus size={11} /> Datenpunkt hinzufügen
             </button>
+
+            {/* 100 % reference of this group - without it the group's own sum is 100 %. */}
+            <div className="rounded p-1.5 space-y-1" style={{ border: '1px dashed var(--app-border)' }}>
+                <label className="text-[9px] block" style={{ color: 'var(--text-secondary)' }}>
+                    Vorgabe = 100 % (optional)
+                </label>
+                <div className="flex items-center gap-1.5">
+                    <input
+                        value={bar.totalDatapoint ?? ''}
+                        placeholder="Datenpunkt, z.B. 0_userdata.0.strom.abschlag"
+                        onChange={(e) => onUpdate({ totalDatapoint: e.target.value || undefined })}
+                        className={`${inputCls} font-mono min-w-0`}
+                        style={inputStyle}
+                    />
+                    <button
+                        onClick={() => setTargetDpOpen(true)}
+                        title="Datenpunkt wählen"
+                        className="flex items-center justify-center rounded hover:opacity-80 shrink-0"
+                        style={{ background: 'var(--accent)', color: '#fff', width: 28, height: 26 }}
+                    >
+                        <Database size={13} />
+                    </button>
+                </div>
+                <div className="flex items-end gap-1.5">
+                    <div style={{ width: 84 }}>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Fester Wert
+                        </label>
+                        <input
+                            type="number"
+                            value={typeof bar.totalValue === 'number' ? bar.totalValue : ''}
+                            placeholder="—"
+                            onChange={(e) =>
+                                onUpdate({ totalValue: e.target.value === '' ? undefined : Number(e.target.value) })
+                            }
+                            className={`${inputCls} py-0`}
+                            style={{ ...inputStyle, height: ROW2_H }}
+                        />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Rest-Bezeichnung
+                        </label>
+                        <input
+                            value={bar.restLabel ?? ''}
+                            placeholder="Rest"
+                            onChange={(e) => onUpdate({ restLabel: e.target.value || undefined })}
+                            className={`${inputCls} py-0`}
+                            style={{ ...inputStyle, height: ROW2_H }}
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                            Farbe
+                        </label>
+                        <ColorPicker
+                            value={bar.restColor ?? REST_COLOR}
+                            onChange={(v) => onUpdate({ restColor: v })}
+                            className="block rounded cursor-pointer"
+                            style={{ width: 30, height: ROW2_H, border: '1px solid var(--app-border)' }}
+                        />
+                    </div>
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={bar.showRest !== false}
+                        onChange={(e) => onUpdate({ showRest: e.target.checked ? undefined : false })}
+                        className="rounded"
+                    />
+                    <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                        Rest als eigenes Segment anzeigen
+                    </span>
+                </label>
+                <p className="text-[9px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
+                    {hasTarget
+                        ? 'Die Einträge zeigen ihren Anteil an der Vorgabe; die Differenz erscheint als „Rest“. Über der Vorgabe bleibt die Gruppe bei 100 % und der Rest verschwindet.'
+                        : 'Leer = die Gruppensumme ist 100 %. Mit Vorgabe (z. B. Abschlag 160 €) zeigt die Gruppe, wie viel davon verbraucht ist. Ein Datenpunkt gewinnt über den festen Wert.'}
+                </p>
+            </div>
+
+            {targetDpOpen && (
+                <DatapointPicker
+                    currentValue={bar.totalDatapoint ?? ''}
+                    onSelect={(id) => {
+                        if (id) onUpdate({ totalDatapoint: id });
+                        setTargetDpOpen(false);
+                    }}
+                    onClose={() => setTargetDpOpen(false)}
+                />
+            )}
         </div>
     );
 }

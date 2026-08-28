@@ -77,6 +77,7 @@ import type {
 import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
 import { DEFAULT_KNOB_GRID } from '../widgets/KnobWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
+import { ScaleBoundsRow } from '../config/ScaleBoundsRow';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { CellConditionEditor } from '../config/CellConditionEditor';
 import { BadgeEditor } from '../config/BadgeEditor';
@@ -6099,6 +6100,8 @@ export function WidgetFrame({
         | 'dimmer_switchDp'
         | 'gauge_pointer2Dp'
         | 'gauge_pointer3Dp'
+        | 'scale_minDp'
+        | 'scale_maxDp'
         | 'windowcontact_batteryDp'
         | 'wc_lockDp'
         | 'status_batteryDp'
@@ -10102,6 +10105,16 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
+                                        <ScaleBoundsRow
+                                            minDatapoint={o.minDatapoint as string | undefined}
+                                            maxDatapoint={o.maxDatapoint as string | undefined}
+                                            onChange={set}
+                                            onPick={(which) =>
+                                                setPickerTarget(which === 'min' ? 'scale_minDp' : 'scale_maxDp')
+                                            }
+                                            inputClassName={gCls}
+                                            inputStyle={gSty}
+                                        />
                                         <ValueFormatRow
                                             unit={o.unit as string | undefined}
                                             unitPlaceholder="°C, %, W"
@@ -12380,6 +12393,16 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
+                                        <ScaleBoundsRow
+                                            minDatapoint={o.minDatapoint as string | undefined}
+                                            maxDatapoint={o.maxDatapoint as string | undefined}
+                                            onChange={set}
+                                            onPick={(which) =>
+                                                setPickerTarget(which === 'min' ? 'scale_minDp' : 'scale_maxDp')
+                                            }
+                                            inputClassName={fCls}
+                                            inputStyle={fSty}
+                                        />
                                         <ValueFormatRow
                                             unit={o.unit as string | undefined}
                                             unitPlaceholder="%, L, m³"
@@ -18255,10 +18278,22 @@ export function WidgetFrame({
                                                                                                                             ''
                                                                                                                         );
                                                                                                                     })()
-                                                                                                                  : ((config
-                                                                                                                        .options
-                                                                                                                        ?.actualDatapoint as string) ??
-                                                                                                                    '')
+                                                                                                                  : pickerTarget ===
+                                                                                                                      'scale_minDp'
+                                                                                                                    ? ((config
+                                                                                                                          .options
+                                                                                                                          ?.minDatapoint as string) ??
+                                                                                                                      '')
+                                                                                                                    : pickerTarget ===
+                                                                                                                        'scale_maxDp'
+                                                                                                                      ? ((config
+                                                                                                                            .options
+                                                                                                                            ?.maxDatapoint as string) ??
+                                                                                                                        '')
+                                                                                                                      : ((config
+                                                                                                                            .options
+                                                                                                                            ?.actualDatapoint as string) ??
+                                                                                                                        '')
                     }
                     onSelect={(id, unit, name, role, dpType) => {
                         if (pickerTarget === 'datapoint' && config.type === 'clock') {
@@ -18486,6 +18521,10 @@ export function WidgetFrame({
                             onConfigChange({ ...config, options: { ...config.options, temperatureDp: id } });
                         } else if (pickerTarget === 'light_effectDp') {
                             onConfigChange({ ...config, options: { ...config.options, effectDp: id } });
+                        } else if (pickerTarget === 'scale_minDp') {
+                            onConfigChange({ ...config, options: { ...config.options, minDatapoint: id } });
+                        } else if (pickerTarget === 'scale_maxDp') {
+                            onConfigChange({ ...config, options: { ...config.options, maxDatapoint: id } });
                         } else if (pickerTarget === 'gauge_pointer2Dp') {
                             onConfigChange({ ...config, options: { ...config.options, pointer2Datapoint: id } });
                         } else if (pickerTarget === 'gauge_pointer3Dp') {

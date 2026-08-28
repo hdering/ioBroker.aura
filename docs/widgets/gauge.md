@@ -41,6 +41,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | --- | --- | --- |
 | `minValue` | `0` | Skala-Minimum |
 | `maxValue` | `100` | Skala-Maximum |
+| `minDatapoint` / `maxDatapoint` | — | Datenpunkt statt fester Zahl; gewinnt über `minValue`/`maxValue` |
 | `dynamicMax` | `false` | Maximum wächst mit, wenn der Wert es übersteigt |
 | `unit` | — | Einheit hinter dem Wert |
 | `decimals` | globale Vorgabe | Nachkommastellen |
