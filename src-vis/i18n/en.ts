@@ -1246,6 +1246,8 @@ export const en: Record<TranslationKey, string> = {
     'echart.pickSeries': 'Pick a series on the left.',
     'echart.noSeriesYet': 'No series yet — add one on the left.',
     'echart.noDatapoint': 'no datapoint',
+    'echart.valuesTab': 'Values',
+    'echart.showValuesHint': 'Default for every series — each series can override it.',
     'echart.seriesSource': 'Data source',
     'echart.sourceHistory': 'History',
     'echart.sourceJson': 'JSON',

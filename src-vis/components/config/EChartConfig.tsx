@@ -20,6 +20,7 @@ import { DatapointManagerField } from './list/DatapointManagerField';
 import type { ManagedEntry } from './list/EntryListItem';
 import { ChartModeToggle, type EChartMode } from './chart/ChartModeToggle';
 import { ChartSeriesDetail } from './chart/ChartSeriesDetail';
+import { ChartValuesPanel } from './chart/ChartValuesPanel';
 import { CHART_TYPES, inputCls, inputStyle, type JsonProbe, type SeriesAdapterState } from './chart/chartShared';
 
 interface EChartConfigProps {
@@ -420,6 +421,20 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     emptyState={t('echart.noSeriesYet')}
                     addLabel={t('echart.addSeries')}
                     header={<ChartModeToggle mode={echartMode as EChartMode} onChange={setMode} />}
+                    tabs={[
+                        {
+                            key: 'values',
+                            label: t('echart.valuesTab'),
+                            node: (
+                                <ChartValuesPanel
+                                    showValues={echartShowValues}
+                                    showStackPercent={echartShowStackPercent}
+                                    anyStack={anyStack}
+                                    onChange={setO}
+                                />
+                            ),
+                        },
+                    ]}
                     onAdd={addSeries}
                     onRemove={removeSeries}
                     onRemoveAll={() => setO({ echartSeries: [] })}
@@ -617,50 +632,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 </button>
                             ))}
                         </div>
-                    </div>
-                )}
-
-                {/* Value labels at the data points */}
-                <div className="flex items-center justify-between mb-2">
-                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('echart.showValues')}
-                    </label>
-                    <button
-                        onClick={() => setO({ echartShowValues: !echartShowValues })}
-                        className="relative w-9 h-5 rounded-full transition-colors"
-                        style={{ background: echartShowValues ? 'var(--accent)' : 'var(--app-border)' }}
-                    >
-                        <span
-                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                            style={{ left: echartShowValues ? '18px' : '2px' }}
-                        />
-                    </button>
-                </div>
-
-                {/* Percentage share of the stack total — pointless without a stack, so it only
-                    appears once at least one series stacks (issue #569). */}
-                {anyStack && (
-                    <div className="mb-2">
-                        <div className="flex items-center justify-between">
-                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('echart.showStackPercent')}
-                            </label>
-                            <button
-                                onClick={() => setO({ echartShowStackPercent: !echartShowStackPercent })}
-                                className="relative w-9 h-5 rounded-full transition-colors"
-                                style={{ background: echartShowStackPercent ? 'var(--accent)' : 'var(--app-border)' }}
-                            >
-                                <span
-                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                    style={{ left: echartShowStackPercent ? '18px' : '2px' }}
-                                />
-                            </button>
-                        </div>
-                        {echartShowStackPercent && (
-                            <p className="text-[10px] mt-1 leading-snug" style={{ color: 'var(--text-secondary)' }}>
-                                {t('echart.showStackPercentHint')}
-                            </p>
-                        )}
                     </div>
                 )}
 

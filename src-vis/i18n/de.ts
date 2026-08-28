@@ -1250,6 +1250,8 @@ export const de = {
     'echart.pickSeries': 'Links eine Serie wählen.',
     'echart.noSeriesYet': 'Noch keine Serie — links eine hinzufügen.',
     'echart.noDatapoint': 'kein Datenpunkt',
+    'echart.valuesTab': 'Werte',
+    'echart.showValuesHint': 'Vorgabe für alle Serien — je Serie überschreibbar.',
     'echart.seriesSource': 'Datenquelle',
     'echart.sourceHistory': 'Verlauf',
     'echart.sourceJson': 'JSON',

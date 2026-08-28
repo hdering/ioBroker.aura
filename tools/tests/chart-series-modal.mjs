@@ -90,6 +90,12 @@ const trigger = page.locator('button:has-text("Datenpunkte verwalten")').first()
 await trigger.waitFor({ timeout: 10000 });
 check('the panel offers the dialog instead of the series list', await trigger.isVisible());
 check('the panel no longer holds the series accordion', (await page.locator('text=Serie 1').count()) === 0);
+// Both value settings moved into the dialog — with it still closed, the panel must not show them.
+check('nor the value switch', (await page.locator('label:text-is("Werte am Datenpunkt anzeigen")').count()) === 0);
+check(
+    'nor the stack percentage',
+    (await page.locator('label:text-is("Prozentualen Anteil am Stapel anzeigen")').count()) === 0,
+);
 await trigger.click();
 
 const dlg = page.locator('.aura-config-modal');
@@ -164,6 +170,43 @@ eq(
     ['Ist', 'Solar'],
 );
 check('the widget title is untouched by it', (await opts()).echartMode === 'timeseries');
+
+// ── "Werte" tab ─────────────────────────────────────────────────────────────
+// Both settings moved out of the panel's global block: the widget default is what every series
+// detail shows as "Auto (…)", and the stack percentage only exists once a series stacks — which
+// is configured in this dialog, so the option used to appear behind the closed dialog.
+{
+    const valuesTab = dlg.locator('button:text-is("Werte")');
+    check('the dialog has a "Werte" tab', (await valuesTab.count()) === 1);
+    await valuesTab.click();
+    await page.waitForTimeout(300);
+    check(
+        'the stack percentage is hidden while nothing stacks',
+        (await dlg.locator('label:text-is("Prozentualen Anteil am Stapel anzeigen")').count()) === 0,
+    );
+    await dlg.locator('label:text-is("Werte am Datenpunkt anzeigen")').locator('xpath=../button').click();
+    await page.waitForTimeout(400);
+    check('toggling it writes the widget default', (await opts()).echartShowValues === true);
+
+    // Stack one series — the percentage switch has to turn up without leaving the dialog.
+    await dlg.locator('button:text-is("Serien (2)")').click();
+    await dlg.locator('span:text-is("Ist")').first().click();
+    await page.waitForTimeout(300);
+    await dlg.locator('label:text-is("Stapeln")').locator('xpath=../button').click();
+    await page.waitForTimeout(400);
+    check('stacking a series is stored', (await opts()).echartSeries[0].stack === true);
+    await valuesTab.click();
+    await page.waitForTimeout(300);
+    check(
+        'and the stack percentage appears right there',
+        (await dlg.locator('label:text-is("Prozentualen Anteil am Stapel anzeigen")').count()) === 1,
+    );
+    await dlg.locator('label:text-is("Prozentualen Anteil am Stapel anzeigen")').locator('xpath=../button').click();
+    await page.waitForTimeout(400);
+    check('it writes through too', (await opts()).echartShowStackPercent === true);
+    await dlg.locator('button:text-is("Serien (2)")').click();
+    await page.waitForTimeout(300);
+}
 
 // ── Add and delete ──────────────────────────────────────────────────────────
 await dlg.locator('button:text-is("Serie hinzufügen")').click();

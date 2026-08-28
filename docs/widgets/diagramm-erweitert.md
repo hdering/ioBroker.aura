@@ -24,7 +24,10 @@ Der Modus ändert die Serien nicht: er entscheidet nur, wie gelesen wird. Im Mod
 | Serien anlegen, sortieren, löschen        | Legende, aktueller Wert     |
 | Datenpunkt je Serie                       | Zeitraum, Tages-Navigation  |
 | Datenquelle, Typ, Farbe, Y-Achse, Stapeln | Einheiten, Achsengrenzen    |
-| JSON-Quelle, Verlauf/Aggregation          | JSON-Override               |
+| JSON-Quelle, Verlauf/Aggregation          | Zahlenformat, JSON-Override |
+| Werte-Vorgabe, Anteil am Stapel           |                             |
+
+Der Tab **Werte** im Dialog trägt die beiden Einstellungen, die nur neben den Serien Sinn ergeben: `echartShowValues` ist die Vorgabe, die jede Serie als „Auto (…)" anzeigt, und `echartShowStackPercent` erscheint erst, wenn eine Serie stapelt — was im selben Dialog eingestellt wird.
 
 ## Layouts
 
