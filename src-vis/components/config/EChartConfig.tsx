@@ -161,18 +161,13 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const visibleRanges = (o.echartVisibleRanges as EChartTimeRange[] | undefined) ?? frontendPresets;
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
     /**
-     * Switching the mode normalises the series' data sources, so no series is left
-     * half-configured. `timeseries` is the exception: it carries both kinds side by side
-     * (issue #595), so it leaves every source as it is and lets the per-series switch decide.
+     * The mode NEVER touches the series. It used to normalise their data sources — every series
+     * to `json` in the JSON mode, back to `history` in the other two — which quietly flattened a
+     * configured chart: a look into another mode and back left a JSON series reading history.
+     * The JSON mode overrides the source where the data is read instead (see `sourceOf` in
+     * EChartWidget), so switching the mode is lossless in every direction.
      */
-    const setMode = (mode: 'timeseries' | 'comparison' | 'json') => {
-        if (mode === 'timeseries') {
-            setO({ echartMode: mode });
-            return;
-        }
-        const source: EChartSeriesConfig['source'] = mode === 'json' ? 'json' : 'history';
-        setO({ echartMode: mode, echartSeries: series.map((s) => ({ ...s, source })) });
-    };
+    const setMode = (mode: 'timeseries' | 'comparison' | 'json') => setO({ echartMode: mode });
     const toggleVisibleRange = (r: EChartTimeRange) => {
         const next = visibleRanges.includes(r)
             ? visibleRanges.filter((x) => x !== r)
@@ -362,7 +357,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
             // so adapter detection is skipped — a free-text instance field is shown instead.
             if (!s.datapointId || s.datapointId.includes('{{')) continue;
             // JSON series read the datapoint value directly — no history adapter involved.
-            if (s.source === 'json') continue;
+            // In the JSON mode that goes for every series, whatever its stored source says.
+            if (isJson || s.source === 'json') continue;
             const existing = adapterStates[s.id];
             // Only re-detect if we haven't already
             if (existing) continue;

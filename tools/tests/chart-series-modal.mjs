@@ -93,27 +93,25 @@ check('the panel no longer holds the series accordion', (await page.locator('tex
 await trigger.click();
 
 const dlg = page.locator('.aura-config-modal');
-const modeBtn = (label) => dlg.locator(`button:text-is("${label}")`);
+const modeBtn = (label) => dlg.locator(`.aura-chart-mode button:text-is("${label}")`);
 await dlg.locator('button:text-is("Serie hinzufügen")').waitFor({ timeout: 10000 });
 check('the dialog opened', await dlg.isVisible());
 
 // ── Mode switch in the header ────────────────────────────────────────────────
+// The switch sits right above the series, so it invites a look into another mode. That must not
+// cost anything: it used to rewrite every series' source, and one round trip flattened a
+// configured chart — a JSON series came back reading history.
 check('the mode switch sits in the dialog', await modeBtn('Vergleich').isVisible());
-await modeBtn('Vergleich').click();
-await page.waitForTimeout(400);
+const sources = async () => (await opts()).echartSeries.map((s) => s.source);
+for (const mode of ['JSON', 'Zeitreihe', 'Vergleich', 'Zeitreihe']) {
+    await modeBtn(mode).click();
+    await page.waitForTimeout(350);
+    eq(`"${mode}" leaves every source untouched`, await sources(), ['history', 'json']);
+}
 {
     const o = await opts();
-    eq('picking "Vergleich" writes the mode', o.echartMode, 'comparison');
-    // A comparison chart has one source only, so switching normalises every series to it.
-    eq(
-        'and normalises every source to history',
-        o.echartSeries.map((s) => s.source),
-        ['history', 'history'],
-    );
+    eq('and the mode itself is written', o.echartMode, 'timeseries');
 }
-await modeBtn('Zeitreihe').click();
-await page.waitForTimeout(400);
-eq('back on "Zeitreihe"', (await opts()).echartMode, 'timeseries');
 
 // ── Master list ─────────────────────────────────────────────────────────────
 check('the list is headed "Serien"', (await dlg.locator('label:text-is("Serien (2)")').count()) > 0);
@@ -132,19 +130,29 @@ check(
 );
 
 // ── Data source swaps the two blocks ────────────────────────────────────────
-check('a history series shows the history block', (await dlg.locator('p:text-is("Verlaufsdaten")').count()) > 0);
-check('and no JSON block', (await dlg.locator('p:text-is("JSON-Quelle")').count()) === 0);
+// `Prognose` is the JSON series of the pair — the mode round trip above left it that way.
+check('a JSON series shows the JSON block', (await dlg.locator('p:text-is("JSON-Quelle")').count()) > 0);
+check('and no history block', (await dlg.locator('p:text-is("Verlaufsdaten")').count()) === 0);
+await dlg.locator('button:text-is("Verlauf")').last().click();
+await page.waitForTimeout(400);
+{
+    eq(
+        'switching that series to "Verlauf" writes the source',
+        (await opts()).echartSeries.map((s) => s.source),
+        ['history', 'history'],
+    );
+    check('the history block appears', (await dlg.locator('p:text-is("Verlaufsdaten")').count()) > 0);
+    check('the JSON block is gone', (await dlg.locator('p:text-is("JSON-Quelle")').count()) === 0);
+}
 await dlg.locator('button:text-is("JSON")').last().click();
 await page.waitForTimeout(400);
 {
     eq(
-        'switching that series to JSON writes the source',
+        'and back to JSON',
         (await opts()).echartSeries.map((s) => s.source),
         ['history', 'json'],
     );
-    check('the JSON block appears', (await dlg.locator('p:text-is("JSON-Quelle")').count()) > 0);
-    check('the history block is gone', (await dlg.locator('p:text-is("Verlaufsdaten")').count()) === 0);
-    check('the other series keeps its source', (await opts()).echartSeries[0].source === 'history');
+    check('the other series is left alone by it', (await opts()).echartSeries[0].source === 'history');
 }
 
 // ── Rename reaches the config ───────────────────────────────────────────────

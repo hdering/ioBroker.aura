@@ -281,13 +281,23 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const autoHistory = o.autoHistoryInstance === true;
     const { resolved, setPicked } = useAutoHistoryInstances(echartSeries, autoHistory);
 
+    /**
+     * Where a series takes its data from, with the mode having the last word. The JSON mode reads
+     * every series out of its datapoint value — that is what the mode IS — so it overrides the
+     * stored source instead of rewriting it: switching the mode has to be lossless, or a chart
+     * that once passed through another mode comes back with its sources flattened.
+     */
+    const sourceOf = (s: EChartSeriesConfig): 'history' | 'json' =>
+        echartMode === 'json' ? 'json' : (s.source ?? 'history');
+
     // All series share the single widget-level range; auto-resolved instances fill in where none
     // is configured.
     const effectiveSeries = echartSeries.map((s) => ({
         ...s,
+        source: sourceOf(s),
         // JSON series never carry a history instance — auto-detection must not graft one on,
         // or the range selector would appear for data that has no time window.
-        historyInstance: s.source === 'json' ? undefined : (s.historyInstance ?? resolved[s.id]?.instance),
+        historyInstance: sourceOf(s) === 'json' ? undefined : (s.historyInstance ?? resolved[s.id]?.instance),
         historyRange: activeRange,
         historyRangeCustomValue: activeCustomVal,
         historyRangeCustomUnit: activeCustomUnit,
@@ -394,7 +404,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         if (previewData) return previewData[idx];
         // JSON series bring their whole dataset in the datapoint value — no history, and hence
         // no flat-line fallback either: an empty payload simply has nothing to draw.
-        if (echartSeries[idx]?.source === 'json') return jsonTimePoints(id);
+        const cfg = echartSeries[idx];
+        if (cfg && sourceOf(cfg) === 'json') return jsonTimePoints(id);
         const r = seriesDataMap.get(id);
         const data = r?.data ?? [];
         // A delta series has no "constant since the last log" reading to draw flat — an empty
@@ -413,7 +424,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         }
         // On the time axis a JSON payload is read in chronological order, not in the order the
         // array happens to be in — "last" has to mean the latest point, not the bottom row.
-        if (echartSeries[idx]?.source === 'json') {
+        const cfgCur = echartSeries[idx];
+        if (cfgCur && sourceOf(cfgCur) === 'json') {
             const pts = jsonTimePoints(id);
             if (pts.length === 0) return seriesDataMap.get(id)?.current ?? null;
             return (fromFirst ? pts[0] : pts[pts.length - 1])[1];

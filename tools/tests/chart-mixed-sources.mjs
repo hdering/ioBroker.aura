@@ -160,7 +160,60 @@ await show(mixedWidget({ datapointId: 'demo.forecastCat', jsonLabelKey: 'label',
     check('the history series is unaffected by them', (hist?.points ?? 0) > 1, `${hist?.points} points`);
 }
 
-// ── 3. The pure JSON mode is unchanged ─────────────────────────────────────────
+// ── 3. The JSON mode reads every series out of its value, whatever `source` says ─
+// The mode used to rewrite every series to `source: json`, which flattened a configured chart on
+// the way through (a look into another mode and back left a JSON series reading history). It now
+// overrides the source only where the data is read, so a series carrying `history` — or nothing at
+// all — still plots its payload while the widget is in the JSON mode.
+await page.evaluate(() =>
+    window.__auraShot.showWidgets([
+        {
+            id: 'w-mixed-jsonmode-src',
+            type: 'echart',
+            title: 'Prognose',
+            datapoint: '',
+            layout: 'default',
+            gridPos: { x: 0, y: 0, w: 30, h: 14 },
+            options: {
+                echartMode: 'json',
+                echartShowCurrent: false,
+                echartSeries: [
+                    {
+                        id: 's1',
+                        name: 'Prognose',
+                        datapointId: 'demo.forecastCat',
+                        chartType: 'bar',
+                        // Deliberately NOT 'json' — the mode decides.
+                        source: 'history',
+                        historyInstance: 'history.0',
+                        jsonLabelKey: 'label',
+                        jsonValueKey: 'val',
+                        yAxisIndex: 0,
+                    },
+                ],
+            },
+        },
+    ]),
+);
+await page.locator('.react-grid-item [_echarts_instance_]').waitFor({ state: 'attached', timeout: 20000 });
+{
+    const got = await page.waitForFunction(
+        () => {
+            const a = window.__auraShot.chartAxes();
+            return a?.xAxis?.type ? a.xAxis : null;
+        },
+        { timeout: 15000 },
+    );
+    const axis = await got.jsonValue();
+    check('the JSON mode overrides a stored history source', axis.type === 'category', `type=${axis.type}`);
+    check(
+        'and plots the payload, not the history',
+        JSON.stringify(axis.data) === JSON.stringify(['Mo', 'Di']),
+        JSON.stringify(axis.data),
+    );
+}
+
+// ── 4. The pure JSON mode is unchanged ─────────────────────────────────────────
 await page.evaluate(() =>
     window.__auraShot.showWidgets([
         {

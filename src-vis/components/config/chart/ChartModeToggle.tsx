@@ -10,7 +10,7 @@ export type EChartMode = 'timeseries' | 'comparison' | 'json';
 export function ChartModeToggle({ mode, onChange }: { mode: EChartMode; onChange: (mode: EChartMode) => void }) {
     const t = useT();
     return (
-        <div className="flex items-center gap-2">
+        <div className="aura-chart-mode flex items-center gap-2">
             <label className="text-[11px] font-semibold shrink-0" style={{ color: 'var(--text-secondary)' }}>
                 {t('echart.mode')}
             </label>

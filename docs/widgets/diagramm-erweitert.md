@@ -16,6 +16,8 @@ Das Widget hat keinen eigenen Haupt-Datenpunkt — jede Serie trägt ihren Daten
 
 Modus und Serien liegen im Dialog **Datenpunkte verwalten** (Button im Optionen-Panel). Links die Serienliste, rechts die komplette Konfiguration der ausgewählten Serie; der Modus steht als Kopfzeile darüber. Die globalen Einstellungen (Achsen, Legende, Zeitraum, Einheiten) bleiben im Optionen-Panel.
 
+Der Modus ändert die Serien nicht: er entscheidet nur, wie gelesen wird. Im Modus `json` liest jede Serie ihren Datenpunktwert, unabhängig von ihrer eingestellten Datenquelle — ein Wechsel in einen anderen Modus und zurück lässt die Serien also unverändert.
+
 | Im Dialog                                 | Im Optionen-Panel           |
 | ----------------------------------------- | --------------------------- |
 | Modus                                     | Darstellung, Achsen, Gitter |
