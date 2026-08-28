@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.50.9 (2026-08-28)
+- Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day ([#594](https://github.com/hdering/ioBroker.aura/issues/594))
+
+
 ### 0.50.8 (2026-08-27)
 - 🌟 **New feature:** Dynamic list - one icon for all rows (icon, size and colour), set in the new "Icon" tab of the datapoint dialog; a per-datapoint icon and conditions still override it
 - Color picker - dragging a colour no longer freezes the UI: the value now reaches the config at most every 120 ms, with the final one always applied
@@ -251,11 +255,6 @@ Release v0.50.6
 Release v0.47.13
 
 
-### 0.47.12 (2026-08-18)
-- 🌟 **New feature:** Advanced chart - the JSON datapoint may carry a min/max block that scales the Y axis ([#550](https://github.com/hdering/ioBroker.aura/issues/550))
-- Advanced chart - Y axis min and max can be read from datapoints, in every mode ([#550](https://github.com/hdering/ioBroker.aura/issues/550))
-
-
 ## License
 
 MIT License
@@ -267,6 +266,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

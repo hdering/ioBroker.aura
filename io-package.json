@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.50.8",
+    "version": "0.50.9",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.50.9": {
+        "en": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "de": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "ru": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "pt": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "nl": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "fr": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "it": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "es": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "pl": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "uk": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)",
+        "zh-cn": "Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)"
+      },
       "0.50.8": {
         "en": "🌟 New feature: Dynamic list - one icon for all rows (icon, size and colour), set in the new \"Icon\" tab of the datapoint dialog; a per-datapoint icon and conditions still override it\nColor picker - dragging a colour no longer freezes the UI: the value now reaches the config at most every 120 ms, with the final one always applied",
         "de": "🌟 New feature: Dynamic list - one icon for all rows (icon, size and colour), set in the new \"Icon\" tab of the datapoint dialog; a per-datapoint icon and conditions still override it\nColor picker - dragging a colour no longer freezes the UI: the value now reaches the config at most every 120 ms, with the final one always applied",
@@ -184,19 +197,6 @@
         "pl": "🌟 New feature: The installed adapter version is now published as `aura.0.info.version`, so it can be shown anywhere in the frontend",
         "uk": "🌟 New feature: The installed adapter version is now published as `aura.0.info.version`, so it can be shown anywhere in the frontend",
         "zh-cn": "🌟 New feature: The installed adapter version is now published as `aura.0.info.version`, so it can be shown anywhere in the frontend"
-      },
-      "0.50.1": {
-        "en": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "de": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "ru": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "pt": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "nl": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "fr": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "it": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "es": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "pl": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "uk": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)",
-        "zh-cn": "🌟 New feature: Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value (#584)"
       }
     }
   },

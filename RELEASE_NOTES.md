@@ -6,5 +6,3 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-
-- Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day (#594)
