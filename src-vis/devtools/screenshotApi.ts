@@ -491,20 +491,44 @@ function installScreenshotApi(): void {
             });
         },
 
-        /** grid + y axes of the chart currently on screen, as echarts resolved them. The axis
+        /** grid + axes of the chart currently on screen, as echarts resolved them. The axis
          *  reserve and the right-axis switch only exist in the rendered option — on the canvas
-         *  they are pixels, and pixels are not what a test should assert on (issue #541). */
-        chartAxes(): { grid: unknown; yAxis: unknown } | null {
+         *  they are pixels, and pixels are not what a test should assert on (issue #541).
+         *  `xExtent` is the time window the x axis really frames: `setOption` merges, so a
+         *  min/max the option no longer carries can still be pinning it (issue #594). */
+        chartAxes(): { grid: unknown; yAxis: unknown; xAxis: unknown; xExtent: [number, number] | null } | null {
             const el = document.querySelector('[_echarts_instance_]');
             const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
             if (!inst) return null;
             // A chart that has just been mounted (or replaced by one with a new widget id) can
             // answer before it holds an option at all — that is a "not ready yet", not a failure.
-            const opt = inst.getOption() as { grid?: unknown[]; yAxis?: unknown[] } | undefined;
+            const opt = inst.getOption() as { grid?: unknown[]; yAxis?: unknown[]; xAxis?: unknown[] } | undefined;
             if (!opt) return null;
+            let xExtent: [number, number] | null = null;
+            try {
+                const axis = (
+                    inst as unknown as {
+                        getModel(): {
+                            getComponent(t: string): { axis: { scale: { getExtent(): [number, number] } } } | undefined;
+                        };
+                    }
+                )
+                    .getModel()
+                    .getComponent('xAxis');
+                xExtent = axis ? axis.axis.scale.getExtent() : null;
+            } catch {
+                xExtent = null;
+            }
             // Round-trip through JSON so the formatter functions echarts adds are dropped and
             // the result survives the trip out of the page.
-            return JSON.parse(JSON.stringify({ grid: opt.grid?.[0] ?? null, yAxis: opt.yAxis ?? null }));
+            return JSON.parse(
+                JSON.stringify({
+                    grid: opt.grid?.[0] ?? null,
+                    yAxis: opt.yAxis ?? null,
+                    xAxis: opt.xAxis?.[0] ?? null,
+                    xExtent,
+                }),
+            );
         },
 
         /** Every text echarts painted, in the order zrender draws it. Axis labels are canvas

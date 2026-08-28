@@ -1088,18 +1088,21 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 fontSize: 10,
                 // Monthly bars over several years put a label at every month start — echarts drops
                 // the ones that would collide instead of overprinting them.
-                ...(axisBucket
-                    ? { hideOverlap: true, formatter: (v: number) => bucketAxisLabel(v, axisBucket, dateLocale) }
-                    : {}),
+                hideOverlap: !!axisBucket,
+                formatter: axisBucket ? (v: number) => bucketAxisLabel(v, axisBucket, dateLocale) : null,
             },
             axisTick: { show: echartShowXAxis },
             axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
             splitLine: { show: false },
             // Ticks have to land ON the bucket grid, or the formatter above finds nothing to label:
             // a two-bar yearly chart would otherwise get month ticks, none of them a January.
-            ...(axisBucket ? { minInterval: bucketAxisMinInterval(axisBucket) } : {}),
+            minInterval: axisBucket ? bucketAxisMinInterval(axisBucket) : 0,
             // Day mode: frame exactly the selected calendar day, even when data is sparse.
-            ...(dayWindow ? { min: dayWindow.start, max: dayWindow.end } : {}),
+            // Written unconditionally — `setOption` MERGES, so a key that is merely omitted keeps
+            // the value of the previous option. Leaving day mode for a rolling range would then
+            // stay framed on that one day and hide every other bar (issue #594).
+            min: dayWindow ? dayWindow.start : null,
+            max: dayWindow ? dayWindow.end : null,
         },
         yAxis: [leftAxis, rightAxis],
         series: seriesList,
