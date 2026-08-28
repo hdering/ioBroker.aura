@@ -207,6 +207,18 @@ function installScreenshotApi(): void {
             });
         },
 
+        /** A widget's current options, straight out of the store. The options panel writes
+         *  nowhere else, so this is how a config-panel test reads back what it wrote. */
+        widgetOptions(widgetId: string): Record<string, unknown> | null {
+            for (const layout of useDashboardStore.getState().layouts)
+                for (const section of layout.sections ?? [])
+                    for (const tab of section.tabs ?? []) {
+                        const found = (tab.widgets ?? []).find((w) => w.id === widgetId);
+                        if (found) return (found.options ?? {}) as Record<string, unknown>;
+                    }
+            return null;
+        },
+
         setEditMode(on: boolean): void {
             withSuppressedDirty(() => useDashboardStore.setState({ editMode: on }));
         },

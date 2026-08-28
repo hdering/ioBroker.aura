@@ -388,6 +388,12 @@ export default function App() {
     // resolveView also handles legacy `/view/<oldLayoutSlug>` links (old layouts
     // are now sections of the migrated default layout).
     const allLayouts = useDashboardStore((s) => s.layouts);
+    // The widget options panel only exists in edit mode, and edit mode only exists in the admin
+    // editor — which needs a login and is therefore out of reach for the screenshot harness. In
+    // DEV `?shot=1` the harness may switch it on (`__auraShot.setEditMode`) so a test can open a
+    // panel; anywhere else this stays false and the frontend is read-only as before.
+    const storeEditMode = useDashboardStore((s) => s.editMode);
+    const shotEditMode = import.meta.env.DEV && isScreenshotMode() && storeEditMode;
     const view = useMemo(() => resolveView(allLayouts, layoutSlug, sectionSlug), [allLayouts, layoutSlug, sectionSlug]);
     const layout = view?.layout;
     const section = view?.section;
@@ -1216,7 +1222,8 @@ export default function App() {
                     <div className="flex-1 min-h-0 flex flex-col">
                         <FocusedWidgetContext.Provider value={focusWidgetId}>
                             <Dashboard
-                                readonly
+                                readonly={!shotEditMode}
+                                editMode={shotEditMode}
                                 viewTabs={tabs}
                                 viewActiveTabId={activeTabId}
                                 layoutId={layout?.id}

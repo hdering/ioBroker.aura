@@ -27,6 +27,7 @@ export function EntryMasterList({
     onReorder,
     sortHint,
     keepDraggable,
+    heading = 'Datenpunkte',
 }: {
     entries: ManagedEntry[];
     resolvedNames: Record<string, string>;
@@ -44,6 +45,8 @@ export function EntryMasterList({
     /** Keep dragging enabled despite `sortHint`. Set once the list holds separators:
      *  those ARE positioned by hand, and the sort order only applies within a section. */
     keepDraggable?: boolean;
+    /** Name above the list, without the count. The chart lists "Serien", not datapoints. */
+    heading?: string;
 }) {
     const [query, setQuery] = useState('');
     const [dragIdx, setDragIdx] = useState<number | null>(null);
@@ -79,7 +82,7 @@ export function EntryMasterList({
         <div className="flex flex-col h-full min-h-0 gap-1.5">
             <div className="flex items-center justify-between shrink-0">
                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    Datenpunkte ({entries.filter((e) => !e.divider).length})
+                    {heading} ({entries.filter((e) => !e.divider).length})
                 </label>
                 {entries.length > 0 && (
                     <button

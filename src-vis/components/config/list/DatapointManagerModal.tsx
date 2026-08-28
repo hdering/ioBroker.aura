@@ -41,6 +41,9 @@ export function DatapointManagerModal({
     renderDetail,
     tabs = [],
     entriesTabIndex = 0,
+    entriesTabLabel,
+    selectHint = 'Links einen Datenpunkt wählen.',
+    header,
     emptyState,
     onClose,
 }: {
@@ -61,6 +64,15 @@ export function DatapointManagerModal({
     tabs?: { key: string; label: string; node: ReactNode | ((api: TabApi) => ReactNode) }[];
     /** Where the built-in "Einträge" tab slots into `tabs`. Default: first. */
     entriesTabIndex?: number;
+    /** What the entries are called, without the count - names both the tab and the heading
+     *  above the master list. Unset keeps the lists' own wording ("Einträge" / "Datenpunkte");
+     *  the chart passes "Serien". */
+    entriesTabLabel?: string;
+    /** Placeholder of the detail pane while nothing is selected. */
+    selectHint?: string;
+    /** Row above the tabs, always visible. Holds what applies to the whole widget rather
+     *  than to one entry - the chart puts its mode switch there. */
+    header?: ReactNode;
     /** Shown in the detail pane while the list is empty. */
     emptyState?: ReactNode;
     onClose: () => void;
@@ -92,13 +104,18 @@ export function DatapointManagerModal({
     const allTabs = [...tabs];
     allTabs.splice(Math.min(entriesTabIndex, allTabs.length), 0, {
         key: TAB_ENTRIES,
-        label: `Einträge (${entries.filter((e) => !e.divider).length})`,
+        label: `${entriesTabLabel ?? 'Einträge'} (${entries.filter((e) => !e.divider).length})`,
         node: null,
     });
 
     return (
         <ConfigModal title={title} maxWidth={1280} storageKey={storageKey} onClose={onClose}>
             <div className="flex flex-col h-full min-h-0">
+                {header && (
+                    <div className="px-3 pt-2.5 pb-2 shrink-0" style={{ borderBottom: '1px solid var(--app-border)' }}>
+                        {header}
+                    </div>
+                )}
                 {allTabs.length > 1 && (
                     <div
                         className="flex items-center gap-1 px-3 pt-2.5 pb-2 shrink-0"
@@ -137,6 +154,7 @@ export function DatapointManagerModal({
                             onReorder={onReorder}
                             sortHint={sortHint}
                             keepDraggable={keepDraggable}
+                            heading={entriesTabLabel}
                         />
                     </div>
                     <div
@@ -154,9 +172,7 @@ export function DatapointManagerModal({
                                 className="h-full flex items-center justify-center text-center text-xs px-6"
                                 style={{ color: 'var(--text-secondary)' }}
                             >
-                                {entries.length > 0
-                                    ? 'Links einen Datenpunkt wählen.'
-                                    : (emptyState ?? 'Noch keine Datenpunkte.')}
+                                {entries.length > 0 ? selectHint : (emptyState ?? 'Noch keine Datenpunkte.')}
                             </div>
                         )}
                     </div>

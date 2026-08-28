@@ -137,7 +137,7 @@ export function ConfigModal({
             <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.6)' }} onMouseDown={onClose} />
             <div
                 ref={panelRef}
-                className="fixed rounded-xl shadow-2xl flex flex-col overflow-hidden"
+                className="aura-config-modal fixed rounded-xl shadow-2xl flex flex-col overflow-hidden"
                 style={{
                     width: size ? size.w : `min(${maxWidth ?? 1100}px, calc(100vw - 24px))`,
                     height: size

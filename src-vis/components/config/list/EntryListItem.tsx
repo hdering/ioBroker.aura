@@ -12,6 +12,12 @@ export interface ManagedEntry {
     label?: string;
     icon?: string;
     iconSize?: number;
+    /** Colour dot in front of the name. The chart's series carry their own colour and are
+     *  told apart by it, so the row shows what the curve will look like. */
+    color?: string;
+    /** Second, smaller line under the name. Used where the row's id is not the datapoint -
+     *  a chart series is named by hand and keeps its datapoint in a field of its own. */
+    sublabel?: string;
     /** Static list: this row is a separator, not a datapoint (see ListWidget). The master
      *  list renders it as one, so the sections are visible where the order is changed. */
     divider?: boolean;
@@ -121,6 +127,13 @@ export function EntryListItem({
                     />
                 </span>
             )}
+            {!isDivider && entry.color && (
+                <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ background: entry.color }}
+                    aria-hidden="true"
+                />
+            )}
             {isDivider ? (
                 <span className="flex-1 min-w-0 flex items-center gap-1.5">
                     <span className="flex-1 h-px min-w-0" style={{ background: 'var(--app-border)' }} />
@@ -135,8 +148,18 @@ export function EntryListItem({
                     <span className="flex-1 h-px min-w-0" style={{ background: 'var(--app-border)' }} />
                 </span>
             ) : (
-                <span className="flex-1 min-w-0 truncate text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                    {displayName}
+                <span className="flex-1 min-w-0">
+                    <span className="block truncate text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                        {displayName}
+                    </span>
+                    {entry.sublabel && (
+                        <span
+                            className="block truncate text-[10px]"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.85 }}
+                        >
+                            {entry.sublabel}
+                        </span>
+                    )}
                 </span>
             )}
             <button
