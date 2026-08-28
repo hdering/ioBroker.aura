@@ -12,6 +12,18 @@ Das Widget hat keinen eigenen Haupt-Datenpunkt — jede Serie trägt ihren Daten
 | `echartSeries[].historyInstance` | nein    | —                   | History-Adapter; leer = Live-Daten            |
 | `echartSeries[].source`          | nein    | —                   | `history` (Standard) · `json` — je Serie      |
 
+## Serien konfigurieren
+
+Modus und Serien liegen im Dialog **Datenpunkte verwalten** (Button im Optionen-Panel). Links die Serienliste, rechts die komplette Konfiguration der ausgewählten Serie; der Modus steht als Kopfzeile darüber. Die globalen Einstellungen (Achsen, Legende, Zeitraum, Einheiten) bleiben im Optionen-Panel.
+
+| Im Dialog                                 | Im Optionen-Panel           |
+| ----------------------------------------- | --------------------------- |
+| Modus                                     | Darstellung, Achsen, Gitter |
+| Serien anlegen, sortieren, löschen        | Legende, aktueller Wert     |
+| Datenpunkt je Serie                       | Zeitraum, Tages-Navigation  |
+| Datenquelle, Typ, Farbe, Y-Achse, Stapeln | Einheiten, Achsengrenzen    |
+| JSON-Quelle, Verlauf/Aggregation          | JSON-Override               |
+
 ## Layouts
 
 Das Diagramm-Verhalten steuert die Option `echartMode`; das Widget-Layout `gauge` schaltet auf eine Tacho-Anzeige.

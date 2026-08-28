@@ -104,6 +104,7 @@
         "test:chart-grid-lines": "node tools/tests/chart-grid-lines.mjs",
         "test:chart-bucket-axis": "node tools/tests/chart-bucket-axis.mjs",
         "test:chart-mixed": "node tools/tests/chart-mixed-sources.mjs",
+        "test:chart-series-modal": "node tools/tests/chart-series-modal.mjs",
         "test:energy-bar": "node tools/tests/energy-balance-bar.mjs",
         "test:energy-counter": "node tools/tests/energy-counter-increase.mjs",
         "test:map-style": "node tools/tests/map-style-chips.mjs",
