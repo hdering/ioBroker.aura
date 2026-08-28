@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.50.10 (2026-08-28)
+- 🌟 **New feature:** Advanced chart - a timeseries chart can now mix history series with JSON datapoint series on one time axis, e.g. measured values plus a solar forecast ([#595](https://github.com/hdering/ioBroker.aura/issues/595))
+- 🌟 **New feature:** Advanced chart - mode and series moved into the "Manage datapoints" dialog: series list on the left, the selected series in full detail on the right, global settings stay in the options panel
+- 🌟 **New feature:** Advanced chart - switching the mode no longer overwrites the series: a chart with a JSON series kept its data source after a look into another mode and back
+- Advanced chart - the value-label default and the stack percentage moved into the "Manage datapoints" dialog (tab "Values"), next to the series they apply to
+
+
 ### 0.50.9 (2026-08-28)
 - Advanced chart - leaving the day navigation for a rolling range (7/30 days) no longer keeps the chart framed on that single day ([#594](https://github.com/hdering/ioBroker.aura/issues/594))
 
@@ -251,10 +258,6 @@ Release v0.50.6
 - List - the global colour scale now sits in "Werte & Farben" next to the other list-wide colours ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
 
 
-### 0.47.13 (2026-08-18)
-Release v0.47.13
-
-
 ## License
 
 MIT License
@@ -266,6 +269,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.47.13 (2026-08-18)
+Release v0.47.13
+
 ## 0.47.12 (2026-08-18)
 - 🌟 **New feature:** Advanced chart - the JSON datapoint may carry a min/max block that scales the Y axis ([#550](https://github.com/hdering/ioBroker.aura/issues/550))
 - Advanced chart - Y axis min and max can be read from datapoints, in every mode ([#550](https://github.com/hdering/ioBroker.aura/issues/550))
