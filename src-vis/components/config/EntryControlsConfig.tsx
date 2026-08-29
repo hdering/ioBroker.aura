@@ -1169,7 +1169,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                             />
                             <div className="grid grid-cols-2 gap-1.5">
                                 <div>
-                                    <Label>Wert „geschlossen"</Label>
+                                    <Label>Wert „geschlossen“</Label>
                                     <input
                                         type="number"
                                         className={iCls}
@@ -1185,7 +1185,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                     />
                                 </div>
                                 <div>
-                                    <Label>Wert „offen"</Label>
+                                    <Label>Wert „offen“</Label>
                                     <input
                                         type="number"
                                         className={iCls}
@@ -1245,7 +1245,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                     />
                     {entry.shutterActivityDp && (
                         <div>
-                            <Label>Werte „fährt" (kommagetrennt)</Label>
+                            <Label>Werte „fährt“ (kommagetrennt)</Label>
                             <input
                                 className={`${iCls} font-mono`}
                                 style={iSty}
@@ -1267,7 +1267,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                     />
                     {entry.shutterLockDp && (
                         <div>
-                            <Label>Werte „verriegelt" (kommagetrennt)</Label>
+                            <Label>Werte „verriegelt“ (kommagetrennt)</Label>
                             <input
                                 className={`${iCls} font-mono`}
                                 style={iSty}
