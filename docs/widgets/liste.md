@@ -29,6 +29,33 @@ Ist `onValue` gesetzt und kein `statusDp` konfiguriert, gilt die Zeile als **an*
 dem AN-Wert entspricht. Geschrieben wird immer auf den Datenpunkt der Zeile — ein `statusDp` meldet nur.
 Die Gruppen-Aktion (Master-Schalter) verwendet dieselben Werte.
 
+### Darstellung Schieberegler {#darstellung-schieberegler}
+
+`displayType: 'slider'` macht die Zeile zum Regler — dieselben Möglichkeiten wie das
+[Schieberegler-Widget](./schieberegler), nur pro Listenzeile. Gilt auch für die
+[dynamische Liste](./dynamische-liste); im Badges-Layout wird stattdessen der reine Wert angezeigt.
+
+| Feld                    | Standard          |                                                                             |
+| ----------------------- | ----------------- | --------------------------------------------------------------------------- |
+| `sliderMin` / `sliderMax` | `0` / `100`     | Skala, z. B. `0`/`255` für einen Dimmer oder `-20`/`40` für einen Sollwert   |
+| `sliderStep`            | `1`               | Schrittweite; bestimmt auch die Nachkommastellen des angezeigten Werts       |
+| `sliderBarStyle`        | `false`           | `false` (Regler) · `true` (gefüllter Balken wie im Widget)                   |
+| `sliderBarSize`         | `100`             | Balkenhöhe in % (nur bei `sliderBarStyle`)                                   |
+| `sliderThickness`       | `4` / `6`         | Dicke der Reglerspur in px (Zeile / Card-Layout)                            |
+| `sliderWidth`           | `80`              | Breite des Reglers in px (Zeilen-Layouts; Card-Layout: volle Breite)        |
+| `sliderColor`           | `var(--accent)`   | Farbe von Füllung und Regler-Knopf                                          |
+| `sliderShowValue`       | `true`            | Wert neben dem Regler anzeigen                                              |
+| `sliderShowUnit`        | `true`            | Einheit an den Wert hängen (Einheit des Eintrags, ohne Angabe `%`)          |
+| `sliderShowMinMax`      | `false`           | Skalenenden links und rechts vom Regler                                     |
+| `sliderCommitOnRelease` | `false`           | Erst beim Loslassen schreiben statt bei jeder Bewegung                      |
+| `sliderReadOnly`        | `false`           | Fortschrittsanzeige — Regler wird gezeichnet, ist aber nicht bedienbar      |
+
+Geschrieben wird auf die Schrittweite gerundet und auf die Skala begrenzt. Ein Datenpunkt ohne
+Schreibrecht zeigt nur den Wert; `sliderReadOnly` behält dagegen bewusst die Reglergrafik.
+
+Nicht übernommen: die senkrechte Ausrichtung des Widgets (eine Listenzeile ist ein waagerechter
+Streifen) sowie Aktions-Buttons und Status-Badges — die gehören zum Widget-Rahmen, nicht zum Wert.
+
 ### Darstellung Eingabefeld
 
 `displayType: 'input'` macht die Zeile zum Eingabefeld — dieselben Möglichkeiten wie das [Eingabefeld-Widget](./eingabefeld), nur pro Listenzeile. Im Badges-Layout wird stattdessen der reine Wert angezeigt. Gilt auch für die [dynamische Liste](./dynamische-liste).

@@ -52,6 +52,9 @@ export function SliderWidget({ config }: WidgetProps) {
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, SlidersHorizontal);
     const barStyle = !!o.barStyle;
     const barSize = (o.barSize as number) ?? 100;
+    // Track thickness of the native control (the editor offers it whenever the bar
+    // style is off); the bar style sizes itself through barSize instead.
+    const thickness = (o.sliderThickness as number) || 6;
 
     const { value: rawVal } = useDatapoint(config.datapoint);
     const numericVal = typeof rawVal === 'number' ? rawVal : Number.isFinite(Number(rawVal)) ? Number(rawVal) : min;
@@ -127,13 +130,13 @@ export function SliderWidget({ config }: WidgetProps) {
                               writingMode: 'vertical-lr' as React.CSSProperties['writingMode'],
                               direction: 'rtl',
                               height: '100%',
-                              width: 'auto',
+                              width: thickness,
                           }
-                        : { width: '100%' }),
+                        : { width: '100%', height: thickness }),
                     ...(readOnly ? { opacity: 1, cursor: 'default' } : {}),
                 } as unknown as CSSProperties
             }
-            className={`aura-widget-action nodrag h-1.5 rounded-full appearance-none${readOnly ? '' : ' cursor-pointer'}`}
+            className={`aura-widget-action nodrag rounded-full appearance-none${readOnly ? '' : ' cursor-pointer'}`}
         />
     );
 

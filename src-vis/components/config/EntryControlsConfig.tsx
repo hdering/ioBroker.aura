@@ -620,6 +620,179 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
             )}
 
             {/* ── Datum/Zeit ── */}
+            {/* ── Schieberegler ── */}
+            {/* Same option set as the standalone Schieberegler widget, per row, so a
+                list can drive a 0…255 dimmer or a −20…40 setpoint. The widget's
+                vertical orientation is left out: a list row is a horizontal strip. */}
+            {dt === 'slider' && (
+                <div className="space-y-1.5">
+                    <div className="grid grid-cols-3 gap-1.5">
+                        <div>
+                            <Label>Min</Label>
+                            <input
+                                type="number"
+                                className={iCls}
+                                style={iSty}
+                                placeholder="0"
+                                value={entry.sliderMin ?? ''}
+                                onChange={(e) =>
+                                    onUpdate({ sliderMin: e.target.value === '' ? undefined : Number(e.target.value) })
+                                }
+                            />
+                        </div>
+                        <div>
+                            <Label>Max</Label>
+                            <input
+                                type="number"
+                                className={iCls}
+                                style={iSty}
+                                placeholder="100"
+                                value={entry.sliderMax ?? ''}
+                                onChange={(e) =>
+                                    onUpdate({ sliderMax: e.target.value === '' ? undefined : Number(e.target.value) })
+                                }
+                            />
+                        </div>
+                        <div>
+                            <Label>Schritt</Label>
+                            <input
+                                type="number"
+                                className={iCls}
+                                style={iSty}
+                                placeholder="1"
+                                value={entry.sliderStep ?? ''}
+                                onChange={(e) =>
+                                    onUpdate({ sliderStep: e.target.value === '' ? undefined : Number(e.target.value) })
+                                }
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <Label>Optik</Label>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    [false, 'Regler'],
+                                    [true, 'Balken'],
+                                ] as const
+                            ).map(([bar, label]) => {
+                                const active = !!entry.sliderBarStyle === bar;
+                                return (
+                                    <button
+                                        key={label}
+                                        onClick={() => onUpdate({ sliderBarStyle: bar || undefined })}
+                                        className="flex-1 text-[10px] px-2 py-1 rounded transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                        <div>
+                            <Label>{entry.sliderBarStyle ? 'Balkenhöhe (%)' : 'Dicke (px)'}</Label>
+                            {entry.sliderBarStyle ? (
+                                <input
+                                    type="number"
+                                    min={5}
+                                    max={100}
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="100"
+                                    value={entry.sliderBarSize ?? ''}
+                                    onChange={(e) => {
+                                        const n = parseInt(e.target.value, 10);
+                                        onUpdate({ sliderBarSize: isFinite(n) && n > 0 ? n : undefined });
+                                    }}
+                                />
+                            ) : (
+                                <input
+                                    type="number"
+                                    min={2}
+                                    max={24}
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="4"
+                                    value={entry.sliderThickness ?? ''}
+                                    onChange={(e) => {
+                                        const n = parseInt(e.target.value, 10);
+                                        onUpdate({ sliderThickness: isFinite(n) && n > 0 ? n : undefined });
+                                    }}
+                                />
+                            )}
+                        </div>
+                        <div>
+                            <Label>Breite (px, leer = 80)</Label>
+                            <input
+                                type="number"
+                                min={40}
+                                max={600}
+                                className={iCls}
+                                style={iSty}
+                                placeholder="80"
+                                value={entry.sliderWidth ?? ''}
+                                onChange={(e) => {
+                                    const n = parseInt(e.target.value, 10);
+                                    onUpdate({ sliderWidth: isFinite(n) && n > 0 ? n : undefined });
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <Label>Farbe</Label>
+                        <div className="flex gap-1 items-center">
+                            <ColorPicker
+                                value={entry.sliderColor?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#3b82f6'}
+                                onChange={(v) => onUpdate({ sliderColor: v })}
+                                className="w-7 h-6 rounded cursor-pointer shrink-0"
+                                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                            />
+                            <input
+                                className={iCls}
+                                style={iSty}
+                                placeholder="var(--accent)"
+                                value={entry.sliderColor ?? ''}
+                                onChange={(e) => onUpdate({ sliderColor: e.target.value || undefined })}
+                            />
+                        </div>
+                    </div>
+                    <ToggleRow
+                        label="Wert anzeigen"
+                        checked={entry.sliderShowValue !== false}
+                        onChange={(v) => onUpdate({ sliderShowValue: v ? undefined : false })}
+                    />
+                    <ToggleRow
+                        label="Einheit anzeigen"
+                        checked={entry.sliderShowUnit !== false}
+                        onChange={(v) => onUpdate({ sliderShowUnit: v ? undefined : false })}
+                    />
+                    <ToggleRow
+                        label="Min/Max-Beschriftung"
+                        checked={!!entry.sliderShowMinMax}
+                        onChange={(v) => onUpdate({ sliderShowMinMax: v || undefined })}
+                    />
+                    <ToggleRow
+                        label="Erst beim Loslassen schreiben"
+                        checked={!!entry.sliderCommitOnRelease}
+                        onChange={(v) => onUpdate({ sliderCommitOnRelease: v || undefined })}
+                    />
+                    <ToggleRow
+                        label="Fortschrittsanzeige (nicht bedienbar)"
+                        checked={!!entry.sliderReadOnly}
+                        onChange={(v) => onUpdate({ sliderReadOnly: v || undefined })}
+                    />
+                    <p className="text-[9px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        Die Einheit stammt aus dem Feld „Einheit“ des Eintrags; ohne Angabe steht „%“ daneben.
+                    </p>
+                </div>
+            )}
+
             {dt === 'time' && (
                 <div className="space-y-1.5">
                     <div>

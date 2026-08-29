@@ -60,6 +60,7 @@ import type { RowClickSetting, RowPopupOptions } from '../../utils/rowClickActio
 import {
     ShutterControl,
     StepperControl,
+    SliderControl,
     PresetButtons,
     MomentaryButton,
     StateDisplay,
@@ -657,43 +658,20 @@ function EntryValue({
             </span>
         );
     }
-    // Forced "Schieberegler" — range 0..100 when writable, else the value text.
-    // Without this the slider only ever appeared for dimmer-ish datapoint names.
-    if (dt === 'slider') {
-        const num = typeof val === 'number' ? val : val === true ? 100 : 0;
-        const sliderColor = condColor ?? getThresholdColor(val, thresholds);
-        if (!writable) {
-            return (
-                <span
-                    className={textValueCls}
-                    style={{ ...valueMaxStyle, ...condFont, color: sliderColor ?? 'var(--text-primary)' }}
-                >
-                    {Math.round(num)}
-                    {entry.unit ?? '%'}
-                </span>
-            );
-        }
+    // Forced "Schieberegler" — the shared control with the Schieberegler widget's
+    // option set (scale, step, colour, bar look, write on release, read-only).
+    if (dt === 'slider')
         return (
-            <div className="shrink-0 flex items-center gap-1.5">
-                <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={num}
-                    onChange={(e) => setState(entry.id, Number(e.target.value))}
-                    className="w-20 h-1"
-                    style={{ accentColor: 'var(--accent)' }}
-                />
-                <span
-                    className="text-[10px] w-8 text-right tabular-nums"
-                    style={{ color: sliderColor ?? 'var(--text-secondary)' }}
-                >
-                    {Math.round(num)}
-                    {entry.unit ?? '%'}
-                </span>
-            </div>
+            <SliderControl
+                entry={entry}
+                val={val}
+                writable={writable}
+                setState={setState}
+                valueColor={condColor ?? getThresholdColor(val, thresholds)}
+                className={textValueCls}
+                textStyle={{ ...valueMaxStyle, ...condFont }}
+            />
         );
-    }
     // Forced "Schalter": the shared control, so a string/enum datapoint gets a toggle
     // too — the automatic path below only ever recognises the boolean-ish shapes.
     if (dt === 'switch')
@@ -772,43 +750,20 @@ function EntryValue({
 
     const thresholdColor = getThresholdColor(disp.value, thresholds);
 
-    if (typeof val === 'number' && isDimmerRole(entry.id)) {
-        if (!writable) {
-            return (
-                <span
-                    className={textValueCls}
-                    style={{
-                        ...valueMaxStyle,
-                        ...condFont,
-                        color: condColor ?? thresholdColor ?? 'var(--text-primary)',
-                    }}
-                >
-                    {Math.round(val)}
-                    {entry.unit ?? '%'}
-                </span>
-            );
-        }
+    // Automatic dimmer row (LEVEL/DIMMER/BRIGHTNESS): the same control, on its
+    // defaults — 0…100 with the value next to it, as it always looked.
+    if (typeof val === 'number' && isDimmerRole(entry.id))
         return (
-            <div className="shrink-0 flex items-center gap-1.5">
-                <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={val}
-                    onChange={(e) => setState(entry.id, Number(e.target.value))}
-                    className="w-20 h-1"
-                    style={{ accentColor: 'var(--accent)' }}
-                />
-                <span
-                    className="text-[10px] w-8 text-right tabular-nums"
-                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-secondary)' }}
-                >
-                    {Math.round(val)}
-                    {entry.unit ?? '%'}
-                </span>
-            </div>
+            <SliderControl
+                entry={entry}
+                val={val}
+                writable={writable}
+                setState={setState}
+                valueColor={condColor ?? thresholdColor}
+                className={textValueCls}
+                textStyle={{ ...valueMaxStyle, ...condFont }}
+            />
         );
-    }
 
     return (
         <span
@@ -941,34 +896,19 @@ function CardEntryValue({
                 )}
             </span>
         );
-    // Forced "Schieberegler" — the card's full-width slider, value on top.
-    if (dt === 'slider') {
-        const num = typeof val === 'number' ? val : val === true ? 100 : 0;
-        const sliderColor = condColor ?? getThresholdColor(val, thresholds) ?? 'var(--text-primary)';
-        const numText = (
-            <span className="text-xl font-bold tabular-nums" style={{ color: sliderColor }}>
-                {Math.round(num)}
-                <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
-                    {entry.unit ?? '%'}
-                </span>
-            </span>
-        );
-        if (!writable) return numText;
+    // Forced "Schieberegler" — see the row variant; `card` fills the cell.
+    if (dt === 'slider')
         return (
-            <div className="w-full flex flex-col items-center gap-1">
-                {numText}
-                <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={num}
-                    onChange={(e) => setState(entry.id, Number(e.target.value))}
-                    className="w-full h-1.5 rounded-full"
-                    style={{ accentColor: 'var(--accent)' }}
-                />
-            </div>
+            <SliderControl
+                entry={entry}
+                val={val}
+                writable={writable}
+                setState={setState}
+                card
+                valueColor={condColor ?? getThresholdColor(val, thresholds)}
+                textStyle={condFont}
+            />
         );
-    }
     // Forced "Schalter" — see the row variant; `card` makes it fill the cell.
     if (dt === 'switch')
         return (
@@ -1035,43 +975,19 @@ function CardEntryValue({
 
     const thresholdColor = getThresholdColor(disp.value, thresholds);
 
-    if (typeof val === 'number' && isDimmerRole(entry.id)) {
-        if (!writable) {
-            return (
-                <span
-                    className="text-xl font-bold tabular-nums"
-                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-primary)' }}
-                >
-                    {Math.round(val)}
-                    <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
-                        {entry.unit ?? '%'}
-                    </span>
-                </span>
-            );
-        }
+    // Automatic dimmer cell — see the row variant.
+    if (typeof val === 'number' && isDimmerRole(entry.id))
         return (
-            <div className="w-full flex flex-col items-center gap-1">
-                <span
-                    className="text-xl font-bold tabular-nums"
-                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-primary)' }}
-                >
-                    {Math.round(val)}
-                    <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
-                        {entry.unit ?? '%'}
-                    </span>
-                </span>
-                <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={val}
-                    onChange={(e) => setState(entry.id, Number(e.target.value))}
-                    className="w-full h-1.5 rounded-full"
-                    style={{ accentColor: 'var(--accent)' }}
-                />
-            </div>
+            <SliderControl
+                entry={entry}
+                val={val}
+                writable={writable}
+                setState={setState}
+                card
+                valueColor={condColor ?? thresholdColor}
+                textStyle={condFont}
+            />
         );
-    }
 
     return (
         <span

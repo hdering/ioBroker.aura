@@ -15,3 +15,5 @@
 - Advanced chart - decimal places and thousands separator moved from the options panel into the "Manage datapoints" dialog: its tabs now run Mode (with a tip on what each mode is for), Number format, Series, Values, so everything that applies to all series comes before them - and a single series can override decimals and separator for itself (#600)
 - Dynamic list - the "Slider" and "Value" displays now actually render: a slider was only ever drawn when the datapoint name looked like a dimmer, every other row fell back to the automatic display
 - List - a switch entry in the card layout now fills its cell with the labelled button, like the dynamic list already did, instead of keeping the compact toggle
+- List / Dynamic list - the "Slider" display now offers the full option set of the Schieberegler widget: scale and step (a 0-255 dimmer or a -20-40 setpoint instead of a fixed 0-100), colour, bar look, track thickness and width, value / unit / min-max labels, write-on-release and a read-only progress bar
+- Slider - the track thickness set in the editor is now applied (the field was written but never read)

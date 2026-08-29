@@ -7,6 +7,8 @@
  * both list widgets share one implementation:
  *   - switch    → on/off control with the Schalter widget's full option set
  *                 (write values, status DP, condition mode, slide/icon/image)
+ *   - slider    → range/bar control with the Schieberegler widget's option set
+ *                 (scale, step, colour, bar look, write on release, read-only)
  *   - shutter   → ▲ ■ ▼ buttons writing to separate up/stop/down DPs
  *   - stepper   → −/+ buttons stepping a numeric DP (min/max/step)
  *   - buttons   → fixed value presets (Off/Eco/Comfort, 0/50/100 …)
@@ -15,7 +17,7 @@
  *   - datepicker→ a date/time picker writing the value back, like the Datumswähler widget
  *   - input     → free text / number entry, like the standalone Eingabefeld widget
  */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ChevronUp, ChevronDown, Square, Minus, Plus, Send, Power } from 'lucide-react';
 import type { ioBrokerState } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -152,6 +154,34 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     stepMin?: number;
     stepMax?: number;
     stepStep?: number;
+    // ── slider ────────────────────────────────────────────────────────────────
+    // The option set of the standalone Schieberegler widget, per list entry, so a
+    // row can drive a 0…255 dimmer or a −20…40 setpoint instead of a fixed 0…100.
+    /** Scale and granularity. Defaults 0 / 100 / 1. */
+    sliderMin?: number;
+    sliderMax?: number;
+    sliderStep?: number;
+    /** Fill and thumb colour. Unset = the theme accent. */
+    sliderColor?: string;
+    /** Draw the widget's filled bar instead of the native range control. */
+    sliderBarStyle?: boolean;
+    /** Bar style: bar height in % of the layout's base height. Default 100. */
+    sliderBarSize?: number;
+    /** Native style: track thickness in px. Unset = the layout's default (4 row / 6 card). */
+    sliderThickness?: number;
+    /** Write once the drag ends instead of on every move. */
+    sliderCommitOnRelease?: boolean;
+    /** Show the value but refuse edits — the control becomes a progress bar.
+     *  A datapoint that is not writable at all prints its value as text instead. */
+    sliderReadOnly?: boolean;
+    /** Print the value next to the slider. Default true. */
+    sliderShowValue?: boolean;
+    /** Append the entry's unit (fallback `%`) to that value. Default true. */
+    sliderShowUnit?: boolean;
+    /** Print the scale ends left and right of the slider. Default false. */
+    sliderShowMinMax?: boolean;
+    /** Row layouts: fixed control width in px. Unset = a compact default (80). */
+    sliderWidth?: number;
     // ── buttons (value presets) ────────────────────────────────────────────────
     presets?: EntryPreset[];
     // ── states (multi-state read display) ──────────────────────────────────────
@@ -555,6 +585,212 @@ export function StepperControl({
             >
                 <Plus size={Math.round(size * 0.55)} />
             </button>
+        </div>
+    );
+}
+
+// ── Slider ────────────────────────────────────────────────────────────────────
+// The "Schieberegler" display with the same option set as the standalone
+// Schieberegler widget: scale + step, colour, native or bar look, write on
+// release, read-only progress bar, value / unit / min-max labels. Shared by both
+// lists so a row and the widget behave identically.
+//
+// Not carried over: the widget's vertical orientation (a list row is a horizontal
+// strip) and its action buttons / status badges, which are widget chrome rather
+// than a property of the value.
+
+/** Base height a bar-style slider's `sliderBarSize` percentage applies to. */
+const BAR_BASE_ROW = 16;
+const BAR_BASE_CARD = 26;
+
+/** Decimals implied by the step, so a step of 0.5 prints "21.5" and 1 prints "22". */
+function stepDecimals(step: number): number {
+    if (!Number.isFinite(step) || Math.floor(step) === step) return 0;
+    return Math.min(4, (String(step).split('.')[1] ?? '').length);
+}
+
+export function SliderControl({
+    entry,
+    val,
+    writable,
+    setState,
+    card,
+    valueColor,
+    className,
+    textStyle,
+}: {
+    entry: EntryControlConfig & { id: string; unit?: string };
+    val: ioBrokerState['val'];
+    writable: boolean;
+    setState: SetState;
+    /** Card layouts stack vertically: the control fills its cell. */
+    card?: boolean;
+    /** Colour for the printed value, from a condition or the colour thresholds. */
+    valueColor?: string;
+    /** Classes for the value text in the read-only (text) fallback. */
+    className?: string;
+    /** Inline style for that fallback text (row width cap, condition font). */
+    textStyle?: CSSProperties;
+}) {
+    const min = entry.sliderMin ?? 0;
+    const max = entry.sliderMax ?? 100;
+    const step = entry.sliderStep && entry.sliderStep > 0 ? entry.sliderStep : 1;
+    const dec = stepDecimals(step);
+    const color = entry.sliderColor || 'var(--accent)';
+    const showValue = entry.sliderShowValue !== false;
+    const unit = entry.sliderShowUnit === false ? '' : (entry.unit ?? '%');
+    const readOnly = !!entry.sliderReadOnly;
+    const barStyle = !!entry.sliderBarStyle;
+    const barBase = card ? BAR_BASE_CARD : BAR_BASE_ROW;
+    const barHeight = Math.max(4, Math.round((barBase * (entry.sliderBarSize ?? 100)) / 100));
+    const thickness = entry.sliderThickness ?? (card ? 6 : 4);
+
+    // Drag drafts, so "write on release" can show the thumb moving without writing.
+    const [pending, setPending] = useState<number | null>(null);
+
+    const raw =
+        typeof val === 'number'
+            ? val
+            : typeof val === 'boolean'
+              ? val
+                  ? max
+                  : min
+              : Number.isFinite(Number(val))
+                ? Number(val)
+                : min;
+    const shown = pending ?? raw;
+    const ratio = max > min ? Math.max(0, Math.min(1, (shown - min) / (max - min))) : 0;
+    const valueText = `${shown.toFixed(dec)}${unit}`;
+
+    const write = (v: number) => {
+        const stepped = Math.round((v - min) / step) * step + min;
+        setState(entry.id, Number(Math.max(min, Math.min(max, stepped)).toFixed(4)));
+    };
+    const change = (v: number) => {
+        if (entry.sliderCommitOnRelease) setPending(v);
+        else write(v);
+    };
+    const release = () => {
+        if (entry.sliderCommitOnRelease && pending != null) {
+            write(pending);
+            setPending(null);
+        }
+    };
+
+    // A datapoint nobody can write is not a control at all — it prints its value,
+    // the way every other read-only row does. `sliderReadOnly` is the deliberate
+    // choice to keep the bar as a progress display, so it still renders.
+    if (!writable && !readOnly)
+        return (
+            <span
+                className={className ?? 'shrink-0 text-xs font-medium tabular-nums'}
+                style={{ ...textStyle, color: valueColor }}
+            >
+                {valueText}
+            </span>
+        );
+
+    const barValue = (e: React.PointerEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        return min + Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)) * (max - min);
+    };
+
+    const control = barStyle ? (
+        <div
+            className={`aura-slider-bar nodrag relative rounded-full overflow-hidden select-none${readOnly ? '' : ' cursor-pointer'}`}
+            style={{
+                width: '100%',
+                height: barHeight,
+                background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
+            }}
+            onPointerDown={
+                readOnly
+                    ? undefined
+                    : (e) => {
+                          e.currentTarget.setPointerCapture(e.pointerId);
+                          change(barValue(e));
+                      }
+            }
+            onPointerMove={
+                readOnly
+                    ? undefined
+                    : (e) => {
+                          if (e.buttons & 1) change(barValue(e));
+                      }
+            }
+            onPointerUp={readOnly ? undefined : release}
+        >
+            <div
+                className="absolute top-0 left-0 bottom-0 rounded-full"
+                style={{ width: `${ratio * 100}%`, background: color }}
+            />
+        </div>
+    ) : (
+        <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={shown}
+            disabled={readOnly}
+            onChange={readOnly ? undefined : (e) => change(Number(e.target.value))}
+            onMouseUp={readOnly ? undefined : release}
+            onTouchEnd={readOnly ? undefined : release}
+            onKeyUp={readOnly ? undefined : release}
+            className={`aura-slider-range nodrag w-full rounded-full${readOnly ? '' : ' cursor-pointer'}`}
+            style={
+                {
+                    '--slider-thumb-color': color,
+                    accentColor: color,
+                    height: thickness,
+                    ...(readOnly ? { opacity: 1 } : {}),
+                } as CSSProperties
+            }
+        />
+    );
+
+    const edge = (v: number) => (
+        <span className="text-[10px] shrink-0 tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+            {v}
+        </span>
+    );
+
+    if (card)
+        return (
+            <div className="w-full flex flex-col items-center gap-1">
+                {showValue && (
+                    <span className="text-xl font-bold tabular-nums" style={{ color: valueColor }}>
+                        {shown.toFixed(dec)}
+                        {unit && (
+                            <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
+                                {unit}
+                            </span>
+                        )}
+                    </span>
+                )}
+                <div className="w-full flex items-center gap-1.5">
+                    {entry.sliderShowMinMax && edge(min)}
+                    <div className="flex-1 min-w-0 flex items-center">{control}</div>
+                    {entry.sliderShowMinMax && edge(max)}
+                </div>
+            </div>
+        );
+
+    return (
+        <div className="shrink-0 flex items-center gap-1.5">
+            {entry.sliderShowMinMax && edge(min)}
+            <div className="flex items-center" style={{ width: entry.sliderWidth ?? 80 }}>
+                {control}
+            </div>
+            {entry.sliderShowMinMax && edge(max)}
+            {showValue && (
+                <span
+                    className="text-[10px] text-right tabular-nums shrink-0"
+                    style={{ minWidth: '2rem', color: valueColor ?? 'var(--text-secondary)' }}
+                >
+                    {valueText}
+                </span>
+            )}
         </div>
     );
 }

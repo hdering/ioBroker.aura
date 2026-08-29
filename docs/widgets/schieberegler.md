@@ -57,6 +57,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `orientation` | `horizontal` | `horizontal` · `vertical` |
 | `barStyle` | `false` | gefüllter Balken statt nativem Regler |
 | `barSize` | `100` | Höhe/Breite des Balkens in % (nur bei `barStyle`) |
+| `sliderThickness` | `6` | Dicke der Reglerspur in px (nur ohne `barStyle`) |
 | `color` | `--accent` | CSS-Farbe oder Variable für Füllung/Thumb |
 | `commitOnRelease` | `false` | Wert erst beim Loslassen schreiben (sonst live) |
 | `readOnly` | `false` | nur anzeigen, nicht bedienbar |

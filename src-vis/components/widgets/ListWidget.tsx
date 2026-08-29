@@ -36,6 +36,7 @@ import type { RowClickSetting, RowPopupOptions } from '../../utils/rowClickActio
 import {
     ShutterControl,
     StepperControl,
+    SliderControl,
     PresetButtons,
     MomentaryButton,
     StateDisplay,
@@ -512,45 +513,21 @@ function EntryValue({
         );
     }
 
-    // Forced "Slider" — render range 0..100 if writable, else value text with %
-    if (displayType === 'slider') {
-        const num = typeof val === 'number' ? val : val === true ? 100 : 0;
-        if (!writable) {
-            return (
-                <span
-                    className={textValueCls}
-                    style={{
-                        ...valueMaxStyle,
-                        ...condFont,
-                        color: condColor ?? thresholdColor ?? 'var(--text-primary)',
-                    }}
-                >
-                    {Math.round(num)}
-                    {entry.unit ?? '%'}
-                </span>
-            );
-        }
+    // Forced "Slider" — the shared control with the Schieberegler widget's option
+    // set (scale, step, colour, bar look, write on release, read-only).
+    if (displayType === 'slider')
         return (
-            <div className="shrink-0 flex items-center gap-1.5">
-                <input
-                    type="range"
-                    min={0}
-                    max={100}
-                    value={num}
-                    onChange={(e) => setState(entry.id, Number(e.target.value))}
-                    className="w-20 h-1"
-                    style={{ accentColor: 'var(--accent)' }}
-                />
-                <span
-                    className="text-[10px] w-8 text-right tabular-nums"
-                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-secondary)' }}
-                >
-                    {Math.round(num)}
-                    {entry.unit ?? '%'}
-                </span>
-            </div>
+            <SliderControl
+                entry={entry}
+                val={val}
+                writable={writable}
+                setState={setState}
+                card={card}
+                valueColor={condColor ?? thresholdColor}
+                className={textValueCls}
+                textStyle={{ ...valueMaxStyle, ...condFont }}
+            />
         );
-    }
 
     // Forced "Schalter" — the shared control with the Schalter widget's option set
     // (write values, status DP, condition mode, slide/icon/image; see entryControls).
