@@ -44,10 +44,13 @@ function useActiveTabWidgets() {
  * derives the count from the grid's own width — a wrong number here is the one
  * mistake that makes every generated layout overflow, so measure the real grid
  * when it is on screen and only fall back to the viewport.
+ *
+ * Every tab renders its own grid and the inactive ones are display:none, so the
+ * FIRST match is usually a hidden tab reporting a width of 0. Take the widest.
  */
 function currentCols(snapX: number, gap: number, minCols: number): number {
-    const grid = document.querySelector('.react-grid-layout');
-    const width = grid?.clientWidth || window.innerWidth;
+    const widths = [...document.querySelectorAll('.react-grid-layout')].map((el) => el.clientWidth);
+    const width = Math.max(0, ...widths) || window.innerWidth;
     const fit = Math.max(2, Math.floor((width - gap) / (snapX + gap)));
     return Math.max(fit, minCols);
 }
@@ -188,7 +191,14 @@ export function AiPromptDialog({ onClose }: { onClose: () => void }) {
     );
 
     return (
-        <ConfigModal title={t('aiPrompt.title')} maxWidth={620} padded onClose={onClose} storageKey="aura-ai-prompt">
+        <ConfigModal
+            title={t('aiPrompt.title')}
+            maxWidth={620}
+            maxHeight={780}
+            padded
+            onClose={onClose}
+            storageKey="aura-ai-prompt"
+        >
             <div className="space-y-3.5">
                 <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                     {t('aiPrompt.intro')}
