@@ -104,6 +104,7 @@
     "test:chart-axis-source": "node tools/tests/chart-axis-source.mjs",
     "test:chart-grid-lines": "node tools/tests/chart-grid-lines.mjs",
     "test:chart-bucket-axis": "node tools/tests/chart-bucket-axis.mjs",
+    "test:chart-window-align": "node tools/tests/chart-window-align.mjs",
     "test:chart-mixed": "node tools/tests/chart-mixed-sources.mjs",
     "test:scale-target": "node tools/tests/scale-target.mjs",
     "test:chart-series-modal": "node tools/tests/chart-series-modal.mjs",

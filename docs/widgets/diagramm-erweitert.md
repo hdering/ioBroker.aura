@@ -260,6 +260,7 @@ für Einspeisung und Batterie-Ladung, die als positive Werte geliefert werden.
 | Rücksprung innerhalb des Tages | bei einem täglich zurückspringenden Zähler der Reset des Tages (der Anstieg danach zählt voll); jeder weitere Rücksprung am selben Tag gilt als Ausreißer — weder er noch der Sprung zurück auf den alten Stand werden gewertet |
 | Buckets ohne Datensatz         | übersprungen; ihr Verbrauch fällt in den nächsten Bucket mit Daten                                                                                                                                                              |
 | Aktueller Wert oben rechts     | Verbrauch des laufenden Buckets, nicht der Zählerstand                                                                                                                                                                          |
+| Zeitraum-Anfang                | fällt auf die Kalendergrenze der Zeiteinheit zurück (7 Tage beginnen also um 00:00 Uhr); alle Serien des Diagramms starten dort, auch reine Kurven                                                                              |
 
 Bilder dazu: [Beispiele](#beispiele).
 

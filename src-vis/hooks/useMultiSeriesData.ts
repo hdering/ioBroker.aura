@@ -308,6 +308,48 @@ export function deltaFetchCount(step: number, rangeMs: number): number {
 }
 
 /**
+ * Left edge a rolling window opens at (issue #598).
+ *
+ * A `delta` series plots one bar per calendar bucket, stamped at the bucket's START. A 7-day window
+ * that opens at 14:30 therefore still renders a bar for the whole first day, sitting half a day to
+ * the left of the window, while every other series honestly begins at `now − range`. A rolling
+ * chart lets ECharts derive the axis from the data, so the axis stretched out to that bar and the
+ * lines appeared to start in the middle of the first day.
+ *
+ * So the window opens where the bars do: snapped back onto the buckets of the delta series that
+ * share it. All series then start at the same instant, and the leading bar covers a period that is
+ * actually charted. Only the START moves — the nominal `rangeMs` still picks step and bucket, so the
+ * resolution doesn't drift with the time of day.
+ *
+ * Series on an absolute window are already pinned to calendar edges, and a `total` series sizes
+ * itself from a per-datapoint probe — neither shares this window, so neither gets a say in it.
+ *
+ * With several buckets in play the COARSEST one sets the edge, rather than whichever happens to
+ * start earliest. Hour, day, month and year nest, so the coarse edge is an edge of every finer
+ * bucket too and all of them land on it exactly. The one unit that doesn't nest is the week — a
+ * month can begin mid-week — so a week bucket charted next to a month or year one can still hang
+ * up to six days off the left edge. Taking the earliest edge instead would make that worse, not
+ * better: the monthly bars would then hang out by most of a month.
+ */
+export function rollingWindowStart(series: EChartSeriesConfig[], rangeMs: number, end: number): number {
+    const order: DeltaBucket[] = ['hour', 'day', 'week', 'month', 'year'];
+    const coarsest = series
+        .filter(
+            (s) =>
+                !!s.datapointId &&
+                s.source !== 'json' &&
+                s.aggregate === 'delta' &&
+                !(typeof s.historyStart === 'number' && typeof s.historyEnd === 'number') &&
+                (s.historyRange ?? '24h') !== 'total' &&
+                windowMs(s) === rangeMs,
+        )
+        .reduce((acc, s) => Math.max(acc, order.indexOf(resolveDeltaBucket(s.deltaBucket, rangeMs))), -1);
+
+    const start = end - rangeMs;
+    return coarsest < 0 ? start : bucketStart(start, order[coarsest]);
+}
+
+/**
  * Timestamp the history adapter's oldest record for `id` sits at, for a `total` window (issue #536).
  *
  * A coarse monthly-step probe stays at a couple of hundred rows even across decades, and the first
@@ -1138,7 +1180,13 @@ export function useMultiSeriesData(
 
             const rangeMs = hasAbsWindow ? (s.historyEnd as number) - (s.historyStart as number) : getRangeMs(s);
             const end = hasAbsWindow ? Math.min(s.historyEnd as number, now) : now;
-            fetchWindow(hasAbsWindow ? (s.historyStart as number) : end - rangeMs, end, rangeMs);
+            fetchWindow(
+                // Rolling windows open on the shared bucket edge, so the delta bars and the plain
+                // series start at the same instant (issue #598).
+                hasAbsWindow ? (s.historyStart as number) : rollingWindowStart(series, rangeMs, end),
+                end,
+                rangeMs,
+            );
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [depKey, connected]);
@@ -1154,7 +1202,6 @@ export function useMultiSeriesData(
                     (s.source === 'json' || !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now())),
             )
             .map((s) => {
-                const cutoffMs = getRangeMs(s);
                 if (s.source === 'json') {
                     // JSON datapoints are rewritten as a whole — re-parse the payload instead of
                     // appending a point, and skip the update when the raw value is unchanged.
@@ -1222,7 +1269,13 @@ export function useMultiSeriesData(
                         const next = new Map(prev);
                         let newData: [number, number][];
                         if (s.historyInstance && existing) {
-                            const cutoff = typeof s.historyStart === 'number' ? s.historyStart : Date.now() - cutoffMs;
+                            // Same left edge the fetch used, re-derived against the current time so
+                            // it rolls on. Taking a plain `now - range` here would trim the leading
+                            // bucket back off on the first live update (issue #598).
+                            const cutoff =
+                                typeof s.historyStart === 'number'
+                                    ? s.historyStart
+                                    : rollingWindowStart(series, getRangeMs(s), Date.now());
                             const trimmed = existing.data.filter((p) => p[0] >= cutoff);
                             if (trimmed.length > 0 && trimmed[trimmed.length - 1][0] === state.ts) {
                                 newData = trimmed;
