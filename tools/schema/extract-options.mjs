@@ -225,8 +225,10 @@ function inferAt(src, idx, accessLen) {
     let type = null;
     let dflt;
 
-    // `as SomeType` / `as string | undefined`
-    const cast = after.match(/^\s*as\s+(?=[A-Za-z_$])/);
+    // `as SomeType` / `as string | undefined` / `as 'boolean' | 'percent'` — the
+    // inline literal union is worth catching: it is the exact set of values the
+    // widget accepts, which no named type would state more precisely.
+    const cast = after.match(/^\s*as\s+(?=['A-Za-z_$])/);
     if (cast) {
         type = readTypeExpression(after.slice(cast[0].length))
             .replace(/\s*\|\s*undefined\s*$/, '')

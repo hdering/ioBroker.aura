@@ -4,6 +4,7 @@ import type { WidgetConfig, WidgetType } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
 import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { DatapointPicker } from './DatapointPicker';
+import { AiPromptDialog, AiPromptButton } from './AiPromptDialog';
 import { useT } from '../../i18n';
 import { importGroupDefs, importTab } from '../../utils/widgetExportImport';
 
@@ -45,6 +46,7 @@ export function ImportWidgetDialog({
     );
     const [datapoint, setDatapoint] = useState('');
     const [showPicker, setShowPicker] = useState(false);
+    const [showAiPrompt, setShowAiPrompt] = useState(false);
 
     const tryParse = (text: string) => {
         setJsonText(text);
@@ -126,14 +128,23 @@ export function ImportWidgetDialog({
                 }}
                 onClick={(e) => e.stopPropagation()}
             >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                     <h2 className="font-bold text-lg" style={{ color: 'var(--text-primary)' }}>
                         {title}
                     </h2>
-                    <button onClick={onClose} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
-                        <X size={18} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <AiPromptButton onClick={() => setShowAiPrompt(true)} />
+                        <button
+                            onClick={onClose}
+                            className="hover:opacity-60"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
                 </div>
+
+                {showAiPrompt && <AiPromptDialog onClose={() => setShowAiPrompt(false)} />}
 
                 {/* File upload */}
                 <div>

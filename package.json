@@ -49,6 +49,7 @@
     "schema": "node tools/schema/gen-widget-schema.mjs",
     "schema:check": "node tools/schema/gen-widget-schema.mjs --check",
     "test:schema": "node test/widget-schema.test.js",
+    "test:ai-prompt": "node tools/tests/ai-prompt.mjs",
     "test:mirror-types": "node tools/tests/mirror-all-types.mjs",
     "test:messages": "node test/messages.test.js",
     "test:messages-ui": "node tools/tests/messages.mjs",

@@ -1583,6 +1583,31 @@ export const en: Record<TranslationKey, string> = {
     'import.tabWidgetCount': '{count} Widget(s)',
     'import.importTab': 'Import Tab',
 
+    // ── AI prompt ───────────────────────────────────────────────────
+    'aiPrompt.open': 'AI prompt',
+    'aiPrompt.title': 'Build a prompt for an AI',
+    'aiPrompt.intro':
+        'Builds a text containing the widget schema, your datapoints and the current tab. Paste it into ChatGPT, Claude or similar — the answer comes back as JSON and goes into the field above.',
+    'aiPrompt.targetWidget': 'Single widget',
+    'aiPrompt.targetTab': 'Whole tab',
+    'aiPrompt.task': 'Task',
+    'aiPrompt.taskPlaceholder': 'e.g. “One tile per light in the living room, plus the room temperature”',
+    'aiPrompt.types': 'Describe these widget types in full',
+    'aiPrompt.typesPlaceholder': 'Without a selection, only the type list',
+    'aiPrompt.rooms': 'Rooms',
+    'aiPrompt.funcs': 'Functions',
+    'aiPrompt.search': 'Filter datapoints',
+    'aiPrompt.searchPlaceholder': 'Part of an id or a name',
+    'aiPrompt.writableOnly': 'Writable datapoints only',
+    'aiPrompt.withTab': 'Include tab “{name}” as a template',
+    'aiPrompt.withTabHint': '{count} widget(s) — helps with style and sizing',
+    'aiPrompt.summary': '{dps} datapoints · {types} type(s) in full · approx. {tokens}k tokens',
+    'aiPrompt.noDpHint':
+        'Without a room, function or search no datapoints go into the prompt — the whole object tree would be too large.',
+    'aiPrompt.schemaError': 'Schema could not be loaded ({error}). Was the frontend rebuilt after the update?',
+    'aiPrompt.copy': 'Copy prompt',
+    'aiPrompt.copied': 'Copied',
+
     // ── Export anonymisation ──────────────────────────────────────────────────────
     'exportAnon.title': 'Export',
     'exportAnon.subtitle':

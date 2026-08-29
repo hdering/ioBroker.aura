@@ -25,7 +25,17 @@ const path = require('path');
 const root = path.join(__dirname, '..');
 const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 
-const schema = JSON.parse(read('public/ai/aura-widget-schema.json'));
+const SCHEMA_PATH = 'public/ai/aura-widget-schema.json';
+const schema = JSON.parse(read(SCHEMA_PATH));
+
+// ── 0. The prompt dialog fetches exactly this file ───────────────────────────
+// It lives under public/, so the build copies it to www/ and the adapter serves
+// it. Moving either side without the other yields a dialog that loads forever.
+const dialog = read('src-vis/components/config/AiPromptDialog.tsx');
+assert.ok(
+    dialog.includes('ai/aura-widget-schema.json'),
+    `AiPromptDialog must fetch ${SCHEMA_PATH.replace('public/', '')}`,
+);
 
 // ── 1. Type coverage ─────────────────────────────────────────────────────────
 const union = (name) =>

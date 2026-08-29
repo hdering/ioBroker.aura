@@ -436,7 +436,8 @@ async function build() {
                 'and pasted into the dashboard editor ("Widget importieren").',
             usage: [
                 'A widget object needs id, type, title, datapoint and gridPos.',
-                'gridPos is in grid units, not pixels: x/w are columns (48 across the dashboard), y/h are rows.',
+                'gridPos is in grid cells, not pixels: x/w are columns, y/h are rows. The column count is NOT ' +
+                    'fixed — it follows the dashboard width and the configured horizontal snap, so take it from the prompt.',
                 'options accepts the keys under widgets.<type>.options plus every key ' +
                     'listed in widgets.<type>.commonOptions (defined once under commonOptions).',
                 'layout must be one of widgets.<type>.layouts; omit it for "default".',
@@ -458,7 +459,8 @@ async function build() {
                 type: 'object',
                 required: true,
                 description:
-                    'Position und Größe in Rasterzellen: x/w Spalten (Raster ist 48 Spalten breit), y/h Zeilen.',
+                    'Position und Größe in Rasterzellen: x/w Spalten, y/h Zeilen. Die Spaltenzahl ist nicht fest — ' +
+                    'sie folgt der Dashboardbreite und der Raster-Einstellung und steht im Prompt.',
                 fields: {
                     x: { type: 'number', required: true },
                     y: { type: 'number', required: true },

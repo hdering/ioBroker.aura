@@ -71,6 +71,37 @@ Der Generator warnt bei Notizen, deren Schlüssel es nicht mehr gibt. Bei doppel
 Widget-Schlüsseln im selben Objekt gewinnt der letzte — die Blöcke müssen
 zusammengeführt werden, nicht angehängt.
 
+## Prompt-Dialog
+
+Im Dialog „Widget importieren" liegt oben rechts die Schaltfläche **KI-Prompt**
+(`AiPromptDialog.tsx`). Sie baut einen Text zum Einfügen in ChatGPT, Claude o. Ä.;
+die Antwort kommt als JSON zurück und wird im selben Dialog eingefügt.
+
+| Abschnitt des Prompts | Inhalt |
+| --- | --- |
+| Aufgabe | Freitext des Nutzers |
+| Ausgabe | Das erwartete JSON — einzelnes Widget oder `aura-tab`-Hülle |
+| Aufbau eines Widgets | `widgetConfig` aus dem Schema |
+| Regeln | Spaltenzahl, Rastermaße, keine Überlappung, keine erfundenen Datenpunkte |
+| Verfügbare Widget-Typen | Alle Typen kompakt: Label, Standardgröße, Layouts, Hinweis |
+| Optionen der gewählten Typen | Volle Optionsliste je ausgewähltem Typ, inkl. geteilter Optionen |
+| Verwendete Typen | Nur die benannten Typen, auf die diese Optionen zeigen |
+| Datenpunkte | Nach Raum/Gewerk/Suche gefiltert, gedeckelt auf 400 Zeilen |
+| Aktueller Tab | Optional, als Vorlage für Stil und Größen |
+
+Größe ist die bestimmende Einschränkung: das volle Schema hat ~280 KB, ein
+ioBroker-Objektbaum ein Vielfaches davon. Darum stehen alle Typen nur kompakt
+drin, volle Optionen nur für die ausgewählten, und ohne Raum-, Gewerk- oder
+Suchfilter kommen **gar keine** Datenpunkte in den Prompt. Eine typische Auswahl
+(zwei Typen, eine Handvoll Datenpunkte) liegt bei ~4k Token.
+
+Die **Spaltenzahl** ist der Wert, bei dem ein Fehler am teuersten wäre: sie ist
+nicht fest, sondern folgt der Rasterbreite. `currentCols()` misst darum das echte
+`.react-grid-layout` im DOM und fällt nur auf das Fenster zurück.
+
+Die Logik steht in `src-vis/utils/aiPrompt.ts` — reine Funktionen, geprüft von
+`npm run test:ai-prompt` (esbuild-Bundle, kein Dev-Server).
+
 ## Prüfung
 
 `npm run test:schema` prüft, dass das Schema genau die Typen aus `WidgetType`
