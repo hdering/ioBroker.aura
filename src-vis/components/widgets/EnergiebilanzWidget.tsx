@@ -54,6 +54,12 @@ export interface EnergyBalanceOptions {
     chartStyle?: 'bars' | 'pie' | 'donut';
     /** Width of each stacked bar in px (only for chartStyle 'bars'). Default 46. */
     barWidth?: number;
+    /**
+     * Where the first entry sits in the stack (only for chartStyle 'bars'). Default 'down' —
+     * first entry on top, so a configured reference puts its "Rest" at the bottom. 'up'
+     * stacks from the bottom instead, which reads like a filling tank.
+     */
+    barDirection?: 'down' | 'up';
     /** Max diameter of the pie/donut in px (only for chartStyle 'pie'/'donut'). Default 160. */
     pieSize?: number;
     /** Default unit shown after each value + total (per-entry unit overrides). */
@@ -157,6 +163,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
     const showLegend = o.showLegend !== false;
     const chartStyle = o.chartStyle ?? 'bars';
     const barWidth = o.barWidth ?? 46;
+    const barDirection = o.barDirection ?? 'down';
     const pieSize = o.pieSize ?? 160;
     const legendFormat = o.legendFormat ?? 'icon-value';
     const legendAlign = o.legendAlign;
@@ -336,6 +343,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                 showPercent={showPercent}
                                 showIcon={showSegmentIcon}
                                 width={barWidth}
+                                direction={barDirection}
                             />
                         ) : (
                             <PieChart
@@ -415,12 +423,14 @@ function StackedBar({
     showPercent,
     showIcon,
     width = 46,
+    direction = 'down',
 }: {
     items: Computed[];
     total: number;
     showPercent: boolean;
     showIcon: boolean;
     width?: number;
+    direction?: 'down' | 'up';
 }) {
     if (total <= 0) {
         return (
@@ -438,9 +448,10 @@ function StackedBar({
     }
     return (
         <div
-            className="rounded-lg overflow-hidden self-stretch flex flex-col"
-            style={{ width, minHeight: 80 }}
+            className="rounded-lg overflow-hidden self-stretch flex"
+            style={{ width, minHeight: 80, flexDirection: direction === 'up' ? 'column-reverse' : 'column' }}
             data-aura-energy-bar="stack"
+            data-aura-energy-direction={direction}
         >
             {items.map((c) => {
                 // Icon needs more vertical room than the percent label, so gate it on a

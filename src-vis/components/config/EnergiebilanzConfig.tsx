@@ -694,6 +694,23 @@ export function EnergiebilanzConfig({ config, onConfigChange }: Props) {
                 </div>
             )}
 
+            {(o.chartStyle ?? 'bars') === 'bars' && (
+                <div>
+                    <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        Stapelrichtung
+                    </label>
+                    <select
+                        value={o.barDirection ?? 'down'}
+                        onChange={(e) => setO({ barDirection: e.target.value as EnergyBalanceOptions['barDirection'] })}
+                        className={inputCls}
+                        style={inputStyle}
+                    >
+                        <option value="down">Erster Eintrag oben (Rest unten)</option>
+                        <option value="up">Erster Eintrag unten (Rest oben)</option>
+                    </select>
+                </div>
+            )}
+
             {(o.chartStyle === 'pie' || o.chartStyle === 'donut') && (
                 <div>
                     <label className="text-[11px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>

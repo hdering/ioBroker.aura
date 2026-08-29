@@ -205,7 +205,74 @@ async function show(widget, mocks, waitFor) {
     check('gauge no longer labels the static 100', !texts.includes('100'), texts.join(' | '));
 }
 
-// ── 5. The editor offers all three as fields ────────────────────────────────
+// ── 5. Stack direction: the "Rest" can sit on top instead ───────────────────
+// Whether the used part reads top-down or bottom-up is a matter of taste, so the bar
+// flips with `barDirection` - visually only, the segment order stays as configured.
+{
+    const used = 'demo.tgt.f.used';
+    const budget = 'demo.tgt.f.budget';
+    const makeWidget = (barDirection) => ({
+        id: 'w-target-f',
+        type: 'energiebilanz',
+        title: 'Strom',
+        datapoint: '',
+        layout: 'default',
+        gridPos: { x: 0, y: 0, w: 6, h: 16 },
+        options: {
+            unit: '€',
+            decimals: 2,
+            lockRange: true,
+            barDirection,
+            bars: [
+                {
+                    id: 'bar-f',
+                    title: 'Abschlag',
+                    totalDatapoint: budget,
+                    entries: [
+                        { id: 'f-used', datapointId: used, label: 'Verbraucht', color: '#22c55e', aggregate: 'last' },
+                    ],
+                },
+            ],
+        },
+    });
+    /** Vertical midpoints of the used segment and of the remainder. */
+    const tops = () =>
+        page.evaluate(() => {
+            const box = (id) => {
+                const el = document.querySelector(`[data-aura-energy-segment="${id}"]`);
+                return el ? el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2 : null;
+            };
+            return {
+                used: box('f-used'),
+                rest: box('__rest-bar-f'),
+                dir: document.querySelector('[data-aura-energy-bar]')?.getAttribute('data-aura-energy-direction'),
+            };
+        });
+
+    await show(makeWidget(undefined), { [used]: 147.12, [budget]: 160 }, '[data-aura-energy-segment="f-used"]');
+    const down = await tops();
+    check(
+        'default keeps the used part on top',
+        down.used !== null && down.rest !== null && down.used < down.rest,
+        `used ${Math.round(down.used)} rest ${Math.round(down.rest)}`,
+    );
+    check('and reports the default direction', down.dir === 'down', String(down.dir));
+
+    await show(makeWidget('up'), { [used]: 147.12, [budget]: 160 }, '[data-aura-energy-segment="f-used"]');
+    const up = await tops();
+    check(
+        'barDirection "up" puts the used part below the Rest',
+        up.used !== null && up.rest !== null && up.used > up.rest,
+        `used ${Math.round(up.used)} rest ${Math.round(up.rest)}`,
+    );
+    check(
+        'and the flip only mirrors the stack - the segments keep their size',
+        Math.abs(up.used - up.rest - (down.rest - down.used)) < 2,
+        `${Math.round(up.used - up.rest)} vs ${Math.round(down.rest - down.used)}`,
+    );
+}
+
+// ── 6. The editor offers all three as fields ────────────────────────────────
 // The runtime already read minDatapoint/maxDatapoint before this issue — the gauge just
 // never offered them in the panel, which made them dead config. So the panels are part of
 // the fix and are checked here: field present, and what it writes lands in the options.

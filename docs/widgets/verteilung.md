@@ -95,6 +95,7 @@ Ohne Verlaufs-Adapter ist kein Zeitraum-Bezug möglich — der Eintrag zeigt dan
 | -------------------- | ------------------- | --------------------------------------------------------------------- |
 | `chartStyle`         | `bars`              | `bars` · `pie` · `donut`                                              |
 | `barWidth`           | `46`                | Balkenbreite in px (nur `bars`)                                       |
+| `barDirection`       | `down`              | Stapelrichtung (nur `bars`): `down` = erster Eintrag oben, `up` = erster Eintrag unten |
 | `pieSize`            | `160`               | Durchmesser in px (nur `pie`/`donut`)                                 |
 | `unit`               | `kWh`               | Einheit für alle Werte und Summen                                     |
 | `decimals`           | globale Einstellung | Nachkommastellen                                                      |
