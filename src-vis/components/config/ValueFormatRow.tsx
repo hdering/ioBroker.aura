@@ -26,6 +26,9 @@ interface ValueFormatRowProps {
     inheritDecimals?: number;
     inheritFormat?: NumberFormat;
     inheritLabel?: string;
+    /** Extra classes on the row itself - to nest it into a wider row of its own (the chart's
+     *  series puts its colour in front of it). */
+    className?: string;
 }
 
 /**
@@ -48,6 +51,7 @@ export function ValueFormatRow({
     inheritDecimals,
     inheritFormat,
     inheritLabel,
+    className = '',
 }: ValueFormatRowProps) {
     const t = useT();
     const { defaultDecimals, numberFormat: globalFormat } = useGlobalSettingsStore();
@@ -65,7 +69,7 @@ export function ValueFormatRow({
     const isGlobalDecimals = decimals === undefined;
 
     return (
-        <div className="flex gap-1.5 items-end">
+        <div className={`flex gap-1.5 items-end ${className}`}>
             {onUnitChange && (
                 <div className="flex-1 min-w-0">
                     <label className={labelCls} style={labelSty} title={t('config.unit.label')}>

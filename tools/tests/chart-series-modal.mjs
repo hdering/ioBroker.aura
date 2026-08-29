@@ -270,6 +270,12 @@ check('the widget title is untouched by it', (await opts()).echartMode === 'time
         (await row.locator('button:text-is("Diagramm")').count()) === 1,
     );
     check(
+        'colour, decimals and separator share one row',
+        (await row.locator('input[type=color], input[type=text]').count()) >= 1 &&
+            (await row.locator('input[type=number]').count()) === 1 &&
+            (await row.locator('select').count()) === 1,
+    );
+    check(
         'the series field stays readable next to the longer label',
         (await numberWidth(row)) >= 40,
         `${await numberWidth(row)}`,

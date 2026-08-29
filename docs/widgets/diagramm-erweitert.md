@@ -24,8 +24,8 @@ Der Modus ändert die Serien nicht: er entscheidet nur, wie gelesen wird. Im Mod
 | Zahlenformat (Dezimalstellen, 1000er)        | Legende, aktueller Wert     |
 | Serien anlegen, sortieren, löschen           | Zeitraum, Tages-Navigation  |
 | Datenpunkt je Serie                          | Einheiten, Achsengrenzen    |
-| Datenquelle, Typ, Farbe, Y-Achse, Stapeln    | JSON-Override               |
-| Zahlenformat je Serie                        |                             |
+| Datenquelle, Typ, Y-Achse, Stapeln           | JSON-Override               |
+| Farbe + Zahlenformat je Serie (eine Zeile)   |                             |
 | JSON-Quelle, Verlauf/Aggregation             |                             |
 | Werte-Vorgabe, Anteil am Stapel              |                             |
 
