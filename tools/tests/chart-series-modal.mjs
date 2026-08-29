@@ -241,6 +241,10 @@ check('the widget title is untouched by it', (await opts()).echartMode === 'time
     await page.waitForTimeout(300);
     const head = dlg.locator('.aura-chart-format');
     check('the format tab carries the chart-wide setting', await head.isVisible());
+    // The column is sized by its content: the button next to the field carries a label ("Global",
+    // "Diagramm") and used to eat the field it belongs to.
+    const numberWidth = async (scope) => (await scope.locator('input[type=number]').boundingBox()).width;
+    check('its number field is wide enough to read', (await numberWidth(head)) >= 40, `${await numberWidth(head)}`);
     // Untouched, the decimals field is disabled and follows the global default.
     check('its decimals start on the global default', await head.locator('input[type=number]').isDisabled());
     await head.locator('button:text-is("Global")').click();
@@ -264,6 +268,11 @@ check('the widget title is untouched by it', (await opts()).echartMode === 'time
     check(
         'and the button names the chart as the source',
         (await row.locator('button:text-is("Diagramm")').count()) === 1,
+    );
+    check(
+        'the series field stays readable next to the longer label',
+        (await numberWidth(row)) >= 40,
+        `${await numberWidth(row)}`,
     );
     check(
         'showing the chart value it inherits',

@@ -81,7 +81,10 @@ export function ValueFormatRow({
                     />
                 </div>
             )}
-            <div className="shrink-0" style={{ width: 96 }}>
+            {/* Sized by its content, not by a fixed width: the button's label names where an
+                unset value comes from and is not always the short "Global" — a chart series
+                inherits from the "Diagramm", which used to squeeze the number out of the field. */}
+            <div className="shrink-0">
                 <label className={labelCls} style={labelSty} title={t('config.decimals.label')}>
                     {t('config.decimals.label')}
                 </label>
@@ -94,14 +97,14 @@ export function ValueFormatRow({
                         value={decimals ?? fallbackDecimals}
                         onChange={(e) => onChange({ decimals: Number(e.target.value) })}
                         className={`${inputClassName} text-center`}
-                        style={{ ...sty, opacity: isGlobalDecimals ? 0.5 : 1 }}
+                        style={{ ...sty, width: 52, opacity: isGlobalDecimals ? 0.5 : 1 }}
                     />
                     <button
                         onClick={() => onChange({ decimals: isGlobalDecimals ? fallbackDecimals : undefined })}
                         title={
                             isGlobalDecimals ? t('config.decimals.globalActive') : t('config.decimals.resetToGlobal')
                         }
-                        className="px-1.5 rounded text-[10px] font-bold shrink-0"
+                        className="px-1.5 rounded text-[10px] font-bold shrink-0 whitespace-nowrap"
                         style={{
                             background: isGlobalDecimals ? 'var(--accent)' : 'var(--app-border)',
                             color: isGlobalDecimals ? '#fff' : 'var(--text-secondary)',
