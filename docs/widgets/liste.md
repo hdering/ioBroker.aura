@@ -56,6 +56,20 @@ Schreibrecht zeigt nur den Wert; `sliderReadOnly` behält dagegen bewusst die Re
 Nicht übernommen: die senkrechte Ausrichtung des Widgets (eine Listenzeile ist ein waagerechter
 Streifen) sowie Aktions-Buttons und Status-Badges — die gehören zum Widget-Rahmen, nicht zum Wert.
 
+### Darstellung Fenster-/Türkontakt {#darstellung-kontakt}
+
+`displayType: 'contact'` bildet den Wert auf _geschlossen · gekippt · offen_ ab — dieselbe
+Wertezuordnung wie das [Fenster-/Türkontakt-Widget](./fensterkontakt), nur pro Listenzeile.
+Gilt auch für die [dynamische Liste](./dynamische-liste) und für das Badges-Layout.
+
+| Feld                                                                | Standard  |                                                                            |
+| ------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------- |
+| `contactPreset`                                                     | `hmip`    | Wertevorlage; `custom` schaltet die drei Wertelisten frei                   |
+| `contactValuesClosed` / `contactValuesTilted` / `contactValuesOpen` | Vorlage   | eigene Werte je Zustand, kommagetrennt (nur bei `custom`)                   |
+| `contactAppearance`                                                 | —         | Text, Farbe und Icon je Zustand                                            |
+| `contactLockDp`                                                     | —         | Verriegelungs-Datenpunkt; zeigt ein Schloss-Symbol vor dem Zustand         |
+| `contactLockValues`                                                 | `true,1`  | Werte, die „abgeschlossen" bedeuten (kommagetrennt)                        |
+
 ### Darstellung Eingabefeld
 
 `displayType: 'input'` macht die Zeile zum Eingabefeld — dieselben Möglichkeiten wie das [Eingabefeld-Widget](./eingabefeld), nur pro Listenzeile. Im Badges-Layout wird stattdessen der reine Wert angezeigt. Gilt auch für die [dynamische Liste](./dynamische-liste).
@@ -68,6 +82,10 @@ Das Häkchen **Negativ darstellen (× −1)** kehrt das Vorzeichen um (gespeiche
 | `inputPlaceholder`        | —        | Platzhalter im leeren Feld                                                      |
 | `inputWidth`              | `110`    | Feldbreite in px (Card-Layout der dynamischen Liste: volle Breite)              |
 | `inputMode`               | `text`   | `text` · `number`                                                               |
+| `inputMin` / `inputMax`   | —        | Wertebereich im Zahlmodus; geschrieben wird auf ihn begrenzt                    |
+| `inputStep`               | `1`      | Schrittweite im Zahlmodus                                                       |
+| `inputMultiline`          | `false`  | Mehrzeiliges Textfeld (schaltet den Zahlmodus ab); Enter = Zeilenumbruch, Strg/Cmd+Enter sendet |
+| `inputHeight`             | `48`     | Höhe des mehrzeiligen Felds in px                                               |
 | `inputSubmitMode`         | `submit` | `submit` (Enter / Feld verlassen / Senden-Button) · `live` (jeder Tastenschlag) |
 | `inputShowSubmit`         | `true`   | Senden-Button anzeigen (nur bei `submit`)                                       |
 | `inputClearAfterSubmit`   | `false`  | Befehlsfeld: nach dem Senden leeren, Datenpunkt-Wert nie anzeigen               |

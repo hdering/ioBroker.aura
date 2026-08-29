@@ -76,6 +76,9 @@ import {
     switchEntryActive,
     switchReadValue,
     switchStatusDp,
+    entryExtraDps,
+    contactLocked,
+    ContactLockBadge,
     switchWriteValues,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
@@ -90,6 +93,11 @@ export interface AutoListEntry extends EntryControlConfig {
     label?: string;
     rooms?: string[];
     unit?: string;
+    /** Own number format of this row; unset = the list-wide setting. */
+    decimals?: number;
+    numberFormat?: NumberFormat;
+    /** Own colour scale of this row; unset = the list-wide one. */
+    colorThresholds?: ColorThreshold[];
     role?: string;
     trueLabel?: string;
     falseLabel?: string;
@@ -539,6 +547,7 @@ function EntryValue({
     entry,
     val,
     statusVal,
+    lockVal,
     writable,
     setState,
     thresholds,
@@ -557,6 +566,8 @@ function EntryValue({
     val: ioBrokerState['val'];
     /** Live value of the switch display's status datapoint, when one is configured. */
     statusVal?: ioBrokerState['val'];
+    /** Live value of the contact display's lock datapoint, when one is configured. */
+    lockVal?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     thresholds?: ColorThreshold[];
@@ -627,7 +638,7 @@ function EntryValue({
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
-    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} />;
+    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
     if (dt === 'time')
         return (
             <TimeDisplay
@@ -781,6 +792,7 @@ function CardEntryValue({
     entry,
     val,
     statusVal,
+    lockVal,
     writable,
     setState,
     thresholds,
@@ -799,6 +811,8 @@ function CardEntryValue({
     val: ioBrokerState['val'];
     /** Live value of the switch display's status datapoint, when one is configured. */
     statusVal?: ioBrokerState['val'];
+    /** Live value of the contact display's lock datapoint, when one is configured. */
+    lockVal?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     thresholds?: ColorThreshold[];
@@ -866,7 +880,7 @@ function CardEntryValue({
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
-    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} />;
+    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
     if (dt === 'time')
         return (
             <TimeDisplay
@@ -1189,9 +1203,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // A switch entry may read its state from a separate status datapoint (Tasmota &
     // co.) — those ids go into the same states map, so every layout (incl. the badges,
     // which draw no control of their own) sees the feedback value.
-    const statusIds = [...new Set(entries.map(switchStatusDp).filter(Boolean))].filter(
-        (id) => !entries.some((e) => e.id === id),
-    );
+    const statusIds = [...new Set(entries.flatMap(entryExtraDps))].filter((id) => !entries.some((e) => e.id === id));
     const entryKey = [...entries.map((e) => e.id), ...statusIds].join(',');
     // NB: keyed on entryKey only — no prevKey guard. A prevKey ref survives the
     // StrictMode mount→unmount→remount cycle and would make the remount skip
@@ -1733,11 +1745,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         entry={entry}
                                                         val={val}
                                                         statusVal={states[switchStatusDp(entry)]?.val}
+                                                        lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                                         writable={entry.writable !== false}
                                                         setState={setState}
-                                                        thresholds={globalThresholds}
-                                                        decimals={decimals}
-                                                        numFmt={numFmt}
+                                                        thresholds={entry.colorThresholds ?? globalThresholds}
+                                                        decimals={entry.decimals ?? decimals}
+                                                        numFmt={entry.numberFormat ?? numFmt}
                                                         activeColor={entryActiveColor}
                                                         inactiveColor={entryInactiveColor}
                                                         trueText={opts.trueText}
@@ -1897,11 +1910,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     entry={entry}
                                                     val={val}
                                                     statusVal={states[switchStatusDp(entry)]?.val}
+                                                    lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                                     writable={entry.writable !== false}
                                                     setState={setState}
-                                                    thresholds={globalThresholds}
-                                                    decimals={decimals}
-                                                    numFmt={numFmt}
+                                                    thresholds={entry.colorThresholds ?? globalThresholds}
+                                                    decimals={entry.decimals ?? decimals}
+                                                    numFmt={entry.numberFormat ?? numFmt}
                                                     activeColor={entryActiveColor}
                                                     inactiveColor={entryInactiveColor}
                                                     trueText={opts.trueText}
@@ -1988,8 +2002,20 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
                                     const contactMatch =
                                         entry.displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
+                                    // The contact's lock datapoint rides along as its own small padlock.
+                                    const lockState =
+                                        entry.displayType === 'contact'
+                                            ? contactLocked(entry, states[(entry.contactLockDp ?? '').trim()]?.val)
+                                            : null;
                                     // Display-only conversion / time format (per DP or list-wide).
-                                    const disp = entryValueText(entry, opts, val, decimals, numFmt, t);
+                                    const disp = entryValueText(
+                                        entry,
+                                        opts,
+                                        val,
+                                        entry.decimals ?? decimals,
+                                        entry.numberFormat ?? numFmt,
+                                        t,
+                                    );
                                     // Time datapoint rendered as time/date instead of the raw value.
                                     const timeText =
                                         entry.displayType === 'time'
@@ -2103,6 +2129,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 cursor: togglable || rowProps ? 'pointer' : 'default',
                                             }}
                                         >
+                                            {lockState !== null && <ContactLockBadge locked={lockState} />}
                                             {BadgeIcon && (
                                                 <BadgeIcon
                                                     size={entryIconSize}
@@ -2272,11 +2299,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 entry={entry}
                                                 val={val}
                                                 statusVal={states[switchStatusDp(entry)]?.val}
+                                                lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                                 writable={entry.writable !== false}
                                                 setState={setState}
-                                                thresholds={globalThresholds}
-                                                decimals={decimals}
-                                                numFmt={numFmt}
+                                                thresholds={entry.colorThresholds ?? globalThresholds}
+                                                decimals={entry.decimals ?? decimals}
+                                                numFmt={entry.numberFormat ?? numFmt}
                                                 activeColor={entryActiveColor}
                                                 inactiveColor={entryInactiveColor}
                                                 trueText={opts.trueText}

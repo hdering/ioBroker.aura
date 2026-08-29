@@ -229,7 +229,9 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
     const switchStyle = entry.switchStyle ?? 'slide';
     const switchStateMode = entry.stateMode ?? 'boolean';
     const inputSubmitMode = entry.inputSubmitMode ?? 'submit';
-    const [pickFor, setPickFor] = useState<null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp' | 'statusDp'>(null);
+    const [pickFor, setPickFor] = useState<
+        null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp' | 'statusDp' | 'contactLockDp'
+    >(null);
     const [switchIconFor, setSwitchIconFor] = useState<null | 'trueIcon' | 'falseIcon'>(null);
     const [statePickFor, setStatePickFor] = useState<number | null>(null);
     const [contactIconPickFor, setContactIconPickFor] = useState<ContactState | null>(null);
@@ -1458,6 +1460,33 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                             </div>
                         );
                     })}
+                    {/* Verriegelung - das Schloss-Datenpunkt-Feld des Kontakt-Widgets. */}
+                    <DpRow
+                        label="Verriegelung (optional)"
+                        value={entry.contactLockDp}
+                        onPick={() => setPickFor('contactLockDp')}
+                    />
+                    {entry.contactLockDp && (
+                        <>
+                            <div>
+                                <Label>Werte "abgeschlossen" (kommagetrennt)</Label>
+                                <input
+                                    className={`${iCls} font-mono`}
+                                    style={iSty}
+                                    placeholder="true,1"
+                                    value={entry.contactLockValues ?? ''}
+                                    onChange={(e) => onUpdate({ contactLockValues: e.target.value || undefined })}
+                                />
+                            </div>
+                            <button
+                                onClick={() => onUpdate({ contactLockDp: undefined, contactLockValues: undefined })}
+                                className="text-[9px] px-1.5 py-0.5 rounded hover:opacity-80"
+                                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
+                            >
+                                Verriegelung entfernen
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
 
@@ -1506,6 +1535,77 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                             </select>
                         </div>
                     </div>
+                    {/* Zahlmodus: Bereich und Schrittweite wie im Eingabefeld-Widget. */}
+                    {entry.inputMode === 'number' && !entry.inputMultiline && (
+                        <div className="grid grid-cols-3 gap-1.5">
+                            <div>
+                                <Label>Min</Label>
+                                <input
+                                    type="number"
+                                    className={iCls}
+                                    style={iSty}
+                                    value={entry.inputMin ?? ''}
+                                    onChange={(e) =>
+                                        onUpdate({
+                                            inputMin: e.target.value === '' ? undefined : Number(e.target.value),
+                                        })
+                                    }
+                                />
+                            </div>
+                            <div>
+                                <Label>Max</Label>
+                                <input
+                                    type="number"
+                                    className={iCls}
+                                    style={iSty}
+                                    value={entry.inputMax ?? ''}
+                                    onChange={(e) =>
+                                        onUpdate({
+                                            inputMax: e.target.value === '' ? undefined : Number(e.target.value),
+                                        })
+                                    }
+                                />
+                            </div>
+                            <div>
+                                <Label>Schritt</Label>
+                                <input
+                                    type="number"
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="1"
+                                    value={entry.inputStep ?? ''}
+                                    onChange={(e) =>
+                                        onUpdate({
+                                            inputStep: e.target.value === '' ? undefined : Number(e.target.value),
+                                        })
+                                    }
+                                />
+                            </div>
+                        </div>
+                    )}
+                    <ToggleRow
+                        label="Mehrzeilig"
+                        checked={!!entry.inputMultiline}
+                        onChange={(v) => onUpdate({ inputMultiline: v || undefined })}
+                    />
+                    {entry.inputMultiline && (
+                        <div>
+                            <Label>Höhe (px, leer = 48)</Label>
+                            <input
+                                type="number"
+                                min={24}
+                                max={400}
+                                className={iCls}
+                                style={iSty}
+                                placeholder="48"
+                                value={entry.inputHeight ?? ''}
+                                onChange={(e) => {
+                                    const n = parseInt(e.target.value, 10);
+                                    onUpdate({ inputHeight: isFinite(n) && n > 0 ? n : undefined });
+                                }}
+                            />
+                        </div>
+                    )}
                     <div className="grid grid-cols-2 gap-1.5">
                         <div>
                             <Label>Übertragen</Label>

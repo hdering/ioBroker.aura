@@ -18,7 +18,7 @@
  *   - input     → free text / number entry, like the standalone Eingabefeld widget
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
-import { ChevronUp, ChevronDown, Square, Minus, Plus, Send, Power } from 'lucide-react';
+import { ChevronUp, ChevronDown, Square, Minus, Plus, Send, Power, Lock, LockOpen } from 'lucide-react';
 import type { ioBrokerState } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
@@ -195,6 +195,11 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     contactValuesClosed?: string;
     contactValuesTilted?: string;
     contactValuesOpen?: string;
+    /** Separate lock datapoint (Fenstergriff / Schloss), shown as a small padlock
+     *  next to the state - the Fenster-/Turkontakt widget's lock display. */
+    contactLockDp?: string;
+    /** Comma-separated values that mean "locked". Default 'true,1'. */
+    contactLockValues?: string;
     /** Per-state appearance overrides; fall back to WC_FALLBACK when unset. */
     contactAppearance?: {
         closed?: { label?: string; color?: string; icon?: string };
@@ -247,6 +252,16 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     inputTextAlign?: 'left' | 'center' | 'right';
     /** Display the value but refuse edits, regardless of the datapoint's writability. */
     inputReadOnly?: boolean;
+    /** Number mode: the range the field accepts. Writes are clamped to it. */
+    inputMin?: number;
+    inputMax?: number;
+    /** Number mode: the spinner's step. */
+    inputStep?: number;
+    /** Multi-line text area instead of a single-line field (turns number mode off,
+     *  like the standalone widget). Enter inserts a newline, Ctrl/Cmd+Enter sends. */
+    inputMultiline?: boolean;
+    /** Multi-line: height of the text area in px. Unset = the layout's default. */
+    inputHeight?: number;
 }
 
 type SetState = (id: string, v: boolean | number | string) => void;
@@ -306,6 +321,20 @@ export function entryValueText(
         isTime: false,
         active: tr.active,
     };
+}
+
+/**
+ * Datapoints an entry READS besides its own — both lists subscribe to these and put
+ * them into the same states map, so every layout sees the live value. Write-only
+ * command datapoints (a shutter's up/stop/down) are deliberately not in here.
+ */
+export function entryExtraDps(entry: EntryControlConfig): string[] {
+    const out: string[] = [];
+    const status = switchStatusDp(entry);
+    if (status) out.push(status);
+    const lock = (entry.contactLockDp ?? '').trim();
+    if (lock) out.push(lock);
+    return out;
 }
 
 const btnCls = 'shrink-0 flex items-center justify-center rounded transition-colors';
@@ -894,16 +923,69 @@ export function resolveContactDisplay(
     };
 }
 
-export function ContactDisplay({ entry, val }: { entry: EntryControlConfig; val: ioBrokerState['val'] }) {
+/** Whether a value is one of a comma-separated list — the rule the status badges
+ *  and the contact widget use for their lock datapoint. */
+export function matchesValueList(value: ioBrokerState['val'] | undefined, list: string): boolean {
+    if (!list.trim()) return false;
+    const str = String(value ?? '')
+        .toLowerCase()
+        .trim();
+    return list
+        .split(',')
+        .map((v) => v.trim().toLowerCase())
+        .filter(Boolean)
+        .some((v) => v === str);
+}
+
+/** Locked state of an entry's lock datapoint: null when none is configured. */
+export function contactLocked(entry: EntryControlConfig, lockVal?: ioBrokerState['val']): boolean | null {
+    if (!(entry.contactLockDp ?? '').trim()) return null;
+    return matchesValueList(lockVal, entry.contactLockValues ?? 'true,1');
+}
+
+export function ContactDisplay({
+    entry,
+    val,
+    lockVal,
+}: {
+    entry: EntryControlConfig;
+    val: ioBrokerState['val'];
+    /** Live value of `entry.contactLockDp`, when one is configured. */
+    lockVal?: ioBrokerState['val'];
+}) {
     const { label, color, icon } = resolveContactDisplay(entry, val);
     const Icon = icon ? getWidgetIcon(icon, null) : null;
+    const locked = contactLocked(entry, lockVal);
+    return (
+        <span className="shrink-0 flex items-center gap-1">
+            {locked !== null && <ContactLockBadge locked={locked} />}
+            <span
+                className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+                style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+            >
+                {Icon && <Icon size={14} />}
+                {label}
+            </span>
+        </span>
+    );
+}
+
+/** The padlock the contact widget draws for its lock datapoint, row-sized. */
+export function ContactLockBadge({ locked }: { locked: boolean }) {
+    const color = locked ? 'var(--accent, #3b82f6)' : 'var(--accent-green, #22c55e)';
+    const LockIcon = locked ? Lock : LockOpen;
     return (
         <span
-            className="shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
-            style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+            className="aura-contact-lock flex items-center justify-center rounded-full shrink-0"
+            title={locked ? 'Abgeschlossen' : 'Offen'}
+            style={{
+                width: 18,
+                height: 18,
+                background: `color-mix(in srgb, ${color} 20%, var(--app-surface))`,
+                border: `1px solid color-mix(in srgb, ${color} 50%, transparent)`,
+            }}
         >
-            {Icon && <Icon size={14} />}
-            {label}
+            <LockIcon size={10} style={{ color }} />
         </span>
     );
 }
@@ -1024,7 +1106,9 @@ export function InputControl({
     /** Card layouts stack vertically, so the field takes the whole cell there. */
     fullWidth?: boolean;
 }) {
-    const numeric = entry.inputMode === 'number';
+    // A text area has no number mode - same rule as the standalone widget.
+    const multiline = !!entry.inputMultiline;
+    const numeric = entry.inputMode === 'number' && !multiline;
     const submitMode = entry.inputSubmitMode ?? 'submit';
     // Only the explicit option locks the field. The datapoint's own `common.write` is
     // deliberately NOT consulted - the standalone Eingabefeld widget writes regardless,
@@ -1037,6 +1121,7 @@ export function InputControl({
     const clearAfterSubmit = !!entry.inputClearAfterSubmit && submitMode === 'submit' && !readOnly;
     const showSubmit = entry.inputShowSubmit !== false && submitMode === 'submit' && !readOnly;
     const width = Number(entry.inputWidth) > 0 ? Number(entry.inputWidth) : undefined;
+    const FieldTag = (multiline ? 'textarea' : 'input') as 'input';
 
     const dpString = val == null ? '' : String(val);
     const [draft, setDraft] = useState<string>(clearAfterSubmit ? '' : dpString);
@@ -1058,7 +1143,8 @@ export function InputControl({
         if (numeric) {
             const n = Number(v);
             if (v === '' || !Number.isFinite(n)) return;
-            setState(entry.id, n);
+            // The field's own min/max only guide the spinner; typing goes past them.
+            setState(entry.id, Math.max(entry.inputMin ?? -Infinity, Math.min(entry.inputMax ?? Infinity, n)));
             return;
         }
         setState(entry.id, v);
@@ -1102,9 +1188,9 @@ export function InputControl({
         }
     };
 
-    const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (readOnly || submitMode === 'live') return;
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && (!multiline || e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             commit();
         } else if (e.key === 'Escape') {
@@ -1122,10 +1208,20 @@ export function InputControl({
             // The row itself is clickable (popup); typing must not bubble up to it.
             onClick={(e) => e.stopPropagation()}
         >
-            <input
-                type={numeric ? 'number' : 'text'}
-                className="aura-widget-action nodrag text-xs rounded-lg px-2 py-1 focus:outline-none min-w-0"
+            <FieldTag
+                {...(multiline
+                    ? { rows: 2 }
+                    : {
+                          type: numeric ? 'number' : 'text',
+                          min: numeric ? entry.inputMin : undefined,
+                          max: numeric ? entry.inputMax : undefined,
+                          step: numeric ? entry.inputStep : undefined,
+                      })}
+                className={`aura-widget-action nodrag text-xs rounded-lg px-2 py-1 focus:outline-none min-w-0${
+                    multiline ? ' resize-none' : ''
+                }`}
                 style={{
+                    ...(multiline ? { height: entry.inputHeight ?? 48 } : {}),
                     background: 'var(--app-bg)',
                     color: 'var(--text-primary)',
                     border: '1px solid var(--widget-border)',

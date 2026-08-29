@@ -12,6 +12,8 @@ import { ElementConditionEditor, ROW_TARGETS } from '../ElementConditionEditor';
 import { IconPickerModal } from '../IconPickerModal';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import { SubDpFields } from './SubDpFields';
+import { EntryThresholdsFields } from './EntryThresholdsFields';
+import { ValueFormatRow } from '../ValueFormatRow';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { useT } from '../../../i18n';
 import type { EntrySubDp } from '../../widgets/EntrySubLine';
@@ -175,19 +177,30 @@ export function AutoEntryDetail({
                             onChange={(e) => onUpdate({ label: e.target.value || undefined })}
                         />
                     </div>
-                    <div className="w-16 shrink-0">
-                        <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
-                            {t('endpoints.dp.unit')}
-                        </label>
-                        <input
-                            className={iCls}
-                            style={iSty}
-                            placeholder={t('endpoints.dp.unitPh')}
-                            value={entry.unit ?? ''}
-                            onChange={(e) => onUpdate({ unit: e.target.value || undefined })}
-                        />
-                    </div>
                 </div>
+                {/* Einheit + Nachkommastellen + Trennzeichen dieser Zeile. Ohne eigene
+                    Angabe gilt die Vorgabe der Liste (Optionen-Panel). */}
+                <ValueFormatRow
+                    unit={entry.unit}
+                    unitPlaceholder={t('endpoints.dp.unitPh')}
+                    onUnitChange={(v) => onUpdate({ unit: v })}
+                    decimals={entry.decimals}
+                    numberFormat={entry.numberFormat}
+                    onChange={onUpdate}
+                    inputClassName={iCls}
+                    inputStyle={iSty}
+                    compact
+                />
+            </DetailSection>
+
+            <DetailSection title="Farbschwellen">
+                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                    Eigene Skala dieser Zeile — ohne Eintrag gilt die Farbskala der Liste.
+                </p>
+                <EntryThresholdsFields
+                    thresholds={entry.colorThresholds}
+                    onChange={(next) => onUpdate({ colorThresholds: next })}
+                />
             </DetailSection>
 
             <DetailSection

@@ -17,3 +17,6 @@
 - List - a switch entry in the card layout now fills its cell with the labelled button, like the dynamic list already did, instead of keeping the compact toggle
 - List / Dynamic list - the "Slider" display now offers the full option set of the Schieberegler widget: scale and step (a 0-255 dimmer or a -20-40 setpoint instead of a fixed 0-100), colour, bar look, track thickness and width, value / unit / min-max labels, write-on-release and a read-only progress bar
 - Slider - the track thickness set in the editor is now applied (the field was written but never read)
+- List / Dynamic list - the "Input field" display now offers the number range (min / max / step, writes are clamped to it) and a multi-line text area, like the standalone Eingabefeld widget
+- List / Dynamic list - a window/door contact row can now show a lock datapoint as a padlock next to its state, like the standalone contact widget
+- Dynamic list - decimals, thousands separator and the colour scale can now be set per row instead of only list-wide; the row wins over the list, as in the static list

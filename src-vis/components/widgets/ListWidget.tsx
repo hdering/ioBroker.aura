@@ -52,6 +52,9 @@ import {
     switchEntryActive,
     switchReadValue,
     switchStatusDp,
+    entryExtraDps,
+    contactLocked,
+    ContactLockBadge,
     switchWriteValues,
     NON_TOGGLE_DISPLAY_TYPES,
     type EntryControlConfig,
@@ -332,6 +335,7 @@ function EntryValue({
     entry,
     val,
     statusVal,
+    lockVal,
     writable,
     setState,
     globalThresholds,
@@ -351,6 +355,8 @@ function EntryValue({
     val: ioBrokerState['val'];
     /** Live value of the switch display's status datapoint, when one is configured. */
     statusVal?: ioBrokerState['val'];
+    /** Live value of the contact display's lock datapoint, when one is configured. */
+    lockVal?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     globalThresholds?: ColorThreshold[];
@@ -482,7 +488,7 @@ function EntryValue({
         return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
     if (displayType === 'momentary') return <MomentaryButton entry={entry} setState={setState} icon={entry.icon} />;
     if (displayType === 'states') return <StateDisplay entry={entry} val={val} />;
-    if (displayType === 'contact') return <ContactDisplay entry={entry} val={val} />;
+    if (displayType === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
     if (displayType === 'time')
         return (
             <TimeDisplay
@@ -750,9 +756,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // A switch entry may read its state from a separate status datapoint (Tasmota &
     // co.) — those ids go into the same states map, so every layout (incl. the badges,
     // which draw no control of their own) sees the feedback value.
-    const statusIds = [...new Set(entries.map(switchStatusDp).filter(Boolean))].filter(
-        (id) => !entries.some((e) => e.id === id),
-    );
+    const statusIds = [...new Set(entries.flatMap(entryExtraDps))].filter((id) => !entries.some((e) => e.id === id));
     const entryKey = [...entries.map((e) => e.id), ...statusIds].join(',');
     useEffect(() => {
         if (entries.length === 0) return;
@@ -1218,6 +1222,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             entry={entry}
                                             val={val}
                                             statusVal={states[switchStatusDp(entry)]?.val}
+                                            lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                             writable={entry.writable !== false}
                                             setState={setState}
                                             globalThresholds={globalThresholds}
@@ -1355,6 +1360,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             entry={entry}
                                             val={val}
                                             statusVal={states[switchStatusDp(entry)]?.val}
+                                            lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                             writable={entry.writable !== false}
                                             setState={setState}
                                             globalThresholds={globalThresholds}
@@ -1422,6 +1428,11 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
                             const contactMatch =
                                 displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
+                            // The contact's lock datapoint rides along as its own small padlock.
+                            const lockState =
+                                displayType === 'contact'
+                                    ? contactLocked(entry, states[(entry.contactLockDp ?? '').trim()]?.val)
+                                    : null;
                             // Display-only conversion / time format (per DP or list-wide).
                             const disp = entryValueText(
                                 entry,
@@ -1554,6 +1565,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         fontSize: entryFontSize ?? undefined,
                                     }}
                                 >
+                                    {lockState !== null && <ContactLockBadge locked={lockState} />}
                                     {EntryIcon && (
                                         <EntryIcon
                                             size={entryIconSize}
@@ -1711,6 +1723,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         entry={entry}
                                         val={val}
                                         statusVal={states[switchStatusDp(entry)]?.val}
+                                        lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                         writable={entry.writable !== false}
                                         setState={setState}
                                         globalThresholds={globalThresholds}
