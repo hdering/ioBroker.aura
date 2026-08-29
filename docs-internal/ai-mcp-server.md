@@ -31,6 +31,11 @@ den ganzen Server unbrauchbar, sondern nur die Werkzeuge, die live lesen müssen
 
 ## Einrichten
 
+Der Server wird **mit dem Adapter ausgeliefert** (`tools/mcp/` und `public/ai/`
+stehen in `package.json` → `files`). Ein Anwender braucht keine zusätzliche
+Installation — nur den Pfad zur Adapterinstallation, typischerweise
+`/opt/iobroker/node_modules/iobroker.aura/tools/mcp/server.mjs`.
+
 ```json
 {
   "mcpServers": {
@@ -86,6 +91,29 @@ Tabs: die Breite, für die dieses Dashboard bereits entworfen ist.
 `aura_tab` sammelt die referenzierten `defId`s rekursiv ein und legt sie als
 `groupDefs` neben den Tab — ohne das käme eine Gruppe leer zurück.
 
+## Kein MCP-SDK
+
+Der Server spricht JSON-RPC 2.0 selbst (`jsonrpc.mjs`, ~130 Zeilen). Das SDK
+hätte **95 Pakete / 24 MB** in einen Adapter gezogen, der express, hono, jose
+und ajv nie ausführt — für drei Methoden: `initialize`, `tools/list`,
+`tools/call` (plus `ping`). Einzige Laufzeit-Abhängigkeit ist damit
+`@iobroker/ws` (230 kB).
+
+Das SDK bleibt als devDependency erhalten: `npm run test:mcp-server` fährt den
+**echten** MCP-Client gegen unseren Server. Genau das hält die handgeschriebene
+Schicht ehrlich — sie muss mit der offiziellen Implementierung sprechen, nicht
+nur mit sich selbst.
+
+`npm run test:mcp-protocol` deckt zusätzlich ab, was ein wohlerzogener Client nie
+auslöst: eine über zwei Chunks zerrissene Nachricht, drei Nachrichten in einem
+Chunk, eine kaputte Zeile, eine unbekannte Methode — und dass eine Notification
+**nicht** beantwortet wird (eine Antwort auf `notifications/initialized` genügt,
+damit strenge Clients die Verbindung abbrechen).
+
+Unterschieden wird außerdem: ein unbekanntes *Werkzeug* ist ein JSON-RPC-Fehler
+(−32601), ein *fehlschlagendes* Werkzeug ein normales Ergebnis mit `isError` —
+Letzteres soll das Modell lesen und korrigieren.
+
 ## stdout gehört dem Protokoll
 
 Ein stdio-MCP-Server spricht JSON-RPC über stdout. Ein einziges `console.log` einer
@@ -98,7 +126,8 @@ Verwandte auf stderr um.
 | Befehl | Was |
 | --- | --- |
 | `npm run test:mcp` | 22 Checks der Validierungsregeln und Config-Helfer, ohne ioBroker |
-| `npm run test:mcp-server` | 11 Checks über einen echten stdio-Transport: Werkzeugliste, Ergebnisse, Fehlerpfade |
+| `npm run test:mcp-server` | 11 Checks mit dem echten MCP-SDK-Client über stdio |
+| `npm run test:mcp-protocol` | 11 Checks der eigenen JSON-RPC-Schicht auf Rohprotokoll-Ebene |
 
 ## Phase B (offen)
 

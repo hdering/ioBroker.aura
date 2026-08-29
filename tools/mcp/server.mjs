@@ -23,10 +23,7 @@ import './stdio-guard.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
-
+import { serveStdio } from './jsonrpc.mjs';
 import { renderTypeIndex, renderTypeDetail, renderWidgetShape } from './render.mjs';
 import { validateAny } from './validate.mjs';
 import { listStateIds, auraNamespace, ioBrokerUrl } from './iobroker.mjs';
@@ -245,16 +242,8 @@ async function callTool(name, args) {
 
 // ── Wiring ────────────────────────────────────────────────────────────────────
 
-const server = new Server({ name: 'aura', version: '1.0.0' }, { capabilities: { tools: {} } });
-
-server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
-
-server.setRequestHandler(CallToolRequestSchema, async (req) => {
-    try {
-        return await callTool(req.params.name, req.params.arguments ?? {});
-    } catch (e) {
-        return fail(String(e?.message ?? e));
-    }
+await serveStdio({
+    serverInfo: { name: 'aura', version: '1.0.0' },
+    tools: TOOLS,
+    callTool,
 });
-
-await server.connect(new StdioServerTransport());
