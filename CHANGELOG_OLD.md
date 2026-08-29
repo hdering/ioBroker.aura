@@ -1,5 +1,15 @@
 # Changelog (older entries)
 
+## 0.47.14 (2026-08-19)
+- Mirror - every widget type can be mirrored now; the menu widget reported an unknown type
+- Menu - a mirrored menu shows the layout being edited instead of the first one
+- Advanced chart - stacked areas are now filled with the colour you picked instead of a paler mix with the background ([#557](https://github.com/hdering/ioBroker.aura/issues/557))
+- 🌟 **New feature:** Advanced chart - new "Area opacity" option per series sets the fill strength of its area ([#557](https://github.com/hdering/ioBroker.aura/issues/557))
+- 🌟 **New feature:** Chart & Climate - new "Horizontal grid lines" option draws helper lines at the y values, like in the advanced chart ([#558](https://github.com/hdering/ioBroker.aura/issues/558))
+- List - the "+/-" display now colours its value with the configured colour scale ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
+- Value, Dimmer, Shutter, Thermostat & List - colour scales no longer depend on the order the thresholds were entered in ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
+- List - the global colour scale now sits in "Werte & Farben" next to the other list-wide colours ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
+
 ## 0.47.13 (2026-08-18)
 Release v0.47.13
 

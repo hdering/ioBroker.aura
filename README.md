@@ -115,6 +115,19 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.51.0 (2026-08-29)
+- 🌟 **New feature:** Distribution chart, fill level and gauge - the scale can now come from datapoints instead of fixed numbers: a group takes its 100 % from a datapoint (a prepayment, a budget), the unused part becomes a "Rest" segment and the bar stack direction can be flipped, so the used part sits at the bottom; the gauge min/max datapoints are now offered in the editor at all ([#596](https://github.com/hdering/ioBroker.aura/issues/596))
+- Advanced chart - a consumption ("delta") bar series no longer pushes the time axis out past the selected period: the window now opens on the same day/hour boundary the bars sit on, so lines and bars start at the same point instead of the line appearing to begin half a day late ([#598](https://github.com/hdering/ioBroker.aura/issues/598))
+- Advanced chart - decimal places and thousands separator moved from the options panel into the "Manage datapoints" dialog, whose tabs now run Mode (with a tip on what each mode is for), Number format, Series, Values - and a single series can override decimals and separator for itself ([#600](https://github.com/hdering/ioBroker.aura/issues/600))
+- List / Dynamic list - the row displays caught up with their standalone widgets: the slider brings scale and step, colour, bar look, track size, value / unit / min-max labels, write-on-release and a read-only progress bar; the input field a number range and a multi-line text area; the buttons colour, icon, image or HTML per button, a JSON datapoint as their source and a dropdown for long lists; the shutter a position slider in the row, a feedback datapoint, inverted counting and the slat control; on top of that a value mapping can draw an image per state and compare with an operator, and a window/door contact can show a lock datapoint as a padlock
+- List / Dynamic list - the per-datapoint editor now runs Datapoint, Label, Display, Second line, Conditions, Colour thresholds, Behaviour, so the display and its settings sit right below the name
+- List / Dynamic list - two display fixes: the dynamic list's "Slider" and "Value" displays now actually render (a slider used to be drawn only when the datapoint name looked like a dimmer), and a switch entry in the card layout now fills its cell with the labelled button instead of keeping the compact toggle
+- Dynamic list - the display of the datapoints (switch, slider, value mapping ...) can now be set once for the whole list in the datapoint dialog, including that display's own settings, while a single datapoint can still override it; decimals, thousands separator and the colour scale can now also be set per row instead of only list-wide
+- 🌟 **New feature:** Conditions - a rule can now set the text size as well: per element (title / value) in the widget conditions, and in the row rules of both lists, their second line and the custom-layout cells; the field sits above the text colour and empty keeps the configured size
+- Slider - the track thickness set in the editor is now applied (the field was written but never read)
+- Editor - dialogs no longer open partly off screen after a switch to a smaller resolution: the remembered size is capped to the current window (and kept for the bigger screen), and a dialog can no longer be dragged out of reach
+
+
 ### 0.50.10 (2026-08-28)
 - 🌟 **New feature:** Advanced chart - a timeseries chart can now mix history series with JSON datapoint series on one time axis, e.g. measured values plus a solar forecast ([#595](https://github.com/hdering/ioBroker.aura/issues/595))
 - 🌟 **New feature:** Advanced chart - mode and series moved into the "Manage datapoints" dialog: series list on the left, the selected series in full detail on the right, global settings stay in the options panel
@@ -247,17 +260,6 @@ Release v0.50.6
 - 🌟 **New feature:** Settings - the number of automatic backups to keep now goes up to 100 (was 20) and defaults to 20 instead of 5, so a config problem noticed days later can still be rolled back
 
 
-### 0.47.14 (2026-08-19)
-- Mirror - every widget type can be mirrored now; the menu widget reported an unknown type
-- Menu - a mirrored menu shows the layout being edited instead of the first one
-- Advanced chart - stacked areas are now filled with the colour you picked instead of a paler mix with the background ([#557](https://github.com/hdering/ioBroker.aura/issues/557))
-- 🌟 **New feature:** Advanced chart - new "Area opacity" option per series sets the fill strength of its area ([#557](https://github.com/hdering/ioBroker.aura/issues/557))
-- 🌟 **New feature:** Chart & Climate - new "Horizontal grid lines" option draws helper lines at the y values, like in the advanced chart ([#558](https://github.com/hdering/ioBroker.aura/issues/558))
-- List - the "+/-" display now colours its value with the configured colour scale ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
-- Value, Dimmer, Shutter, Thermostat & List - colour scales no longer depend on the order the thresholds were entered in ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
-- List - the global colour scale now sits in "Werte & Farben" next to the other list-wide colours ([#559](https://github.com/hdering/ioBroker.aura/issues/559))
-
-
 ## License
 
 MIT License
@@ -269,6 +271,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
