@@ -207,7 +207,7 @@ export function buildAiPrompt(input: BuildPromptInput): string {
 
     parts.push(
         'Du konfigurierst das ioBroker-Dashboard AURA. Erzeuge aus der Aufgabe unten eine Konfigurations-JSON, ' +
-            'die unverändert in den Dialog „Widget importieren" eingefügt werden kann.',
+            'die unverändert in den Dialog „Widget importieren“ eingefügt werden kann.',
     );
 
     parts.push(`## Aufgabe\n${task.trim() || '(keine Angabe — frage nach, was gebaut werden soll)'}`);
@@ -321,7 +321,7 @@ export function buildAiPrompt(input: BuildPromptInput): string {
             'Diese Widgets stehen schon darin. Nutze sie als Vorbild für Stil und Größen und plane Neues an ' +
             'freie Stellen.';
         parts.push(
-            `## Aktueller Tab „${currentTab.name}"\n${hint}\n\`\`\`json\n${JSON.stringify(currentTab.widgets, null, 1)}\n\`\`\``,
+            `## Aktueller Tab „${currentTab.name}“\n${hint}\n\`\`\`json\n${JSON.stringify(currentTab.widgets, null, 1)}\n\`\`\``,
         );
     }
 
