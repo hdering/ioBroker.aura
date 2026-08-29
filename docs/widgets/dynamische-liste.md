@@ -50,7 +50,7 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten) |
 | Namen | Namensmuster und Namens-Filter — Platzhalter wie bei der [statischen Liste](./liste#namen), inklusive `[[{{parent}}.DeviceName]]` für Namen aus einem eigenen Datenpunkt |
 
-Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** (Icon, Bezeichnung, Einheit, Nachkommastellen, Tausendertrennung) · **Zweite Zeile** · **Farbschwellen** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Verhalten** (letzte Änderung, Klick auf Zeile).
+Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** (Icon, Bezeichnung, Einheit, Nachkommastellen, Tausendertrennung) · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Zweite Zeile** · **Bedingungen** · **Farbschwellen** · **Verhalten** (letzte Änderung, Klick auf Zeile).
 
 Nachkommastellen, Tausendertrennung und Farbschwellen gelten pro Zeile und schlagen die Vorgabe der Liste aus dem Optionen-Panel — wie in der [statischen Liste](./liste).
 

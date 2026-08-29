@@ -243,19 +243,6 @@ export function StaticEntryDetail({
                 </div>
             </DetailSection>
 
-            <DetailSection title="Zweite Zeile" badge={subDpCount > 0 ? `${subDpCount} DP` : undefined}>
-                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                    Weitere Datenpunkte unter dem Wert dieser Zeile — beliebige Datenpunkte, nicht nur die des Geräts.
-                    Nur Anzeige, Position frei wählbar. Nicht im Badges-Layout.
-                </p>
-                <SubDpFields
-                    subDps={entry.subDps ?? []}
-                    mainDpId={entry.id}
-                    listHasTransform={listHasTransform}
-                    onChange={(next) => onUpdate({ subDps: next })}
-                />
-            </DetailSection>
-
             <DetailSection title="Darstellung" badge={entryDisplayTypeLabel(entry.displayType)}>
                 <EntryControlsConfig entry={entry} onUpdate={onUpdate} hideLabel />
                 {showOnOffLabels && (
@@ -317,10 +304,16 @@ export function StaticEntryDetail({
                 )}
             </DetailSection>
 
-            <DetailSection title="Farbschwellen">
-                <EntryThresholdsFields
-                    thresholds={entry.colorThresholds}
-                    onChange={(next) => onUpdate({ colorThresholds: next })}
+            <DetailSection title="Zweite Zeile" badge={subDpCount > 0 ? `${subDpCount} DP` : undefined}>
+                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                    Weitere Datenpunkte unter dem Wert dieser Zeile — beliebige Datenpunkte, nicht nur die des Geräts.
+                    Nur Anzeige, Position frei wählbar. Nicht im Badges-Layout.
+                </p>
+                <SubDpFields
+                    subDps={entry.subDps ?? []}
+                    mainDpId={entry.id}
+                    listHasTransform={listHasTransform}
+                    onChange={(next) => onUpdate({ subDps: next })}
                 />
             </DetailSection>
 
@@ -339,6 +332,13 @@ export function StaticEntryDetail({
                     allowIconSize
                     ownHint="{dp} = Wert dieser Zeile; Pille umschalten für einen anderen Datenpunkt."
                     intro="Noch keine Regel. Regeln reagieren auf den Zeilenwert (oder einen fremden Datenpunkt) und ändern Farbe, Icon, Text oder blenden die Zeile aus."
+                />
+            </DetailSection>
+
+            <DetailSection title="Farbschwellen">
+                <EntryThresholdsFields
+                    thresholds={entry.colorThresholds}
+                    onChange={(next) => onUpdate({ colorThresholds: next })}
                 />
             </DetailSection>
 

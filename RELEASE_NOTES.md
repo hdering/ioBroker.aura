@@ -23,3 +23,4 @@
 - List / Dynamic list - the "Buttons" display caught up with the Auswahlfeld widget: colour, icon, image or HTML per button, the buttons can come from a datapoint holding JSON (with configurable field names), and a long list can be shown as a dropdown instead
 - List / Dynamic list - a value mapping can now draw an image per state and compare with an operator, so one row covers a range (>= 30 - "hot") instead of a single exact value
 - List / Dynamic list - the "Shutter" display caught up with the Rollladen widget: a position slider in the row (write on release or live), a separate feedback datapoint, inverted counting, the open/closed percentage, the slat control with the device scale, plus the driving / direction / lock datapoints
+- List / Dynamic list - the per-datapoint editor now runs Datapoint, Label, Display, Second line, Conditions, Colour thresholds, Behaviour, so the display and its settings sit right below the name

@@ -339,7 +339,7 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 
 Das Icon vor dem Namen wird je Datenpunkt im Abschnitt **Beschriftung** gesetzt (`entries[].icon`, [Lucide](https://lucide.dev) / Iconify-ID), die Größe daneben in px (`entries[].iconSize`, Standard `11`, im Default-Layout `13`).
 
-Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Farbschwellen** · **Verhalten** (letzte Änderung, Klick auf Zeile).
+Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Zweite Zeile** · **Bedingungen** · **Farbschwellen** · **Verhalten** (letzte Änderung, Klick auf Zeile).
 
 ### Klick auf Zeile
 

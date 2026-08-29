@@ -193,33 +193,6 @@ export function AutoEntryDetail({
                 />
             </DetailSection>
 
-            <DetailSection title="Farbschwellen">
-                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                    Eigene Skala dieser Zeile — ohne Eintrag gilt die Farbskala der Liste.
-                </p>
-                <EntryThresholdsFields
-                    thresholds={entry.colorThresholds}
-                    onChange={(next) => onUpdate({ colorThresholds: next })}
-                />
-            </DetailSection>
-
-            <DetailSection
-                title="Zweite Zeile"
-                badge={subDpCount > 0 ? `${subDpCount} DP` : templateCount > 0 ? 'Vorlage' : undefined}
-            >
-                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
-                    {templateCount > 0 && subDpCount === 0
-                        ? `Die Liste hat eine Vorlage mit ${templateCount} Datenpunkt${templateCount === 1 ? '' : 'en'} — sie gilt hier. Eigene Datenpunkte ersetzen sie für diese Zeile.`
-                        : 'Weitere Datenpunkte unter dem Wert dieser Zeile — beliebige Datenpunkte, nicht nur die des Geräts. Nur Anzeige, Position frei wählbar. Nicht im Badges-Layout. Gesetzte Datenpunkte ersetzen die Vorlage der Liste.'}
-                </p>
-                <SubDpFields
-                    subDps={entry.subDps ?? []}
-                    mainDpId={entry.id}
-                    listHasTransform={listHasTransform}
-                    onChange={(next) => onUpdate({ subDps: next })}
-                />
-            </DetailSection>
-
             <DetailSection
                 title="Darstellung"
                 badge={
@@ -299,6 +272,23 @@ export function AutoEntryDetail({
             </DetailSection>
 
             <DetailSection
+                title="Zweite Zeile"
+                badge={subDpCount > 0 ? `${subDpCount} DP` : templateCount > 0 ? 'Vorlage' : undefined}
+            >
+                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                    {templateCount > 0 && subDpCount === 0
+                        ? `Die Liste hat eine Vorlage mit ${templateCount} Datenpunkt${templateCount === 1 ? '' : 'en'} — sie gilt hier. Eigene Datenpunkte ersetzen sie für diese Zeile.`
+                        : 'Weitere Datenpunkte unter dem Wert dieser Zeile — beliebige Datenpunkte, nicht nur die des Geräts. Nur Anzeige, Position frei wählbar. Nicht im Badges-Layout. Gesetzte Datenpunkte ersetzen die Vorlage der Liste.'}
+                </p>
+                <SubDpFields
+                    subDps={entry.subDps ?? []}
+                    mainDpId={entry.id}
+                    listHasTransform={listHasTransform}
+                    onChange={(next) => onUpdate({ subDps: next })}
+                />
+            </DetailSection>
+
+            <DetailSection
                 title="Bedingungen"
                 badge={entry.conditions?.length ? String(entry.conditions.length) : undefined}
             >
@@ -313,6 +303,16 @@ export function AutoEntryDetail({
                     allowIconSize
                     ownHint="{dp} = Wert dieser Zeile; Pille umschalten für einen anderen Datenpunkt."
                     intro="Noch keine Regel. Regeln reagieren auf den Zeilenwert (oder einen fremden Datenpunkt) und ändern Farbe, Icon, Text oder blenden die Zeile aus."
+                />
+            </DetailSection>
+
+            <DetailSection title="Farbschwellen">
+                <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
+                    Eigene Skala dieser Zeile — ohne Eintrag gilt die Farbskala der Liste.
+                </p>
+                <EntryThresholdsFields
+                    thresholds={entry.colorThresholds}
+                    onChange={(next) => onUpdate({ colorThresholds: next })}
                 />
             </DetailSection>
 
