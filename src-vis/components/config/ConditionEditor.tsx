@@ -800,6 +800,28 @@ function ElementBlock({
                         not force it visible. Hidden, though, there is nothing to paint. */}
                     {e.show !== false && (
                         <>
+                            {/* Above the colour: size is the coarser decision of the two,
+                                and the icon's own size sits above its colour as well. */}
+                            {!isIcon && (
+                                <LabeledRow label={t('cond.styleFontSize')} title={t('cond.styleFontSizeHint')}>
+                                    <input
+                                        type="number"
+                                        min={6}
+                                        max={200}
+                                        value={e.fontSize ?? ''}
+                                        onChange={(ev) => {
+                                            // 0 or a typo is "no override", not a text of
+                                            // zero pixels — same guard the icon size uses.
+                                            const n = Number(ev.target.value);
+                                            set({ fontSize: ev.target.value !== '' && n > 0 ? n : undefined });
+                                        }}
+                                        placeholder="px"
+                                        title={t('cond.styleFontSizeHint')}
+                                        className="aura-cond-fontsize w-11 shrink-0 text-[10px] rounded px-1.5 py-1 focus:outline-none text-center"
+                                        style={inputStyle}
+                                    />
+                                </LabeledRow>
+                            )}
                             <ColorField
                                 label={isIcon ? t('cond.partIconColor') : t('cond.partColor')}
                                 value={e.color}

@@ -410,6 +410,7 @@ function EntryValue({
     const condFont = {
         fontWeight: cond?.bold ? 700 : undefined,
         fontStyle: cond?.italic ? ('italic' as const) : undefined,
+        fontSize: cond?.fontSize,
         animation: condAnimation(cond),
     };
     // An entry without its own scale falls back to the list-wide one; an empty
@@ -1215,7 +1216,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         className={`flex items-center gap-1 leading-tight ${labelWrapCls}${entryFontSize ? '' : ' text-[10px]'}`}
                                         style={{
                                             color: cName.color ?? 'var(--text-secondary)',
-                                            fontSize: entryFontSize ?? undefined,
+                                            fontSize: cName.fontSize ?? entryFontSize ?? undefined,
                                             fontWeight: cName.bold ? 700 : undefined,
                                             fontStyle: cName.italic ? 'italic' : undefined,
                                             animation: condAnimation(cName),
@@ -1354,7 +1355,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                 className={`block ${labelWrapCls}${entryFontSize ? '' : ' text-[11px]'}`}
                                                 style={{
                                                     color: cName.color ?? 'var(--text-primary)',
-                                                    fontSize: entryFontSize ?? undefined,
+                                                    fontSize: cName.fontSize ?? entryFontSize ?? undefined,
                                                     fontWeight: cName.bold ? 700 : undefined,
                                                     fontStyle: cName.italic ? 'italic' : undefined,
                                                     animation: condAnimation(cName),
@@ -1599,6 +1600,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         style={{
                                             maxWidth: 80,
                                             color: cName.color,
+                                            fontSize: cName.fontSize,
                                             fontWeight: cName.bold ? 700 : undefined,
                                             fontStyle: cName.italic ? 'italic' : undefined,
                                             animation: condAnimation(cName),
@@ -1615,6 +1617,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                                     (forceSwitch || isBoolLike || roleDisplay
                                                         ? 'inherit'
                                                         : 'var(--text-primary)'),
+                                                fontSize: cValue.fontSize,
                                                 fontWeight: cValue.bold ? 700 : undefined,
                                                 fontStyle: cValue.italic ? 'italic' : undefined,
                                                 animation: condAnimation(cValue),
@@ -1700,7 +1703,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             className={`${labelWrapCls}${entryFontSize ? '' : ' text-xs'}`}
                                             style={{
                                                 color: cName.color ?? 'var(--text-primary)',
-                                                fontSize: entryFontSize ?? undefined,
+                                                fontSize: cName.fontSize ?? entryFontSize ?? undefined,
                                                 fontWeight: cName.bold ? 700 : undefined,
                                                 fontStyle: cName.italic ? 'italic' : undefined,
                                                 animation: condAnimation(cName),

@@ -78,8 +78,9 @@ function cellTextStyle(cell: CustomCell, defaultColor: string, cond?: CellCondRe
     // A matched per-cell condition overrides the static color/bold/italic.
     const bold = cond?.bold ?? cell.bold;
     const italic = cond?.italic ?? cell.italic;
+    const fontSize = cond?.fontSize ?? cell.fontSize;
     return {
-        fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
+        fontSize: fontSize ? `${fontSize}px` : undefined,
         fontWeight: bold ? 'bold' : undefined,
         fontStyle: italic ? 'italic' : undefined,
         color: cond?.color || cell.color || defaultColor,

@@ -660,11 +660,14 @@ export interface ConditionElement {
      * Appearance. Travels as a class + variable on the frame root, read by the
      * .aura-cond-* rules in index.css against the class every widget puts on its
      * title/icon/value — so it needs no wiring per widget type. `bold`/`italic`
-     * are meaningless on the icon and not offered there.
+     * and `fontSize` are meaningless on the icon and not offered there (the icon
+     * has `iconSize` instead).
      */
     color?: string;
     bold?: boolean;
     italic?: boolean;
+    /** Text size in px. undefined = the size the widget renders the element at. */
+    fontSize?: number;
 }
 
 export interface WidgetCondition {
@@ -732,6 +735,7 @@ export interface CellConditionRule {
     icon?: string; // icon override (icon / state-icon cells, list row icon)
     iconColor?: string; // icon colour, when it should differ from the text colour
     iconSize?: number; // icon size in px (list rows / second-line datapoints); undefined = the element's configured size
+    fontSize?: number; // text size in px; undefined = the size the element is rendered at
     text?: string; // replaces the displayed text ("true" → "ONLINE")
     /** Same two effects the widget level offers, applied to this element alone. */
     effect?: 'none' | 'pulse' | 'blink';

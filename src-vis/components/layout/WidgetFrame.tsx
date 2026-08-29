@@ -6381,14 +6381,18 @@ export function WidgetFrame({
                 st.color ? `aura-cond-${part}-color` : '',
                 st.bold ? `aura-cond-${part}-bold` : '',
                 st.italic ? `aura-cond-${part}-italic` : '',
+                st.fontSize ? `aura-cond-${part}-size` : '',
                 st.hide ? `aura-cond-${part}-hide` : '',
             ].filter(Boolean),
         )
         .join(' ');
     const partVars = Object.fromEntries(
-        Object.entries(conditionResult.parts)
-            .filter(([, st]) => !!st.color)
-            .map(([part, st]) => [`--cond-${part}-color`, st.color as string]),
+        Object.entries(conditionResult.parts).flatMap(([part, st]) => [
+            ...(st.color ? [[`--cond-${part}-color`, st.color]] : []),
+            // px, not em: the widget's own size is what the rule replaces, and an em
+            // would compound with whatever the parent already scaled.
+            ...(st.fontSize ? [[`--cond-${part}-size`, `${st.fontSize}px`]] : []),
+        ]),
     );
 
     const cssOverride = Object.fromEntries(

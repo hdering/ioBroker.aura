@@ -28,6 +28,7 @@ const rule = (id, target, clauses, effects) => ({ id, logic: 'AND', target, clau
 
 const ROW_RULES = [
     rule('all-names', 'name', [always()], { color: '#0000ff' }),
+    rule('big-name', 'name', [clause('{{parent}}.UNREACH', 'true')], { fontSize: 22 }),
     rule('on', 'value', [clause('{dp}', 'true')], { text: 'ONLINE' }),
     rule('off', 'value', [clause('{dp}', 'false')], { text: 'OFFLINE' }),
     rule('hide', 'row', [clause('{{parent}}.HIDE', 'true')], { hide: true }),
@@ -76,6 +77,7 @@ const autoList = {
         rowConditions: [
             rule('auto-name', 'name', [clause('{{parent}}.UNREACH', 'true')], { color: '#ff00ff' }),
             rule('auto-size', 'icon', [clause('{{parent}}.UNREACH', 'true')], { iconSize: 26 }),
+            rule('auto-text-size', 'name', [clause('{{parent}}.UNREACH', 'true')], { fontSize: 20 }),
         ],
         syncIntervalMin: 999,
     },
@@ -107,6 +109,18 @@ const colorOf = (widget, text) =>
                 (e) => e.children.length === 0 && e.textContent.trim() === t,
             );
             return el ? getComputedStyle(el).color : null;
+        },
+        [widget, text],
+    );
+
+/** Rendered text size of the leaf element whose text is exactly `text`. */
+const fontSizeOf = (widget, text) =>
+    page.evaluate(
+        ([w, t]) => {
+            const el = [...document.querySelectorAll(`.aura-widget-${w} *`)].find(
+                (e) => e.children.length === 0 && e.textContent.trim() === t,
+            );
+            return el ? getComputedStyle(el).fontSize : null;
         },
         [widget, text],
     );
@@ -182,6 +196,13 @@ await settle();
         widths.filter((w) => w === 26).length === 1 && !widths.includes(18),
         widths.join(' '),
     );
+
+    eq('static: a rule sets the name text size', await fontSizeOf('rc-list', 'Eins'), '22px');
+    check(
+        'static: and leaves the other rows at their own size',
+        (await fontSizeOf('rc-list', 'Zwei')) !== '22px',
+        String(await fontSizeOf('rc-list', 'Zwei')),
+    );
 }
 
 // ── the effects follow the value ─────────────────────────────────────────────
@@ -197,6 +218,11 @@ await settle();
         'static: and the row falls back to its own icon size',
         !widths.includes(26) && widths.includes(18),
         widths.join(' '),
+    );
+    check(
+        'static: the text size is released with it',
+        (await fontSizeOf('rc-list', 'Eins')) !== '22px',
+        String(await fontSizeOf('rc-list', 'Eins')),
     );
 }
 
@@ -217,6 +243,12 @@ check(
     'dynamic: and leaves the other row alone',
     (await colorOf('rc-auto', 'Auto-Zwei')) !== 'rgb(255, 0, 255)',
     String(await colorOf('rc-auto', 'Auto-Zwei')),
+);
+eq('dynamic: a rule sets the name text size', await fontSizeOf('rc-auto', 'Auto-Eins'), '20px');
+check(
+    'dynamic: and leaves the other row at its own size',
+    (await fontSizeOf('rc-auto', 'Auto-Zwei')) !== '20px',
+    String(await fontSizeOf('rc-auto', 'Auto-Zwei')),
 );
 {
     const widths = await iconWidths('rc-auto');

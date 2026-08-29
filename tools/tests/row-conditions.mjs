@@ -232,6 +232,38 @@ check('isOwnRef: a neighbour', isOwnRef('hm-rpc.0.Thermostat.UNREACH', ROW) === 
     eq('iconSize: the colour of the earlier rule survives', res.icon?.iconColor, '#f00');
 }
 
+// ── text size ────────────────────────────────────────────────────────────────
+{
+    const res = evalRowRules([rule('r', [clause('{dp}', 'active')], { fontSize: 18 })], ROW, 1, noValues);
+    eq('fontSize: a row rule carries the size', res.row?.fontSize, 18);
+    eq('fontSize: the row size reaches the name', partOf(res, 'name').fontSize, 18);
+    eq('fontSize: the row size reaches the value', partOf(res, 'value').fontSize, 18);
+}
+{
+    const res = evalRowRules(
+        [
+            rule('a', [clause('{dp}', 'active')], { fontSize: 12 }),
+            rule('b', [clause('{dp}', 'active')], { target: 'value', fontSize: 24 }),
+        ],
+        ROW,
+        1,
+        noValues,
+    );
+    eq('fontSize: a part-specific size beats the row size', partOf(res, 'value').fontSize, 24);
+    eq('fontSize: the other parts keep the row size', partOf(res, 'name').fontSize, 12);
+}
+{
+    // Size and icon size are separate fields — one must not stand in for the other.
+    const res = evalRowRules(
+        [rule('r', [clause('{dp}', 'active')], { target: 'name', fontSize: 20 })],
+        ROW,
+        1,
+        noValues,
+    );
+    eq('fontSize: the text size is not an icon size', res.name?.iconSize, undefined);
+    eq('fontSize: nothing else is touched', res.name?.color, undefined);
+}
+
 // ── pulse / blink, the effects the widget level always had ──────────────────
 {
     const res = evalRowRules([rule('r', [clause('{dp}', 'active')], { effect: 'blink' })], ROW, 1, noValues);

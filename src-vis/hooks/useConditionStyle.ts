@@ -196,6 +196,8 @@ export interface ElementLook {
     color?: string;
     bold?: boolean;
     italic?: boolean;
+    /** Text size in px — rides the same class + variable channel as `color`. */
+    fontSize?: number;
     hide?: boolean;
 }
 
@@ -286,6 +288,7 @@ function computeResult(
                 if (el.color) look.color = el.color;
                 if (el.bold !== undefined) look.bold = el.bold;
                 if (el.italic !== undefined) look.italic = el.italic;
+                if (el.fontSize !== undefined) look.fontSize = el.fontSize;
                 if (el.show === false) look.hide = true;
                 if (Object.keys(look).length) {
                     parts ??= {};

@@ -24,6 +24,8 @@ export interface CellCondResult {
     icon?: string;
     /** Icon colour, when it should differ from the text colour. */
     iconColor?: string;
+    /** Text size in px; undefined = the cell's configured size. */
+    fontSize?: number;
     /** Replaces the cell's text — the same effect a list row's value has. */
     text?: string;
     effect?: 'pulse' | 'blink';
@@ -83,6 +85,7 @@ function evalRules(
         if (rule.italic !== undefined) merged.italic = rule.italic;
         if (rule.icon) merged.icon = rule.icon;
         if (rule.iconColor) merged.iconColor = rule.iconColor;
+        if (rule.fontSize !== undefined) merged.fontSize = rule.fontSize;
         if (rule.text !== undefined && rule.text !== '') merged.text = rule.text;
         if (rule.effect && rule.effect !== 'none') merged.effect = rule.effect;
         if (rule.hide) merged.hide = true;

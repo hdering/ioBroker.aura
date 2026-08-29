@@ -48,6 +48,12 @@ iframe {
 .aura-cond-title-italic .aura-widget-title {
     font-style: italic !important;
 }
+/* Text size. The line box follows the size, so `line-height: normal` keeps a bigger
+   title from being clipped by the height the widget reserved for the old one. */
+.aura-cond-title-size .aura-widget-title {
+    font-size: var(--cond-title-size) !important;
+    line-height: normal !important;
+}
 .aura-cond-title-hide .aura-widget-title {
     display: none !important;
 }
@@ -67,6 +73,10 @@ iframe {
 }
 .aura-cond-value-italic .aura-widget-value {
     font-style: italic !important;
+}
+.aura-cond-value-size .aura-widget-value {
+    font-size: var(--cond-value-size) !important;
+    line-height: normal !important;
 }
 .aura-cond-value-hide .aura-widget-value {
     display: none !important;

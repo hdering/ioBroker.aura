@@ -254,12 +254,13 @@ Ausblenden ist absorbierend.
 | `color` · `bg` · `iconColor` | Textfarbe · Zeilenhintergrund (nur `row`) · Icon-Farbe                                                                                  |
 | `icon`                       | anderes Icon, solange die Regel greift                                                                                                  |
 | `iconSize`                   | Icon-Größe in px, solange die Regel greift; leer lässt die eingestellte Größe                                                           |
+| `fontSize`                   | Textgröße in px, solange die Regel greift; leer lässt die eingestellte Größe                                                            |
 | `text`                       | ersetzt den angezeigten Text; die Einheit entfällt dabei                                                                                |
 | `bold` · `italic`            | Schriftschnitt                                                                                                                          |
 | `effect`                     | `pulse` · `blink` — lässt das Element pulsieren bzw. blinken                                                                            |
 | `hide`                       | Element ausblenden                                                                                                                      |
 
-Eine Regel auf `row` gibt Textfarbe, Fett/Kursiv sowie Icon, Icon-Farbe und Icon-Größe an Name, Wert und
+Eine Regel auf `row` gibt Textgröße, Textfarbe, Fett/Kursiv sowie Icon, Icon-Farbe und Icon-Größe an Name, Wert und
 Icon weiter; Hintergrund und Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen sie.
 
 #### Datenpunkt einer Bedingung

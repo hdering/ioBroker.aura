@@ -24,3 +24,4 @@
 - List / Dynamic list - a value mapping can now draw an image per state and compare with an operator, so one row covers a range (>= 30 - "hot") instead of a single exact value
 - List / Dynamic list - the "Shutter" display caught up with the Rollladen widget: a position slider in the row (write on release or live), a separate feedback datapoint, inverted counting, the open/closed percentage, the slat control with the device scale, plus the driving / direction / lock datapoints
 - List / Dynamic list - the per-datapoint editor now runs Datapoint, Label, Display, Second line, Conditions, Colour thresholds, Behaviour, so the display and its settings sit right below the name
+- Conditions - a rule can now set the text size as well: per element (title / value) in the widget conditions, and in the row rules of both lists, their second line and the custom-layout cells; the field sits above the text colour and empty keeps the configured size

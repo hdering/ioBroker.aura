@@ -29,6 +29,8 @@ export interface ElementCondResult {
     icon?: string;
     iconColor?: string;
     iconSize?: number;
+    /** Text size in px; undefined = the size the row renders the part at. */
+    fontSize?: number;
     text?: string;
     effect?: 'pulse' | 'blink';
     hide?: boolean;
@@ -103,6 +105,7 @@ function applyEffects(into: ElementCondResult, rule: ElementConditionRule): void
     if (rule.icon) into.icon = rule.icon;
     if (rule.iconColor) into.iconColor = rule.iconColor;
     if (rule.iconSize !== undefined) into.iconSize = rule.iconSize;
+    if (rule.fontSize !== undefined) into.fontSize = rule.fontSize;
     if (rule.text !== undefined && rule.text !== '') into.text = rule.text;
     if (rule.effect && rule.effect !== 'none') into.effect = rule.effect;
     // Hiding is absorbing — a later rule never brings the element back.
@@ -167,6 +170,7 @@ export function partOf(
         color: row.color,
         bold: row.bold,
         italic: row.italic,
+        fontSize: row.fontSize,
         effect: row.effect,
         ...(target === 'icon' ? { icon: row.icon, iconColor: row.iconColor, iconSize: row.iconSize } : null),
     };

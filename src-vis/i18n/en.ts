@@ -1111,6 +1111,8 @@ export const en: Record<TranslationKey, string> = {
     'cond.partColor': 'Text colour',
     'cond.partIconColor': 'Icon colour',
     'cond.styleItalic': 'Italic',
+    'cond.styleFontSize': 'Text size',
+    'cond.styleFontSizeHint': 'Text size in px — empty keeps the configured size',
     'cond.overrideDisplay': 'Override display',
     'cond.setTitle': 'Title',
     'cond.setTitlePlaceholder': 'unchanged',

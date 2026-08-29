@@ -218,6 +218,28 @@ function RuleEditor({
                     <div className="aura-rule-cols">
                         <div className="space-y-1.5">
                             <SectionLabel>Stil wenn aktiv</SectionLabel>
+                            {/* Above the colour: the size is the coarser decision of the
+                                two, and the icon size sits above the icon colour too. */}
+                            {paintsText && (
+                                <Row label="Textgröße">
+                                    <input
+                                        type="number"
+                                        min={6}
+                                        max={200}
+                                        value={rule.fontSize ?? ''}
+                                        onChange={(e) => {
+                                            // Same guard the icon size uses: 0 or a typo is
+                                            // "no override", not a text of zero pixels.
+                                            const n = Number(e.target.value);
+                                            update({ fontSize: e.target.value !== '' && n > 0 ? n : undefined });
+                                        }}
+                                        placeholder="px"
+                                        title="Textgröße in px — leer lässt die eingestellte Größe"
+                                        className="aura-cond-fontsize w-11 shrink-0 text-[10px] rounded px-1.5 py-1 focus:outline-none text-center"
+                                        style={fieldStyle}
+                                    />
+                                </Row>
+                            )}
                             {paintsText && (
                                 <ColorField
                                     label="Textfarbe"

@@ -209,6 +209,33 @@ await mock({ [ALARM]: false });
 await settle();
 eq('part: released again', await fontOf('.aura-widget-title'), titleBefore);
 
+// ── 8a-2. the text size of one element ──────────────────────────────────────
+// Same channel as the colour (class + variable on the frame root), so it reaches
+// every widget type without a line of code per widget.
+const sizeOf = (sel) =>
+    page.evaluate((s) => {
+        const el = document.querySelector(`.aura-widget-cs-test ${s}`);
+        return el ? getComputedStyle(el).fontSize : null;
+    }, sel);
+
+await show([partRule('title', { fontSize: 27 })]);
+await mock({ [ALARM]: false });
+await settle();
+const sizeBefore = await sizeOf('.aura-widget-title');
+const valueSizeBefore = await sizeOf('.aura-widget-value');
+await mock({ [ALARM]: true });
+await settle();
+eq('size: the title takes the rule size', await sizeOf('.aura-widget-title'), '27px');
+eq('size: the value keeps its own', await sizeOf('.aura-widget-value'), valueSizeBefore);
+await mock({ [ALARM]: false });
+await settle();
+eq('size: released again', await sizeOf('.aura-widget-title'), sizeBefore);
+
+await show([partRule('value', { fontSize: 31 })]);
+await mock({ [ALARM]: true });
+await settle();
+eq('size: the value can be targeted too', await sizeOf('.aura-widget-value'), '31px');
+
 await show([partRule('value', { color: '#00ffff' })]);
 await mock({ [ALARM]: true });
 await settle();

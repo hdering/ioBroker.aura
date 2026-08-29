@@ -54,7 +54,7 @@ Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.
 | Effekt | Wirkung |
 | --- | --- |
 | Stil wenn aktiv | die ganze Karte: Akzent, Hintergrund, Rahmen, Rahmenbreite, Eckenradius, Deckkraft, Text, Text 2, Fett, Kursiv |
-| Elemente | je Element: Sichtbarkeit, Text bzw. Icon, Farbe, Schriftschnitt |
+| Elemente | je Element: Sichtbarkeit, Text bzw. Icon, Textgröße, Farbe, Schriftschnitt |
 | Effekt | `Pulsieren` · `Blinken` · `Nur Rand pulsiert` |
 | Widget neu laden | Widget wird neu aufgebaut — eingebettete Inhalte laden erneut |
 | Sichtbarkeit steuern | `Ausblenden wenn erfüllt` · `Nur anzeigen wenn erfüllt`, optional mit Nachrücken |
@@ -79,7 +79,7 @@ dieses eine Element beisammen: ob es zu sehen ist, was es zeigt, wie es aussieht
 | Sichtbar | `unverändert` · `anpassen` · `ausblenden` — die einzige Stelle zum Ausblenden |
 | Text | bei `Titel` und `Wert`, sobald `anpassen` gewählt ist; `[[dp]]` wird live aufgelöst. Beim Wert entfällt dann die Einheit |
 | Icon · Größe | bei `Icon`, sobald `anpassen` gewählt ist |
-| Textfarbe · Fett · Kursiv | bei `Titel` und `Wert` |
+| Textgröße · Textfarbe · Fett · Kursiv | bei `Titel` und `Wert`; Textgröße in px, leer lässt die Größe des Widgets |
 | Icon-Farbe | bei `Icon` — ein Icon ist eine Grafik, Schriftschnitt tut ihm nichts |
 
 Die Farbe hängt **nicht** an `anpassen`: ein Element einzufärben soll es nicht zugleich sichtbar
@@ -126,8 +126,8 @@ Im Custom-Layout bieten alle wertführenden Zellen Bedingungen, dazu `Titel` · 
 `Feld` · `Icon` · `Bild` · `Button`. Diese haben keinen eigenen Wert — eine Klausel dort liest den
 Haupt-Datenpunkt des Widgets oder einen frei angegebenen.
 
-Der Regel-Dialog ist derselbe wie auf Widget-Ebene: links **Stil wenn aktiv** (Textfarbe, Hintergrund
-— nur bei „Ganze Zeile" —, Icon-Farbe, Fett, Kursiv) und darunter **Effekt** (`Pulsieren` · `Blinken`),
+Der Regel-Dialog ist derselbe wie auf Widget-Ebene: links **Stil wenn aktiv** (Textgröße, Textfarbe,
+Hintergrund — nur bei „Ganze Zeile" —, Icon-Farbe, Fett, Kursiv) und darunter **Effekt** (`Pulsieren` · `Blinken`),
 rechts **Element** mit `Wirkt auf` und `Sichtbar` (`unverändert` · `anpassen` · `ausblenden`). Text und
 Icon erscheinen erst bei `anpassen`, damit hinter dem Wort „unverändert" nichts steht, das doch wirkt.
 

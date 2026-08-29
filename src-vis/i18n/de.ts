@@ -1114,6 +1114,8 @@ export const de = {
     'cond.partColor': 'Textfarbe',
     'cond.partIconColor': 'Icon-Farbe',
     'cond.styleItalic': 'Kursiv',
+    'cond.styleFontSize': 'Textgröße',
+    'cond.styleFontSizeHint': 'Textgröße in px — leer lässt die eingestellte Größe',
     'cond.overrideDisplay': 'Anzeige überschreiben',
     'cond.setTitle': 'Titel',
     'cond.setTitlePlaceholder': 'unverändert',

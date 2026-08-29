@@ -601,6 +601,7 @@ function EntryValue({
     const condFont = {
         fontWeight: cond?.bold ? 700 : undefined,
         fontStyle: cond?.italic ? ('italic' as const) : undefined,
+        fontSize: cond?.fontSize,
         animation: condAnimation(cond),
     };
     // A rule may replace the value outright — "true" becomes "ONLINE". No control is
@@ -862,6 +863,7 @@ function CardEntryValue({
     const condFont = {
         fontWeight: cond?.bold ? 700 : undefined,
         fontStyle: cond?.italic ? ('italic' as const) : undefined,
+        fontSize: cond?.fontSize,
         animation: condAnimation(cond),
     };
     // A rule may replace the value outright — "true" becomes "ONLINE". No control is
@@ -1750,6 +1752,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     className={`flex items-center gap-1 text-[10px] leading-tight ${labelWrapCls}`}
                                                     style={{
                                                         color: cName.color ?? 'var(--text-secondary)',
+                                                        fontSize: cName.fontSize,
                                                         fontWeight: cName.bold ? 700 : undefined,
                                                         fontStyle: cName.italic ? 'italic' : undefined,
                                                         animation: condAnimation(cName),
@@ -1917,6 +1920,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         className={`block text-[11px] ${labelWrapCls}`}
                                                         style={{
                                                             color: cName.color ?? 'var(--text-primary)',
+                                                            fontSize: cName.fontSize,
                                                             fontWeight: cName.bold ? 700 : undefined,
                                                             fontStyle: cName.italic ? 'italic' : undefined,
                                                             animation: condAnimation(cName),
@@ -2179,6 +2183,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 style={{
                                                     maxWidth: 80,
                                                     color: cName.color,
+                                                    fontSize: cName.fontSize,
                                                     fontWeight: cName.bold ? 700 : undefined,
                                                     fontStyle: cName.italic ? 'italic' : undefined,
                                                     animation: condAnimation(cName),
@@ -2195,6 +2200,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                             (isBoolLike || roleDisplay || stateMatch || contactMatch
                                                                 ? 'inherit'
                                                                 : 'var(--text-primary)'),
+                                                        fontSize: cValue.fontSize,
                                                         fontWeight: cValue.bold ? 700 : undefined,
                                                         fontStyle: cValue.italic ? 'italic' : undefined,
                                                         animation: condAnimation(cValue),
@@ -2290,6 +2296,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     className={`text-xs ${labelWrapCls}`}
                                                     style={{
                                                         color: cName.color ?? 'var(--text-primary)',
+                                                        fontSize: cName.fontSize,
                                                         fontWeight: cName.bold ? 700 : undefined,
                                                         fontStyle: cName.italic ? 'italic' : undefined,
                                                         animation: condAnimation(cName),

@@ -66,7 +66,9 @@ function SubDpItem({
     // the extra datapoint's own settings win. Thresholds/controls are not offered here.
     const disp = entryValueText(sub, listTransform, val, sub.decimals ?? decimals, sub.numberFormat ?? numFmt, t);
     if (cond?.hide) return null;
-    const fontSize = sub.fontSize ?? DEFAULT_FONT_SIZE;
+    // A rule may resize the text; the icon still follows it unless the rule sizes
+    // the icon separately.
+    const fontSize = cond?.fontSize ?? sub.fontSize ?? DEFAULT_FONT_SIZE;
     // Condition beats the value→text table beats the configured default.
     const iconName = cond?.icon ?? disp.state?.icon ?? sub.icon;
     const Icon = iconName ? getWidgetIcon(iconName, null!) : null;
