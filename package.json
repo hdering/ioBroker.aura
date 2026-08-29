@@ -1,6 +1,6 @@
 {
   "name": "iobroker.aura",
-  "version": "0.51.0",
+  "version": "0.51.1",
   "description": "Modern visualization dashboard for ioBroker",
   "author": "Hermann Dering <aura@dering-online.de>",
   "main": "main.js",
@@ -112,7 +112,7 @@
     "test:chart-right-edge": "node tools/tests/chart-axis-right-edge.mjs",
     "test:chart-mixed": "node tools/tests/chart-mixed-sources.mjs",
     "test:scale-target": "node tools/tests/scale-target.mjs",
-        "test:thermo-dial": "node tools/tests/thermostat-dial.mjs",
+    "test:thermo-dial": "node tools/tests/thermostat-dial.mjs",
     "test:chart-series-modal": "node tools/tests/chart-series-modal.mjs",
     "test:energy-bar": "node tools/tests/energy-balance-bar.mjs",
     "test:energy-counter": "node tools/tests/energy-counter-increase.mjs",
