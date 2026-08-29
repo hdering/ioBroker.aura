@@ -638,6 +638,62 @@ function EntryValue({
         );
     if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} />;
     if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} />;
+    // Forced "Nur Wert" — skip the role/switch/dimmer paths below, render text only.
+    if (dt === 'value') {
+        const active = isActive(val);
+        return (
+            <span
+                className={textValueCls}
+                style={{
+                    ...valueMaxStyle,
+                    ...condFont,
+                    color:
+                        condColor ??
+                        getThresholdColor(disp.value, thresholds) ??
+                        (active ? 'var(--text-primary)' : 'var(--text-secondary)'),
+                }}
+            >
+                {disp.text != null ? `${disp.text}${entry.unit && !disp.isTime ? ` ${entry.unit}` : ''}` : '–'}
+            </span>
+        );
+    }
+    // Forced "Schieberegler" — range 0..100 when writable, else the value text.
+    // Without this the slider only ever appeared for dimmer-ish datapoint names.
+    if (dt === 'slider') {
+        const num = typeof val === 'number' ? val : val === true ? 100 : 0;
+        const sliderColor = condColor ?? getThresholdColor(val, thresholds);
+        if (!writable) {
+            return (
+                <span
+                    className={textValueCls}
+                    style={{ ...valueMaxStyle, ...condFont, color: sliderColor ?? 'var(--text-primary)' }}
+                >
+                    {Math.round(num)}
+                    {entry.unit ?? '%'}
+                </span>
+            );
+        }
+        return (
+            <div className="shrink-0 flex items-center gap-1.5">
+                <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={num}
+                    onChange={(e) => setState(entry.id, Number(e.target.value))}
+                    className="w-20 h-1"
+                    style={{ accentColor: 'var(--accent)' }}
+                />
+                <span
+                    className="text-[10px] w-8 text-right tabular-nums"
+                    style={{ color: sliderColor ?? 'var(--text-secondary)' }}
+                >
+                    {Math.round(num)}
+                    {entry.unit ?? '%'}
+                </span>
+            </div>
+        );
+    }
     // Forced "Schalter": the shared control, so a string/enum datapoint gets a toggle
     // too — the automatic path below only ever recognises the boolean-ish shapes.
     if (dt === 'switch')
@@ -867,6 +923,52 @@ function CardEntryValue({
         );
     if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth />;
     if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth />;
+    // Forced "Nur Wert" — see the row variant.
+    if (dt === 'value')
+        return (
+            <span
+                className={`text-xl font-bold tabular-nums text-center leading-none ${cardTextWrap}`}
+                style={{
+                    color: condColor ?? getThresholdColor(disp.value, thresholds) ?? 'var(--text-primary)',
+                    ...condFont,
+                }}
+            >
+                {disp.text ?? '–'}
+                {entry.unit && !disp.isTime && (
+                    <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
+                        {entry.unit}
+                    </span>
+                )}
+            </span>
+        );
+    // Forced "Schieberegler" — the card's full-width slider, value on top.
+    if (dt === 'slider') {
+        const num = typeof val === 'number' ? val : val === true ? 100 : 0;
+        const sliderColor = condColor ?? getThresholdColor(val, thresholds) ?? 'var(--text-primary)';
+        const numText = (
+            <span className="text-xl font-bold tabular-nums" style={{ color: sliderColor }}>
+                {Math.round(num)}
+                <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
+                    {entry.unit ?? '%'}
+                </span>
+            </span>
+        );
+        if (!writable) return numText;
+        return (
+            <div className="w-full flex flex-col items-center gap-1">
+                {numText}
+                <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={num}
+                    onChange={(e) => setState(entry.id, Number(e.target.value))}
+                    className="w-full h-1.5 rounded-full"
+                    style={{ accentColor: 'var(--accent)' }}
+                />
+            </div>
+        );
+    }
     // Forced "Schalter" — see the row variant; `card` makes it fill the cell.
     if (dt === 'switch')
         return (
@@ -1940,7 +2042,9 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const writable = entry.writable !== false;
                                     // Rich controls have no compact pill form — show their value, no toggle.
                                     const lockValue =
-                                        !!entry.displayType && NON_TOGGLE_DISPLAY_TYPES.has(entry.displayType);
+                                        entry.displayType === 'value' ||
+                                        entry.displayType === 'slider' ||
+                                        (!!entry.displayType && NON_TOGGLE_DISPLAY_TYPES.has(entry.displayType));
                                     const trueLabel = entry.trueLabel ?? opts.trueText;
                                     const falseLabel = entry.falseLabel ?? opts.falseText;
                                     const hasLabels = !!(trueLabel || falseLabel);
