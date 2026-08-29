@@ -74,7 +74,7 @@ export const WIDGETS = [
       runtime: r(21.5, { unit: '°C' }, { w: 11, h: 5 }) },
     { type: 'gauge', slug: 'gauge', label: 'Gauge', group: 'control',
       hint: 'Zahlenwert als Tachonadel/Kreisbogen visualisieren.',
-      runtime: r(72, { unit: 'kW', min: 0, max: 100 }, { w: 11, h: 8 }) },
+      runtime: r(72, { unit: 'kW', minValue: 0, maxValue: 100 }, { w: 11, h: 8 }) },
     { type: 'fill', slug: 'fuellstandsanzeige', label: 'Füllstandsanzeige', group: 'control',
       hint: 'Füllstand (z. B. Wassertank, Heizöl) als Balken visualisieren.',
       runtime: r(68, { unit: '%' }, { w: 9, h: 9 }) },
@@ -178,7 +178,7 @@ export const WIDGETS = [
     // ── Layout ──────────────────────────────────────────────────────────────
     { type: 'header', slug: 'abschnittstitel', label: 'Abschnittstitel', group: 'layout',
       hint: 'Trennlinie mit Überschrift zur Gliederung des Dashboards.',
-      runtime: r(null, { title: 'Wohnzimmer' }, { w: 14, h: 2, noDp: true, title: 'Wohnzimmer' }) },
+      runtime: r(null, {}, { w: 14, h: 2, noDp: true, title: 'Wohnzimmer' }) },
     { type: 'button', slug: 'button', label: 'Button', group: 'layout',
       hint: 'Klick-Aktion auslösen (Datenpunkt schreiben, HTTP-Call, Szene …).',
       runtime: r(null, {}, { w: 6, h: 4, noDp: true, title: 'Szene starten' }) },
