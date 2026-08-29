@@ -566,6 +566,7 @@ function EntryValue({
                 inactiveColor={inactiveColor}
                 trueLabel={trueLabel}
                 falseLabel={falseLabel}
+                card={card}
             />
         );
 

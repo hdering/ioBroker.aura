@@ -205,6 +205,11 @@ for (const layout of ['default', 'compact', 'card', 'minimal']) {
 
     await show('autolist', 'card', entry, { [DP]: false });
     eq('dynamic card shows the AUS text', (await probe(labels)).text, 'AUS');
+
+    // Both lists draw the same card switch — the static one used to keep the compact
+    // slide toggle there because it never passed `card` down.
+    await show('list', 'card', entry, { [DP]: false });
+    eq('static card shows the AUS text too', (await probe(labels)).text, 'AUS');
 }
 
 // ── 9. Confirmation gate ──
