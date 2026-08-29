@@ -47,6 +47,47 @@ export function bucketAxisMinInterval(bucket: ChartBucket): number {
     return 3_600_000;
 }
 
+/**
+ * Shortest a bucket ever gets, in ms — the band echarts reserves around a bar.
+ *
+ * Unlike `bucketAxisMinInterval` this is about the DATA, not the ticks: a weekly bar spans a week
+ * even though its ticks are day-aligned. Calendar buckets vary in length (February, a leap year,
+ * the 23-hour DST day), and echarts sizes the band from the shortest gap it sees, so the shortest
+ * form of each unit is the one to take.
+ */
+export function bucketBandMs(bucket: ChartBucket): number {
+    if (bucket === 'year') return 365 * 86_400_000;
+    if (bucket === 'month') return 28 * 86_400_000;
+    if (bucket === 'week') return 7 * 86_400_000;
+    if (bucket === 'day') return 86_400_000;
+    return 3_600_000;
+}
+
+/**
+ * `xAxis.max` for a rolling bucketed chart, so its axis ends at the newest point (issue #598).
+ *
+ * As soon as a bar series is on a time axis, echarts reserves half a band at BOTH ends so the
+ * outermost bars are not cut in half. On the left the leading delta bar sits in that reserve. On
+ * the right nothing does — the newest bar is stamped at the START of the bucket that is still
+ * running — so the axis ran on half a bucket past the last point and the chart looked like it
+ * carried on past its own data.
+ *
+ * The reserve cannot be switched off, and it is added on top of an explicit `max` rather than
+ * instead of it. So the value returned here is the axis end MINUS the reserve, which echarts then
+ * adds back: the axis lands exactly where it is wanted.
+ *
+ * `pad` is the room the newest marker and its value label need to be drawn rather than clipped.
+ * Taken as a share of the plotted span it comes to the same handful of pixels at every range.
+ *
+ * `lastBucket` is the newest bar. Right after a bucket edge (a "24 h" chart at 08:03) the newest
+ * point is only minutes past it, and trimming to that point would slice the bar in half — so the
+ * bar's own reserve is the floor.
+ */
+export function bucketAxisMax(dataMin: number, dataMax: number, lastBucket: number, bucket: ChartBucket): number {
+    const pad = Math.max(0, (dataMax - dataMin) / 60);
+    return Math.max(dataMax + pad - bucketBandMs(bucket) / 2, lastBucket);
+}
+
 /** Local calendar granularity of a timestamp: `year` = exactly Jan 1st 00:00, and so on. */
 function tsUnit(d: Date): ChartBucket | 'sub-hour' {
     if (d.getMinutes() || d.getSeconds() || d.getMilliseconds()) return 'sub-hour';

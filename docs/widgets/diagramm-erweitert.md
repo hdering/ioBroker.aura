@@ -268,6 +268,7 @@ für Einspeisung und Batterie-Ladung, die als positive Werte geliefert werden.
 | Buckets ohne Datensatz         | übersprungen; ihr Verbrauch fällt in den nächsten Bucket mit Daten                                                                                                                                                              |
 | Aktueller Wert oben rechts     | Verbrauch des laufenden Buckets, nicht der Zählerstand                                                                                                                                                                          |
 | Zeitraum-Anfang                | fällt auf die Kalendergrenze der Zeiteinheit zurück (7 Tage beginnen also um 00:00 Uhr); alle Serien des Diagramms starten dort, auch reine Kurven                                                                              |
+| Zeitraum-Ende                  | der jüngste Messwert; der Balken des laufenden Buckets sitzt auf dessen Anfang, eine Kurve läuft also bis zur aktuellen Uhrzeit rechts davon weiter                                                                             |
 
 Bilder dazu: [Beispiele](#beispiele).
 

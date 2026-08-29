@@ -20,6 +20,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { samplePreviewSeries } from '../../utils/sampleChartData';
 import {
     bucketAxisLabel,
+    bucketAxisMax,
     bucketAxisMinInterval,
     bucketTooltipLabel,
     coarsestBucket,
@@ -1023,6 +1024,31 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
           );
     const dateLocale = t('echart.dateLocale');
 
+    /**
+     * Right edge of a rolling bucketed chart (issue #598 follow-up). Echarts pads a time axis by
+     * half a bar band at both ends; on the left the leading delta bar fills that reserve, on the
+     * right nothing does, so the axis ran on half a bucket past the newest reading. See
+     * `bucketAxisMax` for the value written. Day mode frames its own window, and a chart without
+     * delta bars gets no reserve to compensate in the first place.
+     */
+    const rollingAxisMax = (() => {
+        if (dayWindow || !axisBucket) return null;
+        let dataMin = Infinity;
+        let dataMax = -Infinity;
+        let lastBucket = -Infinity;
+        alignedData.forEach((points, idx) => {
+            if (!points || points.length === 0) return;
+            const first = points[0][0];
+            const last = points[points.length - 1][0];
+            if (!Number.isFinite(first) || !Number.isFinite(last)) return;
+            dataMin = Math.min(dataMin, first);
+            dataMax = Math.max(dataMax, last);
+            if (echartSeries[idx]?.aggregate === 'delta') lastBucket = Math.max(lastBucket, last);
+        });
+        if (!Number.isFinite(dataMin) || !Number.isFinite(lastBucket)) return null;
+        return bucketAxisMax(dataMin, dataMax, lastBucket, axisBucket);
+    })();
+
     const seriesList = echartSeries.map((s, idx) => {
         const data = alignedData[idx];
         return {
@@ -1156,7 +1182,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             // the value of the previous option. Leaving day mode for a rolling range would then
             // stay framed on that one day and hide every other bar (issue #594).
             min: dayWindow ? dayWindow.start : null,
-            max: dayWindow ? dayWindow.end : null,
+            max: dayWindow ? dayWindow.end : rollingAxisMax,
         },
         yAxis: [leftAxis, rightAxis],
         series: seriesList,

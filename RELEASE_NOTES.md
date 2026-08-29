@@ -7,4 +7,5 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 
+- Advanced chart - a consumption ("delta") chart no longer runs on past its own data: the time axis used to end half a bucket after the newest reading, leaving an empty strip on the right, and now ends where the data does - so the curve reaches the right edge just as the bars reach the left one (#598)
 - Thermostat - new "Rundskala" layout: a 270 dial with a draggable handle, the setpoint in its centre and the +/- buttons in the arc gap; the scale colour is configurable, either fixed or from a colour-threshold scale (#599)
