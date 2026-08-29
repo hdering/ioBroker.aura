@@ -1242,7 +1242,6 @@ export const de = {
     'echart.modeTimeseries': 'Zeitreihe',
     'echart.modeComparison': 'Vergleich',
     'echart.modeJson': 'JSON',
-    'echart.jsonHint': 'Werte kommen direkt aus einem JSON-Datenpunkt statt aus einem History-Adapter.',
     'echart.jsonSection': 'JSON-Quelle',
     'echart.manageSeries': 'Datenpunkte verwalten',
     'echart.manageSeriesHint': 'Modus, Serien und ihre Datenpunkte.',
@@ -1251,6 +1250,18 @@ export const de = {
     'echart.noSeriesYet': 'Noch keine Serie — links eine hinzufügen.',
     'echart.noDatapoint': 'kein Datenpunkt',
     'echart.valuesTab': 'Werte',
+    'echart.modeTab': 'Modus',
+    'echart.formatTab': 'Zahlenformat',
+    'echart.modeTimeseriesHint':
+        'Verlauf über die Zeit aus einem History-Adapter — Temperatur, Leistung, oder je Kalender-Bucket der Verbrauch eines Zählers.',
+    'echart.modeComparisonHint':
+        'Ein Balken je Datenpunkt mit dem aktuellen Wert, ohne Zeitachse — z. B. Verbrauch je Raum oder Ertrag je Wechselrichter.',
+    'echart.modeJsonHint':
+        'Werte kommen direkt aus einem JSON-Datenpunkt statt aus einem History-Adapter — z. B. eine fertige Wetter- oder Preisprognose.',
+    'echart.modeKeepsSeries':
+        'Ein Moduswechsel lässt die Serien unverändert — Umschalten und Zurückschalten kostet nichts.',
+    'echart.formatAllSeriesHint': 'Vorgabe für alle Serien — je Serie im Tab „Serien“ überschreibbar.',
+    'echart.formatFollowChart': 'Diagramm',
     'echart.showValuesHint': 'Vorgabe für alle Serien — je Serie überschreibbar.',
     'echart.seriesSource': 'Datenquelle',
     'echart.sourceHistory': 'Verlauf',

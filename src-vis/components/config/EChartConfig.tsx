@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { ChevronDown, Database, Trash2 } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
-import { ValueFormatRow } from './ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { getObjectDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { detectHistoryAdapters, RANGE_LABELS } from '../../hooks/useChartHistory';
 import {
     detectJsonKeys,
@@ -18,7 +18,8 @@ import {
 import { useT } from '../../i18n';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import type { ManagedEntry } from './list/EntryListItem';
-import { ChartModeToggle, type EChartMode } from './chart/ChartModeToggle';
+import { ChartModePanel, type EChartMode } from './chart/ChartModePanel';
+import { ChartFormatPanel } from './chart/ChartFormatPanel';
 import { ChartSeriesDetail } from './chart/ChartSeriesDetail';
 import { ChartValuesPanel } from './chart/ChartValuesPanel';
 import { CHART_TYPES, inputCls, inputStyle, type JsonProbe, type SeriesAdapterState } from './chart/chartShared';
@@ -148,6 +149,11 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     // Share of the stack total at the data point (issue #569) — only offered once something stacks.
     const echartShowStackPercent = (o.echartShowStackPercent as boolean | undefined) ?? false;
     const anyStack = series.some((s) => s.stack);
+    // The chart-wide number format each series inherits (issue #600) — already resolved against
+    // the app-wide defaults, so a series row can name what "inherit" gives it.
+    const { defaultDecimals, numberFormat: globalNumberFormat } = useGlobalSettingsStore();
+    const chartDecimals = (o.decimals as number | undefined) ?? defaultDecimals;
+    const chartNumberFormat = (o.numberFormat as NumberFormat | undefined) ?? globalNumberFormat;
     // Single widget-level range (replaces the former per-series ranges). Falls back to the
     // first series' old range so existing widgets keep their configured window after upgrade.
     const echartRange = (o.echartRange as EChartTimeRange | undefined) ?? series[0]?.historyRange ?? '24h';
@@ -420,8 +426,28 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                     selectHint={t('echart.pickSeries')}
                     emptyState={t('echart.noSeriesYet')}
                     addLabel={t('echart.addSeries')}
-                    header={<ChartModeToggle mode={echartMode as EChartMode} onChange={setMode} />}
+                    /* Tab order follows the decisions: the mode decides what a series even is,
+                       the number format is the default every series inherits — both belong in
+                       FRONT of the series, and each in its own tab so nothing pushes the series
+                       list down the dialog (issue #600). */
+                    entriesTabIndex={2}
                     tabs={[
+                        {
+                            key: 'mode',
+                            label: t('echart.modeTab'),
+                            node: <ChartModePanel mode={echartMode as EChartMode} onChange={setMode} />,
+                        },
+                        {
+                            key: 'format',
+                            label: t('echart.formatTab'),
+                            node: (
+                                <ChartFormatPanel
+                                    decimals={o.decimals as number | undefined}
+                                    numberFormat={o.numberFormat as NumberFormat | undefined}
+                                    onChange={setO}
+                                />
+                            ),
+                        },
                         {
                             key: 'values',
                             label: t('echart.valuesTab'),
@@ -448,6 +474,8 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 isComparison={isComparison}
                                 isJson={isJson}
                                 echartShowValues={echartShowValues}
+                                chartDecimals={chartDecimals}
+                                chartNumberFormat={chartNumberFormat}
                                 jsonTimeAxis={jsonTimeAxis}
                                 jsonAxisBounds={jsonAxisBounds}
                                 probe={jsonProbes[s.id]}
@@ -738,15 +766,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                         </label>
                     </div>
                 )}
-
-                {/* Decimal places + thousands separator */}
-                <div className="mb-2">
-                    <ValueFormatRow
-                        decimals={o.decimals as number | undefined}
-                        numberFormat={o.numberFormat as NumberFormat | undefined}
-                        onChange={setO}
-                    />
-                </div>
 
                 {/* Left Y-Axis */}
                 <div className="mb-2">

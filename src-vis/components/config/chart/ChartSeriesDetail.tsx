@@ -3,6 +3,8 @@ import { Database } from 'lucide-react';
 import { useT } from '../../../i18n';
 import type { EChartSeriesConfig } from '../../../hooks/useMultiSeriesData';
 import { ColorPicker } from '../../common/ColorPicker';
+import { ValueFormatRow } from '../ValueFormatRow';
+import type { NumberFormat } from '../../../utils/formatValue';
 import { DatapointPicker } from '../DatapointPicker';
 import { ValueTransformButton } from '../ValueTransformButton';
 import { ChartSeriesJsonPanel } from './ChartSeriesJsonPanel';
@@ -29,6 +31,8 @@ export function ChartSeriesDetail({
     isComparison,
     isJson,
     echartShowValues,
+    chartDecimals,
+    chartNumberFormat,
     jsonTimeAxis,
     jsonAxisBounds,
     probe,
@@ -44,6 +48,9 @@ export function ChartSeriesDetail({
     isJson: boolean;
     /** Widget-level default of the value labels, shown as the "Auto" state. */
     echartShowValues: boolean;
+    /** Chart-wide number format, already resolved — what this series shows while it inherits. */
+    chartDecimals: number;
+    chartNumberFormat: NumberFormat;
     jsonTimeAxis: boolean;
     jsonAxisBounds: boolean;
     probe?: JsonProbe;
@@ -126,7 +133,7 @@ export function ChartSeriesDetail({
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                         {t('echart.seriesSource')}
                     </label>
-                    <div className="flex gap-1">
+                    <div className="aura-series-source flex gap-1">
                         {(['history', 'json'] as const).map((src) => {
                             const active = (s.source ?? 'history') === src;
                             return (
@@ -193,6 +200,19 @@ export function ChartSeriesDetail({
                         placeholder="#3b82f6"
                     />
                 </div>
+            </div>
+
+            {/* Number format, per series (issue #600). Unset follows the chart-wide setting in the
+                dialog header — a kWh line and a percentage line rarely want the same precision. */}
+            <div className="aura-series-format">
+                <ValueFormatRow
+                    decimals={s.decimals}
+                    numberFormat={s.numberFormat}
+                    onChange={(patch) => update(patch)}
+                    inheritDecimals={chartDecimals}
+                    inheritFormat={chartNumberFormat}
+                    inheritLabel={t('echart.formatFollowChart')}
+                />
             </div>
 
             {/* Y-Axis, Smooth, LineWidth, History — hidden in comparison mode */}

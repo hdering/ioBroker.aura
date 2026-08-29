@@ -18,6 +18,14 @@ interface ValueFormatRowProps {
     inputClassName?: string;
     /** Tighter label size used by the list/entry panels. */
     compact?: boolean;
+    /**
+     * What "inherit" means here, when it is not the app-wide default: the chart's series rows fall
+     * back to the chart-wide setting, which itself falls back to the global one (issue #600). Pass
+     * the already-resolved values plus the name of that source; unset = the global settings.
+     */
+    inheritDecimals?: number;
+    inheritFormat?: NumberFormat;
+    inheritLabel?: string;
 }
 
 /**
@@ -37,9 +45,15 @@ export function ValueFormatRow({
     inputStyle,
     inputClassName = 'w-full text-xs rounded-lg px-2 py-2 focus:outline-none',
     compact = false,
+    inheritDecimals,
+    inheritFormat,
+    inheritLabel,
 }: ValueFormatRowProps) {
     const t = useT();
     const { defaultDecimals, numberFormat: globalFormat } = useGlobalSettingsStore();
+    const fallbackDecimals = inheritDecimals ?? defaultDecimals;
+    const fallbackFormat = inheritFormat ?? globalFormat;
+    const fallbackLabel = inheritLabel ?? t('config.decimals.global');
 
     const sty: React.CSSProperties = inputStyle ?? {
         background: 'var(--app-bg)',
@@ -77,13 +91,13 @@ export function ValueFormatRow({
                         min={0}
                         max={6}
                         disabled={isGlobalDecimals}
-                        value={decimals ?? defaultDecimals}
+                        value={decimals ?? fallbackDecimals}
                         onChange={(e) => onChange({ decimals: Number(e.target.value) })}
                         className={`${inputClassName} text-center`}
                         style={{ ...sty, opacity: isGlobalDecimals ? 0.5 : 1 }}
                     />
                     <button
-                        onClick={() => onChange({ decimals: isGlobalDecimals ? defaultDecimals : undefined })}
+                        onClick={() => onChange({ decimals: isGlobalDecimals ? fallbackDecimals : undefined })}
                         title={
                             isGlobalDecimals ? t('config.decimals.globalActive') : t('config.decimals.resetToGlobal')
                         }
@@ -93,7 +107,7 @@ export function ValueFormatRow({
                             color: isGlobalDecimals ? '#fff' : 'var(--text-secondary)',
                         }}
                     >
-                        {t('config.decimals.global')}
+                        {fallbackLabel}
                     </button>
                 </div>
             </div>
@@ -112,10 +126,10 @@ export function ValueFormatRow({
                     style={sty}
                 >
                     <option value="global">
-                        {globalFormat && globalFormat !== 'plain'
-                            ? NUMBER_FORMAT_SAMPLES[globalFormat]
+                        {fallbackFormat && fallbackFormat !== 'plain'
+                            ? NUMBER_FORMAT_SAMPLES[fallbackFormat]
                             : t('values.thousands.plain')}{' '}
-                        ({t('config.numberFormat.global')})
+                        ({inheritLabel ?? t('config.numberFormat.global')})
                     </option>
                     {NUMBER_FORMATS.map((f) => (
                         <option key={f} value={f}>

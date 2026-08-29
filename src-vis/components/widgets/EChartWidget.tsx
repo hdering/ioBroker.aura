@@ -99,6 +99,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
     const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
+    /**
+     * A series may format its own numbers (issue #600): a kWh bar with two decimals next to a
+     * percentage line without any. Unset falls back to the chart-wide setting above, which itself
+     * falls back to the global default. Axis ticks stay chart-wide — an axis carries several series.
+     */
+    const fmtSeries = (v: number, s?: EChartSeriesConfig): string =>
+        formatNum(v, s?.decimals ?? decimals, s?.numberFormat ?? numFmt);
     const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
@@ -216,7 +223,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 if (v === null || v === undefined) return '';
                 if (interval > 1 && ((count ?? 0) - 1 - p.dataIndex) % interval !== 0) return '';
                 const parts: string[] = [];
-                if (show) parts.push(`${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`);
+                if (show) parts.push(`${fmtSeries(v, series)}${unit ? ` ${unit}` : ''}`);
                 if (withShare) {
                     const s = share(p.dataIndex);
                     // Both on: the percentage is the aside, so it goes in brackets behind the value.
@@ -532,6 +539,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             value: seriesCurrent(idx, s.id),
             color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
             unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+            // Kept around so the block can format each number the way its series asks for.
+            series: s,
         }))
         .filter((c) => c.value !== null);
 
@@ -564,7 +573,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     itemStyle: { color: gaugeColor },
                     detail: {
                         formatter: (v: number) =>
-                            `${formatNum(v, decimals, numFmt)}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`,
+                            `${fmtSeries(v, firstSeries)}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`,
                         color: 'var(--text-primary)',
                         fontSize: 16,
                         offsetCenter: [0, '70%'],
@@ -644,12 +653,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 borderColor: 'var(--app-border, #333)',
                 textStyle: { color: 'var(--text-primary, #ccc)', fontSize: 11 },
                 formatter: (params: unknown) => {
-                    const items = params as { name: string; value: number; marker: string }[];
+                    const items = params as { name: string; value: number; marker: string; dataIndex: number }[];
                     if (!items?.length) return '';
                     return items
                         .map((p) => {
+                            // One bar per series: the data index IS the series index.
                             const dispVal =
-                                typeof p.value === 'number' ? formatNum(p.value, decimals, numFmt) : p.value;
+                                typeof p.value === 'number' ? fmtSeries(p.value, echartSeries[p.dataIndex]) : p.value;
                             return `${p.marker} ${p.name}: <b>${dispVal}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}</b>`;
                         })
                         .join('<br/>');
@@ -845,6 +855,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     value: tail,
                     color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
                     unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
+                    series: s,
                 };
             })
             .filter((c) => c.value !== null);
@@ -874,7 +885,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     const lines = rows.map((p) => {
                         const seriesCfg = echartSeries[p.seriesIndex];
                         const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
-                        return `${p.marker} ${p.seriesName}: <b>${formatNum(p.num as number, decimals, numFmt)}${
+                        return `${p.marker} ${p.seriesName}: <b>${fmtSeries(p.num as number, seriesCfg)}${
                             unit ? `\u202F${unit}` : ''
                         }</b>${shareOf(p.seriesIndex, p.num as number)}`;
                     });
@@ -958,7 +969,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             <div className={currentBlockCls}>
                                 {jsonCurrentValues.map((c, i) => (
                                     <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
-                                        {formatNum(c.value as number, decimals, numFmt)}
+                                        {fmtSeries(c.value as number, c.series)}
                                         {c.unit ? ` ${c.unit}` : ''}
                                     </span>
                                 ))}
@@ -1079,7 +1090,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     // Stacked or not, echarts hands the formatter the series' own value, never the
                     // stacked one \u2014 the total is added below instead.
                     const raw = p.value[1];
-                    const dispVal = typeof raw === 'number' ? formatNum(raw, decimals, numFmt) : raw;
+                    const dispVal = typeof raw === 'number' ? fmtSeries(raw, echartSeries[p.seriesIndex]) : raw;
                     return `${p.marker} ${p.seriesName}: <b>${dispVal}${unit ? `\u202F${unit}` : ''}</b>${shareOf(
                         p.seriesIndex,
                         typeof raw === 'number' ? raw : null,
@@ -1100,6 +1111,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     }
                     for (const acc of sums.values()) {
                         if (acc.count < 2) continue;
+                        // The sum spans several series, which may format differently — so it reads
+                        // in the chart-wide format rather than in any single series' own.
                         lines.push(
                             `<span style="opacity:.7">\u03A3</span> ${t('echart.stackTotal')}: <b>${formatNum(
                                 acc.total,
@@ -1316,7 +1329,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         <div className={currentBlockCls}>
                             {currentValues.map((c, i) => (
                                 <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
-                                    {formatNum(c.value as number, decimals, numFmt)}
+                                    {fmtSeries(c.value as number, c.series)}
                                     {c.unit ? ` ${c.unit}` : ''}
                                 </span>
                             ))}

@@ -71,7 +71,8 @@ export function DatapointManagerModal({
     /** Placeholder of the detail pane while nothing is selected. */
     selectHint?: string;
     /** Row above the tabs, always visible. Holds what applies to the whole widget rather
-     *  than to one entry - the chart puts its mode switch there. */
+     *  than to one entry. The chart used to put its mode switch here and now gives it a tab of
+     *  its own - a header row pushes the entry list down, which is what the tabs avoid. */
     header?: ReactNode;
     /** Shown in the detail pane while the list is empty. */
     emptyState?: ReactNode;
@@ -118,7 +119,7 @@ export function DatapointManagerModal({
                 )}
                 {allTabs.length > 1 && (
                     <div
-                        className="flex items-center gap-1 px-3 pt-2.5 pb-2 shrink-0"
+                        className="aura-config-modal-tabs flex items-center gap-1 px-3 pt-2.5 pb-2 shrink-0"
                         style={{ borderBottom: '1px solid var(--app-border)' }}
                     >
                         {allTabs.map((tab) => (

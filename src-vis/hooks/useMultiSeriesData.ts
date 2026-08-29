@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getHistoryDirect, getStateFromCache, getObjectDirect, type HistoryEntry } from './useIoBroker';
 import { detectHistoryAdapters, TOTAL_FLOOR_MS, type DetectedAdapter } from './useChartHistory';
 import { applyValueTransform, transformMagnitude, transformSign } from '../utils/valueTransform';
+import type { NumberFormat } from '../utils/formatValue';
 import type { ioBrokerState } from '../types';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'total' | 'custom';
@@ -106,6 +107,14 @@ export interface EChartSeriesConfig {
     valueTransform?: string;
     valueFactor?: number;
     valueOffset?: number;
+    /**
+     * Decimal places of this series' numbers (issue #600), unset = follow the chart-wide setting
+     * in the "Datenpunkte verwalten" dialog (which itself falls back to the global default). A
+     * kWh line next to a percentage wants a different precision than the rest of the chart.
+     */
+    decimals?: number;
+    /** Thousands separator of this series' numbers, unset = follow the chart-wide setting. */
+    numberFormat?: NumberFormat;
 }
 
 /** A series' raw number as it should be displayed — see `valueFactor` / `valueOffset`. */

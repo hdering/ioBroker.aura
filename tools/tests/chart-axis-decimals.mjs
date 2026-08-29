@@ -134,6 +134,50 @@ const textsFor = async (options) => {
     check('the gauge readout is rounded too', value.length > 0 && maxDecimals(value) <= 1, value.join(' | '));
 }
 
+// ── A series may format its own numbers (issue #600) ─────────────────────────
+// The chart-wide setting is the default for every series; a single series can override decimals
+// and thousands separator for itself. The axis keeps the chart-wide format — it carries more than
+// one series, so it cannot follow any single one.
+{
+    const perSeries = {
+        decimals: 0,
+        echartShowCurrent: true,
+        echartSeries: [
+            {
+                id: 's1',
+                name: 'Temperatur',
+                datapointId: 'demo.temp',
+                chartType: 'line',
+                historyInstance: 'history.0',
+                yAxisIndex: 0,
+                decimals: 2,
+            },
+            {
+                id: 's2',
+                name: 'Feuchte',
+                datapointId: 'demo.hum',
+                chartType: 'line',
+                historyInstance: 'history.0',
+                yAxisIndex: 1,
+            },
+        ],
+    };
+    const texts = await textsFor(perSeries);
+    const current = await page.evaluate(() =>
+        [...document.querySelectorAll('span.text-sm.font-bold.leading-none')].map((e) => e.textContent.trim()),
+    );
+    console.log(`  current: ${current.join(' | ')}`);
+    const temp = current.find((t) => t.includes('°C')) ?? '';
+    const hum = current.find((t) => t.endsWith('%')) ?? '';
+    check('the overriding series shows its own decimals', /\d[.,]\d\d(\D|$)/.test(temp), temp);
+    check('while the other one follows the chart', hum !== '' && maxDecimals([hum]) === 0, hum);
+    check(
+        'and the axis keeps the chart-wide format',
+        maxDecimals(texts.filter((t) => t.includes('°C') && !current.includes(t))) === 0,
+        texts.filter((t) => t.includes('°C')).join(' | '),
+    );
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
 
 await browser.close();

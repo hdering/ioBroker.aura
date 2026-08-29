@@ -14,20 +14,24 @@ Das Widget hat keinen eigenen Haupt-Datenpunkt — jede Serie trägt ihren Daten
 
 ## Serien konfigurieren
 
-Modus und Serien liegen im Dialog **Datenpunkte verwalten** (Button im Optionen-Panel). Links die Serienliste, rechts die komplette Konfiguration der ausgewählten Serie; der Modus steht als Kopfzeile darüber. Die globalen Einstellungen (Achsen, Legende, Zeitraum, Einheiten) bleiben im Optionen-Panel.
+Modus, Zahlenformat und Serien liegen im Dialog **Datenpunkte verwalten** (Button im Optionen-Panel). Seine Tabs stehen in der Reihenfolge der Entscheidungen: **Modus** → **Zahlenformat** → **Serien** → **Werte**; was für alle Serien gilt, steht vor ihnen. Im Tab „Serien“ links die Serienliste, rechts die komplette Konfiguration der ausgewählten Serie. Die übrigen globalen Einstellungen (Achsen, Legende, Zeitraum, Einheiten) bleiben im Optionen-Panel.
 
 Der Modus ändert die Serien nicht: er entscheidet nur, wie gelesen wird. Im Modus `json` liest jede Serie ihren Datenpunktwert, unabhängig von ihrer eingestellten Datenquelle — ein Wechsel in einen anderen Modus und zurück lässt die Serien also unverändert.
 
-| Im Dialog                                 | Im Optionen-Panel           |
-| ----------------------------------------- | --------------------------- |
-| Modus                                     | Darstellung, Achsen, Gitter |
-| Serien anlegen, sortieren, löschen        | Legende, aktueller Wert     |
-| Datenpunkt je Serie                       | Zeitraum, Tages-Navigation  |
-| Datenquelle, Typ, Farbe, Y-Achse, Stapeln | Einheiten, Achsengrenzen    |
-| JSON-Quelle, Verlauf/Aggregation          | Zahlenformat, JSON-Override |
-| Werte-Vorgabe, Anteil am Stapel           |                             |
+| Im Dialog                                    | Im Optionen-Panel           |
+| -------------------------------------------- | --------------------------- |
+| Modus                                        | Darstellung, Achsen, Gitter |
+| Zahlenformat (Dezimalstellen, 1000er)        | Legende, aktueller Wert     |
+| Serien anlegen, sortieren, löschen           | Zeitraum, Tages-Navigation  |
+| Datenpunkt je Serie                          | Einheiten, Achsengrenzen    |
+| Datenquelle, Typ, Farbe, Y-Achse, Stapeln    | JSON-Override               |
+| Zahlenformat je Serie                        |                             |
+| JSON-Quelle, Verlauf/Aggregation             |                             |
+| Werte-Vorgabe, Anteil am Stapel              |                             |
 
-Der Tab **Werte** im Dialog trägt die beiden Einstellungen, die nur neben den Serien Sinn ergeben: `echartShowValues` ist die Vorgabe, die jede Serie als „Auto (…)" anzeigt, und `echartShowStackPercent` erscheint erst, wenn eine Serie stapelt — was im selben Dialog eingestellt wird.
+Der Tab **Zahlenformat** ist die Vorgabe für **alle** Serien (`decimals`, `numberFormat`); jede Serie überschreibt sie im Tab „Serien“ mit `echartSeries[].decimals` / `echartSeries[].numberFormat`. Der Knopf **Diagramm** in der Serie schaltet die Überschreibung wieder ab. Achsenbeschriftungen und die Stapelsumme folgen immer dem Diagramm-Format — sie gehören zu mehreren Serien gleichzeitig.
+
+Der Tab **Werte** trägt die beiden Einstellungen, die nur neben den Serien Sinn ergeben: `echartShowValues` ist die Vorgabe, die jede Serie als „Auto (…)" anzeigt, und `echartShowStackPercent` erscheint erst, wenn eine Serie stapelt — was im selben Dialog eingestellt wird.
 
 ## Layouts
 
@@ -148,7 +152,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartShowStackPercent` | `false`                                   | prozentualen Anteil an der Stapelsumme anzeigen (nur gestapelte Serien, siehe [Stapeln](#stapeln))                                                         |
 | `echartShowLegend`       | `true`                                    | Legende anzeigen                                                                                                                                           |
 | `echartAnimation`        | `true`                                    | Aufbau- und Übergangsanimation; aus, wenn Werte, Achsen oder Zeitraum ständig wechseln                                                                     |
-| `decimals`               | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung                                                                            |
+| `decimals`               | globale Einstellung                       | Nachkommastellen in Tooltip, Wert-Labels, aktuellem Wert und Achsenbeschriftung — Vorgabe für alle Serien, je Serie überschreibbar                         |
+| `numberFormat`           | globale Einstellung                       | 1000er-Trennzeichen: `plain` · `de` · `en` · `space` · `apostrophe` — Vorgabe für alle Serien, je Serie überschreibbar                                     |
 
 ### Serien
 
@@ -169,6 +174,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].areaOpacity`   | Auto         | Deckkraft der Fläche in Prozent 10–100 (nur Fläche); Auto = gestapelt 100 %, einzeln 20 %                                                                                                                          |
 | `echartSeries[].showValues`    | Auto         | Werte am Datenpunkt dieser Serie: `Auto` folgt der Widget-Einstellung, `An` und `Aus` überschreiben sie                                                                                                            |
 | `echartSeries[].labelInterval` | `1`          | nur jeden n-ten Wert beschriften (1–10), vom neuesten Punkt aus gezählt — nicht im Vergleichs-Modus                                                                                                                |
+| `echartSeries[].decimals`      | Diagramm     | Nachkommastellen dieser Serie; leer = Diagramm-Einstellung (`decimals`)                                                                                                                                            |
+| `echartSeries[].numberFormat`  | Diagramm     | 1000er-Trennzeichen dieser Serie; leer = Diagramm-Einstellung (`numberFormat`)                                                                                                                                     |
 
 ### Stapeln
 

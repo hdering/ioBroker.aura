@@ -1238,7 +1238,6 @@ export const en: Record<TranslationKey, string> = {
     'echart.modeTimeseries': 'Time Series',
     'echart.modeComparison': 'Comparison',
     'echart.modeJson': 'JSON',
-    'echart.jsonHint': 'Values come straight from a JSON datapoint instead of a history adapter.',
     'echart.jsonSection': 'JSON source',
     'echart.manageSeries': 'Manage datapoints',
     'echart.manageSeriesHint': 'Mode, series and their datapoints.',
@@ -1247,6 +1246,18 @@ export const en: Record<TranslationKey, string> = {
     'echart.noSeriesYet': 'No series yet — add one on the left.',
     'echart.noDatapoint': 'no datapoint',
     'echart.valuesTab': 'Values',
+    'echart.modeTab': 'Mode',
+    'echart.formatTab': 'Number format',
+    'echart.modeTimeseriesHint':
+        'History over time from a history adapter — temperature, power, or a meter’s consumption per calendar bucket.',
+    'echart.modeComparisonHint':
+        'One bar per datapoint with its current value, no time axis — e.g. consumption per room or yield per inverter.',
+    'echart.modeJsonHint':
+        'Values come straight from a JSON datapoint instead of a history adapter — e.g. a ready-made weather or price forecast.',
+    'echart.modeKeepsSeries':
+        'Switching the mode leaves the series untouched — a look into another mode costs nothing.',
+    'echart.formatAllSeriesHint': 'Default for every series — each series can override it under “Series”.',
+    'echart.formatFollowChart': 'Chart',
     'echart.showValuesHint': 'Default for every series — each series can override it.',
     'echart.seriesSource': 'Data source',
     'echart.sourceHistory': 'History',
