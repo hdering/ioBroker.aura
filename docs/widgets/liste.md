@@ -56,6 +56,38 @@ Schreibrecht zeigt nur den Wert; `sliderReadOnly` behält dagegen bewusst die Re
 Nicht übernommen: die senkrechte Ausrichtung des Widgets (eine Listenzeile ist ein waagerechter
 Streifen) sowie Aktions-Buttons und Status-Badges — die gehören zum Widget-Rahmen, nicht zum Wert.
 
+### Darstellung Rollladen {#darstellung-rollladen}
+
+`displayType: 'shutter'` macht die Zeile zur Rollladen-Steuerung — dieselben Möglichkeiten wie das
+[Rollladen-Widget](./rollladen), nur pro Listenzeile. Gilt auch für die
+[dynamische Liste](./dynamische-liste). **Auto-Erkennung** im Editor findet die Befehls-DPs bzw. den
+LEVEL-Datenpunkt aus der Nachbarschaft.
+
+| Feld                                                | Standard   |                                                                                          |
+| --------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------- |
+| `shutterMode`                                       | `commands` | `commands` (eigene Auf-/Stop-/Ab-DPs) · `position` (Haupt-DP der Zeile, z. B. LEVEL)      |
+| `shutterUpDp` / `shutterStopDp` / `shutterDownDp`  | —          | Befehls-Datenpunkte (`commands`)                                                          |
+| `shutterWriteValue`                                 | `true`     | Wert, der auf einen Befehls-DP geschrieben wird                                           |
+| `shutterOpenValue` / `shutterCloseValue`           | `100` / `0`| Werte für Auf/Ab im Positions-Modus                                                       |
+| `shutterActualDp`                                   | —          | Nur lesender Ist-Positions-DP (HmIP-BROLL & Co.); gilt für die Anzeige                     |
+| `shutterInvert`                                     | `false`    | Gerät zählt umgekehrt (0 = offen)                                                          |
+| `shutterShowValue` / `shutterShowClosedPercent`     | `false`    | Position anzeigen, wahlweise als Geschlossen-Prozent                                       |
+| `shutterShowSlider` / `shutterSliderWidth`          | `false` / `64` | Positions-Regler in der Zeile, Breite in px (Card-Layout: volle Breite)                |
+| `shutterSendOnRelease`                              | `true`     | Position erst beim Loslassen schreiben                                                     |
+| `shutterLivePreview`                                | `false`    | Angezeigter Wert folgt dem Regler statt dem Datenpunkt                                     |
+| `shutterTiltDp` / `shutterTiltActualDp`             | —          | Lamellen-Datenpunkt und optionaler Ist-DP; blendet die Lamellen-Taste ein                  |
+| `shutterTiltMin` / `shutterTiltMax` / `shutterTiltInvert` | `0` / `100` / `false` | Geräteskala der Lamellen (0…1, −90…90 …)                                 |
+| `shutterTiltLabel`                                  | `Lamellen` | Beschriftung der Lamellen-Steuerung                                                        |
+| `shutterShowTiltValue`                              | `false`    | Lamellenwert in der Zeile anzeigen                                                         |
+| `shutterTiltLivePreview` / `shutterTiltSendOnRelease` | `true` / `true` | Vorschau folgt dem Regler; Schreiben erst beim Loslassen                            |
+| `shutterActivityDp` / `shutterActivityMovingValues` | — / `true,1` | „Fährt"-Datenpunkt; färbt Position und Tasten während der Fahrt                          |
+| `shutterDirectionDp`                                | —          | Richtung (1 = auf, 2 = ab); hebt die passende Taste hervor                                 |
+| `shutterLockDp` / `shutterLockValues`               | — / `true,1` | Verriegelung; zeigt ein Schloss vor der Steuerung                                        |
+
+Die Lamellen-Steuerung öffnet sich als Popover (Vorschau, Regler, Schnellwerte) — in einer Zeile ist
+für einen senkrechten Regler kein Platz. Nicht übernommen: Tastengrößen und der Platzierungs-Block des
+Widgets, die zum Widget-Rahmen gehören.
+
 ### Darstellung Tasten
 
 `displayType: 'buttons'` legt feste Werte als Tasten in die Zeile — dieselben Möglichkeiten wie das

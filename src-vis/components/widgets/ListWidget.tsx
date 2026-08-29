@@ -338,6 +338,7 @@ function EntryValue({
     statusVal,
     lockVal,
     presetsJson,
+    dpStates,
     writable,
     setState,
     globalThresholds,
@@ -361,6 +362,9 @@ function EntryValue({
     lockVal?: ioBrokerState['val'];
     /** Live value of the preset display's JSON datapoint, when one is configured. */
     presetsJson?: ioBrokerState['val'];
+    /** Every subscribed datapoint, for the controls that read more than one
+     *  (the shutter's position feedback, slats, activity and lock datapoints). */
+    dpStates?: Record<string, ioBrokerState | null>;
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     globalThresholds?: ColorThreshold[];
@@ -474,7 +478,8 @@ function EntryValue({
     };
 
     // Rich control types — rendered by the shared entry-control components.
-    if (displayType === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
+    if (displayType === 'shutter')
+        return <ShutterControl entry={entry} val={val} setState={setState} dpStates={dpStates} card={card} />;
     if (displayType === 'stepper')
         return (
             <StepperControl
@@ -1236,6 +1241,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             statusVal={states[switchStatusDp(entry)]?.val}
                                             lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                             presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
+                                            dpStates={states}
                                             writable={entry.writable !== false}
                                             setState={setState}
                                             globalThresholds={globalThresholds}
@@ -1375,6 +1381,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             statusVal={states[switchStatusDp(entry)]?.val}
                                             lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                             presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
+                                            dpStates={states}
                                             writable={entry.writable !== false}
                                             setState={setState}
                                             globalThresholds={globalThresholds}
@@ -1736,6 +1743,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         statusVal={states[switchStatusDp(entry)]?.val}
                                         lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                         presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
+                                        dpStates={states}
                                         writable={entry.writable !== false}
                                         setState={setState}
                                         globalThresholds={globalThresholds}

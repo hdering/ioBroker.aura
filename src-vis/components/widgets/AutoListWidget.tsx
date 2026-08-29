@@ -550,6 +550,7 @@ function EntryValue({
     statusVal,
     lockVal,
     presetsJson,
+    dpStates,
     writable,
     setState,
     thresholds,
@@ -572,6 +573,9 @@ function EntryValue({
     lockVal?: ioBrokerState['val'];
     /** Live value of the preset display's JSON datapoint, when one is configured. */
     presetsJson?: ioBrokerState['val'];
+    /** Every subscribed datapoint, for the controls that read more than one
+     *  (the shutter's position feedback, slats, activity and lock datapoints). */
+    dpStates?: Record<string, ioBrokerState | null>;
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     thresholds?: ColorThreshold[];
@@ -624,7 +628,7 @@ function EntryValue({
 
     // Rich control types — shared with the static list (see entryControls).
     const dt = entry.displayType ?? 'auto';
-    if (dt === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
+    if (dt === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} dpStates={dpStates} />;
     if (dt === 'stepper')
         return (
             <StepperControl
@@ -806,6 +810,7 @@ function CardEntryValue({
     statusVal,
     lockVal,
     presetsJson,
+    dpStates,
     writable,
     setState,
     thresholds,
@@ -828,6 +833,9 @@ function CardEntryValue({
     lockVal?: ioBrokerState['val'];
     /** Live value of the preset display's JSON datapoint, when one is configured. */
     presetsJson?: ioBrokerState['val'];
+    /** Every subscribed datapoint, for the controls that read more than one
+     *  (the shutter's position feedback, slats, activity and lock datapoints). */
+    dpStates?: Record<string, ioBrokerState | null>;
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     thresholds?: ColorThreshold[];
@@ -877,7 +885,8 @@ function CardEntryValue({
 
     // Rich control types — shared with the static list (see entryControls).
     const dt = entry.displayType ?? 'auto';
-    if (dt === 'shutter') return <ShutterControl entry={entry} val={val} setState={setState} />;
+    if (dt === 'shutter')
+        return <ShutterControl entry={entry} val={val} setState={setState} dpStates={dpStates} card />;
     if (dt === 'stepper')
         return (
             <StepperControl
@@ -1770,6 +1779,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         statusVal={states[switchStatusDp(entry)]?.val}
                                                         lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                                         presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
+                                                        dpStates={states}
                                                         writable={entry.writable !== false}
                                                         setState={setState}
                                                         thresholds={entry.colorThresholds ?? globalThresholds}
@@ -1936,6 +1946,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     statusVal={states[switchStatusDp(entry)]?.val}
                                                     lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                                     presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
+                                                    dpStates={states}
                                                     writable={entry.writable !== false}
                                                     setState={setState}
                                                     thresholds={entry.colorThresholds ?? globalThresholds}
@@ -2324,6 +2335,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 statusVal={states[switchStatusDp(entry)]?.val}
                                                 lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
                                                 presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
+                                                dpStates={states}
                                                 writable={entry.writable !== false}
                                                 setState={setState}
                                                 thresholds={entry.colorThresholds ?? globalThresholds}

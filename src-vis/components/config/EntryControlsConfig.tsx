@@ -231,7 +231,19 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
     const switchStateMode = entry.stateMode ?? 'boolean';
     const inputSubmitMode = entry.inputSubmitMode ?? 'submit';
     const [pickFor, setPickFor] = useState<
-        null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp' | 'statusDp' | 'contactLockDp' | 'presetsDp'
+        | null
+        | 'shutterUpDp'
+        | 'shutterStopDp'
+        | 'shutterDownDp'
+        | 'statusDp'
+        | 'contactLockDp'
+        | 'presetsDp'
+        | 'shutterActualDp'
+        | 'shutterTiltDp'
+        | 'shutterTiltActualDp'
+        | 'shutterActivityDp'
+        | 'shutterDirectionDp'
+        | 'shutterLockDp'
     >(null);
     const [switchIconFor, setSwitchIconFor] = useState<null | 'trueIcon' | 'falseIcon'>(null);
     const [statePickFor, setStatePickFor] = useState<number | null>(null);
@@ -1079,6 +1091,191 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                 />
                             </div>
                         </>
+                    )}
+
+                    {/* ── Position: Anzeige und Regler in der Zeile ── */}
+                    <div className="pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                        <Label>Position</Label>
+                    </div>
+                    <DpRow
+                        label="Ist-Position (optional, nur lesend)"
+                        value={entry.shutterActualDp}
+                        onPick={() => setPickFor('shutterActualDp')}
+                    />
+                    <ToggleRow
+                        label="Position umkehren (0 = offen)"
+                        checked={!!entry.shutterInvert}
+                        onChange={(v) => onUpdate({ shutterInvert: v || undefined })}
+                    />
+                    <ToggleRow
+                        label="Positionswert anzeigen"
+                        checked={!!entry.shutterShowValue}
+                        onChange={(v) => onUpdate({ shutterShowValue: v || undefined })}
+                    />
+                    {entry.shutterShowValue && (
+                        <ToggleRow
+                            label="Als Geschlossen-Prozent"
+                            checked={!!entry.shutterShowClosedPercent}
+                            onChange={(v) => onUpdate({ shutterShowClosedPercent: v || undefined })}
+                        />
+                    )}
+                    <ToggleRow
+                        label="Schieberegler in der Zeile"
+                        checked={!!entry.shutterShowSlider}
+                        onChange={(v) => onUpdate({ shutterShowSlider: v || undefined })}
+                    />
+                    {entry.shutterShowSlider && (
+                        <>
+                            <div>
+                                <Label>Reglerbreite (px, leer = 64)</Label>
+                                <input
+                                    type="number"
+                                    min={30}
+                                    max={400}
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="64"
+                                    value={entry.shutterSliderWidth ?? ''}
+                                    onChange={(e) => {
+                                        const n = parseInt(e.target.value, 10);
+                                        onUpdate({ shutterSliderWidth: isFinite(n) && n > 0 ? n : undefined });
+                                    }}
+                                />
+                            </div>
+                            <ToggleRow
+                                label="Erst beim Loslassen schreiben"
+                                checked={entry.shutterSendOnRelease !== false}
+                                onChange={(v) => onUpdate({ shutterSendOnRelease: v ? undefined : false })}
+                            />
+                            <ToggleRow
+                                label="Wert folgt dem Regler"
+                                checked={!!entry.shutterLivePreview}
+                                onChange={(v) => onUpdate({ shutterLivePreview: v || undefined })}
+                            />
+                        </>
+                    )}
+
+                    {/* ── Lamellen ── */}
+                    <div className="pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                        <Label>Lamellen (optional)</Label>
+                    </div>
+                    <DpRow label="Lamellen-DP" value={entry.shutterTiltDp} onPick={() => setPickFor('shutterTiltDp')} />
+                    {entry.shutterTiltDp && (
+                        <>
+                            <DpRow
+                                label="Ist-Lamellen-DP (optional)"
+                                value={entry.shutterTiltActualDp}
+                                onPick={() => setPickFor('shutterTiltActualDp')}
+                            />
+                            <div className="grid grid-cols-2 gap-1.5">
+                                <div>
+                                    <Label>Wert „geschlossen"</Label>
+                                    <input
+                                        type="number"
+                                        className={iCls}
+                                        style={iSty}
+                                        placeholder="0"
+                                        value={entry.shutterTiltMin ?? ''}
+                                        onChange={(e) =>
+                                            onUpdate({
+                                                shutterTiltMin:
+                                                    e.target.value === '' ? undefined : Number(e.target.value),
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Wert „offen"</Label>
+                                    <input
+                                        type="number"
+                                        className={iCls}
+                                        style={iSty}
+                                        placeholder="100"
+                                        value={entry.shutterTiltMax ?? ''}
+                                        onChange={(e) =>
+                                            onUpdate({
+                                                shutterTiltMax:
+                                                    e.target.value === '' ? undefined : Number(e.target.value),
+                                            })
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <Label>Beschriftung</Label>
+                                <input
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="Lamellen"
+                                    value={entry.shutterTiltLabel ?? ''}
+                                    onChange={(e) => onUpdate({ shutterTiltLabel: e.target.value || undefined })}
+                                />
+                            </div>
+                            <ToggleRow
+                                label="Lamellen umkehren"
+                                checked={!!entry.shutterTiltInvert}
+                                onChange={(v) => onUpdate({ shutterTiltInvert: v || undefined })}
+                            />
+                            <ToggleRow
+                                label="Lamellenwert anzeigen"
+                                checked={!!entry.shutterShowTiltValue}
+                                onChange={(v) => onUpdate({ shutterShowTiltValue: v || undefined })}
+                            />
+                            <ToggleRow
+                                label="Vorschau folgt dem Regler"
+                                checked={entry.shutterTiltLivePreview !== false}
+                                onChange={(v) => onUpdate({ shutterTiltLivePreview: v ? undefined : false })}
+                            />
+                            <ToggleRow
+                                label="Erst beim Loslassen schreiben"
+                                checked={entry.shutterTiltSendOnRelease !== false}
+                                onChange={(v) => onUpdate({ shutterTiltSendOnRelease: v ? undefined : false })}
+                            />
+                        </>
+                    )}
+
+                    {/* ── Rückmeldungen ── */}
+                    <div className="pt-1" style={{ borderTop: '1px solid var(--app-border)' }}>
+                        <Label>Rückmeldungen (optional)</Label>
+                    </div>
+                    <DpRow
+                        label="Fährt-DP"
+                        value={entry.shutterActivityDp}
+                        onPick={() => setPickFor('shutterActivityDp')}
+                    />
+                    {entry.shutterActivityDp && (
+                        <div>
+                            <Label>Werte „fährt" (kommagetrennt)</Label>
+                            <input
+                                className={`${iCls} font-mono`}
+                                style={iSty}
+                                placeholder="true,1"
+                                value={entry.shutterActivityMovingValues ?? ''}
+                                onChange={(e) => onUpdate({ shutterActivityMovingValues: e.target.value || undefined })}
+                            />
+                        </div>
+                    )}
+                    <DpRow
+                        label="Richtung-DP (1 = auf, 2 = ab)"
+                        value={entry.shutterDirectionDp}
+                        onPick={() => setPickFor('shutterDirectionDp')}
+                    />
+                    <DpRow
+                        label="Verriegelung"
+                        value={entry.shutterLockDp}
+                        onPick={() => setPickFor('shutterLockDp')}
+                    />
+                    {entry.shutterLockDp && (
+                        <div>
+                            <Label>Werte „verriegelt" (kommagetrennt)</Label>
+                            <input
+                                className={`${iCls} font-mono`}
+                                style={iSty}
+                                placeholder="true,1"
+                                value={entry.shutterLockValues ?? ''}
+                                onChange={(e) => onUpdate({ shutterLockValues: e.target.value || undefined })}
+                            />
+                        </div>
                     )}
                 </div>
             )}

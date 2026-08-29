@@ -24,6 +24,8 @@ import { evaluateClause } from '../../utils/conditionEval';
 import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
 import { EnumEntryLabel, type EnumEntry, type EnumRender } from './EnumWidget';
 import { HtmlSelect } from '../common/HtmlSelect';
+import { TiltButton, TiltPopover } from './TiltControls';
+import { tiltRange, rawToTiltPct, tiltPctToRaw } from '../../utils/shutterTilt';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
 import {
@@ -184,6 +186,47 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     shutterOpenValue?: number;
     /** Position mode: value written on "down" (close). Default 0. */
     shutterCloseValue?: number;
+    /** Read-only datapoint reporting the real position (HmIP-BROLL & co.); wins
+     *  over the entry's own value for the display. */
+    shutterActualDp?: string;
+    /** The device counts the other way round: 0 = open. */
+    shutterInvert?: boolean;
+    /** Position slider in the row, next to the buttons. */
+    shutterShowSlider?: boolean;
+    /** Slider width in px (row layouts). Default 64; the card fills its cell. */
+    shutterSliderWidth?: number;
+    /** Write once the drag ends. Default true, like the widget. */
+    shutterSendOnRelease?: boolean;
+    /** Let the printed position follow the drag instead of the datapoint. */
+    shutterLivePreview?: boolean;
+    /** Print the position next to the control. */
+    shutterShowValue?: boolean;
+    /** Print how far the shutter is CLOSED instead of how far it is open. */
+    shutterShowClosedPercent?: boolean;
+    /** Slat angle (Neigung): the datapoint written, plus an optional read-only one. */
+    shutterTiltDp?: string;
+    shutterTiltActualDp?: string;
+    /** Raw values that mean "slats closed" / "slats open". Default 0 / 100. */
+    shutterTiltMin?: number;
+    shutterTiltMax?: number;
+    /** The device counts the slats the other way round. */
+    shutterTiltInvert?: boolean;
+    /** Caption of the slat control. Default "Lamellen". */
+    shutterTiltLabel?: string;
+    /** Slat preview follows the drag. Default true, like the widget. */
+    shutterTiltLivePreview?: boolean;
+    /** Write the slat angle once the drag ends. Default true. */
+    shutterTiltSendOnRelease?: boolean;
+    /** Print the slat percentage next to the control. */
+    shutterShowTiltValue?: boolean;
+    /** Datapoint reporting that the actuator is driving, and the values that mean it. */
+    shutterActivityDp?: string;
+    shutterActivityMovingValues?: string;
+    /** Datapoint reporting the direction (1 = up, 2 = down); highlights that button. */
+    shutterDirectionDp?: string;
+    /** Lock datapoint, shown as a padlock in front of the control. */
+    shutterLockDp?: string;
+    shutterLockValues?: string;
     // ── stepper ──────────────────────────────────────────────────────────────
     stepMin?: number;
     stepMax?: number;
@@ -383,6 +426,19 @@ export function entryExtraDps(entry: EntryControlConfig): string[] {
     if (lock) out.push(lock);
     const presetsDp = entry.presetsSource === 'json' ? (entry.presetsDp ?? '').trim() : '';
     if (presetsDp) out.push(presetsDp);
+    // The shutter's feedback datapoints. Its up/stop/down command DPs are write-only
+    // and deliberately stay out.
+    for (const dp of [
+        entry.shutterActualDp,
+        entry.shutterTiltDp,
+        entry.shutterTiltActualDp,
+        entry.shutterActivityDp,
+        entry.shutterDirectionDp,
+        entry.shutterLockDp,
+    ]) {
+        const id = (dp ?? '').trim();
+        if (id) out.push(id);
+    }
     return out;
 }
 
@@ -543,13 +599,53 @@ export function ShutterControl({
     val,
     setState,
     size = 26,
+    dpStates,
+    card,
 }: {
     entry: EntryControlConfig & { id: string };
     val?: ioBrokerState['val'];
     setState: SetState;
     size?: number;
+    /** Live values of every datapoint the lists subscribe to, so the extra shutter
+     *  datapoints (position feedback, slats, activity, lock) can be read here. */
+    dpStates?: Record<string, ioBrokerState | null>;
+    /** Card layouts stack vertically: the position slider fills the cell. */
+    card?: boolean;
 }) {
     const iconSize = Math.round(size * 0.5);
+    const read = (dp?: string): ioBrokerState['val'] | undefined => (dp && dpStates ? dpStates[dp]?.val : undefined);
+
+    // Position: an actuator that reports on a separate read-only datapoint (HmIP-BROLL
+    // & co.) wins for display; `shutterInvert` flips the 0 = closed convention.
+    const actualVal = read(entry.shutterActualDp);
+    const posValue = entry.shutterActualDp && typeof actualVal === 'number' ? actualVal : val;
+    const rawPos = typeof posValue === 'number' ? Math.round(posValue) : 0;
+    const pos = entry.shutterInvert ? 100 - rawPos : rawPos;
+
+    const [dragPos, setDragPos] = useState<number | null>(null);
+    const preMoveRawRef = useRef(rawPos);
+    const sendOnRelease = entry.shutterSendOnRelease !== false;
+    const displayPos = dragPos ?? pos;
+    const shownPos = entry.shutterLivePreview ? displayPos : pos;
+
+    // Moving / locked indicators — the same value vocabularies as the widget.
+    const activityVal = read(entry.shutterActivityDp);
+    const isMoving = entry.shutterActivityDp
+        ? entry.shutterActivityMovingValues
+            ? matchesValueList(activityVal, entry.shutterActivityMovingValues)
+            : matchesValueList(activityVal, 'true,1')
+        : false;
+    const dirVal = read(entry.shutterDirectionDp);
+    const movingDir: 'up' | 'down' | null =
+        dirVal === 1 || dirVal === '1' ? 'up' : dirVal === 2 || dirVal === '2' ? 'down' : null;
+    const locked = (entry.shutterLockDp ?? '').trim()
+        ? matchesValueList(read(entry.shutterLockDp), entry.shutterLockValues ?? 'true,1')
+        : null;
+
+    const writePos = (p: number) => {
+        preMoveRawRef.current = rawPos;
+        setState(entry.id, entry.shutterInvert ? 100 - p : p);
+    };
 
     let onUp: (() => void) | undefined;
     let onStop: (() => void) | undefined;
@@ -560,14 +656,22 @@ export function ShutterControl({
         // (LEVEL) DP; stop writes the current position back, or hits a stop DP.
         const openVal = entry.shutterOpenValue ?? 100;
         const closeVal = entry.shutterCloseValue ?? 0;
-        onUp = () => setState(entry.id, openVal);
-        onDown = () => setState(entry.id, closeVal);
+        onUp = () => {
+            preMoveRawRef.current = rawPos;
+            setState(entry.id, openVal);
+        };
+        onDown = () => {
+            preMoveRawRef.current = rawPos;
+            setState(entry.id, closeVal);
+        };
         if (entry.shutterStopDp) {
             const stopWrite = parseWrite(entry.shutterWriteValue, true);
             onStop = () => setState(entry.shutterStopDp!, stopWrite);
         } else if (typeof val === 'number') {
-            const cur = val;
-            onStop = () => setState(entry.id, cur);
+            // Race-safe like the widget: while the actuator is driving, the current
+            // position is the honest stop target; otherwise the value before the move.
+            onStop = () =>
+                setState(entry.id, isMoving && rawPos !== preMoveRawRef.current ? rawPos : preMoveRawRef.current);
         }
     } else {
         const write = parseWrite(entry.shutterWriteValue, true);
@@ -576,29 +680,157 @@ export function ShutterControl({
         onDown = entry.shutterDownDp ? () => setState(entry.shutterDownDp!, write) : undefined;
     }
 
-    const Btn = ({ onClick, children, label }: { onClick?: () => void; children: React.ReactNode; label: string }) => (
+    // ── Slats ────────────────────────────────────────────────────────────────
+    // Same convention as the widget: 0 % = closed, 100 % = open, the device's own
+    // scale lives in tiltMin/tiltMax/invertTilt.
+    const tiltDp = (entry.shutterTiltDp ?? '').trim();
+    const tiltRng = tiltRange({
+        tiltMin: entry.shutterTiltMin,
+        tiltMax: entry.shutterTiltMax,
+        invertTilt: entry.shutterTiltInvert,
+    });
+    const tiltRaw = entry.shutterTiltActualDp ? read(entry.shutterTiltActualDp) : read(tiltDp);
+    const tiltPct = rawToTiltPct(tiltRaw, tiltRng) ?? 0;
+    const [dragTilt, setDragTilt] = useState<number | null>(null);
+    const [tiltOpen, setTiltOpen] = useState(false);
+    const tiltBtnRef = useRef<HTMLButtonElement>(null);
+    const tiltLivePreview = entry.shutterTiltLivePreview !== false;
+    const tiltSliderPct = dragTilt ?? tiltPct;
+    const tiltShownPct = tiltLivePreview ? tiltSliderPct : tiltPct;
+    const writeTilt = (pct: number) => {
+        if (tiltDp) setState(tiltDp, tiltPctToRaw(pct, tiltRng));
+    };
+
+    const accentColor = isMoving
+        ? 'var(--accent-yellow)'
+        : pos > 0
+          ? 'var(--blind-color, var(--accent))'
+          : 'var(--text-secondary)';
+
+    const Btn = ({
+        onClick,
+        children,
+        label,
+        active,
+    }: {
+        onClick?: () => void;
+        children: React.ReactNode;
+        label: string;
+        active?: boolean;
+    }) => (
         <button
             onClick={onClick}
             disabled={!onClick}
             title={label}
             aria-label={label}
             className={`${btnCls} disabled:opacity-30`}
-            style={{ ...btnStyle, width: size, height: size, cursor: onClick ? 'pointer' : 'default' }}
+            style={{
+                ...btnStyle,
+                width: size,
+                height: size,
+                cursor: onClick ? 'pointer' : 'default',
+                color: active ? 'var(--accent-yellow)' : btnStyle.color,
+            }}
         >
             {children}
         </button>
     );
+
+    const posText = entry.shutterShowValue ? (
+        <span
+            className="aura-shutter-pos text-[10px] tabular-nums shrink-0"
+            style={{ minWidth: '2.2rem', textAlign: 'right', color: isMoving ? 'var(--accent-yellow)' : undefined }}
+        >
+            {Math.round(entry.shutterShowClosedPercent ? 100 - shownPos : shownPos)}%
+        </span>
+    ) : null;
+
+    const slider = entry.shutterShowSlider ? (
+        <input
+            type="range"
+            min={0}
+            max={100}
+            value={displayPos}
+            aria-label="Position"
+            onChange={(e) => {
+                const v = Number(e.target.value);
+                setDragPos(v);
+                if (!sendOnRelease) writePos(v);
+            }}
+            onMouseUp={() => {
+                if (sendOnRelease && dragPos != null) writePos(dragPos);
+                setDragPos(null);
+            }}
+            onTouchEnd={() => {
+                if (sendOnRelease && dragPos != null) writePos(dragPos);
+                setDragPos(null);
+            }}
+            onKeyUp={() => {
+                if (sendOnRelease && dragPos != null) writePos(dragPos);
+                setDragPos(null);
+            }}
+            className="aura-shutter-slider nodrag h-1 rounded-full cursor-pointer"
+            style={{
+                accentColor,
+                width: card ? '100%' : (entry.shutterSliderWidth ?? 64),
+            }}
+        />
+    ) : null;
+
     return (
-        <div className="shrink-0 flex items-center gap-1">
-            <Btn onClick={onUp} label="Auf">
-                <ChevronUp size={iconSize} />
-            </Btn>
-            <Btn onClick={onStop} label="Stop">
-                <Square size={Math.round(iconSize * 0.7)} />
-            </Btn>
-            <Btn onClick={onDown} label="Ab">
-                <ChevronDown size={iconSize} />
-            </Btn>
+        <div className={`aura-shutter-control ${card ? 'w-full flex-col' : 'shrink-0'} flex items-center gap-1`}>
+            {locked !== null && <ContactLockBadge locked={locked} />}
+            {posText}
+            {slider}
+            <div className="flex items-center gap-1">
+                <Btn onClick={onUp} label="Auf" active={movingDir === 'up'}>
+                    <ChevronUp size={iconSize} />
+                </Btn>
+                <Btn onClick={onStop} label="Stop">
+                    <Square size={Math.round(iconSize * 0.7)} />
+                </Btn>
+                <Btn onClick={onDown} label="Ab" active={movingDir === 'down'}>
+                    <ChevronDown size={iconSize} />
+                </Btn>
+                {tiltDp && (
+                    <TiltButton
+                        btnRef={tiltBtnRef as React.RefObject<HTMLButtonElement>}
+                        onToggle={() => setTiltOpen((v) => !v)}
+                        iconSz={iconSize}
+                        btnStyle={{ ...btnStyle, width: size, height: size, borderRadius: 4 }}
+                        label={entry.shutterTiltLabel || 'Lamellen'}
+                    />
+                )}
+            </div>
+            {entry.shutterShowTiltValue && tiltDp && (
+                <span className="aura-shutter-tilt text-[10px] tabular-nums shrink-0" style={{ minWidth: '2.2rem' }}>
+                    {Math.round(tiltShownPct)}%
+                </span>
+            )}
+            {tiltOpen && tiltDp && (
+                <TiltPopover
+                    anchorRef={tiltBtnRef as React.RefObject<HTMLElement>}
+                    onClose={() => setTiltOpen(false)}
+                    label={entry.shutterTiltLabel || 'Lamellen'}
+                    sliderPct={tiltSliderPct}
+                    shownPct={tiltShownPct}
+                    closedFrac={Math.max(0, Math.min(1, (100 - shownPos) / 100))}
+                    accentColor={accentColor}
+                    isMoving={isMoving}
+                    onChange={(v) => {
+                        setDragTilt(v);
+                        if (entry.shutterTiltSendOnRelease === false) writeTilt(v);
+                    }}
+                    onRelease={() => {
+                        if (entry.shutterTiltSendOnRelease !== false && dragTilt != null) writeTilt(dragTilt);
+                        setDragTilt(null);
+                    }}
+                    onPick={(v) => {
+                        setDragTilt(null);
+                        writeTilt(v);
+                    }}
+                />
+            )}
         </div>
     );
 }

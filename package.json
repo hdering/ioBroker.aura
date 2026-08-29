@@ -135,6 +135,7 @@
         "test:list-slider-options": "node tools/tests/list-slider-options.mjs",
         "test:list-parity": "node tools/tests/list-widget-parity.mjs",
         "test:list-presets": "node tools/tests/list-presets-states.mjs",
+        "test:list-shutter": "node tools/tests/list-shutter-options.mjs",
         "test:throttle": "node tools/tests/throttle-commit.mjs"
     },
     "dependencies": {
