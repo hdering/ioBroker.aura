@@ -18,6 +18,7 @@ import { TIME_DISPLAY_PRESETS, formatTimeDisplay } from '../../utils/timeDisplay
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import type { ConditionOperator } from '../../types';
 import type { EntryControlConfig, EntryDisplayType, EntryPreset, EntryStateMap } from '../widgets/entryControls';
+import type { EnumRender } from '../widgets/EnumWidget';
 import { entryDateText } from '../widgets/entryControls';
 import { DATE_PATTERN_TOKENS, FORMAT_LABELS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import {
@@ -230,10 +231,11 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
     const switchStateMode = entry.stateMode ?? 'boolean';
     const inputSubmitMode = entry.inputSubmitMode ?? 'submit';
     const [pickFor, setPickFor] = useState<
-        null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp' | 'statusDp' | 'contactLockDp'
+        null | 'shutterUpDp' | 'shutterStopDp' | 'shutterDownDp' | 'statusDp' | 'contactLockDp' | 'presetsDp'
     >(null);
     const [switchIconFor, setSwitchIconFor] = useState<null | 'trueIcon' | 'falseIcon'>(null);
     const [statePickFor, setStatePickFor] = useState<number | null>(null);
+    const [presetIconFor, setPresetIconFor] = useState<number | null>(null);
     const [contactIconPickFor, setContactIconPickFor] = useState<ContactState | null>(null);
     const [autoMsg, setAutoMsg] = useState<string | null>(null);
     const [stateMsg, setStateMsg] = useState<string | null>(null);
@@ -1127,57 +1129,197 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
             {/* ── Wert-Presets / Tasten ── */}
             {dt === 'buttons' && (
                 <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                        <Label>Werte-Tasten</Label>
-                        <button
-                            onClick={() => onUpdate({ presets: [...presets, { value: '', label: '' }] })}
-                            className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80"
-                            style={{
-                                background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
-                                color: 'var(--accent)',
-                            }}
-                        >
-                            + Hinzufügen
-                        </button>
-                    </div>
-                    {presets.map((p, i) => (
-                        <div key={i} className="flex items-center gap-1">
-                            <input
-                                className={`${iCls} font-mono`}
-                                style={iSty}
-                                placeholder="Wert"
-                                value={String(p.value)}
-                                onChange={(e) => {
-                                    const raw = e.target.value;
-                                    const num = Number(raw);
-                                    setPreset(i, { value: raw !== '' && isFinite(num) ? num : raw });
-                                }}
-                            />
-                            <input
-                                className={iCls}
-                                style={iSty}
-                                placeholder="Label"
-                                value={p.label ?? ''}
-                                onChange={(e) => setPreset(i, { label: e.target.value || undefined })}
-                            />
-                            <button
-                                onClick={() => onUpdate({ presets: presets.filter((_, j) => j !== i) })}
-                                className="shrink-0 hover:opacity-70 p-1"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
-                                <X size={11} />
-                            </button>
+                    {/* Herkunft der Tasten — Liste oder JSON-Datenpunkt, wie beim Auswahl-Widget. */}
+                    <div>
+                        <Label>Herkunft</Label>
+                        <div className="flex gap-1">
+                            {(
+                                [
+                                    [undefined, 'Liste'],
+                                    ['json', 'JSON-Datenpunkt'],
+                                ] as const
+                            ).map(([src, label]) => {
+                                const active = (entry.presetsSource ?? undefined) === src;
+                                return (
+                                    <button
+                                        key={label}
+                                        onClick={() => onUpdate({ presetsSource: src })}
+                                        className="flex-1 text-[10px] px-2 py-1 rounded transition-colors"
+                                        style={{
+                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {label}
+                                    </button>
+                                );
+                            })}
                         </div>
-                    ))}
-                    {presets.length === 0 && (
-                        <p className="text-[9px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
-                            {'Noch keine Werte. „Hinzufügen“ für eine Taste.'}
-                        </p>
+                    </div>
+                    <ToggleRow
+                        label="Als Auswahlliste (Dropdown)"
+                        checked={!!entry.presetSelect}
+                        onChange={(v) => onUpdate({ presetSelect: v || undefined })}
+                    />
+                    {entry.presetsSource === 'json' ? (
+                        <>
+                            <DpRow
+                                label="Datenpunkt mit JSON"
+                                value={entry.presetsDp}
+                                onPick={() => setPickFor('presetsDp')}
+                            />
+                            <p className="text-[9px] leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                                Array von Objekten oder ein Wert-zu-Text-Objekt. Die Feldnamen werden erkannt; die
+                                Felder unten überschreiben sie.
+                            </p>
+                            <div className="grid grid-cols-2 gap-1.5">
+                                {(
+                                    [
+                                        ['presetsValueKey', 'Wert-Feld', 'value'],
+                                        ['presetsLabelKey', 'Text-Feld', 'label'],
+                                        ['presetsColorKey', 'Farb-Feld', 'color'],
+                                        ['presetsIconKey', 'Icon-Feld', 'icon'],
+                                        ['presetsImageKey', 'Bild-Feld', 'image'],
+                                    ] as const
+                                ).map(([key, label, ph]) => (
+                                    <div key={key}>
+                                        <Label>{label}</Label>
+                                        <input
+                                            className={`${iCls} font-mono`}
+                                            style={iSty}
+                                            placeholder={ph}
+                                            value={entry[key] ?? ''}
+                                            onChange={(e) => onUpdate({ [key]: e.target.value || undefined })}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex items-center justify-between">
+                                <Label>Werte-Tasten</Label>
+                                <button
+                                    onClick={() => onUpdate({ presets: [...presets, { value: '', label: '' }] })}
+                                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80"
+                                    style={{
+                                        background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                        color: 'var(--accent)',
+                                    }}
+                                >
+                                    + Hinzufügen
+                                </button>
+                            </div>
+                            {presets.map((p, i) => (
+                                <div key={i} className="space-y-1">
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => setPresetIconFor(i)}
+                                            title={p.icon || 'Icon wählen'}
+                                            className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
+                                            style={{ ...iSty, width: 26, height: 26 }}
+                                        >
+                                            {p.icon ? (
+                                                <Icon icon={toIconifyId(p.icon)} width={14} height={14} />
+                                            ) : (
+                                                <Plus
+                                                    size={12}
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                />
+                                            )}
+                                        </button>
+                                        <input
+                                            className={`${iCls} font-mono`}
+                                            style={{ ...iSty, width: 56 }}
+                                            placeholder="Wert"
+                                            value={String(p.value)}
+                                            onChange={(e) => {
+                                                const raw = e.target.value;
+                                                const num = Number(raw);
+                                                setPreset(i, { value: raw !== '' && isFinite(num) ? num : raw });
+                                            }}
+                                        />
+                                        <input
+                                            className={iCls}
+                                            style={iSty}
+                                            placeholder="Label"
+                                            value={p.label ?? ''}
+                                            onChange={(e) => setPreset(i, { label: e.target.value || undefined })}
+                                        />
+                                        <ColorPicker
+                                            value={p.color?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#94a3b8'}
+                                            onChange={(v) => setPreset(i, { color: v })}
+                                            className="w-7 h-6 rounded cursor-pointer shrink-0"
+                                            style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                                        />
+                                        <button
+                                            onClick={() => onUpdate({ presets: presets.filter((_, j) => j !== i) })}
+                                            className="shrink-0 hover:opacity-70 p-1"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            <X size={11} />
+                                        </button>
+                                    </div>
+                                    <div className="flex items-center gap-1 pl-[30px]">
+                                        <select
+                                            value={p.render ?? 'text'}
+                                            onChange={(e) => {
+                                                const v = e.target.value;
+                                                setPreset(i, {
+                                                    render: v === 'text' ? undefined : (v as EnumRender),
+                                                });
+                                            }}
+                                            className={iCls}
+                                            style={{ ...iSty, width: 78 }}
+                                        >
+                                            <option value="text">Text</option>
+                                            <option value="icon">Icon</option>
+                                            <option value="image">Bild</option>
+                                            <option value="html">HTML</option>
+                                        </select>
+                                        {p.render === 'image' && (
+                                            <input
+                                                className={`${iCls} font-mono`}
+                                                style={iSty}
+                                                placeholder="Bildpfad / URL"
+                                                value={p.image ?? ''}
+                                                onChange={(e) => setPreset(i, { image: e.target.value || undefined })}
+                                            />
+                                        )}
+                                        {(p.render === 'image' || p.render === 'icon') && (
+                                            <input
+                                                type="number"
+                                                min={8}
+                                                max={64}
+                                                className={iCls}
+                                                style={{ ...iSty, width: 52 }}
+                                                placeholder="14"
+                                                title="Größe in px"
+                                                value={p.size ?? ''}
+                                                onChange={(e) => {
+                                                    const n = parseInt(e.target.value, 10);
+                                                    setPreset(i, { size: isFinite(n) && n > 0 ? n : undefined });
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {presets.length === 0 && (
+                                <p
+                                    className="text-[9px] italic"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.45 }}
+                                >
+                                    {'Noch keine Werte. „Hinzufügen“ für eine Taste.'}
+                                </p>
+                            )}
+                            <ImagePathHint />
+                        </>
                     )}
                 </div>
             )}
 
-            {/* ── Taster / Impuls ── */}
             {dt === 'momentary' && (
                 <div className="space-y-1.5">
                     <div className="grid grid-cols-2 gap-1.5">
@@ -1306,52 +1448,118 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                         </button>
                     </div>
                     {stateMaps.map((s, i) => (
-                        <div key={i} className="flex items-center gap-1">
-                            <button
-                                onClick={() => setStatePickFor(i)}
-                                title={s.icon || 'Icon wählen'}
-                                className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
-                                style={{ ...iSty, width: 26, height: 26 }}
-                            >
-                                {s.icon ? (
-                                    <Icon icon={toIconifyId(s.icon)} width={14} height={14} />
-                                ) : (
-                                    <Plus size={12} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
+                        <div key={i} className="space-y-1">
+                            <div className="flex items-center gap-1">
+                                <button
+                                    onClick={() => setStatePickFor(i)}
+                                    title={s.icon || 'Icon wählen'}
+                                    className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
+                                    style={{ ...iSty, width: 26, height: 26 }}
+                                >
+                                    {s.icon ? (
+                                        <Icon icon={toIconifyId(s.icon)} width={14} height={14} />
+                                    ) : (
+                                        <Plus size={12} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
+                                    )}
+                                </button>
+                                <select
+                                    value={s.op ?? '=='}
+                                    title="Vergleich"
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        setStateMap(i, { op: v === '==' ? undefined : (v as ConditionOperator) });
+                                    }}
+                                    className={iCls}
+                                    style={{ ...iSty, width: 46 }}
+                                >
+                                    <option value="==">=</option>
+                                    <option value="!=">≠</option>
+                                    <option value=">">&gt;</option>
+                                    <option value=">=">≥</option>
+                                    <option value="<">&lt;</option>
+                                    <option value="<=">≤</option>
+                                    <option value="contains">enth.</option>
+                                </select>
+                                <input
+                                    className={`${iCls} font-mono`}
+                                    style={{ ...iSty, width: 56 }}
+                                    placeholder="Wert"
+                                    value={String(s.value)}
+                                    onChange={(e) => {
+                                        const raw = e.target.value;
+                                        const num = Number(raw);
+                                        setStateMap(i, { value: raw !== '' && isFinite(num) ? num : raw });
+                                    }}
+                                />
+                                <input
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="Text"
+                                    value={s.label ?? ''}
+                                    onChange={(e) => setStateMap(i, { label: e.target.value || undefined })}
+                                />
+                                <ColorPicker
+                                    value={s.color?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#94a3b8'}
+                                    onChange={(v) => setStateMap(i, { color: v })}
+                                    className="w-7 h-6 rounded cursor-pointer shrink-0"
+                                    style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                                />
+                                <button
+                                    onClick={() => onUpdate({ states: stateMaps.filter((_, j) => j !== i) })}
+                                    className="shrink-0 hover:opacity-70 p-1"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <X size={11} />
+                                </button>
+                            </div>
+                            <div className="flex items-center gap-1 pl-[30px]">
+                                <select
+                                    value={s.render ?? 'text'}
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        setStateMap(i, { render: v === 'text' ? undefined : (v as EnumRender) });
+                                    }}
+                                    className={iCls}
+                                    style={{ ...iSty, width: 78 }}
+                                >
+                                    <option value="text">Text</option>
+                                    <option value="icon">Icon</option>
+                                    <option value="image">Bild</option>
+                                    <option value="html">HTML</option>
+                                </select>
+                                {s.render === 'image' && (
+                                    <input
+                                        className={`${iCls} font-mono`}
+                                        style={iSty}
+                                        placeholder="Bildpfad / URL"
+                                        value={s.image ?? ''}
+                                        onChange={(e) => setStateMap(i, { image: e.target.value || undefined })}
+                                    />
                                 )}
-                            </button>
-                            <input
-                                className={`${iCls} font-mono`}
-                                style={{ ...iSty, width: 56 }}
-                                placeholder="Wert"
-                                value={String(s.value)}
-                                onChange={(e) => {
-                                    const raw = e.target.value;
-                                    const num = Number(raw);
-                                    setStateMap(i, { value: raw !== '' && isFinite(num) ? num : raw });
-                                }}
-                            />
-                            <input
-                                className={iCls}
-                                style={iSty}
-                                placeholder="Text"
-                                value={s.label ?? ''}
-                                onChange={(e) => setStateMap(i, { label: e.target.value || undefined })}
-                            />
-                            <ColorPicker
-                                value={s.color?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#94a3b8'}
-                                onChange={(v) => setStateMap(i, { color: v })}
-                                className="w-7 h-6 rounded cursor-pointer shrink-0"
-                                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
-                            />
-                            <button
-                                onClick={() => onUpdate({ states: stateMaps.filter((_, j) => j !== i) })}
-                                className="shrink-0 hover:opacity-70 p-1"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
-                                <X size={11} />
-                            </button>
+                                {(s.render === 'image' || s.render === 'icon') && (
+                                    <input
+                                        type="number"
+                                        min={8}
+                                        max={64}
+                                        className={iCls}
+                                        style={{ ...iSty, width: 52 }}
+                                        placeholder="16"
+                                        title="Größe in px"
+                                        value={s.size ?? ''}
+                                        onChange={(e) => {
+                                            const n = parseInt(e.target.value, 10);
+                                            setStateMap(i, { size: isFinite(n) && n > 0 ? n : undefined });
+                                        }}
+                                    />
+                                )}
+                            </div>
                         </div>
                     ))}
+                    <p className="text-[9px] leading-tight" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        Ohne Vergleich gilt Gleichheit. Mit Vergleich wird die Zeile zum Bereich (z. B. ≥ 30) — die
+                        erste passende Zeile gewinnt, also von eng nach weit sortieren.
+                    </p>
+                    <ImagePathHint />
                     {stateMaps.length === 0 && (
                         <p className="text-[9px] italic" style={{ color: 'var(--text-secondary)', opacity: 0.45 }}>
                             {'z.B. Drehgriffkontakt: 0 → Geschlossen, 1 → Gekippt, 2 → Offen'}
@@ -1709,6 +1917,21 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                         setSwitchIconFor(null);
                     }}
                     onClose={() => setSwitchIconFor(null)}
+                />
+            )}
+            {presetIconFor !== null && (
+                <IconPickerModal
+                    current={presets[presetIconFor]?.icon ?? ''}
+                    onSelect={(name) => {
+                        // A picked icon only shows up in the icon/HTML-free modes, so
+                        // switch the button over unless it already draws something else.
+                        setPreset(presetIconFor, {
+                            icon: name || undefined,
+                            render: name && !presets[presetIconFor]?.render ? 'icon' : presets[presetIconFor]?.render,
+                        });
+                        setPresetIconFor(null);
+                    }}
+                    onClose={() => setPresetIconFor(null)}
                 />
             )}
             {statePickFor !== null && (

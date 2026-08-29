@@ -49,6 +49,7 @@ import {
     formatEntryTime,
     entryValueText,
     resolveContactDisplay,
+    matchStateMap,
     switchEntryActive,
     switchReadValue,
     switchStatusDp,
@@ -336,6 +337,7 @@ function EntryValue({
     val,
     statusVal,
     lockVal,
+    presetsJson,
     writable,
     setState,
     globalThresholds,
@@ -357,6 +359,8 @@ function EntryValue({
     statusVal?: ioBrokerState['val'];
     /** Live value of the contact display's lock datapoint, when one is configured. */
     lockVal?: ioBrokerState['val'];
+    /** Live value of the preset display's JSON datapoint, when one is configured. */
+    presetsJson?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     globalThresholds?: ColorThreshold[];
@@ -485,7 +489,15 @@ function EntryValue({
             />
         );
     if (displayType === 'buttons')
-        return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
+        return (
+            <PresetButtons
+                entry={entry}
+                val={val}
+                setState={setState}
+                activeColor={activeColor}
+                presetsJson={presetsJson}
+            />
+        );
     if (displayType === 'momentary') return <MomentaryButton entry={entry} setState={setState} icon={entry.icon} />;
     if (displayType === 'states') return <StateDisplay entry={entry} val={val} />;
     if (displayType === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
@@ -1223,6 +1235,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             val={val}
                                             statusVal={states[switchStatusDp(entry)]?.val}
                                             lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
+                                            presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
                                             writable={entry.writable !== false}
                                             setState={setState}
                                             globalThresholds={globalThresholds}
@@ -1361,6 +1374,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                             val={val}
                                             statusVal={states[switchStatusDp(entry)]?.val}
                                             lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
+                                            presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
                                             writable={entry.writable !== false}
                                             setState={setState}
                                             globalThresholds={globalThresholds}
@@ -1421,10 +1435,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                 NON_TOGGLE_DISPLAY_TYPES.has(displayType);
                             // Multi-state mapping (window handle etc.): match the value to a
                             // configured state so the badge shows its label + color.
-                            const stateMatch =
-                                displayType === 'states'
-                                    ? (entry.states ?? []).find((s) => String(s.value) === String(val))
-                                    : undefined;
+                            const stateMatch = displayType === 'states' ? matchStateMap(entry.states, val) : undefined;
                             // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
                             const contactMatch =
                                 displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
@@ -1724,6 +1735,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                         val={val}
                                         statusVal={states[switchStatusDp(entry)]?.val}
                                         lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
+                                        presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
                                         writable={entry.writable !== false}
                                         setState={setState}
                                         globalThresholds={globalThresholds}

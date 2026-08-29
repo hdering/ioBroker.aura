@@ -73,6 +73,7 @@ import {
     formatEntryTime,
     entryValueText,
     resolveContactDisplay,
+    matchStateMap,
     switchEntryActive,
     switchReadValue,
     switchStatusDp,
@@ -548,6 +549,7 @@ function EntryValue({
     val,
     statusVal,
     lockVal,
+    presetsJson,
     writable,
     setState,
     thresholds,
@@ -568,6 +570,8 @@ function EntryValue({
     statusVal?: ioBrokerState['val'];
     /** Live value of the contact display's lock datapoint, when one is configured. */
     lockVal?: ioBrokerState['val'];
+    /** Live value of the preset display's JSON datapoint, when one is configured. */
+    presetsJson?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     thresholds?: ColorThreshold[];
@@ -635,7 +639,15 @@ function EntryValue({
             />
         );
     if (dt === 'buttons')
-        return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
+        return (
+            <PresetButtons
+                entry={entry}
+                val={val}
+                setState={setState}
+                activeColor={activeColor}
+                presetsJson={presetsJson}
+            />
+        );
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
     if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
@@ -793,6 +805,7 @@ function CardEntryValue({
     val,
     statusVal,
     lockVal,
+    presetsJson,
     writable,
     setState,
     thresholds,
@@ -813,6 +826,8 @@ function CardEntryValue({
     statusVal?: ioBrokerState['val'];
     /** Live value of the contact display's lock datapoint, when one is configured. */
     lockVal?: ioBrokerState['val'];
+    /** Live value of the preset display's JSON datapoint, when one is configured. */
+    presetsJson?: ioBrokerState['val'];
     writable: boolean;
     setState: (id: string, v: boolean | number | string) => void;
     thresholds?: ColorThreshold[];
@@ -877,7 +892,15 @@ function CardEntryValue({
             />
         );
     if (dt === 'buttons')
-        return <PresetButtons entry={entry} val={val} setState={setState} activeColor={activeColor} />;
+        return (
+            <PresetButtons
+                entry={entry}
+                val={val}
+                setState={setState}
+                activeColor={activeColor}
+                presetsJson={presetsJson}
+            />
+        );
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
     if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
@@ -1746,6 +1769,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                         val={val}
                                                         statusVal={states[switchStatusDp(entry)]?.val}
                                                         lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
+                                                        presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
                                                         writable={entry.writable !== false}
                                                         setState={setState}
                                                         thresholds={entry.colorThresholds ?? globalThresholds}
@@ -1911,6 +1935,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                     val={val}
                                                     statusVal={states[switchStatusDp(entry)]?.val}
                                                     lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
+                                                    presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
                                                     writable={entry.writable !== false}
                                                     setState={setState}
                                                     thresholds={entry.colorThresholds ?? globalThresholds}
@@ -1996,9 +2021,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     // Multi-state mapping (window handle etc.): match the value to a
                                     // configured state so the badge shows its label + color + icon.
                                     const stateMatch =
-                                        entry.displayType === 'states'
-                                            ? (entry.states ?? []).find((s) => String(s.value) === String(val))
-                                            : undefined;
+                                        entry.displayType === 'states' ? matchStateMap(entry.states, val) : undefined;
                                     // Window/door contact mapping (HmIP/Boolean/… → closed/tilted/open).
                                     const contactMatch =
                                         entry.displayType === 'contact' ? resolveContactDisplay(entry, val) : undefined;
@@ -2300,6 +2323,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                                 val={val}
                                                 statusVal={states[switchStatusDp(entry)]?.val}
                                                 lockVal={states[(entry.contactLockDp ?? '').trim()]?.val}
+                                                presetsJson={states[(entry.presetsDp ?? '').trim()]?.val}
                                                 writable={entry.writable !== false}
                                                 setState={setState}
                                                 thresholds={entry.colorThresholds ?? globalThresholds}

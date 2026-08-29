@@ -19,7 +19,11 @@
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ChevronUp, ChevronDown, Square, Minus, Plus, Send, Power, Lock, LockOpen } from 'lucide-react';
-import type { ioBrokerState } from '../../types';
+import type { ioBrokerState, ConditionOperator } from '../../types';
+import { evaluateClause } from '../../utils/conditionEval';
+import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
+import { EnumEntryLabel, type EnumEntry, type EnumRender } from './EnumWidget';
+import { HtmlSelect } from '../common/HtmlSelect';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveImageSource } from '../../utils/assetUrl';
 import {
@@ -98,6 +102,14 @@ export function usesOnOffLabels(entry: { displayType?: EntryDisplayType; role?: 
 export interface EntryPreset {
     value: string | number;
     label?: string;
+    /** Look of the button — the same per-entry options the Auswahl widget offers:
+     *  text (default), an icon, an image or sanitised HTML. */
+    render?: EnumRender;
+    color?: string;
+    icon?: string;
+    image?: string;
+    /** Pixel size of the icon/image. */
+    size?: number;
 }
 
 /** A single value→state mapping for the "states" display (multi-state sensors
@@ -108,15 +120,37 @@ export interface EntryStateMap {
     label?: string;
     icon?: string;
     color?: string;
+    /** Image instead of the icon — the Statusbild widget's per-state picture. */
+    image?: string;
+    /** Look of the mapping: text (default), icon, image or sanitised HTML. */
+    render?: EnumRender;
+    /** Pixel size of the icon/image. */
+    size?: number;
+    /**
+     * Comparison against the datapoint value. Default is string equality, which is
+     * what a value list needs; an operator turns the row into a range (Statusbild's
+     * condition mode), e.g. `>= 30` -> "heiss". The first matching row wins, so
+     * order the ranges from narrow to wide.
+     */
+    op?: ConditionOperator;
 }
 
-/** The mapping that matches a value, if any. String equality, like StateDisplay. */
+/** The mapping that matches a value, if any. String equality by default; a row with
+ *  an operator is compared through the shared condition engine instead. */
 export function matchStateMap(
     states: EntryStateMap[] | undefined,
     val: ioBrokerState['val'],
 ): EntryStateMap | undefined {
     if (!states?.length || val === null || val === undefined) return undefined;
-    return states.find((s) => String(s.value) === String(val));
+    return states.find((s) =>
+        s.op && s.op !== '=='
+            ? evaluateClause(
+                  { datapoint: '', operator: s.op, value: String(s.value), valueType: 'static' },
+                  val,
+                  new Map(),
+              )
+            : String(s.value) === String(val),
+    );
 }
 
 /** Per-entry control config — mixed into StaticListEntry and AutoListEntry.
@@ -184,6 +218,19 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     sliderWidth?: number;
     // ── buttons (value presets) ────────────────────────────────────────────────
     presets?: EntryPreset[];
+    /** 'json' takes the presets from a datapoint holding JSON instead of the list
+     *  above — the Auswahl widget's second source. */
+    presetsSource?: 'json';
+    /** The datapoint holding that JSON. */
+    presetsDp?: string;
+    /** Field names inside the JSON objects; unset = the parser's own guesses. */
+    presetsValueKey?: string;
+    presetsLabelKey?: string;
+    presetsColorKey?: string;
+    presetsIconKey?: string;
+    presetsImageKey?: string;
+    /** Render a dropdown instead of a row of buttons (the widget's `showSelect`). */
+    presetSelect?: boolean;
     // ── states (multi-state read display) ──────────────────────────────────────
     /** Value→label/icon/color mappings for the "states" display. */
     states?: EntryStateMap[];
@@ -334,6 +381,8 @@ export function entryExtraDps(entry: EntryControlConfig): string[] {
     if (status) out.push(status);
     const lock = (entry.contactLockDp ?? '').trim();
     if (lock) out.push(lock);
+    const presetsDp = entry.presetsSource === 'json' ? (entry.presetsDp ?? '').trim() : '';
+    if (presetsDp) out.push(presetsDp);
     return out;
 }
 
@@ -831,14 +880,34 @@ export function PresetButtons({
     val,
     setState,
     activeColor,
+    presetsJson,
 }: {
     entry: EntryControlConfig & { id: string };
     val: ioBrokerState['val'];
     setState: SetState;
     activeColor: string;
+    /** Live value of `entry.presetsDp` when the presets come from JSON. */
+    presetsJson?: ioBrokerState['val'];
 }) {
-    const presets = entry.presets ?? [];
+    const presets = entryPresets(entry, presetsJson);
     if (presets.length === 0) return null;
+
+    // Dropdown instead of buttons — the Auswahl widget's `showSelect`, which a long
+    // list of values needs (a row has no space for twelve pills).
+    if (entry.presetSelect)
+        return (
+            <div className="shrink-0 max-w-[60%]" onClick={(e) => e.stopPropagation()}>
+                <HtmlSelect
+                    value={val == null ? '' : String(val)}
+                    entries={presets.map((p) => ({
+                        value: String(p.value),
+                        content: <EnumEntryLabel entry={presetAsEnum(p)} className="truncate" />,
+                    }))}
+                    onPick={(raw) => setState(entry.id, parseWrite(raw, raw))}
+                />
+            </div>
+        );
+
     return (
         <div className="shrink-0 flex items-center gap-1 flex-wrap justify-end">
             {presets.map((p, i) => {
@@ -846,22 +915,50 @@ export function PresetButtons({
                 return (
                     <button
                         key={`${p.value}-${i}`}
-                        onClick={() => setState(entry.id, p.value)}
-                        className="text-[11px] font-medium px-2 py-0.5 rounded-full transition-colors"
+                        onClick={() => setState(entry.id, parseWrite(p.value, p.value))}
+                        className="aura-preset-button text-[11px] font-medium px-2 py-0.5 rounded-full transition-colors flex items-center gap-1"
                         style={{
                             background: active
-                                ? `color-mix(in srgb, ${activeColor} 18%, transparent)`
+                                ? `color-mix(in srgb, ${p.color || activeColor} 18%, transparent)`
                                 : 'var(--app-bg)',
-                            color: active ? activeColor : 'var(--text-secondary)',
-                            border: `1px solid ${active ? activeColor : 'var(--widget-border)'}`,
+                            color: active ? p.color || activeColor : (p.color ?? 'var(--text-secondary)'),
+                            border: `1px solid ${active ? p.color || activeColor : 'var(--widget-border)'}`,
                         }}
                     >
-                        {p.label || String(p.value)}
+                        <EnumEntryLabel entry={presetAsEnum(p)} style={{ color: 'inherit' }} />
                     </button>
                 );
             })}
         </div>
     );
+}
+
+/** A preset in the shape the shared Auswahl renderer expects. */
+function presetAsEnum(p: EntryPreset): EnumEntry {
+    return {
+        value: String(p.value),
+        label: p.label || String(p.value),
+        color: p.color,
+        render: p.render,
+        icon: p.icon,
+        image: p.image,
+        size: p.size ?? 14,
+    };
+}
+
+/**
+ * The presets of an entry: the maintained list, or the entries parsed out of a
+ * datapoint holding JSON — the Auswahl widget's two sources, per list row.
+ */
+export function entryPresets(entry: EntryControlConfig, json: ioBrokerState['val'] | undefined): EntryPreset[] {
+    if (entry.presetsSource !== 'json') return entry.presets ?? [];
+    return parseEnumEntriesJson(json, {
+        value: entry.presetsValueKey,
+        label: entry.presetsLabelKey,
+        color: entry.presetsColorKey,
+        icon: entry.presetsIconKey,
+        image: entry.presetsImageKey,
+    });
 }
 
 // ── Multi-state read display ────────────────────────────────────────────────
@@ -877,20 +974,33 @@ export function StateDisplay({
     entry: EntryControlConfig & { unit?: string };
     val: ioBrokerState['val'];
 }) {
-    const states = entry.states ?? [];
-    const match = states.find((s) => String(s.value) === String(val));
+    const match = matchStateMap(entry.states, val);
     const color = match?.color || 'var(--text-secondary)';
     const label =
         match?.label ??
         (match ? String(match.value) : val != null ? `${String(val)}${entry.unit ? ` ${entry.unit}` : ''}` : '–');
-    const Icon = match?.icon ? getWidgetIcon(match.icon, null) : null;
+    const Icon = match?.icon && !match.render ? getWidgetIcon(match.icon, null) : null;
     return (
         <span
-            className="shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
+            className="aura-state-display shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
             style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
         >
             {Icon && <Icon size={14} />}
-            {label}
+            {match?.render ? (
+                <EnumEntryLabel
+                    entry={{
+                        value: String(match.value),
+                        label: label,
+                        render: match.render,
+                        icon: match.icon,
+                        image: match.image,
+                        size: match.size ?? 16,
+                    }}
+                    style={{ color: 'inherit' }}
+                />
+            ) : (
+                label
+            )}
         </span>
     );
 }

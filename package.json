@@ -134,6 +134,7 @@
         "test:autolist-slider": "node tools/tests/autolist-slider.mjs",
         "test:list-slider-options": "node tools/tests/list-slider-options.mjs",
         "test:list-parity": "node tools/tests/list-widget-parity.mjs",
+        "test:list-presets": "node tools/tests/list-presets-states.mjs",
         "test:throttle": "node tools/tests/throttle-commit.mjs"
     },
     "dependencies": {

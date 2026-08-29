@@ -56,6 +56,36 @@ Schreibrecht zeigt nur den Wert; `sliderReadOnly` behält dagegen bewusst die Re
 Nicht übernommen: die senkrechte Ausrichtung des Widgets (eine Listenzeile ist ein waagerechter
 Streifen) sowie Aktions-Buttons und Status-Badges — die gehören zum Widget-Rahmen, nicht zum Wert.
 
+### Darstellung Tasten
+
+`displayType: 'buttons'` legt feste Werte als Tasten in die Zeile — dieselben Möglichkeiten wie das
+[Auswahlfeld-Widget](./auswahlfeld), nur pro Listenzeile. Gilt auch für die [dynamische Liste](./dynamische-liste).
+
+| Feld                                                                                              | Standard |                                                                                   |
+| ------------------------------------------------------------------------------------------------- | -------- | --------------------------------------------------------------------------------- |
+| `presets[]`                                                                                       | —        | Wert, Text, Farbe, Darstellung (`text` · `icon` · `image` · `html`), Icon/Bild, Größe |
+| `presetsSource`                                                                                   | Liste    | `json` nimmt die Tasten stattdessen aus einem Datenpunkt mit JSON                   |
+| `presetsDp`                                                                                       | —        | Datenpunkt mit dem JSON (nur bei `presetsSource: 'json'`)                          |
+| `presetsValueKey` / `presetsLabelKey` / `presetsColorKey` / `presetsIconKey` / `presetsImageKey` | erkannt  | Feldnamen im JSON                                                                 |
+| `presetSelect`                                                                                    | `false`  | Auswahlliste (Dropdown) statt einer Reihe von Tasten                              |
+
+### Darstellung Wertzuordnung
+
+`displayType: 'states'` bildet den Wert auf Text, Icon oder Bild ab — die Anzeige-Seite des
+[Zustandsbild-Widgets](./zustandsbild), nur pro Listenzeile und mit beliebig vielen Zuständen.
+
+| Feld               |                                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------- |
+| `states[].value`   | Vergleichswert                                                                                        |
+| `states[].op`      | Vergleich; ohne Angabe Gleichheit. Mit `>=`, `<` … wird die Zeile zum Bereich — die erste passende gewinnt |
+| `states[].label`   | Text statt des Werts                                                                                  |
+| `states[].color`   | Farbe der Pille                                                                                       |
+| `states[].render`  | `text` (Standard) · `icon` · `image` · `html`                                                        |
+| `states[].icon` / `states[].image` / `states[].size` | Icon bzw. Bild und dessen Größe in px                               |
+
+Die Tabelle ist dieselbe wie die [Werte-Zuordnung der zweiten Zeile](#zweite-zeile-zusatzliche-datenpunkte)
+und wirkt an beiden Stellen gleich.
+
 ### Darstellung Fenster-/Türkontakt {#darstellung-kontakt}
 
 `displayType: 'contact'` bildet den Wert auf _geschlossen · gekippt · offen_ ab — dieselbe

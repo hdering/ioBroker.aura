@@ -20,3 +20,5 @@
 - List / Dynamic list - the "Input field" display now offers the number range (min / max / step, writes are clamped to it) and a multi-line text area, like the standalone Eingabefeld widget
 - List / Dynamic list - a window/door contact row can now show a lock datapoint as a padlock next to its state, like the standalone contact widget
 - Dynamic list - decimals, thousands separator and the colour scale can now be set per row instead of only list-wide; the row wins over the list, as in the static list
+- List / Dynamic list - the "Buttons" display caught up with the Auswahlfeld widget: colour, icon, image or HTML per button, the buttons can come from a datapoint holding JSON (with configurable field names), and a long list can be shown as a dropdown instead
+- List / Dynamic list - a value mapping can now draw an image per state and compare with an operator, so one row covers a range (>= 30 - "hot") instead of a single exact value
