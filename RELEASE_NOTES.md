@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+
+- Thermostat - new "Rundskala" layout: a 270 dial with a draggable handle, the setpoint in its centre and the +/- buttons in the arc gap; the scale colour is configurable, either fixed or from a colour-threshold scale (#599)

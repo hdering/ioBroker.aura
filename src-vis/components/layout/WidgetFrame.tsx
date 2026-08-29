@@ -7827,6 +7827,12 @@ export function WidgetFrame({
                                                                                           ),
                                                                                       },
                                                                                       {
+                                                                                          value: 'dial',
+                                                                                          label: t(
+                                                                                              'wf.edit.layout.dial',
+                                                                                          ),
+                                                                                      },
+                                                                                      {
                                                                                           value: 'custom',
                                                                                           label: 'Custom',
                                                                                       },
@@ -16345,6 +16351,73 @@ export function WidgetFrame({
                                                 </div>
                                             );
                                         })}
+
+                                        {/* ── Rundskala ── only meaningful for the dial layout */}
+                                        {config.layout === 'dial' && (
+                                            <>
+                                                <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Skalenfarbe
+                                                    </label>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <ColorPicker
+                                                            value={(o.dialColor as string) || ''}
+                                                            fallback="#f59e0b"
+                                                            onChange={(v) => setO({ dialColor: v })}
+                                                            className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                            style={{
+                                                                border: '1px solid var(--app-border)',
+                                                                padding: '1px',
+                                                            }}
+                                                        />
+                                                        <button
+                                                            onClick={() => setO({ dialColor: undefined })}
+                                                            className="text-[10px] px-2 py-1 rounded"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        >
+                                                            Auto
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Skalenbreite
+                                                    </label>
+                                                    <input
+                                                        type="number"
+                                                        min={2}
+                                                        max={24}
+                                                        step={1}
+                                                        value={(o.dialThickness as number) ?? 11}
+                                                        onChange={(e) =>
+                                                            setO({ dialThickness: Number(e.target.value) })
+                                                        }
+                                                        className="w-20 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                                        style={tInputStyle}
+                                                    />
+                                                </div>
+                                                <ColorThresholdsEditor
+                                                    label="Farbschwellen Skala (Soll-Wert)"
+                                                    thresholds={(o.dialColorThresholds as ColorThreshold[]) ?? []}
+                                                    onChange={(next) =>
+                                                        setO({
+                                                            dialColorThresholds: next.length ? next : undefined,
+                                                        })
+                                                    }
+                                                />
+                                            </>
+                                        )}
                                     </>
                                 );
                             })()}

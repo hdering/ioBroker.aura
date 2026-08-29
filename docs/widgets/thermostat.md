@@ -28,6 +28,11 @@ Anatomie: zentriert gestapelt — Icon · Soll-Temperatur · Ist-Temperatur · M
 
 ![](./assets/thermostat/layout-minimal.png)
 
+### Rundskala
+Anatomie: offener 270°-Bogen (`minTemp` … `maxTemp`) mit Griff am Soll-Wert · Soll-Temperatur, Titel und Ist-Wert zentriert im Ring · Minus/Plus-Tasten in der Bogenlücke · Preset-Buttons darunter. Der Bogen ist ziehbar — geschrieben wird erst beim Loslassen.
+
+![](./assets/thermostat/layout-dial.png)
+
 ### Custom
 Icon, Soll-Wert (`value`), Ist-Wert (`actual`), Status (`status`) und Tasten (`btn-plus`/`btn-minus`) frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
 
@@ -72,6 +77,19 @@ Färbt die angezeigte Temperatur abhängig vom Ist- (bzw. Soll-)Wert.
 | `colorThresholds` | — | Liste aus `[Schwelle, Farbe]`, z. B. `[[18,"#00f"],[30,"#f00"]]` |
 
 ![](./assets/thermostat/variant-schwellwerte.png)
+
+### Rundskala
+
+Nur im Layout **Rundskala**.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `dialColor` | — | feste Bogenfarbe (leer = Heiz-/Kühl-Akzent) |
+| `dialColorThresholds` | — | Liste aus `[Schwelle, Farbe]`, gegen den **Soll**-Wert geprüft; schlägt `dialColor` |
+| `dialThickness` | `11` | Bogenbreite |
+| `dialTrackColor` | — | Farbe der ungefüllten Skala |
+
+![](./assets/thermostat/variant-dial-schwellen.png)
 
 ### Status-Datenpunkte
 

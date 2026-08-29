@@ -63,6 +63,8 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
             return ['default', 'compact', 'minimal', 'custom'];
         case 'slider':
             return ['default', 'custom'];
+        case 'thermostat':
+            return ['default', 'compact', 'minimal', 'dial', 'custom'];
         case 'enum':
             return ['default', 'compact', 'minimal', 'card', 'custom'];
         case 'evcc':

@@ -114,6 +114,7 @@ function InlineEditForm({
                             {!isGauge && !isKnob && !isChart && (
                                 <option value="minimal">{t('editor.layouts.minimal')}</option>
                             )}
+                            {isThermostat && <option value="dial">{t('wf.edit.layout.dial')}</option>}
                             {isCalendar && <option value="agenda">{t('editor.layouts.agenda')}</option>}
                         </select>
                     </div>

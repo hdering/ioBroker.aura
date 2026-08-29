@@ -28,7 +28,7 @@ export const WIDGETS = [
       runtime: r(50, { unit: '%', min: 0, max: 100 }, { w: 11, h: 5 }) },
     { type: 'thermostat', slug: 'thermostat', label: 'Thermostat', group: 'control',
       hint: 'Soll-Temperatur einstellen und Ist-Temperatur anzeigen.',
-      layouts: ['default', 'compact', 'minimal', 'custom'],
+      layouts: ['default', 'compact', 'minimal', 'dial', 'custom'],
       // Pilot for per-layout/variant shots (see plan). Actual temp (19.5) sits
       // below the 21 °C setpoint → heating state (flame + red accent) is visible.
       runtime: r(21, { actualDatapoint: 'demo.thermostat.actual' }, { w: 11, h: 7,
@@ -40,6 +40,9 @@ export const WIDGETS = [
           options: { actualDatapoint: 'demo.thermostat.actual' }, mock: { 'demo.thermostat.actual': 19.5 } },
         { file: 'layout-minimal', layout: 'minimal', w: 8, h: 9,
           options: { actualDatapoint: 'demo.thermostat.actual' }, mock: { 'demo.thermostat.actual': 19.5 } },
+        { file: 'layout-dial', layout: 'dial', w: 9, h: 12,
+          options: { actualDatapoint: 'demo.thermostat.actual', showPresets: false, minTemp: 10, maxTemp: 30 },
+          mock: { 'demo.thermostat.actual': 19.5 } },
         { file: 'layout-custom', layout: 'custom', w: 15, h: 6,
           options: {
             actualDatapoint: 'demo.thermostat.actual',
@@ -59,6 +62,11 @@ export const WIDGETS = [
         // Markante Config-Variante: Schwellwert-Färbung der Ist-Temperatur.
         { file: 'variant-schwellwerte', layout: 'default', w: 11, h: 7,
           options: { actualDatapoint: 'demo.thermostat.actual', colorThresholds: [[20, 'var(--accent)'], [30, 'var(--accent-red)']] },
+          mock: { 'demo.thermostat.actual': 19.5 } },
+        // Farbschwellen der Rundskala – hier greift das dritte Band (Soll 21 °C).
+        { file: 'variant-dial-schwellen', layout: 'dial', w: 9, h: 12,
+          options: { actualDatapoint: 'demo.thermostat.actual', showPresets: false, minTemp: 10, maxTemp: 30,
+            dialColorThresholds: [[19, '#3b82f6'], [22, '#f59e0b'], [30, '#ef4444']] },
           mock: { 'demo.thermostat.actual': 19.5 } },
       ] },
     { type: 'value', slug: 'wert-anzeige', label: 'Wert-Anzeige', group: 'control',

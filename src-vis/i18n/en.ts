@@ -830,6 +830,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.layout.compact': 'Compact',
     'wf.edit.layout.minimal': 'Minimal',
     'wf.edit.layout.agenda': 'Agenda',
+    'wf.edit.layout.dial': 'Dial',
 
     // Clock config
     'wf.clock.display': 'Display',

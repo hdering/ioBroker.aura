@@ -109,7 +109,8 @@ export type WidgetLayout =
     | 'light-temperature'
     | 'light-custom'
     | 'knob-endless'
-    | 'knob-scale';
+    | 'knob-scale'
+    | 'dial';
 
 // ── Light widget option types ─────────────────────────────────────────────────
 

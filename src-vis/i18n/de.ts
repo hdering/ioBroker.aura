@@ -831,6 +831,7 @@ export const de = {
     'wf.edit.layout.compact': 'Kompakt',
     'wf.edit.layout.minimal': 'Minimal',
     'wf.edit.layout.agenda': 'Agenda',
+    'wf.edit.layout.dial': 'Rundskala',
 
     // Clock config
     'wf.clock.display': 'Anzeige',

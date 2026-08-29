@@ -107,6 +107,7 @@
     "test:chart-window-align": "node tools/tests/chart-window-align.mjs",
     "test:chart-mixed": "node tools/tests/chart-mixed-sources.mjs",
     "test:scale-target": "node tools/tests/scale-target.mjs",
+        "test:thermo-dial": "node tools/tests/thermostat-dial.mjs",
     "test:chart-series-modal": "node tools/tests/chart-series-modal.mjs",
     "test:energy-bar": "node tools/tests/energy-balance-bar.mjs",
     "test:energy-counter": "node tools/tests/energy-counter-increase.mjs",
