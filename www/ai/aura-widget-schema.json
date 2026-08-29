@@ -6,7 +6,7 @@
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
       "A widget object needs id, type, title, datapoint and gridPos.",
-      "gridPos is in grid units, not pixels: x/w are columns (48 across the dashboard), y/h are rows.",
+      "gridPos is in grid cells, not pixels: x/w are columns, y/h are rows. The column count is NOT fixed — it follows the dashboard width and the configured horizontal snap, so take it from the prompt.",
       "options accepts the keys under widgets.<type>.options plus every key listed in widgets.<type>.commonOptions (defined once under commonOptions).",
       "layout must be one of widgets.<type>.layouts; omit it for \"default\".",
       "An option marked \"datapoint\": true must be an existing ioBroker state id — never invent one.",
@@ -38,7 +38,7 @@
     "gridPos": {
       "type": "object",
       "required": true,
-      "description": "Position und Größe in Rasterzellen: x/w Spalten (Raster ist 48 Spalten breit), y/h Zeilen.",
+      "description": "Position und Größe in Rasterzellen: x/w Spalten, y/h Zeilen. Die Spaltenzahl ist nicht fest — sie folgt der Dashboardbreite und der Raster-Einstellung und steht im Prompt.",
       "fields": {
         "x": {
           "type": "number",
@@ -141,7 +141,14 @@
       "datapoint": true,
       "description": "Datenpunkt für die Kindersicherung (Badge in der Ecke)."
     },
-    "batteryMode": {},
+    "batteryMode": {
+      "type": "string",
+      "enum": [
+        "boolean",
+        "percent"
+      ],
+      "default": "boolean"
+    },
     "batteryInvert": {
       "type": "boolean",
       "default": false
@@ -150,7 +157,14 @@
       "type": "number",
       "default": 20
     },
-    "reachMode": {},
+    "reachMode": {
+      "type": "string",
+      "enum": [
+        "unreachable",
+        "available"
+      ],
+      "default": "unreachable"
+    },
     "reachTrueValues": {
       "type": "string",
       "default": "true,1"
@@ -3167,6 +3181,13 @@
           "description": "Zeilen abwechselnd einfärben."
         },
         "titleAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
         },
         "visibleLimit": {
@@ -3236,6 +3257,12 @@
           "default": true
         },
         "sortBy": {
+          "type": "string",
+          "enum": [
+            "name",
+            "status"
+          ],
+          "default": "name",
           "description": "Sortierschlüssel: none, label, value oder \"sub:<Feld>\" für eine Zweitzeile."
         },
         "striped": {
@@ -3244,6 +3271,13 @@
           "description": "Zeilen abwechselnd einfärben."
         },
         "titleAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
         }
       }
@@ -3503,6 +3537,13 @@
           "description": "Skaliert die gesamte Darstellung (1 = Normalgröße)."
         },
         "titleAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
         }
       }
@@ -3601,7 +3642,8 @@
         "entryDisplay": {
           "type": "object",
           "ref": "EntryControlConfig",
-          "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
+          "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie.",
+          "default": "text"
         },
         "entryIcon": {
           "type": "string",
@@ -4357,9 +4399,22 @@
           "description": "Feldname im JSON, der den Wert liefert."
         },
         "entryDisplay": {
+          "type": "string",
+          "enum": [
+            "text",
+            "icon-text",
+            "icon"
+          ],
+          "default": "text",
           "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
         },
         "fitMode": {
+          "type": "string",
+          "enum": [
+            "cover",
+            "contain"
+          ],
+          "default": "cover",
           "description": "Wie das Bild in die Kachel eingepasst wird."
         },
         "infoItems": {
@@ -4531,6 +4586,12 @@
           "description": "Die Elemente des Karussells."
         },
         "labelAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
           "description": "Ausrichtung der Beschriftung."
         },
         "maxItemWidth": {
@@ -4539,6 +4600,12 @@
           "description": "Größte Breite eines Elements in px."
         },
         "mode": {
+          "type": "string",
+          "enum": [
+            "carousel",
+            "single"
+          ],
+          "default": "carousel",
           "description": "Was das Karussell zeigt."
         },
         "shakeOnOpen": {
@@ -4606,6 +4673,12 @@
           "description": "Angezeigter Zeitraum."
         },
         "historyRangeCustomUnit": {
+          "type": "string",
+          "enum": [
+            "h",
+            "d"
+          ],
+          "default": "h",
           "description": "Einheit des eigenen Zeitraums: h oder d."
         },
         "historyRangeCustomValue": {
@@ -4819,6 +4892,12 @@
           "description": "Angezeigter Zeitraum."
         },
         "historyRangeCustomUnit": {
+          "type": "string",
+          "enum": [
+            "h",
+            "d"
+          ],
+          "default": "h",
           "description": "Einheit des eigenen Zeitraums: h oder d."
         },
         "historyRangeCustomValue": {
@@ -4977,7 +5056,14 @@
           "default": 0,
           "description": "Schriftgröße des Datums in px. 0 = automatisch."
         },
-        "dateLength": {},
+        "dateLength": {
+          "type": "string",
+          "enum": [
+            "short",
+            "long"
+          ],
+          "default": "short"
+        },
         "display": {
           "type": "string",
           "default": "time",
@@ -5252,9 +5338,21 @@
           "description": "Übergänge animieren."
         },
         "echartCurrentAlign": {
+          "type": "string",
+          "enum": [
+            "right",
+            "left"
+          ],
+          "default": "right",
           "description": "Ausrichtung des Aktuell-Blocks."
         },
         "echartCurrentFrom": {
+          "type": "string",
+          "enum": [
+            "last",
+            "first"
+          ],
+          "default": "last",
           "description": "\"last\" nimmt den letzten Punkt der Reihe, \"first\" den ersten."
         },
         "echartDayNav": {
@@ -5319,6 +5417,11 @@
           "description": "Angezeigter Zeitraum."
         },
         "echartRangeCustomUnit": {
+          "type": "string",
+          "enum": [
+            "h",
+            "d"
+          ],
           "description": "Einheit des eigenen Zeitraums: h oder d."
         },
         "echartRangeCustomValue": {
@@ -5612,6 +5715,7 @@
             "center",
             "right"
           ],
+          "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
         },
         "unit": {
@@ -5701,6 +5805,13 @@
           "description": "Feldname im JSON, der den Wert liefert."
         },
         "entryDisplay": {
+          "type": "string",
+          "enum": [
+            "text",
+            "icon-text",
+            "icon"
+          ],
+          "default": "text",
           "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
         },
         "showSelect": {
@@ -6556,6 +6667,13 @@
           "description": "Text der Rückfrage. Leer = Standardtext."
         },
         "fieldAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right",
+            "center"
+          ],
+          "default": "left",
           "description": "Ausrichtung des Eingabefelds in der Kachel."
         },
         "inputMode": {
@@ -6601,6 +6719,13 @@
           "description": "\"submit\" schreibt erst auf Knopfdruck, \"live\" bei jeder Eingabe."
         },
         "textAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right",
+            "center"
+          ],
+          "default": "left",
           "description": "Ausrichtung des eingegebenen Texts."
         }
       }
@@ -6892,6 +7017,12 @@
         },
         "colorWheelSize": {},
         "colorWheelStyle": {
+          "type": "string",
+          "enum": [
+            "disc",
+            "ring"
+          ],
+          "default": "disc",
           "description": "Darstellung des Farbwählers."
         },
         "ctMax": {
@@ -7449,7 +7580,14 @@
         "showTitle"
       ],
       "options": {
-        "chartType": {},
+        "chartType": {
+          "type": "string",
+          "enum": [
+            "line",
+            "area"
+          ],
+          "default": "line"
+        },
         "clientFilter": {
           "type": "string",
           "default": "current"
@@ -7483,6 +7621,13 @@
           "default": "24h"
         },
         "titleAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
         },
         "view": {
@@ -7821,6 +7966,13 @@
       "commonOptions": [],
       "options": {
         "align": {
+          "type": "string",
+          "enum": [
+            "start",
+            "center",
+            "end"
+          ],
+          "default": "start",
           "description": "Horizontale Ausrichtung."
         },
         "gap": {
@@ -7944,6 +8096,13 @@
           "description": "Filter-Schaltflächen anzeigen."
         },
         "titleAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
         },
         "unreadOnly": {
@@ -8100,7 +8259,15 @@
           "default": "Code2",
           "description": "Lucide-Icon-Name (z. B. \"Lightbulb\", \"Thermometer\"). Leer = Standard-Icon des Typs."
         },
-        "searchScope": {},
+        "searchScope": {
+          "type": "string",
+          "enum": [
+            "name",
+            "path",
+            "both"
+          ],
+          "default": "both"
+        },
         "showEngine": {
           "type": "boolean",
           "default": true
@@ -8116,6 +8283,12 @@
           "description": "Suchfeld anzeigen."
         },
         "sortBy": {
+          "type": "string",
+          "enum": [
+            "name",
+            "status"
+          ],
+          "default": "name",
           "description": "Sortierschlüssel: none, label, value oder \"sub:<Feld>\" für eine Zweitzeile."
         },
         "striped": {
@@ -8124,6 +8297,13 @@
           "description": "Zeilen abwechselnd einfärben."
         },
         "titleAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "default": "left",
           "description": "Ausrichtung des Titels: left, center oder right."
         }
       }
@@ -8488,6 +8668,12 @@
           "description": "Beschriftung für den falschen Zustand."
         },
         "falseType": {
+          "type": "string",
+          "enum": [
+            "icon",
+            "base64"
+          ],
+          "default": "icon",
           "description": "Woher die Darstellung für \"falsch\" kommt: Icon, Bild oder Text."
         },
         "iconSize": {
@@ -8501,6 +8687,12 @@
           "description": "Beschriftung neben dem Bedienelement anzeigen."
         },
         "stateMode": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "condition"
+          ],
+          "default": "boolean",
           "description": "\"boolean\" wertet den Wert als wahr/falsch aus, \"condition\" vergleicht ihn mit stateOperator und stateValue."
         },
         "stateOperator": {
@@ -8533,6 +8725,12 @@
           "description": "Beschriftung für den wahren Zustand."
         },
         "trueType": {
+          "type": "string",
+          "enum": [
+            "icon",
+            "base64"
+          ],
+          "default": "icon",
           "description": "Woher die Darstellung für \"wahr\" kommt: Icon, Bild oder Text."
         }
       }
@@ -9382,9 +9580,22 @@
           "ref": "CustomGrid"
         },
         "dataSource": {
+          "type": "string",
+          "enum": [
+            "online",
+            "adapter"
+          ],
+          "default": "online",
           "description": "\"online\" holt die Daten selbst, \"adapter\" liest sie aus adapterLocationPath."
         },
         "feelsLikeStyle": {
+          "type": "string",
+          "enum": [
+            "text",
+            "icon",
+            "hidden"
+          ],
+          "default": "text",
           "description": "Gefühlte Temperatur als \"text\", als \"icon\" oder \"hidden\"."
         },
         "fontScale": {
