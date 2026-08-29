@@ -160,7 +160,7 @@ check('caps the datapoint list and says it did', () => {
 check('includes the current tab only when asked', () => {
     const tab = { name: 'Wohnzimmer', widgets: [{ id: 'w1', type: 'switch', gridPos: { x: 0, y: 0, w: 8, h: 4 } }] };
     const withTab = buildAiPrompt({ ...base, currentTab: tab });
-    assert.match(withTab, /## Aktueller Tab „Wohnzimmer"/);
+    assert.match(withTab, /## Aktueller Tab „Wohnzimmer“/);
     assert.match(withTab, /"type": "switch"/);
     assert.ok(!prompt.includes('## Aktueller Tab'), 'omitted tab must not appear');
 });

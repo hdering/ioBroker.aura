@@ -104,11 +104,13 @@ function renderTypeName(o: SchemaOption): string {
     if (o.tuple) {
         return `[${o.tuple.map(renderTypeName).join(', ')}]`;
     }
-    if (o.type === 'array') {
-        return `${o.items ? renderTypeName(o.items) : 'any'}[]`;
-    }
+    // ref before array: a named type may itself BE an array (ColorThreshold is a
+    // tuple), and checking array first turned "ColorThreshold[]" into "any[][]".
     if (o.ref) {
         return o.ref;
+    }
+    if (o.type === 'array') {
+        return `${o.items ? renderTypeName(o.items) : 'any'}[]`;
     }
     if (Array.isArray(o.type)) {
         return o.type.join(' | ');
