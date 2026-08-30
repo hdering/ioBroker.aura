@@ -28,8 +28,9 @@ müssen — sonst baut das Modell ein Dashboard aus IDs, die hier nicht existier
 
 ## Einrichten
 
-Die Instanzkonfiguration führt durch die Schritte (Kurzanleitung als `staticText`
-direkt im Abschnitt „KI-Zugriff (MCP) — BETA“):
+Die Instanzkonfiguration führt durch die Schritte (Kurzanleitung im Abschnitt
+„KI-Zugriff (MCP) — BETA“; `staticText` rendert **kein** HTML, darum ein Eintrag
+je Schritt statt einer `<ol>`):
 
 1. Haken bei „MCP-Endpunkt aktivieren“
 2. „Token erzeugen“ (Instanz muss laufen), speichern
@@ -46,11 +47,22 @@ Felder:
 | Token erzeugen | — | Knopf; erzeugt 32 Hex-Zeichen aus dem CSPRNG. Die Instanz muss laufen (`sendTo`) |
 | Client-Konfiguration | leer | Wird vom Knopf mitbefüllt: der fertige `mcpServers`-Block zum Kopieren |
 
-Der Knopf baut den Block mit Port und Token fertig zusammen. Die **Adresse** kann
-der Adapter nicht kennen — unter welcher IP ihn der Client erreicht, weiß nur der
-Client. Ist `customUrl` gesetzt, wird sie verwendet, sonst bleibt ein sichtbares
-`<ioBroker-IP>` stehen: eine offensichtliche Lücke ist besser als ein
-selbstbewusst falscher Host.
+Der Knopf baut den Block vollständig zusammen (`lib/mcp/clientConfig.js`):
+
+- **Basis-URL** gesetzt → sie gewinnt, ohne doppelten Schrägstrich. Nur sie kennt
+  einen Reverse-Proxy oder Hostnamen.
+- sonst die **eigene LAN-Adresse** des Hosts: der Adapter läuft auf dem
+  ioBroker-Rechner, seine nicht-interne IPv4 ist die Adresse, die andere Geräte
+  nutzen. Private Bereiche gewinnen vor VPN- oder Container-Interfaces — Dockers
+  `br0` steht sonst alphabetisch vorn.
+- **Protokoll** aus dem tatsächlich laufenden Server (`_httpsActive`), nicht aus
+  `config.secure`: scheitert HTTPS beim Start, fällt der Server auf HTTP zurück
+  und die Einstellung würde lügen.
+- findet sich nichts, bleibt ein sichtbares `<ioBroker-IP>` stehen — eine
+  offensichtliche Lücke ist besser als ein selbstbewusst falscher Host.
+
+Die Logik liegt bewusst im Modul und nicht in `main.js`: eine Kopie im Test wäre
+für immer grün geblieben, während `main.js` davon wegdriftet.
 
 ```json
 {
@@ -143,7 +155,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 41 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 45 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

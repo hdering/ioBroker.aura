@@ -31,6 +31,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const { validateWidget, validateTab, validateAny, allowedOptions } = require('../../lib/mcp/validate.js');
 const { designColumns, allTabs, findTab, collectDefIds, replaceTabWidgets } = require('../../lib/mcp/auraConfig.js');
 const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
+const { baseUrl, clientConfig, hostAddresses } = require('../../lib/mcp/clientConfig.js');
 
 const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-widget-schema.json'), 'utf8'));
 
@@ -463,37 +464,55 @@ check('a group widget carries its children into config.group-defs', () => {
 const { randomBytes } = await import('node:crypto');
 const genToken = () => randomBytes(16).toString('hex');
 
-/** What onMessage('generateMcpToken') does, kept in step with main.js. */
-function generateReply(config) {
-    const token = randomBytes(16).toString('hex');
-    const base = config.customUrl
-        ? config.customUrl.replace(/\/+$/, '')
-        : `http://<ioBroker-IP>:${config.port || 8095}`;
-    return {
-        mcpToken: token,
-        mcpClientConfig: JSON.stringify(
-            {
-                mcpServers: {
-                    aura: { type: 'http', url: `${base}/mcp`, headers: { Authorization: `Bearer ${token}` } },
-                },
-            },
-            null,
-            2,
-        ),
-    };
-}
-
-check('the button hands back a client block that is valid JSON and carries the token', () => {
-    const r = generateReply({ port: 8095 });
-    const parsed = JSON.parse(r.mcpClientConfig);
+check('the client block is valid JSON and carries the token', () => {
+    const token = genToken();
+    const parsed = JSON.parse(clientConfig({ port: 8095, interfaces: {} }, token));
     assert.equal(parsed.mcpServers.aura.type, 'http');
-    assert.equal(parsed.mcpServers.aura.url, 'http://<ioBroker-IP>:8095/mcp');
-    assert.equal(parsed.mcpServers.aura.headers.Authorization, `Bearer ${r.mcpToken}`);
+    assert.equal(parsed.mcpServers.aura.headers.Authorization, `Bearer ${token}`);
+    assert.match(parsed.mcpServers.aura.url, /\/mcp$/);
 });
 
-check('a configured customUrl replaces the host placeholder, without a double slash', () => {
-    const r = generateReply({ customUrl: 'https://aura.example.org/', port: 8095 });
-    assert.equal(JSON.parse(r.mcpClientConfig).mcpServers.aura.url, 'https://aura.example.org/mcp');
+check('a configured base URL wins and loses its trailing slash', () => {
+    assert.equal(baseUrl({ customUrl: 'https://aura.example.org/', port: 8095 }), 'https://aura.example.org');
+    assert.equal(baseUrl({ customUrl: 'https://aura.example.org//' }), 'https://aura.example.org');
+});
+
+check('without a base URL the host LAN address and the live protocol are used', () => {
+    const ifaces = {
+        lo: [{ address: '127.0.0.1', family: 'IPv4', internal: true }],
+        eth0: [{ address: '192.168.188.140', family: 'IPv4', internal: false }],
+    };
+    assert.equal(baseUrl({ port: 8095, interfaces: ifaces }), 'http://192.168.188.140:8095');
+    assert.equal(baseUrl({ port: 8095, https: true, interfaces: ifaces }), 'https://192.168.188.140:8095');
+});
+
+check('a LAN address is preferred over a VPN or container interface', () => {
+    // Docker's bridge comes first alphabetically and would otherwise win.
+    const ifaces = {
+        br0: [{ address: '172.17.0.1', family: 'IPv4', internal: false }],
+        eth0: [{ address: '192.168.188.140', family: 'IPv4', internal: false }],
+        tun0: [{ address: '100.64.0.3', family: 'IPv4', internal: false }],
+    };
+    assert.equal(baseUrl({ interfaces: ifaces }), 'http://172.17.0.1:8095');
+    const noPrivate = { tun0: [{ address: '100.64.0.3', family: 'IPv4', internal: false }] };
+    assert.equal(baseUrl({ interfaces: noPrivate }), 'http://100.64.0.3:8095');
+});
+
+check('numeric IPv4 family and IPv6 are handled', () => {
+    const ifaces = {
+        eth0: [
+            { address: 'fe80::1', family: 'IPv6', internal: false },
+            { address: '10.0.0.5', family: 4, internal: false },
+        ],
+    };
+    assert.deepEqual(hostAddresses(ifaces), ['10.0.0.5']);
+});
+
+check('with no usable address a visible placeholder is left in', () => {
+    assert.equal(
+        baseUrl({ interfaces: { lo: [{ address: '127.0.0.1', family: 'IPv4', internal: true }] } }),
+        'http://<ioBroker-IP>:8095',
+    );
 });
 
 check('a generated token is 32 hex chars and never repeats', () => {

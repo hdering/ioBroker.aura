@@ -375,8 +375,8 @@
     "mcpBetaNote": {
       "type": "staticText",
       "text": {
-        "en": "BETA — an AI assistant can change your dashboard through this endpoint. It can get things wrong: widgets in the wrong place, options that do not do what was intended, a tab overwritten. Every write is backed up to <namespace>.backups first, but check the result. Do not enable this on a system you cannot afford to have disturbed.",
-        "de": "BETA — über diesen Endpunkt kann ein KI-Assistent dein Dashboard verändern. Dabei kann einiges danebengehen: Widgets an der falschen Stelle, Optionen ohne die gewünschte Wirkung, ein überschriebener Tab. Vor jedem Schreibvorgang wird nach <namespace>.backups gesichert — sieh dir das Ergebnis trotzdem an. Nicht auf einem System aktivieren, dessen Störung du dir nicht leisten kannst."
+        "en": "BETA — an AI assistant can change your dashboard through this endpoint. It can get things wrong: widgets in the wrong place, options that do not do what was intended, a tab overwritten. Every write is backed up to the instance backups (aura.0.backups) first, but check the result. Do not enable this on a system you cannot afford to have disturbed.",
+        "de": "BETA — über diesen Endpunkt kann ein KI-Assistent dein Dashboard verändern. Dabei kann einiges danebengehen: Widgets an der falschen Stelle, Optionen ohne die gewünschte Wirkung, ein überschriebener Tab. Vor jedem Schreibvorgang wird in den Sicherungen der Instanz (aura.0.backups) gesichert — sieh dir das Ergebnis trotzdem an. Nicht auf einem System aktivieren, dessen Störung du dir nicht leisten kannst."
       },
       "style": {
         "color": "#b45309",
@@ -388,11 +388,74 @@
       "lg": 12,
       "xl": 12
     },
-    "mcpHowTo": {
+    "mcpHowTo0": {
       "type": "staticText",
       "text": {
-        "en": "<b>Quick start</b><ol><li>Tick “Enable MCP endpoint”.</li><li>Click “Generate token” (the instance must be running) and save.</li><li>Copy the block produced below into your AI client's MCP configuration (e.g. Claude Desktop / Claude Code, section <code>mcpServers</code>). Where it says <code>&lt;ioBroker-IP&gt;</code>, put the address Aura is reachable at.</li><li>Also set up the <b>ioBroker MCP</b> server — it supplies the datapoints, this endpoint does not know them. Both must point at the same ioBroker installation.</li><li>Then just say what you want built, e.g. “Add a tile for every light in the living room tab, with the room temperature below.”</li></ol>",
-        "de": "<b>Kurzanleitung</b><ol><li>Haken bei „MCP-Endpunkt aktivieren“ setzen.</li><li>Auf „Token erzeugen“ klicken (die Instanz muss dafür laufen) und speichern.</li><li>Den unten erzeugten Block in die MCP-Konfiguration des KI-Clients übernehmen (z. B. Claude Desktop / Claude Code, Abschnitt <code>mcpServers</code>). Steht dort <code>&lt;ioBroker-IP&gt;</code>, die Adresse eintragen, unter der Aura erreichbar ist.</li><li>Zusätzlich den <b>ioBroker-MCP</b> einrichten — der liefert die Datenpunkte, dieser Endpunkt kennt sie nicht. Beide müssen auf dieselbe ioBroker-Installation zeigen.</li><li>Dann einfach sagen, was gebaut werden soll, z. B. „Lege im Tab Wohnzimmer für jedes Licht eine Kachel an und darunter die Raumtemperatur.“</li></ol>"
+        "de": "Kurzanleitung",
+        "en": "Quick start"
+      },
+      "style": {
+        "fontWeight": "bold"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "mcpHowTo1": {
+      "type": "staticText",
+      "text": {
+        "de": "1. Haken bei „MCP-Endpunkt aktivieren“ setzen.",
+        "en": "1. Tick “Enable MCP endpoint”."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "mcpHowTo2": {
+      "type": "staticText",
+      "text": {
+        "de": "2. Auf „Token erzeugen“ klicken (die Instanz muss dafür laufen) und speichern.",
+        "en": "2. Click “Generate token” (the instance must be running) and save."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "mcpHowTo3": {
+      "type": "staticText",
+      "text": {
+        "de": "3. Den erzeugten Block „Client-Konfiguration“ in den KI-Client übernehmen — bei Claude Desktop / Claude Code in den Abschnitt mcpServers.",
+        "en": "3. Copy the “Client configuration” block into your AI client — with Claude Desktop / Claude Code into the mcpServers section."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "mcpHowTo4": {
+      "type": "staticText",
+      "text": {
+        "de": "4. Zusätzlich den ioBroker-MCP einrichten: der liefert die Datenpunkte, dieser Endpunkt kennt sie nicht. Beide müssen auf dieselbe ioBroker-Installation zeigen.",
+        "en": "4. Also set up the ioBroker MCP server: it supplies the datapoints, this endpoint does not know them. Both must point at the same ioBroker installation."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "mcpHowTo5": {
+      "type": "staticText",
+      "text": {
+        "de": "5. Dann einfach sagen, was gebaut werden soll — z. B. „Lege im Tab Wohnzimmer für jedes Licht eine Kachel an und darunter die Raumtemperatur.“",
+        "en": "5. Then just say what you want built — e.g. “Add a tile for every light in the living room tab, with the room temperature below.”"
       },
       "xs": 12,
       "sm": 12,

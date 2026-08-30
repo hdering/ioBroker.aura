@@ -7,6 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
 const { handleMcpRequest } = require('./lib/mcp/httpEndpoint');
+const { clientConfig } = require('./lib/mcp/clientConfig');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -1311,6 +1312,9 @@ class Aura extends utils.Adapter {
             }
         });
 
+        // The MCP client block needs the protocol that is actually in use — HTTPS
+        // can fail at startup and fall back to HTTP, so config.secure would lie.
+        this._httpsActive = httpsActive;
         server.listen(port, () => {
             this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on port ${port}`);
             if (this.config.mcpEnabled) {
@@ -3069,21 +3073,13 @@ class Aura extends utils.Adapter {
                 // The adapter cannot know which address the client will use to reach
                 // it, so a configured customUrl wins and otherwise a placeholder is
                 // left in — better an obvious gap than a confidently wrong host.
-                const base = this.config.customUrl
-                    ? this.config.customUrl.replace(/\/+$/, '')
-                    : `http://<ioBroker-IP>:${this.config.port || 8095}`;
-                const snippet = JSON.stringify(
+                const snippet = clientConfig(
                     {
-                        mcpServers: {
-                            aura: {
-                                type: 'http',
-                                url: `${base}/mcp`,
-                                headers: { Authorization: `Bearer ${token}` },
-                            },
-                        },
+                        customUrl: this.config.customUrl,
+                        port: this.config.port,
+                        https: this._httpsActive,
                     },
-                    null,
-                    2,
+                    token,
                 );
                 reply({
                     native: { mcpToken: token, mcpClientConfig: snippet },
