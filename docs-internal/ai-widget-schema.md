@@ -38,14 +38,29 @@ dokumentiert.
 | 1 | `widgetRegistry.tsx`, `utils/widgetLayouts.ts` | Wird mit esbuild gebündelt und **ausgeführt** — Label, Standardgröße, Layoutliste können nicht abweichen |
 | 2 | Benannte Options-Interfaces (`StatusOverviewOptions`, `AutoListOptions` …) | Feldtypen und JSDoc wörtlich |
 | 3 | Die Options-Zugriffe in der Widget-Komponente | Schlüssel, Typ und Vorgabewert aus festen Schreibweisen |
-| 4 | `tools/schema/widget-schema-overlay.mjs` | Beschreibungen und Korrekturen von Hand |
+| 4 | `UNIVERSAL_OPTIONS` im Overlay | Optionen, die **jedes** Widget hat |
+| 5 | `tools/schema/widget-schema-overlay.mjs` | Beschreibungen und Korrekturen von Hand |
 
 Quelle 3 liest keine TypeScript-AST, sondern die wenigen Schreibweisen, in denen
 Widgets ihre Optionen auswerten (`(o.k as number) || 20`, `o.k !== false`, …).
 Was sie nicht sicher bestimmen kann, lässt sie weg — ein fehlender Schlüssel ist
 harmloser als ein erfundener.
 
-Zwei Fallen, die dabei umschifft werden:
+**Übergreifende Optionen fehlten zunächst ganz.** `conditions`, `badges`,
+`clickAction`, `transparent`, `transparency` und `styleOverride` liest nicht das
+Widget, sondern der Wrapper `WidgetFrame` — und der liegt in
+`components/layout/`, wo der Leser nicht hinschaut. Die Folge war handfest: das
+Schema wies `transparent` nur bei den sieben Widgets aus, die es zusätzlich selbst
+lesen, und ein Modell schloss daraus „nur Gruppe und Panels können transparent
+sein". Bedingungen, Marker und Klick-Aktionen fehlten komplett. Sie stehen jetzt
+als `UNIVERSAL_OPTIONS` im Overlay und gelten für alle 55 Typen.
+
+`npm run test:schema` prüft beides: dass jeder dieser Schlüssel im Schema bei
+jedem Widget steht **und** dass `WidgetFrame` ihn tatsächlich noch liest — als
+ganzes Wort, denn ein `includes()` hätte auch `conditionsRenamed` durchgehen
+lassen.
+
+Zwei weitere Fallen, die umschifft werden:
 
 - **Alias-Shadowing.** Widgets binden ihre Optionen an ein einbuchstabiges `o`,
   und `o` ist zugleich der beliebteste Arrow-Parameter (`.filter((o) => …)`). Der

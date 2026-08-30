@@ -647,5 +647,45 @@ export const EXTRA_OPTIONS = {
     },
 };
 
+/**
+ * Options every widget accepts, whatever its type.
+ *
+ * They are read by the WidgetFrame wrapper (components/layout/WidgetFrame.tsx),
+ * not by the widget components — which is exactly why the source reader missed
+ * them: it walks components/widgets/ only. Left out, a model concludes that only
+ * the handful of widgets that happen to read `transparent` themselves can be
+ * transparent, and that conditions, badges and click actions do not exist.
+ *
+ * `ts` is the TypeScript type, resolved by the generator like any other.
+ */
+export const UNIVERSAL_OPTIONS = {
+    conditions: {
+        ts: 'WidgetCondition[]',
+        description:
+            'Regeln, die Aussehen und Sichtbarkeit des Widgets vom Wert eines Datenpunkts abhängig machen ' +
+            '(Farbe, Icon, Titel, Textgröße, ausblenden).',
+    },
+    badges: {
+        ts: 'BadgeDef[]',
+        description: 'Kleine Marker in der Ecke des Widgets, gespeist aus einem Datenpunkt.',
+    },
+    clickAction: {
+        ts: 'ClickAction',
+        description: 'Was ein Klick auf das Widget auslöst — Popup, Navigation, Datenpunkt schreiben, URL.',
+    },
+    transparent: {
+        ts: 'boolean',
+        description: 'Kartenhintergrund und Rahmen weglassen; das Widget schwebt frei auf dem Dashboard.',
+    },
+    transparency: {
+        ts: 'number',
+        description: 'Deckkraft der Karte in Prozent (100 = voll deckend).',
+    },
+    styleOverride: {
+        ts: 'Record<string, string>',
+        description: 'CSS-Variablen nur für dieses Widget, z. B. { "--accent": "#f00" }.',
+    },
+};
+
 /** Identifiers the readers picked up that are not option keys. */
 export const DROP_KEYS = {};

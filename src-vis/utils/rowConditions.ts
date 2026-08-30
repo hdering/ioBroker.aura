@@ -203,6 +203,21 @@ export function partOf(
     return own ? { ...base, ...stripUndefined(own) } : base;
 }
 
+/**
+ * The effect on an element that is NOT a four-part row but a single value — a
+ * second-line datapoint. Its editor offers no target select, so every rule lands
+ * under 'row'; reading it through partOf() would silently drop exactly the two
+ * things partOf() keeps away from a row's parts: the icon and `hide`. An explicit
+ * 'value' rule still wins, should one ever reach here.
+ */
+export function elementOf(res: RowCondResult | undefined): ElementCondResult {
+    if (!res) return {};
+    const row = res.row;
+    const own = res.value;
+    if (!row) return own ?? {};
+    return own ? { ...row, ...stripUndefined(own) } : row;
+}
+
 function stripUndefined(o: ElementCondResult): ElementCondResult {
     const out: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(o)) if (v !== undefined) out[k] = v;

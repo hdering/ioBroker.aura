@@ -30,7 +30,13 @@ import esbuild from 'esbuild';
 
 import { SourceIndex } from './ts-source-index.mjs';
 import { extractOptionKeys, readWidgetMap, optionsInterfaceName } from './extract-options.mjs';
-import { KEY_DESCRIPTIONS, WIDGET_OPTION_NOTES, DROP_KEYS, EXTRA_OPTIONS } from './widget-schema-overlay.mjs';
+import {
+    KEY_DESCRIPTIONS,
+    WIDGET_OPTION_NOTES,
+    DROP_KEYS,
+    EXTRA_OPTIONS,
+    UNIVERSAL_OPTIONS,
+} from './widget-schema-overlay.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, '../..');
@@ -276,7 +282,14 @@ function collectWidgetOptions(type, file, index, types) {
         }
     }
 
-    // 3c. Overlay: drop misreads, add what the readers cannot see, annotate.
+    // 3c. Options the WidgetFrame wrapper reads for EVERY widget. The reader only
+    //     walks components/widgets/, so it cannot see them.
+    for (const [key, entry] of Object.entries(UNIVERSAL_OPTIONS)) {
+        const { ts, ...rest } = entry;
+        options[key] = { ...normalizeType(ts, index, types), ...rest, source: 'universal' };
+    }
+
+    // 3d. Overlay: drop misreads, add what the readers cannot see, annotate.
     for (const key of DROP_KEYS[type] ?? []) {
         delete options[key];
     }

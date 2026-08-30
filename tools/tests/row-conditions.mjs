@@ -20,7 +20,7 @@ const bundle = join(cache, `aura-rowcond-${process.pid}.mjs`);
 await build({
     stdin: {
         contents: [
-            'export { resolveRuleRefs, ruleForeignRefs, evalRowRules, partOf, rowHidden, isOwnRef, condAnimation, ELEMENT_TARGETS }',
+            'export { resolveRuleRefs, ruleForeignRefs, evalRowRules, partOf, elementOf, rowHidden, isOwnRef, condAnimation, ELEMENT_TARGETS }',
             "  from './src-vis/utils/rowConditions.ts';",
         ].join('\n'),
         resolveDir: process.cwd(),
@@ -32,8 +32,17 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { resolveRuleRefs, ruleForeignRefs, evalRowRules, partOf, rowHidden, isOwnRef, condAnimation, ELEMENT_TARGETS } =
-    await import(pathToFileURL(bundle).href);
+const {
+    resolveRuleRefs,
+    ruleForeignRefs,
+    evalRowRules,
+    partOf,
+    elementOf,
+    rowHidden,
+    isOwnRef,
+    condAnimation,
+    ELEMENT_TARGETS,
+} = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -199,6 +208,48 @@ check('isOwnRef: a neighbour', isOwnRef('hm-rpc.0.Thermostat.UNREACH', ROW) === 
     eq('partOf: a row icon reaches the icon part', partOf(res, 'icon').icon, 'Zap');
     eq('partOf: a row icon colour reaches the icon part', partOf(res, 'icon').iconColor, '#ff0');
     eq('partOf: the icon does not leak into the name', partOf(res, 'name').icon, undefined);
+}
+
+// ── a single element, not a four-part row (issue #601) ──────────────────
+// A second-line datapoint is one value with one icon; its editor offers no target
+// select, so every rule lands under 'row'. Read through partOf() the icon and the
+// hide flag would be dropped — exactly what partOf() is supposed to do for a row.
+{
+    const res = evalRowRules(
+        [rule('r', [clause('{dp}', 'active')], { color: '#f00', icon: 'Zap', iconColor: '#ff0', iconSize: 18 })],
+        ROW,
+        1,
+        noValues,
+    );
+    eq('elementOf: the colour arrives', elementOf(res).color, '#f00');
+    eq('elementOf: the icon arrives', elementOf(res).icon, 'Zap');
+    eq('elementOf: the icon colour arrives', elementOf(res).iconColor, '#ff0');
+    eq('elementOf: the icon size arrives', elementOf(res).iconSize, 18);
+    eq('elementOf: partOf would have dropped the icon', partOf(res, 'value').icon, undefined);
+}
+{
+    const res = evalRowRules([rule('r', [clause('{dp}', 'active')], { hide: true })], ROW, 1, noValues);
+    check('elementOf: hiding the element hides it', elementOf(res).hide === true);
+    check('elementOf: partOf would have kept it visible', partOf(res, 'value').hide === undefined);
+}
+{
+    // Nothing matched, or nothing configured at all.
+    eq('elementOf: no result is no effect', elementOf(undefined), {});
+    eq('elementOf: an empty result is no effect', elementOf(evalRowRules([], ROW, 1, noValues)), {});
+}
+{
+    // A rule that does name 'value' still wins over the targetless one.
+    const res = evalRowRules(
+        [
+            rule('a', [clause('{dp}', 'active')], { color: '#abc', icon: 'Zap' }),
+            rule('b', [clause('{dp}', 'active')], { target: 'value', color: '#123' }),
+        ],
+        ROW,
+        1,
+        noValues,
+    );
+    eq('elementOf: a value rule beats the targetless one', elementOf(res).color, '#123');
+    eq('elementOf: and keeps the icon of the targetless one', elementOf(res).icon, 'Zap');
 }
 
 // ── icon size ────────────────────────────────────────────────────────────────

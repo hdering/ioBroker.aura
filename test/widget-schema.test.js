@@ -37,6 +37,43 @@ assert.ok(
     `AiPromptDialog must fetch ${SCHEMA_PATH.replace('public/', '')}`,
 );
 
+// ── 0b. The wrapper's options reach every widget ─────────────────────────────
+// conditions, badges, click actions and transparency are read by WidgetFrame, not
+// by the widget components, so the source reader cannot see them: it walks
+// components/widgets/ only. Left out, a model concludes that only the few widgets
+// that happen to read `transparent` themselves can be transparent, and that
+// conditions and click actions do not exist at all.
+const frame = read('src-vis/components/layout/WidgetFrame.tsx');
+const UNIVERSAL = ['conditions', 'badges', 'clickAction', 'transparent', 'transparency', 'styleOverride'];
+
+/**
+ * Does `src` read `config.options.<key>` as a whole word?
+ *
+ * A plain includes() would also accept `config.options.conditionsRenamed`, which
+ * is precisely the case this guard exists to catch — so the character after the
+ * key has to be checked.
+ */
+function readsOption(src, key) {
+    for (const prefix of ['config.options?.', 'config.options.']) {
+        const needle = prefix + key;
+        for (let i = src.indexOf(needle); i >= 0; i = src.indexOf(needle, i + 1)) {
+            const after = src[i + needle.length];
+            if (!after || !/[A-Za-z0-9_$]/.test(after)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+for (const key of UNIVERSAL) {
+    assert.ok(
+        readsOption(frame, key),
+        `WidgetFrame no longer reads "${key}" — the schema would now be advertising an option nobody honours`,
+    );
+    assert.ok(schema.commonOptions[key], `"${key}" must be a shared option — run: npm run schema`);
+}
+
 // ── 1. Type coverage ─────────────────────────────────────────────────────────
 const union = (name) =>
     read('src-vis/types/index.ts')
@@ -67,6 +104,12 @@ const refsOf = (entry) => [entry.ref, entry.items && entry.items.ref].filter(Boo
 
 for (const [type, w] of Object.entries(schema.widgets)) {
     assert.ok(w.layouts.length > 0, `${type}: no layouts`);
+    for (const key of UNIVERSAL) {
+        assert.ok(
+            key in w.options || w.commonOptions.includes(key),
+            `${type} is missing the universal option "${key}"`,
+        );
+    }
     for (const l of w.layouts) {
         assert.ok(layoutTypes.includes(l), `${type}: "${l}" is not a WidgetLayout`);
     }
