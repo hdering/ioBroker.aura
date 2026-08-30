@@ -121,6 +121,7 @@ Laufzeit verrät.
 | `aura_popups` / `aura_popup` | Popup-Ansichten auflisten / eine lesen |
 | `aura_write_popup` | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`) |
 | `aura_group` / `aura_write_group` | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen |
+| `aura_update_widget` | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe |
 
 ## Warum Validierung der eigentliche Gewinn ist
 
@@ -138,7 +139,7 @@ korrigieren kann:
 Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
 
-## Sieben Stellen, die man leicht falsch macht
+## Acht Stellen, die man leicht falsch macht
 
 **Eingebaute Popups.** Wird eine mitgelieferte Ansicht geändert, muss
 `userEdited: true` gesetzt werden — sonst verwirft `ensureBuiltins()` die Änderung
@@ -157,6 +158,14 @@ Frontend eindeutig gemacht und transliteriert (`garten`, `garten-2`, `kueche`).
 **Leere Hüllen.** Ein neues Layout bekommt einen Bereich und einen Tab, ein neuer
 Bereich einen Tab — genau wie im Editor. Ein Bereich ohne Tabs hat nichts
 anzuzeigen und keine `activeTabId`, auf die er zeigen könnte.
+
+**Ein Widget ändern verliert sonst Optionen.** `aura_update_widget` **merged**
+statt zu ersetzen: `options` werden Schlüssel für Schlüssel zusammengeführt, ein
+auf `null` gesetzter Schlüssel wird entfernt. Würde der Patch das Widget ersetzen,
+wäre der wahrscheinlichste Fehler, dass das Modell eine Option vergisst, die es
+gar nicht ändern wollte. `replace: true` schaltet das bewusst ab.
+
+Die **id darf sich dabei nicht ändern** — sonst zeigen Verweise ins Leere.
 
 **Popup- und Gruppen-Raster.** Beide haben ihr eigenes Raster, deshalb gilt dort
 die Spaltengrenze des Dashboards **nicht** — sie wird für diese Werkzeuge
@@ -200,7 +209,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 71 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 81 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

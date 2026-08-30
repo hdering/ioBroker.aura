@@ -29,7 +29,15 @@ const require = createRequire(import.meta.url);
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
 const { validateWidget, validateTab, validateAny, allowedOptions } = require('../../lib/mcp/validate.js');
-const { designColumns, allTabs, findTab, collectDefIds, replaceTabWidgets } = require('../../lib/mcp/auraConfig.js');
+const {
+    designColumns,
+    allTabs,
+    findTab,
+    findWidget,
+    mergeWidget,
+    collectDefIds,
+    replaceTabWidgets,
+} = require('../../lib/mcp/auraConfig.js');
 const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
 const {
     baseUrl,
@@ -315,7 +323,7 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all fifteen tools are announced with descriptions', () => {
+check('all sixteen tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_create_layout',
@@ -326,6 +334,7 @@ check('all fifteen tools are announced with descriptions', () => {
         'aura_popup',
         'aura_popups',
         'aura_tab',
+        'aura_update_widget',
         'aura_validate',
         'aura_widget_schema',
         'aura_widget_types',
@@ -726,6 +735,161 @@ check('the backup covers all three config states, not just the dashboard', () =>
     assert.ok('dashboard' in last, 'dashboard missing from the backup');
     assert.ok('group-defs' in last, 'group-defs missing from the backup');
     assert.ok('popup-config' in last, 'popup-config missing from the backup — a popup edit would be unrecoverable');
+});
+
+// ── Changing one widget ──────────────────────────────────────────────────────
+
+check('mergeWidget merges options and removes a key set to null', () => {
+    const before = { id: 'a', title: 'Alt', layout: 'card', options: { showTitle: true, icon: 'X' } };
+    const after = mergeWidget(before, { title: 'Neu', options: { icon: null, iconSize: 20 } });
+    assert.deepEqual(after, {
+        id: 'a',
+        title: 'Neu',
+        layout: 'card',
+        // The options the caller did not mention have to survive; losing them is
+        // the whole failure mode this tool exists to prevent.
+        options: { showTitle: true, iconSize: 20 },
+    });
+    assert.deepEqual(mergeWidget(before, { layout: null }).layout, undefined);
+    assert.deepEqual(before.options, { showTitle: true, icon: 'X' }, 'the input must not be mutated');
+});
+
+check('findWidget reports the tab, and refuses on a duplicated id', () => {
+    const found = findWidget(LAYOUTS, 'w-dup');
+    assert.ok(/Kein Widget/.test(found.error ?? ''));
+    const dupes = [
+        {
+            id: 'l',
+            name: 'L',
+            sections: [
+                {
+                    id: 's',
+                    name: 'S',
+                    tabs: [
+                        { id: 't1', name: 'Eins', widgets: [{ id: 'w-dup' }] },
+                        { id: 't2', name: 'Zwei', widgets: [{ id: 'w-dup' }] },
+                    ],
+                },
+            ],
+        },
+    ];
+    assert.ok(/kommt mehrfach vor/.test(findWidget(dupes, 'w-dup').error ?? ''));
+});
+
+adapter.states['config.group-defs'] = JSON.stringify({
+    version: 0,
+    state: {
+        defs: {
+            d1: [
+                { ...OK_SWITCH, id: 'kind-a', title: 'Kind A', options: { showTitle: true, iconSize: 24 } },
+                { ...OK_SWITCH, id: 'kind-b', gridPos: { x: 0, y: 4, w: 8, h: 4 } },
+            ],
+        },
+        hydrated: true,
+    },
+});
+
+const groupPatched = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { defId: 'd1', widgetId: 'kind-a', patch: JSON.stringify({ title: 'Umbenannt' }) },
+});
+check('one child of a group is changed without touching its siblings', () => {
+    assert.ok(!groupPatched.isError, groupPatched.content[0].text);
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.equal(defs.d1.length, 2);
+    assert.equal(defs.d1[0].title, 'Umbenannt');
+    // The options nobody mentioned must still be there.
+    assert.deepEqual(defs.d1[0].options, { showTitle: true, iconSize: 24 });
+    assert.equal(defs.d1[1].id, 'kind-b', 'the sibling must be untouched');
+});
+
+const groupPatchOptions = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: {
+        defId: 'd1',
+        widgetId: 'kind-a',
+        patch: JSON.stringify({ options: { iconSize: 32, showTitle: null } }),
+    },
+});
+check('an option can be changed and another removed in one call', () => {
+    assert.ok(!groupPatchOptions.isError, groupPatchOptions.content[0].text);
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.deepEqual(defs.d1[0].options, { iconSize: 32 });
+});
+
+const groupUnknownChild = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { defId: 'd1', widgetId: 'gibtsnicht', patch: JSON.stringify({ title: 'X' }) },
+});
+check('an unknown child lists the ids that exist', () => {
+    assert.ok(groupUnknownChild.isError);
+    assert.match(groupUnknownChild.content[0].text, /kind-a, kind-b/);
+});
+
+const patchInvalid = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { defId: 'd1', widgetId: 'kind-a', patch: JSON.stringify({ options: { showTitel: true } }) },
+});
+check('a patch that introduces a bad option is refused and nothing changes', () => {
+    assert.ok(patchInvalid.isError);
+    assert.match(patchInvalid.content[0].text, /showTitel/);
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.deepEqual(defs.d1[0].options, { iconSize: 32 });
+});
+
+const idChange = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { defId: 'd1', widgetId: 'kind-a', patch: JSON.stringify({ id: 'anders' }) },
+});
+check('the id cannot be changed, because references would be orphaned', () => {
+    assert.ok(idChange.isError);
+    assert.match(idChange.content[0].text, /id darf sich nicht ändern/);
+});
+
+// Do not rely on what earlier tests left in the tab — put the target there.
+await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: 'Klima',
+        widget: JSON.stringify({ ...OK_SWITCH, id: 'im-tab', title: 'Vorher', gridPos: { x: 0, w: 8, h: 4 } }),
+    },
+});
+
+const tabPatched = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { widgetId: 'im-tab', patch: JSON.stringify({ title: 'Im Tab geändert' }) },
+});
+check('a widget in a tab is found without naming the tab', () => {
+    assert.ok(!tabPatched.isError, tabPatched.content[0].text);
+    assert.match(tabPatched.content[0].text, /Wohnzimmer \/ Start \/ Klima/);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const klima = layouts[0].sections[0].tabs[1];
+    assert.equal(klima.widgets.find((w) => w.id === 'im-tab').title, 'Im Tab geändert');
+});
+
+const replaced = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: {
+        widgetId: 'im-tab',
+        replace: true,
+        patch: JSON.stringify({ ...OK_SWITCH, id: 'im-tab', title: 'Ganz neu', gridPos: { x: 0, y: 8, w: 8, h: 4 } }),
+    },
+});
+check('replace:true swaps the whole widget instead of merging', () => {
+    assert.ok(!replaced.isError, replaced.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const w = layouts[0].sections[0].tabs[1].widgets.find((x) => x.id === 'im-tab');
+    assert.equal(w.title, 'Ganz neu');
+    assert.deepEqual(w.options, OK_SWITCH.options);
+});
+
+const missingWidget = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { widgetId: 'nirgendwo', patch: JSON.stringify({ title: 'X' }) },
+});
+check('a widget that exists nowhere points at the defId route', () => {
+    assert.ok(missingWidget.isError);
+    assert.match(missingWidget.content[0].text, /defId der Gruppe mitgeben/);
 });
 
 // ── Token generation (the button in the adapter config) ──────────────────────
