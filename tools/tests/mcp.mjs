@@ -315,9 +315,11 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all thirteen tools are announced with descriptions', () => {
+check('all fifteen tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
+        'aura_create_layout',
+        'aura_create_section',
         'aura_create_tab',
         'aura_dashboard',
         'aura_group',
@@ -517,6 +519,78 @@ check('a tab whose widgets do not validate is not created at all', () => {
     assert.match(createdBad.content[0].text, /Nicht angelegt/);
     const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
     assert.ok(!JSON.stringify(layouts).includes('Kaputt'), 'a refused creation must leave no tab behind');
+});
+
+// ── Layouts and sections ─────────────────────────────────────────────────────
+
+const layoutCreated = await client.callTool({ name: 'aura_create_layout', arguments: { name: 'Küche' } });
+check('a layout is created with one section and one tab', () => {
+    assert.ok(!layoutCreated.isError, layoutCreated.content[0].text);
+    assert.match(layoutCreated.content[0].text, /Layout „Küche“ angelegt \(slug "kueche"\)/);
+    assert.match(layoutCreated.content[0].text, /\/#\/view\/kueche/);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const made = layouts[layouts.length - 1];
+    assert.equal(made.name, 'Küche');
+    // An empty shell has nothing to render and no activeTabId to point at.
+    assert.equal(made.sections.length, 1);
+    assert.equal(made.sections[0].tabs.length, 1);
+    assert.equal(made.activeSectionId, made.sections[0].id);
+    assert.equal(made.sections[0].activeTabId, made.sections[0].tabs[0].id);
+});
+
+check('the umlaut is transliterated in the slug, as the frontend does', () => {
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.equal(layouts[layouts.length - 1].slug, 'kueche');
+});
+
+const sectionNoLayout = await client.callTool({ name: 'aura_create_section', arguments: { name: 'Oben' } });
+check('creating a section asks which layout when there are several', () => {
+    assert.ok(sectionNoLayout.isError);
+    assert.match(sectionNoLayout.content[0].text, /mit "layout" angeben/);
+});
+
+const sectionCreated = await client.callTool({
+    name: 'aura_create_section',
+    arguments: { name: 'Oben', layout: 'Küche' },
+});
+check('a section is created in the named layout, with one tab', () => {
+    assert.ok(!sectionCreated.isError, sectionCreated.content[0].text);
+    assert.match(sectionCreated.content[0].text, /Bereich „Oben“ in Layout „Küche“ angelegt/);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const kueche = layouts.find((l) => l.name === 'Küche');
+    assert.equal(kueche.sections.length, 2);
+    assert.equal(kueche.sections[1].name, 'Oben');
+    assert.equal(kueche.sections[1].tabs.length, 1);
+});
+
+const sectionUnknown = await client.callTool({
+    name: 'aura_create_section',
+    arguments: { name: 'X', layout: 'gibtsnicht' },
+});
+check('an unknown layout lists the existing ones', () => {
+    assert.ok(sectionUnknown.isError);
+    assert.match(sectionUnknown.content[0].text, /Kein Layout "gibtsnicht"/);
+    assert.match(sectionUnknown.content[0].text, /- Küche/);
+});
+
+const tabInNewSection = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: { name: 'Herd', layout: 'Küche', section: 'Oben' },
+});
+check('a tab can be created in the freshly made section', () => {
+    assert.ok(!tabInNewSection.isError, tabInNewSection.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const oben = layouts.find((l) => l.name === 'Küche').sections.find((s) => s.name === 'Oben');
+    assert.deepEqual(
+        oben.tabs.map((t) => t.name),
+        ['Dashboard', 'Herd'],
+    );
+});
+
+check('creating structure leaves the other layouts untouched', () => {
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.equal(layouts[0].name, 'Wohnzimmer');
+    assert.equal(layouts[0].sections[0].tabs.length, 2, 'the first layout must keep its tabs');
 });
 
 // ── Popups ───────────────────────────────────────────────────────────────────

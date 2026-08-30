@@ -116,6 +116,8 @@ Laufzeit verrät.
 | `aura_add_widget` | Ein Widget anfügen |
 | `aura_write_tab` | Widgetliste eines Tabs ersetzen |
 | `aura_create_tab` | Neuen Tab anlegen, leer oder gefüllt |
+| `aura_create_section` | Neuen Bereich (Menüeintrag) anlegen, mit einem Start-Tab |
+| `aura_create_layout` | Neues Layout mit eigener URL anlegen, mit Bereich und Tab |
 | `aura_popups` / `aura_popup` | Popup-Ansichten auflisten / eine lesen |
 | `aura_write_popup` | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`) |
 | `aura_group` / `aura_write_group` | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen |
@@ -136,7 +138,7 @@ korrigieren kann:
 Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
 
-## Sechs Stellen, die man leicht falsch macht
+## Sieben Stellen, die man leicht falsch macht
 
 **Eingebaute Popups.** Wird eine mitgelieferte Ansicht geändert, muss
 `userEdited: true` gesetzt werden — sonst verwirft `ensureBuiltins()` die Änderung
@@ -148,8 +150,13 @@ selben State wie die Views. Der Schreibpfad liest die Hülle zurück und ersetzt
 `views`, statt sie neu zu bauen.
 
 **Bereich beim Tab-Anlegen.** Gibt es mehr als einen, wird nachgefragt statt
-geraten — ein Tab im falschen Bereich fällt erst auf, wenn jemand ihn sucht. Der
-Slug wird wie im Frontend eindeutig gemacht (`garten`, `garten-2`).
+geraten — ein Tab im falschen Bereich fällt erst auf, wenn jemand ihn sucht. Das
+gilt genauso für `aura_create_section` und das Ziel-Layout. Slugs werden wie im
+Frontend eindeutig gemacht und transliteriert (`garten`, `garten-2`, `kueche`).
+
+**Leere Hüllen.** Ein neues Layout bekommt einen Bereich und einen Tab, ein neuer
+Bereich einen Tab — genau wie im Editor. Ein Bereich ohne Tabs hat nichts
+anzuzeigen und keine `activeTabId`, auf die er zeigen könnte.
 
 **Popup- und Gruppen-Raster.** Beide haben ihr eigenes Raster, deshalb gilt dort
 die Spaltengrenze des Dashboards **nicht** — sie wird für diese Werkzeuge
@@ -193,7 +200,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 64 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 71 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein
