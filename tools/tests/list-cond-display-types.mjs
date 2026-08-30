@@ -3,11 +3,14 @@
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/list-cond-display-types.mjs
 //
-// Issue: a rule that sets the text size did nothing on the pill-shaped and the
-// control-shaped values (labelled boolean, sensor role, state map, contact,
+// Issue #601: a rule that sets the text size did nothing on the pill-shaped and
+// the control-shaped values (labelled boolean, sensor role, state map, contact,
 // slider, stepper) — only the plain text branches spread the condition style.
-// One list per widget and layout, one entry per display type, one list-wide rule
-// that always matches and sets an unmistakable size + colour.
+//
+// One list per widget and layout, one entry per display type, and every effect a
+// rule can have, each as its own pass: size + colour, weight + slant + animation,
+// the same set inherited from a `row` rule, the replaced text and the hidden
+// value. The clause always matches, so a miss is the renderer's, not the clause's.
 //
 // Values are injected through the screenshot harness (__auraShot.mock) — no socket
 // write, no real datapoint is touched.
@@ -23,14 +26,48 @@ const check = (name, ok, detail = '') => {
     console.log(`${ok ? '  ok  ' : '  FAIL'} ${name}${detail ? ` — ${detail}` : ''}`);
 };
 
-const RULE = {
-    id: 'val',
-    logic: 'AND',
-    target: 'value',
-    clauses: [{ datapoint: '{dp}', operator: 'contains', value: '' }],
-    fontSize: SIZE,
-    color: '#ff0099',
-};
+const ALWAYS = [{ datapoint: '{dp}', operator: 'contains', value: '' }];
+const rule = (target, effects) => ({ id: 'val', logic: 'AND', target, clauses: ALWAYS, ...effects });
+
+/**
+ * One pass per effect group. `expect` is what a value that draws text has to show;
+ * `everywhere` marks the passes that apply to every display type, text or not —
+ * replacing and hiding the value happen before the renderer picks a shape.
+ */
+const PASSES = [
+    {
+        name: 'size + colour',
+        rules: [rule('value', { fontSize: SIZE, color: '#ff0099' })],
+        expect: (st) => st.some((s) => s.size === `${SIZE}px`) && st.some((s) => s.color === COLOR),
+    },
+    {
+        name: 'bold + italic + pulse',
+        rules: [rule('value', { bold: true, italic: true, effect: 'pulse' })],
+        expect: (st) =>
+            st.some((s) => Number(s.weight) >= 700) &&
+            st.some((s) => s.style === 'italic') &&
+            st.some((s) => s.animation === 'auraCondPulse'),
+    },
+    {
+        // partOf() layers a row-level effect under the part-specific ones, so the
+        // value has to answer a `row` rule it never names itself.
+        name: 'inherited from a row rule',
+        rules: [rule('row', { fontSize: SIZE, color: '#ff0099' })],
+        expect: (st) => st.some((s) => s.size === `${SIZE}px`) && st.some((s) => s.color === COLOR),
+    },
+    {
+        name: 'replaced text',
+        rules: [rule('value', { text: 'ERSATZ' })],
+        everywhere: true,
+        expect: (st) => st.some((s) => s.text === 'ERSATZ'),
+    },
+    {
+        name: 'hidden value',
+        rules: [rule('value', { hide: true })],
+        everywhere: true,
+        expect: (st) => st.length === 0,
+    },
+];
 
 /**
  * One entry per display type. `text` says whether the value is drawn as text at
@@ -108,7 +145,7 @@ const entries = CASES.map((c, i) => ({
 
 const mockValues = Object.fromEntries(CASES.map((c) => [c.dp, c.val]));
 
-const widget = (id, type, layout) => ({
+const widget = (id, type, layout, rules) => ({
     id,
     type,
     title: id,
@@ -117,7 +154,7 @@ const widget = (id, type, layout) => ({
     gridPos: { x: 0, y: 0, w: 24, h: 40 },
     options: {
         entries,
-        rowConditions: [RULE],
+        rowConditions: rules,
         showDividers: false,
         syncIntervalMin: 999,
     },
@@ -137,10 +174,10 @@ await page.evaluate((m) => {
 }, mockValues);
 
 /**
- * Everything the row of `label` renders, with its computed size and colour.
+ * Everything the row of `label` renders, with the computed style of each piece.
  *
  * "Own text" rather than a leaf test: a pill draws its icon and its label in the
- * same element, so the leaf filter would skip exactly the elements this is about.
+ * same element, so a leaf filter would skip exactly the elements this is about.
  * The row is found by climbing from the label until a sibling text appears —
  * stopping before the climb swallows a neighbouring row's label, which is what a
  * value with no text at all (a bare toggle) would otherwise do.
@@ -174,44 +211,59 @@ const rowStyles = (widgetId, label, others) =>
                     .filter((x) => x.text && x.text !== l)
                     .map(({ e, text }) => {
                         const cs = getComputedStyle(e);
-                        return { text, size: cs.fontSize, color: cs.color };
+                        return {
+                            text,
+                            size: cs.fontSize,
+                            color: cs.color,
+                            weight: cs.fontWeight,
+                            style: cs.fontStyle,
+                            animation: cs.animationName,
+                        };
                     })
             );
         },
         [widgetId, label, others],
     );
 
-for (const [widgetId, type, layout, title] of [
+const LAYOUTS = [
     ['cd-list', 'list', 'default', 'static/default'],
     ['cd-list-card', 'list', 'card', 'static/card'],
     ['cd-auto', 'autolist', 'default', 'dynamic/default'],
     ['cd-auto-card', 'autolist', 'card', 'dynamic/card'],
-]) {
-    await page.evaluate((w) => window.__auraShot.showWidgets([w]), widget(widgetId, type, layout));
-    await page.waitForTimeout(900);
-    console.log(`\n── ${title} ──`);
-    for (const [i, c] of CASES.entries()) {
-        const name = caseName(c, i);
-        const title2 = caseTitle(c, i);
-        const styles = await rowStyles(
-            widgetId,
-            name,
-            CASES.map(caseName).filter((_, j) => j !== i),
-        );
-        if (!styles) {
-            check(`${title} ${title2}: row renders`, false, 'row not found');
-            continue;
-        }
-        const sized = styles.filter((s) => s.size === `${SIZE}px`);
-        const painted = styles.filter((s) => s.color === COLOR);
-        const seen = styles.map((s) => `${s.text}(${s.size})`).join(' ');
-        if (c.text || c.alsoText?.includes(title)) {
-            check(`${title} ${title2}: the rule sets the value size`, sized.length > 0, seen);
-            check(`${title} ${title2}: the rule paints the value`, painted.length > 0, seen);
-        } else {
-            // No value text — nothing to size. Only asserted so a future change that
-            // starts drawing text here shows up as a new, unchecked case.
-            check(`${title} ${title2}: no value text to size (by design)`, sized.length === 0, seen);
+    ['cd-list-cmp', 'list', 'compact', 'static/compact'],
+    ['cd-auto-cmp', 'autolist', 'compact', 'dynamic/compact'],
+    ['cd-list-min', 'list', 'minimal', 'static/minimal'],
+    ['cd-auto-min', 'autolist', 'minimal', 'dynamic/minimal'],
+];
+
+for (const pass of PASSES) {
+    console.log(`\n══ ${pass.name} ══`);
+    for (const [widgetId, type, layout, title] of LAYOUTS) {
+        await page.evaluate((w) => window.__auraShot.showWidgets([w]), widget(widgetId, type, layout, pass.rules));
+        await page.waitForTimeout(900);
+        for (const [i, c] of CASES.entries()) {
+            const name = caseName(c, i);
+            const label = `${title} ${caseTitle(c, i)}`;
+            const styles = await rowStyles(
+                widgetId,
+                name,
+                CASES.map(caseName).filter((_, j) => j !== i),
+            );
+            if (!styles) {
+                check(`${label}: row renders`, false, 'row not found');
+                continue;
+            }
+            const seen = styles.map((s) => `${s.text}(${s.size}/${s.weight}/${s.style}/${s.animation})`).join(' ');
+            // The minimal layout is one badge per row: it prints every value as text,
+            // a bare toggle and the shutter position included, so nothing is exempt there.
+            const drawsText = title.endsWith('/minimal') || c.text || c.alsoText?.includes(title);
+            if (pass.everywhere || drawsText) {
+                check(`${label}: ${pass.name}`, pass.expect(styles), seen);
+            } else {
+                // No value text — nothing to style. Asserted the other way round so a
+                // change that starts drawing text here shows up as an unchecked case.
+                check(`${label}: no value text to style (by design)`, !pass.expect(styles), seen);
+            }
         }
     }
 }
