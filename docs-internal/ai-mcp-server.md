@@ -115,6 +115,10 @@ Laufzeit verrät.
 | `aura_validate` | Prüfung gegen Schema und Live-Datenpunkte |
 | `aura_add_widget` | Ein Widget anfügen |
 | `aura_write_tab` | Widgetliste eines Tabs ersetzen |
+| `aura_create_tab` | Neuen Tab anlegen, leer oder gefüllt |
+| `aura_popups` / `aura_popup` | Popup-Ansichten auflisten / eine lesen |
+| `aura_write_popup` | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`) |
+| `aura_group` / `aura_write_group` | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen |
 
 ## Warum Validierung der eigentliche Gewinn ist
 
@@ -129,10 +133,29 @@ korrigieren kann:
 - widgets[1] ("a") und widgets[4] ("b") überlappen sich im Raster
 ```
 
-Beide Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
+Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
 
-## Vier Stellen, die man leicht falsch macht
+## Sechs Stellen, die man leicht falsch macht
+
+**Eingebaute Popups.** Wird eine mitgelieferte Ansicht geändert, muss
+`userEdited: true` gesetzt werden — sonst verwirft `ensureBuiltins()` die Änderung
+beim nächsten Frontend-Start. Der Schreibpfad setzt das Flag bei **jeder**
+Ansicht: bei eigenen ist es bedeutungslos, bei eingebauten rettet es die Arbeit.
+
+**Der Rest des Popup-States.** `typeDefaults` und `deletedBuiltinIds` liegen im
+selben State wie die Views. Der Schreibpfad liest die Hülle zurück und ersetzt nur
+`views`, statt sie neu zu bauen.
+
+**Bereich beim Tab-Anlegen.** Gibt es mehr als einen, wird nachgefragt statt
+geraten — ein Tab im falschen Bereich fällt erst auf, wenn jemand ihn sucht. Der
+Slug wird wie im Frontend eindeutig gemacht (`garten`, `garten-2`).
+
+**Popup- und Gruppen-Raster.** Beide haben ihr eigenes Raster, deshalb gilt dort
+die Spaltengrenze des Dashboards **nicht** — sie wird für diese Werkzeuge
+weggelassen.
+
+## Vier weitere Stellen
 
 **Bestehende Widgets dürfen nicht blockieren.** Ein Widget anzufügen prüft nur
 das *neue* Widget streng (`strictIndices`). Sonst würde ein einziges vor drei
@@ -170,7 +193,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 48 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 64 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

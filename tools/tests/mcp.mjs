@@ -315,14 +315,20 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all seven tools are announced with descriptions', () => {
+check('all thirteen tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
+        'aura_create_tab',
         'aura_dashboard',
+        'aura_group',
+        'aura_popup',
+        'aura_popups',
         'aura_tab',
         'aura_validate',
         'aura_widget_schema',
         'aura_widget_types',
+        'aura_write_group',
+        'aura_write_popup',
         'aura_write_tab',
     ]);
     for (const t of tools) {
@@ -463,6 +469,189 @@ check('a group widget carries its children into config.group-defs', () => {
     assert.ok(!withDefs.isError, withDefs.content[0].text);
     const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
     assert.deepEqual(defs.d1, [{ id: 'kind', type: 'switch' }]);
+});
+
+// ── Creating tabs ────────────────────────────────────────────────────────────
+
+const ambiguousSection = await client.callTool({ name: 'aura_create_tab', arguments: { name: 'Garten' } });
+check('creating a tab refuses to guess the section when several exist', () => {
+    assert.ok(ambiguousSection.isError);
+    assert.match(ambiguousSection.content[0].text, /Mehrere Bereiche möglich/);
+});
+
+const created = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: { name: 'Garten', layout: 'Tablet', section: 'Haupt' },
+});
+check('a tab is created in the named section, with a slug', () => {
+    assert.ok(!created.isError, created.content[0].text);
+    assert.match(created.content[0].text, /Tab „Garten“ angelegt in Tablet \/ Haupt/);
+    assert.match(created.content[0].text, /slug "garten"/);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const tabs = layouts[1].sections[0].tabs;
+    assert.equal(tabs.length, 2);
+    assert.equal(tabs[1].name, 'Garten');
+    assert.deepEqual(tabs[1].widgets, []);
+});
+
+const created2 = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: { name: 'Garten', layout: 'Tablet', section: 'Haupt' },
+});
+check('a second tab of the same name gets a distinct slug', () => {
+    assert.ok(!created2.isError, created2.content[0].text);
+    assert.match(created2.content[0].text, /slug "garten-2"/);
+});
+
+const createdBad = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: {
+        name: 'Kaputt',
+        layout: 'Tablet',
+        section: 'Haupt',
+        widgets: JSON.stringify([{ ...OK_SWITCH, datapoint: 'gibt.es.nicht' }]),
+    },
+});
+check('a tab whose widgets do not validate is not created at all', () => {
+    assert.ok(createdBad.isError);
+    assert.match(createdBad.content[0].text, /Nicht angelegt/);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.ok(!JSON.stringify(layouts).includes('Kaputt'), 'a refused creation must leave no tab behind');
+});
+
+// ── Popups ───────────────────────────────────────────────────────────────────
+
+adapter.states['config.popup-config'] = JSON.stringify({
+    version: 0,
+    state: {
+        typeDefaults: { switch: 'builtin-switch' },
+        views: [
+            { id: 'builtin-switch', name: 'Schalter', widgets: [], version: 3 },
+            { id: 'view-eigen', name: 'Eigenes', widgets: [{ ...OK_SWITCH, id: 'p1' }] },
+        ],
+    },
+});
+
+const popupList = await client.callTool({ name: 'aura_popups', arguments: {} });
+check('aura_popups lists the views with their widget counts', () => {
+    assert.match(popupList.content[0].text, /- Schalter \(id builtin-switch\) — 0 Widget/);
+    assert.match(popupList.content[0].text, /- Eigenes \(id view-eigen\) — 1 Widget/);
+});
+
+const popupRead = await client.callTool({ name: 'aura_popup', arguments: { view: 'Eigenes' } });
+check('aura_popup returns the widgets of one view', () => {
+    assert.ok(!popupRead.isError, popupRead.content[0].text);
+    assert.match(popupRead.content[0].text, /"id": "p1"/);
+});
+
+const popupMissing = await client.callTool({ name: 'aura_popup', arguments: { view: 'gibtsnicht' } });
+check('an unknown popup lists what is there', () => {
+    assert.ok(popupMissing.isError);
+    assert.match(popupMissing.content[0].text, /Vorhanden:/);
+    assert.match(popupMissing.content[0].text, /Schalter/);
+});
+
+const popupWritten = await client.callTool({
+    name: 'aura_write_popup',
+    arguments: { view: 'builtin-switch', widgets: JSON.stringify([{ ...OK_SWITCH, id: 'neu-im-popup' }]) },
+});
+check('editing a built-in popup flags it as user-edited', () => {
+    assert.ok(!popupWritten.isError, popupWritten.content[0].text);
+    const views = JSON.parse(adapter.states['config.popup-config']).state.views;
+    const builtin = views.find((v) => v.id === 'builtin-switch');
+    assert.equal(builtin.widgets[0].id, 'neu-im-popup');
+    // Without the flag, ensureBuiltins() discards the change on the next start.
+    assert.equal(builtin.userEdited, true);
+});
+
+check('the other keys of the popup state survive the write', () => {
+    const state = JSON.parse(adapter.states['config.popup-config']).state;
+    assert.deepEqual(state.typeDefaults, { switch: 'builtin-switch' });
+    assert.equal(state.views.length, 2);
+});
+
+const popupCreated = await client.callTool({
+    name: 'aura_write_popup',
+    arguments: { view: 'Frisch', create: true, widgets: JSON.stringify([{ ...OK_SWITCH, id: 'f1' }]) },
+});
+check('a popup can be created with create:true', () => {
+    assert.ok(!popupCreated.isError, popupCreated.content[0].text);
+    const views = JSON.parse(adapter.states['config.popup-config']).state.views;
+    assert.equal(views.length, 3);
+    assert.equal(views[2].name, 'Frisch');
+    assert.match(views[2].id, /^view-/);
+});
+
+const popupBad = await client.callTool({
+    name: 'aura_write_popup',
+    arguments: { view: 'Eigenes', widgets: JSON.stringify([{ ...OK_SWITCH, options: { showTitel: true } }]) },
+});
+check('a popup with a bad option is refused and the view is untouched', () => {
+    assert.ok(popupBad.isError);
+    assert.match(popupBad.content[0].text, /showTitel/);
+    const views = JSON.parse(adapter.states['config.popup-config']).state.views;
+    assert.equal(views.find((v) => v.name === 'Eigenes').widgets[0].id, 'p1');
+});
+
+// ── Groups ───────────────────────────────────────────────────────────────────
+
+adapter.states['config.group-defs'] = JSON.stringify({
+    version: 0,
+    state: { defs: { d1: [{ ...OK_SWITCH, id: 'kind-1' }] }, hydrated: true },
+});
+
+const groupRead = await client.callTool({ name: 'aura_group', arguments: { defId: 'd1' } });
+check('aura_group returns the children of a group', () => {
+    assert.ok(!groupRead.isError, groupRead.content[0].text);
+    assert.match(groupRead.content[0].text, /1 Kind\(er\)/);
+    assert.match(groupRead.content[0].text, /"id": "kind-1"/);
+});
+
+const groupMissing = await client.callTool({ name: 'aura_group', arguments: { defId: 'gibtsnicht' } });
+check('an unknown defId lists the known ones', () => {
+    assert.ok(groupMissing.isError);
+    assert.match(groupMissing.content[0].text, /Vorhanden: d1/);
+});
+
+const groupWritten = await client.callTool({
+    name: 'aura_write_group',
+    arguments: {
+        defId: 'd1',
+        widgets: JSON.stringify([
+            { ...OK_SWITCH, id: 'kind-a' },
+            { ...OK_SWITCH, id: 'kind-b', gridPos: { x: 0, y: 4, w: 8, h: 4 } },
+        ]),
+    },
+});
+check('aura_write_group replaces the children', () => {
+    assert.ok(!groupWritten.isError, groupWritten.content[0].text);
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.deepEqual(
+        defs.d1.map((w) => w.id),
+        ['kind-a', 'kind-b'],
+    );
+});
+
+const groupBad = await client.callTool({
+    name: 'aura_write_group',
+    arguments: { defId: 'd1', widgets: JSON.stringify([{ ...OK_SWITCH, id: 'x', layout: 'dial' }]) },
+});
+check('a group whose children do not validate is left alone', () => {
+    assert.ok(groupBad.isError);
+    assert.match(groupBad.content[0].text, /layout "dial"/);
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.deepEqual(
+        defs.d1.map((w) => w.id),
+        ['kind-a', 'kind-b'],
+    );
+});
+
+check('the backup covers all three config states, not just the dashboard', () => {
+    const names = Object.keys(adapter.files).sort();
+    const last = JSON.parse(adapter.files[names[names.length - 1]]);
+    assert.ok('dashboard' in last, 'dashboard missing from the backup');
+    assert.ok('group-defs' in last, 'group-defs missing from the backup');
+    assert.ok('popup-config' in last, 'popup-config missing from the backup — a popup edit would be unrecoverable');
 });
 
 // ── Token generation (the button in the adapter config) ──────────────────────
