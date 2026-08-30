@@ -105,6 +105,17 @@ nichts sonst in diesem Server die Anfrage abweisen würde.
 Der Vergleich läuft längenunabhängig, damit ein falscher Token nichts über
 Laufzeit verrät.
 
+**Der Token steht in `protectedNative`.** Das Passwortfeld in der Konfiguration
+verdeckt nur die Eingabe — am gespeicherten Wert ändert es nichts. Ohne
+`protectedNative` läge der Token im `native` des Instanzobjekts, und das liest das
+Frontend bei jedem Start (`App.tsx` holt `system.adapter.aura.*`): jeder Browser im
+Netz bekäme ihn im Klartext. `mcpClientConfig` gehört genauso dazu — der Block
+enthält denselben Token ein zweites Mal.
+
+Das Feld „Client-Konfiguration" zeigt den Token bewusst im Klartext: der Client
+braucht ihn, also muss er kopierbar sein. Der Hilfetext sagt dazu, dass der Block
+wie ein Passwort zu behandeln ist.
+
 ## Berechtigungsstufen
 
 Eskalierend, nicht unabhängig — die Reihenfolge folgt daran, wie schwer ein Fehler
@@ -235,7 +246,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 96 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 97 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

@@ -897,6 +897,18 @@ check('a widget that exists nowhere points at the defId route', () => {
 
 // ── Permission levels ────────────────────────────────────────────────────────
 
+check('the token is kept out of the instance object handed to browsers', () => {
+    // The password field type only masks the input in the admin UI. Without
+    // protectedNative the value sits in native, and the frontend reads that
+    // object on every start (App.tsx fetches system.adapter.aura.*), so every
+    // browser on the network would receive the token in clear text.
+    const ioPack = JSON.parse(fs.readFileSync(path.join(ROOT, 'io-package.json'), 'utf8'));
+    const protectedNative = ioPack.common.protectedNative || [];
+    assert.ok(protectedNative.includes('mcpToken'), 'mcpToken must be protected');
+    // The generated client block carries the same token a second time.
+    assert.ok(protectedNative.includes('mcpClientConfig'), 'mcpClientConfig must be protected too');
+});
+
 check('the levels escalate and an unknown value falls back to read', () => {
     assert.deepEqual(LEVELS, ['read', 'write', 'rename', 'delete']);
     assert.equal(levelIndex('read'), 0);

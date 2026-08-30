@@ -503,8 +503,8 @@
         "de": "MCP-Token (Pflicht)"
       },
       "help": {
-        "en": "Sent by the client as \"Authorization: Bearer <token>\". Without a token the endpoint refuses every request — Aura's server has no authentication of its own.",
-        "de": "Der Client sendet ihn als „Authorization: Bearer <Token>\". Ohne Token weist der Endpunkt jede Anfrage ab — Auras Server hat keine eigene Authentifizierung."
+        "en": "Sent by the client as \"Authorization: Bearer <token>\". Without a token the endpoint refuses every request — Aura's server has no authentication of its own. Hidden here only against onlookers; the block below shows it in clear text because that is what has to be copied.",
+        "de": "Der Client sendet ihn als „Authorization: Bearer <Token>\". Ohne Token weist der Endpunkt jede Anfrage ab — Auras Server hat keine eigene Authentifizierung. Hier nur gegen Mitleser verdeckt; der Block unten zeigt ihn im Klartext, weil genau das kopiert werden muss."
       },
       "default": "",
       "repeat": false,
@@ -590,8 +590,8 @@
         "de": "Client-Konfiguration"
       },
       "help": {
-        "en": "Filled in by “Generate token”. Copy it into your AI client as-is.",
-        "de": "Wird von „Token erzeugen“ befüllt. Unverändert in den KI-Client übernehmen."
+        "en": "Filled in by “Generate token”. Copy it into your AI client as-is. It contains the token in clear text — it has to, since the client needs it — so treat this block like a password: do not paste it into a screenshot, an issue or a chat.",
+        "de": "Wird von „Token erzeugen“ befüllt. Unverändert in den KI-Client übernehmen. Der Block enthält den Token im Klartext — anders kann der Client ihn nicht bekommen — behandle ihn also wie ein Passwort: nicht in Screenshots, Issues oder Chats einfügen."
       },
       "minRows": 9,
       "readOnly": true,

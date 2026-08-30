@@ -50,6 +50,10 @@
     "icon": "aura.png",
     "extIcon": "https://raw.githubusercontent.com/hdering/ioBroker.aura/main/admin/aura.png",
     "messagebox": true,
+    "protectedNative": [
+      "mcpToken",
+      "mcpClientConfig"
+    ],
     "logTransporter": true,
     "type": "visualization",
     "mode": "daemon",
