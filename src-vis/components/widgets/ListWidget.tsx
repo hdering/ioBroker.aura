@@ -6,7 +6,7 @@ import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { formatItemName, finishItemName, hasLiveToken, type NameFilterRule } from '../../utils/nameFilter';
 import type { WidgetProps, ioBrokerState, ElementConditionRule } from '../../types';
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
-import { condAnimation, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
+import { condAnimation, condTextStyle, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
 import { resolveName } from './AutoListWidget';
 import { getRoleDisplay } from '../../utils/listEntryDisplay';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
@@ -407,12 +407,7 @@ function EntryValue({
     // A condition beats the colour scale — the scale is the default, the rule is the
     // exception. Inline weight/style also beat the Tailwind font classes below.
     const condColor = cond?.color;
-    const condFont = {
-        fontWeight: cond?.bold ? 700 : undefined,
-        fontStyle: cond?.italic ? ('italic' as const) : undefined,
-        fontSize: cond?.fontSize,
-        animation: condAnimation(cond),
-    };
+    const condFont = condTextStyle(cond);
     // An entry without its own scale falls back to the list-wide one; an empty
     // array counts as "none" so an imported entry cannot block the fallback.
     const entryThresholds = entry.colorThresholds?.length ? entry.colorThresholds : globalThresholds;
@@ -492,6 +487,7 @@ function EntryValue({
                 // The stepper prints the raw value (it writes it back), so its colour
                 // must be matched against that value, not the converted one.
                 valueColor={getThresholdColor(val, entryThresholds)}
+                cond={cond}
             />
         );
     if (displayType === 'buttons')
@@ -505,20 +501,21 @@ function EntryValue({
             />
         );
     if (displayType === 'momentary') return <MomentaryButton entry={entry} setState={setState} icon={entry.icon} />;
-    if (displayType === 'states') return <StateDisplay entry={entry} val={val} />;
-    if (displayType === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
+    if (displayType === 'states') return <StateDisplay entry={entry} val={val} cond={cond} />;
+    if (displayType === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} cond={cond} />;
     if (displayType === 'time')
         return (
             <TimeDisplay
                 entry={entry}
                 val={disp.value}
                 className={textValueCls}
-                style={{ ...valueMaxStyle, ...condFont, color: 'var(--text-primary)' }}
+                style={{ ...valueMaxStyle, ...condFont, color: condColor ?? 'var(--text-primary)' }}
             />
         );
     if (displayType === 'datepicker')
-        return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth={card} />;
-    if (displayType === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth={card} />;
+        return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth={card} cond={cond} />;
+    if (displayType === 'input')
+        return <InputControl entry={entry} val={val} setState={setState} fullWidth={card} cond={cond} />;
 
     // Forced "Nur Wert" — skip role/switch/slider, render text only
     if (displayType === 'value') {
@@ -550,6 +547,7 @@ function EntryValue({
                 valueColor={condColor ?? thresholdColor}
                 className={textValueCls}
                 textStyle={{ ...valueMaxStyle, ...condFont }}
+                cond={cond}
             />
         );
 
@@ -568,6 +566,7 @@ function EntryValue({
                 trueLabel={trueLabel}
                 falseLabel={falseLabel}
                 card={card}
+                cond={cond}
             />
         );
 
@@ -575,10 +574,16 @@ function EntryValue({
     if (isBoolLike && !hasLabels) {
         const roleDisplay = getRoleDisplay(entry.role, val);
         if (roleDisplay) {
+            // A rule beats the role's own colour, exactly like it beats the scale.
+            const fill = condColor ?? roleDisplay.color;
             return (
                 <span
                     className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
-                    style={{ background: `${roleDisplay.color}22`, color: roleDisplay.color }}
+                    style={{
+                        background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+                        color: fill,
+                        ...condFont,
+                    }}
                 >
                     {roleDisplay.label}
                 </span>
@@ -591,7 +596,7 @@ function EntryValue({
             return renderIconToggle(on, () => setState(entry.id, isBool ? !on : on ? 0 : 1));
         }
         if (hasLabels) {
-            const fill = on ? activeColor : inactiveColor;
+            const fill = condColor ?? (on ? activeColor : inactiveColor);
             return (
                 <button
                     onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
@@ -600,6 +605,7 @@ function EntryValue({
                         background: `color-mix(in srgb, ${fill} 18%, transparent)`,
                         color: fill,
                         cursor: writable ? 'pointer' : 'default',
+                        ...condFont,
                     }}
                 >
                     {on ? trueLabel || 'AN' : falseLabel || 'AUS'}
@@ -662,7 +668,7 @@ function EntryValue({
                 />
                 <span
                     className="text-[10px] w-8 text-right tabular-nums"
-                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-secondary)' }}
+                    style={{ color: condColor ?? thresholdColor ?? 'var(--text-secondary)', ...condFont }}
                 >
                     {Math.round(val)}
                     {entry.unit ?? '%'}

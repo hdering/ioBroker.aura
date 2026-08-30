@@ -2,7 +2,7 @@ import { Fragment, useEffect, useMemo, useState, useCallback } from 'react';
 import { RefreshCw, List } from 'lucide-react';
 import type { WidgetProps, ioBrokerObject, ioBrokerState, ElementConditionRule } from '../../types';
 import { useElementConditionStyles, type ElementCondInput } from '../../hooks/useElementConditionStyles';
-import { condAnimation, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
+import { condAnimation, condTextStyle, partOf, rowHidden, type ElementCondResult } from '../../utils/rowConditions';
 import { getObjectViewDirect, useIoBroker } from '../../hooks/useIoBroker';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
@@ -598,12 +598,7 @@ function EntryValue({
     // A condition beats the colour scale — the scale is the default, the rule the
     // exception. Inline weight/style also beat the Tailwind font classes below.
     const condColor = cond?.color;
-    const condFont = {
-        fontWeight: cond?.bold ? 700 : undefined,
-        fontStyle: cond?.italic ? ('italic' as const) : undefined,
-        fontSize: cond?.fontSize,
-        animation: condAnimation(cond),
-    };
+    const condFont = condTextStyle(cond);
     // A rule may replace the value outright — "true" becomes "ONLINE". No control is
     // drawn for it then: the row states a fact instead of offering a switch. No hook
     // runs below this point, so the early return is safe.
@@ -641,6 +636,7 @@ function EntryValue({
                 // The stepper prints the raw value (it writes it back), so its colour
                 // must be matched against that value, not the converted one.
                 valueColor={getThresholdColor(val, thresholds)}
+                cond={cond}
             />
         );
     if (dt === 'buttons')
@@ -654,19 +650,19 @@ function EntryValue({
             />
         );
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
-    if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
-    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
+    if (dt === 'states') return <StateDisplay entry={entry} val={val} cond={cond} />;
+    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} cond={cond} />;
     if (dt === 'time')
         return (
             <TimeDisplay
                 entry={entry}
                 val={disp.value}
                 className={textValueCls}
-                style={{ ...valueMaxStyle, ...condFont, color: 'var(--text-primary)' }}
+                style={{ ...valueMaxStyle, ...condFont, color: condColor ?? 'var(--text-primary)' }}
             />
         );
-    if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} />;
-    if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} />;
+    if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} cond={cond} />;
+    if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} cond={cond} />;
     // Forced "Nur Wert" — skip the role/switch/dimmer paths below, render text only.
     if (dt === 'value') {
         const active = isActive(val);
@@ -698,6 +694,7 @@ function EntryValue({
                 valueColor={condColor ?? getThresholdColor(val, thresholds)}
                 className={textValueCls}
                 textStyle={{ ...valueMaxStyle, ...condFont }}
+                cond={cond}
             />
         );
     // Forced "Schalter": the shared control, so a string/enum datapoint gets a toggle
@@ -714,6 +711,7 @@ function EntryValue({
                 inactiveColor={inactiveColor}
                 trueLabel={trueLabel}
                 falseLabel={falseLabel}
+                cond={cond}
             />
         );
 
@@ -721,10 +719,16 @@ function EntryValue({
     if (isBoolLike && !hasLabels) {
         const roleDisplay = getRoleDisplay(entry.role, val);
         if (roleDisplay) {
+            // A rule beats the role's own colour, exactly like it beats the scale.
+            const fill = condColor ?? roleDisplay.color;
             return (
                 <span
                     className="shrink-0 text-xs font-medium px-2 py-0.5 rounded-full"
-                    style={{ background: `${roleDisplay.color}22`, color: roleDisplay.color }}
+                    style={{
+                        background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+                        color: fill,
+                        ...condFont,
+                    }}
                 >
                     {roleDisplay.label}
                 </span>
@@ -734,7 +738,7 @@ function EntryValue({
 
     if (isBoolLike) {
         if (hasLabels) {
-            const fill = on ? activeColor : inactiveColor;
+            const fill = condColor ?? (on ? activeColor : inactiveColor);
             return (
                 <button
                     onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
@@ -743,6 +747,7 @@ function EntryValue({
                         background: `color-mix(in srgb, ${fill} 18%, transparent)`,
                         color: fill,
                         cursor: writable ? 'pointer' : 'default',
+                        ...condFont,
                     }}
                 >
                     {on ? trueLabel || 'AN' : falseLabel || 'AUS'}
@@ -790,6 +795,7 @@ function EntryValue({
                 valueColor={condColor ?? thresholdColor}
                 className={textValueCls}
                 textStyle={{ ...valueMaxStyle, ...condFont }}
+                cond={cond}
             />
         );
 
@@ -860,12 +866,7 @@ function CardEntryValue({
     // A condition beats the colour scale — the scale is the default, the rule the
     // exception. Inline weight/style also beat the Tailwind font classes below.
     const condColor = cond?.color;
-    const condFont = {
-        fontWeight: cond?.bold ? 700 : undefined,
-        fontStyle: cond?.italic ? ('italic' as const) : undefined,
-        fontSize: cond?.fontSize,
-        animation: condAnimation(cond),
-    };
+    const condFont = condTextStyle(cond);
     // A rule may replace the value outright — "true" becomes "ONLINE". No control is
     // drawn for it then: the row states a fact instead of offering a switch. No hook
     // runs below this point, so the early return is safe.
@@ -900,6 +901,7 @@ function CardEntryValue({
                 // The stepper prints the raw value (it writes it back), so its colour
                 // must be matched against that value, not the converted one.
                 valueColor={getThresholdColor(val, thresholds)}
+                cond={cond}
             />
         );
     if (dt === 'buttons')
@@ -913,8 +915,8 @@ function CardEntryValue({
             />
         );
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
-    if (dt === 'states') return <StateDisplay entry={entry} val={val} />;
-    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} />;
+    if (dt === 'states') return <StateDisplay entry={entry} val={val} cond={cond} />;
+    if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} cond={cond} />;
     if (dt === 'time')
         return (
             <TimeDisplay
@@ -924,8 +926,9 @@ function CardEntryValue({
                 style={{ color: condColor ?? 'var(--text-primary)', ...condFont }}
             />
         );
-    if (dt === 'datepicker') return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth />;
-    if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth />;
+    if (dt === 'datepicker')
+        return <DateEntryControl entry={entry} val={val} setState={setState} fullWidth cond={cond} />;
+    if (dt === 'input') return <InputControl entry={entry} val={val} setState={setState} fullWidth cond={cond} />;
     // Forced "Nur Wert" — see the row variant.
     if (dt === 'value')
         return (
@@ -955,6 +958,7 @@ function CardEntryValue({
                 card
                 valueColor={condColor ?? getThresholdColor(val, thresholds)}
                 textStyle={condFont}
+                cond={cond}
             />
         );
     // Forced "Schalter" — see the row variant; `card` makes it fill the cell.
@@ -971,6 +975,7 @@ function CardEntryValue({
                 trueLabel={trueLabel}
                 falseLabel={falseLabel}
                 card
+                cond={cond}
             />
         );
 
@@ -978,10 +983,15 @@ function CardEntryValue({
     if (isBoolLike && !hasLabels) {
         const roleDisplay = getRoleDisplay(entry.role, val);
         if (roleDisplay) {
+            const fill = condColor ?? roleDisplay.color;
             return (
                 <span
                     className="w-full py-1.5 rounded-lg text-xs font-semibold text-center block"
-                    style={{ background: `${roleDisplay.color}22`, color: roleDisplay.color }}
+                    style={{
+                        background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+                        color: fill,
+                        ...condFont,
+                    }}
                 >
                     {roleDisplay.label}
                 </span>
@@ -991,7 +1001,7 @@ function CardEntryValue({
 
     if (isBoolLike) {
         if (hasLabels) {
-            const fill = on ? activeColor : inactiveColor;
+            const fill = condColor ?? (on ? activeColor : inactiveColor);
             return (
                 <button
                     onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
@@ -1000,6 +1010,7 @@ function CardEntryValue({
                         background: `color-mix(in srgb, ${fill} 18%, transparent)`,
                         color: fill,
                         cursor: writable ? 'pointer' : 'default',
+                        ...condFont,
                     }}
                 >
                     {on ? trueLabel || 'AN' : falseLabel || 'AUS'}
@@ -1012,8 +1023,9 @@ function CardEntryValue({
                 className="w-full py-1.5 rounded-lg text-xs font-semibold"
                 style={{
                     background: on ? activeColor : 'var(--app-border)',
-                    color: on ? '#fff' : 'var(--text-secondary)',
+                    color: condColor ?? (on ? '#fff' : 'var(--text-secondary)'),
                     cursor: writable ? 'pointer' : 'default',
+                    ...condFont,
                 }}
             >
                 {on ? 'AN' : 'AUS'}
@@ -1034,6 +1046,7 @@ function CardEntryValue({
                 card
                 valueColor={condColor ?? thresholdColor}
                 textStyle={condFont}
+                cond={cond}
             />
         );
 

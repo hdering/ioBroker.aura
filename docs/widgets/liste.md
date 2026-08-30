@@ -263,6 +263,11 @@ Ausblenden ist absorbierend.
 Eine Regel auf `row` gibt Textgröße, Textfarbe, Fett/Kursiv sowie Icon, Icon-Farbe und Icon-Größe an Name, Wert und
 Icon weiter; Hintergrund und Ausblenden bleiben bei der Zeile. Eine Regel auf einen einzelnen Teil gewinnt gegen sie.
 
+Auf `value` wirken Textgröße, Textfarbe und Schriftschnitt in jeder **Darstellung**: auch auf die Schalter-Beschriftung,
+die Zustands- und Kontakt-Pille, die Rollen-Anzeige eines Sensors, den Wert von Schieberegler und Stepper sowie die
+Datums- und Text-Felder. Ohne Werttext — Umschalter ohne Beschriftung, Rollladen-Tasten, Wert-Tasten, Taster — gibt es
+nichts zu formatieren.
+
 #### Datenpunkt einer Bedingung
 
 | Schreibweise             | bedeutet                                         |

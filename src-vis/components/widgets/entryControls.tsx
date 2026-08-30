@@ -36,6 +36,7 @@ import {
     switchWriteValues,
     type SwitchEntryConfig,
 } from '../../utils/switchEntry';
+import { condTextStyle, type ElementCondResult } from '../../utils/rowConditions';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
 import { useT } from '../../i18n';
 import { formatTimeDisplay, TIME_DASH } from '../../utils/timeDisplay';
@@ -467,6 +468,7 @@ export function SwitchControl({
     trueLabel,
     falseLabel,
     card,
+    cond,
 }: {
     entry: EntryControlConfig & { id: string };
     val: ioBrokerState['val'];
@@ -480,6 +482,8 @@ export function SwitchControl({
     falseLabel?: string;
     /** Card layouts stack vertically: the control fills its cell. */
     card?: boolean;
+    /** Row condition for this value — a rule paints the labelled states. */
+    cond?: ElementCondResult;
 }) {
     const anchorRef = useRef<HTMLButtonElement>(null);
     const active = switchEntryActive(entry, switchReadValue(entry, val, statusVal), entry.id);
@@ -533,7 +537,7 @@ export function SwitchControl({
 
     // Labelled pill — the on/off texts replace the toggle, as in the auto path.
     if (trueLabel || falseLabel) {
-        const fill = active ? activeColor : inactiveColor;
+        const fill = cond?.color ?? (active ? activeColor : inactiveColor);
         return (
             <>
                 <button
@@ -544,7 +548,12 @@ export function SwitchControl({
                             ? 'w-full py-1.5 rounded-lg text-xs font-semibold'
                             : 'shrink-0 text-xs px-2.5 py-0.5 rounded-full font-medium'
                     }
-                    style={{ background: `color-mix(in srgb, ${fill} 18%, transparent)`, color: fill, cursor }}
+                    style={{
+                        background: `color-mix(in srgb, ${fill} 18%, transparent)`,
+                        color: fill,
+                        cursor,
+                        ...condTextStyle(cond),
+                    }}
                 >
                     {label}
                 </button>
@@ -562,8 +571,9 @@ export function SwitchControl({
                     className="w-full py-1.5 rounded-lg text-xs font-semibold"
                     style={{
                         background: active ? activeColor : 'var(--app-border)',
-                        color: active ? '#fff' : 'var(--text-secondary)',
+                        color: cond?.color ?? (active ? '#fff' : 'var(--text-secondary)'),
                         cursor,
+                        ...condTextStyle(cond),
                     }}
                 >
                     {label}
@@ -845,6 +855,7 @@ export function StepperControl({
     numFmt,
     size = 24,
     valueColor,
+    cond,
 }: {
     entry: EntryControlConfig & { id: string; unit?: string };
     val: ioBrokerState['val'];
@@ -854,6 +865,8 @@ export function StepperControl({
     size?: number;
     /** Colour for the printed value, from the entry's colour thresholds. Unset = inherit. */
     valueColor?: string;
+    /** Row condition for this value — a rule beats the threshold colour. */
+    cond?: ElementCondResult;
 }) {
     const cur = typeof val === 'number' ? val : Number(val) || 0;
     const step = entry.stepStep ?? 1;
@@ -881,7 +894,7 @@ export function StepperControl({
             </button>
             <span
                 className="text-xs font-semibold tabular-nums min-w-[2.5ch] text-center"
-                style={{ color: valueColor }}
+                style={{ color: cond?.color ?? valueColor, ...condTextStyle(cond) }}
             >
                 {typeof val === 'number' ? formatNum(cur, decimals, numFmt) : '–'}
                 {entry.unit ? ` ${entry.unit}` : ''}
@@ -928,6 +941,7 @@ export function SliderControl({
     valueColor,
     className,
     textStyle,
+    cond,
 }: {
     entry: EntryControlConfig & { id: string; unit?: string };
     val: ioBrokerState['val'];
@@ -941,6 +955,8 @@ export function SliderControl({
     className?: string;
     /** Inline style for that fallback text (row width cap, condition font). */
     textStyle?: CSSProperties;
+    /** Row condition for this value — it paints the printed value in every shape. */
+    cond?: ElementCondResult;
 }) {
     const min = entry.sliderMin ?? 0;
     const max = entry.sliderMax ?? 100;
@@ -1069,10 +1085,20 @@ export function SliderControl({
         return (
             <div className="w-full flex flex-col items-center gap-1">
                 {showValue && (
-                    <span className="text-xl font-bold tabular-nums" style={{ color: valueColor }}>
+                    <span
+                        className="text-xl font-bold tabular-nums"
+                        style={{ color: valueColor, ...condTextStyle(cond) }}
+                    >
                         {shown.toFixed(dec)}
                         {unit && (
-                            <span className="text-sm ml-0.5 font-normal" style={{ color: 'var(--text-secondary)' }}>
+                            <span
+                                className="text-sm ml-0.5 font-normal"
+                                // A rule that enlarges the value scales its unit with it.
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    fontSize: cond?.fontSize ? '0.7em' : undefined,
+                                }}
+                            >
                                 {unit}
                             </span>
                         )}
@@ -1096,7 +1122,11 @@ export function SliderControl({
             {showValue && (
                 <span
                     className="text-[10px] text-right tabular-nums shrink-0"
-                    style={{ minWidth: '2rem', color: valueColor ?? 'var(--text-secondary)' }}
+                    style={{
+                        minWidth: '2rem',
+                        color: valueColor ?? 'var(--text-secondary)',
+                        ...condTextStyle(cond),
+                    }}
                 >
                     {valueText}
                 </span>
@@ -1202,12 +1232,15 @@ export function entryPresets(entry: EntryControlConfig, json: ioBrokerState['val
 export function StateDisplay({
     entry,
     val,
+    cond,
 }: {
     entry: EntryControlConfig & { unit?: string };
     val: ioBrokerState['val'];
+    /** Row condition for this value — a rule beats the mapping's own colour. */
+    cond?: ElementCondResult;
 }) {
     const match = matchStateMap(entry.states, val);
-    const color = match?.color || 'var(--text-secondary)';
+    const color = cond?.color || match?.color || 'var(--text-secondary)';
     const label =
         match?.label ??
         (match ? String(match.value) : val != null ? `${String(val)}${entry.unit ? ` ${entry.unit}` : ''}` : '–');
@@ -1215,7 +1248,7 @@ export function StateDisplay({
     return (
         <span
             className="aura-state-display shrink-0 flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
-            style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+            style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color, ...condTextStyle(cond) }}
         >
             {Icon && <Icon size={14} />}
             {match?.render ? (
@@ -1289,13 +1322,17 @@ export function ContactDisplay({
     entry,
     val,
     lockVal,
+    cond,
 }: {
     entry: EntryControlConfig;
     val: ioBrokerState['val'];
     /** Live value of `entry.contactLockDp`, when one is configured. */
     lockVal?: ioBrokerState['val'];
+    /** Row condition for this value — a rule beats the contact's own colour. */
+    cond?: ElementCondResult;
 }) {
-    const { label, color, icon } = resolveContactDisplay(entry, val);
+    const { label, color: stateColor, icon } = resolveContactDisplay(entry, val);
+    const color = cond?.color || stateColor;
     const Icon = icon ? getWidgetIcon(icon, null) : null;
     const locked = contactLocked(entry, lockVal);
     return (
@@ -1303,7 +1340,7 @@ export function ContactDisplay({
             {locked !== null && <ContactLockBadge locked={locked} />}
             <span
                 className="flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full"
-                style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color }}
+                style={{ background: `color-mix(in srgb, ${color} 18%, transparent)`, color, ...condTextStyle(cond) }}
             >
                 {Icon && <Icon size={14} />}
                 {label}
@@ -1392,12 +1429,15 @@ export function DateEntryControl({
     val,
     setState,
     fullWidth,
+    cond,
 }: {
     entry: EntryControlConfig & { id: string };
     val: ioBrokerState['val'];
     setState: SetState;
     /** Card layouts stack vertically, so the fields take the whole cell there. */
     fullWidth?: boolean;
+    /** Row condition for this value — the fields show it, so a rule styles them. */
+    cond?: ElementCondResult;
 }) {
     const { dateInput, timeInput } = useDateValueFields({
         value: val,
@@ -1407,13 +1447,14 @@ export function DateEntryControl({
         wrapClassName: fullWidth ? 'flex-1 min-w-0' : undefined,
         style: {
             background: 'var(--app-bg)',
-            color: 'var(--text-primary)',
+            color: cond?.color ?? 'var(--text-primary)',
             border: '1px solid var(--widget-border)',
             borderRadius: 8,
             padding: '2px 6px',
             fontSize: 11,
             colorScheme: 'dark' as never,
             minWidth: 0,
+            ...condTextStyle(cond),
         },
     });
     return (
@@ -1441,12 +1482,15 @@ export function InputControl({
     val,
     setState,
     fullWidth,
+    cond,
 }: {
     entry: EntryControlConfig & { id: string };
     val: ioBrokerState['val'];
     setState: SetState;
     /** Card layouts stack vertically, so the field takes the whole cell there. */
     fullWidth?: boolean;
+    /** Row condition for this value — the field shows it, so a rule styles it. */
+    cond?: ElementCondResult;
 }) {
     // A text area has no number mode - same rule as the standalone widget.
     const multiline = !!entry.inputMultiline;
@@ -1565,9 +1609,10 @@ export function InputControl({
                 style={{
                     ...(multiline ? { height: entry.inputHeight ?? 48 } : {}),
                     background: 'var(--app-bg)',
-                    color: 'var(--text-primary)',
+                    color: cond?.color ?? 'var(--text-primary)',
                     border: '1px solid var(--widget-border)',
                     textAlign: entry.inputTextAlign ?? 'left',
+                    ...condTextStyle(cond),
                     // In a card the field takes the cell but must still leave room for the
                     // send button - `flex-1` instead of a hard 100%, which squeezed it to
                     // a stub once the button was in the same row.

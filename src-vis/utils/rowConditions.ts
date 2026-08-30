@@ -194,6 +194,27 @@ export function condAnimation(part: ElementCondResult | undefined): string | und
     return undefined;
 }
 
+/**
+ * The inline text style a rule paints on one part of a row — weight, slant, size
+ * and the effect animation. Shared so every value rendering gets the same set: a
+ * pill (labelled boolean, sensor role, state map, contact) has to answer a rule
+ * exactly like a plain number does, and each of those used to build its own style
+ * object and quietly forget one of the four.
+ */
+export function condTextStyle(part: ElementCondResult | undefined): {
+    fontWeight?: number;
+    fontStyle?: 'italic';
+    fontSize?: number;
+    animation?: string;
+} {
+    return {
+        fontWeight: part?.bold ? 700 : undefined,
+        fontStyle: part?.italic ? 'italic' : undefined,
+        fontSize: part?.fontSize,
+        animation: condAnimation(part),
+    };
+}
+
 /** True when any rule hides the whole row. */
 export function rowHidden(res: RowCondResult | undefined): boolean {
     return !!res?.row?.hide;

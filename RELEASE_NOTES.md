@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+
+- Lists - a condition on the value now also reaches the switch labels, sensor states, window contacts, sliders, steppers and the date/text fields, so its text size and colour apply to every display type
