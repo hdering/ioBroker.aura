@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.48.1 (2026-08-20)
+- Theme - reloading no longer flashes the previous theme before the datapoint-driven dark/light mode is applied
+
 ## 0.48.0 (2026-08-20)
 - Chart (advanced) - y-axis bounds from a JSON datapoint are now found when the payload is wrapped in an array, min/max written the wrong way round are swapped, and the editor shows the accepted JSON shapes plus the paths that hold an array ([#550](https://github.com/hdering/ioBroker.aura/issues/550))
 - Chart (Distribution) - the stacked bar now fills its full height with small readings too; totals below 1 (e.g. 0.01 + 0.04 + 0.02 kWh) used to shrink the bar to a sliver and clip the segment percentages ([#560](https://github.com/hdering/ioBroker.aura/issues/560))

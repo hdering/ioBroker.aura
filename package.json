@@ -1,6 +1,6 @@
 {
   "name": "iobroker.aura",
-  "version": "0.51.1",
+  "version": "0.51.2",
   "description": "Modern visualization dashboard for ioBroker",
   "author": "Hermann Dering <aura@dering-online.de>",
   "main": "main.js",
@@ -132,7 +132,7 @@
     "test:row-conditions-ui": "node tools/tests/row-conditions-ui.mjs",
     "test:list-cond-types": "node tools/tests/list-cond-display-types.mjs",
     "test:list-cond-icon": "node tools/tests/list-cond-icon.mjs",
-  "test:list-subline-cond": "node tools/tests/list-subline-cond-icon.mjs",
+    "test:list-subline-cond": "node tools/tests/list-subline-cond-icon.mjs",
     "test:list-filter-sort": "node tools/tests/list-filter-sort.mjs",
     "test:list-filter-sort-ui": "node tools/tests/list-filter-sort-ui.mjs",
     "test:list-sort-rules": "node tools/tests/list-sort-rules.mjs",
