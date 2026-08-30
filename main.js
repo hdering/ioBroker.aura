@@ -6,6 +6,7 @@ const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
+const { handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -901,6 +902,30 @@ class Aura extends utils.Adapter {
             }
             const { pathname } = parsedUrl;
 
+            // MCP endpoint for AI assistants. Off unless enabled in the instance
+            // config, and it refuses everything without a token — this server has
+            // no authentication of its own, so an open /mcp would hand the whole
+            // dashboard configuration to anyone who can reach the port.
+            if (pathname === '/mcp') {
+                if (!this.config.mcpEnabled) {
+                    res.writeHead(404);
+                    res.end('Not found');
+                    return;
+                }
+                handleMcpRequest(req, res, {
+                    adapter: this,
+                    token: this.config.mcpToken,
+                    version: require('./package.json').version || '',
+                }).catch((err) => {
+                    this.log.warn(`aura: MCP request failed — ${err.message}`);
+                    if (!res.headersSent) {
+                        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+                    }
+                    res.end(JSON.stringify({ error: String(err.message || err) }));
+                });
+                return;
+            }
+
             if (pathname === '/proxy') {
                 const urlParam = parsedUrl.searchParams.get('url');
                 if (!urlParam) {
@@ -1286,9 +1311,21 @@ class Aura extends utils.Adapter {
             }
         });
 
-        server.listen(port, () =>
-            this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on port ${port}`),
-        );
+        server.listen(port, () => {
+            this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on port ${port}`);
+            if (this.config.mcpEnabled) {
+                if (this.config.mcpToken) {
+                    this.log.info(`aura: MCP endpoint available at /mcp on port ${port}`);
+                } else {
+                    // Enabled but unusable is worse than disabled, because nothing
+                    // else in this server would refuse the request.
+                    this.log.warn(
+                        'aura: MCP is enabled but no token is set — every request is rejected. ' +
+                            'Set the token in the adapter configuration.',
+                    );
+                }
+            }
+        });
         this._httpServer = server;
     }
 

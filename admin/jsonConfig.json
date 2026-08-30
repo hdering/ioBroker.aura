@@ -358,6 +358,55 @@
       "md": 6,
       "lg": 4,
       "xl": 4
+    },
+    "_mcpHeader": {
+      "type": "header",
+      "text": {
+        "en": "AI access (MCP)",
+        "de": "KI-Zugriff (MCP)"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "mcpEnabled": {
+      "type": "checkbox",
+      "label": {
+        "en": "Enable MCP endpoint",
+        "de": "MCP-Endpunkt aktivieren"
+      },
+      "help": {
+        "en": "Serves POST /mcp so an AI assistant can read the dashboard structure, look up widget options and change tabs. Datapoints come from the ioBroker MCP server, not from here. Off by default; a token is required.",
+        "de": "Stellt POST /mcp bereit, damit ein KI-Assistent die Dashboard-Struktur lesen, Widget-Optionen nachschlagen und Tabs ändern kann. Die Datenpunkte liefert der ioBroker-MCP, nicht dieser Endpunkt. Standardmäßig aus; ein Token ist Pflicht."
+      },
+      "default": false,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
+    "mcpToken": {
+      "type": "password",
+      "label": {
+        "en": "MCP token (required)",
+        "de": "MCP-Token (Pflicht)"
+      },
+      "help": {
+        "en": "Sent by the client as \"Authorization: Bearer <token>\". Without a token the endpoint refuses every request — Aura's server has no authentication of its own.",
+        "de": "Der Client sendet ihn als „Authorization: Bearer <Token>\". Ohne Token weist der Endpunkt jede Anfrage ab — Auras Server hat keine eigene Authentifizierung."
+      },
+      "default": "",
+      "repeat": false,
+      "visible": "!!data.mcpEnabled",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 8,
+      "xl": 8
     }
   }
 }

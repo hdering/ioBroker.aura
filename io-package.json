@@ -221,7 +221,9 @@
     "perfTracking": true,
     "perfWidgetTracking": false,
     "messageHistorySize": 100,
-    "messageRetentionDays": 30
+    "messageRetentionDays": 30,
+    "mcpEnabled": false,
+    "mcpToken": ""
   },
   "objects": [],
   "instanceObjects": [

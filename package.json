@@ -14,7 +14,6 @@
     "main.js",
     "www/",
     "src-vis/i18n/",
-    "tools/mcp/",
     "public/ai/",
     "io-package.json"
   ],
@@ -45,17 +44,14 @@
     "lint": "eslint --cache src-vis main.js",
     "format": "prettier --write src-vis main.js",
     "format:check": "prettier --check src-vis main.js",
-    "test": "node test/adapter.test.js && node test/client-tree.test.js && node test/messages.test.js && node test/widget-map.test.js && node test/widget-schema.test.js && node tools/tests/ai-prompt.mjs && node tools/tests/mcp-validate.mjs && node tools/tests/mcp-server.mjs && node tools/tests/mcp-protocol.mjs",
+    "test": "node test/adapter.test.js && node test/client-tree.test.js && node test/messages.test.js && node test/widget-map.test.js && node test/widget-schema.test.js && node tools/tests/ai-prompt.mjs && node tools/tests/mcp.mjs",
     "test:client-tree": "node test/client-tree.test.js",
     "test:widget-map": "node test/widget-map.test.js",
     "schema": "node tools/schema/gen-widget-schema.mjs",
     "schema:check": "node tools/schema/gen-widget-schema.mjs --check",
     "test:schema": "node test/widget-schema.test.js",
     "test:ai-prompt": "node tools/tests/ai-prompt.mjs",
-    "mcp": "node tools/mcp/server.mjs",
-    "test:mcp": "node tools/tests/mcp-validate.mjs",
-    "test:mcp-server": "node tools/tests/mcp-server.mjs",
-    "test:mcp-protocol": "node tools/tests/mcp-protocol.mjs",
+    "test:mcp": "node tools/tests/mcp.mjs",
     "test:mirror-types": "node tools/tests/mirror-all-types.mjs",
     "test:messages": "node test/messages.test.js",
     "test:messages-ui": "node tools/tests/messages.mjs",
@@ -152,7 +148,6 @@
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",
-    "@iobroker/ws": "^3.1.0",
     "suncalc": "^2.0.0"
   },
   "devDependencies": {

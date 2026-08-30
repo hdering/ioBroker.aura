@@ -1,73 +1,78 @@
-# AURA-MCP-Server (Phase A)
+# MCP-Endpunkt
 
-Gibt einem Sprachmodell direkten Zugriff auf das Widget-Schema, die laufende
-Dashboard-Struktur und eine Validierung. Zusammen mit dem **ioBroker-MCP** — der
-Räume, Gewerke und Datenpunkte kennt — kann sich der Anwender ein Dashboard
-zusammenstellen lassen, ohne dass jemand Datenpunktlisten in einen Prompt kopiert.
-
-Phase A ist **rein lesend**. Kein Werkzeug schreibt ins Dashboard.
+Aura stellt unter `POST /mcp` einen MCP-Server bereit, mit dem ein KI-Assistent
+das Dashboard lesen und ändern kann. Zusammen mit dem **ioBroker-MCP** — der
+Räume, Gewerke und Datenpunkte kennt — lässt sich ein Dashboard erzeugen, ohne
+dass jemand Datenpunktlisten in einen Prompt kopiert.
 
 ## Arbeitsteilung
 
-| Frage | ioBroker-MCP | AURA-MCP |
+| Frage | ioBroker-MCP | Aura |
 | --- | --- | --- |
 | Welche Datenpunkte, Räume, Gewerke gibt es? | ✅ | — |
 | Welche Widget-Typen, welche Optionen? | — | ✅ |
-| Wie sieht mein Dashboard heute aus? | — | ✅ |
+| Wie sieht das Dashboard heute aus? | — | ✅ |
 | Ist dieses JSON gültig? | — | ✅ |
+| Ändern | — | ✅ |
 
-## Werkzeuge
-
-| Werkzeug | Zweck | Braucht ioBroker |
-| --- | --- | --- |
-| `aura_widget_types` | Alle Typen kompakt: Label, Standardgröße, Layouts | nein |
-| `aura_widget_schema` | Volle Optionen der genannten Typen + Widget-Aufbau | nein |
-| `aura_dashboard` | Layouts/Bereiche/Tabs, Rastermaße, Spaltenbreite | ja |
-| `aura_tab` | Die Widgets eines Tabs als JSON (inkl. `groupDefs`) | ja |
-| `aura_validate` | Prüft Widget- oder Tab-JSON vor dem Import | teilweise |
-
-Schema und Validierung laufen ohne Verbindung — eine falsche URL macht also nicht
-den ganzen Server unbrauchbar, sondern nur die Werkzeuge, die live lesen müssen.
+Das Modell erfährt das nicht aus der Doku, sondern aus dem `instructions`-Block,
+den der Server bei `initialize` mitschickt (`INSTRUCTIONS` in `lib/mcp/tools.js`).
+Dort steht auch, dass beide MCPs auf **dieselbe** ioBroker-Installation zeigen
+müssen — sonst baut das Modell ein Dashboard aus IDs, die hier nicht existieren.
 
 ## Einrichten
 
-Der Server wird **mit dem Adapter ausgeliefert** (`tools/mcp/` und `public/ai/`
-stehen in `package.json` → `files`). Ein Anwender braucht keine zusätzliche
-Installation — nur den Pfad zur Adapterinstallation, typischerweise
-`/opt/iobroker/node_modules/iobroker.aura/tools/mcp/server.mjs`.
+Zwei Schalter in der Instanzkonfiguration:
+
+| Feld | Vorgabe | Bedeutung |
+| --- | --- | --- |
+| MCP-Endpunkt aktivieren | **aus** | Ohne Haken antwortet `/mcp` mit 404 |
+| MCP-Token | leer | **Pflicht.** Ohne Token weist der Endpunkt jede Anfrage mit 503 ab |
+
+Beim Anwender genügt dann eine URL — kein Pfad, keine Installation:
 
 ```json
 {
   "mcpServers": {
     "aura": {
-      "command": "node",
-      "args": ["C:/projects/vis/tools/mcp/server.mjs"],
-      "env": {
-        "AURA_IOBROKER_URL": "http://192.168.188.168:8095",
-        "AURA_NAMESPACE": "aura.0"
-      }
+      "type": "http",
+      "url": "http://192.168.188.168:8095/mcp",
+      "headers": { "Authorization": "Bearer <Token>" }
     }
   }
 }
 ```
 
-| Variable | Vorgabe | Bedeutung |
-| --- | --- | --- |
-| `AURA_IOBROKER_URL` | `http://127.0.0.1:8095` | Adresse von **Auras eigenem Server**, nicht des Web-Adapters (8082) |
-| `AURA_NAMESPACE` | `aura.0` | Adapterinstanz |
-| `AURA_SCHEMA` | `public/ai/…` | Pfad zum Schema, falls der Server außerhalb des Repos läuft |
-| `AURA_CONNECT_TIMEOUT` | `12000` | ms bis zum Verbindungsabbruch |
+Der Port ist der von Aura selbst (Standard 8095), nicht der des Web-Adapters.
 
-**Beide MCPs müssen auf dieselbe ioBroker-Installation zeigen.** Zeigt der
-ioBroker-MCP aufs Produktivsystem und der AURA-MCP auf die Testinstanz, baut das
-Modell ein Dashboard aus Produktiv-Datenpunkt-IDs, die in der Testinstanz nicht
-existieren — und nichts sagt es.
+## Warum Token Pflicht ist
+
+Auras Server hat **keine eigene Authentifizierung** — auch `/fs/read` ist offen.
+Ein ungeschützter MCP-Endpunkt würde jedem im Netz die Dashboard-Konfiguration
+zum Lesen und Ändern geben. Darum: aktiviert ohne Token = 503 plus Warnung im
+Adapter-Log beim Start. Aktiviert und unbrauchbar ist schlimmer als aus, weil
+nichts sonst in diesem Server die Anfrage abweisen würde.
+
+Der Vergleich läuft längenunabhängig, damit ein falscher Token nichts über
+Laufzeit verrät.
+
+## Werkzeuge
+
+| Werkzeug | Zweck |
+| --- | --- |
+| `aura_dashboard` | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite |
+| `aura_widget_types` | Alle Typen kompakt |
+| `aura_widget_schema` | Volle Optionen der genannten Typen |
+| `aura_tab` | Widgets eines Tabs inkl. `groupDefs` |
+| `aura_validate` | Prüfung gegen Schema und Live-Datenpunkte |
+| `aura_add_widget` | Ein Widget anfügen |
+| `aura_write_tab` | Widgetliste eines Tabs ersetzen |
 
 ## Warum Validierung der eigentliche Gewinn ist
 
-Eine falsch benannte Option ist heute **unsichtbar**: AURA rendert das Widget und
-ignoriert den Schlüssel. `aura_validate` macht daraus einen Fehler, den das Modell
-selbst korrigieren kann:
+Eine falsch benannte Option ist sonst **unsichtbar**: Aura rendert das Widget und
+ignoriert den Schlüssel. Hier wird daraus ein Fehler, den das Modell selbst
+korrigieren kann:
 
 ```
 - widget: switch liest die Option "showTitel" nicht — meintest du "showTitle"?
@@ -76,62 +81,50 @@ selbst korrigieren kann:
 - widgets[1] ("a") und widgets[4] ("b") überlappen sich im Raster
 ```
 
-Geprüft werden: Pflichtfelder, Typ, Layout, `gridPos` (ganzzahlig, positiv, innerhalb
-der Spaltenzahl), unbekannte Optionen mit Vorschlag, Enum-Werte, Werttypen,
-Datenpunkt-Existenz (auch für Optionen mit `[Datenpunkt-Id]`), doppelte IDs und
-Überlappungen.
+Beide Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
+nicht** — auch keine Sicherung.
 
-## Zwei Stellen, die man leicht falsch macht
+## Vier Stellen, die man leicht falsch macht
 
-**Spaltenzahl.** Das laufende Dashboard leitet sie aus der Pixelbreite ab — die
-kennt kein Server. `designColumns()` nimmt stattdessen das größte `x + w` über alle
-Tabs: die Breite, für die dieses Dashboard bereits entworfen ist.
+**Bestehende Widgets dürfen nicht blockieren.** Ein Widget anzufügen prüft nur
+das *neue* Widget streng (`strictIndices`). Sonst würde ein einziges vor drei
+Versionen angelegtes Widget mit einer inzwischen umbenannten Option jeden
+Schreibvorgang in einem gewachsenen Dashboard verhindern. Überlappungen und
+doppelte IDs werden weiterhin über den ganzen Tab geprüft — das sind
+Eigenschaften des Ergebnisses, nicht eines einzelnen Widgets.
 
-**Gruppen-Kinder.** Sie liegen in `config.group-defs`, nicht in `config.dashboard`.
-`aura_tab` sammelt die referenzierten `defId`s rekursiv ein und legt sie als
-`groupDefs` neben den Tab — ohne das käme eine Gruppe leer zurück.
+**Gruppen-Kinder liegen in `config.group-defs`**, nicht in `config.dashboard`.
+`aura_tab` sammelt die referenzierten `defId`s rekursiv ein. Beim Schreiben gehen
+die Definitionen **zuerst** raus: ein Widget, das auf eine schon vorhandene
+`defId` zeigt, rendert korrekt — umgekehrt zeigt die Gruppe im Zeitfenster
+dazwischen leer.
+
+**Spaltenzahl.** Das laufende Dashboard leitet sie aus der Pixelbreite ab, die
+kein Server kennt. `designColumns()` nimmt das größte `x + w` über alle Tabs: die
+Breite, für die dieses Dashboard bereits entworfen ist.
+
+**Der offene Editor.** Ein Editor-Fenster mit ungespeicherten Änderungen kann eine
+MCP-Änderung beim nächsten Speichern überschreiben. Die Antwort jedes
+Schreibwerkzeugs sagt das dazu.
 
 ## Kein MCP-SDK
 
-Der Server spricht JSON-RPC 2.0 selbst (`jsonrpc.mjs`, ~130 Zeilen). Das SDK
-hätte **95 Pakete / 24 MB** in einen Adapter gezogen, der express, hono, jose
-und ajv nie ausführt — für drei Methoden: `initialize`, `tools/list`,
-`tools/call` (plus `ping`). Einzige Laufzeit-Abhängigkeit ist damit
-`@iobroker/ws` (230 kB).
+`httpEndpoint.js` spricht JSON-RPC 2.0 selbst. Das SDK hätte **95 Pakete / 24 MB**
+(express, hono, jose, ajv, zod) in einen Adapter gezogen, der davon nichts
+ausführt — für vier Methoden: `initialize`, `tools/list`, `tools/call`, `ping`.
+Zusätzliche Laufzeit-Abhängigkeiten: **keine**. Im Adapter zu laufen heißt auch,
+dass die ioBroker-Verbindung schon da ist — kein Socket-Client, keine
+Zugangsdaten, kein Reconnect.
 
-Das SDK bleibt als devDependency erhalten: `npm run test:mcp-server` fährt den
-**echten** MCP-Client gegen unseren Server. Genau das hält die handgeschriebene
-Schicht ehrlich — sie muss mit der offiziellen Implementierung sprechen, nicht
-nur mit sich selbst.
-
-`npm run test:mcp-protocol` deckt zusätzlich ab, was ein wohlerzogener Client nie
-auslöst: eine über zwei Chunks zerrissene Nachricht, drei Nachrichten in einem
-Chunk, eine kaputte Zeile, eine unbekannte Methode — und dass eine Notification
-**nicht** beantwortet wird (eine Antwort auf `notifications/initialized` genügt,
-damit strenge Clients die Verbindung abbrechen).
-
-Unterschieden wird außerdem: ein unbekanntes *Werkzeug* ist ein JSON-RPC-Fehler
-(−32601), ein *fehlschlagendes* Werkzeug ein normales Ergebnis mit `isError` —
-Letzteres soll das Modell lesen und korrigieren.
-
-## stdout gehört dem Protokoll
-
-Ein stdio-MCP-Server spricht JSON-RPC über stdout. Ein einziges `console.log` einer
-Abhängigkeit landet mitten in einem Frame und der Client bricht ab.
-`tools/mcp/stdio-guard.mjs` wird als Erstes importiert und leitet `console.log` und
-Verwandte auf stderr um.
+Das SDK bleibt devDependency: `npm run test:mcp` fährt den **echten** MCP-Client
+über HTTP gegen den Endpunkt. Eine selbstgebaute Protokollschicht, die nur gegen
+sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-| Befehl | Was |
-| --- | --- |
-| `npm run test:mcp` | 22 Checks der Validierungsregeln und Config-Helfer, ohne ioBroker |
-| `npm run test:mcp-server` | 11 Checks mit dem echten MCP-SDK-Client über stdio |
-| `npm run test:mcp-protocol` | 11 Checks der eigenen JSON-RPC-Schicht auf Rohprotokoll-Ebene |
-
-## Phase B (offen)
-
-Schreiben — `aura_add_widget`, `aura_replace_tab`. Dafür fehlt noch: Backup vor
-dem Schreiben, atomares Schreiben über `config.dashboard` **und**
-`config.group-defs`, und eine Antwort auf den Fall, dass gleichzeitig ein Editor im
-Browser offen ist (der schiebt sonst seine eingefrorene Kopie zurück).
+`npm run test:mcp` — 37 Checks: die Validierungsregeln gegen das echte Schema, die
+Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
+Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
+Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein
+abgelehnter Schreibvorgang nichts hinterlässt und die Sicherung den Stand **vor**
+der Änderung enthält.
