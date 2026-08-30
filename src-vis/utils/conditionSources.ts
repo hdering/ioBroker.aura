@@ -205,6 +205,56 @@ export function evaluateConditionWithSource(
     return (cond.logic ?? 'AND') === 'AND' ? results.every(Boolean) : results.some(Boolean);
 }
 
+/** True when at least one clause tests the list entry by entry (`{list:any}`). */
+export function hasListAnyClause(cond: { clauses: ConditionClause[] }): boolean {
+    return cond.clauses.some((c) => {
+        const p = parseSourceRef(c.datapoint);
+        return p.kind === 'list' && p.agg === 'any';
+    });
+}
+
+/**
+ * Which list entries made the condition match — the rows a per-row effect fans out
+ * over (issue #605).
+ *
+ * Only `{list:any}` names a single row: `all` / `none` and the value aggregates
+ * speak about the list as a whole, a plain datapoint clause about neither. So the
+ * row set is built from the `any` clauses alone while everything else stays a global
+ * gate, which is what makes "ein Eintrag offen AND Nachtmodus" point at the open
+ * entries rather than at all of them.
+ *
+ * AND intersects the per-clause hits, OR unions them. An empty result means no row
+ * is identifiable (no list context, no `any` clause, or the match came from a global
+ * clause under OR) — the caller then treats the match as list-wide.
+ */
+export function matchingListRefs(
+    cond: { logic?: 'AND' | 'OR'; clauses: ConditionClause[] },
+    values: Map<string, unknown>,
+    ctx: DpSourceCtx | undefined,
+    changed?: ReadonlySet<string>,
+): string[] {
+    const refs = ctx?.listRefs ?? [];
+    if (!refs.length || !cond.clauses.length) return [];
+
+    const hitSets: string[][] = [];
+    for (const clause of cond.clauses) {
+        const p = parseSourceRef(clause.datapoint);
+        if (p.kind !== 'list' || p.agg !== 'any') continue;
+        // 'changed' asks about the transition: the rows that just delivered a value.
+        if (clause.operator === 'changed') {
+            hitSets.push(changed?.size ? refs.filter((ref) => changed.has(ref)) : []);
+            continue;
+        }
+        hitSets.push(refs.filter((ref) => evaluateClause(clause, values.get(ref) ?? null, values)));
+    }
+    if (!hitSets.length) return [];
+
+    if ((cond.logic ?? 'AND') === 'AND') {
+        return hitSets[0].filter((ref) => hitSets.every((set) => set.includes(ref)));
+    }
+    return refs.filter((ref) => hitSets.some((set) => set.includes(ref)));
+}
+
 /** True when the rule asks about a transition rather than a state. */
 export function hasChangedClause(cond: { clauses: ConditionClause[] }): boolean {
     return cond.clauses.some((c) => c.operator === 'changed');

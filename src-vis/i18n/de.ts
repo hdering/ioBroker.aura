@@ -1143,6 +1143,7 @@ export const de = {
     'cond.notifyHint': 'Erzeugt eine Meldung, wenn die Regel zutrifft.',
     'cond.notifyOnMatch': 'Wird gesendet, sobald die Regel zutrifft.',
     'cond.notifyOnChange': 'Wird bei jeder Wertänderung gesendet.',
+    'cond.notifyPerRow': 'Ein Eintrag = eine Meldung: Die Regel sendet je auslösender Zeile.',
     'cond.refreshWidgetOnChange': 'Lädt bei jeder Änderung des Datenpunkts neu',
     'cond.refreshWidgetOnMatch':
         'Lädt neu, sobald die Regel zutrifft — für „bei jeder Änderung“ den Operator „Hat sich geändert“ wählen',

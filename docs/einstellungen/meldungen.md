@@ -255,6 +255,27 @@ Jede [Bedingung](./editor#bedingungen) eines Widgets kann eine Meldung auslösen
 
 Ausgelöst wird die Flanke: eine Zustands-Regel sendet einmal, sobald sie zutrifft. Nur eine Bedingung mit dem Operator **hat sich geändert** sendet bei jeder Wertänderung.
 
+### Auslösende Zeile in der Meldung
+
+Steht als Wertquelle **ein Eintrag der Liste** (`{list:any}`), sendet die Regel **eine Meldung je auslösender Zeile**. In allen Textfeldern der Meldung stehen dafür die Datenpunkt-Platzhalter der Zeile:
+
+| Platzhalter | Ergebnis bei `hm-rpc.0.Melder1.MOTION` |
+| --- | --- |
+| `{{dp}}` | `hm-rpc.0.Melder1.MOTION` |
+| `{{parent}}` | `hm-rpc.0.Melder1` |
+| `{{name}}` | `MOTION` |
+
+```
+Titel:  Bewegung: [[{{parent}}.NAME]]
+Text:   Ausgelöst um [[{{parent}}.LAST_TRIGGER]]
+```
+
+Die doppelten eckigen Klammern zeigen den Wert des Datenpunkts — `{{…}}` baut nur die ID zusammen. Beide Ebenen gelten auch für Bild, Icon, Popup-View, Bestätigungs-Datenpunkt und die Schaltflächen.
+
+Eine feste **ID** wird je Zeile eindeutig gemacht (`melder` → `melder:hm-rpc.0.Melder1.MOTION`), damit sich zwei Melder nicht gegenseitig überschreiben.
+
+Regeln über die ganze Liste (**alle Einträge**, **kein Eintrag**, **Anzahl**, **Summe** …) senden weiterhin eine einzelne Meldung; dort gibt es keine auslösende Zeile. Bei einer Bedingung ohne Listenquelle beziehen sich die Platzhalter auf den Datenpunkt des Widgets.
+
 ## Beispiele
 
 Warnung, die sich nach 20 Sekunden schließt:

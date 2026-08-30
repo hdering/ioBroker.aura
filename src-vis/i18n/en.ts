@@ -1140,6 +1140,7 @@ export const en: Record<TranslationKey, string> = {
     'cond.notifyHint': 'Raises a message when the rule matches.',
     'cond.notifyOnMatch': 'Sent as soon as the rule starts matching.',
     'cond.notifyOnChange': 'Sent on every value change.',
+    'cond.notifyPerRow': 'One entry, one message: the rule sends per triggering row.',
     'cond.refreshWidgetOnChange': 'Reloads on every change of the datapoint',
     'cond.refreshWidgetOnMatch':
         'Reloads as soon as the rule matches — pick the "Has changed" operator for "on every change"',

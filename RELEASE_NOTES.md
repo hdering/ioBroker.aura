@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 
 - Lists - a condition on a row now reaches every display type and every layout: text size and colour on the switch labels, sensor states, window contacts, sliders, steppers and the date/text fields, and the icon swap/hide in the minimal layout (#601)
+- Conditions - a rule watching a list with "one entry" now sends one message per triggering entry, and the message text can address that entry with {{dp}} / {{parent}} / {{name}} - e.g. a title of "Motion: [[{{parent}}.NAME]]" (#605)

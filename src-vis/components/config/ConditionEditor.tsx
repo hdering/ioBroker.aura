@@ -16,6 +16,7 @@ import type {
 import {
     clauseSourceOptions,
     dropOwnDpToken,
+    hasListAnyClause,
     normalizeSourceToken,
     type DpSourceCtx,
     type SourceOption,
@@ -899,6 +900,10 @@ function ConditionRule({
     // value, everything else only when the rule flips to true.
     const hasChangedClause = condition.clauses.some((c) => c.operator === 'changed');
     const [editingNotify, setEditingNotify] = useState(false);
+    // A `{list:any}` rule sends one message per triggering entry (issue #605); the
+    // sample datapoint lets the builder preview what `{{parent}}` & co. resolve to.
+    const notifyPerRow = !!sourceCtx?.listRefs?.length && hasListAnyClause(condition);
+    const notifySampleDp = notifyPerRow ? sourceCtx?.listRefs?.[0] : sourceCtx?.ownDp;
 
     return (
         <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
@@ -1126,6 +1131,11 @@ function ConditionRule({
                                         : t('cond.notifyOnMatch')
                                     : t('cond.notifyHint')}
                             </p>
+                            {condition.notify && notifyPerRow && (
+                                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('cond.notifyPerRow')}
+                                </p>
+                            )}
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0">
                             {condition.notify && (
@@ -1173,6 +1183,8 @@ function ConditionRule({
                             <MessageBuilder
                                 draft={condition.notify}
                                 onChange={(draft) => onChange({ ...condition, notify: draft })}
+                                rowDp={notifySampleDp}
+                                perRow={notifyPerRow}
                             />
                         </ConfigModal>
                     )}

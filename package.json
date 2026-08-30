@@ -56,6 +56,7 @@
     "test:messages": "node test/messages.test.js",
     "test:messages-ui": "node tools/tests/messages.mjs",
     "test:message-defaults": "node tools/tests/admin-message-defaults.mjs",
+    "test:notify-rows": "node tools/tests/cond-notify-rows.mjs",
     "test:group-fit": "node tools/tests/group-fit.mjs",
     "test:modal-clamp": "node tools/tests/modal-viewport-clamp.mjs",
     "test:cell-state": "node tools/tests/cell-state.mjs",

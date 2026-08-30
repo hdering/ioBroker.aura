@@ -3,6 +3,7 @@ import { Copy, Database, Plus, Trash2, X } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
+import { substituteItemVars } from '../../utils/nameFilter';
 import type {
     MessageAlign,
     MessageAppearance,
@@ -306,14 +307,49 @@ function Toggle({
     );
 }
 
+/**
+ * What `{{dp}}` & co. resolve to in this message — shown wherever the builder is
+ * opened from a condition (issue #605). The example is resolved live so the user
+ * sees a real datapoint id instead of an abstract rule.
+ */
+function RowVarsHint({ rowDp, perRow }: { rowDp: string; perRow?: boolean }) {
+    const example = substituteItemVars('[[{{parent}}.NAME]]', rowDp);
+    return (
+        <div
+            className="text-[10px] rounded-lg px-2.5 py-2 leading-relaxed"
+            style={{
+                background: 'var(--app-bg)',
+                border: '1px solid var(--app-border)',
+                color: 'var(--text-secondary)',
+            }}
+        >
+            <b style={{ color: 'var(--text-primary)' }}>{perRow ? 'Auslösende Zeile' : 'Datenpunkt des Widgets'}</b>
+            {perRow ? ' — je auslösender Zeile wird eine eigene Meldung gesendet. ' : ' — '}
+            In Titel, Text und den übrigen Feldern stehen <code>{'{{dp}}'}</code> (ganze ID),{' '}
+            <code>{'{{parent}}'}</code> (Strang) und <code>{'{{name}}'}</code> (letztes Segment).
+            <br />
+            Beispiel: <code>{'[[{{parent}}.NAME]]'}</code> → <code>{example}</code> — die doppelten Klammern zeigen den
+            Live-Wert dieses Datenpunkts.
+        </div>
+    );
+}
+
 interface Props {
     draft: MessageDraft;
     onChange: (draft: MessageDraft) => void;
     /** Extra buttons under the JSON preview (e.g. "Test senden"). */
     actions?: React.ReactNode;
+    /**
+     * Datapoint the `{{dp}}` / `{{parent}}` / `{{name}}` variables will resolve
+     * against when this message is sent from a condition (issue #605). Used for the
+     * preview only — the substitution itself happens at send time.
+     */
+    rowDp?: string;
+    /** The rule fires per list entry, so `rowDp` is only a sample row. */
+    perRow?: boolean;
 }
 
-export function MessageBuilder({ draft, onChange, actions }: Props) {
+export function MessageBuilder({ draft, onChange, actions, rowDp, perRow }: Props) {
     const layouts = useDashboardStore((s) => s.layouts);
     const views = usePopupConfigStore((s) => s.views);
     const [copied, setCopied] = useState(false);
@@ -363,6 +399,8 @@ export function MessageBuilder({ draft, onChange, actions }: Props) {
                         })}
                     </div>
                 </Field>
+
+                {rowDp && <RowVarsHint rowDp={rowDp} perRow={perRow} />}
 
                 <Field label="Titel" hint="HTML erlaubt, z. B. <b>fett</b>.">
                     <input

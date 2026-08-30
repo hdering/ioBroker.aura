@@ -653,6 +653,138 @@ check(
 await setDp(true);
 check('holding the condition true does not re-fire', (await sentMessages()).length === 1);
 
+// ── 18b. One message per triggering list entry (issue #605) ────────────────
+// A `{list:any}` rule speaks about the whole list, but the message has to name
+// the entry that fired — so the rule fans out: one message per row, with
+// `{{parent}}` & co. resolved against that row's datapoint.
+const ROWS = ['demo.melder.Flur.MOTION', 'demo.melder.Bad.MOTION', 'demo.melder.Keller.MOTION'];
+const rowDraft = {
+    ...notifyDraft,
+    id: 'melder',
+    title: 'Bewegung [[{{parent}}.NAME]]',
+    text: '{{name}} von {{dp}}',
+};
+
+// The list widget and the condition hook both re-read their datapoints through
+// getState on mount, so the injected values need a server side too — otherwise a
+// remount pulls the real (empty) instance value back over the mock.
+const rowState = {};
+const setRows = async (patch) => {
+    Object.assign(rowState, patch);
+    await page.evaluate((p) => {
+        window.__auraShot.mockServerState(p);
+        window.__auraShot.mock(p);
+    }, rowState);
+    await settle();
+};
+
+// The first entry starts out true: priming must stay silent for it too.
+await setRows({ [ROWS[0]]: true, [ROWS[1]]: false, [ROWS[2]]: false });
+await page.evaluate(
+    ([rows, draftValue]) => {
+        window.__auraShot.conditionNotify(false);
+        window.__auraShot.messagesReset();
+        window.__auraShot.showWidgets([
+            {
+                id: 'w-cond-list',
+                type: 'list',
+                title: 'Melder',
+                gridPos: { x: 0, y: 0, w: 6, h: 6 },
+                options: {
+                    entries: rows.map((id, i) => ({ id, name: `Melder ${i}` })),
+                    conditions: [
+                        {
+                            id: 'c-row',
+                            logic: 'AND',
+                            clauses: [{ datapoint: '{list:any}', operator: 'true', value: '' }],
+                            style: {},
+                            notify: draftValue,
+                        },
+                    ],
+                },
+            },
+        ]);
+        window.__auraShot.conditionNotify(true);
+    },
+    [ROWS, rowDraft],
+);
+await settle();
+check('per row: no message while priming on an already-true entry', (await sentMessages()).length === 0);
+
+await setRows({ [ROWS[1]]: true });
+const rowFired = await sentMessages();
+check('per row: one entry going true sends exactly one message', rowFired.length === 1);
+check(
+    `per row: {{parent}} resolves to the triggering entry (got "${rowFired[0]?.title}")`,
+    rowFired[0]?.title === 'Bewegung [[demo.melder.Bad.NAME]]',
+);
+check(
+    `per row: {{name}} and {{dp}} resolve too (got "${rowFired[0]?.text}")`,
+    rowFired[0]?.text === `MOTION von ${ROWS[1]}`,
+);
+check(
+    `per row: the message id carries the entry (got "${rowFired[0]?.id}")`,
+    rowFired[0]?.id === `melder:${ROWS[1]}`,
+);
+
+await setRows({ [ROWS[2]]: true });
+const bothFired = await sentMessages();
+check('per row: a second entry sends its own message', bothFired.length === 2);
+check(
+    'per row: the two messages do not share an id',
+    bothFired[0]?.id !== bothFired[1]?.id && bothFired[1]?.id === `melder:${ROWS[2]}`,
+);
+
+await setRows({ [ROWS[1]]: true, [ROWS[2]]: true });
+check('per row: holding the entries true does not re-fire', (await sentMessages()).length === 2);
+
+await setRows({ [ROWS[1]]: false });
+check('per row: an entry going false is silent', (await sentMessages()).length === 2);
+await setRows({ [ROWS[1]]: true });
+const again = await sentMessages();
+check('per row: the same entry fires again on its next rising edge', again.length === 3);
+check('per row: …under the same id, so the archive updates that entry', again[2]?.id === `melder:${ROWS[1]}`);
+
+// A rule about the list as a whole keeps naming no row — one message, unchanged.
+await setRows({ [ROWS[0]]: false, [ROWS[1]]: false, [ROWS[2]]: false });
+await page.evaluate(
+    ([rows, draftValue]) => {
+        window.__auraShot.conditionNotify(false);
+        window.__auraShot.messagesReset();
+        window.__auraShot.showWidgets([
+            {
+                id: 'w-cond-all',
+                type: 'list',
+                title: 'Melder',
+                gridPos: { x: 0, y: 0, w: 6, h: 6 },
+                options: {
+                    entries: rows.map((id, i) => ({ id, name: `Melder ${i}` })),
+                    conditions: [
+                        {
+                            id: 'c-all',
+                            logic: 'AND',
+                            clauses: [{ datapoint: '{list:all}', operator: 'true', value: '' }],
+                            style: {},
+                            notify: { ...draftValue, id: 'alle', title: 'Alle: {{name}}', text: '' },
+                        },
+                    ],
+                },
+            },
+        ]);
+        window.__auraShot.conditionNotify(true);
+    },
+    [ROWS, rowDraft],
+);
+await settle();
+await setRows({ [ROWS[0]]: true, [ROWS[1]]: true, [ROWS[2]]: true });
+const listWide = await sentMessages();
+check('a list-wide rule still sends a single message', listWide.length === 1);
+check(
+    `…with the id and text left alone (got "${listWide[0]?.id}" / "${listWide[0]?.title}")`,
+    listWide[0]?.id === 'alle' && listWide[0]?.title === 'Alle: {{name}}',
+);
+await page.evaluate(() => window.__auraShot.mockServerState(false));
+
 // ── 19. Unanswered messages survive a reload ────────────────────────────────
 // A tablet that reloads itself every few hours (or after losing the connection)
 // used to drop every open toast. The archive decides now: unanswered, and a

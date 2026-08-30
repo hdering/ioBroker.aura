@@ -7,12 +7,15 @@ import {
     clauseSourceRefs,
     evaluateConditionWithSource,
     hasChangedClause,
+    hasListAnyClause,
+    matchingListRefs,
     sourceCtxKey,
     type DpSourceCtx,
 } from '../utils/conditionSources';
 import { bumpWidgetRefresh } from '../store/widgetRefreshStore';
 import { useMessagesStore } from '../store/messagesStore';
 import { draftToPayload } from '../components/config/MessageBuilder';
+import { resolveDraftForRow } from '../utils/notifyTemplate';
 import { isScreenshotMode } from '../store/persistManager';
 import { EMPTY_SET } from '../utils/conditionSet';
 import type { WidgetCondition, ConditionStyle, ConditionSet, ConditionPart, ConditionElement } from '../types';
@@ -332,8 +335,11 @@ export function useConditionStyle(
     // Last verdict per refresh rule — a rule without a 'changed' clause reloads on
     // the rising edge only, so it must remember whether it already matched.
     const refreshMatchRef = useRef<Map<string, boolean>>(new Map());
-    // Same bookkeeping for the "send a message" effect (issue #429).
-    const notifyMatchRef = useRef<Map<string, boolean>>(new Map());
+    // Same bookkeeping for the "send a message" effect (issue #429) — but one
+    // verdict PER ROW: a `{list:any}` rule fires once per entry, so every entry
+    // needs its own edge (issue #605). The key is the entry's datapoint, or '' for
+    // a rule that speaks about the widget as a whole.
+    const notifyMatchRef = useRef<Map<string, Map<string, boolean>>>(new Map());
     // Cache-aware initial state: on remount (e.g. when a widget moves between the
     // visible grid and the off-screen reflow container) the global stateCache
     // already has the DP values — compute the correct result synchronously so the
@@ -500,15 +506,49 @@ export function useConditionStyle(
             // The screenshot harness runs against a real instance — a rule firing
             // here would write a genuine message into the user's archive.
             if (isScreenshotMode() && !devNotifyForced) return;
+
+            const send = (cond: WidgetCondition, rowDp?: string) => {
+                // `{{dp}}` & co. resolve against the row that triggered, or — for a
+                // rule without a list source — the widget's own datapoint.
+                const payload = draftToPayload(resolveDraftForRow(cond.notify!, rowDp));
+                condLog('notify', { widgetId, rule: cond.id, row: rowDp, payload });
+                useMessagesStore.getState().send(JSON.stringify(payload));
+            };
+
             for (const cond of notifyConds) {
                 const matched = evaluateConditionWithSource(cond, valuesRef.current, ctxRef.current, changed);
-                const prev = notifyMatchRef.current.get(cond.id);
-                notifyMatchRef.current.set(cond.id, matched);
+                let seen = notifyMatchRef.current.get(cond.id);
+                if (!seen) {
+                    seen = new Map();
+                    notifyMatchRef.current.set(cond.id, seen);
+                }
+                const onChange = hasChangedClause(cond);
+                const listRefs = ctxRef.current?.listRefs ?? [];
+                const perRow = listRefs.length > 0 && hasListAnyClause(cond);
+
+                // ── One message per triggering entry (issue #605) ─────────────
+                if (perRow) {
+                    const hits = new Set(
+                        matched ? matchingListRefs(cond, valuesRef.current, ctxRef.current, changed) : [],
+                    );
+                    // An entry that left the list forgets its verdict, so re-appearing
+                    // re-primes instead of firing against a stale one.
+                    for (const key of [...seen.keys()]) if (!listRefs.includes(key)) seen.delete(key);
+                    for (const ref of listRefs) {
+                        const prev = seen.get(ref);
+                        seen.set(ref, hits.has(ref));
+                        if (!hits.has(ref)) continue;
+                        if (!onChange && (prev === undefined || prev)) continue;
+                        send(cond, ref);
+                    }
+                    continue;
+                }
+
+                const prev = seen.get('');
+                seen.set('', matched);
                 if (!matched) continue;
-                if (!hasChangedClause(cond) && (prev === undefined || prev)) continue;
-                const payload = draftToPayload(cond.notify!);
-                condLog('notify', { widgetId, rule: cond.id, payload });
-                useMessagesStore.getState().send(JSON.stringify(payload));
+                if (!onChange && (prev === undefined || prev)) continue;
+                send(cond, ctxRef.current?.ownDp);
             }
         };
 
