@@ -41,9 +41,11 @@ const {
 const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
 const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
 const {
+    TOKEN_PLACEHOLDER,
     baseUrl,
     clientConfig,
     hostAddresses,
+    maskClientConfig,
     outboundAddress,
     resolveBaseUrl,
 } = require('../../lib/mcp/clientConfig.js');
@@ -1157,6 +1159,23 @@ check('the routing table yields a usable address on a networked host', () => {
 
 check('resolveBaseUrl still honours a configured base URL without asking the network', async () => {
     assert.equal(await resolveBaseUrl({ customUrl: 'https://aura.example.org/' }), 'https://aura.example.org');
+});
+
+check('the stored block loses its token, and says where to get it', () => {
+    const full = clientConfig({ customUrl: 'http://192.168.188.140:8095' }, 'abcdef0123456789abcdef0123456789');
+    const masked = maskClientConfig(full);
+    assert.ok(!masked.includes('abcdef0123456789abcdef0123456789'), 'the token must be gone');
+    assert.ok(masked.includes(TOKEN_PLACEHOLDER), 'the placeholder must point at the field above');
+    // Still pasteable: the URL is the part that is tedious to work out by hand.
+    assert.equal(JSON.parse(masked).mcpServers.aura.url, 'http://192.168.188.140:8095/mcp');
+});
+
+check('masking is idempotent, so it cannot restart the adapter in a loop', () => {
+    const masked = maskClientConfig(clientConfig({ customUrl: 'http://x:1' }, 'tok'));
+    // null means "nothing to do" — the caller skips the write, so no object change.
+    assert.equal(maskClientConfig(masked), null);
+    assert.equal(maskClientConfig(''), null);
+    assert.equal(maskClientConfig(undefined), null);
 });
 
 check('a generated token is 32 hex chars and never repeats', () => {

@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
 const { handleMcpRequest } = require('./lib/mcp/httpEndpoint');
-const { resolveClientConfig } = require('./lib/mcp/clientConfig');
+const { maskClientConfig, resolveClientConfig } = require('./lib/mcp/clientConfig');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -2763,6 +2763,19 @@ class Aura extends utils.Adapter {
                         changed = true;
                         this.log.info(`localLinks updated to port ${port}${base ? ` (custom URL: ${base})` : ''}`);
                     }
+                    // The generated client block shows the token in full so it can be
+                    // copied; once it has been stored there is no reason for it to
+                    // stay readable on every later visit to the config page.
+                    const maskedMcp = maskClientConfig(obj.native?.mcpClientConfig);
+                    if (maskedMcp) {
+                        obj.native.mcpClientConfig = maskedMcp;
+                        changed = true;
+                        this.log.info(
+                            'aura: MCP client configuration stored — token replaced by a placeholder. ' +
+                                'Generate a new token to see a complete block again.',
+                        );
+                    }
+
                     // Migration: clear legacy webInstance so iobroker.web stops tracking aura
                     if (obj.native?.webInstance !== undefined) {
                         delete obj.native.webInstance;

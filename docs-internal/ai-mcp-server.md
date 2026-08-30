@@ -112,9 +112,17 @@ Frontend bei jedem Start (`App.tsx` holt `system.adapter.aura.*`): jeder Browser
 Netz bekäme ihn im Klartext. `mcpClientConfig` gehört genauso dazu — der Block
 enthält denselben Token ein zweites Mal.
 
-Das Feld „Client-Konfiguration" zeigt den Token bewusst im Klartext: der Client
-braucht ihn, also muss er kopierbar sein. Der Hilfetext sagt dazu, dass der Block
-wie ein Passwort zu behandeln ist.
+Das Feld „Client-Konfiguration" zeigt den Token **nur direkt nach dem Erzeugen** im
+Klartext — genau dann wird er kopiert. Beim nächsten Adapterstart ersetzt
+`maskClientConfig()` ihn durch einen Platzhalter (`extendForeignObject` auf das
+eigene Instanzobjekt, im selben Block wie die `localLinks`-Pflege). Danach ist er
+beim Öffnen der Seite nicht mehr lesbar, die URL bleibt aber korrekt.
+
+Das räumt nebenbei ein zweites Problem ab: ein von Hand geänderter Token machte
+den gespeicherten Block still falsch. Ohne Token im Block kann er nicht mehr
+veralten. Das Maskieren ist idempotent — `maskClientConfig` liefert `null`, wenn
+nichts zu tun ist, sonst schriebe der Adapter sein Instanzobjekt bei jedem Start
+neu und würde sich selbst im Kreis neu starten.
 
 ## Berechtigungsstufen
 
@@ -246,7 +254,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 97 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 99 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

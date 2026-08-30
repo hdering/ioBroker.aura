@@ -434,8 +434,8 @@
     "mcpHowTo2": {
       "type": "staticText",
       "text": {
-        "de": "2. Auf „Token erzeugen“ klicken (die Instanz muss dafür laufen) und speichern.",
-        "en": "2. Click “Generate token” (the instance must be running) and save."
+        "de": "2. Auf „Token erzeugen“ klicken (die Instanz muss dafür laufen). Der Block unten ist dann vollständig — gleich kopieren, nach dem Speichern wird der Token darin durch einen Platzhalter ersetzt.",
+        "en": "2. Click “Generate token” (the instance must be running). The block below is then complete — copy it right away; after saving, the token in it is replaced by a placeholder."
       },
       "xs": 12,
       "sm": 12,
@@ -590,8 +590,8 @@
         "de": "Client-Konfiguration"
       },
       "help": {
-        "en": "Filled in by “Generate token”. Copy it into your AI client as-is. It contains the token in clear text — it has to, since the client needs it — so treat this block like a password: do not paste it into a screenshot, an issue or a chat.",
-        "de": "Wird von „Token erzeugen“ befüllt. Unverändert in den KI-Client übernehmen. Der Block enthält den Token im Klartext — anders kann der Client ihn nicht bekommen — behandle ihn also wie ein Passwort: nicht in Screenshots, Issues oder Chats einfügen."
+        "en": "Filled in by “Generate token”, complete and ready to copy — do it now. After saving, the token is replaced by a placeholder here, so it is not readable when this page is opened again; the block then still carries the correct URL and you paste the token from the field above. Treat the complete block like a password.",
+        "de": "Wird von „Token erzeugen“ vollständig befüllt und ist genau dann zum Kopieren gedacht — also gleich übernehmen. Nach dem Speichern steht hier statt des Tokens ein Platzhalter, damit er beim erneuten Öffnen nicht lesbar ist; die URL bleibt korrekt, den Token setzt du dann aus dem Feld darüber ein. Den vollständigen Block wie ein Passwort behandeln."
       },
       "minRows": 9,
       "readOnly": true,
