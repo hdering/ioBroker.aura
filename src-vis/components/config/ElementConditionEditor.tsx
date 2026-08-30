@@ -2,7 +2,9 @@ import { useState } from 'react';
 import type React from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
 import { ClauseRow, ColorField, newClause } from './ConditionEditor';
+import { ConfigModal } from './ConfigModal';
 import { IconPickerModal } from './IconPickerModal';
+import { MessageBuilder, emptyDraft } from './MessageBuilder';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { OWN_DP_TOKEN } from '../../utils/conditionEval';
 import { ELEMENT_TARGETS } from '../../utils/rowConditions';
@@ -91,6 +93,8 @@ function RuleEditor({
     targets,
     ownHint,
     allowIconSize,
+    allowNotify,
+    sampleDp,
 }: {
     rule: ElementConditionRule;
     onChange: (r: ElementConditionRule) => void;
@@ -101,9 +105,15 @@ function RuleEditor({
     ownHint: string;
     /** The host renders the icon at a size a rule may override. */
     allowIconSize: boolean;
+    /** Offer the "send a message" effect — only where the row engine evaluates the
+     *  rule per element and can therefore raise one message per row (issue #605). */
+    allowNotify: boolean;
+    /** A datapoint the message's `{{parent}}` & co. resolve against in the preview. */
+    sampleDp?: string;
 }) {
     const [open, setOpen] = useState(true);
     const [showIcon, setShowIcon] = useState(false);
+    const [editingNotify, setEditingNotify] = useState(false);
     const update = (patch: Partial<ElementConditionRule>) => onChange({ ...rule, ...patch });
     const updateClause = (i: number, c: ElementConditionRule['clauses'][number]) =>
         update({ clauses: rule.clauses.map((cl, j) => (j === i ? c : cl)) });
@@ -422,6 +432,79 @@ function RuleEditor({
                         </div>
                     </div>
 
+                    {/* Send a message (issue #605). Per element: a rule on the list fires
+                        once for every row that starts matching, so the message can name
+                        that row. Edge semantics as everywhere — matching keeps sending
+                        nothing until the element stops matching and matches again. */}
+                    {allowNotify && (
+                        <>
+                            <div className="h-px mt-2" style={{ background: 'var(--app-border)' }} />
+                            <div className="flex items-center justify-between gap-2 pt-1">
+                                <div className="min-w-0">
+                                    <p className="text-[10px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                                        Meldung senden
+                                    </p>
+                                    <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                        {rule.notify
+                                            ? 'Eine Meldung je Zeile, sobald die Regel dort zutrifft.'
+                                            : 'Erzeugt eine Meldung, sobald die Regel zutrifft.'}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                    {rule.notify && (
+                                        <button
+                                            onClick={() => setEditingNotify(true)}
+                                            className="text-[10px] px-2 py-1 rounded-lg"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            Bearbeiten
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={() => {
+                                            if (rule.notify) {
+                                                update({ notify: undefined });
+                                            } else {
+                                                // Straight into the builder — an enabled but
+                                                // empty message would be dropped silently.
+                                                update({ notify: emptyDraft() });
+                                                setEditingNotify(true);
+                                            }
+                                        }}
+                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                        style={{ background: rule.notify ? 'var(--accent)' : 'var(--app-border)' }}
+                                    >
+                                        <span
+                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                            style={{ left: rule.notify ? '18px' : '2px' }}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {editingNotify && rule.notify && (
+                        <ConfigModal
+                            title="Meldung senden"
+                            maxWidth={980}
+                            padded
+                            storageKey="aura-row-cond-notify-modal"
+                            onClose={() => setEditingNotify(false)}
+                        >
+                            <MessageBuilder
+                                draft={rule.notify}
+                                onChange={(draft) => update({ notify: draft })}
+                                rowDp={sampleDp}
+                                perRow
+                            />
+                        </ConfigModal>
+                    )}
+
                     {showIcon && (
                         <IconPickerModal
                             current={rule.icon ?? ''}
@@ -445,6 +528,8 @@ export function ElementConditionEditor({
     ownHint,
     intro,
     allowIconSize = false,
+    allowNotify = false,
+    sampleDp,
 }: {
     rules: ElementConditionRule[];
     onChange: (next: ElementConditionRule[]) => void;
@@ -459,6 +544,14 @@ export function ElementConditionEditor({
      * cell box, so the field would be one that does nothing there.
      */
     allowIconSize?: boolean;
+    /**
+     * Offer the "send a message" effect (issue #605). Only the list rows run through
+     * the row engine that fires it per element — a custom-grid cell is painted by a
+     * different hook, so the switch would be dead there.
+     */
+    allowNotify?: boolean;
+    /** Sample datapoint for the message preview: what `{{parent}}` & co. resolve to. */
+    sampleDp?: string;
 }) {
     const update = (i: number, r: ElementConditionRule) => onChange(rules.map((x, j) => (j === i ? r : x)));
     const remove = (i: number) => onChange(rules.filter((_, j) => j !== i));
@@ -493,6 +586,8 @@ export function ElementConditionEditor({
                     targets={targets}
                     ownHint={hint}
                     allowIconSize={allowIconSize}
+                    allowNotify={allowNotify}
+                    sampleDp={sampleDp}
                 />
             ))}
 

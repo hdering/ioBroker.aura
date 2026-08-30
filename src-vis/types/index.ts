@@ -741,6 +741,13 @@ export interface CellConditionRule {
     /** Same two effects the widget level offers, applied to this element alone. */
     effect?: 'none' | 'pulse' | 'blink';
     hide?: boolean; // blank the element (background is kept)
+    /**
+     * Send a message when the rule starts matching — once per element, so a rule on
+     * a list sends one message per row that triggers (issue #605). Stored as the
+     * builder draft, like the widget level's `notify`. The draft may address the
+     * element with `{{dp}}` / `{{parent}}` / `{{name}}`; see utils/notifyTemplate.
+     */
+    notify?: MessageDraft;
 }
 
 /** The list code's name for the same rule — see the comment above. */

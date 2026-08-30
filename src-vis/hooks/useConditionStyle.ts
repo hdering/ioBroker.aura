@@ -245,6 +245,12 @@ export function __devForceConditionNotify(on: boolean): void {
     devNotifyForced = on;
 }
 
+/** May a condition send a message right now? Shared with the row-level rules
+ *  (useElementConditionStyles), so both obey the same screenshot-mode block. */
+export function conditionNotifyArmed(): boolean {
+    return !isScreenshotMode() || devNotifyForced;
+}
+
 // Real state IDs behind all clauses — token refs ('{dp}', '{list:…}') are
 // expanded to the widget's own / list datapoints via the source context.
 function collectUniqueIds(conditions: WidgetCondition[], ctx?: DpSourceCtx): string[] {
@@ -505,7 +511,7 @@ export function useConditionStyle(
             if (!notifyConds.length) return;
             // The screenshot harness runs against a real instance — a rule firing
             // here would write a genuine message into the user's archive.
-            if (isScreenshotMode() && !devNotifyForced) return;
+            if (!conditionNotifyArmed()) return;
 
             const send = (cond: WidgetCondition, rowDp?: string) => {
                 // `{{dp}}` & co. resolve against the row that triggered, or — for a

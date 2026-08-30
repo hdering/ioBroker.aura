@@ -51,6 +51,8 @@ export function RowConditionsPanel({
                 onChange={onChange}
                 targets={ROW_TARGETS}
                 allowIconSize
+                allowNotify
+                sampleDp={sampleDp}
                 ownHint={`${OWN_DP_TOKEN} = Wert der Zeile selbst; Pille umschalten für einen anderen Datenpunkt — dort sind {{parent}} & Co. erlaubt.`}
                 intro="Noch keine Regel. Regeln reagieren auf den Zeilenwert (oder einen fremden Datenpunkt) und ändern Farbe, Icon, Text oder blenden die Zeile aus."
             />

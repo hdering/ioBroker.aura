@@ -730,7 +730,16 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         const out: ElementCondInput[] = [];
         for (const e of entries) {
             const rules = e.conditions?.length ? [...listRules, ...e.conditions] : listRules;
-            if (rules.length) out.push({ key: e.id, dp: e.id, value: states[e.id]?.val ?? null, rules });
+            // `in`, not a truthy value: a datapoint that answered with null is loaded
+            // too, and the message effect must not read that as "still waiting".
+            if (rules.length)
+                out.push({
+                    key: e.id,
+                    dp: e.id,
+                    value: states[e.id]?.val ?? null,
+                    loaded: e.id in states,
+                    rules,
+                });
             for (const sub of e.subDps ?? []) {
                 if (!sub?.id || !sub.conditions?.length) continue;
                 out.push({

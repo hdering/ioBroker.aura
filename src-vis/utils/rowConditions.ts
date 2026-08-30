@@ -112,6 +112,44 @@ function applyEffects(into: ElementCondResult, rule: ElementConditionRule): void
     if (rule.hide) into.hide = true;
 }
 
+/** Does this one rule match for this element? The clause engine of a row rule,
+ *  shared by the style verdict and the "send a message" effect. */
+export function ruleMatches(
+    rule: ElementConditionRule,
+    ownDp: string,
+    ownValue: unknown,
+    values: Map<string, unknown>,
+): boolean {
+    const clauses = rule.clauses ?? [];
+    if (!clauses.length) return false;
+    const hits = clauses.map((cl) => {
+        const raw = isOwnRef(cl.datapoint, ownDp) ? ownValue : values.get(cl.datapoint);
+        // A compare value pointing back at the element's own datapoint has to be
+        // resolved here as well — `values` holds only the foreign ones.
+        const clause =
+            cl.valueType === 'datapoint' && isOwnRef(cl.value, ownDp)
+                ? { ...cl, valueType: 'static' as const, value: String(ownValue ?? '') }
+                : cl;
+        return evaluateClause(clause, raw, values);
+    });
+    return (rule.logic ?? 'AND') === 'OR' ? hits.some(Boolean) : hits.every(Boolean);
+}
+
+/**
+ * The rules with a "send a message" effect that currently match this element
+ * (issue #605). Kept apart from evalRowRules because it is not a style verdict but
+ * an event source: the caller compares it against the previous evaluation and
+ * sends on the rising edge, per element — one row, one message.
+ */
+export function matchingNotifyRules(
+    rules: ElementConditionRule[],
+    ownDp: string,
+    ownValue: unknown,
+    values: Map<string, unknown>,
+): ElementConditionRule[] {
+    return rules.filter((r) => r.notify && ruleMatches(r, ownDp, ownValue, values));
+}
+
 /**
  * Evaluate a row's rules and merge the effects of every match.
  *
@@ -129,20 +167,8 @@ export function evalRowRules(
     const out: RowCondResult = {};
     let any = false;
     for (const rule of rules) {
-        const clauses = rule.clauses ?? [];
-        if (!clauses.length) continue;
-        const hits = clauses.map((cl) => {
-            const raw = isOwnRef(cl.datapoint, ownDp) ? ownValue : values.get(cl.datapoint);
-            // A compare value pointing back at the element's own datapoint has to be
-            // resolved here as well — `values` holds only the foreign ones.
-            const clause =
-                cl.valueType === 'datapoint' && isOwnRef(cl.value, ownDp)
-                    ? { ...cl, valueType: 'static' as const, value: String(ownValue ?? '') }
-                    : cl;
-            return evaluateClause(clause, raw, values);
-        });
-        const matched = (rule.logic ?? 'AND') === 'OR' ? hits.some(Boolean) : hits.every(Boolean);
-        if (!matched) continue;
+        if (!(rule.clauses ?? []).length) continue;
+        if (!ruleMatches(rule, ownDp, ownValue, values)) continue;
         any = true;
         const target = rule.target ?? 'row';
         applyEffects((out[target] ??= {}), rule);

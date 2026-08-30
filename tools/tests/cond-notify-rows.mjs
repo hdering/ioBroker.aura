@@ -23,6 +23,7 @@ await build({
         contents: [
             "export { matchingListRefs, hasListAnyClause } from './src-vis/utils/conditionSources.ts';",
             "export { resolveDraftForRow, draftHasRowVars } from './src-vis/utils/notifyTemplate.ts';",
+            "export { matchingNotifyRules, ruleMatches, resolveRuleRefs } from './src-vis/utils/rowConditions.ts';",
         ].join('\n'),
         resolveDir: process.cwd(),
         loader: 'ts',
@@ -48,9 +49,15 @@ await build({
         },
     ],
 });
-const { matchingListRefs, hasListAnyClause, resolveDraftForRow, draftHasRowVars } = await import(
-    pathToFileURL(bundle).href
-);
+const {
+    matchingListRefs,
+    hasListAnyClause,
+    resolveDraftForRow,
+    draftHasRowVars,
+    matchingNotifyRules,
+    ruleMatches,
+    resolveRuleRefs,
+} = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -73,6 +80,7 @@ const ctx = { listRefs: [A, B, C] };
 const clause = (datapoint, operator, value = '') => ({ datapoint, operator, value });
 const cond = (clauses, logic = 'AND') => ({ logic, clauses });
 const values = (obj) => new Map(Object.entries(obj));
+const noValues = new Map();
 
 // ── Which entries triggered ──────────────────────────────────────────────────
 {
@@ -241,6 +249,60 @@ const draft = (patch) => ({
 {
     // A top-level datapoint has no strang — the token must not silently vanish.
     eq('an id without a parent leaves {{parent}} alone', resolveDraftForRow(draft({ title: '{{parent}}' }), 'demo').title, '{{parent}}');
+}
+
+// ── Row rules: which of them want to send (Datenpunkte verwalten → Bedingungen) ──
+// The other half of #605: a rule configured on the list's rows, evaluated per row,
+// so the row that matches is the row the message is about.
+{
+    const notify = { title: 'Bewegung {{name}}' };
+    const rules = [
+        { id: 'paint', clauses: [clause('{dp}', 'true')], color: '#f00' },
+        { id: 'msg', clauses: [clause('{dp}', 'true')], notify },
+        { id: 'msg-off', clauses: [clause('{dp}', 'false')], notify },
+    ];
+    eq(
+        'only the matching rules that carry a message are reported',
+        matchingNotifyRules(rules, A, true, noValues).map((r) => r.id),
+        ['msg'],
+    );
+    eq(
+        'a rule without a message never shows up',
+        matchingNotifyRules([rules[0]], A, true, noValues).map((r) => r.id),
+        [],
+    );
+    eq(
+        'the other row value picks the other rule',
+        matchingNotifyRules(rules, A, false, noValues).map((r) => r.id),
+        ['msg-off'],
+    );
+}
+{
+    // A foreign datapoint in the clause is resolved per row first ({{parent}}).
+    const rules = [{ id: 'msg', clauses: [clause('{{parent}}.UNREACH', 'true')], notify: { title: 'x' } }];
+    const resolved = resolveRuleRefs(rules, A);
+    eq('the clause is rewritten for this row', resolved[0].clauses[0].datapoint, 'hm-rpc.0.Melder1.UNREACH');
+    eq(
+        'and matches against that row datapoint',
+        matchingNotifyRules(resolved, A, null, values({ 'hm-rpc.0.Melder1.UNREACH': true })).map((r) => r.id),
+        ['msg'],
+    );
+    eq(
+        'a neighbouring row is unaffected',
+        matchingNotifyRules(resolveRuleRefs(rules, B), B, null, values({ 'hm-rpc.0.Melder1.UNREACH': true })).map(
+            (r) => r.id,
+        ),
+        [],
+    );
+}
+{
+    const rule = { id: 'r', logic: 'OR', clauses: [clause('{dp}', '>', '30'), clause('{dp}', '<', '10')] };
+    check('ruleMatches: OR combines the clauses', ruleMatches(rule, A, 35, noValues) === true);
+    check('ruleMatches: …and stays false between them', ruleMatches(rule, A, 20, noValues) === false);
+    check(
+        'ruleMatches: a rule without clauses never matches',
+        ruleMatches({ id: 'r', clauses: [] }, A, true, noValues) === false,
+    );
 }
 
 const failed = results.filter((r) => !r.ok);

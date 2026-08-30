@@ -783,6 +783,103 @@ check(
     `…with the id and text left alone (got "${listWide[0]?.id}" / "${listWide[0]?.title}")`,
     listWide[0]?.id === 'alle' && listWide[0]?.title === 'Alle: {{name}}',
 );
+
+
+// ── 18c. A message from a ROW condition (issue #605) ────────────────────────
+// The second place a message can come from: "Datenpunkte verwalten → Bedingungen"
+// (list-wide) and the per-entry conditions. Those rules are evaluated per row, so
+// the row that matches is the row the message is about — no list token involved.
+const rowRuleDraft = {
+    ...notifyDraft,
+    id: 'zeile',
+    title: 'Bewegung [[{{parent}}.NAME]]',
+    text: '{{name}}',
+};
+
+await setRows({ [ROWS[0]]: false, [ROWS[1]]: false, [ROWS[2]]: false });
+await page.evaluate(
+    ([rows, draftValue]) => {
+        window.__auraShot.conditionNotify(false);
+        window.__auraShot.messagesReset();
+        window.__auraShot.showWidgets([
+            {
+                id: 'w-row-cond',
+                type: 'list',
+                title: 'Melder',
+                gridPos: { x: 0, y: 0, w: 6, h: 6 },
+                options: {
+                    entries: rows.map((id, i) => ({ id, name: `Melder ${i}` })),
+                    rowConditions: [
+                        {
+                            id: 'rc1',
+                            logic: 'AND',
+                            clauses: [{ datapoint: '{dp}', operator: 'true', value: '' }],
+                            color: '#ef4444',
+                            notify: draftValue,
+                        },
+                    ],
+                },
+            },
+        ]);
+        window.__auraShot.conditionNotify(true);
+    },
+    [ROWS, rowRuleDraft],
+);
+await settle();
+check('row rule: nothing is sent while the rows are loading', (await sentMessages()).length === 0);
+
+await setRows({ [ROWS[1]]: true });
+const rowRuleFired = await sentMessages();
+check('row rule: the row that starts matching sends one message', rowRuleFired.length === 1);
+check(
+    `row rule: the message is about that row (got "${rowRuleFired[0]?.title}" / "${rowRuleFired[0]?.text}")`,
+    rowRuleFired[0]?.title === 'Bewegung [[demo.melder.Bad.NAME]]' && rowRuleFired[0]?.text === 'MOTION',
+);
+check(`row rule: the id carries the row (got "${rowRuleFired[0]?.id}")`, rowRuleFired[0]?.id === `zeile:${ROWS[1]}`);
+
+await setRows({ [ROWS[2]]: true });
+check('row rule: a second row sends its own message', (await sentMessages()).length === 2);
+await setRows({ [ROWS[2]]: true });
+check('row rule: an unchanged row does not re-fire', (await sentMessages()).length === 2);
+await setRows({ [ROWS[1]]: false });
+check('row rule: leaving the match is silent', (await sentMessages()).length === 2);
+await setRows({ [ROWS[1]]: true });
+check('row rule: and re-entering it fires again', (await sentMessages()).length === 3);
+
+// A rule the user did not put a message on must stay a pure paint job.
+await setRows({ [ROWS[0]]: false, [ROWS[1]]: false, [ROWS[2]]: false });
+await page.evaluate(
+    ([rows]) => {
+        // conditionNotify(true) is what clears the recorded payloads — messagesReset
+        // only empties the store.
+        window.__auraShot.conditionNotify(false);
+        window.__auraShot.messagesReset();
+        window.__auraShot.showWidgets([
+            {
+                id: 'w-row-plain',
+                type: 'list',
+                title: 'Melder',
+                gridPos: { x: 0, y: 0, w: 6, h: 6 },
+                options: {
+                    entries: rows.map((id, i) => ({ id, name: `Melder ${i}` })),
+                    rowConditions: [
+                        {
+                            id: 'rc-plain',
+                            logic: 'AND',
+                            clauses: [{ datapoint: '{dp}', operator: 'true', value: '' }],
+                            color: '#ef4444',
+                        },
+                    ],
+                },
+            },
+        ]);
+        window.__auraShot.conditionNotify(true);
+    },
+    [ROWS],
+);
+await settle();
+await setRows({ [ROWS[1]]: true });
+check('a row rule without a message sends nothing', (await sentMessages()).length === 0);
 await page.evaluate(() => window.__auraShot.mockServerState(false));
 
 // ── 19. Unanswered messages survive a reload ────────────────────────────────

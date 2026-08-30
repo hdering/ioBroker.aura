@@ -251,13 +251,21 @@ Gelesen/ungelesen gilt geräteübergreifend: eine auf dem Tablet bestätigte Mel
 
 ## Meldung aus einer Bedingung
 
-Jede [Bedingung](./editor#bedingungen) eines Widgets kann eine Meldung auslösen — ohne Skript. Im Bedingungs-Editor **Meldung senden** einschalten, der Baukasten öffnet sich im Dialog.
+Jede [Bedingung](./editor#bedingungen) kann eine Meldung auslösen — ohne Skript. **Meldung senden** einschalten, der Baukasten öffnet sich im Dialog. Es gibt drei Stellen:
+
+| Ort | Wirkung |
+| --- | --- |
+| Widget bearbeiten → **Bedingungen** | Regel über das ganze Widget |
+| Liste → **Datenpunkte verwalten** → **Bedingungen** | Regel über alle Zeilen — je Zeile eine Meldung |
+| Liste → **Datenpunkte verwalten** → Datenpunkt → **Bedingungen** | Regel nur für diese Zeile |
 
 Ausgelöst wird die Flanke: eine Zustands-Regel sendet einmal, sobald sie zutrifft. Nur eine Bedingung mit dem Operator **hat sich geändert** sendet bei jeder Wertänderung.
 
 ### Auslösende Zeile in der Meldung
 
-Steht als Wertquelle **ein Eintrag der Liste** (`{list:any}`), sendet die Regel **eine Meldung je auslösender Zeile**. In allen Textfeldern der Meldung stehen dafür die Datenpunkt-Platzhalter der Zeile:
+Eine Zeilen-Bedingung wird je Zeile ausgewertet und sendet deshalb **eine Meldung je auslösender Zeile**. Auf Widget-Ebene gilt dasselbe, sobald als Wertquelle **ein Eintrag der Liste** (`{list:any}`) gewählt ist.
+
+In allen Textfeldern der Meldung stehen dafür die Datenpunkt-Platzhalter der Zeile:
 
 | Platzhalter | Ergebnis bei `hm-rpc.0.Melder1.MOTION` |
 | --- | --- |
@@ -274,7 +282,9 @@ Die doppelten eckigen Klammern zeigen den Wert des Datenpunkts — `{{…}}` bau
 
 Eine feste **ID** wird je Zeile eindeutig gemacht (`melder` → `melder:hm-rpc.0.Melder1.MOTION`), damit sich zwei Melder nicht gegenseitig überschreiben.
 
-Regeln über die ganze Liste (**alle Einträge**, **kein Eintrag**, **Anzahl**, **Summe** …) senden weiterhin eine einzelne Meldung; dort gibt es keine auslösende Zeile. Bei einer Bedingung ohne Listenquelle beziehen sich die Platzhalter auf den Datenpunkt des Widgets.
+Gesendet wird auf der Flanke: eine Zeile meldet einmal, sobald sie zutrifft, und erst wieder, nachdem sie zwischendurch nicht mehr zutraf. Beim Laden der Seite meldet nichts — der Zustand, in dem die Seite startet, ist kein Ereignis.
+
+Regeln über die ganze Liste (**alle Einträge**, **kein Eintrag**, **Anzahl**, **Summe** …) senden weiterhin eine einzelne Meldung; dort gibt es keine auslösende Zeile. Bei einer Widget-Bedingung ohne Listenquelle beziehen sich die Platzhalter auf den Datenpunkt des Widgets.
 
 ## Beispiele
 
