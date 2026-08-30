@@ -1315,7 +1315,10 @@ class Aura extends utils.Adapter {
             this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on port ${port}`);
             if (this.config.mcpEnabled) {
                 if (this.config.mcpToken) {
-                    this.log.info(`aura: MCP endpoint available at /mcp on port ${port}`);
+                    this.log.info(
+                        `aura: MCP endpoint available at /mcp on port ${port} — BETA, an AI assistant can ` +
+                            `change your dashboard through it; every write is backed up to ${this.namespace}.backups`,
+                    );
                 } else {
                     // Enabled but unusable is worse than disabled, because nothing
                     // else in this server would refuse the request.
@@ -3054,6 +3057,16 @@ class Aura extends utils.Adapter {
                     /* ignore */
                 }
                 reply({ ok: true, version, namespace: this.namespace });
+                return;
+            }
+
+            // ── MCP token generator (config dialog button) ────────────────────
+            // 32 hex chars from the CSPRNG. The admin config writes the returned
+            // `native` back into the form, so the user never has to invent one —
+            // and a self-chosen token is exactly where weak secrets come from.
+            if (msg.command === 'generateMcpToken') {
+                const token = require('node:crypto').randomBytes(16).toString('hex');
+                reply({ native: { mcpToken: token }, result: 'MCP token generated' });
                 return;
             }
 

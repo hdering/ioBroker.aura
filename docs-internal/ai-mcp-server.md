@@ -1,4 +1,10 @@
-# MCP-Endpunkt
+# MCP-Endpunkt (Beta)
+
+> **Beta.** Über diesen Endpunkt kann ein KI-Assistent das Dashboard verändern.
+> Dabei kann einiges danebengehen: Widgets an der falschen Stelle, Optionen ohne
+> die gewünschte Wirkung, ein überschriebener Tab. Vor jedem Schreibvorgang wird
+> nach `<namespace>.backups` gesichert — das Ergebnis trotzdem ansehen. Nicht auf
+> einem System aktivieren, dessen Störung man sich nicht leisten kann.
 
 Aura stellt unter `POST /mcp` einen MCP-Server bereit, mit dem ein KI-Assistent
 das Dashboard lesen und ändern kann. Zusammen mit dem **ioBroker-MCP** — der
@@ -28,6 +34,7 @@ Zwei Schalter in der Instanzkonfiguration:
 | --- | --- | --- |
 | MCP-Endpunkt aktivieren | **aus** | Ohne Haken antwortet `/mcp` mit 404 |
 | MCP-Token | leer | **Pflicht.** Ohne Token weist der Endpunkt jede Anfrage mit 503 ab |
+| Token erzeugen | — | Knopf; erzeugt 32 Hex-Zeichen aus dem CSPRNG und füllt das Feld. Die Instanz muss laufen (`sendTo`) |
 
 Beim Anwender genügt dann eine URL — kein Pfad, keine Installation:
 
@@ -122,9 +129,11 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 37 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 39 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein
 abgelehnter Schreibvorgang nichts hinterlässt und die Sicherung den Stand **vor**
-der Änderung enthält.
+der Änderung enthält. Dazu die Token-Erzeugung: 200 Durchläufe auf Form und
+Wiederholungsfreiheit, und dass ein um ein Zeichen abweichender sowie ein
+gekürzter Token abgewiesen werden.

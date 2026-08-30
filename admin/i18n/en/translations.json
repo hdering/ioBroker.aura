@@ -1,5 +1,6 @@
 {
   "Custom URL (optional)": "Custom URL (optional)",
   "Base URL": "Base URL",
-  "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082).": "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082)."
+  "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082).": "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082).",
+  "MCP token generated": "MCP token generated"
 }

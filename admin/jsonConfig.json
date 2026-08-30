@@ -362,10 +362,26 @@
     "_mcpHeader": {
       "type": "header",
       "text": {
-        "en": "AI access (MCP)",
-        "de": "KI-Zugriff (MCP)"
+        "en": "AI access (MCP) — BETA",
+        "de": "KI-Zugriff (MCP) — BETA"
       },
       "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "mcpBetaNote": {
+      "type": "staticText",
+      "text": {
+        "en": "BETA — an AI assistant can change your dashboard through this endpoint. It can get things wrong: widgets in the wrong place, options that do not do what was intended, a tab overwritten. Every write is backed up to <namespace>.backups first, but check the result. Do not enable this on a system you cannot afford to have disturbed.",
+        "de": "BETA — über diesen Endpunkt kann ein KI-Assistent dein Dashboard verändern. Dabei kann einiges danebengehen: Widgets an der falschen Stelle, Optionen ohne die gewünschte Wirkung, ein überschriebener Tab. Vor jedem Schreibvorgang wird nach <namespace>.backups gesichert — sieh dir das Ergebnis trotzdem an. Nicht auf einem System aktivieren, dessen Störung du dir nicht leisten kannst."
+      },
+      "style": {
+        "color": "#b45309",
+        "fontWeight": "bold"
+      },
       "xs": 12,
       "sm": 12,
       "md": 12,
@@ -407,6 +423,26 @@
       "md": 6,
       "lg": 8,
       "xl": 8
+    },
+    "mcpGenerateToken": {
+      "type": "sendTo",
+      "command": "generateMcpToken",
+      "label": {
+        "en": "Generate token",
+        "de": "Token erzeugen"
+      },
+      "variant": "contained",
+      "useNative": true,
+      "help": {
+        "en": "Creates a random 32-character token and fills the field above. The instance must be running.",
+        "de": "Erzeugt einen zufälligen 32-Zeichen-Token und füllt das Feld darüber. Die Instanz muss dafür laufen."
+      },
+      "visible": "!!data.mcpEnabled",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     }
   }
 }

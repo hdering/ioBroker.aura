@@ -458,6 +458,45 @@ check('a group widget carries its children into config.group-defs', () => {
     assert.deepEqual(defs.d1, [{ id: 'kind', type: 'switch' }]);
 });
 
+// ── Token generation (the button in the adapter config) ──────────────────────
+
+const { randomBytes } = await import('node:crypto');
+const genToken = () => randomBytes(16).toString('hex');
+
+check('a generated token is 32 hex chars and never repeats', () => {
+    const seen = new Set();
+    for (let i = 0; i < 200; i++) {
+        const t = genToken();
+        assert.match(t, /^[0-9a-f]{32}$/, `unexpected shape: ${t}`);
+        assert.ok(!seen.has(t), 'a repeat means the generator is not random');
+        seen.add(t);
+    }
+});
+
+const fresh = genToken();
+const askWith = async (token) => {
+    const s = http.createServer((req, res) => {
+        handleMcpRequest(req, res, { adapter, token: fresh, version: '1' }).catch(() => {});
+    });
+    await new Promise((r) => s.listen(0, '127.0.0.1', r));
+    const r = await fetch(`http://127.0.0.1:${s.address().port}/mcp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'ping' }),
+    });
+    s.close();
+    return r.status;
+};
+const okStatus = await askWith(fresh);
+// One character off, and same length — the comparison must not shortcut on it.
+const nearMiss = await askWith(fresh.slice(0, -1) + (fresh.endsWith('a') ? 'b' : 'a'));
+const truncated = await askWith(fresh.slice(0, -1));
+check('a valid token is accepted, a near-miss and a truncation are not', () => {
+    assert.equal(okStatus, 200);
+    assert.equal(nearMiss, 401);
+    assert.equal(truncated, 401);
+});
+
 await client.close();
 server.close();
 console.log(`\nmcp: ${checks} checks passed\n`);
