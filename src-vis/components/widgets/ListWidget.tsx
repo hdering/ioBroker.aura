@@ -1528,11 +1528,17 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                           : hasLabels
                                             ? entryInactiveColor
                                             : null));
-                            const EntryIcon = contactMatch
-                                ? getWidgetIcon(contactMatch.icon, null!)
-                                : (stateMatch?.icon ?? entry.icon)
-                                  ? getWidgetIcon(stateMatch?.icon ?? entry.icon, null!)
-                                  : null;
+                            // A rule wins, then the display-type mapping, then the row icon —
+                            // the same order the dynamic list's badge uses.
+                            const EntryIcon = cIcon.hide
+                                ? null
+                                : cIcon.icon
+                                  ? getWidgetIcon(cIcon.icon, null!)
+                                  : contactMatch
+                                    ? getWidgetIcon(contactMatch.icon, null!)
+                                    : (stateMatch?.icon ?? entry.icon)
+                                      ? getWidgetIcon(stateMatch?.icon ?? entry.icon, null!)
+                                      : null;
                             const clickable = writable && !roleDisplay && !forceValue && (forceSwitch || isBoolLike);
 
                             const entryIconSize = cIcon.iconSize ?? entry.iconSize ?? 11;
