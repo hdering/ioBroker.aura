@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.51.0",
+    "auraVersion": "0.51.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -174,6 +174,39 @@
       "default": "true,1"
     },
     "customGrid": {},
+    "conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "ref": "WidgetCondition"
+      },
+      "description": "Regeln, die Aussehen und Sichtbarkeit des Widgets vom Wert eines Datenpunkts abhängig machen (Farbe, Icon, Titel, Textgröße, ausblenden)."
+    },
+    "badges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "ref": "BadgeDef"
+      },
+      "description": "Kleine Marker in der Ecke des Widgets, gespeist aus einem Datenpunkt."
+    },
+    "clickAction": {
+      "type": "object",
+      "ref": "ClickAction",
+      "description": "Was ein Klick auf das Widget auslöst — Popup, Navigation, Datenpunkt schreiben, URL."
+    },
+    "transparent": {
+      "type": "boolean",
+      "description": "Kartenhintergrund weglassen."
+    },
+    "transparency": {
+      "type": "number",
+      "description": "Deckkraft der Karte in Prozent (100 = voll deckend)."
+    },
+    "styleOverride": {
+      "type": "object",
+      "description": "CSS-Variablen nur für dieses Widget, z. B. { \"--accent\": \"#f00\" }."
+    },
     "colorThresholds": {
       "type": "array",
       "items": {
@@ -209,11 +242,6 @@
       "type": "number",
       "default": 0,
       "description": "Dieser Wert wird nach dem Faktor addiert."
-    },
-    "transparent": {
-      "type": "boolean",
-      "default": false,
-      "description": "Kartenhintergrund weglassen."
     }
   },
   "types": {
@@ -233,6 +261,159 @@
         "contains",
         "changed"
       ]
+    },
+    "WidgetCondition": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "logic": {
+          "type": "string",
+          "enum": [
+            "AND",
+            "OR"
+          ],
+          "required": true,
+          "description": "how to combine multiple clauses"
+        },
+        "clauses": {
+          "type": "array",
+          "items": {
+            "tsType": "ConditionClause"
+          },
+          "required": true
+        },
+        "style": {
+          "tsType": "ConditionStyle",
+          "required": true
+        },
+        "elements": {
+          "type": "object",
+          "tsType": "Partial<Record<ConditionPart, ConditionElement>>",
+          "description": "What the rule does to the widget's elements while it matches (issue #96)."
+        },
+        "effect": {
+          "type": "string",
+          "enum": [
+            "none",
+            "pulse",
+            "blink",
+            "border"
+          ],
+          "description": "`border` pulses the frame alone, so the content stays readable."
+        },
+        "refreshWidget": {
+          "type": "boolean"
+        },
+        "notify": {
+          "tsType": "MessageDraft",
+          "description": "Send a message when the rule fires — same edge semantics as refreshWidget (issue #429). Stored as the builder draft so the editor can re-open it."
+        },
+        "hideWidget": {
+          "type": "boolean",
+          "description": "enable visibility control (see visibilityMode)"
+        },
+        "visibilityMode": {
+          "type": "string",
+          "enum": [
+            "hideOnMatch",
+            "showOnMatch"
+          ]
+        },
+        "reflow": {
+          "type": "boolean",
+          "description": "if hiding: remove from grid so other widgets slide up"
+        }
+      }
+    },
+    "BadgeDef": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "style": {
+          "type": "string",
+          "ref": "BadgeStyle",
+          "required": true
+        },
+        "corner": {
+          "type": "string",
+          "ref": "BadgeCorner",
+          "required": true,
+          "description": "which edge/corner the badge sits on"
+        },
+        "color": {
+          "type": "string",
+          "description": "dot/pill colour (CSS); falls back to var(--accent)"
+        },
+        "size": {
+          "tsType": "BadgeSize",
+          "description": "dot/text size, default 'md'"
+        },
+        "dp": {
+          "type": "string",
+          "description": "'count': datapoint ref (supports JSON path) whose live value is shown"
+        },
+        "label": {
+          "type": "string",
+          "description": "'label': fixed text"
+        },
+        "icon": {
+          "type": "string",
+          "description": "'label': optional Iconify id"
+        },
+        "visibility": {
+          "type": "string",
+          "enum": [
+            "always",
+            "nonzero",
+            "condition"
+          ]
+        },
+        "logic": {
+          "type": "string",
+          "enum": [
+            "AND",
+            "OR"
+          ],
+          "description": "combine clauses when visibility === 'condition'"
+        },
+        "clauses": {
+          "type": "array",
+          "items": {
+            "tsType": "ConditionClause"
+          },
+          "description": "visibility clauses (reuses the condition shape)"
+        }
+      }
+    },
+    "BadgeStyle": {
+      "type": "string",
+      "enum": [
+        "dot",
+        "count",
+        "label"
+      ]
+    },
+    "BadgeCorner": {
+      "type": "string",
+      "enum": [
+        "top-left",
+        "top-right",
+        "bottom-left",
+        "bottom-right"
+      ]
+    },
+    "ClickAction": {
+      "type": "object",
+      "tsType": "| { kind: 'none' } | { kind: 'popup-dimmer' } | { kind: 'popup-thermostat'"
     },
     "ColorThreshold": {
       "type": "array",
@@ -3053,7 +3234,8 @@
           ]
         },
         "clickAction": {
-          "tsType": "ClickAction"
+          "type": "object",
+          "ref": "ClickAction"
         },
         "bgColor": {
           "type": "string",
@@ -3126,9 +3308,14 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "iconSize",
         "showIcon",
         "showTitle",
+        "styleOverride",
+        "transparency",
         "transparent"
       ],
       "options": {
@@ -3212,9 +3399,14 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "iconSize",
         "showIcon",
         "showTitle",
+        "styleOverride",
+        "transparency",
         "transparent"
       ],
       "options": {
@@ -3299,13 +3491,19 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "decimals",
         "icon",
         "iconSize",
         "numberFormat",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "consumptionDp": {
@@ -3431,9 +3629,15 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "iconSize",
         "showIcon",
-        "showTitle"
+        "showTitle",
+        "styleOverride",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "alarmPrefix": {
@@ -3569,7 +3773,10 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
         "colorThresholds",
+        "conditions",
         "contentPosition",
         "customGrid",
         "decimals",
@@ -3579,7 +3786,10 @@
         "showIcon",
         "showTitle",
         "showValue",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "activeBg": {
@@ -4085,10 +4295,13 @@
         "value"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "customGrid",
         "icon",
@@ -4101,7 +4314,10 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -4148,11 +4364,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "icon",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "buttonColor": {
@@ -4198,12 +4420,18 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "autoHeight": {
@@ -4334,10 +4562,13 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "customGrid",
         "icon",
@@ -4351,7 +4582,9 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
         "transparent",
         "unreachDp"
       ],
@@ -4510,11 +4743,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "align": {
@@ -4643,13 +4882,19 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "decimals",
         "icon",
         "iconSize",
         "numberFormat",
         "showIcon",
         "showTitle",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unit"
       ],
       "options": {
@@ -4757,11 +5002,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "align": {
@@ -4857,10 +5108,13 @@
         "pressureDatapoint"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "decimals",
         "icon",
         "iconSize",
@@ -4873,7 +5127,10 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -5032,11 +5289,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "customFontSize": {
@@ -5118,10 +5381,13 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "icon",
         "iconSize",
@@ -5133,7 +5399,10 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -5192,11 +5461,14 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
         "colorThresholds",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
@@ -5209,7 +5481,10 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -5317,6 +5592,9 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "decimals",
         "icon",
@@ -5324,7 +5602,10 @@
         "numberFormat",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "autoHistoryInstance": {
@@ -5538,11 +5819,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "baseUrl": {
@@ -5575,11 +5862,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "decimals",
         "icon",
         "numberFormat",
         "showIcon",
-        "showTitle"
+        "showTitle",
+        "styleOverride",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "barDirection": {
@@ -5754,10 +6047,13 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "customGrid",
         "icon",
@@ -5771,7 +6067,10 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -5849,12 +6148,18 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "autoScale": {
@@ -5967,6 +6272,9 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "decimals",
         "icon",
@@ -5975,7 +6283,10 @@
         "showIcon",
         "showTitle",
         "showValue",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "valueFactor",
         "valueOffset"
       ],
@@ -6051,6 +6362,9 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "decimals",
         "icon",
         "iconSize",
@@ -6058,7 +6372,10 @@
         "showIcon",
         "showTitle",
         "showValue",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "valueFactor",
         "valueOffset"
       ],
@@ -6223,12 +6540,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
+        "styleOverride",
         "titleAlign",
+        "transparency",
         "transparent"
       ],
       "options": {
@@ -6332,11 +6654,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "showSubtitle": {
@@ -6369,13 +6697,19 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "decimals",
         "icon",
         "iconSize",
         "numberFormat",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "htmlContent": {
@@ -6428,12 +6762,18 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "customGrid",
         "icon",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "body": {
@@ -6507,11 +6847,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "fullscreenButton": {
@@ -6591,12 +6937,18 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "fit": {
@@ -6643,12 +6995,18 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "clearAfterSubmit": {
@@ -6750,11 +7108,16 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
+        "styleOverride",
         "titleAlign",
+        "transparency",
         "transparent"
       ],
       "options": {
@@ -6840,13 +7203,19 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "decimals",
         "icon",
         "numberFormat",
         "showIcon",
         "showTitle",
-        "showValue"
+        "showValue",
+        "styleOverride",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "color": {
@@ -6947,10 +7316,13 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
@@ -6962,7 +7334,10 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -7130,14 +7505,20 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
         "colorThresholds",
+        "conditions",
         "customGrid",
         "decimals",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "activeBg": {
@@ -7575,9 +7956,15 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "iconSize",
         "showIcon",
-        "showTitle"
+        "showTitle",
+        "styleOverride",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "chartType": {
@@ -7648,7 +8035,14 @@
         "default"
       ],
       "conditionSlots": [],
-      "commonOptions": [],
+      "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
+        "styleOverride",
+        "transparency",
+        "transparent"
+      ],
       "options": {
         "center": {
           "type": "array",
@@ -7753,10 +8147,13 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "lockDp",
@@ -7767,6 +8164,9 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -7963,7 +8363,14 @@
         "custom"
       ],
       "conditionSlots": [],
-      "commonOptions": [],
+      "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
+        "styleOverride",
+        "transparency",
+        "transparent"
+      ],
       "options": {
         "align": {
           "type": "string",
@@ -8038,9 +8445,15 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "iconSize",
         "showIcon",
-        "showTitle"
+        "showTitle",
+        "styleOverride",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "allowClear": {
@@ -8129,7 +8542,14 @@
         "custom"
       ],
       "conditionSlots": [],
-      "commonOptions": [],
+      "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
+        "styleOverride",
+        "transparency",
+        "transparent"
+      ],
       "options": {
         "targetWidgetId": {
           "type": "string",
@@ -8154,11 +8574,16 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
+        "styleOverride",
         "titleAlign",
+        "transparency",
         "transparent"
       ],
       "options": {
@@ -8225,9 +8650,14 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "iconSize",
         "showIcon",
         "showTitle",
+        "styleOverride",
+        "transparency",
         "transparent"
       ],
       "options": {
@@ -8336,11 +8766,14 @@
         "unreachDp"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
         "colorThresholds",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
@@ -8353,7 +8786,10 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -8515,10 +8951,13 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "lockDp",
@@ -8530,7 +8969,10 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -8631,10 +9073,13 @@
         "value"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "customGrid",
         "lockDp",
@@ -8645,7 +9090,10 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -8754,7 +9202,14 @@
       "conditionSlots": [
         "title"
       ],
-      "commonOptions": [],
+      "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
+        "styleOverride",
+        "transparency",
+        "transparent"
+      ],
       "options": {
         "allClearText": {
           "type": "string"
@@ -8964,10 +9419,13 @@
         "value"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "customGrid",
         "icon",
@@ -8980,7 +9438,10 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -9107,11 +9568,14 @@
         "setpointDp"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
         "colorThresholds",
+        "conditions",
         "customGrid",
         "decimals",
         "icon",
@@ -9125,7 +9589,10 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
@@ -9215,13 +9682,19 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "customGrid",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "addIcon": {
@@ -9311,11 +9784,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "bins": {
@@ -9347,11 +9826,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "binSize": {
@@ -9448,12 +9933,18 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "customGrid",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {}
     },
@@ -9479,11 +9970,14 @@
         "value"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
         "colorThresholds",
+        "conditions",
         "contentPosition",
         "customGrid",
         "decimals",
@@ -9499,7 +9993,10 @@
         "showTitle",
         "showValue",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unit",
         "unreachDp",
         "valueFactor",
@@ -9555,11 +10052,17 @@
         "title"
       ],
       "commonOptions": [
+        "badges",
+        "clickAction",
+        "conditions",
         "icon",
         "iconSize",
         "showIcon",
         "showTitle",
-        "titleAlign"
+        "styleOverride",
+        "titleAlign",
+        "transparency",
+        "transparent"
       ],
       "options": {
         "adapterLocationPath": {
@@ -9712,10 +10215,13 @@
         "value"
       ],
       "commonOptions": [
+        "badges",
         "batteryDp",
         "batteryInvert",
         "batteryLowThreshold",
         "batteryMode",
+        "clickAction",
+        "conditions",
         "contentPosition",
         "customGrid",
         "iconSize",
@@ -9727,7 +10233,10 @@
         "showStatusBadges",
         "showTitle",
         "statusBadgesAlertOnly",
+        "styleOverride",
         "titleAlign",
+        "transparency",
+        "transparent",
         "unreachDp"
       ],
       "options": {
