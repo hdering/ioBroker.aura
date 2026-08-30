@@ -463,6 +463,39 @@ check('a group widget carries its children into config.group-defs', () => {
 const { randomBytes } = await import('node:crypto');
 const genToken = () => randomBytes(16).toString('hex');
 
+/** What onMessage('generateMcpToken') does, kept in step with main.js. */
+function generateReply(config) {
+    const token = randomBytes(16).toString('hex');
+    const base = config.customUrl
+        ? config.customUrl.replace(/\/+$/, '')
+        : `http://<ioBroker-IP>:${config.port || 8095}`;
+    return {
+        mcpToken: token,
+        mcpClientConfig: JSON.stringify(
+            {
+                mcpServers: {
+                    aura: { type: 'http', url: `${base}/mcp`, headers: { Authorization: `Bearer ${token}` } },
+                },
+            },
+            null,
+            2,
+        ),
+    };
+}
+
+check('the button hands back a client block that is valid JSON and carries the token', () => {
+    const r = generateReply({ port: 8095 });
+    const parsed = JSON.parse(r.mcpClientConfig);
+    assert.equal(parsed.mcpServers.aura.type, 'http');
+    assert.equal(parsed.mcpServers.aura.url, 'http://<ioBroker-IP>:8095/mcp');
+    assert.equal(parsed.mcpServers.aura.headers.Authorization, `Bearer ${r.mcpToken}`);
+});
+
+check('a configured customUrl replaces the host placeholder, without a double slash', () => {
+    const r = generateReply({ customUrl: 'https://aura.example.org/', port: 8095 });
+    assert.equal(JSON.parse(r.mcpClientConfig).mcpServers.aura.url, 'https://aura.example.org/mcp');
+});
+
 check('a generated token is 32 hex chars and never repeats', () => {
     const seen = new Set();
     for (let i = 0; i < 200; i++) {

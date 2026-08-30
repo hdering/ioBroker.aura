@@ -3066,7 +3066,29 @@ class Aura extends utils.Adapter {
             // and a self-chosen token is exactly where weak secrets come from.
             if (msg.command === 'generateMcpToken') {
                 const token = require('node:crypto').randomBytes(16).toString('hex');
-                reply({ native: { mcpToken: token }, result: 'MCP token generated' });
+                // The adapter cannot know which address the client will use to reach
+                // it, so a configured customUrl wins and otherwise a placeholder is
+                // left in — better an obvious gap than a confidently wrong host.
+                const base = this.config.customUrl
+                    ? this.config.customUrl.replace(/\/+$/, '')
+                    : `http://<ioBroker-IP>:${this.config.port || 8095}`;
+                const snippet = JSON.stringify(
+                    {
+                        mcpServers: {
+                            aura: {
+                                type: 'http',
+                                url: `${base}/mcp`,
+                                headers: { Authorization: `Bearer ${token}` },
+                            },
+                        },
+                    },
+                    null,
+                    2,
+                );
+                reply({
+                    native: { mcpToken: token, mcpClientConfig: snippet },
+                    result: 'MCP token generated',
+                });
                 return;
             }
 

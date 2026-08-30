@@ -388,6 +388,18 @@
       "lg": 12,
       "xl": 12
     },
+    "mcpHowTo": {
+      "type": "staticText",
+      "text": {
+        "en": "<b>Quick start</b><ol><li>Tick “Enable MCP endpoint”.</li><li>Click “Generate token” (the instance must be running) and save.</li><li>Copy the block produced below into your AI client's MCP configuration (e.g. Claude Desktop / Claude Code, section <code>mcpServers</code>). Where it says <code>&lt;ioBroker-IP&gt;</code>, put the address Aura is reachable at.</li><li>Also set up the <b>ioBroker MCP</b> server — it supplies the datapoints, this endpoint does not know them. Both must point at the same ioBroker installation.</li><li>Then just say what you want built, e.g. “Add a tile for every light in the living room tab, with the room temperature below.”</li></ol>",
+        "de": "<b>Kurzanleitung</b><ol><li>Haken bei „MCP-Endpunkt aktivieren“ setzen.</li><li>Auf „Token erzeugen“ klicken (die Instanz muss dafür laufen) und speichern.</li><li>Den unten erzeugten Block in die MCP-Konfiguration des KI-Clients übernehmen (z. B. Claude Desktop / Claude Code, Abschnitt <code>mcpServers</code>). Steht dort <code>&lt;ioBroker-IP&gt;</code>, die Adresse eintragen, unter der Aura erreichbar ist.</li><li>Zusätzlich den <b>ioBroker-MCP</b> einrichten — der liefert die Datenpunkte, dieser Endpunkt kennt sie nicht. Beide müssen auf dieselbe ioBroker-Installation zeigen.</li><li>Dann einfach sagen, was gebaut werden soll, z. B. „Lege im Tab Wohnzimmer für jedes Licht eine Kachel an und darunter die Raumtemperatur.“</li></ol>"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
     "mcpEnabled": {
       "type": "checkbox",
       "label": {
@@ -443,6 +455,26 @@
       "md": 6,
       "lg": 4,
       "xl": 4
+    },
+    "mcpClientConfig": {
+      "type": "text",
+      "label": {
+        "en": "Client configuration",
+        "de": "Client-Konfiguration"
+      },
+      "help": {
+        "en": "Filled in by “Generate token”. Copy it into your AI client as-is.",
+        "de": "Wird von „Token erzeugen“ befüllt. Unverändert in den KI-Client übernehmen."
+      },
+      "minRows": 9,
+      "readOnly": true,
+      "default": "",
+      "visible": "!!data.mcpEnabled",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
     }
   }
 }

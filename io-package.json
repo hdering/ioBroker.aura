@@ -223,7 +223,8 @@
     "messageHistorySize": 100,
     "messageRetentionDays": 30,
     "mcpEnabled": false,
-    "mcpToken": ""
+    "mcpToken": "",
+    "mcpClientConfig": ""
   },
   "objects": [],
   "instanceObjects": [

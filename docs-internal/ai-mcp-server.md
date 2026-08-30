@@ -28,15 +28,29 @@ müssen — sonst baut das Modell ein Dashboard aus IDs, die hier nicht existier
 
 ## Einrichten
 
-Zwei Schalter in der Instanzkonfiguration:
+Die Instanzkonfiguration führt durch die Schritte (Kurzanleitung als `staticText`
+direkt im Abschnitt „KI-Zugriff (MCP) — BETA“):
+
+1. Haken bei „MCP-Endpunkt aktivieren“
+2. „Token erzeugen“ (Instanz muss laufen), speichern
+3. Den erzeugten Block in die MCP-Konfiguration des KI-Clients übernehmen
+4. Zusätzlich den ioBroker-MCP einrichten — der liefert die Datenpunkte
+5. Sagen, was gebaut werden soll
+
+Felder:
 
 | Feld | Vorgabe | Bedeutung |
 | --- | --- | --- |
 | MCP-Endpunkt aktivieren | **aus** | Ohne Haken antwortet `/mcp` mit 404 |
 | MCP-Token | leer | **Pflicht.** Ohne Token weist der Endpunkt jede Anfrage mit 503 ab |
-| Token erzeugen | — | Knopf; erzeugt 32 Hex-Zeichen aus dem CSPRNG und füllt das Feld. Die Instanz muss laufen (`sendTo`) |
+| Token erzeugen | — | Knopf; erzeugt 32 Hex-Zeichen aus dem CSPRNG. Die Instanz muss laufen (`sendTo`) |
+| Client-Konfiguration | leer | Wird vom Knopf mitbefüllt: der fertige `mcpServers`-Block zum Kopieren |
 
-Beim Anwender genügt dann eine URL — kein Pfad, keine Installation:
+Der Knopf baut den Block mit Port und Token fertig zusammen. Die **Adresse** kann
+der Adapter nicht kennen — unter welcher IP ihn der Client erreicht, weiß nur der
+Client. Ist `customUrl` gesetzt, wird sie verwendet, sonst bleibt ein sichtbares
+`<ioBroker-IP>` stehen: eine offensichtliche Lücke ist besser als ein
+selbstbewusst falscher Host.
 
 ```json
 {
@@ -129,7 +143,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 39 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 41 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein
