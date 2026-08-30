@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
 const { handleMcpRequest } = require('./lib/mcp/httpEndpoint');
-const { clientConfig } = require('./lib/mcp/clientConfig');
+const { resolveClientConfig } = require('./lib/mcp/clientConfig');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -3073,7 +3073,7 @@ class Aura extends utils.Adapter {
                 // The adapter cannot know which address the client will use to reach
                 // it, so a configured customUrl wins and otherwise a placeholder is
                 // left in — better an obvious gap than a confidently wrong host.
-                const snippet = clientConfig(
+                const snippet = await resolveClientConfig(
                     {
                         customUrl: this.config.customUrl,
                         port: this.config.port,

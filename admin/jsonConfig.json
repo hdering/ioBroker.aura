@@ -388,6 +388,22 @@
       "lg": 12,
       "xl": 12
     },
+    "mcpPrereq": {
+      "type": "staticText",
+      "text": {
+        "de": "VORAUSSETZUNG: Zusätzlich muss der ioBroker-MCP eingerichtet sein. Nur er liefert der KI die Datenpunkte — dieser Endpunkt kennt keine. Ohne ihn weiß die KI weder, welche Geräte es gibt, noch in welchem Raum sie stehen, und fängt an, Datenpunkt-IDs zu erfinden. Beide MCPs müssen auf dieselbe ioBroker-Installation zeigen.",
+        "en": "REQUIREMENT: the ioBroker MCP server must be set up as well. It is the only source of datapoints — this endpoint knows none. Without it the AI knows neither which devices exist nor which room they are in, and starts inventing datapoint ids. Both MCP servers must point at the same ioBroker installation."
+      },
+      "style": {
+        "color": "#1d4ed8",
+        "fontWeight": "bold"
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
     "mcpHowTo0": {
       "type": "staticText",
       "text": {
@@ -442,8 +458,8 @@
     "mcpHowTo4": {
       "type": "staticText",
       "text": {
-        "de": "4. Zusätzlich den ioBroker-MCP einrichten: der liefert die Datenpunkte, dieser Endpunkt kennt sie nicht. Beide müssen auf dieselbe ioBroker-Installation zeigen.",
-        "en": "4. Also set up the ioBroker MCP server: it supplies the datapoints, this endpoint does not know them. Both must point at the same ioBroker installation."
+        "de": "4. Den ioBroker-MCP einrichten, falls noch nicht geschehen (siehe Voraussetzung oben).",
+        "en": "4. Set up the ioBroker MCP server if you have not already (see the requirement above)."
       },
       "xs": 12,
       "sm": 12,

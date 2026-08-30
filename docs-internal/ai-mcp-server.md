@@ -11,6 +11,18 @@ das Dashboard lesen und ändern kann. Zusammen mit dem **ioBroker-MCP** — der
 Räume, Gewerke und Datenpunkte kennt — lässt sich ein Dashboard erzeugen, ohne
 dass jemand Datenpunktlisten in einen Prompt kopiert.
 
+## Voraussetzung
+
+Der **ioBroker-MCP muss ebenfalls eingerichtet sein.** Nur er liefert die
+Datenpunkte — dieser Endpunkt kennt keine. Ohne ihn weiß das Modell weder, welche
+Geräte es gibt, noch in welchem Raum sie stehen, und fängt an, IDs zu erfinden;
+eine erfundene ID geht als String durch und ergibt ein Widget, das stumm nichts
+anzeigt. Beide MCPs müssen auf dieselbe ioBroker-Installation zeigen.
+
+Das steht an drei Stellen: in der Instanzkonfiguration, in der Kurzanleitung und
+in den `instructions`, die das Modell beim Verbinden bekommt — dort mit der
+Anweisung, es zu sagen und aufzuhören, statt IDs zu raten.
+
 ## Arbeitsteilung
 
 | Frage | ioBroker-MCP | Aura |
@@ -51,10 +63,13 @@ Der Knopf baut den Block vollständig zusammen (`lib/mcp/clientConfig.js`):
 
 - **Basis-URL** gesetzt → sie gewinnt, ohne doppelten Schrägstrich. Nur sie kennt
   einen Reverse-Proxy oder Hostnamen.
-- sonst die **eigene LAN-Adresse** des Hosts: der Adapter läuft auf dem
-  ioBroker-Rechner, seine nicht-interne IPv4 ist die Adresse, die andere Geräte
-  nutzen. Private Bereiche gewinnen vor VPN- oder Container-Interfaces — Dockers
-  `br0` steht sonst alphabetisch vorn.
+- sonst die **geroutete Adresse**: ein UDP-Socket wird auf eine öffentliche IP
+  „verbunden“ — dabei wird kein Paket gesendet, der Kernel wählt nur die
+  Quelladresse. Das ist die einzige Auskunft, die stimmt, wenn mehrere private
+  Adressen existieren: auf einem Rechner mit VMware sehen `192.168.171.1`
+  (Host-only) und `192.168.188.235` (LAN) gleich gut aus, und die Interface-Liste
+  allein wählt das falsche.
+- schlägt das fehl, die Interface-Liste, private Bereiche zuerst.
 - **Protokoll** aus dem tatsächlich laufenden Server (`_httpsActive`), nicht aus
   `config.secure`: scheitert HTTPS beim Start, fällt der Server auf HTTP zurück
   und die Einstellung würde lügen.
@@ -155,7 +170,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 45 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 48 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

@@ -31,7 +31,13 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const { validateWidget, validateTab, validateAny, allowedOptions } = require('../../lib/mcp/validate.js');
 const { designColumns, allTabs, findTab, collectDefIds, replaceTabWidgets } = require('../../lib/mcp/auraConfig.js');
 const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
-const { baseUrl, clientConfig, hostAddresses } = require('../../lib/mcp/clientConfig.js');
+const {
+    baseUrl,
+    clientConfig,
+    hostAddresses,
+    outboundAddress,
+    resolveBaseUrl,
+} = require('../../lib/mcp/clientConfig.js');
 
 const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-widget-schema.json'), 'utf8'));
 
@@ -486,6 +492,17 @@ check('without a base URL the host LAN address and the live protocol are used', 
     assert.equal(baseUrl({ port: 8095, https: true, interfaces: ifaces }), 'https://192.168.188.140:8095');
 });
 
+check('an explicit host address wins over the interface list', () => {
+    // A machine with VMware has 192.168.171.1 (host-only) AND the real LAN address;
+    // both are private, so the interface list alone cannot tell them apart.
+    const ifaces = {
+        vmnet1: [{ address: '192.168.171.1', family: 'IPv4', internal: false }],
+        wlan: [{ address: '192.168.188.235', family: 'IPv4', internal: false }],
+    };
+    assert.equal(baseUrl({ interfaces: ifaces }), 'http://192.168.171.1:8095');
+    assert.equal(baseUrl({ interfaces: ifaces, hostIp: '192.168.188.235' }), 'http://192.168.188.235:8095');
+});
+
 check('a LAN address is preferred over a VPN or container interface', () => {
     // Docker's bridge comes first alphabetically and would otherwise win.
     const ifaces = {
@@ -513,6 +530,20 @@ check('with no usable address a visible placeholder is left in', () => {
         baseUrl({ interfaces: { lo: [{ address: '127.0.0.1', family: 'IPv4', internal: true }] } }),
         'http://<ioBroker-IP>:8095',
     );
+});
+
+const routed = await outboundAddress();
+check('the routing table yields a usable address on a networked host', () => {
+    // No packet is sent; connect() only makes the kernel pick a source address.
+    // A host with no route at all legitimately answers null — hence the fallback.
+    assert.ok(routed === null || /^\d+\.\d+\.\d+\.\d+$/.test(routed), `unexpected: ${routed}`);
+    if (routed) {
+        assert.ok(!routed.startsWith('127.'), 'the loopback address would be useless in the client block');
+    }
+});
+
+check('resolveBaseUrl still honours a configured base URL without asking the network', async () => {
+    assert.equal(await resolveBaseUrl({ customUrl: 'https://aura.example.org/' }), 'https://aura.example.org');
 });
 
 check('a generated token is 32 hex chars and never repeats', () => {
