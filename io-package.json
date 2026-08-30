@@ -224,6 +224,7 @@
     "messageRetentionDays": 30,
     "mcpEnabled": false,
     "mcpToken": "",
+    "mcpMode": "read",
     "mcpClientConfig": ""
   },
   "objects": [],

@@ -39,6 +39,7 @@ const {
     replaceTabWidgets,
 } = require('../../lib/mcp/auraConfig.js');
 const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
+const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
 const {
     baseUrl,
     clientConfig,
@@ -259,7 +260,7 @@ function makeAdapter() {
 
 let adapter = makeAdapter();
 const server = http.createServer((req, res) => {
-    handleMcpRequest(req, res, { adapter, token: TOKEN, version: '9.9.9' }).catch((e) => {
+    handleMcpRequest(req, res, { adapter, token: TOKEN, mode: 'delete', version: '9.9.9' }).catch((e) => {
         res.writeHead(500);
         res.end(String(e.message));
     });
@@ -323,16 +324,18 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all sixteen tools are announced with descriptions', () => {
+check('all eighteen tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_create_layout',
         'aura_create_section',
         'aura_create_tab',
         'aura_dashboard',
+        'aura_delete',
         'aura_group',
         'aura_popup',
         'aura_popups',
+        'aura_rename',
         'aura_tab',
         'aura_update_widget',
         'aura_validate',
@@ -890,6 +893,177 @@ const missingWidget = await client.callTool({
 check('a widget that exists nowhere points at the defId route', () => {
     assert.ok(missingWidget.isError);
     assert.match(missingWidget.content[0].text, /defId der Gruppe mitgeben/);
+});
+
+// ── Permission levels ────────────────────────────────────────────────────────
+
+check('the levels escalate and an unknown value falls back to read', () => {
+    assert.deepEqual(LEVELS, ['read', 'write', 'rename', 'delete']);
+    assert.equal(levelIndex('read'), 0);
+    assert.equal(levelIndex('delete'), 3);
+    // An unrecognised or missing setting must never widen permissions.
+    assert.equal(levelIndex('quatsch'), 0);
+    assert.equal(levelIndex(undefined), 0);
+});
+
+check('each level offers strictly more tools, and read offers no writer', () => {
+    const counts = LEVELS.map((l) => toolsFor(l).length);
+    for (let i = 1; i < counts.length; i++) {
+        assert.ok(counts[i] > counts[i - 1], `${LEVELS[i]} must offer more than ${LEVELS[i - 1]}`);
+    }
+    const readTools = toolsFor('read').map((t) => t.name);
+    for (const name of readTools) {
+        assert.ok(!/^aura_(write|create|add|update|delete|rename)/.test(name), `${name} must not be a read tool`);
+    }
+    assert.ok(!toolsFor('rename').some((t) => t.name === 'aura_delete'));
+    assert.ok(toolsFor('delete').some((t) => t.name === 'aura_delete'));
+});
+
+check('the level is not leaked into the advertised tool schema', () => {
+    for (const t of toolsFor('delete')) {
+        assert.ok(!('level' in t), `${t.name} still carries its level`);
+    }
+});
+
+/** Talk to the endpoint at a given permission level. */
+async function atLevel(mode, body) {
+    const s = http.createServer((req, res) => {
+        handleMcpRequest(req, res, { adapter, token: TOKEN, mode, version: '1' }).catch(() => {});
+    });
+    await new Promise((r) => s.listen(0, '127.0.0.1', r));
+    const r = await fetch(`http://127.0.0.1:${s.address().port}/mcp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify(body),
+    });
+    const json = await r.json();
+    s.close();
+    return json;
+}
+
+const listedRead = await atLevel('read', { jsonrpc: '2.0', id: 1, method: 'tools/list' });
+check('tools/list at read advertises no writing tool', () => {
+    const names = listedRead.result.tools.map((t) => t.name);
+    assert.ok(names.includes('aura_dashboard'));
+    assert.ok(!names.includes('aura_write_tab'));
+    assert.ok(!names.includes('aura_delete'));
+});
+
+const refusedWrite = await atLevel('read', {
+    jsonrpc: '2.0',
+    id: 2,
+    method: 'tools/call',
+    params: { name: 'aura_write_tab', arguments: { tab: 'Klima', widgets: '[]' } },
+});
+check('a cached client calling a forbidden tool is refused, naming the setting', () => {
+    // The list is filtered, but a client may still hold an older copy.
+    assert.equal(refusedWrite.result.isError, true);
+    assert.match(refusedWrite.result.content[0].text, /braucht die Berechtigung "write"/);
+    assert.match(refusedWrite.result.content[0].text, /eingestellt ist "read"/);
+    assert.match(refusedWrite.result.content[0].text, /Adapter-Konfiguration/);
+});
+
+const refusedDelete = await atLevel('rename', {
+    jsonrpc: '2.0',
+    id: 3,
+    method: 'tools/call',
+    params: { name: 'aura_delete', arguments: { kind: 'tab', target: 'Klima' } },
+});
+check('rename does not include delete', () => {
+    assert.equal(refusedDelete.result.isError, true);
+    assert.match(refusedDelete.result.content[0].text, /braucht die Berechtigung "delete"/);
+});
+
+const initRead = await atLevel('read', {
+    jsonrpc: '2.0',
+    id: 4,
+    method: 'initialize',
+    params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } },
+});
+check('the instructions tell the model which level it is on', () => {
+    assert.match(initRead.result.instructions, /Permission: read only/);
+});
+
+const initDelete = await atLevel('delete', {
+    jsonrpc: '2.0',
+    id: 5,
+    method: 'initialize',
+    params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } },
+});
+check('at delete the model is told to ask before removing anything', () => {
+    assert.match(initDelete.result.instructions, /Permission: delete/);
+    assert.match(initDelete.result.instructions, /Ask the user before deleting/);
+});
+
+// ── Renaming ─────────────────────────────────────────────────────────────────
+
+const renamed = await client.callTool({
+    name: 'aura_rename',
+    arguments: { kind: 'tab', target: 'Klima', name: 'Raumklima' },
+});
+check('a tab is renamed and keeps its slug', () => {
+    assert.ok(!renamed.isError, renamed.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const tab = layouts[0].sections[0].tabs[1];
+    assert.equal(tab.name, 'Raumklima');
+    // Changing the slug would break bookmarks and the navigate datapoints.
+    assert.equal(tab.slug, 'klima');
+    assert.match(renamed.content[0].text, /slug bleibt "klima"/);
+});
+
+const renamedLayout = await client.callTool({
+    name: 'aura_rename',
+    arguments: { kind: 'layout', target: 'Tablet', name: 'Wandtablet' },
+});
+check('a layout is renamed and keeps its slug too', () => {
+    assert.ok(!renamedLayout.isError, renamedLayout.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const l = layouts.find((x) => x.name === 'Wandtablet');
+    assert.equal(l.slug, 'tablet');
+});
+
+// ── Deleting ─────────────────────────────────────────────────────────────────
+
+const deletedTab = await client.callTool({ name: 'aura_delete', arguments: { kind: 'tab', target: 'Raumklima' } });
+check('deleting a tab says how much content went with it', () => {
+    assert.ok(!deletedTab.isError, deletedTab.content[0].text);
+    assert.match(deletedTab.content[0].text, /Widget\(s\)/);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.ok(!layouts[0].sections[0].tabs.some((t) => t.name === 'Raumklima'));
+});
+
+const onlySection = await client.callTool({
+    name: 'aura_delete',
+    arguments: { kind: 'section', target: 'Start', layout: 'Wohnzimmer' },
+});
+check('the only section of a layout cannot be deleted', () => {
+    assert.ok(onlySection.isError);
+    assert.match(onlySection.content[0].text, /nur diesen einen Bereich/);
+});
+
+const deletedWidgetInGroup = await client.callTool({
+    name: 'aura_delete',
+    arguments: { kind: 'widget', target: 'kind-b', defId: 'd1' },
+});
+check('a single child can be deleted out of a group', () => {
+    assert.ok(!deletedWidgetInGroup.isError, deletedWidgetInGroup.content[0].text);
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.deepEqual(
+        defs.d1.map((w) => w.id),
+        ['kind-a'],
+    );
+});
+
+const deletedPopup = await client.callTool({ name: 'aura_delete', arguments: { kind: 'popup', target: 'Frisch' } });
+check('a popup can be deleted', () => {
+    assert.ok(!deletedPopup.isError, deletedPopup.content[0].text);
+    const views = JSON.parse(adapter.states['config.popup-config']).state.views;
+    assert.ok(!views.some((v) => v.name === 'Frisch'));
+});
+
+check('every deletion left a backup behind', () => {
+    const names = Object.keys(adapter.files);
+    assert.ok(names.length >= 4, `expected several backups, got ${names.length}`);
 });
 
 // ── Token generation (the button in the adapter config) ──────────────────────

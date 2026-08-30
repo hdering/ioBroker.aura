@@ -535,6 +535,54 @@
       "lg": 4,
       "xl": 4
     },
+    "mcpMode": {
+      "type": "select",
+      "label": {
+        "en": "What the AI may do",
+        "de": "Was die KI darf"
+      },
+      "options": [
+        {
+          "value": "read",
+          "label": {
+            "en": "Read only",
+            "de": "Nur lesen"
+          }
+        },
+        {
+          "value": "write",
+          "label": {
+            "en": "Read and write (create, change)",
+            "de": "Lesen und schreiben (anlegen, ändern)"
+          }
+        },
+        {
+          "value": "rename",
+          "label": {
+            "en": "…and rename",
+            "de": "…und umbenennen"
+          }
+        },
+        {
+          "value": "delete",
+          "label": {
+            "en": "…and delete",
+            "de": "…und löschen"
+          }
+        }
+      ],
+      "help": {
+        "en": "Each step includes the ones before it. Tools above the level are not even offered to the AI. Start with “read only” and raise it once you trust the result — deleting takes the content with it: a tab its widgets, a section its tabs.",
+        "de": "Jede Stufe schließt die vorherigen ein. Werkzeuge oberhalb der Stufe werden der KI gar nicht erst angeboten. Beginne mit „Nur lesen“ und erhöhe erst, wenn dich das Ergebnis überzeugt — Löschen nimmt den Inhalt mit: ein Tab seine Widgets, ein Bereich seine Tabs."
+      },
+      "default": "read",
+      "visible": "!!data.mcpEnabled",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
     "mcpClientConfig": {
       "type": "text",
       "label": {

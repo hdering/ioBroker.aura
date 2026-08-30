@@ -56,6 +56,7 @@ Felder:
 | --- | --- | --- |
 | MCP-Endpunkt aktivieren | **aus** | Ohne Haken antwortet `/mcp` mit 404 |
 | MCP-Token | leer | **Pflicht.** Ohne Token weist der Endpunkt jede Anfrage mit 503 ab |
+| Was die KI darf | **Nur lesen** | `read` → `write` → `rename` → `delete`, jede Stufe schließt die vorherigen ein |
 | Token erzeugen | — | Knopf; erzeugt 32 Hex-Zeichen aus dem CSPRNG. Die Instanz muss laufen (`sendTo`) |
 | Client-Konfiguration | leer | Wird vom Knopf mitbefüllt: der fertige `mcpServers`-Block zum Kopieren |
 
@@ -104,24 +105,40 @@ nichts sonst in diesem Server die Anfrage abweisen würde.
 Der Vergleich läuft längenunabhängig, damit ein falscher Token nichts über
 Laufzeit verrät.
 
-## Werkzeuge
+## Berechtigungsstufen
 
-| Werkzeug | Zweck |
-| --- | --- |
-| `aura_dashboard` | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite |
-| `aura_widget_types` | Alle Typen kompakt |
-| `aura_widget_schema` | Volle Optionen der genannten Typen |
-| `aura_tab` | Widgets eines Tabs inkl. `groupDefs` |
-| `aura_validate` | Prüfung gegen Schema und Live-Datenpunkte |
-| `aura_add_widget` | Ein Widget anfügen |
-| `aura_write_tab` | Widgetliste eines Tabs ersetzen |
-| `aura_create_tab` | Neuen Tab anlegen, leer oder gefüllt |
-| `aura_create_section` | Neuen Bereich (Menüeintrag) anlegen, mit einem Start-Tab |
-| `aura_create_layout` | Neues Layout mit eigener URL anlegen, mit Bereich und Tab |
-| `aura_popups` / `aura_popup` | Popup-Ansichten auflisten / eine lesen |
-| `aura_write_popup` | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`) |
-| `aura_group` / `aura_write_group` | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen |
-| `aura_update_widget` | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe |
+Eskalierend, nicht unabhängig — die Reihenfolge folgt daran, wie schwer ein Fehler
+rückgängig zu machen ist: Inhalt lässt sich aus der Sicherung neu schreiben, ein
+Umbenennen zerstört keine Struktur, ein Löschen nimmt die Widgets mit. Vorgabe ist
+`read`, MCP einzuschalten gewährt also zunächst gar nichts.
+
+Werkzeuge oberhalb der Stufe erscheinen **gar nicht erst** in `tools/list` — ein
+Werkzeug anzubieten und dann abzulehnen kostet eine Runde und lässt das Modell
+rätseln. Die Prüfung sitzt trotzdem zusätzlich am Aufruf, weil ein Client eine
+ältere Liste zwischengespeichert haben kann.
+
+Die Stufe steht auch in den `instructions`: das Modell weiß beim Verbinden, was es
+darf, und plant nichts, was es hinterher nicht ausführen kann. Auf `read` wird es
+angewiesen, das JSON zum manuellen Import anzubieten.
+
+| Werkzeug | Zweck | Stufe |
+| --- | --- | --- |
+| `aura_dashboard` | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite | read |
+| `aura_widget_types` | Alle Typen kompakt | read |
+| `aura_widget_schema` | Volle Optionen der genannten Typen | read |
+| `aura_tab` | Widgets eines Tabs inkl. `groupDefs` | read |
+| `aura_validate` | Prüfung gegen Schema und Live-Datenpunkte | read |
+| `aura_add_widget` | Ein Widget anfügen | write |
+| `aura_write_tab` | Widgetliste eines Tabs ersetzen | write |
+| `aura_create_tab` | Neuen Tab anlegen, leer oder gefüllt | write |
+| `aura_create_section` | Neuen Bereich (Menüeintrag) anlegen, mit einem Start-Tab | write |
+| `aura_create_layout` | Neues Layout mit eigener URL anlegen, mit Bereich und Tab | write |
+| `aura_popups` / `aura_popup` | Popup-Ansichten auflisten / eine lesen | read |
+| `aura_write_popup` | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`) | write |
+| `aura_group` / `aura_write_group` | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen | read/write |
+| `aura_update_widget` | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe | write |
+| `aura_rename` | Layout, Bereich, Tab oder Popup umbenennen — der Slug bleibt | rename |
+| `aura_delete` | Widget, Tab, Bereich, Layout oder Popup löschen | delete |
 
 ## Warum Validierung der eigentliche Gewinn ist
 
@@ -139,7 +156,7 @@ korrigieren kann:
 Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
 
-## Acht Stellen, die man leicht falsch macht
+## Zehn Stellen, die man leicht falsch macht
 
 **Eingebaute Popups.** Wird eine mitgelieferte Ansicht geändert, muss
 `userEdited: true` gesetzt werden — sonst verwirft `ensureBuiltins()` die Änderung
@@ -166,6 +183,15 @@ wäre der wahrscheinlichste Fehler, dass das Modell eine Option vergisst, die es
 gar nicht ändern wollte. `replace: true` schaltet das bewusst ab.
 
 Die **id darf sich dabei nicht ändern** — sonst zeigen Verweise ins Leere.
+
+**Umbenennen darf den Slug nicht anfassen.** Der Slug steht in URLs und in den
+Navigations-Datenpunkten, die der Adapter veröffentlicht. Das Frontend lässt ihn
+beim Umbenennen ebenfalls stehen; hier genauso, und die Antwort sagt es dazu.
+
+**Löschen hat Untergrenzen.** Das letzte Layout und der einzige Bereich eines
+Layouts bleiben; ein Bereich ohne Tabs bekommt einen neuen. Das Frontend lehnt
+still ab — hier ist es ein Fehler, denn wer löschen wollte, sollte erfahren, dass
+nichts passiert ist.
 
 **Popup- und Gruppen-Raster.** Beide haben ihr eigenes Raster, deshalb gilt dort
 die Spaltengrenze des Dashboards **nicht** — sie wird für diese Werkzeuge
@@ -209,7 +235,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 81 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 96 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

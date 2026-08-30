@@ -916,6 +916,7 @@ class Aura extends utils.Adapter {
                 handleMcpRequest(req, res, {
                     adapter: this,
                     token: this.config.mcpToken,
+                    mode: this.config.mcpMode || 'read',
                     version: require('./package.json').version || '',
                 }).catch((err) => {
                     this.log.warn(`aura: MCP request failed — ${err.message}`);
