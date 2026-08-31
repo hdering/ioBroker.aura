@@ -4877,6 +4877,10 @@ type CarouselItemEdit = {
     value?: string;
     /** Optional explicit "off" value for boolean-style items. */
     inactiveValue?: string;
+    /** Optional label shown while the item is active (falls back to `label`). */
+    labelActive?: string;
+    /** Optional label shown while the item is inactive (falls back to `label`). */
+    labelInactive?: string;
     /** Kept for backwards-compat with older configs; new UI no longer surfaces it. */
     activeValue?: string;
     clickAction?: ClickAction;
@@ -5574,6 +5578,25 @@ function CarouselEditPanel({
                                                 style={sInputStyle}
                                             />
                                         </div>
+                                        {/* Aktiv-Beschriftung — leer = Beschriftung oben */}
+                                        <div>
+                                            <label
+                                                className="text-[10px] mb-0.5 block"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            >
+                                                {tHook('carousel.items.labelActive' as never)}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={item.labelActive ?? ''}
+                                                onChange={(e) =>
+                                                    updateItem(item.id, { labelActive: e.target.value || undefined })
+                                                }
+                                                placeholder={item.label}
+                                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                style={sInputStyle}
+                                            />
+                                        </div>
                                         {/* Aktiv-Farben (BG/Text) */}
                                         <div className="grid grid-cols-2 gap-2">
                                             <CwColorField
@@ -5609,6 +5632,25 @@ function CarouselEditPanel({
                                                 }
                                                 placeholder="z.B. false"
                                                 className={`w-full ${sInputCls}`}
+                                                style={sInputStyle}
+                                            />
+                                        </div>
+                                        {/* Inaktiv-Beschriftung — leer = Beschriftung oben */}
+                                        <div>
+                                            <label
+                                                className="text-[10px] mb-0.5 block"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            >
+                                                {tHook('carousel.items.labelInactive' as never)}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={item.labelInactive ?? ''}
+                                                onChange={(e) =>
+                                                    updateItem(item.id, { labelInactive: e.target.value || undefined })
+                                                }
+                                                placeholder={item.label}
+                                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
                                                 style={sInputStyle}
                                             />
                                         </div>

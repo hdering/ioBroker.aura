@@ -1757,6 +1757,8 @@ export const en: Record<TranslationKey, string> = {
     'carousel.items.colorsInactive': 'Inactive',
     'carousel.items.resetColor': 'Reset',
     'carousel.items.inactiveValue': 'Inactive value (e.g. false)',
+    'carousel.items.labelActive': 'Active label (empty = label above)',
+    'carousel.items.labelInactive': 'Inactive label (empty = label above)',
     'carousel.items.showLastChange': 'Show last change (second line)',
     'carousel.action.none': 'DP toggle (default)',
     'carousel.action.popupWidget': 'Popup: widget content',

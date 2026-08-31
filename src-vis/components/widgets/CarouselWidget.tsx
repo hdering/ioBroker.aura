@@ -35,6 +35,10 @@ export type CarouselItem = {
     value?: string | number | boolean;
     activeValue?: string | number | boolean;
     inactiveValue?: string | number | boolean;
+    /** Optional label shown while the item is active (overrides `label`). */
+    labelActive?: string;
+    /** Optional label shown while the item is inactive (overrides `label`). */
+    labelInactive?: string;
     clickAction?: ClickAction;
     /** Background color while the item is active (DP matches activeValue / value). */
     bgColor?: string;
@@ -65,6 +69,18 @@ function eqLoose(a: unknown, b: unknown): boolean {
     if (a == b) return true;
     if (a == null || b == null) return false;
     return String(a).toLowerCase() === String(b).toLowerCase();
+}
+
+// Fallback active-check for items that only configure per-state labels (no
+// Aktiv-/Inaktiv-Wert). Treats the usual "off" spellings of a boolean-ish DP
+// as inactive so a plain true/false datapoint flips the text without forcing
+// the user to also fill in both comparison values.
+function isTruthyState(v: unknown): boolean {
+    if (v === null || v === undefined) return false;
+    if (typeof v === 'boolean') return v;
+    if (typeof v === 'number') return v !== 0;
+    const s = String(v).trim().toLowerCase();
+    return s !== '' && s !== 'false' && s !== '0' && s !== 'off' && s !== 'null';
 }
 
 export function CarouselWidget({ config, editMode }: WidgetProps) {
@@ -687,9 +703,12 @@ function CarouselItemButton({
     // inactive comparison target, or the last-change timestamp. Without this,
     // the chip wouldn't repaint when the DP flips and the colours would stick.
     const activeTarget = item.activeValue !== undefined ? item.activeValue : item.value;
+    // Per-state labels also need the live value, even when no comparison value
+    // is configured — otherwise the text would never flip.
+    const hasStateLabels = !!(item.labelActive || item.labelInactive);
     const needsOwnDp = !!(
         item.dp &&
-        (activeTarget !== undefined || item.inactiveValue !== undefined || item.showLastChange)
+        (activeTarget !== undefined || item.inactiveValue !== undefined || item.showLastChange || hasStateLabels)
     );
     const { state: itemState } = useDatapoint(needsOwnDp ? item.dp : '');
 
@@ -718,11 +737,17 @@ function CarouselItemButton({
             // inactive value (and the DP has actually delivered a value).
             active = v !== null && !eqLoose(v, item.inactiveValue);
         }
-    } else if (checkDp) {
-        if (activeTarget !== undefined) {
-            active = eqLoose(checkValue, activeTarget);
-        }
+    } else if (checkDp && activeTarget !== undefined) {
+        active = eqLoose(checkValue, activeTarget);
+    } else if (needsOwnDp && hasStateLabels) {
+        // Labels-only item: no comparison value given, so read the DP as a plain
+        // on/off flag.
+        active = isTruthyState(itemState?.val ?? null);
     }
+
+    // The label may differ per state; both sides fall back to the base label so
+    // filling in only one of them still works.
+    const shownLabel = (active ? item.labelActive : item.labelInactive) || item.label;
 
     // Pick the color override matching the current state. Each side falls back
     // to the chip-style default (defaultBg/defaultColor) when no override is set,
@@ -835,7 +860,7 @@ function CarouselItemButton({
                             className={`flex flex-col min-w-0 ${itemsClass}`}
                             style={{ lineHeight: 1.3, flex: '1 1 auto', textAlign }}
                         >
-                            <MarqueeText text={item.label} style={{ textAlign }} />
+                            <MarqueeText text={shownLabel} style={{ textAlign }} />
                             {item.showLastChange && lastChangeText && (
                                 <MarqueeText
                                     text={lastChangeText}
@@ -848,7 +873,7 @@ function CarouselItemButton({
                 }
                 return (
                     <span className={`flex flex-col ${itemsClass}`} style={{ lineHeight: 1.3, textAlign }}>
-                        <span>{item.label}</span>
+                        <span>{shownLabel}</span>
                         {item.showLastChange && lastChangeText && (
                             <span
                                 className="aura-last-change opacity-60"

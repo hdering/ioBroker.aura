@@ -1763,6 +1763,8 @@ export const de = {
     'carousel.items.colorsInactive': 'Inaktiv',
     'carousel.items.resetColor': 'Zurücksetzen',
     'carousel.items.inactiveValue': 'Inaktiv-Wert (z.B. false)',
+    'carousel.items.labelActive': 'Aktiv-Beschriftung (leer = Beschriftung oben)',
+    'carousel.items.labelInactive': 'Inaktiv-Beschriftung (leer = Beschriftung oben)',
     'carousel.items.showLastChange': 'Letzte Änderung anzeigen (zweite Zeile)',
     'carousel.action.none': 'DP schalten (Standard)',
     'carousel.action.popupWidget': 'Popup: Widget-Inhalt',

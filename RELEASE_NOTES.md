@@ -9,3 +9,4 @@
 
 - Messages - [[dp]] placeholders in a message title or body now read live in the Meldungen widget, the header bell and the admin history, not only on the toast. A message sent by a condition freezes those values when the rule fires, so the archive keeps what the datapoint said at that moment (#605)
 - General - copying a tab, a section or a layout now gives every copied widget (and every group child) a new id, so the widget picker of a click action can tell the copies apart. Dashboards that already hold such twins are repaired on load (#606)
+- Carousel - each element can carry its own caption per state, e.g. "Auto" while the datapoint is true and "Manuell" while it is false. Leaving a field empty falls back to the element label (#603)

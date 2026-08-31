@@ -63,4 +63,10 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Items
 
-Pro Item konfigurierbar: `label`, `icon`, `iconSize`, `dp`, `value`, `activeValue`, `inactiveValue`, `clickAction` (`none` · Popup · `link-tab`), Farben (`bgColor`/`textColor` aktiv, `bgColorInactive`/`textColorInactive` inaktiv), `showConfirm` + `confirmText` (Sicherheitsabfrage) sowie `showLastChange` (Zeitstempel der letzten Änderung).
+Pro Item konfigurierbar: `label`, `labelActive`, `labelInactive`, `icon`, `iconSize`, `dp`, `value`, `activeValue`, `inactiveValue`, `clickAction` (`none` · Popup · `link-tab`), Farben (`bgColor`/`textColor` aktiv, `bgColorInactive`/`textColorInactive` inaktiv), `showConfirm` + `confirmText` (Sicherheitsabfrage) sowie `showLastChange` (Zeitstempel der letzten Änderung).
+
+#### Beschriftung pro Zustand
+
+`labelActive` und `labelInactive` ersetzen `label`, solange das Item aktiv bzw. inaktiv ist — z.B. `Auto` / `Manuell`. Leer gelassene Felder fallen auf `label` zurück.
+
+Der Zustand kommt aus `value`/`activeValue` und `inactiveValue`. Sind beide leer, wird der Datenpunkt als einfaches Ja/Nein gelesen (`false`, `0`, `off`, leer = inaktiv).
