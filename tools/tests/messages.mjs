@@ -525,6 +525,26 @@ await settle();
 body = await widget.innerText();
 check('table cells stay separate words in the list', body.includes('Raum Temperatur'));
 
+// A `[[dp]]` token reads live wherever the message is displayed (issue #605) — a
+// row condition writes `[[{{parent}}.NAME]]` into the draft and the archive keeps
+// the resolved ID, not the value, so the compact rows have to read it too.
+await page.evaluate(
+    (v) => {
+        window.__auraShot.mock(v);
+        window.__auraShot.mockServerState(v);
+    },
+    { 'demo.melder.NAME': 'Flur', 'demo.melder.STATE': true },
+);
+await page.evaluate(
+    (m) => window.__auraShot.messagesHistory([m]),
+    msg({ id: 'a-token', title: 'Bewegung [[demo.melder.NAME]]', text: 'Status [[demo.melder.STATE]]' }),
+);
+await page.waitForTimeout(700);
+body = await widget.innerText();
+check('the list row resolves a [[dp]] token in the title', body.includes('Bewegung Flur'));
+check('and one in the body', body.includes('Status AN'));
+check('no raw token leaks into the row', !body.includes('[['));
+
 // Restore the shared archive — the checks below filter against all four entries.
 widget = await showWidget({});
 
@@ -722,10 +742,7 @@ check(
     `per row: {{name}} and {{dp}} resolve too (got "${rowFired[0]?.text}")`,
     rowFired[0]?.text === `MOTION von ${ROWS[1]}`,
 );
-check(
-    `per row: the message id carries the entry (got "${rowFired[0]?.id}")`,
-    rowFired[0]?.id === `melder:${ROWS[1]}`,
-);
+check(`per row: the message id carries the entry (got "${rowFired[0]?.id}")`, rowFired[0]?.id === `melder:${ROWS[1]}`);
 
 await setRows({ [ROWS[2]]: true });
 const bothFired = await sentMessages();
@@ -783,7 +800,6 @@ check(
     `…with the id and text left alone (got "${listWide[0]?.id}" / "${listWide[0]?.title}")`,
     listWide[0]?.id === 'alle' && listWide[0]?.title === 'Alle: {{name}}',
 );
-
 
 // ── 18c. A message from a ROW condition (issue #605) ────────────────────────
 // The second place a message can come from: "Datenpunkte verwalten → Bedingungen"

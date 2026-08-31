@@ -1,6 +1,7 @@
+import { useCallback } from 'react';
 import DOMPurify from 'dompurify';
 import { SafeHtml } from '../common/SafeHtml';
-import { useResolvedTitle } from '../widgets/DynamicTitle';
+import { hasDpToken, useDpTokenResolver, useResolvedTitle } from '../widgets/DynamicTitle';
 
 /**
  * Title and body of a message render as sanitised HTML, so a notice can carry a
@@ -29,11 +30,12 @@ export function MessageHtml({
 }
 
 /**
- * Same content as plain text, for the compact rows (widget list, bell dropdown,
- * admin history) where raw markup would otherwise leak into a single line.
- * Sanitises first so a stripped `<script>` cannot smuggle its body through.
+ * Same content as plain text, for the compact rows where raw markup would
+ * otherwise leak into a single line. Sanitises first so a stripped `<script>`
+ * cannot smuggle its body through. Those rows reach it through
+ * useMessagePlainText below, which resolves the `[[dp]]` tokens first.
  */
-export function stripMessageHtml(raw: string | undefined): string {
+function stripMessageHtml(raw: string | undefined): string {
     if (!raw) return '';
     // Cell and item boundaries carry no whitespace of their own, so dropping the
     // tags outright would run "<td>Raum</td><td>Temperatur</td>" into one word.
@@ -44,4 +46,30 @@ export function stripMessageHtml(raw: string | undefined): string {
     const el = document.createElement('textarea');
     el.innerHTML = clean;
     return (el.value || '').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * The plain-text reading of a whole message list, `[[dp]]` tokens resolved
+ * (issue #605).
+ *
+ * The compact rows - widget list, bell dropdown, admin history - cannot call
+ * useResolvedTitle per message: the number of messages changes between renders,
+ * and that is one hook per row. So every text of the list goes into the batch
+ * resolver once and the returned mapper is applied per row, exactly the shape the
+ * list widgets use for their row labels.
+ *
+ * Tokens resolve BEFORE the markup is stripped, the same order MessageHtml uses:
+ * a datapoint value that happens to contain markup has to reach the sanitiser.
+ */
+export function useMessagePlainText(
+    messages: ReadonlyArray<{ title?: string; text?: string; html?: string }>,
+): (raw: string | undefined) => string {
+    // Only token-bearing texts are handed over - a list without any placeholder
+    // subscribes to nothing and the mapper is the identity plus the strip.
+    const texts: string[] = [];
+    for (const m of messages) {
+        for (const raw of [m.title, m.text, m.html]) if (raw && hasDpToken(raw)) texts.push(raw);
+    }
+    const resolve = useDpTokenResolver(texts);
+    return useCallback((raw: string | undefined) => (raw ? stripMessageHtml(resolve(raw)) : ''), [resolve]);
 }

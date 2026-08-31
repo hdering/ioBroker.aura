@@ -18,7 +18,7 @@ import { MessageSnippets, CopyButton } from '../../components/config/MessageSnip
 import { MessageDetail } from '../../components/messages/MessageDetail';
 import { ToastLayer } from '../../components/messages/ToastLayer';
 import { SEVERITY_COLOR } from '../../components/messages/MessageToast';
-import { stripMessageHtml } from '../../components/messages/MessageHtml';
+import { useMessagePlainText } from '../../components/messages/MessageHtml';
 import {
     useMessagesStore,
     startMessagesRuntime,
@@ -638,6 +638,10 @@ function HistorySection() {
     const [unreadOnly, setUnreadOnly] = useState(false);
     const [detail, setDetail] = useState<AuraMessage | null>(null);
 
+    // Resolves the `[[dp]]` tokens of the archive once, for the rows and the search
+    // alike - a message reads the same here as it does in the widget.
+    const plain = useMessagePlainText(history);
+
     const visible = useMemo(() => {
         const lc = filter.trim().toLowerCase();
         return history.filter((m) => {
@@ -645,11 +649,9 @@ function HistorySection() {
             if (unreadOnly && m.read) return false;
             if (!lc) return true;
             // Search the readable text, not the markup — otherwise "b" matches every <b>.
-            return [stripMessageHtml(m.title), stripMessageHtml(m.text), m.id].some((v) =>
-                v?.toLowerCase().includes(lc),
-            );
+            return [plain(m.title), plain(m.text), m.id].some((v) => v?.toLowerCase().includes(lc));
         });
-    }, [history, filter, severity, unreadOnly]);
+    }, [history, filter, severity, unreadOnly, plain]);
 
     return (
         <section>
@@ -759,11 +761,11 @@ function HistorySection() {
                                         className="text-xs truncate"
                                         style={{ color: 'var(--text-primary)', opacity: msg.read ? 0.65 : 1 }}
                                     >
-                                        {stripMessageHtml(msg.title) || stripMessageHtml(msg.text) || msg.id}
+                                        {plain(msg.title) || plain(msg.text) || msg.id}
                                     </div>
                                     <div className="text-[10px] truncate" style={labelStyle}>
                                         {formatWhen(msg.ts)}
-                                        {msg.title && msg.text ? ` — ${stripMessageHtml(msg.text)}` : ''}
+                                        {msg.title && msg.text ? ` — ${plain(msg.text)}` : ''}
                                     </div>
                                 </div>
                                 {!msg.read && (

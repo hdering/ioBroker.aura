@@ -3,7 +3,7 @@ import { BellRing, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { useMessagesStore, startMessagesRuntime, matchesRef } from '../../store/messagesStore';
 import { SEVERITY_COLOR } from '../messages/MessageToast';
 import { MessageDetail } from '../messages/MessageDetail';
-import { stripMessageHtml } from '../messages/MessageHtml';
+import { useMessagePlainText } from '../messages/MessageHtml';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { formatRelative } from '../../utils/parseTimeValue';
 import { useT } from '../../i18n';
@@ -18,9 +18,10 @@ const SEVERITY_SHORT: Record<MessageSeverity, string> = {
     error: 'Fehler',
 };
 
-/** One-line summary for the compact rows: title and body may carry markup. */
-function summarize(msg: AuraMessage): string {
-    if (msg.html || msg.text) return stripMessageHtml(msg.html || msg.text);
+/** One-line summary for the compact rows: title and body may carry markup and
+ *  `[[dp]]` tokens, so `plain` does both the resolving and the stripping. */
+function summarize(msg: AuraMessage, plain: (raw: string | undefined) => string): string {
+    if (msg.html || msg.text) return plain(msg.html || msg.text);
     return msg.view ? `▦ ${msg.view}` : '';
 }
 
@@ -113,6 +114,9 @@ export function MessagesWidget({ config }: WidgetProps) {
 
     const Icon = getWidgetIcon((o.icon as string) ?? 'BellRing', BellRing);
     const unreadVisible = visible.filter((m) => !m.read);
+    // One subscription set for the whole list - has to run before the 'count'
+    // layout returns, or the hook order would depend on the layout.
+    const plain = useMessagePlainText(visible);
 
     // ── Layout 'count': just the tally, for use as a small tile ───────────────
     if (config.layout === 'count') {
@@ -246,7 +250,7 @@ export function MessagesWidget({ config }: WidgetProps) {
                     const showDay = groupByDay && day !== lastDay;
                     if (showDay) lastDay = day;
                     const color = SEVERITY_COLOR[msg.severity];
-                    const summary = summarize(msg);
+                    const summary = summarize(msg, plain);
                     return (
                         <div key={msg.id} className="contents">
                             {showDay && (
@@ -276,7 +280,7 @@ export function MessagesWidget({ config }: WidgetProps) {
                                                 opacity: msg.read ? 0.65 : 1,
                                             }}
                                         >
-                                            {stripMessageHtml(msg.title) || summary || SEVERITY_SHORT[msg.severity]}
+                                            {plain(msg.title) || summary || SEVERITY_SHORT[msg.severity]}
                                         </span>
                                         <span
                                             className="text-[10px] ml-auto shrink-0 whitespace-nowrap"
