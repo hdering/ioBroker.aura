@@ -156,6 +156,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_write_popup` | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`) | write |
 | `aura_group` / `aura_write_group` | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen | read/write |
 | `aura_update_widget` | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe | write |
+| `aura_update_node` | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen | write |
 | `aura_rename` | Layout, Bereich, Tab oder Popup umbenennen — der Slug bleibt | rename |
 | `aura_delete` | Widget, Tab, Bereich, Layout oder Popup löschen | delete |
 
@@ -175,7 +176,7 @@ korrigieren kann:
 Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
 
-## Zehn Stellen, die man leicht falsch macht
+## Zwölf Stellen, die man leicht falsch macht
 
 **Eingebaute Popups.** Wird eine mitgelieferte Ansicht geändert, muss
 `userEdited: true` gesetzt werden — sonst verwirft `ensureBuiltins()` die Änderung
@@ -211,6 +212,16 @@ beim Umbenennen ebenfalls stehen; hier genauso, und die Antwort sagt es dazu.
 Layouts bleiben; ein Bereich ohne Tabs bekommt einen neuen. Das Frontend lehnt
 still ab — hier ist es ein Fehler, denn wer löschen wollte, sollte erfahren, dass
 nichts passiert ist.
+
+**Nicht jeder Navigationsknoten kann alles.** Nur der **Tab-Button** trägt
+`conditions`; der Bereichsmenü-Eintrag hat `badges` und `badgeAggregate`, aber
+keine Bedingungen, und ein Layout hat weder das eine noch das andere.
+`NODE_FIELDS` hält das je Art fest, und ein Feld, das die Art nicht kennt, wird
+mit der Liste der erlaubten abgelehnt — sonst läge es gespeichert im Objekt und
+würde stumm ignoriert.
+
+**Umbenennen führt nicht durch die Hintertür.** `aura_update_node` nimmt `name`
+nicht an. Täte es das, könnte die Stufe `write` die Stufe `rename` umgehen.
 
 **Popup- und Gruppen-Raster.** Beide haben ihr eigenes Raster, deshalb gilt dort
 die Spaltengrenze des Dashboards **nicht** — sie wird für diese Werkzeuge
@@ -254,7 +265,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 99 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 107 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

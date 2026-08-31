@@ -35,6 +35,8 @@ const {
     findTab,
     findWidget,
     mergeWidget,
+    NODE_FIELDS,
+    updateNode,
     collectDefIds,
     replaceTabWidgets,
 } = require('../../lib/mcp/auraConfig.js');
@@ -326,7 +328,7 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all eighteen tools are announced with descriptions', () => {
+check('all nineteen tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_create_layout',
@@ -339,6 +341,7 @@ check('all eighteen tools are announced with descriptions', () => {
         'aura_popups',
         'aura_rename',
         'aura_tab',
+        'aura_update_node',
         'aura_update_widget',
         'aura_validate',
         'aura_widget_schema',
@@ -355,7 +358,9 @@ check('all eighteen tools are announced with descriptions', () => {
 const dash = await client.callTool({ name: 'aura_dashboard', arguments: {} });
 check('aura_dashboard reports tabs, grid and the design width', () => {
     const t = dash.content[0].text;
-    assert.match(t, /Wohnzimmer \/ Start \/ Licht — 1 Widget/);
+    // Nested since the section line carries its own markers.
+    assert.match(t, /- Wohnzimmer \/ Start/);
+    assert.match(t, /· Licht — 1 Widget/);
     assert.match(t, /Entworfen für 44 Spalten/);
     assert.match(t, /Zeilenhöhe 20 px/);
 });
@@ -1007,6 +1012,111 @@ const initDelete = await atLevel('delete', {
 check('at delete the model is told to ask before removing anything', () => {
     assert.match(initDelete.result.instructions, /Permission: delete/);
     assert.match(initDelete.result.instructions, /Ask the user before deleting/);
+});
+
+// ── Navigation properties: conditions, badges, aggregate ─────────────────────
+
+check('each kind advertises exactly the fields it really has', () => {
+    // A tab button carries conditions, a section menu entry does not, and a layout
+    // has neither badges nor an aggregate. Getting this wrong means the value is
+    // stored and silently ignored.
+    assert.deepEqual(NODE_FIELDS.layout, ['icon', 'hidden', 'defaultSectionId', 'settings']);
+    assert.deepEqual(NODE_FIELDS.section, ['icon', 'hidden', 'defaultTabId', 'badges', 'badgeAggregate', 'settings']);
+    assert.deepEqual(NODE_FIELDS.tab, [
+        'icon',
+        'hideLabel',
+        'disabled',
+        'hidden',
+        'conditions',
+        'badges',
+        'badgeAggregate',
+    ]);
+});
+
+check('a field the kind does not have is refused, with the list of allowed ones', () => {
+    const onSection = updateNode(LAYOUTS, 'section', 's1', { conditions: [] });
+    assert.match(onSection.error, /Ein section kennt "conditions" nicht/);
+    assert.match(onSection.error, /badges, badgeAggregate/);
+    assert.match(updateNode(LAYOUTS, 'layout', 'l1', { badges: [] }).error, /Ein layout kennt "badges" nicht/);
+});
+
+check('renaming cannot sneak in through a property patch', () => {
+    // Otherwise the write level would bypass the rename permission entirely.
+    const res = updateNode(LAYOUTS, 'tab', 't1', { name: 'Anders' });
+    assert.match(res.error, /kennt "name" nicht/);
+    assert.match(res.error, /aura_rename/);
+});
+
+check('updateNode merges, removes on null, and does not mutate the input', () => {
+    const withBoth = updateNode(LAYOUTS, 'tab', 't1', {
+        icon: 'Lightbulb',
+        badgeAggregate: { enabled: true, corner: 'tr' },
+    });
+    const tab = withBoth.layouts[0].sections[0].tabs[0];
+    assert.equal(tab.icon, 'Lightbulb');
+    assert.deepEqual(tab.badgeAggregate, { enabled: true, corner: 'tr' });
+    // A second patch keeps the corner it did not mention.
+    const merged = updateNode(withBoth.layouts, 'tab', 't1', { badgeAggregate: { enabled: false } });
+    assert.deepEqual(merged.layouts[0].sections[0].tabs[0].badgeAggregate, { enabled: false, corner: 'tr' });
+    const cleared = updateNode(withBoth.layouts, 'tab', 't1', { icon: null });
+    assert.equal(cleared.layouts[0].sections[0].tabs[0].icon, undefined);
+    assert.equal(LAYOUTS[0].sections[0].tabs[0].icon, undefined, 'the input must not be mutated');
+});
+
+const nodeUpdated = await client.callTool({
+    name: 'aura_update_node',
+    arguments: {
+        kind: 'tab',
+        target: 'Licht',
+        layout: 'Wohnzimmer',
+        patch: JSON.stringify({
+            icon: 'Lightbulb',
+            conditions: [{ id: 'c1', datapoint: 'hm-rpc.0.LEQ1.1.STATE', operator: '==', value: 'true' }],
+            badgeAggregate: { enabled: true },
+        }),
+    },
+});
+check('a tab button takes an icon, conditions and the aggregate through the endpoint', () => {
+    assert.ok(!nodeUpdated.isError, nodeUpdated.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const tab = layouts[0].sections[0].tabs.find((t) => t.name === 'Licht');
+    assert.equal(tab.icon, 'Lightbulb');
+    assert.equal(tab.conditions.length, 1);
+    assert.equal(tab.badgeAggregate.enabled, true);
+    // The widgets on the tab are untouched by a button change.
+    assert.equal(tab.widgets.length, 1);
+});
+
+const sectionUpdated = await client.callTool({
+    name: 'aura_update_node',
+    arguments: {
+        kind: 'section',
+        target: 'Start',
+        layout: 'Wohnzimmer',
+        patch: JSON.stringify({ icon: 'Home', badges: [{ id: 'b1' }] }),
+    },
+});
+check('a section menu entry takes an icon and badges', () => {
+    assert.ok(!sectionUpdated.isError, sectionUpdated.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.equal(layouts[0].sections[0].icon, 'Home');
+    assert.equal(layouts[0].sections[0].badges.length, 1);
+});
+
+const sectionCondition = await client.callTool({
+    name: 'aura_update_node',
+    arguments: { kind: 'section', target: 'Start', layout: 'Wohnzimmer', patch: JSON.stringify({ conditions: [] }) },
+});
+check('the endpoint refuses conditions on a section instead of storing dead config', () => {
+    assert.ok(sectionCondition.isError);
+    assert.match(sectionCondition.content[0].text, /kennt "conditions" nicht/);
+});
+
+const overview = await client.callTool({ name: 'aura_dashboard', arguments: {} });
+check('aura_dashboard shows what is set on the buttons', () => {
+    const t = overview.content[0].text;
+    assert.match(t, /Bereichsmenü: Icon, 1 Marker/);
+    assert.match(t, /Tab-Button: Icon, 1 Bedingung\(en\), Aggregat-Anzahl/);
 });
 
 // ── Renaming ─────────────────────────────────────────────────────────────────
