@@ -159,6 +159,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_update_node` | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen | write |
 | `aura_rename` | Layout, Bereich, Tab oder Popup umbenennen — der Slug bleibt | rename |
 | `aura_delete` | Widget, Tab, Bereich, Layout oder Popup löschen | delete |
+| `aura_backups` / `aura_restore` | Sicherungen auflisten / eine zurückspielen | read / write |
 
 ## Warum Validierung der eigentliche Gewinn ist
 
@@ -223,6 +224,14 @@ würde stumm ignoriert.
 **Umbenennen führt nicht durch die Hintertür.** `aura_update_node` nimmt `name`
 nicht an. Täte es das, könnte die Stufe `write` die Stufe `rename` umgehen.
 
+**Sichern allein reicht nicht.** Vor jeder Änderung wird gesichert — ohne Weg
+zurück war das nur die halbe Absicherung. `aura_restore` legt zuerst einen
+Schnappschuss des aktuellen Standes an, damit auch das Zurückspielen der falschen
+Sicherung umkehrbar bleibt, und schreibt nur die States, die die Datei wirklich
+enthält: eine ältere Sicherung kennt `popup-config` noch nicht, und `null`
+darüberzuschreiben machte aus der Rettung einen zweiten Unfall. Der Dateiname wird
+gegen ein Muster geprüft, bevor er an `readFile` geht.
+
 **Popup- und Gruppen-Raster.** Beide haben ihr eigenes Raster, deshalb gilt dort
 die Spaltengrenze des Dashboards **nicht** — sie wird für diese Werkzeuge
 weggelassen.
@@ -265,7 +274,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 118 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 127 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein

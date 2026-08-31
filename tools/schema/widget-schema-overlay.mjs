@@ -695,5 +695,19 @@ export const UNIVERSAL_OPTIONS = {
     },
 };
 
+/**
+ * Type per option KEY NAME, where the source reader could not work one out.
+ *
+ * `customGrid` is the case that mattered: it arrived as an untyped `{}`, so the
+ * 27 widget types that offer layout "custom" came with no description of what the
+ * grid looks like — and a model choosing that layout produced a widget of nine
+ * empty cells with nothing to warn it.
+ */
+export const KEY_TYPES = {
+    // The stored value may also be a bare CustomCell[] (legacy 3x3); normalizeGrid
+    // accepts both. Describing the current shape is what a generator needs.
+    customGrid: 'CustomGridDef',
+};
+
 /** Identifiers the readers picked up that are not option keys. */
 export const DROP_KEYS = {};

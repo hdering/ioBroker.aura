@@ -71,6 +71,13 @@ Zwei weitere Fallen, die umschifft werden:
   Wer ihnen folgt, hängt jede Option jedes Widgets an das Spiegel- bzw.
   Karussell-Widget. Sie werden beim Verfolgen der Importe ausgelassen.
 
+**`customGrid` war ein leeres `{}`.** Das Layout `custom` gibt es bei 27 der 55
+Typen; ohne Typ bekam ein Modell keinerlei Anleitung, die Prüfung konnte nichts
+prüfen, und `CustomGridView` liefert als Rückfall neun leere Zellen — ein leeres
+Widget, ohne Warnung. `KEY_TYPES` im Overlay setzt den Typ (`CustomGridDef`), und
+damit sind `cols`/`rows`/`cells` samt `CustomCell` und den 21 Zelltypen
+beschrieben.
+
 ## Overlay pflegen
 
 `tools/schema/widget-schema-overlay.mjs` ist die einzige handgeschriebene Datei.
@@ -80,6 +87,7 @@ Zwei weitere Fallen, die umschifft werden:
 | `KEY_DESCRIPTIONS` | Text je Schlüsselname, gilt in jedem Widget mit diesem Schlüssel |
 | `WIDGET_OPTION_NOTES` | Text/`enum` je Widget, schlägt `KEY_DESCRIPTIONS` |
 | `EXTRA_OPTIONS` | Schlüssel, die der Leser nicht sehen kann (z. B. `defId` bei Gruppe/Panels) |
+| `KEY_TYPES` | Typ je Schlüsselname, wo der Leser keinen ermitteln konnte |
 | `DROP_KEYS` | Fehllesungen aussortieren |
 
 Der Generator warnt bei Notizen, deren Schlüssel es nicht mehr gibt. Bei doppelten

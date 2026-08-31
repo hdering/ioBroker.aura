@@ -386,6 +386,13 @@ function makeAdapter() {
         writeFileAsync: async (_ns, name, data) => {
             files[name] = data;
         },
+        readDirAsync: async () => Object.keys(files).map((file) => ({ file })),
+        readFileAsync: async (_ns, name) => {
+            if (files[name] === undefined) {
+                throw new Error('not found');
+            }
+            return files[name];
+        },
         getObjectViewAsync: async (_design, _type, opts) => ({
             rows: (opts.startkey || '').startsWith('alias.')
                 ? [{ id: 'alias.0.licht' }]
@@ -460,9 +467,10 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all nineteen tools are announced with descriptions', () => {
+check('all twenty-one tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
+        'aura_backups',
         'aura_create_layout',
         'aura_create_section',
         'aura_create_tab',
@@ -472,6 +480,7 @@ check('all nineteen tools are announced with descriptions', () => {
         'aura_popup',
         'aura_popups',
         'aura_rename',
+        'aura_restore',
         'aura_tab',
         'aura_update_node',
         'aura_update_widget',
@@ -1320,6 +1329,95 @@ check('a popup can be deleted', () => {
 check('every deletion left a backup behind', () => {
     const names = Object.keys(adapter.files);
     assert.ok(names.length >= 4, `expected several backups, got ${names.length}`);
+});
+
+// ── Custom layout ────────────────────────────────────────────────────────────
+// 27 of 55 types offer layout "custom", and customGrid used to be an untyped {}:
+// no guidance, no validation, and CustomGridView falls back to nine empty cells.
+
+check('a custom grid is described down to the cell type', () => {
+    assert.equal(schema.commonOptions.customGrid.ref, 'CustomGridDef');
+    const def = schema.types.CustomGridDef.fields;
+    assert.ok(def.cols.required && def.rows.required);
+    assert.equal(def.cells.items.ref, 'CustomCell');
+    assert.ok(schema.types.CustomCell.fields.type, 'a cell needs its type described');
+    assert.ok(schema.types.CustomCellType.enum.includes('value'));
+});
+
+check('a broken custom grid is caught, cell by cell', () => {
+    const w = (customGrid) => ({ ...OK_SWITCH, layout: 'custom', options: { customGrid } });
+    assert.ok(hasError(validateWidget(w({ unsinn: true }), schema), /"cols" fehlt/));
+    assert.ok(
+        hasError(validateWidget(w({ cols: 1, rows: 1, cells: [{ type: 'blubb' }] }), schema), /cells\[0\]\.type/),
+    );
+    assert.deepEqual(
+        validateWidget(w({ cols: 2, rows: 1, cells: [{ type: 'title', align: 'left' }, { type: 'value' }] }), schema)
+            .errors,
+        [],
+    );
+});
+
+check('layout "custom" without a grid is flagged as the empty widget it produces', () => {
+    const res = validateWidget({ ...OK_SWITCH, layout: 'custom' }, schema);
+    assert.deepEqual(res.errors, [], 'it is valid, just pointless');
+    assert.ok(hasWarning(res, /ohne "customGrid" ergibt ein leeres Widget/));
+});
+
+// ── Backups ──────────────────────────────────────────────────────────────────
+
+const backupList = await client.callTool({ name: 'aura_backups', arguments: {} });
+check('aura_backups lists what earlier writes left behind', () => {
+    assert.ok(!backupList.isError, backupList.content[0].text);
+    assert.match(backupList.content[0].text, /# Sicherungen \(\d+\)/);
+    assert.match(backupList.content[0].text, /- mcp-.*\.json/);
+});
+
+const beforeRestore = JSON.parse(adapter.states['config.dashboard']);
+const firstBackup = Object.keys(adapter.files).sort()[0];
+const restored = await client.callTool({ name: 'aura_restore', arguments: { backup: firstBackup } });
+
+check('restoring puts the earlier state back', () => {
+    assert.ok(!restored.isError, restored.content[0].text);
+    const expected = JSON.parse(JSON.parse(adapter.files[firstBackup]).dashboard);
+    assert.deepEqual(JSON.parse(adapter.states['config.dashboard']), expected);
+    assert.notDeepEqual(JSON.parse(adapter.states['config.dashboard']), beforeRestore, 'nothing would have changed');
+});
+
+check('the state before the restore is itself kept', () => {
+    // Restoring the wrong backup must not be a one-way door.
+    assert.match(restored.content[0].text, /Der Stand davor liegt als aura\.0\.backups\/mcp-/);
+    const safety = restored.content[0].text.match(/backups\/(mcp-[\w.-]+\.json)/)[1];
+    assert.deepEqual(JSON.parse(JSON.parse(adapter.files[safety]).dashboard), beforeRestore);
+});
+
+const badName = await client.callTool({ name: 'aura_restore', arguments: { backup: '../../etc/passwd' } });
+check('only this server own backup names are accepted', () => {
+    // The name reaches readFile, so it must not be able to walk out of the folder.
+    assert.ok(badName.isError);
+    assert.match(badName.content[0].text, /kein Sicherungsname/);
+});
+
+adapter.files['mcp-fremd.json'] = JSON.stringify({ _type: 'etwas-anderes', dashboard: '{}' });
+const foreign = await client.callTool({ name: 'aura_restore', arguments: { backup: 'mcp-fremd.json' } });
+check('a file that is not one of our backups is refused', () => {
+    assert.ok(foreign.isError);
+    assert.match(foreign.content[0].text, /keine Sicherung dieses Servers/);
+});
+
+adapter.files['mcp-alt.json'] = JSON.stringify({
+    _type: 'aura-mcp-backup',
+    _ts: 1,
+    dashboard: JSON.stringify({ version: 0, state: { layouts: [] } }),
+    // An older backup, taken before popups were covered.
+    'popup-config': null,
+});
+const popupsBefore = adapter.states['config.popup-config'];
+const partial = await client.callTool({ name: 'aura_restore', arguments: { backup: 'mcp-alt.json' } });
+check('an older backup does not wipe what it never held', () => {
+    assert.ok(!partial.isError, partial.content[0].text);
+    // Writing null over the live popups would turn a restore into a second accident.
+    assert.equal(adapter.states['config.popup-config'], popupsBefore);
+    assert.match(partial.content[0].text, /\(dashboard\)/);
 });
 
 // ── Token generation (the button in the adapter config) ──────────────────────

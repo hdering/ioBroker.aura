@@ -173,7 +173,10 @@
       "type": "string",
       "default": "true,1"
     },
-    "customGrid": {},
+    "customGrid": {
+      "type": "object",
+      "ref": "CustomGridDef"
+    },
     "conditions": {
       "type": "array",
       "items": {
@@ -669,41 +672,41 @@
       "type": "object",
       "tsType": "| { kind: 'none' } | { kind: 'popup-dimmer' } | { kind: 'popup-thermostat'"
     },
-    "ColorThreshold": {
-      "type": "array",
-      "tuple": [
-        {
-          "type": "number"
-        },
-        {
-          "type": "string"
-        }
-      ]
-    },
-    "SliderAction": {
+    "CustomGridDef": {
       "type": "object",
       "fields": {
-        "id": {
-          "type": "string",
-          "required": true
+        "cols": {
+          "type": "number",
+          "required": true,
+          "description": "1..20"
         },
-        "icon": {
-          "type": "string",
-          "required": true
+        "rows": {
+          "type": "number",
+          "required": true,
+          "description": "1..20"
         },
-        "label": {
-          "type": "string"
+        "cells": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "CustomCell"
+          },
+          "required": true,
+          "description": "length = cols*rows, row-major (index = row*cols + col)"
         },
-        "dp": {
-          "type": "string",
-          "required": true
+        "colSizes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional per-column CSS grid-template-columns track sizes (e.g. 'auto', '1fr', '60px'). Length must equal cols."
         },
-        "value": {
-          "type": [
-            "string",
-            "number",
-            "boolean"
-          ]
+        "rowSizes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional per-row CSS grid-template-rows track sizes (e.g. 'auto', '1fr', '40px'). Length must equal rows."
         }
       }
     },
@@ -1231,6 +1234,44 @@
         "middle",
         "bottom"
       ]
+    },
+    "ColorThreshold": {
+      "type": "array",
+      "tuple": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        }
+      ]
+    },
+    "SliderAction": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "icon": {
+          "type": "string",
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "dp": {
+          "type": "string",
+          "required": true
+        },
+        "value": {
+          "type": [
+            "string",
+            "number",
+            "boolean"
+          ]
+        }
+      }
     },
     "CustomGrid": {
       "type": "array",
@@ -1898,6 +1939,23 @@
           "type": "boolean",
           "description": "Render a dropdown instead of a row of buttons (the widget's `showSelect`)."
         },
+        "selectShowValue": {
+          "type": "boolean",
+          "description": "Print the current entry next to the dropdown. Default: only without a dropdown — the closed dropdown already shows the current entry."
+        },
+        "selectShowSelect": {
+          "type": "boolean",
+          "description": "Draw the dropdown. Off = read-only display of the current entry. Default true."
+        },
+        "selectEntryDisplay": {
+          "type": "string",
+          "ref": "EnumEntryDisplay",
+          "description": "How the current entry is printed: text (default), icon + text, icon only."
+        },
+        "selectWidth": {
+          "type": "number",
+          "description": "Fixed control width in px. Unset = hug the current entry (row) / fill the cell (card)."
+        },
         "states": {
           "type": "array",
           "items": {
@@ -2199,7 +2257,8 @@
         "contact",
         "time",
         "datepicker",
-        "input"
+        "input",
+        "select"
       ]
     },
     "EntryPreset": {
@@ -2241,6 +2300,14 @@
         "text",
         "image",
         "html",
+        "icon"
+      ]
+    },
+    "EnumEntryDisplay": {
+      "type": "string",
+      "enum": [
+        "text",
+        "icon-text",
         "icon"
       ]
     },
@@ -2830,6 +2897,23 @@
           "type": "boolean",
           "description": "Render a dropdown instead of a row of buttons (the widget's `showSelect`)."
         },
+        "selectShowValue": {
+          "type": "boolean",
+          "description": "Print the current entry next to the dropdown. Default: only without a dropdown — the closed dropdown already shows the current entry."
+        },
+        "selectShowSelect": {
+          "type": "boolean",
+          "description": "Draw the dropdown. Off = read-only display of the current entry. Default true."
+        },
+        "selectEntryDisplay": {
+          "type": "string",
+          "ref": "EnumEntryDisplay",
+          "description": "How the current entry is printed: text (default), icon + text, icon only."
+        },
+        "selectWidth": {
+          "type": "number",
+          "description": "Fixed control width in px. Unset = hug the current entry (row) / fill the cell (card)."
+        },
         "states": {
           "type": "array",
           "items": {
@@ -3388,6 +3472,23 @@
         "presetSelect": {
           "type": "boolean",
           "description": "Render a dropdown instead of a row of buttons (the widget's `showSelect`)."
+        },
+        "selectShowValue": {
+          "type": "boolean",
+          "description": "Print the current entry next to the dropdown. Default: only without a dropdown — the closed dropdown already shows the current entry."
+        },
+        "selectShowSelect": {
+          "type": "boolean",
+          "description": "Draw the dropdown. Off = read-only display of the current entry. Default true."
+        },
+        "selectEntryDisplay": {
+          "type": "string",
+          "ref": "EnumEntryDisplay",
+          "description": "How the current entry is printed: text (default), icon + text, icon only."
+        },
+        "selectWidth": {
+          "type": "number",
+          "description": "Fixed control width in px. Unset = hug the current entry (row) / fill the cell (card)."
         },
         "states": {
           "type": "array",
@@ -5728,11 +5829,7 @@
         },
         "entryDisplay": {
           "type": "string",
-          "enum": [
-            "text",
-            "icon-text",
-            "icon"
-          ],
+          "ref": "EnumEntryDisplay",
           "default": "text",
           "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
         },
@@ -6406,8 +6503,9 @@
           "description": "Eigene Formatvorlage, u. a. mit den Tokens ww (KW), SR/SS (Auf-/Untergang), CT (Ort)."
         },
         "customGrid": {
-          "type": "string",
-          "default": ""
+          "type": "object",
+          "default": "",
+          "ref": "CustomGridDef"
         },
         "dateFontSize": {
           "type": "number",
@@ -7200,11 +7298,7 @@
         },
         "entryDisplay": {
           "type": "string",
-          "enum": [
-            "text",
-            "icon-text",
-            "icon"
-          ],
+          "ref": "EnumEntryDisplay",
           "default": "text",
           "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
         },
@@ -9264,6 +9358,7 @@
         "batteryMode",
         "clickAction",
         "conditions",
+        "customGrid",
         "icon",
         "iconSize",
         "lockDp",
@@ -9305,10 +9400,6 @@
           "default": "",
           "description": "Datenpunkt der Cover-URL. Relative Pfade laufen über /webfs.",
           "datapoint": true
-        },
-        "customGrid": {
-          "type": "array",
-          "ref": "CustomGrid"
         },
         "mediaLengthDp": {
           "type": "string",
@@ -10068,6 +10159,7 @@
         "batteryMode",
         "clickAction",
         "conditions",
+        "customGrid",
         "icon",
         "iconSize",
         "lockDp",
@@ -10111,10 +10203,6 @@
         "commitOnRelease": {
           "type": "boolean",
           "default": false
-        },
-        "customGrid": {
-          "type": "array",
-          "ref": "CustomGrid"
         },
         "max": {
           "type": "number",
@@ -11165,6 +11253,7 @@
         "badges",
         "clickAction",
         "conditions",
+        "customGrid",
         "icon",
         "iconSize",
         "showIcon",
@@ -11187,10 +11276,6 @@
         "customForecastBarHeight": {
           "type": "number",
           "default": 0.9
-        },
-        "customGrid": {
-          "type": "array",
-          "ref": "CustomGrid"
         },
         "dataSource": {
           "type": "string",

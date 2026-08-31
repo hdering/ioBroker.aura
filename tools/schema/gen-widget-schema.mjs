@@ -32,6 +32,7 @@ import { SourceIndex } from './ts-source-index.mjs';
 import { extractOptionKeys, readWidgetMap, optionsInterfaceName } from './extract-options.mjs';
 import {
     KEY_DESCRIPTIONS,
+    KEY_TYPES,
     WIDGET_OPTION_NOTES,
     DROP_KEYS,
     EXTRA_OPTIONS,
@@ -344,6 +345,9 @@ function collectWidgetOptions(type, file, index, types) {
         options[key] = { ...(options[key] ?? {}), ...entry, source: 'overlay' };
     }
     for (const [key, entry] of Object.entries(options)) {
+        if (KEY_TYPES[key]) {
+            Object.assign(entry, normalizeType(KEY_TYPES[key], index, types));
+        }
         if (KEY_DESCRIPTIONS[key]) {
             entry.description = KEY_DESCRIPTIONS[key];
         }
