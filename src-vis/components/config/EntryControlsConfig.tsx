@@ -18,7 +18,7 @@ import { TIME_DISPLAY_PRESETS, formatTimeDisplay } from '../../utils/timeDisplay
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import type { ConditionOperator } from '../../types';
 import type { EntryControlConfig, EntryDisplayType, EntryPreset, EntryStateMap } from '../widgets/entryControls';
-import type { EnumRender } from '../widgets/EnumWidget';
+import type { EnumEntryDisplay, EnumRender } from '../widgets/EnumWidget';
 import { entryDateText } from '../widgets/entryControls';
 import { DATE_PATTERN_TOKENS, FORMAT_LABELS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import {
@@ -144,6 +144,7 @@ export const TYPE_OPTIONS: { value: EntryDisplayType; label: string }[] = (
         { value: 'states', label: 'Wertzuordnung' },
         { value: 'contact', label: 'Fenster-/Türkontakt' },
         { value: 'input', label: 'Eingabefeld' },
+        { value: 'select', label: 'Auswahlfeld' },
     ] as { value: EntryDisplayType; label: string }[]
 ).sort((a, b) =>
     a.value === 'auto' || b.value === 'auto'
@@ -1323,10 +1324,12 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                 </div>
             )}
 
-            {/* ── Wert-Presets / Tasten ── */}
-            {dt === 'buttons' && (
+            {/* ── Wert-Presets: Tasten (Pillen) und Auswahlfeld (Dropdown) ──
+                Beide Darstellungen teilen sich dieselbe Werteliste, damit ein Umschalten
+                zwischen ihnen die gepflegten Einträge behält (Issue #609). */}
+            {(dt === 'buttons' || dt === 'select') && (
                 <div className="space-y-1">
-                    {/* Herkunft der Tasten — Liste oder JSON-Datenpunkt, wie beim Auswahl-Widget. */}
+                    {/* Herkunft der Werte — Liste oder JSON-Datenpunkt, wie beim Auswahl-Widget. */}
                     <div>
                         <Label>Herkunft</Label>
                         <div className="flex gap-1">
@@ -1354,11 +1357,65 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                             })}
                         </div>
                     </div>
-                    <ToggleRow
-                        label="Als Auswahlliste (Dropdown)"
-                        checked={!!entry.presetSelect}
-                        onChange={(v) => onUpdate({ presetSelect: v || undefined })}
-                    />
+                    {dt === 'buttons' && (
+                        <ToggleRow
+                            label="Als Auswahlliste (Dropdown)"
+                            checked={!!entry.presetSelect}
+                            onChange={(v) => onUpdate({ presetSelect: v || undefined })}
+                        />
+                    )}
+                    {dt === 'select' && (
+                        <>
+                            <ToggleRow
+                                label="Auswahlliste anzeigen"
+                                checked={entry.selectShowSelect !== false}
+                                onChange={(v) => onUpdate({ selectShowSelect: v ? undefined : false })}
+                            />
+                            <ToggleRow
+                                label="Aktuellen Wert anzeigen"
+                                checked={entry.selectShowValue ?? entry.selectShowSelect === false}
+                                onChange={(v) => onUpdate({ selectShowValue: v || undefined })}
+                            />
+                            <div className="grid grid-cols-2 gap-1.5">
+                                <div>
+                                    <Label>Wert-Darstellung</Label>
+                                    <select
+                                        value={entry.selectEntryDisplay ?? 'text'}
+                                        onChange={(e) =>
+                                            onUpdate({
+                                                selectEntryDisplay:
+                                                    e.target.value === 'text'
+                                                        ? undefined
+                                                        : (e.target.value as EnumEntryDisplay),
+                                            })
+                                        }
+                                        className={iCls}
+                                        style={iSty}
+                                    >
+                                        <option value="text">Text</option>
+                                        <option value="icon-text">Icon + Text</option>
+                                        <option value="icon">Nur Icon</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <Label>Breite (px)</Label>
+                                    <input
+                                        type="number"
+                                        min={40}
+                                        max={400}
+                                        className={iCls}
+                                        style={iSty}
+                                        placeholder="auto"
+                                        value={entry.selectWidth ?? ''}
+                                        onChange={(e) => {
+                                            const n = parseInt(e.target.value, 10);
+                                            onUpdate({ selectWidth: isFinite(n) && n > 0 ? n : undefined });
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
                     {entry.presetsSource === 'json' ? (
                         <>
                             <DpRow
@@ -1396,7 +1453,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                     ) : (
                         <>
                             <div className="flex items-center justify-between">
-                                <Label>Werte-Tasten</Label>
+                                <Label>{dt === 'select' ? 'Auswahl-Einträge' : 'Werte-Tasten'}</Label>
                                 <button
                                     onClick={() => onUpdate({ presets: [...presets, { value: '', label: '' }] })}
                                     className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80"
@@ -1508,7 +1565,9 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                     className="text-[9px] italic"
                                     style={{ color: 'var(--text-secondary)', opacity: 0.45 }}
                                 >
-                                    {'Noch keine Werte. „Hinzufügen“ für eine Taste.'}
+                                    {dt === 'select'
+                                        ? 'Noch keine Werte. „Hinzufügen“ für einen Eintrag.'
+                                        : 'Noch keine Werte. „Hinzufügen“ für eine Taste.'}
                                 </p>
                             )}
                             <ImagePathHint />

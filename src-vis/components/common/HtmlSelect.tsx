@@ -46,21 +46,30 @@ interface Props {
     /** Currently selected entry value (''=none). */
     value: string;
     onPick: (value: string) => void;
+    /** Stretch to the container width instead of hugging the current label —
+     *  what a list row with a fixed control width or a card cell needs. */
+    fullWidth?: boolean;
+    /** Shown while no entry matches the value. Default a dash; a list row hands
+     *  in the raw value so an unmapped state stays readable. */
+    placeholder?: React.ReactNode;
 }
 
-export function HtmlSelect({ entries, value, onPick }: Props) {
+export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder }: Props) {
     const [open, setOpen] = useState(false);
     const anchorRef = useRef<HTMLButtonElement>(null);
 
     const current = entries.find((e) => e.value === value);
 
     return (
-        <div className="aura-widget-action relative inline-flex items-center" style={{ minWidth: 0 }}>
+        <div
+            className={`aura-widget-action relative ${fullWidth ? 'flex w-full' : 'inline-flex'} items-center`}
+            style={{ minWidth: 0 }}
+        >
             <button
                 ref={anchorRef}
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className="nodrag text-xs rounded-lg pl-2.5 pr-7 py-1.5 focus:outline-none inline-flex items-center truncate"
+                className={`nodrag text-xs rounded-lg pl-2.5 pr-7 py-1.5 focus:outline-none inline-flex items-center truncate ${fullWidth ? 'w-full' : ''}`}
                 style={{
                     background: 'var(--app-bg)',
                     color: 'var(--text-primary)',
@@ -68,7 +77,13 @@ export function HtmlSelect({ entries, value, onPick }: Props) {
                     maxWidth: '100%',
                 }}
             >
-                {current ? current.content : <span style={{ color: 'var(--text-secondary)' }}>–</span>}
+                {current ? (
+                    current.content
+                ) : (
+                    <span className="truncate" style={{ color: 'var(--text-secondary)' }}>
+                        {placeholder ?? '–'}
+                    </span>
+                )}
             </button>
             <ChevronDown
                 size={12}

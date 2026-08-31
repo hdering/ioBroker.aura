@@ -173,7 +173,10 @@
       "type": "string",
       "default": "true,1"
     },
-    "customGrid": {},
+    "customGrid": {
+      "type": "object",
+      "ref": "CustomGridDef"
+    },
     "conditions": {
       "type": "array",
       "items": {
@@ -284,12 +287,14 @@
         "clauses": {
           "type": "array",
           "items": {
-            "tsType": "ConditionClause"
+            "type": "object",
+            "ref": "ConditionClause"
           },
           "required": true
         },
         "style": {
-          "tsType": "ConditionStyle",
+          "type": "object",
+          "ref": "ConditionStyle",
           "required": true
         },
         "elements": {
@@ -311,7 +316,8 @@
           "type": "boolean"
         },
         "notify": {
-          "tsType": "MessageDraft",
+          "type": "object",
+          "ref": "MessageDraft",
           "description": "Send a message when the rule fires — same edge semantics as refreshWidget (issue #429). Stored as the builder draft so the editor can re-open it."
         },
         "hideWidget": {
@@ -330,6 +336,241 @@
           "description": "if hiding: remove from grid so other widgets slide up"
         }
       }
+    },
+    "ConditionClause": {
+      "type": "object",
+      "fields": {
+        "datapoint": {
+          "type": "string",
+          "required": true
+        },
+        "operator": {
+          "type": "string",
+          "ref": "ConditionOperator",
+          "required": true
+        },
+        "value": {
+          "type": "string",
+          "required": true,
+          "description": "always string; parsed numerically where needed"
+        },
+        "valueType": {
+          "type": "string",
+          "enum": [
+            "static",
+            "datapoint"
+          ],
+          "description": "when 'datapoint', `value` is the second DP ID"
+        }
+      }
+    },
+    "ConditionStyle": {
+      "type": "object",
+      "fields": {
+        "ringColor": {
+          "type": "string",
+          "description": "Colour of the pulsing ring — only read by the effect `border`."
+        },
+        "accent": {
+          "type": "string"
+        },
+        "bg": {
+          "type": "string",
+          "description": "--widget-bg"
+        },
+        "border": {
+          "type": "string",
+          "description": "--widget-border"
+        },
+        "borderWidth": {
+          "type": "string",
+          "description": "--widget-border-width, e.g. '2px'"
+        },
+        "radius": {
+          "type": "string",
+          "description": "--widget-radius, e.g. '18px'"
+        },
+        "opacity": {
+          "type": "string",
+          "description": "--widget-opacity, 0…1"
+        },
+        "textPrimary": {
+          "type": "string"
+        },
+        "textSecondary": {
+          "type": "string"
+        },
+        "bold": {
+          "type": "boolean",
+          "description": "Whole-card text style. Not a CSS variable — see the .aura-cond-* rules."
+        },
+        "italic": {
+          "type": "boolean"
+        }
+      }
+    },
+    "MessageDraft": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "severity": {
+          "type": "string",
+          "ref": "MessageSeverity",
+          "required": true
+        },
+        "title": {
+          "type": "string",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "required": true
+        },
+        "html": {
+          "type": "string",
+          "required": true
+        },
+        "image": {
+          "type": "string",
+          "required": true
+        },
+        "icon": {
+          "type": "string",
+          "required": true
+        },
+        "view": {
+          "type": "string",
+          "required": true
+        },
+        "dp": {
+          "type": "string",
+          "required": true
+        },
+        "position": {
+          "type": "string",
+          "enum": [
+            "",
+            "top-left",
+            "top-center",
+            "top-right",
+            "center-left",
+            "center",
+            "center-right",
+            "bottom-left",
+            "bottom-center",
+            "bottom-right"
+          ],
+          "required": true
+        },
+        "durationSec": {
+          "type": "string",
+          "required": true
+        },
+        "requireAck": {
+          "type": "boolean",
+          "required": true
+        },
+        "priority": {
+          "type": "string",
+          "required": true
+        },
+        "width": {
+          "type": "string",
+          "required": true
+        },
+        "height": {
+          "type": "string",
+          "required": true
+        },
+        "transparency": {
+          "type": "string",
+          "required": true
+        },
+        "appearance": {
+          "type": "string",
+          "enum": [
+            "",
+            "bar",
+            "filled",
+            "outline",
+            "plain"
+          ],
+          "required": true
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "",
+            "left",
+            "center",
+            "right"
+          ],
+          "required": true
+        },
+        "showTime": {
+          "type": "string",
+          "enum": [
+            "",
+            "off",
+            "time",
+            "datetime"
+          ],
+          "required": true,
+          "description": "Timestamp override. '' = take the admin default, 'off' = force it away, a format = show it in exactly that shape. One control instead of a toggle plus a format select, because \"show it\" is never asked without \"in which shape\"."
+        },
+        "color": {
+          "type": "string",
+          "required": true
+        },
+        "background": {
+          "type": "string",
+          "required": true
+        },
+        "textColor": {
+          "type": "string",
+          "required": true
+        },
+        "ackDp": {
+          "type": "string",
+          "required": true
+        },
+        "ackValue": {
+          "type": "string",
+          "required": true
+        },
+        "persist": {
+          "type": "boolean",
+          "required": true
+        },
+        "actions": {
+          "type": "object",
+          "required": true
+        },
+        "targetClients": {
+          "type": "string",
+          "required": true
+        },
+        "targetLayout": {
+          "type": "string",
+          "required": true
+        },
+        "targetTab": {
+          "type": "string",
+          "required": true
+        }
+      }
+    },
+    "MessageSeverity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "success",
+        "warning",
+        "error"
+      ]
     },
     "BadgeDef": {
       "type": "object",
@@ -354,7 +595,11 @@
           "description": "dot/pill colour (CSS); falls back to var(--accent)"
         },
         "size": {
-          "tsType": "BadgeSize",
+          "type": [
+            "string",
+            "number"
+          ],
+          "ref": "BadgeSize",
           "description": "dot/text size, default 'md'"
         },
         "dp": {
@@ -388,7 +633,8 @@
         "clauses": {
           "type": "array",
           "items": {
-            "tsType": "ConditionClause"
+            "type": "object",
+            "ref": "ConditionClause"
           },
           "description": "visibility clauses (reuses the condition shape)"
         }
@@ -411,9 +657,583 @@
         "bottom-right"
       ]
     },
+    "BadgeSize": {
+      "type": [
+        "string",
+        "number"
+      ],
+      "enum": [
+        "sm",
+        "md",
+        "lg"
+      ]
+    },
     "ClickAction": {
       "type": "object",
       "tsType": "| { kind: 'none' } | { kind: 'popup-dimmer' } | { kind: 'popup-thermostat'"
+    },
+    "CustomGridDef": {
+      "type": "object",
+      "fields": {
+        "cols": {
+          "type": "number",
+          "required": true,
+          "description": "1..20"
+        },
+        "rows": {
+          "type": "number",
+          "required": true,
+          "description": "1..20"
+        },
+        "cells": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "CustomCell"
+          },
+          "required": true,
+          "description": "length = cols*rows, row-major (index = row*cols + col)"
+        },
+        "colSizes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional per-column CSS grid-template-columns track sizes (e.g. 'auto', '1fr', '60px'). Length must equal cols."
+        },
+        "rowSizes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Optional per-row CSS grid-template-rows track sizes (e.g. 'auto', '1fr', '40px'). Length must equal rows."
+        }
+      }
+    },
+    "CustomCell": {
+      "type": "object",
+      "fields": {
+        "type": {
+          "type": "string",
+          "ref": "CustomCellType",
+          "required": true
+        },
+        "text": {
+          "type": "string",
+          "description": "'text' / 'button' type: static text content / button label"
+        },
+        "dpId": {
+          "type": "string",
+          "description": "'dp' / 'switch' / 'slider' / 'button' / 'state-icon' type: ioBroker datapoint ID"
+        },
+        "fieldKey": {
+          "type": "string",
+          "description": "'field' type: key into widget-supplied extraFields map"
+        },
+        "componentKey": {
+          "type": "string",
+          "description": "'component' type: key into widget-supplied extraComponents map"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "'value' / 'dp' type: text prepended to value"
+        },
+        "suffix": {
+          "type": "string",
+          "description": "'value' / 'dp' type: text appended to value"
+        },
+        "decimals": {
+          "type": "number",
+          "description": "'value' / 'dp' type: decimal places override (undefined = use global)"
+        },
+        "numberFormat": {
+          "type": "string",
+          "ref": "NumberFormat",
+          "description": "'value' / 'dp' type: thousands separator override (undefined = use global)"
+        },
+        "valueFactor": {
+          "type": "number",
+          "description": "'dp' / 'progress' type: display-only multiplier (default 1)"
+        },
+        "valueOffset": {
+          "type": "number",
+          "description": "'dp' / 'progress' type: display-only additive offset (default 0)"
+        },
+        "valueTransform": {
+          "type": "string",
+          "description": "'dp' / 'progress' type: selected transform preset id (editor only; disambiguates presets sharing factor/offset)"
+        },
+        "valueTimeFormat": {
+          "type": "string",
+          "description": "'dp' type: render the value as time/date (see TIME_DISPLAY_PRESETS); undefined = plain value"
+        },
+        "valueTimePattern": {
+          "type": "string",
+          "description": "'dp' type: token pattern, only used when valueTimeFormat is 'custom'"
+        },
+        "fontSize": {
+          "type": "number",
+          "description": "px; undefined = auto"
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "color": {
+          "type": "string",
+          "description": "CSS color; '' / undefined = theme default"
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "CellConditionRule"
+          },
+          "description": "per-cell conditional formatting (Universal Widget) — reacts to the cell's own or a foreign DP value"
+        },
+        "align": {
+          "type": "string",
+          "ref": "CustomCellAlign",
+          "description": "default: 'left'"
+        },
+        "valign": {
+          "type": "string",
+          "ref": "CustomCellValign",
+          "description": "default: 'middle'"
+        },
+        "allowOverflow": {
+          "type": "boolean",
+          "description": "allow text to overflow into adjacent cells"
+        },
+        "wrap": {
+          "type": "boolean",
+          "description": "wrap long text onto multiple lines instead of ellipsis (default false)"
+        },
+        "colSpan": {
+          "type": "number",
+          "description": "'component' type: how many grid columns to span (1..cols)"
+        },
+        "rowSpan": {
+          "type": "number",
+          "description": "analog colSpan, vertical"
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "'image' type: static URL or base64 data URI (fallback when dpId is empty)"
+        },
+        "objectFit": {
+          "type": "string",
+          "enum": [
+            "contain",
+            "cover",
+            "fill"
+          ],
+          "description": "'image' type: CSS object-fit"
+        },
+        "imageWidth": {
+          "type": "number",
+          "description": "'image' type: explicit width in px (undefined = fill cell width)"
+        },
+        "imageHeight": {
+          "type": "number",
+          "description": "'image' type: explicit height in px (undefined = fill cell height)"
+        },
+        "min": {
+          "type": "number"
+        },
+        "max": {
+          "type": "number"
+        },
+        "step": {
+          "type": "number"
+        },
+        "barStyle": {
+          "type": "boolean"
+        },
+        "barSize": {
+          "type": "number"
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        "valuePosition": {
+          "type": "string",
+          "enum": [
+            "none",
+            "left",
+            "right",
+            "top",
+            "bottom"
+          ],
+          "description": "'slider' cell: where to render the current DP value (default 'none')"
+        },
+        "sendValue": {
+          "type": "string",
+          "description": "payload sent to dpId on click (parsed as bool/number/string)"
+        },
+        "iconName": {
+          "type": "string",
+          "description": "Lucide icon name"
+        },
+        "trueIcon": {
+          "type": "string",
+          "description": "'state-icon' / 'switch' (icon mode): Lucide icon for truthy value"
+        },
+        "falseIcon": {
+          "type": "string",
+          "description": "'state-icon' / 'switch' (icon mode): Lucide icon for falsy value"
+        },
+        "trueColor": {
+          "type": "string",
+          "description": "'state-icon' / 'switch' (icon mode): color for truthy value"
+        },
+        "falseColor": {
+          "type": "string",
+          "description": "'state-icon' / 'switch' (icon mode): color for falsy value"
+        },
+        "stateMode": {
+          "type": "string",
+          "enum": [
+            "boolean",
+            "condition"
+          ],
+          "description": "default 'boolean' (truthy coercion: true/1/'true'/'1'/'on'); 'condition' uses operator + value"
+        },
+        "stateOperator": {
+          "type": "string",
+          "ref": "ConditionOperator",
+          "description": "'condition' mode: comparison against stateValue"
+        },
+        "stateValue": {
+          "type": "string",
+          "description": "'condition' mode: comparison value (parsed numerically where needed)"
+        },
+        "statusDpId": {
+          "type": "string",
+          "description": "'switch' cell: read-back DP — state, label and colours come from here while clicks still write to dpId (split command/status devices, issue #567)"
+        },
+        "controlMode": {
+          "type": "string",
+          "enum": [
+            "toggle",
+            "icon",
+            "button"
+          ],
+          "description": "'switch' cell: visual control style (default 'toggle')"
+        },
+        "buttonTextColor": {
+          "type": "string",
+          "description": "'switch' cell (button mode): label text color (default #fff)"
+        },
+        "buttonTrueColor": {
+          "type": "string",
+          "description": "'switch' cell (button mode): background for truthy value (falls back to color)"
+        },
+        "buttonFalseColor": {
+          "type": "string",
+          "description": "'switch' cell (button mode): background for falsy value (falls back to color)"
+        },
+        "buttonTrueTextColor": {
+          "type": "string",
+          "description": "'switch' cell (button mode): label color for truthy value (falls back to buttonTextColor)"
+        },
+        "buttonFalseTextColor": {
+          "type": "string",
+          "description": "'switch' cell (button mode): label color for falsy value (falls back to buttonTextColor)"
+        },
+        "buttonSize": {
+          "type": "number",
+          "description": "'switch' cell (button mode): padding scale in px (default 8)"
+        },
+        "buttonWidth": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "full",
+            "uniform"
+          ],
+          "description": "'switch' cell (button mode): 'auto' fits text, 'full' fills cell, 'uniform' matches widest sibling button (default 'auto')"
+        },
+        "momentary": {
+          "type": "boolean",
+          "description": "'switch' cell: Taster-Modus — write trueValue on press, falseValue after delay"
+        },
+        "momentaryDelay": {
+          "type": "number",
+          "description": "'switch' cell: ms before writing falseValue (default 500)"
+        },
+        "confirmAction": {
+          "type": "boolean",
+          "description": "'switch' cell: require confirmation overlay before toggling"
+        },
+        "confirmText": {
+          "type": "string",
+          "description": "'switch' cell: optional prompt text in confirmation overlay"
+        },
+        "trueValue": {
+          "type": "string",
+          "description": "'switch' cell: payload written when switching ON  (parsed as bool/number/string; default true)"
+        },
+        "falseValue": {
+          "type": "string",
+          "description": "'switch' cell: payload written when switching OFF (parsed as bool/number/string; default false)"
+        },
+        "dateFormat": {
+          "type": "string",
+          "description": "DateOutputFormat string: how to encode the picked date when writing to dpId"
+        },
+        "datePattern": {
+          "type": "string",
+          "description": "token pattern used when dateFormat === 'custom' (e.g. 'MM.yyyy')"
+        },
+        "dateInput": {
+          "type": "string",
+          "enum": [
+            "picker",
+            "custom"
+          ],
+          "description": "'datepicker' cell: native pickers (default) or a free-text pattern field"
+        },
+        "dateInputPattern": {
+          "type": "string",
+          "description": "token pattern typed into the field when dateInput === 'custom'"
+        },
+        "showTime": {
+          "type": "boolean",
+          "description": "show time-of-day picker alongside date input"
+        },
+        "timeOnly": {
+          "type": "boolean",
+          "description": "hide date input, only edit/write time-of-day"
+        },
+        "inputMode": {
+          "type": "string",
+          "enum": [
+            "text",
+            "number"
+          ],
+          "description": "'input' cell: which native input variant (default 'text')"
+        },
+        "multiline": {
+          "type": "boolean",
+          "description": "'input' cell: render a multi-line textarea instead of a single-line input"
+        },
+        "submitMode": {
+          "type": "string",
+          "enum": [
+            "submit",
+            "live"
+          ],
+          "description": "'input' cell: write on Enter/Send/blur ('submit', default) or on every keystroke ('live')"
+        },
+        "showSubmit": {
+          "type": "boolean",
+          "description": "'input' cell: show the Send button in submit mode (default true)"
+        },
+        "clearAfterSubmit": {
+          "type": "boolean",
+          "description": "'input' cell: command field — clear the field after sending and never show the DP value"
+        },
+        "showValue": {
+          "type": "boolean",
+          "description": "'progress' cell: overlay current value/percentage on top of bar"
+        },
+        "trueText": {
+          "type": "string",
+          "description": "'state-text' cell / 'switch' cell (button mode): label rendered for truthy value"
+        },
+        "falseText": {
+          "type": "string",
+          "description": "'state-text' cell / 'switch' cell (button mode): label rendered for falsy value"
+        },
+        "entries": {
+          "type": "object",
+          "description": "'select' cell: selectable value/label pairs (icon: Lucide/Iconify ID)"
+        },
+        "showSelectedLabel": {
+          "type": "boolean",
+          "description": "'select' cell: render current label next to dropdown"
+        },
+        "hideSelect": {
+          "type": "boolean",
+          "description": "'select' cell: hide dropdown and render entries as a button group"
+        },
+        "entryDisplay": {
+          "type": "string",
+          "enum": [
+            "icon",
+            "icon-text",
+            "text"
+          ],
+          "description": "'select' cell: how the current entry is shown (default 'text')"
+        },
+        "showLastChange": {
+          "type": "boolean",
+          "description": "show lc timestamp below the cell content"
+        },
+        "lastChangeFormat": {
+          "type": "string",
+          "enum": [
+            "relative",
+            "time",
+            "datetime"
+          ],
+          "description": "timestamp format (default 'relative')"
+        }
+      }
+    },
+    "CustomCellType": {
+      "type": "string",
+      "enum": [
+        "empty",
+        "title",
+        "value",
+        "unit",
+        "text",
+        "dp",
+        "field",
+        "image",
+        "component",
+        "switch",
+        "slider",
+        "button",
+        "icon",
+        "state-icon",
+        "datepicker",
+        "stepper",
+        "input",
+        "progress",
+        "state-text",
+        "select",
+        "lastchange"
+      ]
+    },
+    "NumberFormat": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "de",
+        "en",
+        "space",
+        "apostrophe"
+      ]
+    },
+    "CellConditionRule": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "logic": {
+          "type": "string",
+          "enum": [
+            "AND",
+            "OR"
+          ],
+          "description": "how to combine clauses (default 'AND')"
+        },
+        "clauses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "ConditionClause"
+          },
+          "required": true,
+          "description": "empty `datapoint` = the element's own value; otherwise a foreign DP ref"
+        },
+        "target": {
+          "type": "string",
+          "ref": "ElementConditionTarget",
+          "description": "Which part of the element to paint. Ignored by custom-grid cells."
+        },
+        "color": {
+          "type": "string",
+          "description": "text / icon color"
+        },
+        "bg": {
+          "type": "string",
+          "description": "element background"
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "icon": {
+          "type": "string",
+          "description": "icon override (icon / state-icon cells, list row icon)"
+        },
+        "iconColor": {
+          "type": "string",
+          "description": "icon colour, when it should differ from the text colour"
+        },
+        "iconSize": {
+          "type": "number",
+          "description": "icon size in px (list rows / second-line datapoints); undefined = the element's configured size"
+        },
+        "fontSize": {
+          "type": "number",
+          "description": "text size in px; undefined = the size the element is rendered at"
+        },
+        "text": {
+          "type": "string",
+          "description": "replaces the displayed text (\"true\" → \"ONLINE\")"
+        },
+        "effect": {
+          "type": "string",
+          "enum": [
+            "none",
+            "pulse",
+            "blink"
+          ],
+          "description": "Same two effects the widget level offers, applied to this element alone."
+        },
+        "hide": {
+          "type": "boolean",
+          "description": "blank the element (background is kept)"
+        },
+        "notify": {
+          "type": "object",
+          "ref": "MessageDraft",
+          "description": "Send a message when the rule starts matching — once per element, so a rule on a list sends one message per row that triggers (issue #605). Stored as the builder draft, like the widget level's `notify`. The draft may address the element with `{{dp}}` / `{{parent}}` / `{{name}}`; see utils/notifyTemplate."
+        }
+      }
+    },
+    "ElementConditionTarget": {
+      "type": "string",
+      "enum": [
+        "row",
+        "name",
+        "value",
+        "icon"
+      ]
+    },
+    "CustomCellAlign": {
+      "type": "string",
+      "enum": [
+        "left",
+        "center",
+        "right"
+      ]
+    },
+    "CustomCellValign": {
+      "type": "string",
+      "enum": [
+        "top",
+        "middle",
+        "bottom"
+      ]
     },
     "ColorThreshold": {
       "type": "array",
@@ -456,18 +1276,9 @@
     "CustomGrid": {
       "type": "array",
       "items": {
-        "tsType": "CustomCell"
+        "type": "object",
+        "ref": "CustomCell"
       }
-    },
-    "NumberFormat": {
-      "type": "string",
-      "enum": [
-        "plain",
-        "de",
-        "en",
-        "space",
-        "apostrophe"
-      ]
     },
     "ColorZone": {
       "type": "object",
@@ -590,7 +1401,8 @@
           "description": "getHistory aggregation for stepped fetches (default `average`). `minmax` keeps the real extreme points with their true timestamps — right for sparsely change-logged datapoints (e.g. daily rain counters), where bucket averages smear resets and dropped empty buckets let the chart interpolate across days. `none` disables bucketing entirely and returns the raw logged points — no server-side averaging that could smear a value across a gap. `delta` is for ever-rising totalisers (electricity/water meters): instead of the counter reading it plots the consumption per calendar bucket — see `deltaBucket` (issue #521)."
         },
         "deltaBucket": {
-          "tsType": "DeltaBucketSetting",
+          "type": "string",
+          "ref": "DeltaBucketSetting",
           "description": "Calendar bucket the `delta` aggregation differences over (default `hour`). `auto` derives it from the active window instead — see `resolveDeltaBucket`."
         },
         "source": {
@@ -651,6 +1463,17 @@
         "custom"
       ]
     },
+    "DeltaBucketSetting": {
+      "type": "string",
+      "enum": [
+        "hour",
+        "day",
+        "week",
+        "month",
+        "year",
+        "auto"
+      ]
+    },
     "GroupActionType": {
       "type": "string",
       "enum": [
@@ -687,11 +1510,68 @@
         "rules": {
           "type": "array",
           "items": {
-            "tsType": "ListFilterRule"
+            "type": "object",
+            "ref": "ListFilterRule"
           },
           "required": true
         }
       }
+    },
+    "ListFilterRule": {
+      "type": "object",
+      "fields": {
+        "source": {
+          "type": "string",
+          "ref": "ListFilterSource",
+          "description": "Default 'main' — the row's own datapoint."
+        },
+        "subKey": {
+          "type": "string",
+          "description": "'sub' / 'both': restrict to ONE extra datapoint, matched against its label, its full id or its last id segment (case-insensitive, `{{parent}}.BATTERY` → BATTERY). Empty = every extra datapoint of the row is a candidate."
+        },
+        "operator": {
+          "type": "string",
+          "ref": "ListFilterOperator",
+          "required": true
+        },
+        "value": {
+          "type": "string",
+          "description": "Comparison value. Ignored by active/inactive/true/false/empty/notEmpty."
+        },
+        "every": {
+          "type": "boolean",
+          "description": "Several candidates (all extra datapoints): require ALL to match instead of one."
+        }
+      }
+    },
+    "ListFilterSource": {
+      "type": "string",
+      "enum": [
+        "main",
+        "sub",
+        "both",
+        "name"
+      ]
+    },
+    "ListFilterOperator": {
+      "type": "string",
+      "enum": [
+        "==",
+        "!=",
+        ">",
+        ">=",
+        "<",
+        "<=",
+        "true",
+        "false",
+        "active",
+        "inactive",
+        "contains",
+        "changed",
+        "empty",
+        "notEmpty",
+        "notContains"
+      ]
     },
     "ListSortRule": {
       "type": "object",
@@ -1024,7 +1904,8 @@
         "presets": {
           "type": "array",
           "items": {
-            "tsType": "EntryPreset"
+            "type": "object",
+            "ref": "EntryPreset"
           }
         },
         "presetsSource": {
@@ -1058,10 +1939,28 @@
           "type": "boolean",
           "description": "Render a dropdown instead of a row of buttons (the widget's `showSelect`)."
         },
+        "selectShowValue": {
+          "type": "boolean",
+          "description": "Print the current entry next to the dropdown. Default: only without a dropdown — the closed dropdown already shows the current entry."
+        },
+        "selectShowSelect": {
+          "type": "boolean",
+          "description": "Draw the dropdown. Off = read-only display of the current entry. Default true."
+        },
+        "selectEntryDisplay": {
+          "type": "string",
+          "ref": "EnumEntryDisplay",
+          "description": "How the current entry is printed: text (default), icon + text, icon only."
+        },
+        "selectWidth": {
+          "type": "number",
+          "description": "Fixed control width in px. Unset = hug the current entry (row) / fill the cell (card)."
+        },
         "states": {
           "type": "array",
           "items": {
-            "tsType": "EntryStateMap"
+            "type": "object",
+            "ref": "EntryStateMap"
           },
           "description": "Value→label/icon/color mappings for the \"states\" display."
         },
@@ -1299,14 +2198,16 @@
         "subDps": {
           "type": "array",
           "items": {
-            "tsType": "EntrySubDp"
+            "type": "object",
+            "ref": "EntrySubDp"
           },
           "description": "Extra datapoints shown in a second line below this entry — display only. Ignored by the badges (minimal) layout, where a row is a single pill."
         },
         "conditions": {
           "type": "array",
           "items": {
-            "tsType": "ElementConditionRule"
+            "type": "object",
+            "ref": "ElementConditionRule"
           },
           "description": "Conditional formatting of this row (issue #572)."
         },
@@ -1356,8 +2257,98 @@
         "contact",
         "time",
         "datepicker",
-        "input"
+        "input",
+        "select"
       ]
+    },
+    "EntryPreset": {
+      "type": "object",
+      "fields": {
+        "value": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "render": {
+          "type": "string",
+          "ref": "EnumRender",
+          "description": "Look of the button — the same per-entry options the Auswahl widget offers: text (default), an icon, an image or sanitised HTML."
+        },
+        "color": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string"
+        },
+        "size": {
+          "type": "number",
+          "description": "Pixel size of the icon/image."
+        }
+      }
+    },
+    "EnumRender": {
+      "type": "string",
+      "enum": [
+        "text",
+        "image",
+        "html",
+        "icon"
+      ]
+    },
+    "EnumEntryDisplay": {
+      "type": "string",
+      "enum": [
+        "text",
+        "icon-text",
+        "icon"
+      ]
+    },
+    "EntryStateMap": {
+      "type": "object",
+      "fields": {
+        "value": {
+          "type": [
+            "string",
+            "number"
+          ],
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "image": {
+          "type": "string",
+          "description": "Image instead of the icon — the Statusbild widget's per-state picture."
+        },
+        "render": {
+          "type": "string",
+          "ref": "EnumRender",
+          "description": "Look of the mapping: text (default), icon, image or sanitised HTML."
+        },
+        "size": {
+          "type": "number",
+          "description": "Pixel size of the icon/image."
+        },
+        "op": {
+          "type": "string",
+          "ref": "ConditionOperator",
+          "description": "Comparison against the datapoint value. Default is string equality, which is what a value list needs; an operator turns the row into a range (Statusbild's condition mode), e.g. `>= 30` -> \"heiss\". The first matching row wins, so order the ranges from narrow to wide."
+        }
+      }
     },
     "DateOutputFormat": {
       "type": "string",
@@ -1373,6 +2364,169 @@
         "time_hhmmss",
         "custom"
       ]
+    },
+    "EntrySubDp": {
+      "type": "object",
+      "fields": {
+        "valueTransform": {
+          "type": "string",
+          "description": "Preset id, 'custom', or 'none' — the latter switches a list-wide default off."
+        },
+        "valueFactor": {
+          "type": "number"
+        },
+        "valueOffset": {
+          "type": "number"
+        },
+        "valueTimeFormat": {
+          "type": "string",
+          "description": "Time output preset id (or 'custom'); undefined / 'none' = plain value."
+        },
+        "valueTimePattern": {
+          "type": "string",
+          "description": "Token pattern, only used when `valueTimeFormat` is 'custom'."
+        },
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "align": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ],
+          "description": "Slot in the second line. Default 'left'."
+        },
+        "label": {
+          "type": "string",
+          "description": "Free-text prefix in front of the value. Empty = value only."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Iconify id / lucide name shown before the label."
+        },
+        "unit": {
+          "type": "string"
+        },
+        "decimals": {
+          "type": "number"
+        },
+        "numberFormat": {
+          "type": "string",
+          "ref": "NumberFormat"
+        },
+        "fontSize": {
+          "type": "number",
+          "description": "Font size in px. Default 9."
+        },
+        "color": {
+          "type": "string",
+          "description": "Text colour. Default --text-secondary."
+        },
+        "states": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "EntryStateMap"
+          },
+          "description": "Value→text table, e.g. true → \"ONLINE\". Same shape as the \"states\" display."
+        },
+        "conditions": {
+          "type": "array",
+          "items": {
+            "tsType": "ElementConditionRule"
+          },
+          "description": "Conditional formatting for this datapoint (issue #572)."
+        }
+      }
+    },
+    "ElementConditionRule": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "logic": {
+          "type": "string",
+          "enum": [
+            "AND",
+            "OR"
+          ],
+          "description": "how to combine clauses (default 'AND')"
+        },
+        "clauses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "ConditionClause"
+          },
+          "required": true,
+          "description": "empty `datapoint` = the element's own value; otherwise a foreign DP ref"
+        },
+        "target": {
+          "type": "string",
+          "ref": "ElementConditionTarget",
+          "description": "Which part of the element to paint. Ignored by custom-grid cells."
+        },
+        "color": {
+          "type": "string",
+          "description": "text / icon color"
+        },
+        "bg": {
+          "type": "string",
+          "description": "element background"
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "icon": {
+          "type": "string",
+          "description": "icon override (icon / state-icon cells, list row icon)"
+        },
+        "iconColor": {
+          "type": "string",
+          "description": "icon colour, when it should differ from the text colour"
+        },
+        "iconSize": {
+          "type": "number",
+          "description": "icon size in px (list rows / second-line datapoints); undefined = the element's configured size"
+        },
+        "fontSize": {
+          "type": "number",
+          "description": "text size in px; undefined = the size the element is rendered at"
+        },
+        "text": {
+          "type": "string",
+          "description": "replaces the displayed text (\"true\" → \"ONLINE\")"
+        },
+        "effect": {
+          "type": "string",
+          "enum": [
+            "none",
+            "pulse",
+            "blink"
+          ],
+          "description": "Same two effects the widget level offers, applied to this element alone."
+        },
+        "hide": {
+          "type": "boolean",
+          "description": "blank the element (background is kept)"
+        },
+        "notify": {
+          "type": "object",
+          "ref": "MessageDraft",
+          "description": "Send a message when the rule starts matching — once per element, so a rule on a list sends one message per row that triggers (issue #605). Stored as the builder draft, like the widget level's `notify`. The draft may address the element with `{{dp}}` / `{{parent}}` / `{{name}}`; see utils/notifyTemplate."
+        }
+      }
     },
     "NameFilterRule": {
       "type": "object",
@@ -1708,7 +2862,8 @@
         "presets": {
           "type": "array",
           "items": {
-            "tsType": "EntryPreset"
+            "type": "object",
+            "ref": "EntryPreset"
           }
         },
         "presetsSource": {
@@ -1742,10 +2897,28 @@
           "type": "boolean",
           "description": "Render a dropdown instead of a row of buttons (the widget's `showSelect`)."
         },
+        "selectShowValue": {
+          "type": "boolean",
+          "description": "Print the current entry next to the dropdown. Default: only without a dropdown — the closed dropdown already shows the current entry."
+        },
+        "selectShowSelect": {
+          "type": "boolean",
+          "description": "Draw the dropdown. Off = read-only display of the current entry. Default true."
+        },
+        "selectEntryDisplay": {
+          "type": "string",
+          "ref": "EnumEntryDisplay",
+          "description": "How the current entry is printed: text (default), icon + text, icon only."
+        },
+        "selectWidth": {
+          "type": "number",
+          "description": "Fixed control width in px. Unset = hug the current entry (row) / fill the cell (card)."
+        },
         "states": {
           "type": "array",
           "items": {
-            "tsType": "EntryStateMap"
+            "type": "object",
+            "ref": "EntryStateMap"
           },
           "description": "Value→label/icon/color mappings for the \"states\" display."
         },
@@ -1979,7 +3152,8 @@
         "subDps": {
           "type": "array",
           "items": {
-            "tsType": "EntrySubDp"
+            "type": "object",
+            "ref": "EntrySubDp"
           },
           "description": "Extra display-only datapoints on a second line. Replaces options.subDpTemplate for this entry; empty/unset = the template applies."
         },
@@ -1990,85 +3164,10 @@
         "conditions": {
           "type": "array",
           "items": {
-            "tsType": "ElementConditionRule"
+            "type": "object",
+            "ref": "ElementConditionRule"
           },
           "description": "Conditional formatting of this row (issue #572)."
-        }
-      }
-    },
-    "EntrySubDp": {
-      "type": "object",
-      "fields": {
-        "valueTransform": {
-          "type": "string",
-          "description": "Preset id, 'custom', or 'none' — the latter switches a list-wide default off."
-        },
-        "valueFactor": {
-          "type": "number"
-        },
-        "valueOffset": {
-          "type": "number"
-        },
-        "valueTimeFormat": {
-          "type": "string",
-          "description": "Time output preset id (or 'custom'); undefined / 'none' = plain value."
-        },
-        "valueTimePattern": {
-          "type": "string",
-          "description": "Token pattern, only used when `valueTimeFormat` is 'custom'."
-        },
-        "id": {
-          "type": "string",
-          "required": true
-        },
-        "align": {
-          "type": "string",
-          "enum": [
-            "left",
-            "center",
-            "right"
-          ],
-          "description": "Slot in the second line. Default 'left'."
-        },
-        "label": {
-          "type": "string",
-          "description": "Free-text prefix in front of the value. Empty = value only."
-        },
-        "icon": {
-          "type": "string",
-          "description": "Iconify id / lucide name shown before the label."
-        },
-        "unit": {
-          "type": "string"
-        },
-        "decimals": {
-          "type": "number"
-        },
-        "numberFormat": {
-          "type": "string",
-          "ref": "NumberFormat"
-        },
-        "fontSize": {
-          "type": "number",
-          "description": "Font size in px. Default 9."
-        },
-        "color": {
-          "type": "string",
-          "description": "Text colour. Default --text-secondary."
-        },
-        "states": {
-          "type": "array",
-          "items": {
-            "tsType": "EntryStateMap"
-          },
-          "description": "Value→text table, e.g. true → \"ONLINE\". Same shape as the \"states\" display."
-        },
-        "conditions": {
-          "type": "array",
-          "items": {
-            "tsType": "ElementConditionRule"
-          },
-          "description": "Conditional formatting for this datapoint (issue #572)."
         }
       }
     },
@@ -2339,7 +3438,8 @@
         "presets": {
           "type": "array",
           "items": {
-            "tsType": "EntryPreset"
+            "type": "object",
+            "ref": "EntryPreset"
           }
         },
         "presetsSource": {
@@ -2373,10 +3473,28 @@
           "type": "boolean",
           "description": "Render a dropdown instead of a row of buttons (the widget's `showSelect`)."
         },
+        "selectShowValue": {
+          "type": "boolean",
+          "description": "Print the current entry next to the dropdown. Default: only without a dropdown — the closed dropdown already shows the current entry."
+        },
+        "selectShowSelect": {
+          "type": "boolean",
+          "description": "Draw the dropdown. Off = read-only display of the current entry. Default true."
+        },
+        "selectEntryDisplay": {
+          "type": "string",
+          "ref": "EnumEntryDisplay",
+          "description": "How the current entry is printed: text (default), icon + text, icon only."
+        },
+        "selectWidth": {
+          "type": "number",
+          "description": "Fixed control width in px. Unset = hug the current entry (row) / fill the cell (card)."
+        },
         "states": {
           "type": "array",
           "items": {
-            "tsType": "EntryStateMap"
+            "type": "object",
+            "ref": "EntryStateMap"
           },
           "description": "Value→label/icon/color mappings for the \"states\" display."
         },
@@ -2906,7 +4024,8 @@
           "description": "empty array = never fires"
         },
         "trigger": {
-          "tsType": "TimerTrigger",
+          "type": "object",
+          "ref": "TimerTrigger",
           "required": true
         },
         "filter": {
@@ -2939,6 +4058,10 @@
         "sat",
         "sun"
       ]
+    },
+    "TimerTrigger": {
+      "type": "object",
+      "tsType": "| { kind: 'time'"
     },
     "TimerFilter": {
       "type": "string",
@@ -3144,7 +4267,8 @@
         "entries": {
           "type": "array",
           "items": {
-            "tsType": "EnergyEntry"
+            "type": "object",
+            "ref": "EnergyEntry"
           },
           "required": true
         },
@@ -3191,6 +4315,57 @@
           "description": "Warning colour of the entries past the threshold. Default OVER_COLOR."
         }
       }
+    },
+    "EnergyEntry": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true
+        },
+        "datapointId": {
+          "type": "string",
+          "required": true
+        },
+        "label": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "decimals": {
+          "type": "number"
+        },
+        "numberFormat": {
+          "type": "string",
+          "ref": "NumberFormat"
+        },
+        "historyInstance": {
+          "type": "string"
+        },
+        "aggregate": {
+          "type": "string",
+          "ref": "EnergyAggregate"
+        }
+      }
+    },
+    "EnergyAggregate": {
+      "type": "string",
+      "enum": [
+        "last",
+        "delta",
+        "consumption",
+        "sum",
+        "average",
+        "max",
+        "min"
+      ]
     },
     "LegendFormat": {
       "type": "string",
@@ -4095,7 +5270,8 @@
         "rowConditions": {
           "type": "array",
           "items": {
-            "tsType": "ElementConditionRule"
+            "type": "object",
+            "ref": "ElementConditionRule"
           },
           "description": "Conditional formatting applied to EVERY row (issue #572). Clause datapoints may use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one rule work for a whole discovered list. Rules on the entry itself are applied afterwards and therefore win per field."
         },
@@ -4653,11 +5829,7 @@
         },
         "entryDisplay": {
           "type": "string",
-          "enum": [
-            "text",
-            "icon-text",
-            "icon"
-          ],
+          "ref": "EnumEntryDisplay",
           "default": "text",
           "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
         },
@@ -5331,8 +6503,9 @@
           "description": "Eigene Formatvorlage, u. a. mit den Tokens ww (KW), SR/SS (Auf-/Untergang), CT (Ort)."
         },
         "customGrid": {
-          "type": "string",
-          "default": ""
+          "type": "object",
+          "default": "",
+          "ref": "CustomGridDef"
         },
         "dateFontSize": {
           "type": "number",
@@ -6125,11 +7298,7 @@
         },
         "entryDisplay": {
           "type": "string",
-          "enum": [
-            "text",
-            "icon-text",
-            "icon"
-          ],
+          "ref": "EnumEntryDisplay",
           "default": "text",
           "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
         },
@@ -7788,7 +8957,8 @@
         "rowConditions": {
           "type": "array",
           "items": {
-            "tsType": "ElementConditionRule"
+            "type": "object",
+            "ref": "ElementConditionRule"
           },
           "description": "Conditional formatting applied to EVERY row (issue #572). Clause datapoints may use `{{parent}}` / `{{dp}}` / `{{name}}`, resolved per row — that is what makes one rule work for a whole list. Rules on the entry itself are applied afterwards and therefore win per field."
         },
@@ -8188,6 +9358,7 @@
         "batteryMode",
         "clickAction",
         "conditions",
+        "customGrid",
         "icon",
         "iconSize",
         "lockDp",
@@ -8229,10 +9400,6 @@
           "default": "",
           "description": "Datenpunkt der Cover-URL. Relative Pfade laufen über /webfs.",
           "datapoint": true
-        },
-        "customGrid": {
-          "type": "array",
-          "ref": "CustomGrid"
         },
         "mediaLengthDp": {
           "type": "string",
@@ -8992,6 +10159,7 @@
         "batteryMode",
         "clickAction",
         "conditions",
+        "customGrid",
         "icon",
         "iconSize",
         "lockDp",
@@ -9035,10 +10203,6 @@
         "commitOnRelease": {
           "type": "boolean",
           "default": false
-        },
-        "customGrid": {
-          "type": "array",
-          "ref": "CustomGrid"
         },
         "max": {
           "type": "number",
@@ -10089,6 +11253,7 @@
         "badges",
         "clickAction",
         "conditions",
+        "customGrid",
         "icon",
         "iconSize",
         "showIcon",
@@ -10111,10 +11276,6 @@
         "customForecastBarHeight": {
           "type": "number",
           "default": 0.9
-        },
-        "customGrid": {
-          "type": "array",
-          "ref": "CustomGrid"
         },
         "dataSource": {
           "type": "string",

@@ -16,13 +16,21 @@
  *   - time      → a time value (epoch s/ms, ISO string, HH:mm) as time and/or date
  *   - datepicker→ a date/time picker writing the value back, like the Datumswähler widget
  *   - input     → free text / number entry, like the standalone Eingabefeld widget
+ *   - select    → dropdown of value→label entries, like the Auswahlfeld widget
  */
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { ChevronUp, ChevronDown, Square, Minus, Plus, Send, Power, Lock, LockOpen } from 'lucide-react';
 import type { ioBrokerState, ConditionOperator } from '../../types';
 import { evaluateClause } from '../../utils/conditionEval';
 import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
-import { EnumEntryLabel, type EnumEntry, type EnumRender } from './EnumWidget';
+import {
+    EnumCurrent,
+    EnumEntryLabel,
+    EnumOptionLabel,
+    type EnumEntry,
+    type EnumEntryDisplay,
+    type EnumRender,
+} from './EnumWidget';
 import { HtmlSelect } from '../common/HtmlSelect';
 import { TiltButton, TiltPopover } from './TiltControls';
 import { tiltRange, rawToTiltPct, tiltPctToRaw } from '../../utils/shutterTilt';
@@ -66,7 +74,8 @@ export type EntryDisplayType =
     | 'contact'
     | 'time'
     | 'datepicker'
-    | 'input';
+    | 'input'
+    | 'select';
 
 /** Control types that are not a simple on/off and must be excluded from the
  *  group master switch. */
@@ -80,6 +89,7 @@ export const NON_TOGGLE_DISPLAY_TYPES: ReadonlySet<string> = new Set([
     'time',
     'datepicker',
     'input',
+    'select',
 ]);
 
 /**
@@ -275,6 +285,19 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     presetsImageKey?: string;
     /** Render a dropdown instead of a row of buttons (the widget's `showSelect`). */
     presetSelect?: boolean;
+    // ── select (Auswahlfeld) ───────────────────────────────────────────────────
+    // The dropdown of the standalone Auswahlfeld widget as a row control (issue
+    // #609). Its entries are the same `presets*` option set the "Tasten" display
+    // uses, so switching between the two keeps the configured values.
+    /** Print the current entry next to the dropdown. Default: only without a
+     *  dropdown — the closed dropdown already shows the current entry. */
+    selectShowValue?: boolean;
+    /** Draw the dropdown. Off = read-only display of the current entry. Default true. */
+    selectShowSelect?: boolean;
+    /** How the current entry is printed: text (default), icon + text, icon only. */
+    selectEntryDisplay?: EnumEntryDisplay;
+    /** Fixed control width in px. Unset = hug the current entry (row) / fill the cell (card). */
+    selectWidth?: number;
     // ── states (multi-state read display) ──────────────────────────────────────
     /** Value→label/icon/color mappings for the "states" display. */
     states?: EntryStateMap[];
@@ -1195,8 +1218,10 @@ export function PresetButtons({
     );
 }
 
-/** A preset in the shape the shared Auswahl renderer expects. */
-function presetAsEnum(p: EntryPreset): EnumEntry {
+/** A preset in the shape the shared Auswahl renderer expects. `defaultSize` is
+ *  the icon/image size a preset without its own one gets — small for a button
+ *  pill, a bit larger inside the select control. */
+function presetAsEnum(p: EntryPreset, defaultSize = 14): EnumEntry {
     return {
         value: String(p.value),
         label: p.label || String(p.value),
@@ -1204,7 +1229,7 @@ function presetAsEnum(p: EntryPreset): EnumEntry {
         render: p.render,
         icon: p.icon,
         image: p.image,
-        size: p.size ?? 14,
+        size: p.size ?? defaultSize,
     };
 }
 
@@ -1221,6 +1246,106 @@ export function entryPresets(entry: EntryControlConfig, json: ioBrokerState['val
         icon: entry.presetsIconKey,
         image: entry.presetsImageKey,
     });
+}
+
+// ── Auswahlfeld (dropdown) ──────────────────────────────────────────────────
+// The standalone Auswahlfeld widget as a list row (issue #609). Values, labels,
+// colours, icons/images/HTML and the JSON source are the `presets*` option set
+// shared with the "Tasten" display; on top of it come the widget's own
+// presentation options (current entry as text / icon+text / icon, dropdown on
+// or off, fixed width).
+
+/** The entry matching a value, in the shape the shared Auswahl renderers expect. */
+export function matchSelectEntry(
+    presets: EntryPreset[],
+    val: ioBrokerState['val'],
+    defaultSize?: number,
+): EnumEntry | undefined {
+    if (val === null || val === undefined) return undefined;
+    const p = presets.find((e) => String(e.value) === String(val));
+    return p ? presetAsEnum(p, defaultSize) : undefined;
+}
+
+/** What a layout without room for the control (the badge) prints for a select
+ *  row: the matched entry's label, or the raw value when nothing matches. */
+export function entrySelectLabel(
+    entry: EntryControlConfig,
+    val: ioBrokerState['val'],
+    presetsJson?: ioBrokerState['val'],
+): string | null {
+    const match = matchSelectEntry(entryPresets(entry, presetsJson), val);
+    if (match) return match.label;
+    return val === null || val === undefined ? null : String(val);
+}
+
+export function SelectControl({
+    entry,
+    val,
+    setState,
+    card,
+    cond,
+    presetsJson,
+}: {
+    entry: EntryControlConfig & { id: string };
+    val: ioBrokerState['val'];
+    setState: SetState;
+    /** Card layouts: the control fills its cell. */
+    card?: boolean;
+    /** Row condition for this value — a rule beats the entry's own colour. */
+    cond?: ElementCondResult;
+    /** Live value of `entry.presetsDp` when the entries come from JSON. */
+    presetsJson?: ioBrokerState['val'];
+}) {
+    const presets = entryPresets(entry, presetsJson);
+    const current = matchSelectEntry(presets, val, 18);
+    const showSelect = entry.selectShowSelect !== false;
+    // The closed dropdown already prints the current entry, so the extra label is
+    // off by default — but without a dropdown it is all the row would show.
+    const showValue = entry.selectShowValue ?? !showSelect;
+    const fallback = val === null || val === undefined ? '–' : String(val);
+    const width = entry.selectWidth;
+    const fill = !!card || !!width;
+
+    return (
+        <div
+            className={`aura-select-control flex items-center gap-2 min-w-0 ${
+                card ? 'w-full' : 'shrink-0 max-w-[65%] justify-end'
+            }`}
+            onClick={(e) => e.stopPropagation()}
+        >
+            {showValue && (
+                <EnumCurrent
+                    entry={current}
+                    display={entry.selectEntryDisplay ?? 'text'}
+                    fallback={fallback}
+                    className="text-xs font-medium truncate"
+                    style={{
+                        color: cond?.color ?? current?.color ?? 'var(--text-primary)',
+                        ...condTextStyle(cond),
+                    }}
+                />
+            )}
+            {showSelect && (
+                <div
+                    className={`min-w-0 ${fill && !width ? 'flex-1' : ''}`}
+                    style={width ? { width, flexShrink: 0 } : undefined}
+                >
+                    <HtmlSelect
+                        fullWidth={fill}
+                        // A value no entry covers still has to be readable — the
+                        // closed dropdown prints it instead of an empty dash.
+                        placeholder={fallback}
+                        value={current?.value ?? ''}
+                        entries={presets.map((p) => ({
+                            value: String(p.value),
+                            content: <EnumOptionLabel entry={presetAsEnum(p, 16)} />,
+                        }))}
+                        onPick={(raw) => setState(entry.id, parseWrite(raw, raw))}
+                    />
+                </div>
+            )}
+        </div>
+    );
 }
 
 // ── Multi-state read display ────────────────────────────────────────────────

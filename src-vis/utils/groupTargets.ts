@@ -148,7 +148,8 @@ export function listEntryTarget(
         dt === 'momentary' ||
         dt === 'time' ||
         dt === 'datepicker' ||
-        dt === 'input'
+        dt === 'input' ||
+        dt === 'select'
     )
         return null;
     if (dt === 'switch') {
@@ -269,7 +270,7 @@ export function groupChildTarget(
 //    action types). State-independent — they only resolve which DPs to write.
 //    `exclude` holds keys (list entry id / group child id) the user deselected. ──
 
-const RICH_DISPLAY_TYPES = ['shutter', 'stepper', 'buttons', 'momentary', 'datepicker', 'input'];
+const RICH_DISPLAY_TYPES = ['shutter', 'stepper', 'buttons', 'momentary', 'datepicker', 'input', 'select'];
 const notExcluded = (key: string, exclude?: ReadonlySet<string>) => !exclude?.has(key);
 
 /** Numeric/level DPs a "Dimmer" group action should set. */

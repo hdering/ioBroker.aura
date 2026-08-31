@@ -2,6 +2,8 @@
 
 Bildet DP-Werte (z. B. `0`, `1`, `2`) auf lesbare Text-Labels ab und zeigt sie als Dropdown. Die Auswahl schreibt den hinterlegten Wert zurück auf den Datenpunkt. Labels lassen sich von Hand pflegen oder per Klick aus `common.states` importieren.
 
+Dieselbe Auswahlliste gibt es als Zeilen-Darstellung in der [statischen](./liste#darstellung-auswahlfeld) und der [dynamischen Liste](./dynamische-liste).
+
 ## Datenpunkt
 
 | Feld | Pflicht | Typ | |

@@ -4,7 +4,7 @@ Manuell gepflegte Liste mit frei konfigurierbaren Datenpunkt-Links. Jeder Eintra
 
 ## Datenpunkt
 
-Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `momentary` · `switch` · `slider` · `value` · `time` · `datepicker` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
+Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene `id`. Booleans werden als Schalter, Zahlen mit Level-/Dimmer-Rolle als Regler, alles andere als Wert dargestellt; `displayType` (`shutter` · `stepper` · `buttons` · `select` · `momentary` · `switch` · `slider` · `value` · `time` · `datepicker` · `input` · `auto`) erzwingt die Darstellung pro Eintrag.
 
 ### Darstellung Schalter
 
@@ -100,6 +100,21 @@ Widgets, die zum Widget-Rahmen gehören.
 | `presetsDp`                                                                                       | —        | Datenpunkt mit dem JSON (nur bei `presetsSource: 'json'`)                          |
 | `presetsValueKey` / `presetsLabelKey` / `presetsColorKey` / `presetsIconKey` / `presetsImageKey` | erkannt  | Feldnamen im JSON                                                                 |
 | `presetSelect`                                                                                    | `false`  | Auswahlliste (Dropdown) statt einer Reihe von Tasten                              |
+
+### Darstellung Auswahlfeld
+
+`displayType: 'select'` legt die Auswahlliste des [Auswahlfeld-Widgets](./auswahlfeld) in die Zeile.
+Die Werte sind dieselben wie bei den Tasten (`presets[]` samt JSON-Quelle) — ein Umschalten zwischen
+beiden Darstellungen behält sie. Im Badges-Layout wird stattdessen der Text des passenden Eintrags
+angezeigt. Gilt auch für die [dynamische Liste](./dynamische-liste).
+
+| Feld                  | Standard         |                                                                        |
+| --------------------- | ---------------- | ---------------------------------------------------------------------- |
+| `presets[]` u. a.     | —                | Werte, Texte, Farben, Icons/Bilder und die JSON-Quelle wie bei den Tasten |
+| `selectShowSelect`    | `true`           | Auswahlliste anzeigen; `false` zeigt nur den aktuellen Eintrag           |
+| `selectShowValue`     | ohne Auswahlliste | aktuellen Eintrag zusätzlich neben der Auswahlliste anzeigen            |
+| `selectEntryDisplay`  | `text`           | Darstellung des aktuellen Eintrags: `text` · `icon-text` · `icon`        |
+| `selectWidth`         | automatisch      | feste Breite der Auswahlliste in px                                     |
 
 ### Darstellung Wertzuordnung
 

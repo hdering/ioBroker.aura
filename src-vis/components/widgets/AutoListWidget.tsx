@@ -63,6 +63,8 @@ import {
     StepperControl,
     SliderControl,
     PresetButtons,
+    SelectControl,
+    entrySelectLabel,
     MomentaryButton,
     StateDisplay,
     ContactDisplay,
@@ -650,6 +652,8 @@ function EntryValue({
                 presetsJson={presetsJson}
             />
         );
+    if (dt === 'select')
+        return <SelectControl entry={entry} val={val} setState={setState} cond={cond} presetsJson={presetsJson} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} cond={cond} />;
     if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} cond={cond} />;
@@ -915,6 +919,8 @@ function CardEntryValue({
                 presetsJson={presetsJson}
             />
         );
+    if (dt === 'select')
+        return <SelectControl entry={entry} val={val} setState={setState} card cond={cond} presetsJson={presetsJson} />;
     if (dt === 'momentary') return <MomentaryButton entry={entry} setState={setState} />;
     if (dt === 'states') return <StateDisplay entry={entry} val={val} cond={cond} />;
     if (dt === 'contact') return <ContactDisplay entry={entry} val={val} lockVal={lockVal} cond={cond} />;
@@ -2084,6 +2090,12 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                             : entry.displayType === 'datepicker'
                                               ? entryDateText(entry, val)
                                               : null;
+                                    // A badge draws no control: a select row prints the label of
+                                    // the entry matching its value instead of the raw value.
+                                    const selectText =
+                                        entry.displayType === 'select'
+                                            ? entrySelectLabel(entry, val, states[(entry.presetsDp ?? '').trim()]?.val)
+                                            : null;
                                     const roleDisplay =
                                         !stateMatch && !contactMatch && !forceSwitch && isBoolLike && !hasLabels
                                             ? getRoleDisplay(entry.role, val)
@@ -2093,6 +2105,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                     const plainText = disp.active ? disp.text : val != null ? String(val) : null;
                                     const valueStr =
                                         timeText ??
+                                        selectText ??
                                         (contactMatch
                                             ? contactMatch.label
                                             : stateMatch

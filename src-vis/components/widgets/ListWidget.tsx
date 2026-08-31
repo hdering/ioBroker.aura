@@ -39,6 +39,8 @@ import {
     StepperControl,
     SliderControl,
     PresetButtons,
+    SelectControl,
+    entrySelectLabel,
     MomentaryButton,
     StateDisplay,
     ContactDisplay,
@@ -498,6 +500,17 @@ function EntryValue({
                 val={val}
                 setState={setState}
                 activeColor={activeColor}
+                presetsJson={presetsJson}
+            />
+        );
+    if (displayType === 'select')
+        return (
+            <SelectControl
+                entry={entry}
+                val={val}
+                setState={setState}
+                card={card}
+                cond={cond}
                 presetsJson={presetsJson}
             />
         );
@@ -1486,6 +1499,12 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                     : displayType === 'datepicker'
                                       ? entryDateText(entry, val)
                                       : null;
+                            // A badge draws no control: a select row prints the label of the
+                            // entry matching its value instead of the raw value.
+                            const selectText =
+                                displayType === 'select'
+                                    ? entrySelectLabel(entry, val, states[(entry.presetsDp ?? '').trim()]?.val)
+                                    : null;
                             const useRoleDisplay = !forceSwitch && !forceValue && isBoolLike && !hasLabels;
                             const roleDisplay = useRoleDisplay ? getRoleDisplay(entry.role, val) : null;
                             // A badge draws no control, so it evaluates the switch itself —
@@ -1500,6 +1519,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             const plainText = disp.active ? disp.text : val != null ? String(val) : null;
                             const valueStr =
                                 timeText ??
+                                selectText ??
                                 (contactMatch
                                     ? contactMatch.label
                                     : stateMatch
