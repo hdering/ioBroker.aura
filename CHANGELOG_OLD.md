@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.48.2 (2026-08-21)
+- 🌟 **New feature:** List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint ([#566](https://github.com/hdering/ioBroker.aura/issues/566))
+- Popups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses
+- Popups - a widget type default set to "no view" now stays that way after a reload instead of falling back to the built-in popup
+
 ## 0.48.1 (2026-08-20)
 - Theme - reloading no longer flashes the previous theme before the datapoint-driven dark/light mode is applied
 
