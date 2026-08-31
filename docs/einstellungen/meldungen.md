@@ -67,7 +67,7 @@ Alle Felder sind optional. Was fehlt, kommt aus den [Standardwerten](#standardwe
 | --- | --- | --- |
 | `severity` | `info` · `success` · `warning` · `error` | Standard `info`; bestimmt Farbe, Icon und Anzeigedauer |
 | `title` | string | Überschrift; HTML erlaubt |
-| `text` | string | Textkörper, mehrzeilig; HTML erlaubt; `[[dp.id]]` wird live durch den Wert ersetzt |
+| `text` | string | Textkörper, mehrzeilig; HTML erlaubt; `[[dp.id]]` wird live durch den Wert ersetzt (Meldungen aus [Bedingungen](#meldung-aus-einer-bedingung) frieren den Wert beim Auslösen ein) |
 | `html` | string | Gleichbedeutend mit `text`, hat Vorrang. Bleibt für ältere Skripte erhalten |
 | `image` | string | Bild-URL; Adapter-Dateien über `/webfs/…` |
 | `icon` | string | [Lucide](https://lucide.dev)- oder Iconify-ID, überschreibt das Severity-Icon |
@@ -278,7 +278,9 @@ Titel:  Bewegung: [[{{parent}}.NAME]]
 Text:   Ausgelöst um [[{{parent}}.LAST_TRIGGER]]
 ```
 
-Die doppelten eckigen Klammern zeigen den Wert des Datenpunkts — `{{…}}` baut nur die ID zusammen. Beide Ebenen gelten auch für Bild, Icon, Popup-View, Bestätigungs-Datenpunkt und die Schaltflächen.
+Die doppelten eckigen Klammern zeigen den Wert des Datenpunkts — `{{…}}` baut nur die ID zusammen. `{{…}}` gilt auch für Bild, Icon, Popup-View, Bestätigungs-Datenpunkt und die Schaltflächen.
+
+Der Wert wird beim Auslösen **eingefroren**: die Meldung hält fest, was der Datenpunkt in diesem Moment gemeldet hat, und ändert sich im Archiv nicht mehr mit. Eingefroren werden Titel, Text, HTML, Bild, Icon und die Beschriftung der Schaltflächen — Datenpunkt-Felder bleiben Referenzen. Ist ein Datenpunkt beim Senden nicht lesbar, bleibt der Platzhalter stehen und wird bei der Anzeige live gelesen (so wie bei einer Meldung aus einem Skript).
 
 Eine feste **ID** wird je Zeile eindeutig gemacht (`melder` → `melder:hm-rpc.0.Melder1.MOTION`), damit sich zwei Melder nicht gegenseitig überschreiben.
 

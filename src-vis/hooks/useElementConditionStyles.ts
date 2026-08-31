@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useIoBroker, getStateFromCache } from './useIoBroker';
+import { useIoBroker, getStateFromCache, readValueDirect } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import {
     EMPTY_ROW_COND,
@@ -12,7 +12,7 @@ import {
 import { conditionNotifyArmed } from './useConditionStyle';
 import { useMessagesStore } from '../store/messagesStore';
 import { draftToPayload } from '../components/config/MessageBuilder';
-import { resolveDraftForRow } from '../utils/notifyTemplate';
+import { freezeDraftTokens, resolveDraftForRow } from '../utils/notifyTemplate';
 import type { ElementConditionRule } from '../types';
 
 /**
@@ -139,8 +139,13 @@ export function useElementConditionStyles(items: ElementCondInput[]): Map<string
             if (seen.get(hit.key)) continue; // still matching from an earlier render
             seen.set(hit.key, true);
             if (!hit.primed || !armed) continue; // first complete evaluation only primes
-            const payload = draftToPayload(resolveDraftForRow(hit.rule.notify!, hit.dp));
-            useMessagesStore.getState().send(JSON.stringify(payload));
+            // `[[dp]]` values are frozen at the edge, so the archive keeps what the
+            // datapoint said when the rule fired. The prefetch cache answers for the
+            // row that just triggered, so this usually resolves in a microtask.
+            const draft = resolveDraftForRow(hit.rule.notify!, hit.dp);
+            void freezeDraftTokens(draft, readValueDirect).then((frozen) =>
+                useMessagesStore.getState().send(JSON.stringify(draftToPayload(frozen))),
+            );
         }
         // Marked here rather than during the render pass: a double render (StrictMode)
         // would otherwise turn the priming pass into a firing one.

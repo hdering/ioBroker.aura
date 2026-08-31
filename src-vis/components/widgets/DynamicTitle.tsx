@@ -23,52 +23,15 @@
  *
  * A token may carry a JSON path (`[[dp?battery.soc]]`) — the whole token body is
  * handed to splitDpRef/resolveDpValue, which own that syntax.
+ *
+ * Finding the tokens and turning one value into text is utils/dpTokens — pure, and
+ * shared with the frozen reading a condition's message uses (utils/notifyTemplate).
  */
 import { useEffect, useMemo, useState } from 'react';
 import { useIoBroker, getStateFromCache, isStateFresh } from '../../hooks/useIoBroker';
 import { splitDpRef, resolveDpValue } from '../../utils/dpRef';
+import { dpTokenRefs, dpValueText, hasDpToken, replaceDpTokens } from '../../utils/dpTokens';
 import type { ioBrokerState } from '../../types';
-
-/** `[[…]]` with a non-empty, bracket-free body. */
-const DP_TOKEN = /\[\[([^[\]]+)\]\]/g;
-
-/** True when `text` carries at least one `[[dp]]` token. */
-export function hasDpToken(text: string | undefined | null): boolean {
-    return !!text && /\[\[[^[\]]+\]\]/.test(text);
-}
-
-/** Strips the tokens, leaving the static text — for places that need a plain string
- *  (published object names) rather than a live-updating one. */
-export function stripDpTokens(text: string): string {
-    return text
-        .replace(DP_TOKEN, '')
-        .replace(/\s{2,}/g, ' ')
-        .trim();
-}
-
-/** Datapoint references used by `text`, de-duplicated and trimmed. */
-function tokenRefs(text: string): string[] {
-    if (!hasDpToken(text)) return [];
-    const refs = new Set<string>();
-    for (const m of text.matchAll(DP_TOKEN)) {
-        const ref = m[1].trim();
-        if (ref) refs.add(ref);
-    }
-    return [...refs];
-}
-
-/** How a datapoint value reads inside a title. An unknown value renders as nothing,
- *  so the surrounding text stays intact while the state is still loading. */
-function valueText(val: unknown): string {
-    if (val === null || val === undefined) return '';
-    if (typeof val === 'boolean') return val ? 'AN' : 'AUS';
-    if (typeof val === 'number' || typeof val === 'string') return String(val);
-    try {
-        return JSON.stringify(val);
-    } catch {
-        return '';
-    }
-}
 
 /**
  * Resolves `[[dp]]` tokens for a whole set of texts at once and returns the mapper that
@@ -91,7 +54,7 @@ export function useDpTokenResolver(texts: string[]): (text: string, fallback?: s
     const textKey = texts.join('\n');
     const refs = useMemo(() => {
         const set = new Set<string>();
-        for (const t of texts) for (const ref of tokenRefs(t)) set.add(ref);
+        for (const t of texts) for (const ref of dpTokenRefs(t)) set.add(ref);
         return [...set];
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [textKey]);
@@ -125,10 +88,10 @@ export function useDpTokenResolver(texts: string[]): (text: string, fallback?: s
         () =>
             (text: string, fallback?: string): string => {
                 if (!hasDpToken(text)) return text;
-                const out = text
-                    .replace(DP_TOKEN, (_, ref: string) => valueText(values[ref.trim()]))
-                    .replace(/\s{2,}/g, ' ')
-                    .trim();
+                // Every token answers — an unknown value reads as nothing, which is
+                // what keeps a title from showing its own placeholders while the
+                // states are still on their way.
+                const out = replaceDpTokens(text, (ref) => dpValueText(values[ref]));
                 return out || fallback || '';
             },
         [values],

@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
 import DOMPurify from 'dompurify';
 import { SafeHtml } from '../common/SafeHtml';
-import { hasDpToken, useDpTokenResolver, useResolvedTitle } from '../widgets/DynamicTitle';
+import { useDpTokenResolver, useResolvedTitle } from '../widgets/DynamicTitle';
+import { hasDpToken } from '../../utils/dpTokens';
 
 /**
  * Title and body of a message render as sanitised HTML, so a notice can carry a

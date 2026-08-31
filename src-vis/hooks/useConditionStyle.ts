@@ -1,5 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { useIoBroker, getStateFromCache } from './useIoBroker';
+import { useIoBroker, getStateFromCache, readValueDirect } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import { conditionHides } from '../utils/conditionEval';
 import {
@@ -15,7 +15,7 @@ import {
 import { bumpWidgetRefresh } from '../store/widgetRefreshStore';
 import { useMessagesStore } from '../store/messagesStore';
 import { draftToPayload } from '../components/config/MessageBuilder';
-import { resolveDraftForRow } from '../utils/notifyTemplate';
+import { freezeDraftTokens, resolveDraftForRow } from '../utils/notifyTemplate';
 import { isScreenshotMode } from '../store/persistManager';
 import { EMPTY_SET } from '../utils/conditionSet';
 import type { WidgetCondition, ConditionStyle, ConditionSet, ConditionPart, ConditionElement } from '../types';
@@ -515,10 +515,15 @@ export function useConditionStyle(
 
             const send = (cond: WidgetCondition, rowDp?: string) => {
                 // `{{dp}}` & co. resolve against the row that triggered, or — for a
-                // rule without a list source — the widget's own datapoint.
-                const payload = draftToPayload(resolveDraftForRow(cond.notify!, rowDp));
-                condLog('notify', { widgetId, rule: cond.id, row: rowDp, payload });
-                useMessagesStore.getState().send(JSON.stringify(payload));
+                // rule without a list source — the widget's own datapoint. The `[[dp]]`
+                // values are then frozen at the edge: a message is a record, so its
+                // text must not drift with the datapoint after it was sent.
+                const draft = resolveDraftForRow(cond.notify!, rowDp);
+                void freezeDraftTokens(draft, readValueDirect).then((frozen) => {
+                    const payload = draftToPayload(frozen);
+                    condLog('notify', { widgetId, rule: cond.id, row: rowDp, payload });
+                    useMessagesStore.getState().send(JSON.stringify(payload));
+                });
             };
 
             for (const cond of notifyConds) {

@@ -8,8 +8,9 @@
 // entry, what lands on the wire) is covered by tools/tests/messages.mjs.
 //
 // What matters here: only `{list:any}` names a single row, AND/OR combine the
-// per-clause hits the way the rule reads, and the `{{…}}` substitution keeps the
-// stored draft untouched while making every row's message id unique.
+// per-clause hits the way the rule reads, the `{{…}}` substitution keeps the
+// stored draft untouched while making every row's message id unique, and the
+// `[[dp]]` layer freezes the values the message is sent with.
 import { build } from 'esbuild';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
@@ -22,7 +23,7 @@ await build({
     stdin: {
         contents: [
             "export { matchingListRefs, hasListAnyClause } from './src-vis/utils/conditionSources.ts';",
-            "export { resolveDraftForRow, draftHasRowVars } from './src-vis/utils/notifyTemplate.ts';",
+            "export { resolveDraftForRow, draftHasRowVars, freezeDraftTokens } from './src-vis/utils/notifyTemplate.ts';",
             "export { matchingNotifyRules, ruleMatches, resolveRuleRefs } from './src-vis/utils/rowConditions.ts';",
         ].join('\n'),
         resolveDir: process.cwd(),
@@ -54,6 +55,7 @@ const {
     hasListAnyClause,
     resolveDraftForRow,
     draftHasRowVars,
+    freezeDraftTokens,
     matchingNotifyRules,
     ruleMatches,
     resolveRuleRefs,
@@ -85,16 +87,14 @@ const noValues = new Map();
 // ── Which entries triggered ──────────────────────────────────────────────────
 {
     const v = values({ [A]: true, [B]: false, [C]: true });
-    eq(
-        'any: the entries that match, in list order',
-        matchingListRefs(cond([clause('{list:any}', 'true')]), v, ctx),
-        [A, C],
-    );
-    eq(
-        'any: the short {list} spelling behaves the same',
-        matchingListRefs(cond([clause('{list}', 'true')]), v, ctx),
-        [A, C],
-    );
+    eq('any: the entries that match, in list order', matchingListRefs(cond([clause('{list:any}', 'true')]), v, ctx), [
+        A,
+        C,
+    ]);
+    eq('any: the short {list} spelling behaves the same', matchingListRefs(cond([clause('{list}', 'true')]), v, ctx), [
+        A,
+        C,
+    ]);
     eq('any: nothing matches → no row', matchingListRefs(cond([clause('{list:any}', 'false')]), values({}), ctx), []);
 }
 {
@@ -199,11 +199,7 @@ const draft = (patch) => ({
 {
     const d = draft({ title: 'Bewegung: [[{{parent}}.NAME]]', text: '{{name}} von {{dp}}' });
     const out = resolveDraftForRow(d, A);
-    eq(
-        'the [[…]] token keeps its brackets and gets a real id',
-        out.title,
-        'Bewegung: [[hm-rpc.0.Melder1.NAME]]',
-    );
+    eq('the [[…]] token keeps its brackets and gets a real id', out.title, 'Bewegung: [[hm-rpc.0.Melder1.NAME]]');
     eq('{{name}} is the last segment, {{dp}} the whole id', out.text, `MOTION von ${A}`);
     eq('the stored draft is untouched', d.title, 'Bewegung: [[{{parent}}.NAME]]');
 }
@@ -229,7 +225,11 @@ const draft = (patch) => ({
     eq('an empty id stays empty (the adapter generates one)', resolveDraftForRow(draft({}), A).id, '');
 }
 {
-    const d = draft({ ackDp: '{{parent}}.QUIT', ackValue: 'true', actions: [{ label: 'Aus: {{name}}', dp: '{{parent}}.STATE', value: 'false', close: true }] });
+    const d = draft({
+        ackDp: '{{parent}}.QUIT',
+        ackValue: 'true',
+        actions: [{ label: 'Aus: {{name}}', dp: '{{parent}}.STATE', value: 'false', close: true }],
+    });
     const out = resolveDraftForRow(d, A);
     eq('the confirmation datapoint follows the row', out.ackDp, 'hm-rpc.0.Melder1.QUIT');
     eq('a button label follows the row', out.actions[0].label, 'Aus: MOTION');
@@ -248,7 +248,73 @@ const draft = (patch) => ({
 }
 {
     // A top-level datapoint has no strang — the token must not silently vanish.
-    eq('an id without a parent leaves {{parent}} alone', resolveDraftForRow(draft({ title: '{{parent}}' }), 'demo').title, '{{parent}}');
+    eq(
+        'an id without a parent leaves {{parent}} alone',
+        resolveDraftForRow(draft({ title: '{{parent}}' }), 'demo').title,
+        '{{parent}}',
+    );
+}
+
+// ── Freezing the `[[dp]]` values (issue #605) ────────────────────────────────
+// The second substitution layer, applied once when the rule fires: a message is a
+// record of something that happened, so its text keeps the value the datapoint had
+// then. Only the display fields are frozen - a datapoint ID stays a reference.
+{
+    const VALUES = {
+        'demo.melder.NAME': 'Flur',
+        'demo.melder.MOTION': true,
+        'demo.window.OPEN': false,
+        'demo.batt': { soc: 87 },
+    };
+    const read = async (id) => VALUES[id];
+
+    const frozen = await freezeDraftTokens(
+        draft({
+            title: 'Bewegung [[demo.melder.NAME]]',
+            text: 'Wert [[demo.melder.MOTION]]',
+            image: 'http://cam/[[demo.melder.NAME]].jpg',
+            dp: 'demo.melder.MOTION',
+            ackDp: 'demo.melder.ACK',
+        }),
+        read,
+    );
+    eq('freeze: a string value lands in the title', frozen.title, 'Bewegung Flur');
+    eq('freeze: a boolean reads like it does in a title', frozen.text, 'Wert AN');
+    eq('freeze: an image url is frozen too', frozen.image, 'http://cam/Flur.jpg');
+    eq('freeze: the datapoint field stays a reference', frozen.dp, 'demo.melder.MOTION');
+    eq('freeze: so does the confirmation datapoint', frozen.ackDp, 'demo.melder.ACK');
+
+    // false is a value, not a missing one.
+    const off = await freezeDraftTokens(draft({ title: 'Fenster [[demo.window.OPEN]]' }), read);
+    eq('freeze: false freezes as AUS', off.title, 'Fenster AUS');
+
+    // A reference nobody can answer keeps its token: the value may simply not have
+    // arrived yet, and the live layer still gets its chance when it is displayed.
+    const unknown = await freezeDraftTokens(draft({ title: 'Bewegung [[demo.ghost.NAME]]' }), read);
+    eq('freeze: an unreadable reference keeps its token', unknown.title, 'Bewegung [[demo.ghost.NAME]]');
+
+    // Mixed: what can be read is frozen, what cannot stays.
+    const mixed = await freezeDraftTokens(draft({ title: '[[demo.melder.NAME]] / [[demo.ghost.NAME]]' }), read);
+    eq('freeze: one readable, one not', mixed.title, 'Flur / [[demo.ghost.NAME]]');
+
+    // The JSON path of a token is applied before the value becomes text.
+    const path = await freezeDraftTokens(draft({ title: 'Akku [[demo.batt?soc]] %' }), read);
+    eq('freeze: a JSON path resolves', path.title, 'Akku 87 %');
+
+    // A button label is display text; its datapoint and value are not.
+    const withAction = await freezeDraftTokens(
+        draft({
+            title: 'x',
+            actions: [{ label: 'Aus [[demo.melder.NAME]]', dp: '[[demo.melder.NAME]]', value: '1', close: true }],
+        }),
+        read,
+    );
+    eq('freeze: an action label is frozen', withAction.actions[0].label, 'Aus Flur');
+    eq('freeze: an action datapoint is not', withAction.actions[0].dp, '[[demo.melder.NAME]]');
+
+    const plain = draft({ title: 'Fenster offen' });
+    check('freeze: a draft without tokens comes back as-is', (await freezeDraftTokens(plain, read)) === plain);
+    check('freeze: the stored draft is never mutated', plain.title === 'Fenster offen');
 }
 
 // ── Row rules: which of them want to send (Datenpunkte verwalten → Bedingungen) ──

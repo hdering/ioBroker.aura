@@ -19,7 +19,8 @@ import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { type NumberFormat } from '../../utils/formatValue';
 import { computeListStats, type ListStat } from '../../utils/listStats';
 import { StatLine } from './StatLine';
-import { stripDpTokens, useDpTokenResolver } from './DynamicTitle';
+import { useDpTokenResolver } from './DynamicTitle';
+import { stripDpTokens } from '../../utils/dpTokens';
 import { publishListCount, unpublishList } from '../../utils/publishWidgetState';
 import {
     listEntryTarget,

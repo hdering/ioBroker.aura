@@ -10,6 +10,7 @@
  * formatItemName, so what the editor previews is exactly what the widget renders.
  */
 import { subDpTokenMap } from './subDpTemplate';
+import { hasDpToken } from './dpTokens';
 
 /** Which token a rule operates on. 'Ergebnis' runs on the finished label, after substitution. */
 export type NameFilterField = 'Raum' | 'Gerät' | 'DPName' | 'Name' | 'ID' | 'Ergebnis';
@@ -242,13 +243,9 @@ export function formatItemName(item: NameSource, pattern?: string, rules?: NameF
     return hasLiveToken(out) ? out : finishItemName(out, rules, item.name);
 }
 
-/** `[[…]]` with a non-empty, bracket-free body — the live layer of DynamicTitle. Duplicated
- *  as a bare test so this module stays framework-free. */
-const LIVE_TOKEN = /\[\[[^[\]]+\]\]/;
-
 /** True when a label still waits for a live datapoint value. */
 export function hasLiveToken(text: string): boolean {
-    return LIVE_TOKEN.test(text);
+    return hasDpToken(text);
 }
 
 /**

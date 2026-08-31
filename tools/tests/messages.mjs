@@ -896,6 +896,81 @@ await page.evaluate(
 await settle();
 await setRows({ [ROWS[1]]: true });
 check('a row rule without a message sends nothing', (await sentMessages()).length === 0);
+
+// ── 18d. `[[dp]]` values are frozen when the rule fires (issue #605) ────────
+// A message is a record of something that happened, so the token is read ONCE, at
+// the edge: the archive keeps the value the datapoint had then, not the one it has
+// when the message is read. `[[{{dp}}]]` freezes the triggering value itself, and
+// `[[{{parent}}.NAME]]` a neighbour the widget never subscribes — that one is only
+// reachable through the server side, hence mockServerState.
+const FREEZE_DP = 'demo.frost.MOTION';
+const FREEZE_NAME = 'demo.frost.NAME';
+const frostState = {};
+const setFrost = async (patch) => {
+    Object.assign(frostState, patch);
+    await page.evaluate((p) => {
+        window.__auraShot.mockServerState(p);
+        window.__auraShot.mock(p);
+    }, frostState);
+    await settle();
+};
+
+await setFrost({ [FREEZE_DP]: false, [FREEZE_NAME]: 'Flur' });
+await page.evaluate(
+    ([dp, draftValue]) => {
+        window.__auraShot.conditionNotify(false);
+        window.__auraShot.messagesReset();
+        window.__auraShot.showWidgets([
+            {
+                id: 'w-cond-frost',
+                type: 'list',
+                title: 'Melder',
+                gridPos: { x: 0, y: 0, w: 6, h: 6 },
+                options: {
+                    entries: [{ id: dp, name: 'Melder' }],
+                    conditions: [
+                        {
+                            id: 'c-frost',
+                            logic: 'AND',
+                            clauses: [{ datapoint: '{list:any}', operator: 'true', value: '' }],
+                            style: {},
+                            notify: draftValue,
+                        },
+                    ],
+                },
+            },
+        ]);
+        window.__auraShot.conditionNotify(true);
+    },
+    [FREEZE_DP, { ...notifyDraft, id: 'frost', title: 'Bewegung [[{{parent}}.NAME]]', text: 'Wert [[{{dp}}]]' }],
+);
+await settle();
+await setFrost({ [FREEZE_DP]: true });
+await page.waitForTimeout(400);
+const frozen = await sentMessages();
+check('freeze: the rising edge sends one message', frozen.length === 1);
+check(
+    `freeze: a neighbour token is sent as its value (got "${frozen[0]?.title}")`,
+    frozen[0]?.title === 'Bewegung Flur',
+);
+check(`freeze: the triggering value itself is frozen (got "${frozen[0]?.text}")`, frozen[0]?.text === 'Wert AN');
+
+// The datapoint moves on; the message that was already sent must not.
+await setFrost({ [FREEZE_NAME]: 'Bad' });
+await setFrost({ [FREEZE_DP]: false });
+await setFrost({ [FREEZE_DP]: true });
+await page.waitForTimeout(400);
+const afterRename = await sentMessages();
+check('freeze: the next edge sends its own message', afterRename.length === 2);
+check(
+    `freeze: the first message still reads the old value (got "${afterRename[0]?.title}")`,
+    afterRename[0]?.title === 'Bewegung Flur',
+);
+check(
+    `freeze: the second one carries the new value (got "${afterRename[1]?.title}")`,
+    afterRename[1]?.title === 'Bewegung Bad',
+);
+
 await page.evaluate(() => window.__auraShot.mockServerState(false));
 
 // ── 19. Unanswered messages survive a reload ────────────────────────────────

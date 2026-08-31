@@ -864,6 +864,16 @@ export function getStateDirect(id: string): Promise<ioBrokerState | null> {
     });
 }
 
+/**
+ * Current value of a datapoint, prefetch cache first and a fetch only when the
+ * cache holds nothing. For one-shot readers — freezing the `[[dp]]` tokens of a
+ * condition's message, where a token pointing at the datapoint that just
+ * triggered is always cached and must not wait on the socket.
+ */
+export async function readValueDirect(id: string): Promise<unknown> {
+    return (getStateFromCache(id) ?? (await getStateDirect(id)))?.val;
+}
+
 /** Set a state value without a React hook. */
 export function setStateDirect(id: string, val: boolean | number | string, ack = false): void {
     noteWrite(id, val);
