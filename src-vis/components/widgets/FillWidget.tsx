@@ -12,6 +12,9 @@ export interface ColorZone {
     color: string;
 }
 
+/** Default warning colour once the value hits `overThreshold` (#607). */
+export const OVER_COLOR = '#ef4444';
+
 type Orientation = 'vertical' | 'horizontal';
 
 interface TankProps {
@@ -25,6 +28,8 @@ interface TankProps {
     fillColor: string;
     zones: ColorZone[];
     colorZones: boolean;
+    /** Value is at or past the warning threshold - `fillColor` is then the warning colour. */
+    isOver: boolean;
     showTicks: boolean;
     showValue: boolean;
     uid: string;
@@ -42,6 +47,7 @@ function TankVertical({
     fillColor,
     zones,
     colorZones,
+    isOver,
     showTicks,
     showValue,
     uid,
@@ -69,6 +75,7 @@ function TankVertical({
             data-aura-fill="vertical"
             data-aura-fill-pct={Math.round(pct)}
             data-aura-fill-max={max}
+            data-aura-fill-over={isOver ? '1' : '0'}
         >
             <defs>
                 <clipPath id={clipId}>
@@ -111,6 +118,7 @@ function TankVertical({
 
             {/* Fill – zone-colored segments at 100% up to fill level */}
             {colorZones &&
+                !isOver &&
                 fillH > 0 &&
                 zones.map((zone, i) => {
                     const prev = i === 0 ? min : zones[i - 1].max;
@@ -131,13 +139,22 @@ function TankVertical({
                             height={segH}
                             fill={zone.color}
                             clipPath={`url(#${clipId})`}
+                            data-aura-fill-level=""
                         />
                     );
                 })}
 
             {/* Fill – single color (no zones) */}
-            {!colorZones && fillH > 0 && (
-                <rect x={bx} y={fillY} width={bw} height={fillH} fill={fillColor} clipPath={`url(#${clipId})`} />
+            {(!colorZones || isOver) && fillH > 0 && (
+                <rect
+                    x={bx}
+                    y={fillY}
+                    width={bw}
+                    height={fillH}
+                    fill={fillColor}
+                    clipPath={`url(#${clipId})`}
+                    data-aura-fill-level=""
+                />
             )}
 
             {/* Tank border on top */}
@@ -221,6 +238,7 @@ function TankHorizontal({
     fillColor,
     zones,
     colorZones,
+    isOver,
     showTicks,
     showValue,
     uid,
@@ -246,6 +264,7 @@ function TankHorizontal({
             data-aura-fill="horizontal"
             data-aura-fill-pct={Math.round(pct)}
             data-aura-fill-max={max}
+            data-aura-fill-over={isOver ? '1' : '0'}
         >
             <defs>
                 <clipPath id={clipId}>
@@ -288,6 +307,7 @@ function TankHorizontal({
 
             {/* Fill – zone-colored segments at 100% up to fill level */}
             {colorZones &&
+                !isOver &&
                 fillW > 0 &&
                 zones.map((zone, i) => {
                     const prev = i === 0 ? min : zones[i - 1].max;
@@ -308,13 +328,22 @@ function TankHorizontal({
                             height={bh}
                             fill={zone.color}
                             clipPath={`url(#${clipId})`}
+                            data-aura-fill-level=""
                         />
                     );
                 })}
 
             {/* Fill – single color (no zones) */}
-            {!colorZones && fillW > 0 && (
-                <rect x={bx} y={by} width={fillW} height={bh} fill={fillColor} clipPath={`url(#${clipId})`} />
+            {(!colorZones || isOver) && fillW > 0 && (
+                <rect
+                    x={bx}
+                    y={by}
+                    width={fillW}
+                    height={bh}
+                    fill={fillColor}
+                    clipPath={`url(#${clipId})`}
+                    data-aura-fill-level=""
+                />
             )}
 
             {/* Tank border on top */}
@@ -903,6 +932,8 @@ export function FillWidget({ config }: WidgetProps) {
     const decimals = (opts.decimals as number) ?? defaultDecimals;
     const numFmt = (opts.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
     const colorZones = (opts.colorZones as boolean) ?? false;
+    const overActive = (opts.overActive as boolean) ?? false;
+    const overThreshold = (opts.overThreshold as number) ?? 100;
     const showTicks = (opts.showTicks as boolean) ?? true;
     const showValue = (opts.showValue as boolean) ?? true;
     // barSize: % of widget width (vertical) or height (horizontal), 10-100
@@ -924,6 +955,10 @@ export function FillWidget({ config }: WidgetProps) {
     const numVal = isNaN(rawNum) ? NaN : tx(rawNum);
     const safeVal = isNaN(numVal) ? min : Math.max(min, Math.min(max, numVal));
     const pct = max > min ? ((safeVal - min) / (max - min)) * 100 : 0;
+    // Threshold reads the UNCLAMPED value: an overrun clamps to `max`, so `pct` alone can
+    // never tell "exactly full" from "well past full" (#607).
+    const rawPct = max > min && !isNaN(numVal) ? ((numVal - min) / (max - min)) * 100 : 0;
+    const isOver = overActive && !isNaN(numVal) && rawPct >= overThreshold;
 
     // Determine fill color
     let fillColor = 'var(--accent)';
@@ -931,6 +966,8 @@ export function FillWidget({ config }: WidgetProps) {
         const match = zones.find((z) => safeVal <= z.max);
         fillColor = match ? match.color : zones[zones.length - 1].color;
     }
+    // The warning colour wins over both the plain fill colour and the zones.
+    if (isOver) fillColor = (opts.overColor as string) ?? OVER_COLOR;
 
     const layout = (config.layout ?? 'default') as string;
 
@@ -945,6 +982,7 @@ export function FillWidget({ config }: WidgetProps) {
         fillColor,
         zones,
         colorZones,
+        isOver,
         showTicks,
         showValue,
         uid,

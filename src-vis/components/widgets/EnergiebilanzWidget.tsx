@@ -43,6 +43,12 @@ export interface EnergyBar {
     restColor?: string;
     /** Show the unused remainder as its own segment. Default true. */
     showRest?: boolean;
+    /** Swap the entry colours for `overColor` once the reference is used up. Default false. */
+    overActive?: boolean;
+    /** Share of the reference (in %) from which the warning colour applies. Default 100. */
+    overThreshold?: number;
+    /** Warning colour of the entries past the threshold. Default OVER_COLOR. */
+    overColor?: string;
 }
 
 /** What each legend row shows. Default 'icon-value'. */
@@ -101,6 +107,8 @@ const DEFAULT_COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '
 
 /** Fallback colour of the "Rest" segment - readable on both themes without any config. */
 export const REST_COLOR = '#94a3b8';
+/** Fallback warning colour once a group reaches its reference (#607). */
+export const OVER_COLOR = '#ef4444';
 /** Synthetic entry ids: one per group for its reference datapoint and its remainder. */
 const targetEntryId = (barId: string) => `__target-${barId}`;
 const restEntryId = (barId: string) => `__rest-${barId}`;
@@ -330,6 +338,18 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                     }
                     for (const c of computed) c.percent = total > 0 ? (c.value / total) * 100 : 0;
                     const usedPct = target !== null ? (sum / target) * 100 : 0;
+                    // Past the reference the bar is simply full, so without a colour change a
+                    // blown budget looks exactly like a met one. From the configured share the
+                    // entries (bar, pie and legend swatch alike) turn into the warning colour
+                    // - the remainder keeps its own, it is what is left, not what is over (#607).
+                    const overLimit =
+                        bar.overActive === true && target !== null && usedPct >= (bar.overThreshold ?? 100);
+                    const overColor = bar.overColor ?? OVER_COLOR;
+                    if (overLimit) {
+                        for (const c of computed) {
+                            if (c.entry.id !== restEntryId(bar.id)) c.color = overColor;
+                        }
+                    }
 
                     const side = o.legendSide ?? bar.legendSide ?? 'below';
                     const legend = showLegend ? (
@@ -366,7 +386,12 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                         );
 
                     return (
-                        <div key={bar.id} className="flex flex-col items-center min-w-0" style={{ flex: '1 1 0' }}>
+                        <div
+                            key={bar.id}
+                            className="flex flex-col items-center min-w-0"
+                            style={{ flex: '1 1 0' }}
+                            data-aura-energy-over={overLimit ? '1' : '0'}
+                        >
                             {showBarTitles && (bar.title || showTotals) && (
                                 <div className="mb-1.5 shrink-0 w-full" style={{ textAlign: barTitleAlign }}>
                                     {bar.title && (
@@ -385,7 +410,7 @@ export function EnergiebilanzWidget({ config, editMode }: WidgetProps) {
                                                             fontSize: 11,
                                                             fontWeight: 600,
                                                             marginLeft: 4,
-                                                            color: 'var(--text-secondary)',
+                                                            color: overLimit ? overColor : 'var(--text-secondary)',
                                                         }}
                                                     >
                                                         {Math.round(usedPct)} %

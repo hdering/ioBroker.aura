@@ -56,6 +56,18 @@ Ohne Vorgabe ist die Gruppensumme 100 %. Mit Vorgabe zeigen die Einträge ihren 
 
 Die Vorgabe wird immer als aktueller Wert gelesen (wie `aggregate: last`), nicht über den Zeitraum aggregiert. Über der Vorgabe bleibt die Gruppe bei 100 %, der Rest verschwindet, und die Summenzeile nennt weiter den echten Anteil (`184,00 / 160,00 € · 115 %`). Beim Donut steht der Anteil in der Mitte.
 
+### Warnfarbe
+
+Weil die Gruppe über der Vorgabe schlicht voll bleibt, sieht ein gerissenes Budget aus wie ein eingehaltenes. Ab der Schwelle wechseln Segmente, Tortenstücke und Legenden-Farbtupfer auf die Warnfarbe; das Rest-Segment behält seine eigene.
+
+| Option                 | Standard  |                                                    |
+| ---------------------- | --------- | -------------------------------------------------- |
+| `bars[].overActive`    | `false`   | Farbwechsel einschalten                            |
+| `bars[].overThreshold` | `100`     | Anteil an der Vorgabe in %, ab dem gewechselt wird |
+| `bars[].overColor`     | `#ef4444` | Warnfarbe der Einträge                             |
+
+Erreichen zählt wie Überschreiten (`>=`). Ohne Vorgabe bleibt der Wechsel wirkungslos.
+
 ### Eintrag
 
 | Option                   | Standard               |                                                |

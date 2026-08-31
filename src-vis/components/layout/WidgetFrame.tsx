@@ -78,6 +78,7 @@ import type {
 } from '../../types';
 import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
 import { DEFAULT_KNOB_GRID } from '../widgets/KnobWidget';
+import { OVER_COLOR as FILL_OVER_COLOR } from '../widgets/FillWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ScaleBoundsRow } from '../config/ScaleBoundsRow';
 import { ConditionEditor } from '../config/ConditionEditor';
@@ -12241,6 +12242,7 @@ export function WidgetFrame({
                                 const min = (o.minValue as number) ?? 0;
                                 const max = (o.maxValue as number) ?? 100;
                                 const colorZones = (o.colorZones as boolean) ?? false;
+                                const overActive = (o.overActive as boolean) ?? false;
                                 const range = max - min;
                                 const fCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
                                 const fSty = {
@@ -12554,6 +12556,67 @@ export function WidgetFrame({
                                                     </div>
                                                 );
                                             })()}
+
+                                        {/* Warning colour past a share of the scale. Wins over the
+                                            zones, because a value clamped to max cannot be told from
+                                            an overrun by the fill level alone (#607). */}
+                                        {hdr('Warnfarbe')}
+                                        <div className="flex items-center justify-between">
+                                            <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Farbe ab Schwelle wechseln
+                                            </label>
+                                            <button
+                                                onClick={() => set({ overActive: !overActive })}
+                                                className="relative w-9 h-5 rounded-full transition-colors"
+                                                style={{
+                                                    background: overActive ? 'var(--accent)' : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: overActive ? '18px' : '2px' }}
+                                                />
+                                            </button>
+                                        </div>
+                                        {overActive && (
+                                            <>
+                                                <div className="flex items-end gap-2">
+                                                    <div className="flex-1 min-w-0">
+                                                        <label
+                                                            className="text-[11px] mb-1 block"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            Ab % der Skala
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            value={(o.overThreshold as number) ?? 100}
+                                                            onChange={(e) =>
+                                                                set({ overThreshold: Number(e.target.value) })
+                                                            }
+                                                            className={fCls}
+                                                            style={fSty}
+                                                        />
+                                                    </div>
+                                                    <ColorPicker
+                                                        value={(o.overColor as string) ?? FILL_OVER_COLOR}
+                                                        onChange={(v) => set({ overColor: v })}
+                                                        className="w-8 h-8 rounded cursor-pointer shrink-0"
+                                                        style={{
+                                                            border: '1px solid var(--app-border)',
+                                                            padding: '1px',
+                                                        }}
+                                                    />
+                                                </div>
+                                                <p
+                                                    className="text-[10px] leading-snug"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    100 % = der Max-Wert. Ab diesem Anteil färbt sich die Füllung
+                                                    komplett in der Warnfarbe.
+                                                </p>
+                                            </>
+                                        )}
                                     </>
                                 );
                             })()}

@@ -86,3 +86,15 @@ Färbt die Füllung abhängig vom Wert; ohne Zonen wird `--accent` verwendet.
 | --- | --- | --- |
 | `colorZones` | `false` | Zonen-Einfärbung aktivieren |
 | `zones` | — | Liste aus `{ max, color }`; Fallback: 33 % `#ef4444`, 66 % `#f59e0b`, Rest `#22c55e` |
+
+### Warnfarbe
+
+Der Füllstand begrenzt auf `maxValue` — voll und übergelaufen sehen gleich aus. Ab der Schwelle färbt sich die Füllung komplett in der Warnfarbe, auch über Farbzonen hinweg.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `overActive` | `false` | Farbwechsel einschalten |
+| `overThreshold` | `100` | % der Skala, ab dem gewechselt wird (100 = `maxValue`) |
+| `overColor` | `#ef4444` | Warnfarbe der Füllung |
+
+Verglichen wird der **ungekappte** Wert, sonst wäre ein Überlauf nicht von „genau voll" zu unterscheiden.

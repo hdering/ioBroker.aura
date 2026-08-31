@@ -150,7 +150,8 @@
     "test:list-parity": "node tools/tests/list-widget-parity.mjs",
     "test:list-presets": "node tools/tests/list-presets-states.mjs",
     "test:list-shutter": "node tools/tests/list-shutter-options.mjs",
-    "test:throttle": "node tools/tests/throttle-commit.mjs"
+    "test:throttle": "node tools/tests/throttle-commit.mjs",
+    "test:over-threshold": "node tools/tests/over-threshold.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.3.2",

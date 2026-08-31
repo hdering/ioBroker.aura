@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.51.1",
+    "auraVersion": "0.51.2",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -3177,6 +3177,18 @@
         "showRest": {
           "type": "boolean",
           "description": "Show the unused remainder as its own segment. Default true."
+        },
+        "overActive": {
+          "type": "boolean",
+          "description": "Swap the entry colours for `overColor` once the reference is used up. Default false."
+        },
+        "overThreshold": {
+          "type": "number",
+          "description": "Share of the reference (in %) from which the warning colour applies. Default 100."
+        },
+        "overColor": {
+          "type": "string",
+          "description": "Warning colour of the entries past the threshold. Default OVER_COLOR."
         }
       }
     },
@@ -3232,6 +3244,14 @@
             "number",
             "boolean"
           ]
+        },
+        "labelActive": {
+          "type": "string",
+          "description": "Optional label shown while the item is active (overrides `label`)."
+        },
+        "labelInactive": {
+          "type": "string",
+          "description": "Optional label shown while the item is inactive (overrides `label`)."
         },
         "clickAction": {
           "type": "object",
@@ -6325,6 +6345,20 @@
           "ref": "Orientation",
           "default": "vertical",
           "description": "Ausrichtung: vertical oder horizontal."
+        },
+        "overActive": {
+          "type": "boolean",
+          "default": false,
+          "description": "Farbwechsel ab einer Schwelle einschalten."
+        },
+        "overColor": {
+          "type": "string",
+          "description": "Farbe der Füllung ab der Schwelle. Überschreibt Füllfarbe und Farbzonen."
+        },
+        "overThreshold": {
+          "type": "number",
+          "default": 100,
+          "description": "Prozent der Skala, ab dem die Warnfarbe gilt (100 = der Max-Wert). Der Rohwert zählt, nicht der begrenzte."
         },
         "showTicks": {
           "type": "boolean",

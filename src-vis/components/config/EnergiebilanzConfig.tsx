@@ -9,7 +9,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Database, X, Plus, ChevronUp, ChevronDown, Settings2 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
-import { REST_COLOR } from '../widgets/EnergiebilanzWidget';
+import { REST_COLOR, OVER_COLOR } from '../widgets/EnergiebilanzWidget';
 import type { EnergyBalanceOptions, EnergyBar, LegendFormat } from '../widgets/EnergiebilanzWidget';
 import type { EnergyAggregate, EnergyEntry } from '../../hooks/useEnergyBalanceValues';
 import { ColorPicker } from '../common/ColorPicker';
@@ -516,6 +516,59 @@ function BarSection({
                         Rest als eigenes Segment anzeigen
                     </span>
                 </label>
+                {/* Warning colour from a share of the reference - a full bar alone does not
+                    say whether the budget was met or blown (#607). */}
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                        type="checkbox"
+                        checked={bar.overActive === true}
+                        onChange={(e) => onUpdate({ overActive: e.target.checked ? true : undefined })}
+                        className="rounded"
+                    />
+                    <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                        Farbe ab Schwelle wechseln
+                    </span>
+                </label>
+                {bar.overActive === true && (
+                    <div className="flex items-end gap-1.5">
+                        <div style={{ width: 84 }}>
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Ab %
+                            </label>
+                            <input
+                                type="number"
+                                value={typeof bar.overThreshold === 'number' ? bar.overThreshold : ''}
+                                placeholder="100"
+                                onChange={(e) =>
+                                    onUpdate({
+                                        overThreshold: e.target.value === '' ? undefined : Number(e.target.value),
+                                    })
+                                }
+                                className={`${inputCls} py-0`}
+                                style={{ ...inputStyle, height: ROW2_H }}
+                                data-aura-energy-over-threshold={bar.id}
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                Warnfarbe
+                            </label>
+                            <ColorPicker
+                                value={bar.overColor ?? OVER_COLOR}
+                                onChange={(v) => onUpdate({ overColor: v })}
+                                className="block rounded cursor-pointer"
+                                style={{ width: 30, height: ROW2_H, border: '1px solid var(--app-border)' }}
+                            />
+                        </div>
+                        <p
+                            className="text-[9px] leading-snug flex-1 min-w-0"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            Ab diesem Anteil an der Vorgabe wechseln die Einträge auf die Warnfarbe. Der Rest behält
+                            seine Farbe.
+                        </p>
+                    </div>
+                )}
                 <p className="text-[9px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
                     {hasTarget
                         ? 'Die Einträge zeigen ihren Anteil an der Vorgabe; die Differenz erscheint als „Rest“. Über der Vorgabe bleibt die Gruppe bei 100 % und der Rest verschwindet.'

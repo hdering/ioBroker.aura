@@ -260,6 +260,14 @@ export const WIDGET_OPTION_NOTES = {
         showState: { description: 'Zustandstext neben dem Titel anzeigen.' },
         statusAlign: { description: 'Ausrichtung des Zustandstexts.' },
     },
+    fill: {
+        overActive: { description: 'Farbwechsel ab einer Schwelle einschalten.' },
+        overThreshold: {
+            description:
+                'Prozent der Skala, ab dem die Warnfarbe gilt (100 = der Max-Wert). Der Rohwert zählt, nicht der begrenzte.',
+        },
+        overColor: { description: 'Farbe der Füllung ab der Schwelle. Überschreibt Füllfarbe und Farbzonen.' },
+    },
     gauge: {
         minValue: { description: 'Skalenanfang.' },
         maxValue: { description: 'Skalenende.' },
