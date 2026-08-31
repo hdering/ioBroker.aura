@@ -175,6 +175,138 @@ check('allowedOptions merges own and shared keys', () => {
     assert.ok('onValue' in opts && 'showTitle' in opts);
 });
 
+// ── Nested validation ────────────────────────────────────────────────────────
+// Reported from the field: wrong operators and effect names passed silently,
+// which is exactly what the validator is for — AURA ignores what it does not
+// understand, so nothing else would ever say a word.
+
+const withConditions = (conditions) => ({ ...OK_SWITCH, options: { conditions } });
+
+check('a misspelled operator inside a clause is caught', () => {
+    const res = validateWidget(
+        withConditions([
+            {
+                id: 'c',
+                logic: 'AND',
+                clauses: [{ datapoint: 'hm-rpc.0.LEQ1.1.STATE', operator: 'gleich', value: '1' }],
+                style: {},
+            },
+        ]),
+        schema,
+    );
+    assert.ok(hasError(res, /clauses\[0\]\.operator: "gleich" ist nicht erlaubt/));
+    assert.ok(hasError(res, /==/), 'the allowed operators must be listed');
+});
+
+check('an unknown effect name is caught', () => {
+    const res = validateWidget(
+        withConditions([{ id: 'c', logic: 'AND', clauses: [], style: {}, effect: 'flimmern' }]),
+        schema,
+    );
+    assert.ok(hasError(res, /effect: "flimmern" ist nicht erlaubt/));
+    assert.ok(hasError(res, /none, pulse, blink, border/));
+});
+
+check('a stray field inside a condition is caught, with a suggestion', () => {
+    const res = validateWidget(
+        withConditions([{ id: 'c', logic: 'AND', clauses: [], style: {}, hideWidgt: true }]),
+        schema,
+    );
+    assert.ok(hasError(res, /"hideWidgt" gibt es hier nicht/));
+    assert.ok(hasError(res, /meintest du "hideWidget"/));
+});
+
+check('a wrong value for a nested union is caught', () => {
+    const res = validateWidget(withConditions([{ id: 'c', logic: 'XOR', clauses: [], style: {} }]), schema);
+    assert.ok(hasError(res, /logic: "XOR" ist nicht erlaubt/));
+});
+
+check('a missing required field inside a nested object is caught', () => {
+    const res = validateWidget(
+        withConditions([{ id: 'c', logic: 'AND', clauses: [{ operator: '==', value: '1' }], style: {} }]),
+        schema,
+    );
+    assert.ok(hasError(res, /clauses\[0\]: "datapoint" fehlt/));
+});
+
+check('a correct condition passes all the way down', () => {
+    const res = validateWidget(
+        withConditions([
+            {
+                id: 'c',
+                logic: 'OR',
+                clauses: [{ datapoint: 'hm-rpc.0.LEQ1.1.STATE', operator: '>', value: '5', valueType: 'static' }],
+                style: { accent: '#f00' },
+                effect: 'pulse',
+                hideWidget: true,
+                visibilityMode: 'showOnMatch',
+            },
+        ]),
+        schema,
+    );
+    assert.deepEqual(res.errors, []);
+});
+
+check('badges are checked the same way', () => {
+    const bad = validateWidget({ ...OK_SWITCH, options: { badges: [{ id: 'b', size: 'riesig' }] } }, schema);
+    assert.ok(hasError(bad, /size/), `expected a size complaint, got: ${bad.errors.join(' | ')}`);
+});
+
+check('an unresolved type is not used to reject valid configuration', () => {
+    // Types the generator could not resolve carry no `fields`; treating that as
+    // "no key is allowed" would reject perfectly good widgets.
+    const unresolved = Object.entries(schema.types).filter(([, t]) => !t.fields && !t.enum && !t.tuple);
+    for (const [name, t] of unresolved) {
+        assert.ok(!t.fields, `${name} unexpectedly has fields`);
+    }
+    // A tuple-typed value on a widget that has the option: resolved, so checked.
+    const dimmer = { ...OK_SWITCH, type: 'dimmer', options: { colorThresholds: [[20, '#f00']] } };
+    assert.deepEqual(validateWidget(dimmer, schema).errors, []);
+    // And an object type the generator could not resolve (Partial<Record<…>>):
+    // its keys are unknowable here, so none of them may be rejected.
+    const list = { ...OK_SWITCH, type: 'list', options: { statIcons: { sum: 'Sigma', avg: 'Divide' } } };
+    assert.deepEqual(validateWidget(list, schema).errors, []);
+});
+
+// ── Type resolution ──────────────────────────────────────────────────────────
+
+check('every type the schema references is also defined', () => {
+    const refs = new Set();
+    const walk = (o) => {
+        if (!o || typeof o !== 'object') {
+            return;
+        }
+        if (o.ref) {
+            refs.add(o.ref);
+        }
+        Object.values(o).forEach(walk);
+    };
+    walk(schema);
+    const missing = [...refs].filter((r) => !schema.types[r]);
+    assert.deepEqual(missing, [], 'referenced but undefined — a consumer cannot resolve these');
+});
+
+check('the condition types are fully described, valueType included', () => {
+    // Reported as missing: they were left as bare names because the resolver
+    // stopped one level too early.
+    for (const name of ['ConditionClause', 'ConditionStyle', 'MessageDraft', 'BadgeDef', 'BadgeSize', 'ClickAction']) {
+        assert.ok(schema.types[name], `${name} must be defined`);
+    }
+    assert.ok(schema.types.ConditionClause.fields.valueType, 'valueType belongs to ConditionClause');
+    assert.deepEqual(schema.types.ConditionClause.fields.valueType.enum, ['static', 'datapoint']);
+    // BadgeSize is a mixed union: three presets or a pixel number.
+    assert.deepEqual(schema.types.BadgeSize.enum, ['sm', 'md', 'lg']);
+    assert.deepEqual(schema.types.BadgeSize.type, ['string', 'number']);
+});
+
+check('WidgetCondition carries no "set" field — that type is never persisted', () => {
+    // ConditionSet is the derived, in-memory override WidgetFrame hands to a
+    // widget; stripRenderOverrides() keeps it out of the stored config on
+    // purpose, so advertising it would invite writing something that is thrown
+    // away on the next save.
+    assert.ok(!schema.types.WidgetCondition.fields.set, 'set must not be part of the stored shape');
+});
+
 // ── Config helpers ───────────────────────────────────────────────────────────
 
 const LAYOUTS = [

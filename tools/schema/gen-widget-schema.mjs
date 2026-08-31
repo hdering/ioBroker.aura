@@ -93,6 +93,18 @@ async function loadRegistry() {
 const PRIMITIVES = new Set(['string', 'number', 'boolean']);
 
 /**
+ * How deep named types are followed.
+ *
+ * Not a safety limit — cycles are already handled by registering a type in
+ * `types` before its fields are visited. It only bounds how much a single option
+ * can drag in. Two was too shallow: WidgetCondition arrives at depth 1, so its
+ * own fields were normalised at depth 2 and ConditionClause, ConditionStyle,
+ * MessageDraft and BadgeSize were left as bare names — referenced by the schema
+ * and defined nowhere, which is worse than not mentioning them.
+ */
+const MAX_TYPE_DEPTH = 5;
+
+/**
  * Split on commas that are not nested inside brackets, so `Record<string, X>`
  * inside a tuple stays one member.
  *
@@ -161,6 +173,39 @@ function normalizeType(raw, index, types, depth = 0) {
         return { type: parts };
     }
 
+    // A union mixing literals, primitives and named string unions:
+    //   BadgeSize          = 'sm' | 'md' | 'lg' | number
+    //   ListFilterOperator = ConditionOperator | 'empty' | 'notEmpty'
+    // Expanding the named members turns the second into a plain enum; the first
+    // keeps both halves, with the convention that a STRING value must be one of
+    // `enum` while the other entries in `type` are accepted as they are.
+    if (parts.length > 1) {
+        const literals = [];
+        const primitives = [];
+        let expandable = true;
+        for (const part of parts) {
+            if (/^'[^']*'$/.test(part)) {
+                literals.push(part.slice(1, -1));
+            } else if (PRIMITIVES.has(part)) {
+                primitives.push(part);
+            } else {
+                const members = /^[A-Za-z_$][\w$]*$/.test(part) ? index.stringUnion(part) : null;
+                if (members) {
+                    literals.push(...members);
+                } else {
+                    expandable = false;
+                    break;
+                }
+            }
+        }
+        if (expandable && literals.length) {
+            const uniqueLiterals = [...new Set(literals)];
+            return primitives.length
+                ? { type: [...new Set(['string', ...primitives])], enum: uniqueLiterals }
+                : { type: 'string', enum: uniqueLiterals };
+        }
+    }
+
     // [number, string] — a fixed-length tuple, e.g. one colour threshold.
     const tuple = t.match(/^\[(.+)\]$/);
     if (tuple) {
@@ -200,7 +245,7 @@ function normalizeType(raw, index, types, depth = 0) {
         types[t] ??= { type: 'string', enum: union };
         return { type: 'string', ref: t };
     }
-    if (depth < 2 && !types[t]) {
+    if (depth < MAX_TYPE_DEPTH && !types[t]) {
         const fields = index.interfaceFields(t);
         if (Object.keys(fields).length) {
             types[t] = { type: 'object', fields: {} };
@@ -216,12 +261,14 @@ function normalizeType(raw, index, types, depth = 0) {
 
     // An alias that is neither a union of literals nor an object — a tuple, for
     // instance (`type ColorThreshold = [number, string]`). Resolve it one level.
-    if (depth < 2 && !types[t]) {
+    if (depth < MAX_TYPE_DEPTH && !types[t]) {
         const alias = index.typeAliasBody(t);
         if (alias && alias !== t && !alias.startsWith('{')) {
+            // A plain alias to another named type (ElementConditionRule =
+            // CellConditionRule) resolves to that type rather than to a dead name.
             const resolved = normalizeType(alias, index, types, depth + 1);
             if (resolved.type) {
-                types[t] = resolved;
+                types[t] = resolved.ref ? types[resolved.ref] : resolved;
             }
         }
     }
