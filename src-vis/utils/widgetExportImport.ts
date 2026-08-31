@@ -2,6 +2,7 @@ import type { WidgetConfig, WidgetPreset } from '../types';
 import type { Tab, Section, DashboardLayout } from '../store/dashboardStore';
 import type { PopupView } from '../store/popupConfigStore';
 import { useGroupDefsStore, newGroupDefId } from '../store/groupDefsStore';
+import { freshWidgetId } from './widgetCopy';
 import { newPresetId } from '../store/widgetPresetsStore';
 import { useConfigStore } from '../store/configStore';
 import { anonymizePayload, anyAnonymize, type AnonymizeOptions } from './anonymizeExport';
@@ -147,11 +148,6 @@ export function collectGroupDefs(
     }
 }
 
-let _widgetCounter = 0;
-function freshWidgetId(): string {
-    return `w-${Date.now()}-${(++_widgetCounter).toString(36)}`;
-}
-
 export function exportWidget(config: WidgetConfig, anon?: AnonymizeOptions) {
     const payload: Record<string, unknown> = { ...config };
 
@@ -247,7 +243,7 @@ export function importTab(raw: unknown): Omit<Tab, 'id'> | null {
 
     function remapWidgets(widgets: WidgetConfig[]): WidgetConfig[] {
         return widgets.map((w) => {
-            const newId = freshWidgetId();
+            const newId = freshWidgetId(w.id);
             if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
                 const newDefId = defIdMap[w.options.defId as string] ?? (w.options.defId as string);
                 return { ...w, id: newId, options: { ...w.options, defId: newDefId } };
@@ -294,7 +290,7 @@ function makeGroupDefRemapper(
     // scaling is done separately so this never double-scales already-scaled defs.
     const idRemap = (widgets: WidgetConfig[]): WidgetConfig[] =>
         widgets.map((w) => {
-            const newId = freshWidgetId();
+            const newId = freshWidgetId(w.id);
             if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
                 const newDefId = defIdMap[w.options.defId as string] ?? (w.options.defId as string);
                 return { ...w, id: newId, options: { ...w.options, defId: newDefId } };
@@ -595,7 +591,7 @@ export interface InstantiatedPreset {
  */
 export function instantiatePreset(preset: WidgetPreset): InstantiatedPreset {
     const widget = JSON.parse(JSON.stringify(preset.widget)) as WidgetConfig;
-    widget.id = freshWidgetId();
+    widget.id = freshWidgetId(widget.id);
 
     const importedDefs = preset.groupDefs ?? {};
     const idMap: Record<string, string> = {};
@@ -604,7 +600,7 @@ export function instantiatePreset(preset: WidgetPreset): InstantiatedPreset {
     const remapChildren = (children: WidgetConfig[]): WidgetConfig[] =>
         children.map((raw) => {
             const child = JSON.parse(JSON.stringify(raw)) as WidgetConfig;
-            child.id = freshWidgetId();
+            child.id = freshWidgetId(child.id);
             if ((child.type === 'group' || child.type === 'panels') && child.options?.defId) {
                 const oldDefId = child.options.defId as string;
                 child.options = { ...child.options, defId: idMap[oldDefId] ?? oldDefId };

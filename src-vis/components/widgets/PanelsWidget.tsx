@@ -20,6 +20,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { isScreenshotMode } from '../../store/persistManager';
 import { publishPanelSlides, panelActiveStateId } from '../../utils/publishPanelState';
+import { copyWidget } from '../../utils/widgetCopy';
 
 const SWIPE_THRESHOLD = 60; // px — minimum drag distance to trigger slide change
 // px the pointer must travel before a swipe takes over. Below this we never
@@ -326,11 +327,7 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
         setChildren(children.map((c) => (c.id === updated.id ? updated : c)));
 
     const duplicateChild = (child: WidgetConfig) => {
-        const copy: WidgetConfig = {
-            ...child,
-            id: `slide-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        };
-        setChildren([...children, copy]);
+        setChildren([...children, copyWidget(child)]);
         setActive(children.length);
     };
 

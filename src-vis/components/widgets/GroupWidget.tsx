@@ -31,6 +31,7 @@ import { verticalCompact } from '../../utils/gridCompact';
 import { GROUP_GAP, groupRows } from '../../utils/groupLayout';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
+import { copyWidget } from '../../utils/widgetCopy';
 
 function mobileSort(children: WidgetConfig[]): WidgetConfig[] {
     return [...children].sort((a, b) => {
@@ -328,11 +329,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         const maxY = children.reduce((m, c) => Math.max(m, c.gridPos.y + c.gridPos.h), 0);
         const next = verticalCompact([
             ...children,
-            {
-                ...child,
-                id: `child-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-                gridPos: { ...child.gridPos, x: 0, y: maxY },
-            },
+            { ...copyWidget(child), gridPos: { ...child.gridPos, x: 0, y: maxY } },
         ]);
         setChildren(next);
         fitHeightToChildren(next);

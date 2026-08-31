@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage, flushKey, withSuppressedDirty } from './persistManager';
-import { useGroupDefsStore, newGroupDefId, cloneGroupDef } from './groupDefsStore';
+import { useGroupDefsStore, newGroupDefId } from './groupDefsStore';
+import { cloneWidget, finishClone, makeIdDeduper, newCloneScope, remapWidgetRefs } from '../utils/widgetCopy';
 import { slugify } from '../utils/slugify';
 import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate } from '../types';
 import type { AllVars } from '../themes';
@@ -323,12 +324,16 @@ function uniqueSectionSlug(base: string, sections: Section[]): string {
 
 // ── GROUP widget helpers ──────────────────────────────────────────────────────
 
-/** Deep-clone a widget: GROUP / PANELS widgets get a fresh defId with cloned children. */
-function cloneWidgetDef(w: WidgetConfig): WidgetConfig {
-    if ((w.type === 'group' || w.type === 'panels') && w.options?.defId) {
-        return { ...w, options: { ...w.options, defId: cloneGroupDef(w.options.defId as string) } };
-    }
-    return w;
+/**
+ * Copy the tabs of a section/layout for a duplicate: every widget (and every
+ * nested group child) gets a fresh id, and widget references inside the copy are
+ * rewritten to the copies. One scope spans all tabs, so a click action pointing
+ * at a widget on a sibling tab follows the duplicate instead of the original.
+ */
+function copyTabs<T extends Tab>(tabs: T[]): T[] {
+    const scope = newCloneScope();
+    const copied = tabs.map((tab) => ({ ...tab, widgets: tab.widgets.map((w) => cloneWidget(w, scope)) }));
+    return remapWidgetRefs(copied, finishClone(scope));
 }
 
 /**
@@ -542,13 +547,17 @@ export const useDashboardStore = create<DashboardState>()(
                     dup.id = newId;
                     dup.name = newName;
                     dup.slug = uniqueLayoutSlug(slugify(newName), s.layouts);
+                    // One scope for the whole layout (not copyTabs per section) so widget
+                    // references across its sections follow the copy.
+                    const scope = newCloneScope();
                     dup.sections = dup.sections.map((sec) => ({
                         ...sec,
                         tabs: sec.tabs.map((tab) => ({
                             ...tab,
-                            widgets: tab.widgets.map(cloneWidgetDef),
+                            widgets: tab.widgets.map((w) => cloneWidget(w, scope)),
                         })),
                     }));
+                    dup.sections = remapWidgetRefs(dup.sections, finishClone(scope));
                     return { layouts: [...s.layouts, dup], activeLayoutId: newId };
                 });
             },
@@ -640,7 +649,7 @@ export const useDashboardStore = create<DashboardState>()(
                     dup.id = newId;
                     dup.name = newName;
                     dup.slug = uniqueSectionSlug(slugify(newName), layout.sections);
-                    dup.tabs = dup.tabs.map((tab) => ({ ...tab, widgets: tab.widgets.map(cloneWidgetDef) }));
+                    dup.tabs = copyTabs(dup.tabs);
                     return {
                         layouts: patchLayout(s.layouts, s.activeLayoutId, (l) => ({
                             ...l,
@@ -664,17 +673,14 @@ export const useDashboardStore = create<DashboardState>()(
                     const now = Date.now();
                     const newId = mode === 'copy' ? `section-${now}` : sectionId;
 
-                    // Build the section for the target: deep-clone on copy (fresh group
-                    // defs via cloneWidgetDef), keep the original on move. Slug is made
-                    // unique against the target layout's existing sections.
+                    // Build the section for the target: deep-clone on copy (fresh widget
+                    // ids and group defs via copyTabs), keep the original on move. Slug is
+                    // made unique against the target layout's existing sections.
                     const base: Section =
                         mode === 'copy'
                             ? {
                                   ...(JSON.parse(JSON.stringify(srcSec)) as Section),
-                                  tabs: srcSec.tabs.map((tab) => ({
-                                      ...tab,
-                                      widgets: tab.widgets.map(cloneWidgetDef),
-                                  })),
+                                  tabs: copyTabs(JSON.parse(JSON.stringify(srcSec.tabs)) as Tab[]),
                               }
                             : { ...srcSec };
                     const slug = uniqueSectionSlug(slugify(base.slug || base.name), targetLayout.sections);
@@ -941,12 +947,7 @@ export const useDashboardStore = create<DashboardState>()(
                     const insertId = mode === 'copy' ? `tab-${now}` : tabId;
                     layouts = patchSection(layouts, targetLayoutId, targetSectionId, (sec) => {
                         const base: Tab =
-                            mode === 'copy'
-                                ? {
-                                      ...(JSON.parse(JSON.stringify(srcTab)) as Tab),
-                                      widgets: srcTab.widgets.map(cloneWidgetDef),
-                                  }
-                                : { ...srcTab };
+                            mode === 'copy' ? copyTabs([JSON.parse(JSON.stringify(srcTab)) as Tab])[0] : { ...srcTab };
                         const slug = uniqueTabSlug(base.slug || slugify(base.name), sec.tabs);
                         const newTab: Tab = { ...base, id: insertId, slug };
                         return { ...sec, tabs: [...sec.tabs, newTab], activeTabId: insertId };
@@ -1217,6 +1218,21 @@ export const useDashboardStore = create<DashboardState>()(
                                 ...tab,
                                 widgets: tab.widgets.map(migrateGroupWidget),
                             })),
+                        })),
+                    }));
+                }
+
+                // Repair duplicate widget ids left by copies made before #606 (copying a
+                // tab or section kept the source ids, so the widget picker showed twins
+                // and every id-keyed runtime key was shared). The first widget keeps its
+                // id, later twins get a deterministic suffix.
+                if (Array.isArray(p.layouts)) {
+                    const dedupe = makeIdDeduper();
+                    p.layouts = (p.layouts as DashboardLayout[]).map((l) => ({
+                        ...l,
+                        sections: l.sections.map((sec) => ({
+                            ...sec,
+                            tabs: sec.tabs.map((tab) => ({ ...tab, widgets: dedupe(tab.widgets) })),
                         })),
                     }));
                 }

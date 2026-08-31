@@ -62,7 +62,8 @@ import { JsonPathButton } from '../config/JsonPathButton';
 import { ColorPicker } from '../common/ColorPicker';
 import { useDashboardStore, useActiveSection, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
-import { cloneGroupDef, useGroupDefsStore } from '../../store/groupDefsStore';
+import { useGroupDefsStore } from '../../store/groupDefsStore';
+import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import type {
@@ -6003,29 +6004,6 @@ export function WidgetFrame({
     // the widget's main datapoint and — for list widgets — its entries.
     const sourceCtx = useMemo(() => widgetSourceCtx(config), [config]);
 
-    // GROUP widgets: create a fresh defId + clone children so copies are independent
-    function copyConfig(src: WidgetConfig): WidgetConfig {
-        if ((src.type === 'group' || src.type === 'panels') && src.options?.defId) {
-            return { ...src, options: { ...src.options, defId: cloneGroupDef(src.options.defId as string) } };
-        }
-        // TIMER widgets: deep-clone options + regenerate event IDs so the copy is independent
-        // from the original (otherwise events array reference + event ids are shared, which
-        // breaks editing and makes the stateBaseId fixup race with modal saves).
-        if (src.type === 'timer' && src.options) {
-            const o = src.options as Record<string, unknown>;
-            const rawEvents = (o.events as Array<Record<string, unknown>> | undefined) ?? [];
-            const events = rawEvents.map((e) => ({
-                ...e,
-                id: `t_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-            }));
-            const nextOpts = { ...o, events } as Record<string, unknown>;
-            // stateBaseId will be re-set by TimerWidget's useLayoutEffect against the new widget id
-            delete nextOpts.stateBaseId;
-            return { ...src, options: nextOpts };
-        }
-        return src;
-    }
-
     // Evaluate conditions against live ioBroker values
     const conditionResult = useConditionStyle(conditions, config.id, sourceCtx);
 
@@ -7192,8 +7170,7 @@ export function WidgetFrame({
                                 onClick={() => {
                                     // Popup-view editor: duplicate within the same popup view only.
                                     onCopy({
-                                        ...copyConfig(config),
-                                        id: `pw-${Date.now()}`,
+                                        ...copyWidget(config, freshWidgetId('pw-')),
                                         gridPos: { ...config.gridPos, y: 9999 },
                                     });
                                     openPanelFor(null);
@@ -7210,8 +7187,7 @@ export function WidgetFrame({
                                     if (moveTargets.length === 0 && popupViewTargets.length === 0) {
                                         // No other tabs / popup views – duplicate directly on same tab
                                         addWidgetToLayoutTab(activeLayoutId, activeTabId, {
-                                            ...copyConfig(config),
-                                            id: `w-${Date.now()}`,
+                                            ...copyWidget(config),
                                             gridPos: { ...config.gridPos, y: 9999 },
                                         });
                                         openPanelFor(null);
@@ -7246,8 +7222,7 @@ export function WidgetFrame({
                                 <button
                                     onClick={() => {
                                         addWidgetToLayoutTab(activeLayoutId, activeTabId, {
-                                            ...copyConfig(config),
-                                            id: `w-${Date.now()}`,
+                                            ...copyWidget(config),
                                             gridPos: { ...config.gridPos, y: 9999 },
                                         });
                                         openPanelFor(null);
@@ -7283,8 +7258,7 @@ export function WidgetFrame({
                                                         key={m.tabId}
                                                         onClick={() => {
                                                             addWidgetToLayoutTab(m.layoutId, m.tabId, {
-                                                                ...copyConfig(config),
-                                                                id: `w-${Date.now()}`,
+                                                                ...copyWidget(config),
                                                                 gridPos: { ...config.gridPos, y: 9999 },
                                                             });
                                                             openPanelFor(null);
@@ -7317,8 +7291,7 @@ export function WidgetFrame({
                                                 key={pv.id}
                                                 onClick={() => {
                                                     addWidgetToView(pv.id, {
-                                                        ...copyConfig(config),
-                                                        id: `pw-${Date.now()}`,
+                                                        ...copyWidget(config, freshWidgetId('pw-')),
                                                         gridPos: { ...config.gridPos, y: 9999 },
                                                     });
                                                     openPanelFor(null);
