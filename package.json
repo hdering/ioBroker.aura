@@ -81,6 +81,7 @@
     "test:integration": "mocha test/integration --exit",
     "release": "release-script",
     "translate": "translate-adapter",
+    "translate:news": "node tools/i18n/translate-news.mjs",
     "battery-lib:update": "node tools/battery-library/build-battery-library.mjs",
     "docs:catalog": "node tools/docs/build-widget-catalog.mjs",
     "docs:dev": "vitepress dev docs",
