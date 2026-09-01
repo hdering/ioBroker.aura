@@ -1,5 +1,11 @@
 # Changelog (older entries)
 
+## 0.48.3 (2026-08-22)
+- 🌟 **New feature:** Custom layout - switch cells in button mode can now carry separate captions, background and text colours for ON / true / 1 and OFF / false / 0
+- 🌟 **New feature:** Dynamic list - the datapoint search can now filter by custom enum categories (e.g. enum.floors); floors that hold rooms resolve down to the datapoints of those rooms, and a category that carries its members directly can be picked as a whole ([#568](https://github.com/hdering/ioBroker.aura/issues/568))
+- 🌟 **New feature:** Advanced chart - new "Show percentage share of the stack" option labels each stacked value with its share of the stack total, alone or in brackets behind the value, and adds it to the tooltip ([#569](https://github.com/hdering/ioBroker.aura/issues/569))
+- 🌟 **New feature:** HTML - the HTML code can now contain live datapoint placeholders: {any.dp.id} for any state, {dp} for the widget's own value datapoint, both with an optional JSON path ({dp}#battery.soc); placeholders are also filled in HTML that comes from a datapoint
+
 ## 0.48.2 (2026-08-21)
 - 🌟 **New feature:** List and dynamic list - a row can now be a date picker: the new display type offers the same options as the Date picker widget (native pickers or a token pattern, time only, output format) and writes the picked value to the row's datapoint ([#566](https://github.com/hdering/ioBroker.aura/issues/566))
 - Popups - the built-in popup views (dimmer, thermostat, switch, shutter, media player) are no longer set up in new installations; existing setups keep theirs unchanged, and Admin -> Popups can now remove the ones nothing uses
