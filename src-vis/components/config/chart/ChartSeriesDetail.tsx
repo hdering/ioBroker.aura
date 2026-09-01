@@ -7,6 +7,7 @@ import { ValueFormatRow } from '../ValueFormatRow';
 import type { NumberFormat } from '../../../utils/formatValue';
 import { DatapointPicker } from '../DatapointPicker';
 import { ValueTransformButton } from '../ValueTransformButton';
+import { JsonShapeHint } from '../JsonChartHints';
 import { ChartSeriesJsonPanel } from './ChartSeriesJsonPanel';
 import { ChartSeriesHistoryPanel } from './ChartSeriesHistoryPanel';
 import {
@@ -154,6 +155,12 @@ export function ChartSeriesDetail({
                     </div>
                 </div>
             )}
+
+            {/* What the payload has to look like. Used to sit far down in the
+                "JSON-Quelle" section under the path field, so a freshly added
+                series left the user guessing which JSON the datapoint above
+                needs. Starts unfolded until the payload actually parsed. */}
+            {!isComparison && seriesIsJson && <JsonShapeHint open={!probe?.done || !!probe.invalid} />}
 
             {/* Chart type — hidden in comparison mode */}
             {!isComparison && (

@@ -1290,7 +1290,7 @@ export const de = {
     'echart.jsonShapeNested': 'Liegt die Liste tiefer: Pfad data.hours eintragen.',
     'echart.jsonShapeWrapped': 'Alles in ein Array gepackt — funktioniert auch ohne Pfad.',
     'echart.jsonShapeFields':
-        'Beschriftungs- und Wertfeld erkennt der Editor selbst; die beiden Auswahlfelder darunter korrigieren die Erkennung nur, wenn sie danebenliegt.',
+        'Beschriftungs- und Wertfeld erkennt der Editor selbst; die beiden Auswahlfelder weiter unten unter „JSON-Quelle“ korrigieren die Erkennung nur, wenn sie danebenliegt.',
     'echart.jsonLabelKey': 'Feld für Beschriftung',
     'echart.jsonValueKey': 'Feld für Wert',
     'echart.jsonKeyAuto': 'Automatisch ({key})',

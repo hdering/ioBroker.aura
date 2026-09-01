@@ -118,7 +118,7 @@ Ist das ganze JSON in ein Array gepackt — z. B. weil ein Skript seine bestehen
 
 Stehen die beiden Grenzen verdreht im JSON (`yMin` größer als `yMax`), werden sie getauscht.
 
-Dieselben Beispiele stehen im Optionen-Panel: „Welche JSON-Formen funktionieren?" unter dem Pfad-Feld, „Wo dürfen die Grenzen stehen?" unter dem min/max-Pfad. Findet der eingetragene Pfad kein Array, nennt der Editor die Pfade, die eines enthalten.
+Dieselben Beispiele stehen im Serien-Editor: „Welche JSON-Formen funktionieren?" direkt unter dem Datenpunkt — bei einer neuen Serie aufgeklappt, bis der Datenpunkt gelesen ist —, „Wo dürfen die Grenzen stehen?" unter dem min/max-Pfad. Findet der eingetragene Pfad kein Array, nennt der Editor die Pfade, die eines enthalten.
 
 Die Grenzen gelten für die Achse der jeweiligen Serie (`yAxisIndex`) und werden wie deren Werte umgerechnet (`valueFactor`/`valueOffset`). Ohne Block bleibt die Skalierung, wie sie konfiguriert ist.
 

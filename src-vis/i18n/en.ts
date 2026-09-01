@@ -1286,7 +1286,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.jsonShapeNested': 'List sitting deeper: enter the path data.hours.',
     'echart.jsonShapeWrapped': 'Everything wrapped in an array — works without a path too.',
     'echart.jsonShapeFields':
-        'The editor detects the label and value field itself; the two pickers below only correct that detection when it gets it wrong.',
+        'The editor detects the label and value field itself; the two pickers further down under “JSON source” only correct that detection when it gets it wrong.',
     'echart.jsonLabelKey': 'Label field',
     'echart.jsonValueKey': 'Value field',
     'echart.jsonKeyAuto': 'Automatic ({key})',

@@ -1,11 +1,14 @@
 import { useT } from '../../../i18n';
 import type { EChartSeriesConfig } from '../../../hooks/useMultiSeriesData';
-import { JsonAxisBoundsHint, JsonShapeHint } from '../JsonChartHints';
+import { JsonAxisBoundsHint } from '../JsonChartHints';
 import { JsonKeySelect, inputCls, inputStyle, type JsonProbe } from './chartShared';
 
 /**
  * "JSON-Quelle" of one series: where the array sits in the payload, which keys hold label and
  * value, and whether the payload's own min/max block drives the y axis (issue #550).
+ *
+ * The accepted payload shapes are NOT explained here any more: they belong next to the datapoint
+ * at the top of the series pane, where the payload is picked, not four fields further down.
  *
  * Two of the switches are widget-level on purpose — the axis type and the bounds belong to the
  * payload shape, not to a single series, and they show the same state in every series panel.
@@ -57,7 +60,6 @@ export function ChartSeriesJsonPanel({
                         className={inputCls}
                         style={inputStyle}
                     />
-                    <JsonShapeHint />
                 </div>
                 {/* Widget-level, and only a choice in the JSON mode: a
                     timeseries chart always has a time axis, so a JSON

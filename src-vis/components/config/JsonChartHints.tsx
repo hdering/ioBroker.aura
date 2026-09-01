@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { t } from '../../i18n';
 
 /**
  * The two explainers of the advanced chart's JSON source: which payload shapes chart, and where
  * the y-axis bounds may sit. Both were only described in one long sentence each, which is why
  * perfectly reasonable payloads were configured wrong (issue #550) — a worked example says it in
- * a glance. Rendered collapsed so the options panel stays short.
+ * a glance. Rendered collapsed so the options panel stays short, unless the caller asks for it
+ * open (a JSON series whose payload has not been read yet).
  */
 
 interface JsonExample {
@@ -37,9 +39,21 @@ function ExampleList({ examples }: { examples: JsonExample[] }) {
     );
 }
 
-function HintBox({ summary, children }: { summary: string; children: React.ReactNode }) {
+function HintBox({
+    summary,
+    open,
+    children,
+}: {
+    summary: string;
+    /** Start unfolded — the caller knows there is nothing useful to look at yet. */
+    open?: boolean;
+    children: React.ReactNode;
+}) {
+    // Once the user folded it themselves that wins: the `open` hint is driven by the payload
+    // probe, which arrives late, and it must not snap the box shut under their hands.
+    const [manual, setManual] = useState<boolean | null>(null);
     return (
-        <details>
+        <details open={manual ?? !!open} onToggle={(e) => setManual(e.currentTarget.open)}>
             <summary
                 className="text-[10px] cursor-pointer select-none"
                 style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
@@ -51,8 +65,12 @@ function HintBox({ summary, children }: { summary: string; children: React.React
     );
 }
 
-/** Accepted shapes of the data itself, shown under the "path to array" field. */
-export function JsonShapeHint() {
+/**
+ * Accepted shapes of the data itself. Sits with the datapoint of a JSON series, because that is
+ * where the question comes up — the payload has to look a certain way before any of the fields
+ * further down mean anything.
+ */
+export function JsonShapeHint({ open }: { open?: boolean }) {
     const examples: JsonExample[] = [
         {
             note: t('echart.jsonShapeFlat'),
@@ -72,7 +90,7 @@ export function JsonShapeHint() {
         },
     ];
     return (
-        <HintBox summary={t('echart.jsonShapeHelp')}>
+        <HintBox summary={t('echart.jsonShapeHelp')} open={open}>
             <ExampleList examples={examples} />
             <p className="text-[10px] mt-1.5" style={{ color: 'var(--text-secondary)', opacity: 0.75 }}>
                 {t('echart.jsonShapeFields')}
