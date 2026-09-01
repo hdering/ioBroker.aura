@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.52.5",
+    "auraVersion": "0.52.6",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1322,7 +1322,8 @@
         },
         "datapointId": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "chartType": {
           "type": "string",
@@ -4373,7 +4374,8 @@
         },
         "datapointId": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "label": {
           "type": "string"

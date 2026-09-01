@@ -250,16 +250,18 @@ den Aufbau, sondern die Frage, ob das Konfigurierte überhaupt noch funktioniert
 Ohne `tab` läuft sie über **alle** Tabs, Popup-Ansichten und Gruppen-Definitionen
 und meldet:
 
-| Befund                                   | Warum er sonst niemandem auffällt                                         |
-| ---------------------------------------- | ------------------------------------------------------------------------- |
-| Datenpunkt existiert nicht               | Widget rendert, zeigt nichts, meldet nichts                               |
-| Datenpunkt ohne Wert (`null`)            | Angelegt und nie beschrieben                                              |
-| Datenpunkt seit >14 Tagen unverändert    | Mehrere DP-Generationen fürs gleiche Gerät, das Widget hängt an der alten |
-| Option, die das Widget nicht liest       | Wird beim Rendern verworfen — hat früher gewirkt, unter anderem Namen     |
-| Einstellung eine Ebene zu hoch           | `conditions`/`badges` direkt aufs Widget geschrieben                      |
-| Doppelte Widget-Id                       | Geteilter Laufzeit-Zustand, Klickaktion trifft beide (#606)               |
-| Gruppe ohne gespeicherte Kinder          | Import ohne `groupDefs`, Restore ohne den Schlüssel                       |
-| Leerer Tab, verwaiste Gruppen-Definition | Menüeintrag ohne Inhalt, Reste gelöschter Gruppen                         |
+| Befund                                   | Warum er sonst niemandem auffällt                                               |
+| ---------------------------------------- | ------------------------------------------------------------------------------- |
+| Datenpunkt existiert nicht               | Widget rendert, zeigt nichts, meldet nichts                                     |
+| Datenpunkt ohne Wert (`null`)            | Angelegt und nie beschrieben                                                    |
+| Datenpunkt seit >14 Tagen unverändert    | Mehrere DP-Generationen fürs gleiche Gerät, das Widget hängt an der alten       |
+| Diagramm-Datenpunkt ohne Aufzeichnung    | Kein History-Adapter aktiv oder die falsche Instanz eingestellt — leerer Rahmen |
+| Datenpunkt passt nicht zum Widget        | Schalter auf `write:false`, Zahl-Widget auf Text, Regler ohne min/max           |
+| Option, die das Widget nicht liest       | Wird beim Rendern verworfen — hat früher gewirkt, unter anderem Namen           |
+| Einstellung eine Ebene zu hoch           | `conditions`/`badges` direkt aufs Widget geschrieben                            |
+| Doppelte Widget-Id                       | Geteilter Laufzeit-Zustand, Klickaktion trifft beide (#606)                     |
+| Gruppe ohne gespeicherte Kinder          | Import ohne `groupDefs`, Restore ohne den Schlüssel                             |
+| Leerer Tab, verwaiste Gruppen-Definition | Menüeintrag ohne Inhalt, Reste gelöschter Gruppen                               |
 
 Die Datenpunkte werden dafür **lose** gesammelt (`collectDatapointRefs` mit
 `loose: true`): auch `entries[].id`, `subDps[].id` und die `…Dp`-Felder in
@@ -286,6 +288,28 @@ nennt (nur die, nicht die ganze Anlage), und vergleicht:
   dann rechnet das Widget mit 0–100 und schreibt Werte, die das Gerät ablehnt
 - `enum`-Werte, die nicht in `common.states` stehen
 - Preset-Werte mit falschem Typ
+
+Dazu die Prüfung, die am wenigsten nach Fehler aussieht: **Diagramm auf einem
+Datenpunkt, den niemand aufzeichnet.** Die Id existiert, der Typ ist eine Zahl,
+die Optionen sind richtig geschrieben — und das Diagramm zeichnet dauerhaft einen
+leeren Rahmen, weil in `common.custom` kein `history.`/`influxdb.`/`sql.`-Eintrag
+aktiv ist. `historyReads()` sammelt dafür, was ein Widget wirklich bei der History
+abfragt: beim einfachen `chart` den eigenen Datenpunkt, beim `echart` je Serie —
+und nur, wenn die Serie überhaupt aus der History liest (`source: 'json'` und
+`echartMode: 'json'` lesen den Datenpunktwert selbst, dort wäre die Warnung
+falsch). Zweiter Fall: ein gesetztes `historyInstance`, das diesen Datenpunkt
+nicht aufzeichnet — die Abfrage geht an die falsche Instanz und liefert nichts.
+Die Regel ist wörtlich die des Frontends (`detectHistoryAdapters` in
+`hooks/useChartHistory.ts`), damit Prüfung und Anzeige nicht auseinanderlaufen.
+
+Der Pfad nennt die Serie mit ihrem **gespeicherten** Index: erst indexieren, dann
+filtern, sonst verschiebt eine JSON-Serie in der Mitte alle Nummern dahinter.
+
+Nebenbei geschlossen: `EChartSeriesConfig.datapointId` fiel durch jede
+Datenpunkt-Erkennung, weil „endet auf Id" keine Datenpunkt-Regel ist — die eine
+Option, die ein Dutzend Ids trägt, war damit ungeprüft. `DP_KEY` im Generator
+kennt jetzt auch `datapointId` (50 markierte Felder statt 48), ein Tippfehler in
+einer Serie ist also ein Fehler und keine leere Kurve.
 
 Immer Warnungen. Das ioBroker-Objekt ist eine Behauptung: Adapter setzen `write`
 falsch, viele Anlagen schalten mit 0/1, und ein Bereich darf auch im Widget

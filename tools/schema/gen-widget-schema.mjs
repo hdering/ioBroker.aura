@@ -295,8 +295,15 @@ function markDatapointKeys(options) {
     return options;
 }
 
-/** `…Dp`, `…DpId`, `…Datapoint` and a bare `datapoint`, in options and in fields alike. */
-const DP_KEY = /(?:Dp|DpId|Datapoint)$|^datapoint$/;
+/**
+ * `…Dp`, `…DpId`, `…Datapoint`, `datapoint` and `datapointId`, in options and in
+ * fields alike.
+ *
+ * `datapointId` had to be spelled out: it is the field an eCharts series holds its
+ * state id in, and "ends in Id" is not a datapoint rule — so the one place where
+ * a dashboard carries a dozen ids in one option went entirely unchecked.
+ */
+const DP_KEY = /(?:Dp|DpId|Datapoint|DatapointId)$|^datapoint(Id)?$/;
 
 /**
  * The same flag inside the named types.

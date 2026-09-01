@@ -31,6 +31,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const { validateWidget, validateTab, validateAny, allowedOptions } = require('../../lib/mcp/validate.js');
 const {
     designColumns,
+    loggingInstances,
     allTabs,
     findTab,
     findWidget,
@@ -46,7 +47,7 @@ const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
 const { RECIPES, findRecipe, renderRecipe, renderRecipeIndex } = require('../../lib/mcp/recipes.js');
 const { reviewWidgets, renderReview, TILE_ROW_LIMIT, CONTACT_LIMIT } = require('../../lib/mcp/review.js');
 const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
-const { collectDatapointRefs } = require('../../lib/mcp/dpFit.js');
+const { collectDatapointRefs, historyFindings, historyReads } = require('../../lib/mcp/dpFit.js');
 const { measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
 const {
     TOKEN_PLACEHOLDER,
@@ -157,6 +158,111 @@ check('a datapoint one level down is checked too, placeholders are not', () => {
         options: { entries: [{ id: 'hm-rpc.0.LEQ1.1.STATE', statusDp: '{{parent}}.STATE' }] },
     };
     assert.deepEqual(validateWidget(templated, schema, { knownDatapoints: known }).errors, []);
+});
+
+// ── A chart on a datapoint nobody logs ────────────────────────────────────────
+// The mistake that looks least like one: the id exists, the type is a number, the
+// options are spelled right, and the chart draws an empty frame for ever.
+
+const chartSeries = (over = {}) => ({
+    id: 'c1',
+    type: 'echart',
+    title: 'Verlauf',
+    datapoint: 'zigbee.0.temp',
+    gridPos: { x: 0, y: 0, w: 20, h: 10 },
+    options: {
+        echartSeries: [{ id: 's1', name: 'Temperatur', datapointId: 'zigbee.0.temp', chartType: 'line', ...over }],
+    },
+});
+
+check('logging instances are read the way the frontend reads them', () => {
+    assert.deepEqual(loggingInstances({ 'influxdb.0': { enabled: true } }), ['influxdb.0']);
+    assert.deepEqual(loggingInstances({ 'history.0': { enabled: true }, 'sql.1': { enabled: true } }), [
+        'history.0',
+        'sql.1',
+    ]);
+    // Switched off counts as not logged, and a foreign custom entry is not history.
+    assert.deepEqual(loggingInstances({ 'influxdb.0': { enabled: false } }), []);
+    assert.deepEqual(loggingInstances({ 'javascript.0': { enabled: true } }), []);
+    assert.deepEqual(loggingInstances(undefined), []);
+});
+
+check('a series on an unlogged datapoint is named, with what to do about it', () => {
+    const meta = new Map([['zigbee.0.temp', { type: 'number', logging: [] }]]);
+    const found = historyFindings(chartSeries(), meta);
+    assert.equal(found.length, 1);
+    assert.match(found[0], /echartSeries\[0\] „Temperatur"/);
+    assert.match(found[0], /kein History-Adapter/);
+    assert.match(found[0], /bleibt dauerhaft leer/);
+});
+
+check('a logged datapoint produces no remark', () => {
+    const meta = new Map([['zigbee.0.temp', { type: 'number', logging: ['influxdb.0'] }]]);
+    assert.deepEqual(historyFindings(chartSeries(), meta), []);
+});
+
+check('a history instance that does not log this datapoint is a finding of its own', () => {
+    const meta = new Map([['zigbee.0.temp', { type: 'number', logging: ['influxdb.0'] }]]);
+    const found = historyFindings(chartSeries({ historyInstance: 'history.0' }), meta);
+    assert.equal(found.length, 1);
+    assert.match(found[0], /historyInstance "history\.0" zeichnet .* nicht auf/);
+    assert.match(found[0], /aktiv ist influxdb\.0/);
+});
+
+check('a JSON series needs no history — and neither does the JSON mode', () => {
+    const meta = new Map([['zigbee.0.temp', { type: 'number', logging: [] }]]);
+    assert.deepEqual(historyFindings(chartSeries({ source: 'json' }), meta), []);
+    const jsonMode = chartSeries();
+    jsonMode.options.echartMode = 'json';
+    assert.deepEqual(historyFindings(jsonMode, meta), []);
+});
+
+check('the series path stays the stored index when a JSON series sits in between', () => {
+    const w = {
+        type: 'echart',
+        options: {
+            echartSeries: [
+                { id: 'a', datapointId: 'zigbee.0.temp' },
+                { id: 'b', datapointId: 'x.json', source: 'json' },
+                { id: 'c', datapointId: 'zigbee.0.temp' },
+            ],
+        },
+    };
+    assert.deepEqual(
+        historyReads(w).map((r) => r.path),
+        ['echartSeries[0]', 'echartSeries[2]'],
+    );
+});
+
+check('the simple chart is checked on its own datapoint', () => {
+    const meta = new Map([['zigbee.0.temp', { type: 'number', logging: [] }]]);
+    const chart = {
+        id: 'ch',
+        type: 'chart',
+        title: 'Verlauf',
+        datapoint: 'zigbee.0.temp',
+        gridPos: { x: 0, y: 0, w: 20, h: 10 },
+        options: {},
+    };
+    assert.match(historyFindings(chart, meta).join(' '), /kein History-Adapter/);
+});
+
+check('an unlogged chart datapoint warns but never refuses the write', () => {
+    const meta = new Map([['zigbee.0.temp', { type: 'number', logging: [] }]]);
+    const res = validateWidget(chartSeries(), schema, {
+        knownDatapoints: new Set(['zigbee.0.temp']),
+        datapointMeta: meta,
+    });
+    assert.deepEqual(res.errors, []);
+    assert.ok(hasWarning(res, /kein History-Adapter/));
+});
+
+check('a typo in a series datapoint is an error now that the field is flagged', () => {
+    assert.ok(schema.types.EChartSeriesConfig.fields.datapointId.datapoint, 'datapointId must be flagged');
+    const res = validateWidget(chartSeries({ datapointId: 'zigbee.0.tmp' }), schema, {
+        knownDatapoints: new Set(['zigbee.0.temp']),
+    });
+    assert.ok(hasError(res, /zigbee\.0\.tmp/));
 });
 
 check('the object behind the datapoint is compared with the widget', () => {
@@ -543,6 +649,36 @@ check('an empty tab and an orphaned group definition are named', () => {
     assert.ok(auditIds.includes('orphan-groups'));
 });
 
+check('the sweep reports the unlogged chart datapoint too', () => {
+    const res = auditDashboard({
+        places: [
+            {
+                where: 'Wohnzimmer / Start / Verlauf',
+                widgets: [
+                    {
+                        id: 'c1',
+                        type: 'echart',
+                        title: 'Verlauf',
+                        datapoint: 'zigbee.0.temp',
+                        gridPos: { x: 0, y: 0, w: 20, h: 10 },
+                        options: {
+                            echartSeries: [
+                                { id: 's1', name: 'Temperatur', datapointId: 'zigbee.0.temp', chartType: 'line' },
+                            ],
+                        },
+                    },
+                ],
+            },
+        ],
+        schema,
+        knownDatapoints: new Set(['zigbee.0.temp']),
+        datapointMeta: new Map([['zigbee.0.temp', { type: 'number', write: false, logging: [] }]]),
+    });
+    const f = res.findings.find((x) => x.id === 'no-history');
+    assert.ok(f, `expected a no-history finding, got ${res.findings.map((x) => x.id).join(', ')}`);
+    assert.match(f.items.join(' '), /Verlauf \/ c1: echartSeries\[0\]/);
+});
+
 check('a clean dashboard says so instead of inventing findings', () => {
     const clean = auditDashboard({
         places: [{ where: 'Test', widgets: [OK_SWITCH] }],
@@ -695,7 +831,10 @@ function makeAdapter() {
 
 /** hm-rpc is a normal writable switch; zigbee.0.temp is read-only and long dead. */
 const FOREIGN_OBJECTS = {
-    'hm-rpc.0.LEQ1.1.STATE': { common: { type: 'boolean', role: 'switch', write: true } },
+    'hm-rpc.0.LEQ1.1.STATE': {
+        common: { type: 'boolean', role: 'switch', write: true, custom: { 'influxdb.0': { enabled: true } } },
+    },
+    // Deliberately NOT logged: the datapoint a chart series on it draws nothing from.
     'zigbee.0.temp': { common: { type: 'number', role: 'value.temperature', write: false, unit: '°C' } },
     'alias.0.licht': { common: { type: 'boolean', role: 'switch', write: true } },
 };
@@ -1188,6 +1327,32 @@ check('aura_validate reports a bad option and checks live datapoints', () => {
     assert.ok(badValidate.isError);
     assert.match(badValidate.content[0].text, /liest die Option "showTitel" nicht/);
     assert.match(badValidate.content[0].text, /3 Datenpunkte gegengeprüft/);
+});
+
+const chartValidate = await client.callTool({
+    name: 'aura_validate',
+    arguments: {
+        json: JSON.stringify({
+            id: 'c1',
+            type: 'echart',
+            title: 'Verlauf',
+            datapoint: 'zigbee.0.temp',
+            gridPos: { x: 0, y: 0, w: 20, h: 10 },
+            options: {
+                echartSeries: [{ id: 's1', name: 'Temperatur', datapointId: 'zigbee.0.temp', chartType: 'line' }],
+            },
+        }),
+    },
+});
+check('aura_validate warns when a chart series datapoint is not logged', () => {
+    const t = chartValidate.content[0].text;
+    // Not an error: a series on an unlogged datapoint is a mistake, not a reason
+    // to refuse the write — the user may be about to switch logging on.
+    assert.ok(!chartValidate.isError, t);
+    assert.match(t, /kein History-Adapter/);
+    assert.match(t, /echartSeries\[0\] „Temperatur"/);
+    // Proof the handler looked the series datapoint up, not only widget.datapoint.
+    assert.match(t, /Objekt\(e\) gelesen/);
 });
 
 // ── Writing ──────────────────────────────────────────────────────────────────
