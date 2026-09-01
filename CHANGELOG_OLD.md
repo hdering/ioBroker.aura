@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.49.1 (2026-08-24)
+- Static & dynamic list - title alignment (left/centre/right) now actually moves the header title ([#575](https://github.com/hdering/ioBroker.aura/issues/575))
+- Dynamic list - the frontend filter chip can be hidden, like the static list already could ([#575](https://github.com/hdering/ioBroker.aura/issues/575))
+
 ## 0.49.0 (2026-08-24)
 - 🌟 **New feature:** Dynamic list - the custom category filter now names the category in the closed field ("Floors: Upper floor, Attic"), so identically named entries from different categories stay distinguishable ([#568](https://github.com/hdering/ioBroker.aura/issues/568))
 - Frontend design - a theme picked for a whole layout is now applied in the frontend; before that only per-section overrides had any effect ([#573](https://github.com/hdering/ioBroker.aura/issues/573))
