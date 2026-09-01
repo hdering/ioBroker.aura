@@ -1,6 +1,7 @@
 {
   "Base URL": "Basis-URL",
   "Custom URL (optional)": "Aangepaste URL (optioneel)",
-  "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:8082).": "Overschrijft de links in het ioBroker-overzicht. Leeg laten voor de standaard (http://<ip>:8082).",
-  "MCP token generated": "MCP-token gegenereerd"
+  "MCP token generated": "MCP-token gegenereerd",
+  "Override the links shown in ioBroker overview and instances. Leave empty to use the default (http://<ip>:<port>).": "Overschrijft de links in het ioBroker-overzicht en bij de instanties. Leeg laten voor de standaard (http://<ip>:<port>).",
+  "https://your-domain.com": "https://your-domain.com"
 }

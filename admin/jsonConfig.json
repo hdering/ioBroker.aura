@@ -546,28 +546,64 @@
           "value": "read",
           "label": {
             "en": "Read only",
-            "de": "Nur lesen"
+            "de": "Nur lesen",
+            "ru": "Только чтение",
+            "pt": "Somente leitura",
+            "nl": "Alleen lezen",
+            "fr": "Lecture seule",
+            "it": "Sola lettura",
+            "es": "Solo lectura",
+            "pl": "Tylko odczyt",
+            "uk": "Лише читання",
+            "zh-cn": "仅读取"
           }
         },
         {
           "value": "write",
           "label": {
             "en": "Read and write (create, change)",
-            "de": "Lesen und schreiben (anlegen, ändern)"
+            "de": "Lesen und schreiben (anlegen, ändern)",
+            "ru": "Чтение и запись (создание, изменение)",
+            "pt": "Leitura e escrita (criar, alterar)",
+            "nl": "Lezen en schrijven (aanmaken, wijzigen)",
+            "fr": "Lecture et écriture (créer, modifier)",
+            "it": "Lettura e scrittura (creare, modificare)",
+            "es": "Lectura y escritura (crear, modificar)",
+            "pl": "Odczyt i zapis (tworzenie, zmiana)",
+            "uk": "Читання та запис (створення, зміна)",
+            "zh-cn": "读取和写入（创建、修改）"
           }
         },
         {
           "value": "rename",
           "label": {
             "en": "…and rename",
-            "de": "…und umbenennen"
+            "de": "…und umbenennen",
+            "ru": "…и переименование",
+            "pt": "…e renomear",
+            "nl": "…en hernoemen",
+            "fr": "…et renommer",
+            "it": "…e rinominare",
+            "es": "…y renombrar",
+            "pl": "…i zmiana nazwy",
+            "uk": "…і перейменування",
+            "zh-cn": "……以及重命名"
           }
         },
         {
           "value": "delete",
           "label": {
             "en": "…and delete",
-            "de": "…und löschen"
+            "de": "…und löschen",
+            "ru": "…и удаление",
+            "pt": "…e excluir",
+            "nl": "…en verwijderen",
+            "fr": "…et supprimer",
+            "it": "…ed eliminare",
+            "es": "…y eliminar",
+            "pl": "…i usuwanie",
+            "uk": "…і видалення",
+            "zh-cn": "……以及删除"
           }
         }
       ],
