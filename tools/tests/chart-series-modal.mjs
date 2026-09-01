@@ -106,7 +106,8 @@ await trigger.click();
 
 const dlg = page.locator('.aura-config-modal');
 const tab = (label) => dlg.locator(`button:text-is("${label}")`).first();
-const modeBtn = (label) => dlg.locator(`.aura-chart-mode button:text-is("${label}")`);
+// The mode is picked on the explanation card itself — there is no separate button row any more.
+const modeBtn = (label) => dlg.locator(`.aura-chart-mode button:has(p:text-is("${label}"))`);
 await dlg.locator('button:text-is("Serie hinzufügen")').waitFor({ timeout: 10000 });
 check('the dialog opened', await dlg.isVisible());
 
@@ -125,6 +126,7 @@ check('the dialog opened', await dlg.isVisible());
 await tab('Modus').click();
 await page.waitForTimeout(300);
 check('the mode switch has its own tab', await modeBtn('Vergleich').isVisible());
+check('the mode is chosen on the cards, no second button row', await modeBtn('Vergleich').count() === 1);
 check(
     'with a tip for every mode',
     (await dlg.locator('p:has-text("Ein Balken je Datenpunkt")').count()) === 1 &&
