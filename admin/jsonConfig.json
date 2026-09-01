@@ -508,10 +508,10 @@
       },
       "default": "",
       "repeat": false,
-      "visible": "!!data.mcpEnabled",
+      "hidden": "!data.mcpEnabled",
       "xs": 12,
       "sm": 12,
-      "md": 6,
+      "md": 8,
       "lg": 8,
       "xl": 8
     },
@@ -528,10 +528,10 @@
         "en": "Creates a random 32-character token and fills the field above. The instance must be running.",
         "de": "Erzeugt einen zufälligen 32-Zeichen-Token und füllt das Feld darüber. Die Instanz muss dafür laufen."
       },
-      "visible": "!!data.mcpEnabled",
+      "hidden": "!data.mcpEnabled",
       "xs": 12,
       "sm": 12,
-      "md": 6,
+      "md": 4,
       "lg": 4,
       "xl": 4
     },
@@ -576,7 +576,7 @@
         "de": "Jede Stufe schließt die vorherigen ein. Werkzeuge oberhalb der Stufe werden der KI gar nicht erst angeboten. Beginne mit „Nur lesen“ und erhöhe erst, wenn dich das Ergebnis überzeugt — Löschen nimmt den Inhalt mit: ein Tab seine Widgets, ein Bereich seine Tabs."
       },
       "default": "read",
-      "visible": "!!data.mcpEnabled",
+      "hidden": "!data.mcpEnabled",
       "xs": 12,
       "sm": 12,
       "md": 6,
@@ -596,7 +596,7 @@
       "minRows": 9,
       "readOnly": true,
       "default": "",
-      "visible": "!!data.mcpEnabled",
+      "hidden": "!data.mcpEnabled",
       "xs": 12,
       "sm": 12,
       "md": 12,

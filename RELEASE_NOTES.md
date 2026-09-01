@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Settings - MCP fields are only shown when MCP is enabled, and the token is no longer displayed in clear text (#610)
+- Settings - the MCP token is now stored encrypted; a hand-typed token has to be entered once more after this update (#610)

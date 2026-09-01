@@ -2121,8 +2121,39 @@ class Aura extends utils.Adapter {
         }
     }
 
+    /**
+     * One-time migration for the MCP token.
+     *
+     * `mcpToken` is listed in io-package's `encryptedNative` since 0.52.3, so
+     * js-controller decrypts whatever sits in the instance object — a token
+     * written before that move comes back as noise. A generated token is 32
+     * hex characters, which is a clear enough fingerprint to recognise the
+     * old plaintext and store it encrypted instead. A hand-typed token that
+     * does not match has to be entered once more; nothing else can tell it
+     * apart from garbage.
+     */
+    async migratePlainMcpToken() {
+        try {
+            const obj = await this.getForeignObjectAsync(`system.adapter.${this.namespace}`);
+            const raw = obj && obj.native ? obj.native.mcpToken : null;
+            if (typeof raw !== 'string' || !/^[0-9a-f]{32}$/.test(raw)) {
+                return;
+            }
+            // This run already holds the decrypted noise in config — put the
+            // real token back before anything reads it.
+            this.config.mcpToken = raw;
+            obj.native.mcpToken = this.encrypt(raw);
+            await this.setForeignObjectAsync(obj._id, obj);
+            this.log.info('aura: MCP token was stored in clear text and has been encrypted in place');
+        } catch (e) {
+            this.log.debug(`aura: MCP token migration skipped — ${e.message}`);
+        }
+    }
+
     async onReady() {
         this.log.info('aura adapter started');
+
+        await this.migratePlainMcpToken();
 
         await this.setObjectNotExistsAsync('config', {
             type: 'channel',
@@ -2240,7 +2271,7 @@ class Aura extends utils.Adapter {
             common: {
                 name: 'Installed adapter version',
                 type: 'string',
-                role: 'info.version',
+                role: 'text',
                 read: true,
                 write: false,
                 def: '',

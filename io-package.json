@@ -50,10 +50,6 @@
     "icon": "aura.png",
     "extIcon": "https://raw.githubusercontent.com/hdering/ioBroker.aura/main/admin/aura.png",
     "messagebox": true,
-    "protectedNative": [
-      "mcpToken",
-      "mcpClientConfig"
-    ],
     "logTransporter": true,
     "type": "visualization",
     "mode": "daemon",
@@ -299,7 +295,7 @@
       "common": {
         "name": "Installed adapter version",
         "type": "string",
-        "role": "info.version",
+        "role": "text",
         "read": true,
         "write": false,
         "def": ""
@@ -495,5 +491,12 @@
       },
       "native": {}
     }
+  ],
+  "protectedNative": [
+    "mcpToken",
+    "mcpClientConfig"
+  ],
+  "encryptedNative": [
+    "mcpToken"
   ]
 }
