@@ -1257,7 +1257,7 @@ export const de = {
     'echart.mode': 'Modus',
     'echart.modeTimeseries': 'Zeitreihe',
     'echart.modeComparison': 'Vergleich',
-    'echart.modeJson': 'JSON',
+    'echart.modeJson': 'Kategorien (JSON)',
     'echart.jsonSection': 'JSON-Quelle',
     'echart.manageSeries': 'Datenpunkte verwalten',
     'echart.manageSeriesHint': 'Modus, Serien und ihre Datenpunkte.',
@@ -1273,7 +1273,7 @@ export const de = {
     'echart.modeComparisonHint':
         'Ein Balken je Datenpunkt mit dem aktuellen Wert, ohne Zeitachse — z. B. Verbrauch je Raum oder Ertrag je Wechselrichter.',
     'echart.modeJsonHint':
-        'Werte kommen direkt aus einem JSON-Datenpunkt statt aus einem History-Adapter — z. B. eine fertige Wetter- oder Preisprognose.',
+        'Werte kommen direkt aus einem JSON-Datenpunkt statt aus einem History-Adapter, die Beschriftungen bilden die X-Achse als Kategorien (Mo, Di, Raumnamen) — z. B. eine fertige Wetter- oder Preisprognose. Sind die Beschriftungen Zeitstempel, gehört die Serie in die Zeitreihe mit der Datenquelle „JSON“.',
     'echart.modeKeepsSeries':
         'Ein Moduswechsel lässt die Serien unverändert — Umschalten und Zurückschalten kostet nichts.',
     'echart.formatAllSeriesHint': 'Vorgabe für alle Serien — je Serie im Tab „Serien“ überschreibbar.',

@@ -1253,7 +1253,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.mode': 'Mode',
     'echart.modeTimeseries': 'Time Series',
     'echart.modeComparison': 'Comparison',
-    'echart.modeJson': 'JSON',
+    'echart.modeJson': 'Categories (JSON)',
     'echart.jsonSection': 'JSON source',
     'echart.manageSeries': 'Manage datapoints',
     'echart.manageSeriesHint': 'Mode, series and their datapoints.',
@@ -1269,7 +1269,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.modeComparisonHint':
         'One bar per datapoint with its current value, no time axis — e.g. consumption per room or yield per inverter.',
     'echart.modeJsonHint':
-        'Values come straight from a JSON datapoint instead of a history adapter — e.g. a ready-made weather or price forecast.',
+        'Values come straight from a JSON datapoint instead of a history adapter, and the labels form the x axis as categories (Mon, Tue, room names) — e.g. a ready-made weather or price forecast. Labels that are timestamps belong in the time series with the “JSON” data source.',
     'echart.modeKeepsSeries':
         'Switching the mode leaves the series untouched — a look into another mode costs nothing.',
     'echart.formatAllSeriesHint': 'Default for every series — each series can override it under “Series”.',

@@ -48,7 +48,7 @@ Je Serie ist die Datenquelle wählbar (`echartSeries[].source`), Verlauf und JSO
 | Messwerte          | `history` | Zeitraum-Umschalter und Tages-Navigation wirken nur auf diese       |
 | Prognose, Fahrplan | `json`    | ganzes Array aus dem Datenpunkt; die Beschriftung ist der Zeitpunkt |
 
-Voraussetzung für die JSON-Serie: die Beschriftungen sind Zeitstempel (Epoch in ms oder s, ISO-Datum). Einträge ohne gültigen Zeitstempel entfallen — der Editor sagt es, sobald er den Datenpunkt gelesen hat. Für Kategorie-Beschriftungen (`Mo`, `Di`) den Modus [JSON](#json) wählen.
+Voraussetzung für die JSON-Serie: die Beschriftungen sind Zeitstempel (Epoch in ms oder s, ISO-Datum). Einträge ohne gültigen Zeitstempel entfallen — der Editor sagt es, sobald er den Datenpunkt gelesen hat. Für Kategorie-Beschriftungen (`Mo`, `Di`) den Modus [JSON](#json) („Kategorien (JSON)“ im Editor) wählen.
 
 ```json
 [
@@ -65,7 +65,7 @@ Kategorisches Balkendiagramm — je Serie ein Balken mit ihrem aktuellen Wert.
 
 ### JSON
 
-Kategorisches Diagramm aus einem JSON-Datenpunkt statt aus einem History-Adapter — die Labels bilden die X-Achse, in der Reihenfolge des Arrays. Kein Zeitraum-Umschalter, keine Tages-Navigation.
+Im Editor **Kategorien (JSON)**. Kategorisches Diagramm aus einem JSON-Datenpunkt statt aus einem History-Adapter — die Labels bilden die X-Achse, in der Reihenfolge des Arrays. Kein Zeitraum-Umschalter, keine Tages-Navigation. Sind die Labels Zeitstempel, gehört die Serie in die [Timeseries](#timeseries) mit `source: json`.
 
 Erwartetes Format im Datenpunkt (String oder Objekt):
 

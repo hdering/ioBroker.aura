@@ -126,7 +126,7 @@ check('the dialog opened', await dlg.isVisible());
 await tab('Modus').click();
 await page.waitForTimeout(300);
 check('the mode switch has its own tab', await modeBtn('Vergleich').isVisible());
-check('the mode is chosen on the cards, no second button row', await modeBtn('Vergleich').count() === 1);
+check('the mode is chosen on the cards, no second button row', (await modeBtn('Vergleich').count()) === 1);
 check(
     'with a tip for every mode',
     (await dlg.locator('p:has-text("Ein Balken je Datenpunkt")').count()) === 1 &&
@@ -134,7 +134,7 @@ check(
         (await dlg.locator('p:has-text("direkt aus einem JSON-Datenpunkt")').count()) === 1,
 );
 const sources = async () => (await opts()).echartSeries.map((s) => s.source);
-for (const mode of ['JSON', 'Zeitreihe', 'Vergleich', 'Zeitreihe']) {
+for (const mode of ['Kategorien (JSON)', 'Zeitreihe', 'Vergleich', 'Zeitreihe']) {
     await modeBtn(mode).click();
     await page.waitForTimeout(350);
     eq(`"${mode}" leaves every source untouched`, await sources(), ['history', 'json']);
