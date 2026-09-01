@@ -22,7 +22,8 @@ export function PinPrompt({
     /** Name of the locked section / tab, shown above the input. */
     name: string;
     pin: string;
-    onUnlock: () => void;
+    /** Receives the code that opened the lock — it may open more on the way in. */
+    onUnlock: (code: string) => void;
     onCancel?: () => void;
 }) {
     const t = useT();
@@ -39,7 +40,7 @@ export function PinPrompt({
 
     const submit = (value: string) => {
         if (value === pin) {
-            onUnlock();
+            onUnlock(value);
             return;
         }
         setError(true);

@@ -103,6 +103,38 @@ export function pendingPinTarget(
     return null;
 }
 
+export interface UnlockGrant {
+    key: string;
+    relock: PinRelock;
+}
+
+/**
+ * Everything on the way into the current view that the entered code opens —
+ * normally just the lock that was asked for, but a tab carrying the SAME code as
+ * its section is opened along with it.
+ *
+ * That is what makes a section PIN plus a tab PIN inside it bearable: identical
+ * codes ask once (asking twice for the same digits adds nothing), different codes
+ * ask twice — which is then exactly what the second, different code was for. The
+ * choice stays with whoever sets the PINs, without a switch for it.
+ *
+ * Only the view that is on screen is granted: a `leave` unlock for a sibling tab
+ * would be dropped by `retain()` on the very next navigation anyway.
+ */
+export function unlocksFor(
+    section: NamedProtected | null | undefined,
+    tab: NamedProtected | null | undefined,
+    code: string,
+): UnlockGrant[] {
+    if (!section) return [];
+    const grants: UnlockGrant[] = [];
+    if (hasPin(section) && pinMatches(section, code))
+        grants.push({ key: sectionPinKey(section.id), relock: relockMode(section) });
+    if (tab && hasPin(tab) && pinMatches(tab, code))
+        grants.push({ key: tabPinKey(section.id, tab.id), relock: relockMode(tab) });
+    return grants;
+}
+
 /** Keys of the currently displayed view — everything else may relock on leave. */
 export function activePinKeys(sectionId?: string, tabId?: string): string[] {
     const keys: string[] = [];

@@ -39,6 +39,7 @@ const {
     pendingPinTarget,
     activePinKeys,
     pinEscapeTarget,
+    unlocksFor,
     usePinStore,
     unlockedReader,
 } = await import(pathToFileURL(bundle).href);
@@ -160,6 +161,49 @@ eq(
     'tab',
 );
 check('a view without a section is not gated', pendingPinTarget(null, { id: 't', name: 'T', pin: '2' }, none) === null);
+
+// ── one code, one prompt ──────────────────────────────────────────────────────
+// A section PIN plus a tab PIN inside it would otherwise ask twice in a row.
+console.log('\n── same code opens both ──');
+const secBoth = { id: 'sec-x', name: 'X', pin: '1234', tabs: [] };
+eq(
+    'the same code opens section and tab at once',
+    unlocksFor(secBoth, { id: 't', name: 'T', pin: '1234' }, '1234').map((g) => g.key),
+    ['section:sec-x', 'tab:sec-x:t'],
+);
+eq(
+    'a different tab code still asks a second time',
+    unlocksFor(secBoth, { id: 't', name: 'T', pin: '9999' }, '1234').map((g) => g.key),
+    ['section:sec-x'],
+);
+eq(
+    'the tab code alone does not open the section',
+    unlocksFor(secBoth, { id: 't', name: 'T', pin: '9999' }, '9999').map((g) => g.key),
+    ['tab:sec-x:t'],
+);
+eq(
+    'each lock keeps its own relock mode',
+    unlocksFor(
+        { id: 'sec-x', name: 'X', pin: '1', pinRelock: 'session', tabs: [] },
+        { id: 't', name: 'T', pin: '1' },
+        '1',
+    ),
+    [
+        { key: 'section:sec-x', relock: 'session' },
+        { key: 'tab:sec-x:t', relock: 'leave' },
+    ],
+);
+eq(
+    'a free tab grants nothing extra',
+    unlocksFor(secBoth, { id: 't', name: 'T' }, '1234').map((g) => g.key),
+    ['section:sec-x'],
+);
+eq(
+    'a free section grants only the tab',
+    unlocksFor({ id: 's', name: 'S', tabs: [] }, { id: 't', name: 'T', pin: '5' }, '5').map((g) => g.key),
+    ['tab:s:t'],
+);
+eq('no section, no grants', unlocksFor(null, { id: 't', name: 'T', pin: '5' }, '5'), []);
 
 // ── relock behaviour ──────────────────────────────────────────────────────────
 console.log('\n── relock ──');

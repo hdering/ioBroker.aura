@@ -13,21 +13,6 @@ Jedes Layout hat eigene Tabs und Widgets — ideal für verschiedene Tablets ode
 | Aktionen                          | Duplizieren, Exportieren, Löschen                 |
 | Neues Layout / Layout importieren | Anlegen bzw. aus JSON einfügen                    |
 
-## PIN-Schutz
-
-Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach Eingabe des Codes gerendert — egal ob über Menü, Tab-Leiste, Widget-Klickaktion oder direkte URL.
-
-| Option       |                                                                                                  |
-| ------------ | ------------------------------------------------------------------------------------------------ |
-| PIN          | Beliebiger Code; leer = kein Schutz. Bereich: in der Bereichs-Zeile. Tab: im Zahnrad des Tabs    |
-| Offen lassen | Aus (Standard): sperrt beim Verlassen sofort wieder. An: bleibt bis zum Neuladen der Seite offen |
-
-Ein gesperrter Bereich blendet auch seine Tabs aus der Tab-Leiste aus. Gesperrte Einträge tragen ein Schloss-Symbol.
-
-::: warning
-Die Prüfung läuft im Browser — die PIN hält Gäste und Kinder aus einem Tab heraus, sie ist kein Passwortschutz für vertrauliche Daten.
-:::
-
 ## Theme & CSS-Vars
 
 Preset wählen (Dark, Hell, Lovelace, AMOLED, Glass, Material 3, Catppuccin, Liquid Glass …) und einzelne CSS-Variablen feinjustieren (App, Widget-Karte, Text, Akzentfarben).

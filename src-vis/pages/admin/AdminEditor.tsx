@@ -1179,6 +1179,10 @@ function MobileOrderPanel({ layoutId }: { layoutId: string }) {
 // on the Layouts admin page.
 const SectionSwitcher = memo(function SectionSwitcher() {
     const t = useT();
+    // Portal into the admin container, not document.body: only there does the
+    // popover inherit the admin theme's CSS variables. Rendered to the body it
+    // picks up the frontend theme and shows up dark inside a light admin.
+    const portalTarget = usePortalTarget();
     const sections = useStoreWithEqualityFn(
         useDashboardStore,
         (s) => {
@@ -1198,6 +1202,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
     const [adding, setAdding] = useState(false);
     const [newName, setNewName] = useState('');
     const [settingsSectionId, setSettingsSectionId] = useState<string | null>(null);
+    const [badgesOpen, setBadgesOpen] = useState(false);
     const [panelPos, setPanelPos] = useState<{ top: number; left: number } | null>(null);
     const gearRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
 
@@ -1217,6 +1222,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
     const openSettings = (id: string) => {
         const btn = gearRefs.current.get(id);
         if (!btn) return;
+        setBadgesOpen(false);
         const rect = btn.getBoundingClientRect();
         const panelW = 340;
         setPanelPos({ top: rect.bottom + 6, left: Math.max(8, Math.min(rect.left, window.innerWidth - panelW - 12)) });
@@ -1328,51 +1334,145 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                 border: '1px solid var(--app-border)',
                             }}
                         >
-                            <p className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-secondary)' }}>
-                                {t('tabBar.badges')}
+                            <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                {t('pin.field')}
                             </p>
-                            <BadgeEditor
-                                badges={openSection.badges ?? []}
-                                onChange={(next) => updateSection(openSection.id, { badges: next })}
-                                style={{ width: '100%', padding: 0 }}
+                            <input
+                                type="text"
+                                inputMode="numeric"
+                                autoComplete="off"
+                                placeholder={t('pin.placeholder')}
+                                value={openSection.pin ?? ''}
+                                onChange={(e) => updateSection(openSection.id, { pin: e.target.value || undefined })}
+                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
                             />
-                            <div
-                                className="flex items-center justify-between pt-2 mt-2 border-t"
-                                style={{ borderColor: 'var(--app-border)' }}
-                            >
-                                <div>
-                                    <p className="text-[11px] font-medium" style={{ color: 'var(--text-primary)' }}>
-                                        {t('badge.sectionAggregate')}
-                                    </p>
-                                    <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('badge.sectionAggregateHint')}
-                                    </p>
+                            {openSection.pin ? (
+                                <div className="flex items-center justify-between mt-2">
+                                    <div>
+                                        <p className="text-[11px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                                            {t('pin.keepUnlocked')}
+                                        </p>
+                                        <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                            {t('pin.keepUnlockedHint')}
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() =>
+                                            updateSection(openSection.id, {
+                                                pinRelock: openSection.pinRelock === 'session' ? undefined : 'session',
+                                            })
+                                        }
+                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                        style={{
+                                            background:
+                                                openSection.pinRelock === 'session'
+                                                    ? 'var(--accent)'
+                                                    : 'var(--app-border)',
+                                        }}
+                                    >
+                                        <span
+                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                            style={{ left: openSection.pinRelock === 'session' ? '18px' : '2px' }}
+                                        />
+                                    </button>
                                 </div>
+                            ) : (
+                                <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('pin.hint')}
+                                </p>
+                            )}
+
+                            {/* ── Badges section (collapsed, like the tab panel) ──────────── */}
+                            <div
+                                className="rounded-lg px-2.5 py-2 mt-3"
+                                style={{
+                                    background: 'color-mix(in srgb, #6366f1 7%, var(--app-bg))',
+                                    border: '1px solid color-mix(in srgb, #6366f1 26%, var(--app-border))',
+                                }}
+                            >
                                 <button
-                                    onClick={() =>
-                                        updateSection(openSection.id, {
-                                            badgeAggregate: {
-                                                ...openSection.badgeAggregate,
-                                                enabled: !(openSection.badgeAggregate?.enabled ?? false),
-                                            },
-                                        })
-                                    }
-                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                    style={{
-                                        background: openSection.badgeAggregate?.enabled
-                                            ? 'var(--accent)'
-                                            : 'var(--app-border)',
-                                    }}
+                                    className="flex items-center gap-1.5 w-full text-left hover:opacity-80"
+                                    onClick={() => setBadgesOpen((o) => !o)}
                                 >
+                                    <span style={{ color: 'var(--text-secondary)' }}>
+                                        {badgesOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                                    </span>
                                     <span
-                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                        style={{ left: openSection.badgeAggregate?.enabled ? '18px' : '2px' }}
-                                    />
+                                        className="text-[11px] font-medium"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        {t('tabBar.badges')}
+                                        {(openSection.badges?.length ?? 0) > 0 && (
+                                            <span
+                                                className="ml-1.5 px-1 rounded-full text-[9px]"
+                                                style={{ background: 'var(--accent)22', color: 'var(--accent)' }}
+                                            >
+                                                {openSection.badges!.length}
+                                            </span>
+                                        )}
+                                    </span>
                                 </button>
+
+                                {badgesOpen && (
+                                    <div className="mt-2 space-y-2">
+                                        <BadgeEditor
+                                            badges={openSection.badges ?? []}
+                                            onChange={(next) => updateSection(openSection.id, { badges: next })}
+                                            style={{ width: '100%', padding: 0 }}
+                                        />
+                                        <div
+                                            className="flex items-center justify-between pt-2 border-t"
+                                            style={{ borderColor: 'var(--app-border)' }}
+                                        >
+                                            <div>
+                                                <p
+                                                    className="text-[11px] font-medium"
+                                                    style={{ color: 'var(--text-primary)' }}
+                                                >
+                                                    {t('badge.sectionAggregate')}
+                                                </p>
+                                                <p
+                                                    className="text-[9px] mt-0.5"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('badge.sectionAggregateHint')}
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    updateSection(openSection.id, {
+                                                        badgeAggregate: {
+                                                            ...openSection.badgeAggregate,
+                                                            enabled: !(openSection.badgeAggregate?.enabled ?? false),
+                                                        },
+                                                    })
+                                                }
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background: openSection.badgeAggregate?.enabled
+                                                        ? 'var(--accent)'
+                                                        : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{
+                                                        left: openSection.badgeAggregate?.enabled ? '18px' : '2px',
+                                                    }}
+                                                />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </>,
-                    document.body,
+                    portalTarget,
                 )}
         </div>
     );
@@ -1898,6 +1998,66 @@ const TabBar = memo(function TabBar() {
                                         style={{ left: settingsTab.disabled ? '18px' : '2px' }}
                                     />
                                 </button>
+                            </div>
+
+                            {/* ── PIN gate ────────────────────────────────────────────────── */}
+                            <div className="border-t pt-2" style={{ borderColor: 'var(--app-border)' }}>
+                                <label className="text-[11px] block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('pin.field')}
+                                </label>
+                                <input
+                                    type="text"
+                                    inputMode="numeric"
+                                    autoComplete="off"
+                                    placeholder={t('pin.placeholder')}
+                                    value={settingsTab.pin ?? ''}
+                                    onChange={(e) => updateTab(settingsTabId, { pin: e.target.value || undefined })}
+                                    className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-primary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                />
+                                {settingsTab.pin ? (
+                                    <div className="flex items-center justify-between mt-2">
+                                        <div>
+                                            <p
+                                                className="text-[11px] font-medium"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {t('pin.keepUnlocked')}
+                                            </p>
+                                            <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                                {t('pin.keepUnlockedHint')}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={() =>
+                                                updateTab(settingsTabId, {
+                                                    pinRelock:
+                                                        settingsTab.pinRelock === 'session' ? undefined : 'session',
+                                                })
+                                            }
+                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                            style={{
+                                                background:
+                                                    settingsTab.pinRelock === 'session'
+                                                        ? 'var(--accent)'
+                                                        : 'var(--app-border)',
+                                            }}
+                                        >
+                                            <span
+                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                style={{ left: settingsTab.pinRelock === 'session' ? '18px' : '2px' }}
+                                            />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <p className="text-[9px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                        {t('pin.hint')}
+                                    </p>
+                                )}
                             </div>
 
                             {/* ── Export tab ──────────────────────────────────────────────── */}

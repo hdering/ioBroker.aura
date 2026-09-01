@@ -7,4 +7,5 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 
-- Sections and tabs can be protected with a PIN - the content only appears after the code was entered
+- Sections and tabs can be protected with a PIN - the content only appears after the code was entered;
+  a section and a tab inside it sharing the same code ask only once

@@ -710,54 +710,6 @@ export function TabBar({
                           </div>
 
                           <div>
-                              <label className="text-[11px] block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                  {t('pin.field')}
-                              </label>
-                              <input
-                                  type="text"
-                                  inputMode="numeric"
-                                  autoComplete="off"
-                                  placeholder={t('pin.placeholder')}
-                                  value={settingsTab.pin ?? ''}
-                                  onChange={(e) => updateTab(settingsTabId, { pin: e.target.value || undefined })}
-                                  className={iCls}
-                                  style={iSty}
-                              />
-                              {settingsTab.pin ? (
-                                  <div className="flex items-center justify-between mt-2">
-                                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                          {t('pin.keepUnlocked')}
-                                      </label>
-                                      <button
-                                          onClick={() =>
-                                              updateTab(settingsTabId, {
-                                                  pinRelock:
-                                                      settingsTab.pinRelock === 'session' ? undefined : 'session',
-                                              })
-                                          }
-                                          title={t('pin.keepUnlockedHint')}
-                                          className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                          style={{
-                                              background:
-                                                  settingsTab.pinRelock === 'session'
-                                                      ? 'var(--accent)'
-                                                      : 'var(--app-border)',
-                                          }}
-                                      >
-                                          <span
-                                              className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                              style={{ left: settingsTab.pinRelock === 'session' ? '18px' : '2px' }}
-                                          />
-                                      </button>
-                                  </div>
-                              ) : (
-                                  <div className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                                      {t('pin.hint')}
-                                  </div>
-                              )}
-                          </div>
-
-                          <div>
                               <div className="flex items-center justify-between mb-1.5">
                                   <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                       {t('tabBar.icon')}

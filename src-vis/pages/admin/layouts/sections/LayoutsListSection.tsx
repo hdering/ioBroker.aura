@@ -68,7 +68,6 @@ function SectionRow({
         setSectionSlug,
         setSectionIcon,
         setSectionHidden,
-        updateSection,
         duplicateSection,
         removeSection,
         setActiveLayout,
@@ -625,48 +624,6 @@ function SectionRow({
                             style={{ left: section.hidden ? '18px' : '2px' }}
                         />
                     </button>
-                </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        {t('pin.field')}
-                    </span>
-                    <input
-                        type="text"
-                        inputMode="numeric"
-                        autoComplete="off"
-                        placeholder={t('pin.placeholder')}
-                        title={t('pin.hint')}
-                        value={section.pin ?? ''}
-                        onChange={(e) => {
-                            ensureActive();
-                            updateSection(section.id, { pin: e.target.value || undefined });
-                        }}
-                        className="w-24 text-[11px] rounded-lg px-2 py-1 focus:outline-none"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    />
-                    {!!section.pin && (
-                        <button
-                            onClick={() => {
-                                ensureActive();
-                                updateSection(section.id, {
-                                    pinRelock: section.pinRelock === 'session' ? undefined : 'session',
-                                });
-                            }}
-                            title={t('pin.keepUnlockedHint')}
-                            className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                            style={{
-                                background: section.pinRelock === 'session' ? 'var(--accent)22' : 'var(--app-surface)',
-                                color: section.pinRelock === 'session' ? 'var(--accent)' : 'var(--text-secondary)',
-                                border: `1px solid ${section.pinRelock === 'session' ? 'var(--accent)' : 'var(--app-border)'}`,
-                            }}
-                        >
-                            {t('pin.keepUnlocked')}
-                        </button>
-                    )}
                 </div>
                 <div className="flex items-center gap-2">
                     <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>

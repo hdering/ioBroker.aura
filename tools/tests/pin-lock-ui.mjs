@@ -62,6 +62,22 @@ const LAYOUT = {
             ],
         },
         {
+            id: 'sec-same',
+            name: 'Werkstatt',
+            slug: 'werkstatt',
+            activeTabId: 't-same',
+            pin: '55',
+            tabs: [{ id: 't-same', name: 'Bank', slug: 'bank', pin: '55', widgets: [widget('w-same', 'WERK')] }],
+        },
+        {
+            id: 'sec-diff',
+            name: 'Tresor',
+            slug: 'tresor',
+            activeTabId: 't-diff',
+            pin: '11',
+            tabs: [{ id: 't-diff', name: 'Fach', slug: 'fach', pin: '22', widgets: [widget('w-diff', 'TRESOR')] }],
+        },
+        {
             id: 'sec-cellar',
             name: 'Keller',
             slug: 'keller',
@@ -169,6 +185,21 @@ check('cancel goes back to the free tab', await visible('.aura-widget-w-water'))
 await goto('/view/pin/s/keller/tab/heizung');
 await typeCode('77');
 check('the right code opens the tab', await visible('.aura-widget-w-heat'));
+
+// ── a section PIN plus a tab PIN inside it ────────────────────────────────────
+// The same code must not be asked for twice in a row; a different one still is.
+console.log('\n── section + tab ──');
+await goto('/view/pin/s/werkstatt/tab/bank');
+eq('the section asks first', await state(), { prompt: true, scope: 'section' });
+await typeCode('55');
+check('the same code opens the tab too', await visible('.aura-widget-w-same'));
+
+await goto('/view/pin/s/tresor/tab/fach');
+eq('a different pair asks for the section', await state(), { prompt: true, scope: 'section' });
+await typeCode('11');
+eq('and then for the tab', await state(), { prompt: true, scope: 'tab' });
+await typeCode('22');
+check('the second code opens the tab', await visible('.aura-widget-w-diff'));
 
 // A reload always re-locks — the unlock map is never persisted.
 await page.reload({ waitUntil: 'domcontentloaded' });

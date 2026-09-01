@@ -22,6 +22,23 @@ Zweistufiger Assistent: Datenpunkt wählen (Widget-Typ wird automatisch erkannt)
 
 Jedes Widget bietet über sein Menü (Chevron) `Bearbeiten`, `Bedingungen`, `Klick-Aktion`, `Exportieren`, `Kopieren` und `Löschen`.
 
+## PIN-Schutz
+
+Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach Eingabe des Codes gerendert — egal ob über Menü, Tab-Leiste, Widget-Klickaktion oder direkte URL.
+
+| Option | |
+| --- | --- |
+| PIN | Beliebiger Code; leer = kein Schutz. Bereich im Zahnrad des Bereichs-Chips, Tab im Zahnrad des Tabs |
+| Offen lassen | Aus (Standard): sperrt beim Verlassen sofort wieder. An: bleibt bis zum Neuladen der Seite offen |
+
+Ein gesperrter Bereich blendet auch seine Tabs aus der Tab-Leiste aus. Gesperrte Einträge tragen ein Schloss-Symbol.
+
+Hat ein Bereich **und** ein Tab darin eine PIN, entscheidet die Code-Wahl: derselbe Code fragt nur einmal, ein anderer Code fragt zweimal — also ein zusätzliches Schloss innerhalb des Bereichs.
+
+::: warning
+Die Prüfung läuft im Browser — die PIN hält Gäste und Kinder aus einem Tab heraus, sie ist kein Passwortschutz für vertrauliche Daten.
+:::
+
 ## Bedingungen & Marker: Wertquelle
 
 Auswahl im Datenpunkt-Feld einer Klausel bzw. eines Markers. Bleibt das Feld leer, gilt der Haupt-Datenpunkt des Widgets.

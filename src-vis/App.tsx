@@ -58,7 +58,7 @@ import { initPerfMetrics, setPerfTracking, reportBackendPing } from './utils/per
 import { setBreakdownTracking, recordBackendCall } from './utils/perfBreakdown';
 import { PinPrompt } from './components/common/PinPrompt';
 import { usePinStore, unlockedReader } from './store/pinStore';
-import { activePinKeys, pendingPinTarget, pinEscapeTarget, type EscapeTarget } from './utils/pinLock';
+import { activePinKeys, pendingPinTarget, pinEscapeTarget, unlocksFor, type EscapeTarget } from './utils/pinLock';
 
 const STORE_REHYDRATORS: Record<string, () => void> = {
     'aura-dashboard': () => useDashboardStore.persist.rehydrate(),
@@ -1285,7 +1285,9 @@ export default function App() {
                                 scope={pinTarget.scope}
                                 name={pinTarget.name}
                                 pin={pinTarget.pin}
-                                onUnlock={() => unlockPin(pinTarget.key, pinTarget.relock)}
+                                onUnlock={(code) =>
+                                    unlocksFor(section, activeTab, code).forEach((g) => unlockPin(g.key, g.relock))
+                                }
                                 onCancel={pinEscape ? () => goToView(pinEscape) : undefined}
                             />
                         ) : (
