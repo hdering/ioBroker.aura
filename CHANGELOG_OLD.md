@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.50.1 (2026-08-25)
+- 🌟 **New feature:** Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value ([#584](https://github.com/hdering/ioBroker.aura/issues/584))
+
 ## 0.50.0 (2026-08-25)
 - 🌟 **New feature:** Selection field - entries can now be read from a datapoint holding JSON instead of the manual list ([#577](https://github.com/hdering/ioBroker.aura/issues/577))
 - 🌟 **New feature:** Conditions - rules can now override a widget's title, icon, icon size and value text, plus border width, corner radius and opacity ([#96](https://github.com/hdering/ioBroker.aura/issues/96))
