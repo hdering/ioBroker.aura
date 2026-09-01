@@ -183,6 +183,40 @@ korrigieren kann:
 Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
 
+## Warum Rezepte danebenstehen
+
+Validierung sagt, was **erlaubt** ist. Nichts sagte, was **gut** ist — und das
+Ergebnis war reproduzierbar: `autolist` dokumentiert 115 Optionen, alphabetisch,
+ohne Gewichtung und ohne ein einziges Beispiel. Ein Modell füllt darin die
+Pflichtfelder und hört auf. Ganze Räume kamen als Reihe nackter `value`-Kacheln
+heraus, während Bedingungen, Farbschwellen, Zweitzeilen und die Zeilen-
+Darstellungen der Listen ungenutzt im Schema lagen.
+
+`lib/mcp/recipes.js` hält deshalb fertige, gültige Widgets: Raumliste,
+gemischte Gerätliste, Wertkachel mit Schwellen und Bedingung, Verbrauchsbalken,
+Zwei-Achsen-Verlauf, Statusübersicht, Thermostat-Rundskala, Füllstand und ein
+kompletter Raum-Tab. Jedes Rezept sagt dazu, **wofür** es gedacht ist und
+**welche billigere Bauweise** es ersetzt — das ist der Teil, der die Wahl
+verschiebt. `aura_recipes` ohne `id` listet sie, mit `id` kommt das vollständige
+JSON.
+
+Zwei Entscheidungen dazu:
+
+- **Datenpunkt-Ids sind `%…%`-Platzhalter.** Ein Rezept mit plausibel aussehenden
+  echten Ids wird wörtlich geschrieben — genau der Fehler, vor dem die
+  `instructions` warnen. Ein Platzhalter kann nicht für eine Id gehalten werden,
+  und `aura_validate` benennt ihn, wenn einer überlebt. Bei der statischen Liste
+  **ist** `entries[].id` der Datenpunkt; ein eigenes `datapoint`-Feld gibt es je
+  Zeile nicht.
+- **Der Test validiert jedes Rezept gegen das echte Schema.** Beispiele werden
+  kopiert; eines mit einem Tippfehler lehrt den Fehler jedem Modell, das es liest.
+  Wird eine Option umbenannt, muss das hier auffallen und nicht im Dashboard eines
+  Nutzers.
+
+In den `instructions` steht der Schritt vor der Schemaabfrage, zusammen mit dem
+Hinweis, einen vorhandenen Tab per `aura_tab` als Stilvorlage zu lesen: das eigene
+Dashboard des Nutzers ist die bessere Vorlage als jede mitgelieferte.
+
 ## Zwölf Stellen, die man leicht falsch macht
 
 **Eingebaute Popups.** Wird eine mitgelieferte Ansicht geändert, muss
@@ -377,7 +411,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 127 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 194 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein
@@ -385,3 +419,8 @@ abgelehnter Schreibvorgang nichts hinterlässt und die Sicherung den Stand **vor
 der Änderung enthält. Dazu die Token-Erzeugung: 200 Durchläufe auf Form und
 Wiederholungsfreiheit, und dass ein um ein Zeichen abweichender sowie ein
 gekürzter Token abgewiesen werden.
+
+Dazu die Rezepte: jedes Widget jedes Rezepts gegen das echte Schema (keine Fehler
+**und** keine Warnungen), keine Datenpunkt-Id, die für eine echte durchgehen
+könnte, eindeutige Ids, und über den echten Client, dass die Liste eine Liste
+bleibt und ein unbekanntes `id` die vorhandenen nennt.

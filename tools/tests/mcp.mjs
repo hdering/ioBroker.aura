@@ -43,6 +43,7 @@ const {
 } = require('../../lib/mcp/auraConfig.js');
 const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
 const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
+const { RECIPES, findRecipe, renderRecipe, renderRecipeIndex } = require('../../lib/mcp/recipes.js');
 const {
     TOKEN_PLACEHOLDER,
     baseUrl,
@@ -502,6 +503,7 @@ check('all twenty-eight tools are announced with descriptions', () => {
         'aura_popup',
         'aura_popups',
         'aura_presets',
+        'aura_recipes',
         'aura_rename',
         'aura_reorder',
         'aura_restore',
@@ -557,6 +559,101 @@ check('aura_widget_schema documents only what was asked for', () => {
     assert.match(t, /## switch — Schalter/);
     assert.match(t, /- statusDp: string.*\[Datenpunkt-Id\]/);
     assert.ok(!/## value —/.test(t));
+});
+
+check('every recipe validates against the real widget schema', () => {
+    // The whole point of shipping examples is that they are copied. One with a
+    // misspelled option teaches the mistake to every model that reads it, and the
+    // schema moves under them — a renamed option has to fail here, not in a user's
+    // dashboard.
+    for (const recipe of RECIPES) {
+        for (const widget of recipe.widgets) {
+            const { errors, warnings } = validateWidget(widget, schema, {});
+            assert.deepEqual(errors, [], `${recipe.id}/${widget.id}: ${errors.join(' | ')}`);
+            assert.deepEqual(warnings, [], `${recipe.id}/${widget.id}: ${warnings.join(' | ')}`);
+        }
+    }
+});
+
+check('a recipe carries no datapoint id that could pass for a real one', () => {
+    // A plausible id gets written verbatim and produces a widget that silently
+    // shows nothing — the exact failure the instructions warn about. Every id in a
+    // recipe must be a placeholder, empty, or a per-row template.
+    const ok = (v) => v === '' || /^%[^%\s]+%$/.test(v) || v.startsWith('{{') || v.startsWith('divider:');
+    const walk = (node, where) => {
+        if (Array.isArray(node)) {
+            node.forEach((n) => walk(n, where));
+            return;
+        }
+        if (!node || typeof node !== 'object') {
+            return;
+        }
+        for (const [key, value] of Object.entries(node)) {
+            if (typeof value === 'string' && (key === 'datapoint' || key === 'datapointId' || key.endsWith('Dp'))) {
+                assert.ok(ok(value), `${where}: ${key} = "${value}" is not a placeholder`);
+            }
+            walk(value, where);
+        }
+    };
+    for (const recipe of RECIPES) {
+        walk(recipe.widgets, recipe.id);
+        // Entry ids of a static list ARE the datapoint, so they fall under the same rule.
+        for (const widget of recipe.widgets) {
+            for (const entry of widget.options?.entries ?? []) {
+                assert.ok(ok(entry.id), `${recipe.id}: entry id "${entry.id}" is not a placeholder`);
+            }
+        }
+    }
+});
+
+check('the recipe index lists every recipe and the ids are unique', () => {
+    const index = renderRecipeIndex();
+    const ids = RECIPES.map((r) => r.id);
+    assert.equal(new Set(ids).size, ids.length, 'duplicate recipe id');
+    for (const id of ids) {
+        assert.ok(index.includes(id), `${id} missing from the index`);
+        assert.ok(findRecipe(id.toUpperCase()), `${id} not found case-insensitively`);
+    }
+    assert.equal(findRecipe('gibtsnicht'), null);
+});
+
+check('a rendered recipe hands over parseable JSON and names its placeholders', () => {
+    const BLANK = String.fromCharCode(10, 10);
+    for (const recipe of RECIPES) {
+        const rendered = renderRecipe(recipe);
+        const start = rendered.indexOf('## JSON') + '## JSON'.length + 1;
+        const json = rendered.slice(start, rendered.indexOf(BLANK, start));
+        const parsed = JSON.parse(json);
+        const widgets = Array.isArray(parsed) ? parsed : [parsed];
+        assert.equal(widgets.length, recipe.widgets.length, `${recipe.id}: widget count`);
+        assert.ok(rendered.includes('aura_validate'), `${recipe.id}: does not send the model to the validator`);
+        if (json.match(/%[^%\s]+%/g)) {
+            assert.ok(rendered.includes('Vor dem Schreiben ersetzen'), `${recipe.id}: placeholders unannounced`);
+        }
+    }
+});
+
+const recipeIndex = await client.callTool({ name: 'aura_recipes', arguments: {} });
+check('aura_recipes without an id lists the recipes', () => {
+    const t = recipeIndex.content[0].text;
+    assert.match(t, /# Rezepte \(\d+\)/);
+    assert.match(t, /- raum-liste —/);
+    assert.ok(!/"gridPos"/.test(t), 'the index must stay an index, not a dump of every recipe');
+});
+
+const recipeOne = await client.callTool({ name: 'aura_recipes', arguments: { id: 'raum-liste' } });
+check('aura_recipes returns the full widget for one id', () => {
+    const t = recipeOne.content[0].text;
+    assert.match(t, /"type": "autolist"/);
+    assert.match(t, /rowConditions/);
+    assert.match(t, /Vor dem Schreiben ersetzen/);
+});
+
+const recipeUnknown = await client.callTool({ name: 'aura_recipes', arguments: { id: 'kachelwand' } });
+check('an unknown recipe id lists the ones there are', () => {
+    assert.ok(recipeUnknown.isError);
+    assert.match(recipeUnknown.content[0].text, /Kein Rezept "kachelwand"/);
+    assert.match(recipeUnknown.content[0].text, /raum-liste/);
 });
 
 const badValidate = await client.callTool({
