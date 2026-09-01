@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.52.1 (2026-09-01)
+- AI assistant (MCP, beta) - two new tools aimed at the same thing: dashboards that use what AURA can do. aura_recipes hands the model finished, valid widgets for the jobs that come up - a room as one list instead of a row of value tiles, a counter as consumption bars, a tile with colour thresholds and conditions, a status overview, a thermostat dial, a whole room tab. aura_review goes the other way and looks over a tab that already exists, naming what would make it better: tile rows that belong in one list, numbers with no good or bad range, a meter shown as its raw reading, a bar chart without an aggregation, a list with no second line - each finding names the widgets and the recipe that fixes it, and stays a suggestion. On top of that the instructions now send the model to a recipe and to an existing tab of the dashboard before it reads the schema, so a generated view no longer comes back as the bare minimum the schema accepts
+- Editor - the "AI prompt" dialog now pastes worked examples into the prompt (the same ones the MCP server hands out) and says what a good dashboard looks like, instead of only what is valid JSON. The old wording asked the model to leave options out, which is why generated views came back as bare tiles
+
+
 ### 0.52.0 (2026-09-01)
 - 🌟 **New feature:** Sections and tabs can be protected with a PIN - the content only appears once the code was entered, no matter whether the section menu, the tab bar, a widget click action or a bookmarked URL led there. Set per section and per tab in the dashboard editor; a section and a tab inside it sharing the same code ask only once
 - Dashboard editor - the section settings popover follows the admin theme again instead of showing up dark, and its marker editor starts collapsed like the tab settings
@@ -247,11 +252,6 @@ Release v0.50.6
 - 🌟 **New feature:** HTML and value widget - the .ts / .lc suffixes render a datapoint's update and last-change timestamp, e.g. {id.lc;date(HH:mm)} ([#571](https://github.com/hdering/ioBroker.aura/issues/571))
 
 
-### 0.48.4 (2026-08-22)
-- Chart (advanced) - consumption/yield bars are now labelled by their own period on the time axis; a yearly bar no longer shows stray day numbers left and right of the year, and the tooltip names the period instead of the second it starts at ([#570](https://github.com/hdering/ioBroker.aura/issues/570))
-- 🌟 **New feature:** Switch widget and custom layout - a switch can take its state from a separate status datapoint, so devices that split command and status (e.g. MQTT/Tasmota plugs with cmnd/stat) show the real state and label while switching still writes to the command datapoint; the switch widget (all layouts) and the switch, status text and status icon cells now also recognise the string "on", stop reading "OFF"/"false"/"0" as on, and can compare the state against any value ([#567](https://github.com/hdering/ioBroker.aura/issues/567))
-
-
 ## License
 
 MIT License
@@ -263,6 +263,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

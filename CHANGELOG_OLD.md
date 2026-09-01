@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.48.4 (2026-08-22)
+- Chart (advanced) - consumption/yield bars are now labelled by their own period on the time axis; a yearly bar no longer shows stray day numbers left and right of the year, and the tooltip names the period instead of the second it starts at ([#570](https://github.com/hdering/ioBroker.aura/issues/570))
+- 🌟 **New feature:** Switch widget and custom layout - a switch can take its state from a separate status datapoint, so devices that split command and status (e.g. MQTT/Tasmota plugs with cmnd/stat) show the real state and label while switching still writes to the command datapoint; the switch widget (all layouts) and the switch, status text and status icon cells now also recognise the string "on", stop reading "OFF"/"false"/"0" as on, and can compare the state against any value ([#567](https://github.com/hdering/ioBroker.aura/issues/567))
+
 ## 0.48.3 (2026-08-22)
 - 🌟 **New feature:** Custom layout - switch cells in button mode can now carry separate captions, background and text colours for ON / true / 1 and OFF / false / 0
 - 🌟 **New feature:** Dynamic list - the datapoint search can now filter by custom enum categories (e.g. enum.floors); floors that hold rooms resolve down to the datapoints of those rooms, and a category that carries its members directly can be picked as a whole ([#568](https://github.com/hdering/ioBroker.aura/issues/568))
