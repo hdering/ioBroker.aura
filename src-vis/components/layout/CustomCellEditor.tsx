@@ -150,6 +150,10 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'events', label: 'Ereignis-Liste' },
         { key: 'add', label: '+ Ereignis-Button' },
     ],
+    calendar: [
+        { key: 'icon', label: 'Widget-Icon' },
+        { key: 'cal-icon', label: '📅 Kalender-Icon (nächster Termin)' },
+    ],
     clock: [
         { key: 'icon', label: 'Widget-Icon' },
         { key: 'sunrise-icon', label: '🌅 Sonnenaufgang-Icon' },
@@ -257,6 +261,10 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'location', label: 'Ort' },
         { key: 'running', label: 'Laufzeit-Badge (mehrtägig)' },
         { key: 'count', label: 'Anzahl Termine' },
+        { key: 'week', label: 'Kalenderwoche (Nr.)' },
+        { key: 'kw', label: 'Kalenderwoche (KW xx)' },
+        { key: 'day', label: 'Tag des Termins (bei „jeden Tag einzeln“)' },
+        { key: 'daycount', label: 'Tage gesamt (bei „jeden Tag einzeln“)' },
     ],
     clock: [
         { key: 'time', label: 'Uhrzeit' },

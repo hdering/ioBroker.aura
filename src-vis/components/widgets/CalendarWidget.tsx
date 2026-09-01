@@ -4,6 +4,8 @@ import type { WidgetProps } from '../../types';
 import { getSocket, subscribeStateDirect, setStateDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { useT } from '../../i18n';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { isoWeek } from '../../utils/timeDisplay';
+import { eventEndDay, isMultiDay, splitMultiDay, firstOfWeekFlags, type SplitPart } from '../../utils/calendarEvents';
 import { CustomGridView } from './CustomGridView';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
@@ -20,6 +22,8 @@ export interface CalendarSource {
     name: string;
     color: string;
     showName: boolean;
+    /** Optional lucide icon shown in front of this calendar's entries. Empty = none. */
+    icon?: string;
     /** Defaults to 'url' so sources saved before adapter support keep working. */
     type?: CalendarSourceType;
     /** Adapter source: state holding the ical adapter table JSON (e.g. ical.0.data.table). */
@@ -79,11 +83,13 @@ interface CalEvent {
     exdates?: Date[]; // EXDATE exclusions
 }
 
-interface CalEventTagged extends CalEvent {
+interface CalEventTagged extends CalEvent, SplitPart {
     sourceId: string;
     sourceName: string;
     sourceColor: string;
     showSourceName: boolean;
+    /** Lucide icon name of the source, if one was configured. */
+    sourceIcon?: string;
 }
 
 function parseIcalDate(raw: string): Date {
@@ -500,27 +506,6 @@ function isTomorrow(d: Date) {
 
 type TFn = ReturnType<typeof useT>;
 
-function sameDay(a: Date, b: Date): boolean {
-    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
-}
-
-/**
- * Inclusive last calendar day of an event, or null for single-day / no-end events.
- * iCal DTEND is EXCLUSIVE for all-day events (a Mon–Wed event has DTEND=Thu),
- * so we step back one day to get the actual last day the event covers.
- */
-function eventEndDay(ev: CalEvent): Date | null {
-    if (!ev.end) return null;
-    const end = new Date(ev.end.getTime());
-    if (ev.allDay) end.setDate(end.getDate() - 1);
-    return end;
-}
-
-function isMultiDay(ev: CalEvent): boolean {
-    const endDay = eventEndDay(ev);
-    return !!endDay && endDay > ev.start && !sameDay(ev.start, endDay);
-}
-
 /** Absolute "weekday, day. month" label (no today/tomorrow substitution). */
 function formatDayLabel(d: Date, t: TFn): string {
     const day = d.getDate();
@@ -583,9 +568,12 @@ function isUpcoming(event: CalEvent, daysAhead: number): boolean {
  *   .aura-cal-event              — every event row
  *   .aura-cal-event-today        — event that starts today
  *   .aura-cal-event-next         — the very next upcoming event (index 0)
+ *   .aura-cal-source-icon        — the per-calendar icon of a row
+ *   .aura-cal-week               — the calendar-week label of a row
  *
- * HTML data attribute:
+ * HTML data attributes:
  *   data-calendar-event="upcoming|today|next|today,next"
+ *   data-calendar-week="first|repeat"  — "first" is the row the KW is printed on
  */
 function eventMeta(ev: CalEventTagged, index: number) {
     const today = isToday(ev.start);
@@ -623,9 +611,15 @@ function getMultiDayMode(options: Record<string, unknown>): MultiDayMode {
     return m === 'off' || m === 'span' || m === 'badge' || m === 'both' ? m : 'both';
 }
 
-/** Small pill shown for a currently-running multi-day event. */
+/**
+ * Small pill shown for a currently-running multi-day event — or, once the run was
+ * split into single days, which day of it this row is ("Tag 2/5"). Both share the
+ * slot because a split part is no longer multi-day and would print nothing.
+ */
 function RunningBadge({ ev, t, color, fontSize }: { ev: CalEventTagged; t: TFn; color: string; fontSize: string }) {
-    const label = runningBadge(ev, t);
+    const label = ev.dayCount
+        ? t('calendar.dayOfRun', { day: ev.dayIndex ?? 1, days: ev.dayCount })
+        : runningBadge(ev, t);
     if (!label) return null;
     return (
         <span
@@ -638,6 +632,50 @@ function RunningBadge({ ev, t, color, fontSize }: { ev: CalEventTagged; t: TFn; 
                 lineHeight: 1.5,
                 fontWeight: 600,
             }}
+        >
+            {label}
+        </span>
+    );
+}
+
+/**
+ * The icon a calendar source carries, in the source's own colour. Renders nothing
+ * when the source has none configured — the icon is opt-in per calendar.
+ */
+function CalSourceIcon({ ev, size, style }: { ev: CalEventTagged; size: number; style?: React.CSSProperties }) {
+    if (!ev.sourceIcon) return null;
+    const Icon = getWidgetIcon(ev.sourceIcon, CalendarDays);
+    return (
+        <Icon className="aura-cal-source-icon" size={size} style={{ color: ev.sourceColor, flexShrink: 0, ...style }} />
+    );
+}
+
+/** "KW 36" for a date. */
+function weekLabel(d: Date, t: TFn): string {
+    return `${t('clock.kw')}${isoWeek(d)}`;
+}
+
+/**
+ * Week-number column of the event lists. Only the first entry of a week carries
+ * the label, the way a paper agenda writes it; the other rows keep an invisible
+ * copy so every title still starts on the same edge.
+ */
+function CalWeek({
+    label,
+    show,
+    fontSize,
+    style,
+}: {
+    label: string;
+    show: boolean;
+    fontSize: string;
+    style?: React.CSSProperties;
+}) {
+    return (
+        <span
+            className="aura-cal-week shrink-0 tabular-nums whitespace-nowrap font-medium"
+            data-calendar-week={show ? 'first' : 'repeat'}
+            style={{ color: 'var(--text-secondary)', fontSize, visibility: show ? undefined : 'hidden', ...style }}
         >
             {label}
         </span>
@@ -705,6 +743,8 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const refreshInterval = (options.refreshInterval as number) ?? 30;
     const maxEvents = (options.maxEvents as number) ?? 5;
     const daysAhead = (options.daysAhead as number) ?? 14;
+    /** "Jeden Tag einzeln": a multi-day event becomes one entry per day. */
+    const multiDaySplit = options.multiDaySplit === true;
 
     const showTitle = options.showTitle !== false;
     const showIcon = options.showIcon !== false;
@@ -758,6 +798,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                     sourceName: src.name || calName || '',
                     sourceColor: src.color,
                     showSourceName: src.showName,
+                    sourceIcon: src.icon || undefined,
                 }));
 
             for (const src of srcs) {
@@ -777,7 +818,12 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 }
             }
 
-            const upcoming = all.filter((e) => isUpcoming(e, dA)).sort((a, b) => a.start.getTime() - b.start.getTime());
+            // Split before filtering: a run that started last week still has days
+            // inside the window, and isUpcoming() then prunes the days outside it.
+            const rows = opts.multiDaySplit === true ? splitMultiDay(all) : all;
+            const upcoming = rows
+                .filter((e) => isUpcoming(e, dA))
+                .sort((a, b) => a.start.getTime() - b.start.getTime());
 
             setEvents(upcoming);
             onLastChange?.(Date.now());
@@ -789,7 +835,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
             fetchingRef.current = false;
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sourcesKey, daysAhead]);
+    }, [sourcesKey, daysAhead, multiDaySplit]);
 
     useEffect(() => {
         fetchEvents();
@@ -868,6 +914,12 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     // popup-view the list grows instead, so the dialog can fit every entry.
     // Agenda name column: 0 = auto (as wide as the widest name), else % of the row
     const calNameWidth = Math.max(0, Math.min(60, (options.calNameWidth as number) || 0));
+    /** Per-calendar icons; each source still decides whether it has one at all. */
+    const showCalIcon = options.showCalIcon !== false;
+    /** Calendar week, printed at the first entry of every week. */
+    const showWeek = options.showWeek === true;
+    /** Which visible rows open a new calendar week — the ones that get the label. */
+    const weekFirst = firstOfWeekFlags(visibleEvents.map((ev) => ev.start));
 
     // Widget option "Höhe automatisch an Inhalt anpassen" (mirrors Statusübersicht):
     // the widget grows with its content and the Dashboard sizes the grid item to the
@@ -1002,6 +1054,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         const timeStr = d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
         const dateStr = next ? formatEventDate(next, t, showSpan) : '';
         const count = String(visibleEvents.length);
+        const NextCalIcon = next?.sourceIcon ? getWidgetIcon(next.sourceIcon, CalendarDays) : null;
         return (
             <CustomGridView
                 config={config}
@@ -1014,6 +1067,16 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                     location: next?.location ?? '',
                     running: next ? (runningBadge(next, t) ?? '') : '',
                     count,
+                    week: d ? String(isoWeek(d)) : '',
+                    kw: d ? weekLabel(d, t) : '',
+                    day: next?.dayIndex ? String(next.dayIndex) : '',
+                    daycount: next?.dayCount ? String(next.dayCount) : '',
+                }}
+                extraComponents={{
+                    icon: <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />,
+                    'cal-icon': NextCalIcon ? (
+                        <NextCalIcon size={20} style={{ color: next?.sourceColor ?? 'var(--accent)' }} />
+                    ) : null,
                 }}
             />
         );
@@ -1077,6 +1140,8 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 ) : (
                     <CalendarDays size={14} style={{ color, flexShrink: 0 }} />
                 )}
+                {showCalIcon && next && <CalSourceIcon ev={next} size={13} />}
+                {showWeek && next && <CalWeek label={weekLabel(next.start, t)} show fontSize={fs(10)} />}
                 {showCalName && next?.showSourceName && next.sourceName && (
                     <span className="shrink-0 font-medium" style={{ color: next.sourceColor, fontSize: fs(9) }}>
                         {next.sourceName}
@@ -1158,11 +1223,22 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 <div className={`${autoHeight ? 'py-1' : 'flex-1'} flex flex-col justify-center`}>
                     {next ? (
                         <div className={meta?.className} data-calendar-event={meta?.dataAttr}>
-                            {showCalName && next.showSourceName && next.sourceName && (
-                                <p style={{ color: next.sourceColor, fontSize: fs(9), marginBottom: 2 }}>
-                                    {next.sourceName}
-                                </p>
-                            )}
+                            {(() => {
+                                const nameShown = showCalName && next.showSourceName && !!next.sourceName;
+                                const iconShown = showCalIcon && !!next.sourceIcon;
+                                if (!nameShown && !iconShown && !showWeek) return null;
+                                return (
+                                    <div className="flex items-center gap-1" style={{ marginBottom: 2 }}>
+                                        {iconShown && <CalSourceIcon ev={next} size={11} />}
+                                        {nameShown && (
+                                            <p style={{ color: next.sourceColor, fontSize: fs(9) }}>
+                                                {next.sourceName}
+                                            </p>
+                                        )}
+                                        {showWeek && <CalWeek label={weekLabel(next.start, t)} show fontSize={fs(9)} />}
+                                    </div>
+                                );
+                            })()}
                             {showSummary && (
                                 <p
                                     className="font-bold leading-tight"
@@ -1301,6 +1377,14 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                                 background: important ? highlightColor : ev.sourceColor,
                                             }}
                                         />
+                                        {showCalIcon && <CalSourceIcon ev={ev} size={11} />}
+                                        {showWeek && (
+                                            <CalWeek
+                                                label={weekLabel(ev.start, t)}
+                                                show={weekFirst[idx]}
+                                                fontSize={fs(9)}
+                                            />
+                                        )}
                                         {showCalName && ev.showSourceName && ev.sourceName && (
                                             <AgendaCalName
                                                 name={ev.sourceName}
@@ -1443,6 +1527,15 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                         <div
                                             className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0"
                                             style={{ background: important ? highlightColor : ev.sourceColor }}
+                                        />
+                                    )}
+                                    {showCalIcon && <CalSourceIcon ev={ev} size={12} style={{ marginTop: 2 }} />}
+                                    {showWeek && (
+                                        <CalWeek
+                                            label={weekLabel(ev.start, t)}
+                                            show={weekFirst[idx]}
+                                            fontSize={fs(9)}
+                                            style={{ marginTop: 2 }}
                                         />
                                     )}
                                     <div className="flex-1 min-w-0">

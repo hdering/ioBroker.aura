@@ -202,6 +202,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     stateimage: [{ key: 'showLabel', label: 'Status-Text' }],
     calendar: [
         { key: 'showCalName', label: 'Kalender-Name' },
+        { key: 'showCalIcon', label: 'Kalender-Icon' },
         { key: 'showSummary', label: 'Terminname' },
         { key: 'showDate', label: 'Datum / Uhrzeit' },
         { key: 'showLocation', label: 'Ort' },
@@ -356,6 +357,8 @@ function CalendarEditPanel({
     const [icalDpsLoading, setIcalDpsLoading] = useState(false);
     const [calNames, setCalNames] = useState<string[]>([]);
     const [importantIconPickerOpen, setImportantIconPickerOpen] = useState(false);
+    /** Id of the source whose icon picker is open, or null. */
+    const [calIconPickerId, setCalIconPickerId] = useState<string | null>(null);
 
     // Discover the table states of all ioBroker.ical instances
     useEffect(() => {
@@ -448,6 +451,27 @@ function CalendarEditPanel({
                                 className="w-5 h-5 rounded cursor-pointer border-0 p-0 shrink-0"
                                 title={t('wf.cal.changeColor')}
                             />
+                            {(() => {
+                                // Optional per-calendar icon; the placeholder keeps the
+                                // row width steady while no icon is chosen.
+                                const SrcIcon = src.icon
+                                    ? getWidgetIcon(src.icon, (() => null) as unknown as LucideIcon)
+                                    : null;
+                                return (
+                                    <button
+                                        onClick={() => setCalIconPickerId(src.id)}
+                                        className="w-5 h-5 rounded flex items-center justify-center hover:opacity-70 shrink-0"
+                                        style={{
+                                            background: 'var(--app-surface)',
+                                            border: '1px solid var(--app-border)',
+                                            color: src.color,
+                                        }}
+                                        title={t('wf.cal.srcIcon')}
+                                    >
+                                        {SrcIcon ? <SrcIcon size={12} /> : <Shapes size={11} opacity={0.5} />}
+                                    </button>
+                                );
+                            })()}
                             <input
                                 type="text"
                                 value={src.name}
@@ -657,6 +681,29 @@ function CalendarEditPanel({
                     style={inputStyle}
                 />
             </div>
+            {/* ── Kalenderwoche ── */}
+            <div>
+                <div className="flex items-center justify-between">
+                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                        Kalenderwoche anzeigen
+                    </span>
+                    <button
+                        onClick={() => setOpts({ showWeek: !o.showWeek })}
+                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                        style={{ background: o.showWeek ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                            style={{ left: o.showWeek ? '14px' : '2px' }}
+                        />
+                    </button>
+                </div>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    In Default und Agenda steht die KW jeweils am ersten Termin der Woche, in Card und Compact am
+                    angezeigten Termin.
+                </p>
+            </div>
+
             {/* agenda layout only: width of the calendar-name column */}
             {config.layout === 'agenda' && (
                 <div>
@@ -761,6 +808,25 @@ function CalendarEditPanel({
                 </div>
                 <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
                     Spanne = Start – Ende, Badge = {'„läuft“'} / {'„noch N T“'} bei laufenden Terminen.
+                </p>
+                <div className="flex items-center justify-between mt-2">
+                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                        Jeden Tag einzeln
+                    </span>
+                    <button
+                        onClick={() => setOpts({ multiDaySplit: !o.multiDaySplit })}
+                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                        style={{ background: o.multiDaySplit ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                            style={{ left: o.multiDaySplit ? '14px' : '2px' }}
+                        />
+                    </button>
+                </div>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    Ein mehrtägiger Termin wird zu einem Eintrag je Tag. Das Badge zeigt dann {'„Tag 2/5“'} statt der
+                    Restlaufzeit; die Einträge zählen einzeln gegen {'„Max. Einträge“'}.
                 </p>
             </div>
 
@@ -925,6 +991,17 @@ function CalendarEditPanel({
                     </div>
                 )}
             </div>
+
+            {calIconPickerId !== null && (
+                <IconPickerModal
+                    current={sources.find((s) => s.id === calIconPickerId)?.icon ?? ''}
+                    onSelect={(name) => {
+                        updateSource(calIconPickerId, { icon: name || undefined });
+                        setCalIconPickerId(null);
+                    }}
+                    onClose={() => setCalIconPickerId(null)}
+                />
+            )}
         </>
     );
 }

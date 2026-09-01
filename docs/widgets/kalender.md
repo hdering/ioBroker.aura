@@ -20,7 +20,7 @@ Eine Zeile mit Icon, nächstem Termin und Datum — für Listen.
 Nur die Anzahl der Termine als große Zahl zentriert — für sehr kleine Zellen.
 
 ### Custom
-Felder `summary`, `date`, `time`, `calname`, `location`, `count` des nächsten Termins frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).
+Felder `summary`, `date`, `time`, `calname`, `location`, `running`, `count`, `week`, `kw`, `day`, `daycount` des nächsten Termins frei in einer Zellenmatrix platzieren, dazu die Komponenten `icon` (Widget-Icon) und `cal-icon` (Icon des Kalenders) — siehe [Custom-Layout](./custom-layout).
 
 ## Einstellungen
 
@@ -46,6 +46,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `calendars[].url` | — | `url`: iCal-URL |
 | `calendars[].name` | — | Anzeigename; bei `adapter` leer = Kalendername aus dem Adapter |
 | `calendars[].color` | — | Farbe der Quelle |
+| `calendars[].icon` | — | [Lucide-Icon](https://lucide.dev) dieser Quelle; leer = kein Icon |
 | `calendars[].showName` | `true` | Name dieser Quelle anzeigen |
 
 ### Abruf
@@ -70,11 +71,22 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `calFontScale` | `1` | Schrift-Skalierung |
 | `calNameWidth` | `0` | Agenda: Breite der Kalender-Spalte in % der Zeile; `0` = automatisch (breitester sichtbarer Name, max. 45 %) |
 | `showCalName` | `true` | Kalendername anzeigen |
+| `showCalIcon` | `true` | Icon der Quelle anzeigen (nur Quellen mit `icon`) |
+| `showWeek` | `false` | Kalenderwoche anzeigen: Default/Agenda am ersten Termin der Woche, Card/Compact am angezeigten Termin |
 | `showDate` | `true` | Datum anzeigen |
 | `showLocation` | `true` | Ort anzeigen (Default/Card) |
 | `showSummary` | `true` | Termin-Titel anzeigen (Card) |
 | `showMore` | `true` | „+N weitere" anzeigen (Card) |
 | `autoHeight` | `false` | Höhe folgt dem Inhalt statt der eingestellten Zellenhöhe (nicht bei Custom); die eingestellte Höhe wird dann überschrieben |
+
+### Mehrtägige Termine
+
+| Option | Standard | |
+| --- | --- | --- |
+| `multiDayDisplay` | `both` | `off` · `span` (Start – Ende) · `badge` („läuft“ / „noch N T“) · `both` |
+| `multiDaySplit` | `false` | ein Eintrag je Tag statt einer Zeile für die ganze Laufzeit |
+
+Bei `multiDaySplit` zählt jeder Tag einzeln gegen `maxEvents`, und das Badge nennt den Tag der Laufzeit („Tag 2/5“) statt der Restlaufzeit.
 
 ### Hervorhebung
 

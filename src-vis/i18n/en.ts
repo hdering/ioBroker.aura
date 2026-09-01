@@ -893,6 +893,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.cal.calNameAuto': 'Name (empty = from adapter)',
     'wf.cal.changeColor': 'Change color',
     'wf.cal.showName': 'Show name',
+    'wf.cal.srcIcon': 'Icon of this calendar',
     'wf.cal.add': 'Add',
     'wf.cal.refreshInterval': 'Refresh Interval',
     'wf.cal.daysAhead': 'Days Ahead',
@@ -1499,6 +1500,7 @@ export const en: Record<TranslationKey, string> = {
     'calendar.more': '+{count} more',
     'calendar.running': 'ongoing',
     'calendar.daysLeft': '{days}d left',
+    'calendar.dayOfRun': 'Day {day}/{days}',
     'calendar.updated': 'Updated: {time}',
     'calendar.noDays': 'No events in the next {days} days',
 

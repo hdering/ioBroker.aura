@@ -129,6 +129,8 @@
     "test:theme-flicker": "node tools/tests/theme-mode-flicker.mjs",
     "test:theme-scope": "node tools/tests/theme-scope.mjs",
     "test:calendar-auto-height": "node tools/tests/calendar-auto-height.mjs",
+    "test:calendar-events": "node tools/tests/calendar-events.mjs",
+    "test:calendar-icon-week": "node tools/tests/calendar-icon-week.mjs",
     "test:status-auto-height": "node tools/tests/status-overview-auto-height.mjs",
     "test:status-window": "node tools/tests/status-overview-window.mjs",
     "test:status-loading": "node tools/tests/status-overview-loading.mjs",

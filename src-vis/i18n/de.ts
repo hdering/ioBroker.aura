@@ -894,6 +894,7 @@ export const de = {
     'wf.cal.calNameAuto': 'Name (leer = aus Adapter)',
     'wf.cal.changeColor': 'Farbe ändern',
     'wf.cal.showName': 'Name anzeigen',
+    'wf.cal.srcIcon': 'Icon dieses Kalenders',
     'wf.cal.add': 'Hinzufügen',
     'wf.cal.refreshInterval': 'Aktualisierungsintervall',
     'wf.cal.daysAhead': 'Tage im Voraus',
@@ -1505,6 +1506,7 @@ export const de = {
     'calendar.more': '+{count} weitere',
     'calendar.running': 'läuft',
     'calendar.daysLeft': 'noch {days} T',
+    'calendar.dayOfRun': 'Tag {day}/{days}',
     'calendar.updated': 'Aktualisiert: {time}',
     'calendar.noDays': 'Keine Termine in den nächsten {days} Tagen',
 

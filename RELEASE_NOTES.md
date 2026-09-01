@@ -6,3 +6,6 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+Calendar - each calendar source can carry its own icon, shown in front of its entries (#608)
+Calendar - optional calendar week, printed at the first entry of every week (#608)
+Calendar - multi-day events can be shown as one entry per day (#608)

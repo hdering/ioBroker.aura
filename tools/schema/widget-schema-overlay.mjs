@@ -541,6 +541,11 @@ export const WIDGET_OPTION_NOTES = {
         daysAhead: { description: 'Wie viele Tage im Voraus angezeigt werden.' },
         maxEvents: { description: 'Höchstzahl angezeigter Termine.' },
         showCalName: { description: 'Kalendernamen neben dem Termin anzeigen.' },
+        showCalIcon: { description: 'Das je Kalender vergebene Icon vor dem Termin anzeigen.' },
+        showWeek: {
+            description:
+                'Kalenderwoche anzeigen — in Default und Agenda am ersten Termin jeder Woche, in Card und Compact am angezeigten Termin.',
+        },
         calNameWidth: { description: 'Breite der Kalendernamen-Spalte in px.' },
         calFontScale: { description: 'Skaliert die Schrift der Terminliste.' },
         showSummary: { description: 'Terminbezeichnung anzeigen.' },
@@ -637,6 +642,12 @@ export const EXTRA_OPTIONS = {
             enum: ['off', 'span', 'badge', 'both'],
             default: 'both',
             description: 'Wie mehrtägige Termine dargestellt werden.',
+        },
+        multiDaySplit: {
+            type: 'boolean',
+            default: false,
+            description:
+                'Mehrtägige Termine als einen Eintrag je Tag zeigen. Das Badge nennt dann den Tag der Laufzeit ("Tag 2/5").',
         },
     },
     group: {
