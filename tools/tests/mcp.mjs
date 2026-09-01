@@ -44,6 +44,7 @@ const {
 const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
 const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
 const { RECIPES, findRecipe, renderRecipe, renderRecipeIndex } = require('../../lib/mcp/recipes.js');
+const { reviewWidgets, renderReview, TILE_ROW_LIMIT, CONTACT_LIMIT } = require('../../lib/mcp/review.js');
 const {
     TOKEN_PLACEHOLDER,
     baseUrl,
@@ -507,6 +508,7 @@ check('all twenty-eight tools are announced with descriptions', () => {
         'aura_rename',
         'aura_reorder',
         'aura_restore',
+        'aura_review',
         'aura_save_preset',
         'aura_tab',
         'aura_update_node',
@@ -559,6 +561,125 @@ check('aura_widget_schema documents only what was asked for', () => {
     assert.match(t, /## switch — Schalter/);
     assert.match(t, /- statusDp: string.*\[Datenpunkt-Id\]/);
     assert.ok(!/## value —/.test(t));
+});
+
+const tileRow = (n, over = {}) =>
+    Array.from({ length: n }, (_, i) => ({
+        id: `t${i}`,
+        type: 'value',
+        title: `T${i}`,
+        datapoint: `hm-rpc.0.DEV${i}.1.TEMP`,
+        gridPos: { x: 0, y: i, w: 4, h: 3 },
+        options: {},
+        ...over,
+    }));
+
+const ids = (findings, id) => findings.find((f) => f.id === id);
+
+check('a row of single-value tiles is reported, a handful is not', () => {
+    // Three lamps are a layout. Ten are a list nobody wants to maintain — that is
+    // the difference the threshold encodes, and it must not fire below it.
+    assert.ok(!ids(reviewWidgets(tileRow(TILE_ROW_LIMIT - 1)), 'tile-row'));
+    const found = ids(reviewWidgets(tileRow(TILE_ROW_LIMIT)), 'tile-row');
+    assert.ok(found, 'the tile row was not reported');
+    assert.equal(found.widgets.length, TILE_ROW_LIMIT);
+    assert.ok(found.recipe);
+});
+
+check('a number without a good or bad range is reported, one with is not', () => {
+    assert.ok(ids(reviewWidgets(tileRow(1)), 'value-without-meaning'));
+    const withThresholds = tileRow(1, { options: { colorThresholds: [[20, '#fff']] } });
+    assert.ok(!ids(reviewWidgets(withThresholds), 'value-without-meaning'));
+    const withCondition = tileRow(1, { options: { conditions: [{ id: 'c', logic: 'AND', clauses: [], style: {} }] } });
+    assert.ok(!ids(reviewWidgets(withCondition), 'value-without-meaning'));
+});
+
+check('a meter is spotted by its unit and by its id', () => {
+    const byUnit = reviewWidgets([
+        { id: 'm', type: 'value', datapoint: 'x.0.reading', options: { unit: 'kWh', colorThresholds: [[1, '#f']] } },
+    ]);
+    assert.ok(ids(byUnit, 'counter-as-reading'));
+    const byId = reviewWidgets([
+        { id: 'm', type: 'value', datapoint: 'shelly.0.emeter.total', options: { colorThresholds: [[1, '#f']] } },
+    ]);
+    assert.ok(ids(byId, 'counter-as-reading'));
+    const plain = reviewWidgets([
+        { id: 'm', type: 'value', datapoint: 'x.0.temp', options: { unit: '°C', colorThresholds: [[1, '#f']] } },
+    ]);
+    assert.ok(!ids(plain, 'counter-as-reading'));
+});
+
+check('contact tiles are only reported while no status overview is there', () => {
+    const contacts = Array.from({ length: CONTACT_LIMIT }, (_, i) => ({
+        id: `c${i}`,
+        type: 'windowcontact',
+        datapoint: `hm.0.W${i}.STATE`,
+        options: {},
+    }));
+    assert.ok(ids(reviewWidgets(contacts), 'contacts-without-overview'));
+    const withOverview = [...contacts, { id: 'ov', type: 'statusoverview', datapoint: '', options: {} }];
+    assert.ok(!ids(reviewWidgets(withOverview), 'contacts-without-overview'));
+});
+
+check('a bar series without aggregate is reported, an aggregated one is not', () => {
+    const raw = [{ id: 'e', type: 'echart', datapoint: 'x.0.c', options: { echartSeries: [{ chartType: 'bar' }] } }];
+    assert.ok(ids(reviewWidgets(raw), 'bars-without-aggregate'));
+    const delta = [
+        {
+            id: 'e',
+            type: 'echart',
+            datapoint: 'x.0.c',
+            options: { echartSeries: [{ chartType: 'bar', aggregate: 'delta' }] },
+        },
+    ];
+    assert.ok(!ids(reviewWidgets(delta), 'bars-without-aggregate'));
+});
+
+check('a list without row rules or a second line is reported', () => {
+    const flat = [{ id: 'l', type: 'autolist', datapoint: '', options: {} }];
+    assert.ok(ids(reviewWidgets(flat), 'list-without-depth'));
+    const deep = [{ id: 'l', type: 'autolist', datapoint: '', options: { subDpTemplate: [{ id: '{{parent}}.B' }] } }];
+    assert.ok(!ids(reviewWidgets(deep), 'list-without-depth'));
+});
+
+check('the "nothing reacts" remark does not pile onto a finding that already said it', () => {
+    // Every value tile already got "no good or bad range"; repeating it as a tab
+    // remark would be the same complaint twice.
+    assert.ok(!ids(reviewWidgets(tileRow(6)), 'nothing-reacts'));
+    const shutters = Array.from({ length: 3 }, (_, i) => ({
+        id: `s${i}`,
+        type: 'shutter',
+        datapoint: `x.0.S${i}.LEVEL`,
+        options: {},
+    }));
+    assert.ok(ids(reviewWidgets(shutters), 'nothing-reacts'));
+});
+
+check('a tab with nothing to complain about gets no invented findings', () => {
+    const good = [
+        {
+            id: 'l',
+            type: 'autolist',
+            datapoint: '',
+            options: { rowConditions: [{ id: 'r', clauses: [] }] },
+        },
+    ];
+    const findings = reviewWidgets(good);
+    assert.deepEqual(findings, [], `unexpected: ${findings.map((f) => f.id).join(', ')}`);
+    assert.match(renderReview(findings, 'Tab'), /Nichts gefunden/);
+});
+
+check('every finding points at a recipe that exists', () => {
+    const mixed = [
+        ...tileRow(6),
+        { id: 'th', type: 'thermostat', datapoint: 'x.0.SET', options: {} },
+        { id: 'li', type: 'list', datapoint: '', options: {} },
+    ];
+    const findings = reviewWidgets(mixed);
+    assert.ok(findings.length >= 3, `expected several findings, got ${findings.length}`);
+    for (const f of findings) {
+        assert.ok(findRecipe(f.recipe), `${f.id} points at unknown recipe "${f.recipe}"`);
+    }
 });
 
 check('every recipe validates against the real widget schema', () => {
@@ -654,6 +775,23 @@ check('an unknown recipe id lists the ones there are', () => {
     assert.ok(recipeUnknown.isError);
     assert.match(recipeUnknown.content[0].text, /Kein Rezept "kachelwand"/);
     assert.match(recipeUnknown.content[0].text, /raum-liste/);
+});
+
+const reviewRes = await client.callTool({ name: 'aura_review', arguments: { tab: 'Klima' } });
+check('aura_review reports on a real tab and points at recipes', () => {
+    const t = reviewRes.content[0].text;
+    assert.match(t, /Klima/);
+    assert.ok(
+        /aura_recipes mit id=/.test(t) || /Nichts gefunden/.test(t),
+        `unexpected review output:
+${t}`,
+    );
+});
+
+const reviewUnknown = await client.callTool({ name: 'aura_review', arguments: { tab: 'Gibtsnicht' } });
+check('aura_review names the tabs there are instead of guessing', () => {
+    assert.ok(reviewUnknown.isError);
+    assert.match(reviewUnknown.content[0].text, /Vorhanden:/);
 });
 
 const badValidate = await client.callTool({

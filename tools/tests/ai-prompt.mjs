@@ -30,7 +30,8 @@ await esbuild.build({
     platform: 'node',
     logLevel: 'silent',
 });
-const { buildAiPrompt, filterDatapoints, estimateTokens, MAX_DATAPOINTS } = await import(pathToFileURL(OUT).href);
+const { buildAiPrompt, filterDatapoints, estimateTokens, MAX_DATAPOINTS, pickRecipes, RECIPES, MAX_RECIPES } =
+    await import(pathToFileURL(OUT).href);
 
 const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-widget-schema.json'), 'utf8'));
 
@@ -176,6 +177,56 @@ check('filterDatapoints ORs inside a facet and ANDs across facets', () => {
     assert.equal(filterDatapoints(DPS, { writableOnly: true }).length, 2);
     assert.equal(filterDatapoints(DPS, { search: 'rollladen' }).length, 1);
     assert.equal(filterDatapoints(DPS, { search: 'zigbee.0' }).length, 1);
+});
+
+check('a recipe is pasted in for the types that have one', () => {
+    // Without an example the model reliably built the cheapest thing that
+    // validates: a row of bare value tiles. The example is the part that moves it.
+    const withList = buildAiPrompt({ ...base, types: ['autolist'] });
+    assert.match(withList, /## Beispiele/);
+    assert.match(withList, /"type": "autolist"/);
+    assert.match(withList, /rowConditions/);
+});
+
+check('a whole-tab request also gets the composite example', () => {
+    const tabPrompt = buildAiPrompt({ ...base, target: 'tab', types: [] });
+    const picked = pickRecipes([], 'tab');
+    assert.ok(picked.length, 'a tab request must not come without an arrangement to copy');
+    assert.ok(
+        picked.every((r) => r.widgets.length > 1),
+        'only composite recipes teach an arrangement',
+    );
+    assert.match(tabPrompt, /## Beispiele/);
+});
+
+check('a type without a recipe gets no example section instead of a random one', () => {
+    const withIframe = buildAiPrompt({ ...base, types: ['iframe'] });
+    assert.ok(!withIframe.includes('## Beispiele'), 'an unrelated example is worse than none');
+});
+
+check('never more than MAX_RECIPES examples, most relevant first', () => {
+    const many = pickRecipes(['autolist', 'list', 'value', 'echart', 'thermostat'], 'widget');
+    assert.ok(many.length <= MAX_RECIPES, `got ${many.length} recipes`);
+    assert.ok(many.length > 0);
+});
+
+check('the guidance says what a good dashboard is, not only what is valid', () => {
+    assert.match(prompt, /## Was ein gutes AURA-Dashboard ausmacht/);
+    assert.match(prompt, /Ein Raum ist EIN Listen-Widget/);
+    // The old wording told the model to leave options out, which is exactly how
+    // every generated dashboard ended up at its defaults.
+    assert.ok(!prompt.includes('Lass eine Option weg'), 'the minimalism nudge is back');
+});
+
+check('every shipped recipe reaches the prompt builder intact', () => {
+    assert.ok(RECIPES.length >= 5, `expected the shipped recipes, got ${RECIPES.length}`);
+    for (const r of RECIPES) {
+        assert.ok(r.id && r.title && r.when && r.instead, `${r.id}: incomplete`);
+        assert.ok(r.widgets.length, `${r.id}: no widgets`);
+        for (const w of r.widgets) {
+            assert.ok(schema.widgets[w.type], `${r.id}: unknown widget type ${w.type}`);
+        }
+    }
 });
 
 check('the prompt stays a sane size for a typical selection', () => {

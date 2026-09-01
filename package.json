@@ -47,6 +47,8 @@
     "test": "node test/adapter.test.js && node test/client-tree.test.js && node test/messages.test.js && node test/widget-map.test.js && node test/widget-schema.test.js && node tools/tests/ai-prompt.mjs && node tools/tests/mcp.mjs",
     "test:client-tree": "node test/client-tree.test.js",
     "test:widget-map": "node test/widget-map.test.js",
+    "recipes": "node tools/schema/gen-recipes.mjs",
+    "recipes:check": "node tools/schema/gen-recipes.mjs --check",
     "schema": "node tools/schema/gen-widget-schema.mjs",
     "schema:check": "node tools/schema/gen-widget-schema.mjs --check",
     "test:schema": "node test/widget-schema.test.js",

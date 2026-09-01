@@ -217,6 +217,44 @@ In den `instructions` steht der Schritt vor der Schemaabfrage, zusammen mit dem
 Hinweis, einen vorhandenen Tab per `aura_tab` als Stilvorlage zu lesen: das eigene
 Dashboard des Nutzers ist die bessere Vorlage als jede mitgelieferte.
 
+## Der Rückblick auf das, was schon da ist
+
+Rezepte helfen beim Bauen. Für die Tabs, die es längst gibt, tun sie nichts — und
+genau dort sieht man das Problem: die Kachelreihe je Raum, Zahlen ohne guten und
+schlechten Bereich, der Zähler als Rohwert. Ein Modell sieht die gerenderte Seite
+nicht und kann davon nichts von selbst bemerken.
+
+`aura_review` (`lib/mcp/review.js`) macht aus der Konfiguration Befunde:
+Kachelreihe ab fünf Einzelwert-Widgets, Kontaktkacheln ohne Statusübersicht,
+Zahl ohne `colorThresholds`/`conditions`/`badges`, Zählerstand statt Verbrauch
+(erkannt an Einheit **oder** Id), Balkenreihe ohne `aggregate`, Thermostat ohne
+`actualDatapoint`, Liste ohne Zeilenregeln und Zweitzeile, und — nur wenn sonst
+nichts in diese Richtung gemeldet wurde — dass im ganzen Tab nichts auf irgendetwas
+reagiert. Jeder Befund nennt die Widget-Ids und das Rezept, das ihn behebt.
+
+Bewusst nur **mechanisch Prüfbares**. Ein Befund, den man am JSON nachrechnen
+kann, ist überprüfbar; „das wirkt unruhig" wäre geraten. Und es bleiben
+Vorschläge: der Antworttext sagt ausdrücklich, dem Nutzer die Liste zu zeigen und
+nur zu ändern, was er will — mit `aura_update_widget`, damit die übrigen Optionen
+stehen bleiben.
+
+## Dieselben Rezepte im Editor
+
+`tools/schema/gen-recipes.mjs` schreibt die Rezepte nach
+`public/ai/aura-recipes.json` (`npm run recipes`, `npm run recipes:check`). Der
+Prompt-Builder des Editors (`src-vis/utils/aiPrompt.ts`) importiert diese JSON und
+legt bis zu zwei passende Beispiele in den Prompt — passend heißt: gebaut aus den
+Typen, die der Nutzer angehakt hat, plus das Raum-Tab-Beispiel, wenn ein ganzer
+Tab gewünscht ist. `lib/mcp/recipes.js` ist CommonJS-Adaptercode, das Frontend ein
+ESM-Bundle; die Daten reisen deshalb als JSON statt als zweite handgepflegte
+Kopie, die beim ersten korrigierten Rezept auseinanderliefe.
+
+Dort stand außerdem die Regel **„Lass eine Option weg, statt sie zu raten"** —
+als Schutz gegen erfundene Optionsnamen richtig, als Gestaltungsanweisung gelesen
+aber genau die Aufforderung, alles auf Vorgabe zu lassen. Sie sagt jetzt, keinen
+Optionsnamen zu erfinden, und daneben steht ein Abschnitt „Was ein gutes
+AURA-Dashboard ausmacht".
+
 ## Zwölf Stellen, die man leicht falsch macht
 
 **Eingebaute Popups.** Wird eine mitgelieferte Ansicht geändert, muss
@@ -411,7 +449,7 @@ sich selbst getestet wird, beweist nichts.
 
 ## Tests
 
-`npm run test:mcp` — 194 Checks: die Validierungsregeln gegen das echte Schema, die
+`npm run test:mcp` — 205 Checks: die Validierungsregeln gegen das echte Schema, die
 Config-Helfer, Token-Abweisung (fehlend, falsch, nicht konfiguriert), der
 Handshake mit dem echten Client, die `instructions`, jedes Werkzeug, und die
 Schreibpfade gegen ein Adapter-Doppel — inklusive der Zusicherung, dass ein
@@ -424,3 +462,8 @@ Dazu die Rezepte: jedes Widget jedes Rezepts gegen das echte Schema (keine Fehle
 **und** keine Warnungen), keine Datenpunkt-Id, die für eine echte durchgehen
 könnte, eindeutige Ids, und über den echten Client, dass die Liste eine Liste
 bleibt und ein unbekanntes `id` die vorhandenen nennt.
+
+Und den Rückblick: jede Regel einzeln, mit dem Gegenbeispiel daneben (unter der
+Schwelle wird nicht gemeldet, ein Widget mit Schwellen taucht nicht auf, ein
+aggregiertes Balkendiagramm auch nicht), dass ein sauberer Tab **keine** Befunde
+erfindet, und dass jeder Befund auf ein existierendes Rezept zeigt.
