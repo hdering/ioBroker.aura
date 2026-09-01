@@ -527,8 +527,17 @@ check('aura_dashboard reports tabs, grid and the design width', () => {
     // Nested since the section line carries its own markers.
     assert.match(t, /- Wohnzimmer \/ Start/);
     assert.match(t, /· Licht — 1 Widget/);
-    assert.match(t, /Entworfen für 44 Spalten/);
+    assert.match(t, /Die vorhandenen Widgets nutzen 44 Spalten/);
     assert.match(t, /Zeilenhöhe 20 px/);
+});
+
+const badReorderKind = await client.callTool({
+    name: 'aura_reorder',
+    arguments: { kind: 'popup', order: ['Details'] },
+});
+check('reorder names an unknown kind instead of hunting for a tab', () => {
+    assert.ok(badReorderKind.isError);
+    assert.match(badReorderKind.content[0].text, /"kind": "popup" gibt es hier nicht/);
 });
 
 const ambiguous = await client.callTool({ name: 'aura_tab', arguments: { tab: 'Licht' } });
