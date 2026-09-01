@@ -7,8 +7,9 @@ import { JsonKeySelect, inputCls, inputStyle, type JsonProbe } from './chartShar
  * "JSON-Quelle" of one series: where the array sits in the payload, which keys hold label and
  * value, and whether the payload's own min/max block drives the y axis (issue #550).
  *
- * The accepted payload shapes are NOT explained here any more: they belong next to the datapoint
- * at the top of the series pane, where the payload is picked, not four fields further down.
+ * The accepted payload shapes and the "labels have to be timestamps here" warning are NOT in this
+ * section any more: they belong next to the datapoint at the top of the series pane, where the
+ * payload is picked, not four fields further down.
  *
  * Two of the switches are widget-level on purpose — the axis type and the bounds belong to the
  * payload shape, not to a single series, and they show the same state in every series panel.
@@ -34,9 +35,6 @@ export function ChartSeriesJsonPanel({
     onWidgetOption: (patch: Record<string, unknown>) => void;
 }) {
     const t = useT();
-    // A JSON series on a timeseries chart's shared axis needs timestamp labels — a category label
-    // has no x coordinate there and its point is dropped. Only reported once the payload was read.
-    const mixedProbe = !isJson && probe?.done && !probe.invalid ? probe : null;
     return (
         <div>
             <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
@@ -91,19 +89,6 @@ export function ChartSeriesJsonPanel({
                             {t('echart.jsonTimeAxisHint')}
                         </p>
                     </div>
-                )}
-                {/* Mixed into a timeseries chart the labels have to BE
-                    timestamps — anything else has no place on the axis. */}
-                {mixedProbe && (
-                    <p
-                        className="text-[11px]"
-                        style={{
-                            color: mixedProbe.timeLike ? 'var(--text-secondary)' : 'var(--danger, #ef4444)',
-                            opacity: mixedProbe.timeLike ? 0.8 : 1,
-                        }}
-                    >
-                        {mixedProbe.timeLike ? t('echart.jsonMixedTimeOk') : t('echart.jsonMixedNeedsTime')}
-                    </p>
                 )}
                 <div className="flex gap-2">
                     <div className="flex-1 min-w-0">

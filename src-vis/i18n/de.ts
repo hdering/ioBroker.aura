@@ -1304,7 +1304,8 @@ export const de = {
     'echart.jsonMixedTimeOk':
         'Beschriftung ist ein Zeitstempel — die Serie wird auf derselben Zeitachse wie die Verlaufsdaten gezeichnet.',
     'echart.jsonMixedNeedsTime':
-        'Die Beschriftung ist kein Zeitstempel. In der Zeitreihe braucht jeder Eintrag einen Zeitstempel (Epoch in ms/s oder ISO-Datum) — andere Einträge entfallen. Ohne Zeitstempel den Modus JSON wählen.',
+        'Die Beschriftung „{label}“ ist kein Zeitstempel. In der Zeitreihe braucht jeder Eintrag einen Zeitstempel (Epoch in ms/s oder ISO-Datum) — andere Einträge entfallen, das Diagramm bleibt leer. Für Beschriftungen wie diese den Modus „Kategorien (JSON)“ nutzen.',
+    'echart.jsonUseCategoryMode': 'Auf „Kategorien (JSON)“ umstellen',
     'echart.jsonAxisBounds': 'Grenzen der Y-Achse aus dem JSON übernehmen',
     'echart.jsonAxisBoundsHint':
         'Der Datenpunkt darf neben den Daten einen Block mit min/max tragen. Gilt für die Achse der jeweiligen Serie und schlägt die feste Eingabe — Beispiele unten.',
@@ -1388,6 +1389,7 @@ export const de = {
     'echart.globalActive': 'Globale Einstellung aktiv – klicken für eigenen Wert',
     'echart.resetToGlobal': 'Auf globale Einstellung zurücksetzen',
     'echart.noData': 'Keine Daten',
+    'echart.noDataJsonLabels': 'Beschriftungen sind keine Zeitstempel — Modus „Kategorien (JSON)“ nutzen',
     'echart.preview': 'Vorschau',
     'echart.historyInstance': 'Verlaufs-Instanz',
 

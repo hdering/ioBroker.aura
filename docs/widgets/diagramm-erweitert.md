@@ -48,7 +48,7 @@ Je Serie ist die Datenquelle wählbar (`echartSeries[].source`), Verlauf und JSO
 | Messwerte          | `history` | Zeitraum-Umschalter und Tages-Navigation wirken nur auf diese       |
 | Prognose, Fahrplan | `json`    | ganzes Array aus dem Datenpunkt; die Beschriftung ist der Zeitpunkt |
 
-Voraussetzung für die JSON-Serie: die Beschriftungen sind Zeitstempel (Epoch in ms oder s, ISO-Datum). Einträge ohne gültigen Zeitstempel entfallen — der Editor sagt es, sobald er den Datenpunkt gelesen hat. Für Kategorie-Beschriftungen (`Mo`, `Di`) den Modus [JSON](#json) („Kategorien (JSON)“ im Editor) wählen.
+Voraussetzung für die JSON-Serie: die Beschriftungen sind Zeitstempel (Epoch in ms oder s, ISO-Datum). Einträge ohne gültigen Zeitstempel entfallen — der Editor sagt es, sobald er den Datenpunkt gelesen hat. Für Kategorie-Beschriftungen (`Mo`, `Di`, `01`) den Modus [JSON](#json) („Kategorien (JSON)“ im Editor) wählen. Der Editor meldet das direkt beim Datenpunkt und nennt die Beschriftung; lesen alle Serien aus JSON, stellt ein Button dort auf „Kategorien (JSON)“ um. Im Dashboard nennt das leere Diagramm denselben Grund statt „Keine Daten“.
 
 ```json
 [

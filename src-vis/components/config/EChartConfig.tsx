@@ -473,6 +473,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 s={s}
                                 isComparison={isComparison}
                                 isJson={isJson}
+                                allSeriesJson={series.length > 0 && series.every((x) => isJson || x.source === 'json')}
                                 echartShowValues={echartShowValues}
                                 chartDecimals={chartDecimals}
                                 chartNumberFormat={chartNumberFormat}

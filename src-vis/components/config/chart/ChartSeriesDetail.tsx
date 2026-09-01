@@ -31,6 +31,7 @@ export function ChartSeriesDetail({
     s,
     isComparison,
     isJson,
+    allSeriesJson,
     echartShowValues,
     chartDecimals,
     chartNumberFormat,
@@ -47,6 +48,8 @@ export function ChartSeriesDetail({
     s: EChartSeriesConfig;
     isComparison: boolean;
     isJson: boolean;
+    /** Every series of this widget reads a payload — then the mode may be swapped safely. */
+    allSeriesJson: boolean;
     /** Widget-level default of the value labels, shown as the "Auto" state. */
     echartShowValues: boolean;
     /** Chart-wide number format, already resolved — what this series shows while it inherits. */
@@ -73,6 +76,9 @@ export function ChartSeriesDetail({
     // The JSON mode forces every series onto the payload source; in a timeseries chart each
     // series decides for itself (issue #595).
     const seriesIsJson = isJson || s.source === 'json';
+    // A JSON series on a timeseries chart's shared axis needs timestamp labels — a category label
+    // has no x coordinate there and its point is dropped. Only judged once the payload was read.
+    const mixedProbe = !isComparison && !isJson && seriesIsJson && probe?.done && !probe.invalid ? probe : null;
     return (
         <>
             {/* Name */}
@@ -153,6 +159,44 @@ export function ChartSeriesDetail({
                             );
                         })}
                     </div>
+                </div>
+            )}
+
+            {/* Mixed into a timeseries chart the labels have to BE timestamps —
+                "01" is a month, and the time axis has nowhere to put it, so every
+                entry is dropped and the chart stays empty. Said right here at the
+                datapoint, not down in the "JSON-Quelle" section where it used to
+                sit: by then the chart is already blank for no visible reason. */}
+            {mixedProbe && (
+                <div>
+                    <p
+                        className="text-[11px]"
+                        style={{
+                            color: mixedProbe.timeLike ? 'var(--text-secondary)' : 'var(--danger, #ef4444)',
+                            opacity: mixedProbe.timeLike ? 0.8 : 1,
+                        }}
+                    >
+                        {mixedProbe.timeLike
+                            ? t('echart.jsonMixedTimeOk')
+                            : t('echart.jsonMixedNeedsTime', {
+                                  label: mixedProbe.sampleLabel ?? '?',
+                              })}
+                    </p>
+                    {/* One click out of the dead end — but only when no history
+                        series would be dragged onto the payload source with it. */}
+                    {!mixedProbe.timeLike && allSeriesJson && (
+                        <button
+                            onClick={() => onWidgetOption({ echartMode: 'json' })}
+                            className="mt-1.5 text-[11px] px-2.5 py-1 rounded-md hover:opacity-80 transition-opacity"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            {t('echart.jsonUseCategoryMode')}
+                        </button>
+                    )}
                 </div>
             )}
 

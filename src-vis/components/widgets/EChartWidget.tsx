@@ -408,6 +408,20 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             })
             .filter((p): p is [number, number] => p !== null)
             .sort((a, b) => a[0] - b[0]);
+    // Every point of a JSON series dropped for want of a timestamp: on the shared time axis a
+    // label like "01" has no x coordinate. The payload DID parse, so `hasAnyData` says yes and the
+    // chart would draw an empty frame with no explanation — only the mode with the category axis
+    // can show labels like that, and the empty state says so.
+    const jsonLabelsNoTime =
+        echartMode !== 'json' &&
+        echartMode !== 'comparison' &&
+        echartSeries.length > 0 &&
+        echartSeries.some((s) => sourceOf(s) === 'json' && (seriesDataMap.get(s.id)?.points?.length ?? 0) > 0) &&
+        echartSeries.every((s) =>
+            sourceOf(s) === 'json'
+                ? jsonTimePoints(s.id).length === 0
+                : (seriesDataMap.get(s.id)?.data.length ?? 0) === 0,
+        );
     const seriesData = (idx: number, id: string): [number, number][] => {
         if (previewData) return previewData[idx];
         // JSON series bring their whole dataset in the datapoint value — no history, and hence
@@ -453,9 +467,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // show an empty axis frame.
     const allDelta = echartSeries.length > 0 && echartSeries.every((s) => s.aggregate === 'delta');
     const effHasData =
-        isPreview ||
-        hasAnyData ||
-        (echartSeries.length > 0 && !allLoading && !allDelta && (dayWindow !== null || hasHistory));
+        !jsonLabelsNoTime &&
+        (isPreview ||
+            hasAnyData ||
+            (echartSeries.length > 0 && !allLoading && !allDelta && (dayWindow !== null || hasHistory)));
     const effLoading = !isPreview && allLoading;
 
     // ── Shared y axes and current-value block (used by the timeseries and JSON branches) ──
@@ -1420,7 +1435,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         style={{ color: 'var(--text-secondary)' }}
                     >
                         <BarChart2 size={28} strokeWidth={1.5} />
-                        <span className="text-xs">{t('echart.noData')}</span>
+                        <span className="text-xs text-center px-2">
+                            {jsonLabelsNoTime ? t('echart.noDataJsonLabels') : t('echart.noData')}
+                        </span>
                     </div>
                 )}
                 {hasSize && effHasData && (

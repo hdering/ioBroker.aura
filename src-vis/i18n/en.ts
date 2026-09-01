@@ -1299,7 +1299,8 @@ export const en: Record<TranslationKey, string> = {
         'Time axis instead of categories — accepts epoch in ms or s and ISO dates. Entries without a valid timestamp are dropped.',
     'echart.jsonMixedTimeOk': 'Label is a timestamp — the series is drawn on the same time axis as the history data.',
     'echart.jsonMixedNeedsTime':
-        'The label is not a timestamp. In a timeseries chart every entry needs one (epoch in ms/s or an ISO date) — other entries are dropped. Pick the JSON mode for labels without a timestamp.',
+        'The label “{label}” is not a timestamp. In a timeseries chart every entry needs one (epoch in ms/s or an ISO date) — other entries are dropped and the chart stays empty. Use the “Categories (JSON)” mode for labels like this.',
+    'echart.jsonUseCategoryMode': 'Switch to “Categories (JSON)”',
     'echart.jsonAxisBounds': 'Take the y-axis bounds from the JSON',
     'echart.jsonAxisBoundsHint':
         'The datapoint may carry a min/max block next to its data. Applies to the axis of that series and overrules the fixed value — examples below.',
@@ -1382,6 +1383,7 @@ export const en: Record<TranslationKey, string> = {
     'echart.globalActive': 'Global setting active – click to set a custom value',
     'echart.resetToGlobal': 'Reset to global setting',
     'echart.noData': 'No data',
+    'echart.noDataJsonLabels': 'Labels are not timestamps — use the “Categories (JSON)” mode',
     'echart.preview': 'Preview',
     'echart.historyInstance': 'History instance',
 
