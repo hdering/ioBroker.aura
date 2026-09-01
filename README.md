@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.52.5 (2026-09-01)
+- Chart (advanced) - in "manage datapoints" the mode is picked on its description card (the duplicate button row is gone), and the JSON mode is now called "Categories (JSON)" to tell it apart from a time series with a JSON data source
+- Chart (advanced) - a JSON series whose labels are no timestamps no longer fails silently in a time series: the empty chart and the series editor both name the reason, and the editor offers to switch to "Categories (JSON)"
+
+
 ### 0.52.4 (2026-09-01)
 - Chart (advanced) - a JSON series now shows the accepted JSON shapes right under its datapoint, unfolded until the payload could be read
 
@@ -228,25 +233,6 @@ Release v0.50.6
 - 🌟 **New feature:** Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value ([#584](https://github.com/hdering/ioBroker.aura/issues/584))
 
 
-### 0.50.0 (2026-08-25)
-- 🌟 **New feature:** Selection field - entries can now be read from a datapoint holding JSON instead of the manual list ([#577](https://github.com/hdering/ioBroker.aura/issues/577))
-- 🌟 **New feature:** Conditions - rules can now override a widget's title, icon, icon size and value text, plus border width, corner radius and opacity ([#96](https://github.com/hdering/ioBroker.aura/issues/96))
-- 🌟 **New feature:** Lists - conditions per row: colour, icon, text and visibility of name, value and icon; clause datapoints may use {{parent}} and are resolved per row ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
-- 🌟 **New feature:** Dynamic list - rows can now show an icon in front of the name, set per datapoint together with its size ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
-- 🌟 **New feature:** Lists - second line: value-to-text table (true becomes ONLINE) and its own conditions per datapoint ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
-- 🌟 **New feature:** Lists - a custom filter can now read the row name and exclude with "does not contain", which the search field cannot do ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
-- 🌟 **New feature:** Lists - sorting is now a dialog with a chain of criteria: row name, value or a datapoint of the second line, compared as number, text, active first or an order you type out; rows without a value stay at the end ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
-- 🌟 **New feature:** Universal - conditions are now offered for title, unit, text, field, icon, image and button cells as well
-- 🌟 **New feature:** Conditions - the widget level gained bold/italic and the element level gained pulse/blink, so both offer the same set
-- 🌟 **New feature:** Conditions - the rule dialog now puts the card style and the element blocks side by side instead of stacking them full width
-- 🌟 **New feature:** Conditions - hiding the title now works in a custom layout too
-- 🌟 **New feature:** HTML and value widgets - bindings now work with umlauts and other non-ASCII letters in datapoint ids ([#578](https://github.com/hdering/ioBroker.aura/issues/578))
-- 🌟 **New feature:** Conditions - a rule now configures a widget's title, icon and value each in one place: visibility, text or icon, colour and weight; unset colour fields show an empty swatch and every field previews what the widget shows today
-- 🌟 **New feature:** Conditions - a new effect pulses a ring around the frame instead of dimming the whole card, in a colour of its own, and border width, corner radius and opacity are picked from a list ([#96](https://github.com/hdering/ioBroker.aura/issues/96))
-- 🌟 **New feature:** Conditions - the rule dialog for list rows, second-line datapoints and custom-layout cells now has the same two-column layout as the widget rules, and its visibility switch offers unchanged/adjust/hide
-- 🌟 **New feature:** Lists - the settings sections (display, values & colours, statistics, ...) now start collapsed
-
-
 ## License
 
 MIT License
@@ -258,6 +244,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
