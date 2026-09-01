@@ -36,6 +36,7 @@ const {
     findWidget,
     mergeWidget,
     NODE_FIELDS,
+    reorderNodes,
     updateNode,
     collectDefIds,
     replaceTabWidgets,
@@ -467,20 +468,25 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all twenty-one tools are announced with descriptions', () => {
+check('all twenty-six tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_backups',
+        'aura_copy_widget',
         'aura_create_layout',
         'aura_create_section',
         'aura_create_tab',
         'aura_dashboard',
         'aura_delete',
         'aura_group',
+        'aura_insert_preset',
         'aura_popup',
         'aura_popups',
+        'aura_presets',
         'aura_rename',
+        'aura_reorder',
         'aura_restore',
+        'aura_save_preset',
         'aura_tab',
         'aura_update_node',
         'aura_update_widget',
@@ -1418,6 +1424,241 @@ check('an older backup does not wipe what it never held', () => {
     // Writing null over the live popups would turn a restore into a second accident.
     assert.equal(adapter.states['config.popup-config'], popupsBefore);
     assert.match(partial.content[0].text, /\(dashboard\)/);
+});
+
+// ── The widget frame itself ──────────────────────────────────────────────────
+// The one level that used to pass unchecked.
+
+check('a wrongly typed frame field is caught', () => {
+    assert.ok(hasError(validateWidget({ ...OK_SWITCH, mobileOrder: 'zwei' }, schema), /"mobileOrder": string/));
+    assert.deepEqual(validateWidget({ ...OK_SWITCH, mobileOrder: 2 }, schema).errors, []);
+});
+
+check('a stray top-level key is a warning, not a rejection', () => {
+    // AURA ignores it rather than breaking, so an error would be too harsh —
+    // but staying silent is how a typo survives forever.
+    const res = validateWidget({ ...OK_SWITCH, mobilOrder: 2 }, schema);
+    assert.deepEqual(res.errors, []);
+    assert.ok(hasWarning(res, /"mobilOrder" gehört nicht zu einem Widget/));
+    assert.ok(hasWarning(res, /meintest du "mobileOrder"/));
+});
+
+check('groupDefs may ride along without being flagged', () => {
+    // Import payloads carry it next to the widget; it is not part of one.
+    assert.deepEqual(validateWidget({ ...OK_SWITCH, groupDefs: { d1: [] } }, schema).warnings, []);
+});
+
+// ── Reordering ───────────────────────────────────────────────────────────────
+
+check('reorderNodes demands the complete set', () => {
+    const list = [
+        { id: 'a', name: 'Eins', slug: 'eins' },
+        { id: 'b', name: 'Zwei', slug: 'zwei' },
+    ];
+    // Omission must not read as deletion.
+    assert.match(reorderNodes(list, ['Eins'], 'Tabs').error, /es fehlen: "Zwei"/);
+    assert.match(reorderNodes(list, ['Eins', 'Drei'], 'Tabs').error, /"Drei" gibt es .* nicht/);
+    assert.match(reorderNodes(list, ['Eins', 'Eins'], 'Tabs').error, /mehrfach/);
+    assert.deepEqual(
+        reorderNodes(list, ['Zwei', 'eins'], 'Tabs').ordered.map((x) => x.id),
+        ['b', 'a'],
+    );
+});
+
+// Earlier blocks renamed and deleted their way through the fixture, so this one
+// builds what it needs instead of inheriting it.
+await client.callTool({ name: 'aura_create_layout', arguments: { name: 'Werkbank' } });
+await client.callTool({
+    name: 'aura_create_tab',
+    arguments: { name: 'Eins', layout: 'Werkbank', section: 'Standard' },
+});
+await client.callTool({
+    name: 'aura_create_tab',
+    arguments: { name: 'Zwei', layout: 'Werkbank', section: 'Standard' },
+});
+
+const reordered = await client.callTool({
+    name: 'aura_reorder',
+    arguments: { kind: 'tab', layout: 'Werkbank', section: 'Standard', order: ['Zwei', 'Eins', 'Dashboard'] },
+});
+check('tabs are reordered through the endpoint', () => {
+    assert.ok(!reordered.isError, reordered.content[0].text);
+    const wb = JSON.parse(adapter.states['config.dashboard']).state.layouts.find((l) => l.name === 'Werkbank');
+    assert.deepEqual(
+        wb.sections[0].tabs.map((t) => t.name),
+        ['Zwei', 'Eins', 'Dashboard'],
+    );
+});
+
+const reorderIncomplete = await client.callTool({
+    name: 'aura_reorder',
+    arguments: { kind: 'tab', layout: 'Werkbank', section: 'Standard', order: ['Eins'] },
+});
+check('an incomplete order is refused rather than dropping a tab', () => {
+    assert.ok(reorderIncomplete.isError);
+    assert.match(reorderIncomplete.content[0].text, /muss alle Tabs enthalten/);
+    const wb = JSON.parse(adapter.states['config.dashboard']).state.layouts.find((l) => l.name === 'Werkbank');
+    assert.equal(wb.sections[0].tabs.length, 3, 'nothing may have been dropped');
+});
+
+const layoutNames = JSON.parse(adapter.states['config.dashboard']).state.layouts.map((l) => l.name);
+const wantOrder = [...layoutNames].reverse();
+const reorderLayouts = await client.callTool({ name: 'aura_reorder', arguments: { kind: 'layout', order: wantOrder } });
+check('layouts are reordered too', () => {
+    assert.ok(!reorderLayouts.isError, reorderLayouts.content[0].text);
+    assert.deepEqual(
+        JSON.parse(adapter.states['config.dashboard']).state.layouts.map((l) => l.name),
+        wantOrder,
+    );
+});
+
+// ── Copy and move ────────────────────────────────────────────────────────────
+
+adapter.states['config.group-defs'] = JSON.stringify({
+    version: 0,
+    state: { defs: { dg: [{ ...OK_SWITCH, id: 'kind' }] }, hydrated: true },
+});
+await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: 'Eins',
+        layout: 'Werkbank',
+        widget: JSON.stringify({
+            id: 'quelle',
+            type: 'group',
+            title: 'Gruppe',
+            datapoint: '',
+            gridPos: { x: 0, w: 12, h: 8 },
+            options: { defId: 'dg' },
+        }),
+    },
+});
+
+const copied = await client.callTool({
+    name: 'aura_copy_widget',
+    arguments: { widgetId: 'quelle', toTab: 'Zwei', layout: 'Werkbank' },
+});
+check('a copied group gets its own children, not a shared reference', () => {
+    assert.ok(!copied.isError, copied.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const wz = layouts.find((l) => l.name === 'Werkbank').sections[0];
+    const klima = wz.tabs.find((t) => t.name === 'Zwei');
+    const copy = klima.widgets.find((w) => w.id !== 'quelle' && w.type === 'group');
+    assert.ok(copy, 'the copy must be in the target tab');
+    // Sharing the defId would make editing the copy change the original.
+    assert.notEqual(copy.options.defId, 'dg');
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.ok(defs[copy.options.defId], 'the copied children must exist under the new id');
+    assert.ok(defs.dg, 'the original children must be untouched');
+    assert.match(copied.content[0].text, /Gruppen-Kinder wurden mitkopiert/);
+});
+
+const sameTab = await client.callTool({
+    name: 'aura_copy_widget',
+    arguments: { widgetId: 'quelle', toTab: 'Eins', layout: 'Werkbank' },
+});
+check('copying into the tab it already sits in is refused', () => {
+    assert.ok(sameTab.isError);
+    assert.match(sameTab.content[0].text, /liegt bereits/);
+});
+
+const moved = await client.callTool({
+    name: 'aura_copy_widget',
+    arguments: { widgetId: 'quelle', toTab: 'Zwei', layout: 'Werkbank', mode: 'move' },
+});
+check('a move takes the widget out of the source tab', () => {
+    assert.ok(!moved.isError, moved.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const wz = layouts.find((l) => l.name === 'Werkbank').sections[0];
+    assert.ok(!wz.tabs.find((t) => t.name === 'Eins').widgets.some((w) => w.id === 'quelle'));
+    assert.ok(wz.tabs.find((t) => t.name === 'Zwei').widgets.some((w) => w.id === 'quelle'));
+});
+
+// ── Presets ──────────────────────────────────────────────────────────────────
+
+const noPresets = await client.callTool({ name: 'aura_presets', arguments: {} });
+check('an empty preset store says so', () => {
+    assert.match(noPresets.content[0].text, /Keine Widget-Vorlagen/);
+});
+
+const saved = await client.callTool({
+    name: 'aura_save_preset',
+    arguments: { widgetId: 'quelle', name: 'Meine Gruppe', icon: '🏠' },
+});
+check('a widget is saved as a preset, with its group children', () => {
+    assert.ok(!saved.isError, saved.content[0].text);
+    const presets = JSON.parse(adapter.states['config.widget-presets']).state.presets;
+    assert.equal(presets.length, 1);
+    assert.equal(presets[0].name, 'Meine Gruppe');
+    assert.equal(presets[0].icon, '🏠');
+    // Without the children the blueprint would insert an empty group.
+    assert.ok(presets[0].groupDefs && Object.keys(presets[0].groupDefs).length);
+    assert.match(saved.content[0].text, /mit 1 Gruppen-Definition/);
+});
+
+const inserted = await client.callTool({
+    name: 'aura_insert_preset',
+    arguments: { preset: 'Meine Gruppe', tab: 'Eins', layout: 'Werkbank' },
+});
+check('a preset is inserted with fresh ids', () => {
+    assert.ok(!inserted.isError, inserted.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const licht = layouts.find((l) => l.name === 'Werkbank').sections[0].tabs.find((t) => t.name === 'Eins');
+    const made = licht.widgets.find((w) => w.type === 'group');
+    assert.ok(made && made.id.startsWith('w-'), 'a new id, not the blueprint one');
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.ok(defs[made.options.defId], 'its children must have been registered');
+});
+
+const insertedTwice = await client.callTool({
+    name: 'aura_insert_preset',
+    arguments: { preset: 'Meine Gruppe', tab: 'Eins', layout: 'Werkbank' },
+});
+check('inserting the same preset twice does not make them share children', () => {
+    assert.ok(!insertedTwice.isError, insertedTwice.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const licht = layouts.find((l) => l.name === 'Werkbank').sections[0].tabs.find((t) => t.name === 'Eins');
+    const groups = licht.widgets.filter((w) => w.type === 'group');
+    assert.equal(groups.length, 2);
+    assert.notEqual(groups[0].options.defId, groups[1].options.defId);
+    assert.notEqual(groups[0].id, groups[1].id);
+});
+
+const repointed = await client.callTool({
+    name: 'aura_insert_preset',
+    arguments: { preset: 'Meine Gruppe', tab: 'Zwei', layout: 'Werkbank', datapoint: 'zigbee.0.temp' },
+});
+check('a preset can be re-pointed at another datapoint on insert', () => {
+    assert.ok(!repointed.isError, repointed.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const klima = layouts.find((l) => l.name === 'Werkbank').sections[0].tabs.find((t) => t.name === 'Zwei');
+    const made = klima.widgets.filter((w) => w.type === 'group').pop();
+    assert.equal(made.datapoint, 'zigbee.0.temp');
+});
+
+const unknownPreset = await client.callTool({
+    name: 'aura_insert_preset',
+    arguments: { preset: 'gibtsnicht', tab: 'Eins', layout: 'Werkbank' },
+});
+check('an unknown preset lists what is there', () => {
+    assert.ok(unknownPreset.isError);
+    assert.match(unknownPreset.content[0].text, /Meine Gruppe/);
+});
+
+const beforePresets = adapter.states['config.widget-presets'];
+const savedSecond = await client.callTool({
+    name: 'aura_save_preset',
+    arguments: { widgetId: 'quelle', name: 'Zweite' },
+});
+const restoredPresets = await client.callTool({
+    name: 'aura_restore',
+    arguments: { backup: savedSecond.content[0].text.match(/mcp-[\w.-]+\.json/)[0] },
+});
+check('a preset write is covered by the backup it announces', () => {
+    // Presets are a fourth writable state; leaving them out of the snapshot would
+    // make the "Sicherung: ..." line a promise the restore cannot keep.
+    assert.ok(!restoredPresets.isError, restoredPresets.content[0].text);
+    assert.equal(adapter.states['config.widget-presets'], beforePresets);
 });
 
 // ── Token generation (the button in the adapter config) ──────────────────────

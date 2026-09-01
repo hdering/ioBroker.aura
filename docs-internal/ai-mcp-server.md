@@ -25,13 +25,13 @@ Anweisung, es zu sagen und aufzuhören, statt IDs zu raten.
 
 ## Arbeitsteilung
 
-| Frage | ioBroker-MCP | Aura |
-| --- | --- | --- |
-| Welche Datenpunkte, Räume, Gewerke gibt es? | ✅ | — |
-| Welche Widget-Typen, welche Optionen? | — | ✅ |
-| Wie sieht das Dashboard heute aus? | — | ✅ |
-| Ist dieses JSON gültig? | — | ✅ |
-| Ändern | — | ✅ |
+| Frage                                       | ioBroker-MCP | Aura |
+| ------------------------------------------- | ------------ | ---- |
+| Welche Datenpunkte, Räume, Gewerke gibt es? | ✅           | —    |
+| Welche Widget-Typen, welche Optionen?       | —            | ✅   |
+| Wie sieht das Dashboard heute aus?          | —            | ✅   |
+| Ist dieses JSON gültig?                     | —            | ✅   |
+| Ändern                                      | —            | ✅   |
 
 Das Modell erfährt das nicht aus der Doku, sondern aus dem `instructions`-Block,
 den der Server bei `initialize` mitschickt (`INSTRUCTIONS` in `lib/mcp/tools.js`).
@@ -52,13 +52,13 @@ je Schritt statt einer `<ol>`):
 
 Felder:
 
-| Feld | Vorgabe | Bedeutung |
-| --- | --- | --- |
-| MCP-Endpunkt aktivieren | **aus** | Ohne Haken antwortet `/mcp` mit 404 |
-| MCP-Token | leer | **Pflicht.** Ohne Token weist der Endpunkt jede Anfrage mit 503 ab |
-| Was die KI darf | **Nur lesen** | `read` → `write` → `rename` → `delete`, jede Stufe schließt die vorherigen ein |
-| Token erzeugen | — | Knopf; erzeugt 32 Hex-Zeichen aus dem CSPRNG. Die Instanz muss laufen (`sendTo`) |
-| Client-Konfiguration | leer | Wird vom Knopf mitbefüllt: der fertige `mcpServers`-Block zum Kopieren |
+| Feld                    | Vorgabe       | Bedeutung                                                                        |
+| ----------------------- | ------------- | -------------------------------------------------------------------------------- |
+| MCP-Endpunkt aktivieren | **aus**       | Ohne Haken antwortet `/mcp` mit 404                                              |
+| MCP-Token               | leer          | **Pflicht.** Ohne Token weist der Endpunkt jede Anfrage mit 503 ab               |
+| Was die KI darf         | **Nur lesen** | `read` → `write` → `rename` → `delete`, jede Stufe schließt die vorherigen ein   |
+| Token erzeugen          | —             | Knopf; erzeugt 32 Hex-Zeichen aus dem CSPRNG. Die Instanz muss laufen (`sendTo`) |
+| Client-Konfiguration    | leer          | Wird vom Knopf mitbefüllt: der fertige `mcpServers`-Block zum Kopieren           |
 
 Der Knopf baut den Block vollständig zusammen (`lib/mcp/clientConfig.js`):
 
@@ -82,13 +82,13 @@ für immer grün geblieben, während `main.js` davon wegdriftet.
 
 ```json
 {
-  "mcpServers": {
-    "aura": {
-      "type": "http",
-      "url": "http://192.168.188.168:8095/mcp",
-      "headers": { "Authorization": "Bearer <Token>" }
+    "mcpServers": {
+        "aura": {
+            "type": "http",
+            "url": "http://192.168.188.168:8095/mcp",
+            "headers": { "Authorization": "Bearer <Token>" }
+        }
     }
-  }
 }
 ```
 
@@ -140,26 +140,30 @@ Die Stufe steht auch in den `instructions`: das Modell weiß beim Verbinden, was
 darf, und plant nichts, was es hinterher nicht ausführen kann. Auf `read` wird es
 angewiesen, das JSON zum manuellen Import anzubieten.
 
-| Werkzeug | Zweck | Stufe |
-| --- | --- | --- |
-| `aura_dashboard` | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite | read |
-| `aura_widget_types` | Alle Typen kompakt | read |
-| `aura_widget_schema` | Volle Optionen der genannten Typen | read |
-| `aura_tab` | Widgets eines Tabs inkl. `groupDefs` | read |
-| `aura_validate` | Prüfung gegen Schema und Live-Datenpunkte | read |
-| `aura_add_widget` | Ein Widget anfügen | write |
-| `aura_write_tab` | Widgetliste eines Tabs ersetzen | write |
-| `aura_create_tab` | Neuen Tab anlegen, leer oder gefüllt | write |
-| `aura_create_section` | Neuen Bereich (Menüeintrag) anlegen, mit einem Start-Tab | write |
-| `aura_create_layout` | Neues Layout mit eigener URL anlegen, mit Bereich und Tab | write |
-| `aura_popups` / `aura_popup` | Popup-Ansichten auflisten / eine lesen | read |
-| `aura_write_popup` | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`) | write |
-| `aura_group` / `aura_write_group` | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen | read/write |
-| `aura_update_widget` | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe | write |
-| `aura_update_node` | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen | write |
-| `aura_rename` | Layout, Bereich, Tab oder Popup umbenennen — der Slug bleibt | rename |
-| `aura_delete` | Widget, Tab, Bereich, Layout oder Popup löschen | delete |
-| `aura_backups` / `aura_restore` | Sicherungen auflisten / eine zurückspielen | read / write |
+| Werkzeug                              | Zweck                                                                                                       | Stufe        |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------ |
+| `aura_dashboard`                      | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite                                                          | read         |
+| `aura_widget_types`                   | Alle Typen kompakt                                                                                          | read         |
+| `aura_widget_schema`                  | Volle Optionen der genannten Typen                                                                          | read         |
+| `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                        | read         |
+| `aura_validate`                       | Prüfung gegen Schema und Live-Datenpunkte                                                                   | read         |
+| `aura_add_widget`                     | Ein Widget anfügen                                                                                          | write        |
+| `aura_write_tab`                      | Widgetliste eines Tabs ersetzen                                                                             | write        |
+| `aura_create_tab`                     | Neuen Tab anlegen, leer oder gefüllt                                                                        | write        |
+| `aura_create_section`                 | Neuen Bereich (Menüeintrag) anlegen, mit einem Start-Tab                                                    | write        |
+| `aura_create_layout`                  | Neues Layout mit eigener URL anlegen, mit Bereich und Tab                                                   | write        |
+| `aura_popups` / `aura_popup`          | Popup-Ansichten auflisten / eine lesen                                                                      | read         |
+| `aura_write_popup`                    | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`)                                                 | write        |
+| `aura_group` / `aura_write_group`     | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen                                                    | read/write   |
+| `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe                                     | write        |
+| `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen | write        |
+| `aura_reorder`                        | Layouts, Bereiche oder Tabs neu sortieren — die Reihenfolge muss vollständig sein                           | write        |
+| `aura_copy_widget`                    | Ein Widget in einen anderen Tab kopieren oder verschieben (`mode:"move"`)                                   | write        |
+| `aura_presets` / `aura_insert_preset` | Widget-Vorlagen auflisten / eine einfügen                                                                   | read / write |
+| `aura_save_preset`                    | Ein vorhandenes Widget als Vorlage sichern                                                                  | write        |
+| `aura_rename`                         | Layout, Bereich, Tab oder Popup umbenennen — der Slug bleibt                                                | rename       |
+| `aura_delete`                         | Widget, Tab, Bereich, Layout oder Popup löschen                                                             | delete       |
+| `aura_backups` / `aura_restore`       | Sicherungen auflisten / eine zurückspielen                                                                  | read / write |
 
 ## Warum Validierung der eigentliche Gewinn ist
 
@@ -197,6 +201,18 @@ Frontend eindeutig gemacht und transliteriert (`garten`, `garten-2`, `kueche`).
 Bereich einen Tab — genau wie im Editor. Ein Bereich ohne Tabs hat nichts
 anzuzeigen und keine `activeTabId`, auf die er zeigen könnte.
 
+**Umsortieren verlangt die vollständige Reihenfolge.** `aura_reorder` nimmt keine
+Teilliste entgegen: fehlt ein Eintrag, wird abgelehnt statt gelöscht. Ein Modell,
+das nur „Klima nach vorn“ meint, aber nur diesen einen Namen schickt, würde sonst
+den Rest des Bereichs entfernen. Namen, Slugs und Ids sind gleichwertig.
+
+**Kopieren klont die Gruppen-Kinder mit.** Ein Gruppen-, Panels- oder Universal-Widget
+verweist über `options.defId` auf seine Kinder in `config.group-defs`. Würde die
+Kopie dieselbe `defId` behalten, änderte jede spätere Bearbeitung der Kopie auch
+das Original. `aura_copy_widget` und `aura_insert_preset` vergeben deshalb neue Ids
+für Widget **und** Definitionen, rekursiv. Beim Verschieben (`mode:"move"`) bleibt
+die `defId` erhalten — es ist dasselbe Widget an einem anderen Ort.
+
 **Ein Widget ändern verliert sonst Optionen.** `aura_update_widget` **merged**
 statt zu ersetzen: `options` werden Schlüssel für Schlüssel zusammengeführt, ein
 auf `null` gesetzter Schlüssel wird entfernt. Würde der Patch das Widget ersetzen,
@@ -228,8 +244,11 @@ nicht an. Täte es das, könnte die Stufe `write` die Stufe `rename` umgehen.
 zurück war das nur die halbe Absicherung. `aura_restore` legt zuerst einen
 Schnappschuss des aktuellen Standes an, damit auch das Zurückspielen der falschen
 Sicherung umkehrbar bleibt, und schreibt nur die States, die die Datei wirklich
-enthält: eine ältere Sicherung kennt `popup-config` noch nicht, und `null`
-darüberzuschreiben machte aus der Rettung einen zweiten Unfall. Der Dateiname wird
+enthält: eine ältere Sicherung kennt `popup-config` oder `widget-presets` noch
+nicht, und `null` darüberzuschreiben machte aus der Rettung einen zweiten Unfall.
+Umgekehrt muss der Schnappschuss jeden beschreibbaren State abdecken — kam ein
+vierter dazu (die Vorlagen), war die angekündigte Sicherung sonst für genau die
+Änderung wertlos, die sie begleitete. Der Dateiname wird
 gegen ein Muster geprüft, bevor er an `readFile` geht.
 
 **Popup- und Gruppen-Raster.** Beide haben ihr eigenes Raster, deshalb gilt dort
@@ -239,7 +258,7 @@ weggelassen.
 ## Vier weitere Stellen
 
 **Bestehende Widgets dürfen nicht blockieren.** Ein Widget anzufügen prüft nur
-das *neue* Widget streng (`strictIndices`). Sonst würde ein einziges vor drei
+das _neue_ Widget streng (`strictIndices`). Sonst würde ein einziges vor drei
 Versionen angelegtes Widget mit einer inzwischen umbenannten Option jeden
 Schreibvorgang in einem gewachsenen Dashboard verhindern. Überlappungen und
 doppelte IDs werden weiterhin über den ganzen Tab geprüft — das sind
