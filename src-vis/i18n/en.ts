@@ -403,6 +403,17 @@ export const en: Record<TranslationKey, string> = {
     'sections.hideFromMenuHint': 'Remove this section from the left-hand menu. Still reachable via its direct URL.',
     'sections.hideMenuHere': 'Hide menu here',
     'sections.hideMenuHereHint': 'Hide the section menu while this section is open – e.g. for a fixed tablet.',
+    // ── PIN protection (sections / tabs) ────────────────────────────────────────
+    'pin.field': 'PIN',
+    'pin.placeholder': 'e.g. 1234',
+    'pin.hint': 'Empty = no protection. The content only appears once the PIN was entered.',
+    'pin.keepUnlocked': 'Stay unlocked',
+    'pin.keepUnlockedHint':
+        'Stay open after unlocking until the page is reloaded. Off: locks again as soon as you navigate away.',
+    'pin.promptSection': 'This section is protected by a PIN.',
+    'pin.promptTab': 'This tab is protected by a PIN.',
+    'pin.wrong': 'Wrong PIN',
+
     'sections.defaultSection': 'Layout default',
     'sections.setDefaultSection':
         "Make this the layout's default section – it opens here and idle-return comes back to it.",

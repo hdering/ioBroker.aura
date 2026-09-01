@@ -5,6 +5,7 @@ import { useGroupDefsStore, newGroupDefId } from './groupDefsStore';
 import { cloneWidget, finishClone, makeIdDeduper, newCloneScope, remapWidgetRefs } from '../utils/widgetCopy';
 import { slugify } from '../utils/slugify';
 import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate } from '../types';
+import type { PinRelock } from '../utils/pinLock';
 import type { AllVars } from '../themes';
 
 // ── Tab bar items (clock / datapoint / static text) ───────────────────────────
@@ -190,6 +191,8 @@ export interface Tab {
     conditions?: WidgetCondition[]; // DP-based style/visibility conditions for tab button
     badges?: BadgeDef[]; // own overlay badges on the tab button
     badgeAggregate?: BadgeAggregate; // auto-count of widgets on this tab that show a badge
+    pin?: string; // PIN gate: the tab's content only renders after this code was entered
+    pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
 }
 
 /**
@@ -208,6 +211,8 @@ export interface Section {
     hidden?: boolean; // removed from the section menu, but still reachable via its direct slug URL
     badges?: BadgeDef[]; // own overlay badges on the section menu entry
     badgeAggregate?: BadgeAggregate; // auto-count of widgets across the section's tabs that show a badge
+    pin?: string; // PIN gate for the whole section (its tabs included)
+    pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
     settings?: LayoutSettings; // per-section content overrides (undefined = inherit)
 }
 
@@ -417,6 +422,8 @@ interface DashboardState {
                 | 'disabled'
                 | 'hidden'
                 | 'conditions'
+                | 'pin'
+                | 'pinRelock'
                 | 'badges'
                 | 'badgeAggregate'
             >

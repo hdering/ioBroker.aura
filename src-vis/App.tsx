@@ -56,6 +56,9 @@ import { themeModeOverride, useThemeModeStore, writeCachedThemeMode, type ThemeM
 import { baseDpId } from './utils/dpRef';
 import { initPerfMetrics, setPerfTracking, reportBackendPing } from './utils/perfMetrics';
 import { setBreakdownTracking, recordBackendCall } from './utils/perfBreakdown';
+import { PinPrompt } from './components/common/PinPrompt';
+import { usePinStore, unlockedReader } from './store/pinStore';
+import { activePinKeys, pendingPinTarget, pinEscapeTarget, type EscapeTarget } from './utils/pinLock';
 
 const STORE_REHYDRATORS: Record<string, () => void> = {
     'aura-dashboard': () => useDashboardStore.persist.rehydrate(),
@@ -958,6 +961,62 @@ export default function App() {
         return t?.slug ?? null;
     }, [tabs, activeTabId]);
 
+    // ── PIN gate ─────────────────────────────────────────────────────────────
+    // A section or tab carrying a `pin` renders the unlock keypad instead of its
+    // content until the code was entered. The gate sits here, in front of the
+    // Dashboard, so it covers every way in equally: a click in the section menu,
+    // a click in the tab bar, a widget click-action and a bookmarked slug URL.
+    const unlockedPins = usePinStore((s) => s.unlocked);
+    const unlockPin = usePinStore((s) => s.unlock);
+    const retainPins = usePinStore((s) => s.retain);
+    const isPinUnlocked = useMemo(() => unlockedReader(unlockedPins), [unlockedPins]);
+    const pinTarget = useMemo(
+        () => (shotEditMode ? null : pendingPinTarget(section, activeTab, isPinUnlocked)),
+        [shotEditMode, section, activeTab, isPinUnlocked],
+    );
+
+    // Everything unlocked with the default relock mode falls shut again as soon as
+    // the viewer moves on to another section / tab.
+    const activeKeys = useMemo(() => activePinKeys(section?.id, activeTabId), [section?.id, activeTabId]);
+    useEffect(() => {
+        retainPins(activeKeys);
+    }, [activeKeys, retainPins]);
+
+    // Last view the viewer was actually allowed to see — where "cancel" returns to.
+    const lastFreeViewRef = useRef<EscapeTarget | null>(null);
+    useEffect(() => {
+        if (!pinTarget && section?.id && activeTabId)
+            lastFreeViewRef.current = { sectionId: section.id, tabId: activeTabId };
+    }, [pinTarget, section?.id, activeTabId]);
+
+    const goToView = useCallback(
+        (target: EscapeTarget) => {
+            if (!layout) return;
+            const sec = layout.sections.find((s) => s.id === target.sectionId);
+            if (!sec) return;
+            const base = layout.sections.length > 1 ? `/view/${layout.slug}/s/${sec.slug}` : `/view/${layout.slug}`;
+            const tab = sec.tabs.find((t) => t.id === target.tabId);
+            navigate(tab ? `${base}/tab/${tab.slug ?? tab.id}` : base);
+        },
+        [layout, navigate],
+    );
+
+    // Only offer "cancel" when there is somewhere free to go — on a dashboard whose
+    // every view is locked the prompt would otherwise dismiss into nothing.
+    // A locked section drops its tabs from the bar — the tab names alone would
+    // already give away what is behind the lock. The bar itself stays as long as
+    // it carries something else (the section-menu hamburger, clock/text items),
+    // so the viewer is never stranded on the prompt.
+    const sectionLocked = pinTarget?.scope === 'section';
+
+    const pinEscape = useMemo(
+        () =>
+            pinTarget && layout
+                ? pinEscapeTarget(layout.sections, section?.id, lastFreeViewRef.current, isPinUnlocked)
+                : null,
+        [pinTarget, layout, section?.id, isPinUnlocked],
+    );
+
     // Scope for the message target filter. Slug, id and name are all passed on:
     // a `target` is usually hand-written in a script, so any of the three should hit.
     const messageScope = useMemo<MessageScope>(() => {
@@ -1042,7 +1101,7 @@ export default function App() {
             readonly
             layoutId={layout?.id}
             sectionId={section?.id}
-            viewTabs={tabs}
+            viewTabs={sectionLocked ? [] : tabs}
             viewActiveTabId={activeTabId}
             onViewTabClick={(tab) => {
                 const slug = tab.slug ?? tab.id;
@@ -1220,16 +1279,27 @@ export default function App() {
                     {drawerBarTop && sectionMenuBar}
                     {!tabBarAtBottom && tabBarNode}
                     <div className="flex-1 min-h-0 flex flex-col">
-                        <FocusedWidgetContext.Provider value={focusWidgetId}>
-                            <Dashboard
-                                readonly={!shotEditMode}
-                                editMode={shotEditMode}
-                                viewTabs={tabs}
-                                viewActiveTabId={activeTabId}
-                                layoutId={layout?.id}
-                                sectionId={section?.id}
+                        {pinTarget ? (
+                            <PinPrompt
+                                key={pinTarget.key}
+                                scope={pinTarget.scope}
+                                name={pinTarget.name}
+                                pin={pinTarget.pin}
+                                onUnlock={() => unlockPin(pinTarget.key, pinTarget.relock)}
+                                onCancel={pinEscape ? () => goToView(pinEscape) : undefined}
                             />
-                        </FocusedWidgetContext.Provider>
+                        ) : (
+                            <FocusedWidgetContext.Provider value={focusWidgetId}>
+                                <Dashboard
+                                    readonly={!shotEditMode}
+                                    editMode={shotEditMode}
+                                    viewTabs={tabs}
+                                    viewActiveTabId={activeTabId}
+                                    layoutId={layout?.id}
+                                    sectionId={section?.id}
+                                />
+                            </FocusedWidgetContext.Provider>
+                        )}
                     </div>
                     {tabBarAtBottom && tabBarNode}
                     {drawerBarBottom && sectionMenuBar}

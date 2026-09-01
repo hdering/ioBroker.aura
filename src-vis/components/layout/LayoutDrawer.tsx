@@ -2,13 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Menu, X, LayoutDashboard } from 'lucide-react';
+import { Menu, X, LayoutDashboard, Lock } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDashboardStore } from '../../store/dashboardStore';
 import type { Section, LayoutMenuItem } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { ScrollRow } from './ScrollRow';
 import { useT } from '../../i18n';
+import { hasPin, sectionPinKey } from '../../utils/pinLock';
+import { usePinStore } from '../../store/pinStore';
 import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
 import { useBadges, useTabBadgeAggregate, type ResolvedBadge } from '../../hooks/useBadges';
@@ -379,6 +381,11 @@ export function LayoutDrawer({
     const activeLayout = layouts.find((l) => l.id === activeLayoutId) ?? layouts[0];
     const sections = activeLayout?.sections ?? [];
     const activeSection = sections.find((sec) => sec.id === activeSectionId) ?? sections[0];
+    // Padlock on every PIN-protected section that is still locked — the entry stays
+    // clickable, it just leads to the unlock prompt instead of the content.
+    const unlockedPins = usePinStore((s) => s.unlocked);
+    const sectionLocked = (section: Section): boolean =>
+        hasPin(section) && !(sectionPinKey(section.id) in unlockedPins);
 
     const goToSection = (section: Section) => {
         setOpen(false);
@@ -451,6 +458,9 @@ export function LayoutDrawer({
                             >
                                 {section.name}
                             </span>
+                        )}
+                        {sectionLocked(section) && (
+                            <Lock size={Math.round(fontSize * 0.85)} className="shrink-0 opacity-70" />
                         )}
                         <SectionBadges section={section} />
                     </button>
@@ -540,6 +550,9 @@ export function LayoutDrawer({
                         <span className={`truncate ${isActive ? 'font-semibold' : 'font-medium'}`} style={{ fontSize }}>
                             {section.name}
                         </span>
+                    )}
+                    {sectionLocked(section) && (
+                        <Lock size={Math.round(fontSize * 0.85)} className="shrink-0 opacity-70" />
                     )}
                     <SectionBadges section={section} />
                 </button>

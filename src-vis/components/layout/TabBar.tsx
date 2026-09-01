@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { Settings, X, GripVertical, ChevronDown, ChevronRight, Download, Upload } from 'lucide-react';
+import { Settings, X, GripVertical, ChevronDown, ChevronRight, Download, Upload, Lock } from 'lucide-react';
 import {
     useDashboardStore,
     useActiveLayout,
@@ -19,6 +19,8 @@ import { useT } from '../../i18n';
 import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
 import { tabBarShowsOnOwn } from '../../utils/tabBarVisible';
+import { hasPin, tabPinKey } from '../../utils/pinLock';
+import { usePinStore } from '../../store/pinStore';
 import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
 import { useBadges, useTabBadgeAggregate } from '../../hooks/useBadges';
 import { ConditionEditor } from '../config/ConditionEditor';
@@ -248,6 +250,11 @@ export function TabBar({
 
     const tabs = viewTabs ?? section.tabs;
     const activeTabId = viewActiveTabId ?? section.activeTabId;
+    // A PIN-protected tab wears a padlock until it was unlocked, so the viewer sees
+    // why the tab does not simply open. In the editor the padlock always shows.
+    const unlockedPins = usePinStore((s) => s.unlocked);
+    const tabLocked = (tab: Tab): boolean =>
+        hasPin(tab) && (!readonly || !(tabPinKey(section.id, tab.id) in unlockedPins));
     const globalTabBar = useConfigStore((s) => s.frontend.tabBar);
     // Tab-bar settings cascade global → layout → section (section wins).
     const tbSettings = resolveTabBarSettings(
@@ -475,6 +482,8 @@ export function TabBar({
                                 </span>
                             )}
 
+                            {tabLocked(tab) && <Lock size={tabIconSize} style={{ flexShrink: 0, opacity: 0.8 }} />}
+
                             {tab.icon && (
                                 <span
                                     style={{
@@ -698,6 +707,54 @@ export function TabBar({
                                       style={{ left: settingsTab.hidden ? '18px' : '2px' }}
                                   />
                               </button>
+                          </div>
+
+                          <div>
+                              <label className="text-[11px] block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                  {t('pin.field')}
+                              </label>
+                              <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  autoComplete="off"
+                                  placeholder={t('pin.placeholder')}
+                                  value={settingsTab.pin ?? ''}
+                                  onChange={(e) => updateTab(settingsTabId, { pin: e.target.value || undefined })}
+                                  className={iCls}
+                                  style={iSty}
+                              />
+                              {settingsTab.pin ? (
+                                  <div className="flex items-center justify-between mt-2">
+                                      <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                          {t('pin.keepUnlocked')}
+                                      </label>
+                                      <button
+                                          onClick={() =>
+                                              updateTab(settingsTabId, {
+                                                  pinRelock:
+                                                      settingsTab.pinRelock === 'session' ? undefined : 'session',
+                                              })
+                                          }
+                                          title={t('pin.keepUnlockedHint')}
+                                          className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                          style={{
+                                              background:
+                                                  settingsTab.pinRelock === 'session'
+                                                      ? 'var(--accent)'
+                                                      : 'var(--app-border)',
+                                          }}
+                                      >
+                                          <span
+                                              className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                              style={{ left: settingsTab.pinRelock === 'session' ? '18px' : '2px' }}
+                                          />
+                                      </button>
+                                  </div>
+                              ) : (
+                                  <div className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                                      {t('pin.hint')}
+                                  </div>
+                              )}
                           </div>
 
                           <div>

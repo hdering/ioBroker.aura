@@ -404,6 +404,17 @@ export const de = {
     'sections.hideMenuHere': 'Menü hier verbergen',
     'sections.hideMenuHereHint':
         'Bereichs-Menü ausblenden, wenn dieser Bereich geöffnet ist – z.B. für ein festgelegtes Tablet.',
+    // ── PIN protection (sections / tabs) ────────────────────────────────────────
+    'pin.field': 'PIN',
+    'pin.placeholder': 'z.B. 1234',
+    'pin.hint': 'Leer = kein Schutz. Der Inhalt erscheint erst nach Eingabe der PIN.',
+    'pin.keepUnlocked': 'Offen lassen',
+    'pin.keepUnlockedHint':
+        'Nach dem Entsperren bis zum Neuladen der Seite offen bleiben. Aus: sperrt beim Verlassen sofort wieder.',
+    'pin.promptSection': 'Dieser Bereich ist mit einer PIN geschützt.',
+    'pin.promptTab': 'Dieser Tab ist mit einer PIN geschützt.',
+    'pin.wrong': 'Falsche PIN',
+
     'sections.defaultSection': 'Layout-Standard',
     'sections.setDefaultSection':
         'Diesen Bereich als Standard des Layouts festlegen – das Layout öffnet hier und die Idle-Rückkehr führt hierher.',
