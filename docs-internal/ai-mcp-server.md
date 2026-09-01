@@ -158,7 +158,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab, im Popup oder in einer Gruppe                                            | write        |
 | `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen    | write        |
 | `aura_find`                           | Widgets nach Datenpunkt, Typ oder Titel finden — über Tabs, Gruppen und Popups, inkl. Datenpunkten in Optionen | read         |
-| `aura_copy_node`                      | Tab, Bereich oder Layout kopieren bzw. verschieben (`mode:"move"`)                                             | write        |
+| `aura_copy_node`                      | Tab, Bereich, Layout oder Popup kopieren bzw. verschieben (`mode:"move"`)                                      | write        |
 | `aura_reorder`                        | Layouts, Bereiche oder Tabs neu sortieren — die Reihenfolge muss vollständig sein                              | write        |
 | `aura_copy_widget`                    | Ein Widget in einen anderen Tab kopieren oder verschieben (`mode:"move"`)                                      | write        |
 | `aura_presets` / `aura_insert_preset` | Widget-Vorlagen auflisten / eine einfügen                                                                      | read / write |
@@ -202,6 +202,30 @@ Frontend eindeutig gemacht und transliteriert (`garten`, `garten-2`, `kueche`).
 **Leere Hüllen.** Ein neues Layout bekommt einen Bereich und einen Tab, ein neuer
 Bereich einen Tab — genau wie im Editor. Ein Bereich ohne Tabs hat nichts
 anzuzeigen und keine `activeTabId`, auf die er zeigen könnte.
+
+**Ein Schreibvorgang nach dem anderen.** Jeder Schreibpfad ist
+Lesen-Ändern-Schreiben über zwei bis drei ioBroker-States. Zwei davon gleichzeitig
+lasen dasselbe Dashboard, der zweite überschrieb den ersten — und weil jeder für
+sich gegen seine eigene Grundlage gültig war, meldeten **beide** Erfolg. Ein
+Assistent, der zwei Werkzeugaufrufe parallel absetzt (sie tun das), bekam gesagt,
+er habe zwei Widgets angelegt, und hatte eines. `callTool` hängt Schreibvorgänge
+deshalb pro Adapter-Instanz in eine Promise-Kette; Lesevorgänge laufen weiter
+nebenher, sie können nichts verlieren. Ein abgelehnter Schreibvorgang blockiert
+die Kette nicht (`previous.then(run, run)`).
+
+**Mehrdeutigkeit wird gemeldet, nicht entschieden.** Zwei Fälle, beide durch die
+Gleichstellung der Popups entstanden: eine Widget-Id, die es in mehreren Wirten
+gibt (Ids _sollen_ eindeutig sein, sind es aber nicht garantiert — der Editor hat
+seit #606 einen Dedupe für genau die Zwillinge, die das Kopieren erzeugte), und
+ein Name, der Tab _und_ Popup-Ansicht bezeichnet. Beide Male wird abgelehnt und
+gesagt, welche Orte in Frage kommen; die Id klärt es, weil sie über beide
+Namensräume eindeutig ist. `aura_write_popup` legt aus demselben Grund keine
+zweite Ansicht gleichen Namens mehr an.
+
+**Duplizieren am selben Ort ist erlaubt.** Bei `aura_copy_node` gilt „liegt schon
+dort" nur fürs Verschieben — „dupliziere mir diesen Tab" ist der häufigste
+Kopierwunsch überhaupt und wurde vorher abgewiesen. Popup-Ansichten lassen sich
+ebenfalls kopieren (verschieben nicht: es gibt kein übergeordnetes Element).
 
 **Popups sind kein Sonderfall.** Ein Widget wohnt in einem Tab, in einer
 Popup-Ansicht oder in einer Gruppen-Definition; `locateWidget` findet alle drei

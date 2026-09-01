@@ -23,3 +23,6 @@
   rename saved templates
 - AI assistant (MCP, beta) - popup views can now be edited widget by widget like tabs, deleting a
   group widget cleans up its children, and the schema answers can be narrowed to keep prompts small
+- AI assistant (MCP, beta) - parallel edits no longer overwrite each other, an ambiguous widget id
+  or view name is reported instead of guessed, tabs and popup views can be duplicated, and templates
+  work with popup and group widgets

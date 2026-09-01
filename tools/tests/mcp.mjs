@@ -1874,9 +1874,29 @@ const sameSection = await client.callTool({
     name: 'aura_copy_node',
     arguments: { kind: 'tab', target: 'Eins', fromLayout: 'Werkbank', toLayout: 'Werkbank', toSection: 'Standard' },
 });
-check('copying a tab into the section it already sits in is refused', () => {
-    assert.ok(sameSection.isError);
-    assert.match(sameSection.content[0].text, /liegt bereits/);
+check('a tab can be duplicated where it already is', () => {
+    // "Duplicate this tab" is the commonest copy wish; only a MOVE to the place
+    // it already occupies is pointless.
+    assert.ok(!sameSection.isError, sameSection.content[0].text);
+    const wb = JSON.parse(adapter.states['config.dashboard']).state.layouts.find((l) => l.name === 'Werkbank');
+    const std = wb.sections.find((s) => s.name === 'Standard');
+    assert.ok(std.tabs.some((t) => t.name === 'Eins Kopie'));
+});
+
+const moveToItself = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: {
+        kind: 'tab',
+        target: 'Eins',
+        mode: 'move',
+        fromLayout: 'Werkbank',
+        toLayout: 'Werkbank',
+        toSection: 'Standard',
+    },
+});
+check('moving it there is still refused', () => {
+    assert.ok(moveToItself.isError);
+    assert.match(moveToItself.content[0].text, /liegt bereits/);
 });
 
 const copiedLayout = await client.callTool({
@@ -2087,6 +2107,180 @@ check('brief=true drops the prose but keeps names and types', () => {
     assert.match(b, /- controlMode: /);
     assert.match(b, /WidgetCondition = \{/, 'the referenced types must still be defined');
     assert.ok(!/Vor dem Schalten eine Rückfrage/.test(b), 'descriptions are what goes');
+});
+
+// ── Zwei Schreibvorgänge gleichzeitig ────────────────────────────────────────
+
+{
+    // The suite's double answers in the same microtask, which hides the race
+    // entirely. Real ioBroker states do not, so this one takes its time.
+    const slow = makeAdapter();
+    const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+    const inner = { get: slow.getStateAsync, set: slow.setStateAsync };
+    slow.getStateAsync = async (id) => {
+        await wait(3);
+        return inner.get(id);
+    };
+    slow.setStateAsync = async (id, v) => {
+        await wait(3);
+        return inner.set(id, v);
+    };
+    const raceServer = http.createServer((req, res) => {
+        handleMcpRequest(req, res, { adapter: slow, token: TOKEN, mode: 'delete', version: '1' }).catch(() => {});
+    });
+    await new Promise((r) => raceServer.listen(0, '127.0.0.1', r));
+    const raceClient = new Client({ name: 'race', version: '1' }, { capabilities: {} });
+    await raceClient.connect(
+        new StreamableHTTPClientTransport(new URL(`http://127.0.0.1:${raceServer.address().port}/mcp`), {
+            requestInit: { headers: { Authorization: `Bearer ${TOKEN}` } },
+        }),
+    );
+    const add = (id) =>
+        raceClient.callTool({
+            name: 'aura_add_widget',
+            arguments: {
+                tab: 'Klima',
+                widget: JSON.stringify({ ...OK_SWITCH, id, gridPos: { x: 0, w: 8, h: 4 } }),
+            },
+        });
+    const parallel = await Promise.all([add('par-a'), add('par-b'), add('par-c')]);
+
+    check('three parallel writes all arrive', () => {
+        // Unqueued they read the same dashboard, the last write wins, and every
+        // answer still reports success: the assistant is told it added three
+        // widgets and added one.
+        assert.ok(
+            parallel.every((r) => !r.isError),
+            parallel.map((r) => r.content[0].text).join(' | '),
+        );
+        const tab = allTabs(JSON.parse(slow.states['config.dashboard']).state.layouts).find((t) => t.name === 'Klima');
+        const ids = tab.widgets.map((w) => w.id);
+        for (const id of ['par-a', 'par-b', 'par-c']) {
+            assert.ok(ids.includes(id), `${id} fehlt — ${ids.join(', ')}`);
+        }
+    });
+
+    const reads = await Promise.all([
+        raceClient.callTool({ name: 'aura_dashboard', arguments: {} }),
+        raceClient.callTool({ name: 'aura_widget_types', arguments: { group: 'layout' } }),
+    ]);
+    check('reads are not held up by the write queue', () => {
+        assert.ok(reads.every((r) => !r.isError));
+    });
+    await raceClient.close();
+    raceServer.close();
+}
+
+// ── Mehrdeutigkeit statt stiller Treffer ─────────────────────────────────────
+
+adapter.states['config.popup-config'] = JSON.stringify({
+    version: 0,
+    state: { views: [{ id: 'v-amb', name: 'Zwilling', widgets: [{ ...OK_SWITCH, id: 'zwilling-id' }] }] },
+});
+const hostTab = allTabs(JSON.parse(adapter.states['config.dashboard']).state.layouts)[0];
+await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: hostTab.id,
+        widget: JSON.stringify({ ...OK_SWITCH, id: 'zwilling-id', gridPos: { x: 0, w: 8, h: 4 } }),
+    },
+});
+
+const ambiguousId = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { widgetId: 'zwilling-id', patch: JSON.stringify({ title: 'X' }) },
+});
+check('one id in two places is refused, with both places named', () => {
+    // Ids are meant to be unique but are not guaranteed to be — the editor has a
+    // deduplicator for the twins copying used to produce. First-match-wins would
+    // edit whichever the search happened to reach first.
+    assert.ok(ambiguousId.isError);
+    assert.match(ambiguousId.content[0].text, /gibt es mehrfach/);
+    assert.match(ambiguousId.content[0].text, /Popup „Zwilling“/);
+});
+
+const twinTab = await client.callTool({
+    name: 'aura_create_tab',
+    arguments: { name: 'Zwilling', layout: 'Werkbank', section: 'Standard' },
+});
+assert.ok(!twinTab.isError, twinTab.content[0].text);
+const ambiguousName = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: { tab: 'Zwilling', widget: JSON.stringify({ ...OK_SWITCH, id: 'egal', gridPos: { x: 0, w: 8, h: 4 } }) },
+});
+check('a name that is both a tab and a popup asks which one', () => {
+    assert.ok(ambiguousName.isError);
+    assert.match(ambiguousName.content[0].text, /als Tab .* und als Popup/);
+    assert.match(ambiguousName.content[0].text, /Die Id angeben/);
+});
+
+const byPopupId = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: 'v-amb',
+        widget: JSON.stringify({ ...OK_SWITCH, id: 'per-id', gridPos: { x: 0, w: 8, h: 4 } }),
+    },
+});
+check('and the id settles it', () => {
+    assert.ok(!byPopupId.isError, byPopupId.content[0].text);
+    const view = JSON.parse(adapter.states['config.popup-config']).state.views.find((v) => v.id === 'v-amb');
+    assert.ok(view.widgets.some((w) => w.id === 'per-id'));
+});
+
+// ── Vorlagen aus Popup und Gruppe ────────────────────────────────────────────
+
+const presetFromPopup = await client.callTool({
+    name: 'aura_save_preset',
+    arguments: { widgetId: 'per-id', name: 'Aus dem Popup' },
+});
+check('a widget in a popup can be saved as a template', () => {
+    // aura_save_preset only ever looked in tabs.
+    assert.ok(!presetFromPopup.isError, presetFromPopup.content[0].text);
+});
+
+const intoGroup = await client.callTool({
+    name: 'aura_insert_preset',
+    arguments: { preset: 'Aus dem Popup', widgetId: 'quelle' },
+});
+check('a template can be inserted into a group', () => {
+    assert.ok(!intoGroup.isError, intoGroup.content[0].text);
+    assert.match(intoGroup.content[0].text, /Gruppe /);
+});
+
+// ── Popup-Ansichten kopieren, Namen eindeutig halten ─────────────────────────
+
+const copiedView = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: { kind: 'popup', target: 'Zwilling', name: 'Zwilling Zwei' },
+});
+check('a popup view can be copied, children and all', () => {
+    assert.ok(!copiedView.isError, copiedView.content[0].text);
+    const views = JSON.parse(adapter.states['config.popup-config']).state.views;
+    const copy = views.find((v) => v.name === 'Zwilling Zwei');
+    assert.ok(copy, 'the copy must exist');
+    const source = views.find((v) => v.id === 'v-amb');
+    assert.equal(copy.widgets.length, source.widgets.length);
+    assert.ok(!copy.widgets.some((w) => source.widgets.some((s) => s.id === w.id)), 'fresh ids');
+});
+
+const movedView = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: { kind: 'popup', target: 'Zwilling', mode: 'move' },
+});
+check('moving a popup is refused — there is nothing to move it into', () => {
+    assert.ok(movedView.isError);
+    assert.match(movedView.content[0].text, /verschieben ergibt hier nichts/);
+});
+
+const duplicateName = await client.callTool({
+    name: 'aura_write_popup',
+    arguments: { view: 'Zwilling', create: true, widgets: '[]' },
+});
+check('a second popup of the same name is refused', () => {
+    // Two views of one name make every later lookup ambiguous, and the first
+    // found would silently win from then on.
+    assert.ok(duplicateName.isError);
+    assert.match(duplicateName.content[0].text, /gibt schon eine Ansicht/);
 });
 
 // ── Token generation (the button in the adapter config) ──────────────────────
