@@ -1072,9 +1072,11 @@ const missingWidget = await client.callTool({
     name: 'aura_update_widget',
     arguments: { widgetId: 'nirgendwo', patch: JSON.stringify({ title: 'X' }) },
 });
-check('a widget that exists nowhere points at the defId route', () => {
+check('a widget that exists nowhere says where it was looked for', () => {
+    // Group children and popup widgets are found without being told where they
+    // are, so the old advice ("pass the defId") would now be wrong.
     assert.ok(missingWidget.isError);
-    assert.match(missingWidget.content[0].text, /defId der Gruppe mitgeben/);
+    assert.match(missingWidget.content[0].text, /weder in einem Tab, einem Popup noch in einer Gruppe/);
 });
 
 // ── Permission levels ────────────────────────────────────────────────────────
@@ -1340,6 +1342,36 @@ check('the only section of a layout cannot be deleted', () => {
     assert.match(onlySection.content[0].text, /nur diesen einen Bereich/);
 });
 
+// The group needs a host widget, or the prune that follows every delete drops
+// its children as orphans — which is exactly what it is there for.
+adapter.states['config.group-defs'] = JSON.stringify({
+    version: 0,
+    state: {
+        defs: {
+            d1: [
+                { ...OK_SWITCH, id: 'kind-a' },
+                { ...OK_SWITCH, id: 'kind-b', gridPos: { x: 0, y: 4, w: 8, h: 4 } },
+            ],
+        },
+        hydrated: true,
+    },
+});
+const anyTab = allTabs(JSON.parse(adapter.states['config.dashboard']).state.layouts)[0];
+const host = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: anyTab.id,
+        widget: JSON.stringify({
+            id: 'wirt-d1',
+            type: 'group',
+            title: 'Wirt',
+            datapoint: '',
+            gridPos: { x: 0, w: 12, h: 8 },
+            options: { defId: 'd1' },
+        }),
+    },
+});
+assert.ok(!host.isError, host.content[0].text);
 const deletedWidgetInGroup = await client.callTool({
     name: 'aura_delete',
     arguments: { kind: 'widget', target: 'kind-b', defId: 'd1' },
@@ -1888,6 +1920,173 @@ const noNeedle = await client.callTool({ name: 'aura_find', arguments: {} });
 check('a search without a criterion is refused rather than dumping everything', () => {
     assert.ok(noNeedle.isError);
     assert.match(noNeedle.content[0].text, /Mindestens eines/);
+});
+
+// ── Popups sind kein Sonderfall mehr ─────────────────────────────────────────
+
+adapter.states['config.popup-config'] = JSON.stringify({
+    version: 0,
+    state: { views: [{ id: 'v-test', name: 'Detailfenster', widgets: [{ ...OK_SWITCH, id: 'pw-1' }] }] },
+});
+
+const popupPatched = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { widgetId: 'pw-1', patch: JSON.stringify({ title: 'Umbenannt' }) },
+});
+check('a widget inside a popup can be changed in place', () => {
+    // It used to mean replacing the whole view with aura_write_popup.
+    assert.ok(!popupPatched.isError, popupPatched.content[0].text);
+    const views = JSON.parse(adapter.states['config.popup-config']).state.views;
+    assert.equal(views.find((v) => v.id === 'v-test').widgets[0].title, 'Umbenannt');
+});
+
+const popupAppended = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: 'Detailfenster',
+        widget: JSON.stringify({ ...OK_SWITCH, id: 'pw-2', gridPos: { x: 0, w: 8, h: 4 } }),
+    },
+});
+check('a popup takes a new widget wherever a tab would', () => {
+    assert.ok(!popupAppended.isError, popupAppended.content[0].text);
+    const view = JSON.parse(adapter.states['config.popup-config']).state.views.find((v) => v.id === 'v-test');
+    assert.deepEqual(
+        view.widgets.map((w) => w.id),
+        ['pw-1', 'pw-2'],
+    );
+});
+
+const popupRefused = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: 'Detailfenster',
+        widget: JSON.stringify({ ...OK_SWITCH, id: 'pw-3', datapoint: 'gibt.es.nicht', gridPos: { x: 0, w: 8, h: 4 } }),
+    },
+});
+check('and is refused on the same grounds, in its own words', () => {
+    assert.ok(popupRefused.isError);
+    assert.match(popupRefused.content[0].text, /das Popup wäre fehlerhaft/);
+});
+
+const copiedToPopup = await client.callTool({
+    name: 'aura_copy_widget',
+    arguments: { widgetId: 'quelle', toTab: 'Detailfenster' },
+});
+check('a group widget can be copied into a popup, children and all', () => {
+    assert.ok(!copiedToPopup.isError, copiedToPopup.content[0].text);
+    const view = JSON.parse(adapter.states['config.popup-config']).state.views.find((v) => v.id === 'v-test');
+    const copy = view.widgets.find((w) => w.type === 'group');
+    assert.ok(copy, 'the copy must be in the popup');
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.ok(defs[copy.options.defId], 'with children of its own');
+});
+
+const deletedInPopup = await client.callTool({
+    name: 'aura_delete',
+    arguments: { kind: 'widget', target: 'pw-2' },
+});
+check('a single popup widget can be deleted', () => {
+    assert.ok(!deletedInPopup.isError, deletedInPopup.content[0].text);
+    const view = JSON.parse(adapter.states['config.popup-config']).state.views.find((v) => v.id === 'v-test');
+    assert.ok(!view.widgets.some((w) => w.id === 'pw-2'));
+});
+
+// ── replace ohne mitgeschickte id ────────────────────────────────────────────
+
+const replacedWhole = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: {
+        widgetId: 'pw-1',
+        replace: true,
+        patch: JSON.stringify({
+            type: 'switch',
+            title: 'Ganz neu',
+            datapoint: OK_SWITCH.datapoint,
+            gridPos: { x: 0, y: 0, w: 8, h: 4 },
+            options: {},
+        }),
+    },
+});
+check('replace keeps the id when the patch leaves it out', () => {
+    // It used to answer 'Die id darf sich nicht aendern ("pw-1" -> "undefined")'
+    // without saying that the id had to be carried along.
+    assert.ok(!replacedWhole.isError, replacedWhole.content[0].text);
+    const view = JSON.parse(adapter.states['config.popup-config']).state.views.find((v) => v.id === 'v-test');
+    const w = view.widgets.find((x) => x.id === 'pw-1');
+    assert.equal(w.title, 'Ganz neu');
+    assert.equal(w.options.showTitle, undefined, 'replace must not keep the old options');
+});
+
+// ── Verwaiste Gruppen-Definitionen ───────────────────────────────────────────
+
+const orphanTab = allTabs(JSON.parse(adapter.states['config.dashboard']).state.layouts)[0];
+await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: orphanTab.id,
+        widget: JSON.stringify({
+            id: 'g-weg',
+            type: 'group',
+            title: 'Geht weg',
+            datapoint: '',
+            gridPos: { x: 0, w: 12, h: 8 },
+            options: { defId: 'd-weg' },
+        }),
+        groupDefs: JSON.stringify({ 'd-weg': [{ ...OK_SWITCH, id: 'weg-kind' }] }),
+    },
+});
+check('the group definition is there while its widget is', () => {
+    assert.ok(JSON.parse(adapter.states['config.group-defs']).state.defs['d-weg']);
+});
+
+const droppedWith = await client.callTool({ name: 'aura_delete', arguments: { kind: 'widget', target: 'g-weg' } });
+check('deleting a group widget takes its children with it', () => {
+    assert.ok(!droppedWith.isError, droppedWith.content[0].text);
+    assert.ok(!JSON.parse(adapter.states['config.group-defs']).state.defs['d-weg']);
+    assert.match(droppedWith.content[0].text, /verwaiste Gruppen-Definition/);
+});
+
+check('a definition still in use is never collected', () => {
+    // The prune runs after every delete; a def a popup or another tab still
+    // references must survive it.
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    const views = JSON.parse(adapter.states['config.popup-config']).state.views;
+    const used = views.find((v) => v.id === 'v-test').widgets.find((w) => w.type === 'group');
+    assert.ok(defs[used.options.defId], 'the popup copy keeps its children');
+});
+
+// ── Was die Antworten kosten ─────────────────────────────────────────────────
+
+const allTypes = await client.callTool({ name: 'aura_widget_types', arguments: {} });
+const oneGroup = await client.callTool({ name: 'aura_widget_types', arguments: { group: 'control' } });
+check('the type index can be narrowed to one category', () => {
+    assert.ok(oneGroup.content[0].text.length < allTypes.content[0].text.length / 1.5);
+    assert.match(oneGroup.content[0].text, /## Steuerung/);
+    assert.ok(!/## Layout/.test(oneGroup.content[0].text));
+});
+
+const unknownGroup = await client.callTool({ name: 'aura_widget_types', arguments: { group: 'quatsch' } });
+check('an unknown category lists the real ones', () => {
+    assert.match(unknownGroup.content[0].text, /control \(Steuerung/);
+});
+
+const longSchema = await client.callTool({
+    name: 'aura_widget_schema',
+    arguments: { types: ['switch', 'thermostat'] },
+});
+const briefSchema = await client.callTool({
+    name: 'aura_widget_schema',
+    arguments: { types: ['switch', 'thermostat'], brief: true },
+});
+check('brief=true drops the prose but keeps names and types', () => {
+    const b = briefSchema.content[0].text;
+    assert.ok(
+        b.length < longSchema.content[0].text.length * 0.7,
+        `${b.length} vs ${longSchema.content[0].text.length}`,
+    );
+    assert.match(b, /- controlMode: /);
+    assert.match(b, /WidgetCondition = \{/, 'the referenced types must still be defined');
+    assert.ok(!/Vor dem Schalten eine Rückfrage/.test(b), 'descriptions are what goes');
 });
 
 // ── Token generation (the button in the adapter config) ──────────────────────

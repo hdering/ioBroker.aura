@@ -143,11 +143,11 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | Werkzeug                              | Zweck                                                                                                          | Stufe        |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------ |
 | `aura_dashboard`                      | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite                                                             | read         |
-| `aura_widget_types`                   | Alle Typen kompakt                                                                                             | read         |
-| `aura_widget_schema`                  | Volle Optionen der genannten Typen                                                                             | read         |
+| `aura_widget_types`                   | Alle Typen kompakt, mit `group=` auf eine Kategorie eingegrenzt                                                | read         |
+| `aura_widget_schema`                  | Optionen der genannten Typen, mit `brief=true` nur Namen und Typen                                             | read         |
 | `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                           | read         |
 | `aura_validate`                       | Prüfung gegen Schema und Live-Datenpunkte                                                                      | read         |
-| `aura_add_widget`                     | Ein Widget anfügen                                                                                             | write        |
+| `aura_add_widget`                     | Ein Widget an Tab, Popup oder Gruppe anfügen                                                                   | write        |
 | `aura_write_tab`                      | Widgetliste eines Tabs ersetzen                                                                                | write        |
 | `aura_create_tab`                     | Neuen Tab anlegen, leer oder gefüllt                                                                           | write        |
 | `aura_create_section`                 | Neuen Bereich (Menüeintrag) anlegen, mit einem Start-Tab                                                       | write        |
@@ -155,7 +155,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_popups` / `aura_popup`          | Popup-Ansichten auflisten / eine lesen                                                                         | read         |
 | `aura_write_popup`                    | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`)                                                    | write        |
 | `aura_group` / `aura_write_group`     | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen                                                       | read/write   |
-| `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe                                        | write        |
+| `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab, im Popup oder in einer Gruppe                                            | write        |
 | `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen    | write        |
 | `aura_find`                           | Widgets nach Datenpunkt, Typ oder Titel finden — über Tabs, Gruppen und Popups, inkl. Datenpunkten in Optionen | read         |
 | `aura_copy_node`                      | Tab, Bereich oder Layout kopieren bzw. verschieben (`mode:"move"`)                                             | write        |
@@ -202,6 +202,36 @@ Frontend eindeutig gemacht und transliteriert (`garten`, `garten-2`, `kueche`).
 **Leere Hüllen.** Ein neues Layout bekommt einen Bereich und einen Tab, ein neuer
 Bereich einen Tab — genau wie im Editor. Ein Bereich ohne Tabs hat nichts
 anzuzeigen und keine `activeTabId`, auf die er zeigen könnte.
+
+**Popups sind kein Sonderfall.** Ein Widget wohnt in einem Tab, in einer
+Popup-Ansicht oder in einer Gruppen-Definition; `locateWidget` findet alle drei
+und `writeHost` schreibt in den richtigen State zurück. Deshalb nehmen
+`aura_add_widget`, `aura_update_widget`, `aura_copy_widget` und
+`aura_delete{kind:"widget"}` eine Popup-Ansicht überall dort, wo sie einen Tab
+nehmen — adressiert über ihren Namen. Vorher war die einzige Möglichkeit,
+`aura_write_popup` mit der kompletten Widget-Liste aufzurufen: dieselbe
+Alles-oder-nichts-Falle, die Gruppen hatten. Ein Gruppen-Kind wird auch ohne
+`defId` gefunden; die Angabe bleibt erlaubt und ist schneller.
+
+**Verwaiste Gruppen-Definitionen werden eingesammelt.** Jedes Löschen von
+Widgets oder Knoten ruft danach `pruneGroupDefs`: was kein Widget in Tab oder
+Popup mehr referenziert, fliegt raus (`collectDefIds` folgt Verschachtelungen).
+Das Frontend macht dasselbe vor jedem Speichern (`gcGroupDefs`) — ohne den
+Aufruf hier sähe der Zustand nur dann aufgeräumt aus, wenn jemand den Editor
+öffnet. Dieselbe Schutzregel wie dort: nie gegen eine leere Wirt-Menge sammeln,
+sonst löscht ein halb geladener Zustand alles.
+
+**`replace: true` behält die Id.** Ein Patch ohne `id` bekam vorher „Die id darf
+sich nicht ändern (w-1 → undefined)" — ein Fehler über etwas, das der Aufrufer
+nie gesagt hatte. Jetzt wird die Id des Ziels vorangestellt; wer eine _andere_
+Id schickt, bekommt die Ablehnung weiterhin, denn ein stilles Umbenennen würde
+jeden Verweis auf das Widget ins Leere zeigen lassen.
+
+**Antwortlänge ist ein Werkzeug-Parameter.** `aura_widget_types` nimmt
+`group=control|special|layout` (halbiert die Liste), `aura_widget_schema` nimmt
+`brief=true` und lässt Beschreibungen und Feldkommentare weg (rund 60 % kürzer,
+Namen, Typen, Pflichtfelder und Datenpunkt-Markierungen bleiben). Der Einstieg
+in ein Gespräch sinkt damit von ~12.700 auf ~8.000 Token.
 
 **Die Spaltenzahl ist eine Beobachtung, kein Gesetz.** Sie wird aus dem breitesten
 vorhandenen Widget abgeleitet — das Frontend zieht das Raster ohnehin auf die

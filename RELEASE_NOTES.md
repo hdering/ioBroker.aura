@@ -21,3 +21,5 @@
 - AI assistant (MCP, beta) - find widgets by datapoint, type or title across the whole dashboard,
   copy or move whole tabs, sections and layouts, add a single widget to a group, and delete or
   rename saved templates
+- AI assistant (MCP, beta) - popup views can now be edited widget by widget like tabs, deleting a
+  group widget cleans up its children, and the schema answers can be narrowed to keep prompts small
