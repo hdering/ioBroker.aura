@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+
+MCP - aura_measure sizes widgets against measured heights, aura_review checks existing tabs for dead datapoints and ineffective options, aura_types fetches shared types once

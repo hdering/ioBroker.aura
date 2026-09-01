@@ -288,11 +288,43 @@ function normalizeType(raw, index, types, depth = 0) {
  */
 function markDatapointKeys(options) {
     for (const [key, entry] of Object.entries(options)) {
-        if (entry.type === 'string' && /(?:Dp|Datapoint)$/.test(key)) {
+        if (entry.type === 'string' && DP_KEY.test(key)) {
             entry.datapoint = true;
         }
     }
     return options;
+}
+
+/** `…Dp`, `…DpId`, `…Datapoint` and a bare `datapoint`, in options and in fields alike. */
+const DP_KEY = /(?:Dp|DpId|Datapoint)$|^datapoint$/;
+
+/**
+ * The same flag inside the named types.
+ *
+ * Only widget options carried it, and the datapoints that actually go wrong are
+ * one level down: `statusDp` on a list entry, `datapoint` on a condition clause,
+ * `latDp` on a map marker. A typo there produced a row that silently shows
+ * nothing, with no validator anywhere to name it.
+ *
+ * `id` is deliberately NOT covered even where it holds a state id: on a list
+ * entry it holds one, on a divider row and on every rule type it is a synthetic
+ * key, and a flag that cannot tell them apart would refuse valid dividers.
+ * aura_review checks those, where a wrong guess costs a remark rather than a
+ * rejected write.
+ *
+ * @param types the collected named types, edited in place
+ */
+function markDatapointFields(types) {
+    let marked = 0;
+    for (const t of Object.values(types)) {
+        for (const [key, field] of Object.entries(t.fields || {})) {
+            if (field && field.type === 'string' && !field.enum && DP_KEY.test(key)) {
+                field.datapoint = true;
+                marked++;
+            }
+        }
+    }
+    return marked;
 }
 
 function collectWidgetOptions(type, file, index, types) {
@@ -542,12 +574,14 @@ async function build() {
         widgets,
     };
 
-    return { schema, missingDesc, staleNotes };
+    const dpFields = markDatapointFields(types);
+
+    return { schema, missingDesc, staleNotes, dpFields };
 }
 
 // ── 5. CLI ────────────────────────────────────────────────────────────────────
 
-const { schema, missingDesc, staleNotes } = await build();
+const { schema, missingDesc, staleNotes, dpFields } = await build();
 const json = `${JSON.stringify(schema, null, 2)}\n`;
 const check = process.argv.includes('--check');
 
@@ -571,7 +605,7 @@ if (check) {
             `${optionCount} options (${Object.keys(schema.commonOptions).length} shared), ` +
             `${Object.keys(schema.types).length} types, ${(json.length / 1024).toFixed(0)} KB`,
     );
-    console.log(`ohne Beschreibung: ${missingDesc.length}`);
+    console.log(`ohne Beschreibung: ${missingDesc.length}, Datenpunkt-Felder markiert: ${dpFields}`);
     if (staleNotes.length) {
         console.warn(`Overlay-Notizen ohne passenden Schluessel (${staleNotes.length}): ${staleNotes.join(', ')}`);
     }

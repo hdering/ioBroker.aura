@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.52.1",
+    "auraVersion": "0.52.5",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -342,7 +342,8 @@
       "fields": {
         "datapoint": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "operator": {
           "type": "string",
@@ -535,7 +536,8 @@
         },
         "ackDp": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "ackValue": {
           "type": "string",
@@ -916,7 +918,8 @@
         },
         "statusDpId": {
           "type": "string",
-          "description": "'switch' cell: read-back DP — state, label and colours come from here while clicks still write to dpId (split command/status devices, issue #567)"
+          "description": "'switch' cell: read-back DP — state, label and colours come from here while clicks still write to dpId (split command/status devices, issue #567)",
+          "datapoint": true
         },
         "controlMode": {
           "type": "string",
@@ -1707,7 +1710,8 @@
         },
         "statusDp": {
           "type": "string",
-          "description": "Separate read-back datapoint for devices that split command and status (Tasmota: cmnd.POWER switches, stat.POWER reports ON/OFF). State and colours come from here, every write still goes to the entry's own datapoint."
+          "description": "Separate read-back datapoint for devices that split command and status (Tasmota: cmnd.POWER switches, stat.POWER reports ON/OFF). State and colours come from here, every write still goes to the entry's own datapoint.",
+          "datapoint": true
         },
         "displayType": {
           "type": "string",
@@ -1734,13 +1738,16 @@
           "description": "Shutter control model: - 'commands' (default): separate up/stop/down command DPs (Shelly, Zigbee, scripts). - 'position': single LEVEL DP (the entry's main DP) — up/down write open/close values, stop writes the current position back (HomeMatic-style)."
         },
         "shutterUpDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterStopDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterDownDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterWriteValue": {
           "type": [
@@ -1760,7 +1767,8 @@
         },
         "shutterActualDp": {
           "type": "string",
-          "description": "Read-only datapoint reporting the real position (HmIP-BROLL & co.); wins over the entry's own value for the display."
+          "description": "Read-only datapoint reporting the real position (HmIP-BROLL & co.); wins over the entry's own value for the display.",
+          "datapoint": true
         },
         "shutterInvert": {
           "type": "boolean",
@@ -1792,10 +1800,12 @@
         },
         "shutterTiltDp": {
           "type": "string",
-          "description": "Slat angle (Neigung): the datapoint written, plus an optional read-only one."
+          "description": "Slat angle (Neigung): the datapoint written, plus an optional read-only one.",
+          "datapoint": true
         },
         "shutterTiltActualDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterTiltMin": {
           "type": "number",
@@ -1826,18 +1836,21 @@
         },
         "shutterActivityDp": {
           "type": "string",
-          "description": "Datapoint reporting that the actuator is driving, and the values that mean it."
+          "description": "Datapoint reporting that the actuator is driving, and the values that mean it.",
+          "datapoint": true
         },
         "shutterActivityMovingValues": {
           "type": "string"
         },
         "shutterDirectionDp": {
           "type": "string",
-          "description": "Datapoint reporting the direction (1 = up, 2 = down); highlights that button."
+          "description": "Datapoint reporting the direction (1 = up, 2 = down); highlights that button.",
+          "datapoint": true
         },
         "shutterLockDp": {
           "type": "string",
-          "description": "Lock datapoint, shown as a padlock in front of the control."
+          "description": "Lock datapoint, shown as a padlock in front of the control.",
+          "datapoint": true
         },
         "shutterLockValues": {
           "type": "string"
@@ -1917,7 +1930,8 @@
         },
         "presetsDp": {
           "type": "string",
-          "description": "The datapoint holding that JSON."
+          "description": "The datapoint holding that JSON.",
+          "datapoint": true
         },
         "presetsValueKey": {
           "type": "string",
@@ -1980,7 +1994,8 @@
         },
         "contactLockDp": {
           "type": "string",
-          "description": "Separate lock datapoint (Fenstergriff / Schloss), shown as a small padlock next to the state - the Fenster-/Turkontakt widget's lock display."
+          "description": "Separate lock datapoint (Fenstergriff / Schloss), shown as a small padlock next to the state - the Fenster-/Turkontakt widget's lock display.",
+          "datapoint": true
         },
         "contactLockValues": {
           "type": "string",
@@ -2665,7 +2680,8 @@
         },
         "statusDp": {
           "type": "string",
-          "description": "Separate read-back datapoint for devices that split command and status (Tasmota: cmnd.POWER switches, stat.POWER reports ON/OFF). State and colours come from here, every write still goes to the entry's own datapoint."
+          "description": "Separate read-back datapoint for devices that split command and status (Tasmota: cmnd.POWER switches, stat.POWER reports ON/OFF). State and colours come from here, every write still goes to the entry's own datapoint.",
+          "datapoint": true
         },
         "displayType": {
           "type": "string",
@@ -2692,13 +2708,16 @@
           "description": "Shutter control model: - 'commands' (default): separate up/stop/down command DPs (Shelly, Zigbee, scripts). - 'position': single LEVEL DP (the entry's main DP) — up/down write open/close values, stop writes the current position back (HomeMatic-style)."
         },
         "shutterUpDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterStopDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterDownDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterWriteValue": {
           "type": [
@@ -2718,7 +2737,8 @@
         },
         "shutterActualDp": {
           "type": "string",
-          "description": "Read-only datapoint reporting the real position (HmIP-BROLL & co.); wins over the entry's own value for the display."
+          "description": "Read-only datapoint reporting the real position (HmIP-BROLL & co.); wins over the entry's own value for the display.",
+          "datapoint": true
         },
         "shutterInvert": {
           "type": "boolean",
@@ -2750,10 +2770,12 @@
         },
         "shutterTiltDp": {
           "type": "string",
-          "description": "Slat angle (Neigung): the datapoint written, plus an optional read-only one."
+          "description": "Slat angle (Neigung): the datapoint written, plus an optional read-only one.",
+          "datapoint": true
         },
         "shutterTiltActualDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterTiltMin": {
           "type": "number",
@@ -2784,18 +2806,21 @@
         },
         "shutterActivityDp": {
           "type": "string",
-          "description": "Datapoint reporting that the actuator is driving, and the values that mean it."
+          "description": "Datapoint reporting that the actuator is driving, and the values that mean it.",
+          "datapoint": true
         },
         "shutterActivityMovingValues": {
           "type": "string"
         },
         "shutterDirectionDp": {
           "type": "string",
-          "description": "Datapoint reporting the direction (1 = up, 2 = down); highlights that button."
+          "description": "Datapoint reporting the direction (1 = up, 2 = down); highlights that button.",
+          "datapoint": true
         },
         "shutterLockDp": {
           "type": "string",
-          "description": "Lock datapoint, shown as a padlock in front of the control."
+          "description": "Lock datapoint, shown as a padlock in front of the control.",
+          "datapoint": true
         },
         "shutterLockValues": {
           "type": "string"
@@ -2875,7 +2900,8 @@
         },
         "presetsDp": {
           "type": "string",
-          "description": "The datapoint holding that JSON."
+          "description": "The datapoint holding that JSON.",
+          "datapoint": true
         },
         "presetsValueKey": {
           "type": "string",
@@ -2938,7 +2964,8 @@
         },
         "contactLockDp": {
           "type": "string",
-          "description": "Separate lock datapoint (Fenstergriff / Schloss), shown as a small padlock next to the state - the Fenster-/Turkontakt widget's lock display."
+          "description": "Separate lock datapoint (Fenstergriff / Schloss), shown as a small padlock next to the state - the Fenster-/Turkontakt widget's lock display.",
+          "datapoint": true
         },
         "contactLockValues": {
           "type": "string",
@@ -3241,7 +3268,8 @@
         },
         "statusDp": {
           "type": "string",
-          "description": "Separate read-back datapoint for devices that split command and status (Tasmota: cmnd.POWER switches, stat.POWER reports ON/OFF). State and colours come from here, every write still goes to the entry's own datapoint."
+          "description": "Separate read-back datapoint for devices that split command and status (Tasmota: cmnd.POWER switches, stat.POWER reports ON/OFF). State and colours come from here, every write still goes to the entry's own datapoint.",
+          "datapoint": true
         },
         "displayType": {
           "type": "string",
@@ -3268,13 +3296,16 @@
           "description": "Shutter control model: - 'commands' (default): separate up/stop/down command DPs (Shelly, Zigbee, scripts). - 'position': single LEVEL DP (the entry's main DP) — up/down write open/close values, stop writes the current position back (HomeMatic-style)."
         },
         "shutterUpDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterStopDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterDownDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterWriteValue": {
           "type": [
@@ -3294,7 +3325,8 @@
         },
         "shutterActualDp": {
           "type": "string",
-          "description": "Read-only datapoint reporting the real position (HmIP-BROLL & co.); wins over the entry's own value for the display."
+          "description": "Read-only datapoint reporting the real position (HmIP-BROLL & co.); wins over the entry's own value for the display.",
+          "datapoint": true
         },
         "shutterInvert": {
           "type": "boolean",
@@ -3326,10 +3358,12 @@
         },
         "shutterTiltDp": {
           "type": "string",
-          "description": "Slat angle (Neigung): the datapoint written, plus an optional read-only one."
+          "description": "Slat angle (Neigung): the datapoint written, plus an optional read-only one.",
+          "datapoint": true
         },
         "shutterTiltActualDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "shutterTiltMin": {
           "type": "number",
@@ -3360,18 +3394,21 @@
         },
         "shutterActivityDp": {
           "type": "string",
-          "description": "Datapoint reporting that the actuator is driving, and the values that mean it."
+          "description": "Datapoint reporting that the actuator is driving, and the values that mean it.",
+          "datapoint": true
         },
         "shutterActivityMovingValues": {
           "type": "string"
         },
         "shutterDirectionDp": {
           "type": "string",
-          "description": "Datapoint reporting the direction (1 = up, 2 = down); highlights that button."
+          "description": "Datapoint reporting the direction (1 = up, 2 = down); highlights that button.",
+          "datapoint": true
         },
         "shutterLockDp": {
           "type": "string",
-          "description": "Lock datapoint, shown as a padlock in front of the control."
+          "description": "Lock datapoint, shown as a padlock in front of the control.",
+          "datapoint": true
         },
         "shutterLockValues": {
           "type": "string"
@@ -3451,7 +3488,8 @@
         },
         "presetsDp": {
           "type": "string",
-          "description": "The datapoint holding that JSON."
+          "description": "The datapoint holding that JSON.",
+          "datapoint": true
         },
         "presetsValueKey": {
           "type": "string",
@@ -3514,7 +3552,8 @@
         },
         "contactLockDp": {
           "type": "string",
-          "description": "Separate lock datapoint (Fenstergriff / Schloss), shown as a small padlock next to the state - the Fenster-/Turkontakt widget's lock display."
+          "description": "Separate lock datapoint (Fenstergriff / Schloss), shown as a small padlock next to the state - the Fenster-/Turkontakt widget's lock display.",
+          "datapoint": true
         },
         "contactLockValues": {
           "type": "string",
@@ -3678,7 +3717,8 @@
           "description": "static text for text / manufacturer"
         },
         "datapoint": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "trueLabel": {
           "type": "string",
@@ -3781,7 +3821,8 @@
         },
         "datapoint": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "hideWhen": {
           "type": "string",
@@ -4118,7 +4159,8 @@
         },
         "jsonDp": {
           "type": "string",
-          "description": "JSON / object DP holding the position (mode = 'json')."
+          "description": "JSON / object DP holding the position (mode = 'json').",
+          "datapoint": true
         },
         "latPath": {
           "type": "string"
@@ -4128,10 +4170,12 @@
         },
         "latDp": {
           "type": "string",
-          "description": "Separate numeric DPs (mode = 'latlon')."
+          "description": "Separate numeric DPs (mode = 'latlon').",
+          "datapoint": true
         },
         "lonDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "lat": {
           "type": "number",
@@ -4196,7 +4240,8 @@
         },
         "jsonDp": {
           "type": "string",
-          "description": "JSON / object DP holding the position (mode = 'json')."
+          "description": "JSON / object DP holding the position (mode = 'json').",
+          "datapoint": true
         },
         "latPath": {
           "type": "string"
@@ -4206,10 +4251,12 @@
         },
         "latDp": {
           "type": "string",
-          "description": "Separate numeric DPs (mode = 'latlon')."
+          "description": "Separate numeric DPs (mode = 'latlon').",
+          "datapoint": true
         },
         "lonDp": {
-          "type": "string"
+          "type": "string",
+          "datapoint": true
         },
         "lat": {
           "type": "number",
@@ -4284,7 +4331,8 @@
         },
         "totalDatapoint": {
           "type": "string",
-          "description": "Datapoint holding this group's 100 % reference (a budget, a prepayment, a tank size)."
+          "description": "Datapoint holding this group's 100 % reference (a budget, a prepayment, a tank size).",
+          "datapoint": true
         },
         "totalValue": {
           "type": "number",

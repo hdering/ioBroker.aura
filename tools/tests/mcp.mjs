@@ -45,6 +45,9 @@ const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
 const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
 const { RECIPES, findRecipe, renderRecipe, renderRecipeIndex } = require('../../lib/mcp/recipes.js');
 const { reviewWidgets, renderReview, TILE_ROW_LIMIT, CONTACT_LIMIT } = require('../../lib/mcp/review.js');
+const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
+const { collectDatapointRefs } = require('../../lib/mcp/dpFit.js');
+const { measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
 const {
     TOKEN_PLACEHOLDER,
     baseUrl,
@@ -130,7 +133,57 @@ check('datapoint ids and datapoint-valued options are checked against the tree',
     const res = validateWidget({ ...OK_SWITCH, options: { statusDp: 'erfunden.0.dp' } }, schema, {
         knownDatapoints: known,
     });
-    assert.ok(hasError(res, /Option "statusDp": Datenpunkt "erfunden\.0\.dp" gibt es nicht/));
+    assert.ok(hasError(res, /Option "statusDp": Datenpunkt "erfunden\.0\.dp" gibt es .*nicht/));
+});
+
+check('a datapoint one level down is checked too, placeholders are not', () => {
+    const known = new Set(['hm-rpc.0.LEQ1.1.STATE']);
+    // A list entry's statusDp: the typo that used to produce one silent row in
+    // twelve, with nothing anywhere saying which.
+    const list = {
+        id: 'l1',
+        type: 'list',
+        title: 'Licht',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 10, h: 6 },
+        options: { entries: [{ id: 'hm-rpc.0.LEQ1.1.STATE', statusDp: 'erfunden.0.dp' }] },
+    };
+    assert.ok(hasError(validateWidget(list, schema, { knownDatapoints: known }), /erfunden\.0\.dp/));
+
+    // {{parent}} is resolved per row. Checked against the id list it would refuse
+    // every correct row rule there is.
+    const templated = {
+        ...list,
+        options: { entries: [{ id: 'hm-rpc.0.LEQ1.1.STATE', statusDp: '{{parent}}.STATE' }] },
+    };
+    assert.deepEqual(validateWidget(templated, schema, { knownDatapoints: known }).errors, []);
+});
+
+check('the object behind the datapoint is compared with the widget', () => {
+    const known = new Set(['hm-rpc.0.LEQ1.1.STATE']);
+    // Read-only state under a switch: passes every other check and then the
+    // button does nothing, for good.
+    const readOnly = new Map([['hm-rpc.0.LEQ1.1.STATE', { type: 'boolean', write: false }]]);
+    const res = validateWidget(OK_SWITCH, schema, { knownDatapoints: known, datapointMeta: readOnly });
+    assert.deepEqual(res.errors, [], 'a mislabelled object must never refuse a write');
+    assert.ok(hasWarning(res, /nur lesbar/));
+
+    // A number under a switch is normal in plenty of installations — but only
+    // with onValue/offValue, and that is the difference worth naming.
+    const numeric = new Map([['hm-rpc.0.LEQ1.1.STATE', { type: 'number', write: true }]]);
+    assert.ok(
+        hasWarning(
+            validateWidget(OK_SWITCH, schema, { knownDatapoints: known, datapointMeta: numeric }),
+            /erwartet boolean/,
+        ),
+    );
+    const mapped = { ...OK_SWITCH, options: { ...(OK_SWITCH.options || {}), onValue: 1, offValue: 0 } };
+    assert.deepEqual(
+        validateWidget(mapped, schema, { knownDatapoints: known, datapointMeta: numeric }).warnings.filter((w) =>
+            /erwartet boolean/.test(w),
+        ),
+        [],
+    );
 });
 
 check('gridPos must be whole and positive', () => {
@@ -327,6 +380,221 @@ check('WidgetCondition carries no "set" field — that type is never persisted',
     assert.ok(!schema.types.WidgetCondition.fields.set, 'set must not be part of the stored shape');
 });
 
+// ── Sizing ───────────────────────────────────────────────────────────────────
+// The measured numbers come from tools/schema/measure-widget-metrics.mjs; what is
+// checked here is the arithmetic on top of them, which is what a model gets wrong.
+
+const METRICS = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-widget-metrics.json'), 'utf8'));
+const GRID = { rowHeight: 20, snapX: 20, gap: 10 };
+
+check('rows and pixels convert both ways, gaps included', () => {
+    assert.equal(rowsToPx(14, GRID), 14 * 20 + 13 * 10);
+    assert.equal(rowsToPx(1, GRID), 20);
+    assert.equal(rowsToPx(0, GRID), 0);
+    // The inverse must be the smallest height that covers the pixels.
+    assert.equal(pxToRows(rowsToPx(14, GRID), GRID), 14);
+    assert.equal(pxToRows(rowsToPx(14, GRID) + 1, GRID), 15);
+});
+
+const listWidget = (n, h) => ({
+    id: `l${n}`,
+    type: 'list',
+    title: 'Liste',
+    datapoint: '',
+    gridPos: { x: 0, y: 0, w: 10, h },
+    options: { entries: Array.from({ length: n }, (_, i) => ({ id: `demo.${i}` })) },
+});
+
+check('the question that started this: do 16 list rows fit in h=14?', () => {
+    const m = measureWidget(listWidget(16, 14), { metrics: METRICS, grid: GRID });
+    assert.equal(m.items, 16);
+    assert.equal(m.verdict, 'zu klein');
+    // Not an opinion: 66 px + 16 × 33 px against 14 rows of 20 px plus 13 gaps.
+    assert.equal(m.requiredPx, METRICS.counted.list.basePx + 16 * METRICS.counted.list.perItemPx);
+    assert.ok(m.needRows > 14, `needRows should exceed 14, got ${m.needRows}`);
+    assert.ok(rowsToPx(m.needRows, GRID) >= m.requiredPx, 'the suggested height must actually fit');
+    assert.ok(rowsToPx(m.needRows - 1, GRID) < m.requiredPx, 'and must not be one row too generous');
+});
+
+check('a height with room to spare passes without a complaint', () => {
+    const m = measureWidget(listWidget(4, 12), { metrics: METRICS, grid: GRID });
+    assert.equal(m.verdict, 'passt');
+    assert.ok(m.slackPx > 0);
+});
+
+check('a type measured only as a minimum is compared against that', () => {
+    const gauge = { id: 'g', type: 'gauge', title: 'G', datapoint: 'demo.value', gridPos: { x: 0, y: 0, w: 8, h: 3 } };
+    const m = measureWidget(gauge, { metrics: METRICS, grid: GRID });
+    assert.equal(m.requiredPx, METRICS.minimum.gauge.minPx);
+    assert.equal(m.verdict, 'zu klein');
+});
+
+check('a runtime-filled list says so, and computes once given a row count', () => {
+    const auto = { id: 'a', type: 'autolist', title: 'A', datapoint: '', gridPos: { x: 0, y: 0, w: 10, h: 8 } };
+    assert.ok(!measureWidget(auto, { metrics: METRICS, grid: GRID }).requiredPx);
+    assert.match(measureWidget(auto, { metrics: METRICS, grid: GRID }).unknown, /Laufzeit/);
+    const withCount = measureWidget(auto, { metrics: METRICS, grid: GRID, items: 16 });
+    assert.equal(withCount.requiredPx, METRICS.counted.list.basePx + 16 * METRICS.counted.list.perItemPx);
+});
+
+check('without the metrics file the geometry half still answers', () => {
+    const m = measureWidget(listWidget(16, 14), { metrics: null, grid: GRID });
+    assert.equal(m.availPx, rowsToPx(14, GRID));
+    assert.ok(!m.requiredPx);
+    assert.match(renderMeasure([m], { grid: GRID }), /h Zeilen = h × 20/);
+});
+
+check('the grid of this dashboard is used, not the default one', () => {
+    const tight = { rowHeight: 10, snapX: 20, gap: 0 };
+    const m = measureWidget(listWidget(16, 14), { metrics: METRICS, grid: tight });
+    assert.equal(m.availPx, 140);
+    assert.equal(m.needRows, Math.ceil(m.requiredPx / 10));
+});
+
+// ── The health check on what already exists ──────────────────────────────────
+
+const AUDIT_PLACES = [
+    {
+        where: 'Wohnzimmer / Start / Klima',
+        widgets: [
+            // A dead datapoint, and an option this widget stopped reading.
+            {
+                id: 'w1',
+                type: 'value',
+                title: 'Temperatur',
+                datapoint: 'zigbee.0.WEG',
+                gridPos: { x: 0, y: 0, w: 8, h: 3 },
+                options: { showLastChange: true },
+            },
+            // The datapoint exists but nothing has written to it in months.
+            {
+                id: 'w2',
+                type: 'value',
+                title: 'Alt',
+                datapoint: 'zigbee.0.temp',
+                gridPos: { x: 8, y: 0, w: 8, h: 3 },
+                options: {},
+            },
+            // A shared setting one level too high, where nobody reads it.
+            {
+                id: 'w3',
+                type: 'switch',
+                title: 'Licht',
+                datapoint: 'hm-rpc.0.LEQ1.1.STATE',
+                gridPos: { x: 16, y: 0, w: 8, h: 3 },
+                conditions: [],
+                options: {},
+            },
+        ],
+    },
+    {
+        where: 'Popup „Details“',
+        // The same id twice: two widgets sharing their runtime state (issue #606).
+        widgets: [{ id: 'w1', type: 'value', title: 'Kopie', datapoint: '', gridPos: { x: 0, y: 0, w: 8, h: 3 } }],
+    },
+    { where: 'Wohnzimmer / Start / Leer', widgets: [] },
+];
+
+const auditResult = auditDashboard({
+    places: AUDIT_PLACES,
+    schema,
+    knownDatapoints: new Set(['hm-rpc.0.LEQ1.1.STATE', 'zigbee.0.temp']),
+    stateValues: new Map([
+        ['hm-rpc.0.LEQ1.1.STATE', { val: true, ts: 1_000_000_000_000 + 86400000 * 3 }],
+        ['zigbee.0.temp', { val: 21.5, ts: 1_000_000_000_000 - 86400000 * 90 }],
+    ]),
+    orphanDefIds: ['g-verwaist'],
+    now: 1_000_000_000_000 + 86400000 * 3,
+});
+const auditIds = auditResult.findings.map((f) => f.id);
+
+check('the audit finds a dead datapoint and names where it sits', () => {
+    assert.ok(auditIds.includes('dead-datapoints'));
+    const f = auditResult.findings.find((x) => x.id === 'dead-datapoints');
+    assert.match(f.items.join(' '), /Klima \/ w1 → "zigbee\.0\.WEG" \(datapoint\)/);
+});
+
+check('a datapoint nothing has written to in months is reported with its age', () => {
+    const f = auditResult.findings.find((x) => x.id === 'stale-datapoints');
+    assert.ok(f, `expected a stale finding, got ${auditIds.join(', ')}`);
+    assert.match(f.items.join(' '), /zigbee\.0\.temp" \(93 Tage\)/);
+});
+
+check('an option the widget no longer reads is reported, not silently ignored', () => {
+    const f = auditResult.findings.find((x) => x.id === 'ignored-options');
+    assert.ok(f, 'showLastChange on a value widget must be named');
+    assert.match(f.items.join(' '), /showLastChange/);
+});
+
+check('a shared setting written one level too high is reported', () => {
+    const f = auditResult.findings.find((x) => x.id === 'misplaced-options');
+    assert.ok(f);
+    assert.match(f.items.join(' '), /conditions/);
+});
+
+check('the same widget id in two places is a finding', () => {
+    const f = auditResult.findings.find((x) => x.id === 'duplicate-ids');
+    assert.ok(f);
+    assert.match(f.items.join(' '), /"w1" in Wohnzimmer \/ Start \/ Klima und Popup/);
+});
+
+check('an empty tab and an orphaned group definition are named', () => {
+    assert.ok(auditIds.includes('empty-places'));
+    assert.ok(auditIds.includes('orphan-groups'));
+});
+
+check('a clean dashboard says so instead of inventing findings', () => {
+    const clean = auditDashboard({
+        places: [{ where: 'Test', widgets: [OK_SWITCH] }],
+        schema,
+        knownDatapoints: new Set(['hm-rpc.0.LEQ1.1.STATE']),
+    });
+    assert.deepEqual(clean.findings, []);
+    assert.match(renderAudit(clean, 'Test'), /nichts zu beanstanden/);
+});
+
+check('the rendered audit keeps one finding from filling the whole answer', () => {
+    const many = Array.from({ length: 40 }, (_, i) => ({
+        id: `x${i}`,
+        type: 'value',
+        title: `T${i}`,
+        datapoint: 'weg.0.dp',
+        gridPos: { x: 0, y: i, w: 4, h: 3 },
+        options: {},
+    }));
+    const res = auditDashboard({ places: [{ where: 'Viel', widgets: many }], schema, knownDatapoints: new Set() });
+    const out = renderAudit(res, 'Viel');
+    assert.match(out, /\(\+25\)/, 'the tail must be summarised');
+});
+
+check('datapoints one level down are collected, dividers and placeholders are not', () => {
+    const refs = collectDatapointRefs(
+        {
+            id: 'l1',
+            type: 'list',
+            title: 'Licht',
+            datapoint: '',
+            options: {
+                entries: [
+                    { id: 'hm-rpc.0.LEQ1.1.STATE', statusDp: 'zigbee.0.temp' },
+                    { type: 'divider', id: 'trenner-1' },
+                    { id: 'weg.0.dp', subDps: [{ id: 'zigbee.0.batt' }] },
+                ],
+                rowConditions: [{ id: 'regel-1', clauses: [{ datapoint: '{{parent}}.STATE' }] }],
+            },
+        },
+        schema,
+        { loose: true },
+    );
+    const ids = refs.map((r) => r.id);
+    assert.ok(ids.includes('hm-rpc.0.LEQ1.1.STATE'));
+    assert.ok(ids.includes('zigbee.0.temp'), 'a nested statusDp is a datapoint');
+    assert.ok(ids.includes('zigbee.0.batt'), 'a second-line datapoint counts too');
+    assert.ok(!ids.includes('trenner-1'), 'a divider row carries no datapoint');
+    assert.ok(!ids.includes('regel-1'), 'a rule id is not a datapoint');
+    assert.ok(!ids.some((id) => id.includes('{{')), 'a placeholder is resolved per row and must not be checked');
+});
+
 // ── Config helpers ───────────────────────────────────────────────────────────
 
 const LAYOUTS = [
@@ -418,8 +686,25 @@ function makeAdapter() {
                 ? [{ id: 'alias.0.licht' }]
                 : [{ id: 'hm-rpc.0.LEQ1.1.STATE' }, { id: 'zigbee.0.temp' }],
         }),
+        // The objects and the last values behind those ids: what the datapoint-fit
+        // check and the liveness half of aura_review read.
+        getForeignObjectAsync: async (id) => FOREIGN_OBJECTS[id] || null,
+        getForeignStateAsync: async (id) => FOREIGN_STATES[id] || null,
     };
 }
+
+/** hm-rpc is a normal writable switch; zigbee.0.temp is read-only and long dead. */
+const FOREIGN_OBJECTS = {
+    'hm-rpc.0.LEQ1.1.STATE': { common: { type: 'boolean', role: 'switch', write: true } },
+    'zigbee.0.temp': { common: { type: 'number', role: 'value.temperature', write: false, unit: '°C' } },
+    'alias.0.licht': { common: { type: 'boolean', role: 'switch', write: true } },
+};
+
+const FOREIGN_STATES = {
+    'hm-rpc.0.LEQ1.1.STATE': { val: true, ts: Date.now(), ack: true },
+    'zigbee.0.temp': { val: 21.5, ts: Date.now() - 90 * 86400000, ack: true },
+    'alias.0.licht': { val: null, ts: Date.now(), ack: true },
+};
 
 let adapter = makeAdapter();
 const server = http.createServer((req, res) => {
@@ -501,6 +786,7 @@ check('all twenty-eight tools are announced with descriptions', () => {
         'aura_find',
         'aura_group',
         'aura_insert_preset',
+        'aura_measure',
         'aura_popup',
         'aura_popups',
         'aura_presets',
@@ -511,6 +797,7 @@ check('all twenty-eight tools are announced with descriptions', () => {
         'aura_review',
         'aura_save_preset',
         'aura_tab',
+        'aura_types',
         'aura_update_node',
         'aura_update_widget',
         'aura_validate',
@@ -561,6 +848,60 @@ check('aura_widget_schema documents only what was asked for', () => {
     assert.match(t, /## switch — Schalter/);
     assert.match(t, /- statusDp: string.*\[Datenpunkt-Id\]/);
     assert.ok(!/## value —/.test(t));
+});
+
+// ── Answer size ──────────────────────────────────────────────────────────────
+// The named-type block is two thirds of the answer and used to be reprinted on
+// every call, so four widget types fetched one at a time paid for CustomCell four
+// times. These three switches are what makes the schema affordable to read.
+
+const fullList = await client.callTool({ name: 'aura_widget_schema', arguments: { types: ['list'] } });
+const leanSchema = await client.callTool({
+    name: 'aura_widget_schema',
+    arguments: { types: ['list'], sharedTypes: false, shape: false },
+});
+check('sharedTypes=false names the types instead of printing them', () => {
+    const t = leanSchema.content[0].text;
+    assert.match(t, /## list — /);
+    assert.match(t, /## Verwendete Typen \(nicht ausgegeben\)/);
+    // The names come with their size, so a model can decide before fetching.
+    assert.match(t, /StaticListEntry \(\d+ Z\.\)/);
+    assert.ok(!/^StaticListEntry = \{/m.test(t), 'the type body must be gone');
+    assert.ok(!/# Aufbau eines Widgets/.test(t), 'shape=false drops the widget shape');
+    // The whole point: cheaper than the full slice by a wide margin.
+    const full = fullList.content[0].text.length;
+    assert.ok(t.length * 2 < full, `lean slice ${t.length} should be far under half of ${full}`);
+});
+
+const filteredSchema = await client.callTool({
+    name: 'aura_widget_schema',
+    arguments: { types: ['list'], options: ['entries', 'quatsch'], sharedTypes: false, shape: false },
+});
+check('options=[…] narrows to the named keys and names what does not exist', () => {
+    const t = filteredSchema.content[0].text;
+    assert.match(t, /- entries: StaticListEntry\[\]/);
+    assert.match(t, /\(list kennt nicht: quatsch\)/);
+    assert.ok(!/- rowConditions:/.test(t), 'an option that was not asked for must not appear');
+    assert.ok(t.length < 2000, `filtered slice should be tiny, was ${t.length}`);
+});
+
+const typesRes = await client.callTool({
+    name: 'aura_types',
+    arguments: { names: ['WidgetCondition[]', 'customcell', 'Condition'] },
+});
+check('aura_types resolves a type through brackets and case, and names a miss', () => {
+    const t = typesRes.content[0].text;
+    assert.match(t, /^WidgetCondition = \{/m);
+    assert.match(t, /^CustomCell = \{/m);
+    // "Condition" is not a type — the near-miss list is what gets the model there.
+    assert.match(t, /Keinen Typ "Condition"/);
+    assert.match(t, /WidgetCondition/);
+});
+
+const noTypes = await client.callTool({ name: 'aura_types', arguments: { names: [] } });
+check('aura_types without names lists what there is', () => {
+    assert.ok(noTypes.isError);
+    assert.match(noTypes.content[0].text, /CustomCell/);
 });
 
 const tileRow = (n, over = {}) =>
@@ -792,6 +1133,51 @@ const reviewUnknown = await client.callTool({ name: 'aura_review', arguments: { 
 check('aura_review names the tabs there are instead of guessing', () => {
     assert.ok(reviewUnknown.isError);
     assert.match(reviewUnknown.content[0].text, /Vorhanden:/);
+});
+
+const sweep = await client.callTool({ name: 'aura_review', arguments: {} });
+check('aura_review without a tab sweeps the whole dashboard for health', () => {
+    const t = sweep.content[0].text;
+    assert.match(t, /alle Tabs und Popups/);
+    // The counted line proves it actually walked the configuration.
+    assert.match(t, /Widget\(s\) in \d+ Tab\(s\)/);
+});
+
+const styleOnly = await client.callTool({ name: 'aura_review', arguments: { tab: 'Klima', mode: 'style' } });
+check('mode=style leaves the health half out', () => {
+    assert.ok(!/Datenpunkt-Verweis\(e\) geprüft/.test(styleOnly.content[0].text));
+});
+
+const measured = await client.callTool({
+    name: 'aura_measure',
+    arguments: {
+        json: JSON.stringify({
+            id: 'l16',
+            type: 'list',
+            title: 'Liste',
+            datapoint: '',
+            gridPos: { x: 0, y: 0, w: 10, h: 14 },
+            options: { entries: Array.from({ length: 16 }, (_, i) => ({ id: `demo.${i}` })) },
+        }),
+    },
+});
+check('aura_measure answers the sizing question over the endpoint', () => {
+    const t = measured.content[0].text;
+    assert.match(t, /Zeilenhöhe 20 px/);
+    assert.match(t, /ZU KLEIN/);
+    assert.match(t, /→ h=\d+/);
+});
+
+const measuredTab = await client.callTool({ name: 'aura_measure', arguments: { tab: 'Klima' } });
+check('aura_measure takes an existing tab', () => {
+    assert.ok(!measuredTab.isError, measuredTab.content[0].text);
+    assert.match(measuredTab.content[0].text, /Klima/);
+});
+
+const measuredNothing = await client.callTool({ name: 'aura_measure', arguments: {} });
+check('aura_measure says what it needs instead of guessing', () => {
+    assert.ok(measuredNothing.isError);
+    assert.match(measuredNothing.content[0].text, /"tab" oder "json"/);
 });
 
 const badValidate = await client.callTool({
@@ -1322,7 +1708,11 @@ check('the token is kept out of the instance object handed to browsers', () => {
     // object on every start (App.tsx fetches system.adapter.aura.*), so every
     // browser on the network would receive the token in clear text.
     const ioPack = JSON.parse(fs.readFileSync(path.join(ROOT, 'io-package.json'), 'utf8'));
-    const protectedNative = ioPack.common.protectedNative || [];
+    // js-controller reads protectedNative from the ROOT of io-package.json, not
+    // from common — the list was moved there and this check stayed behind, so it
+    // failed on a file that was right. Both places are accepted here; only the
+    // root one has an effect.
+    const protectedNative = ioPack.protectedNative || ioPack.common.protectedNative || [];
     assert.ok(protectedNative.includes('mcpToken'), 'mcpToken must be protected');
     // The generated client block carries the same token a second time.
     assert.ok(protectedNative.includes('mcpClientConfig'), 'mcpClientConfig must be protected too');

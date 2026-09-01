@@ -146,7 +146,10 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_widget_types`                   | Alle Typen kompakt, mit `group=` auf eine Kategorie eingegrenzt                                                | read         |
 | `aura_widget_schema`                  | Optionen der genannten Typen, mit `brief=true` nur Namen und Typen                                             | read         |
 | `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                           | read         |
-| `aura_validate`                       | Prüfung gegen Schema und Live-Datenpunkte                                                                      | read         |
+| `aura_types`                          | Benannte Typen einzeln holen (`WidgetCondition`, `CustomCell` …) statt sie je Widget-Typ mitzuschleppen        | read         |
+| `aura_measure`                        | Zeilen in Pixel, gegen die gemessene Mindesthöhe des Typs — plus URL des Tabs                                  | read         |
+| `aura_validate`                       | Prüfung gegen Schema, Live-Datenpunkte und die Objekte dahinter                                                | read         |
+| `aura_review`                         | Vorhandenes prüfen: Stil (`mode:"style"`) und Gesundheit (tote/leere/eingefrorene DPs, unwirksame Optionen)    | read         |
 | `aura_add_widget`                     | Ein Widget an Tab, Popup oder Gruppe anfügen                                                                   | write        |
 | `aura_write_tab`                      | Widgetliste eines Tabs ersetzen                                                                                | write        |
 | `aura_create_tab`                     | Neuen Tab anlegen, leer oder gefüllt                                                                           | write        |
@@ -237,6 +240,118 @@ kann, ist überprüfbar; „das wirkt unruhig" wäre geraten. Und es bleiben
 Vorschläge: der Antworttext sagt ausdrücklich, dem Nutzer die Liste zu zeigen und
 nur zu ändern, was er will — mit `aura_update_widget`, damit die übrigen Optionen
 stehen bleiben.
+
+## Der Gesundheitscheck: was schon da ist, gegen Schema und Anlage
+
+Der Rückblick oben ist Geschmack in mechanischer Form. Daneben steht die zweite
+Hälfte von `aura_review` (`mode: "health"`, `lib/mcp/audit.js`): kein Urteil über
+den Aufbau, sondern die Frage, ob das Konfigurierte überhaupt noch funktioniert.
+
+Ohne `tab` läuft sie über **alle** Tabs, Popup-Ansichten und Gruppen-Definitionen
+und meldet:
+
+| Befund                                   | Warum er sonst niemandem auffällt                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------- |
+| Datenpunkt existiert nicht               | Widget rendert, zeigt nichts, meldet nichts                               |
+| Datenpunkt ohne Wert (`null`)            | Angelegt und nie beschrieben                                              |
+| Datenpunkt seit >14 Tagen unverändert    | Mehrere DP-Generationen fürs gleiche Gerät, das Widget hängt an der alten |
+| Option, die das Widget nicht liest       | Wird beim Rendern verworfen — hat früher gewirkt, unter anderem Namen     |
+| Einstellung eine Ebene zu hoch           | `conditions`/`badges` direkt aufs Widget geschrieben                      |
+| Doppelte Widget-Id                       | Geteilter Laufzeit-Zustand, Klickaktion trifft beide (#606)               |
+| Gruppe ohne gespeicherte Kinder          | Import ohne `groupDefs`, Restore ohne den Schlüssel                       |
+| Leerer Tab, verwaiste Gruppen-Definition | Menüeintrag ohne Inhalt, Reste gelöschter Gruppen                         |
+
+Die Datenpunkte werden dafür **lose** gesammelt (`collectDatapointRefs` mit
+`loose: true`): auch `entries[].id`, `subDps[].id` und die `…Dp`-Felder in
+verschachtelten Strukturen — dort steckt in einem gewachsenen Dashboard das
+meiste. Trennzeilen und Regel-Ids sind ausgenommen, sonst wäre jede Bedingung ein
+„toter Datenpunkt". Für den strengen Pfad (`aura_validate`, blockiert Schreiben)
+gilt nur, was das Schema ausdrücklich als Datenpunkt markiert hat — deshalb
+markiert `gen-widget-schema.mjs` inzwischen auch Feldnamen in benannten Typen
+(48 Felder: `statusDp`, `latDp`, `datapoint` in `ConditionClause` …), aber
+bewusst **kein** `id`.
+
+Alles Warnungen, keine Fehler: ein unveränderter Zählerstand ist normal, ein
+umbenanntes Gerät nicht — die Entscheidung bleibt beim Nutzer.
+
+## Passt der Datenpunkt zum Widget?
+
+`lib/mcp/dpFit.js` liest die Objekte hinter den Datenpunkten, die eine Nutzlast
+nennt (nur die, nicht die ganze Anlage), und vergleicht:
+
+- Schalter/Dimmer/Slider auf einem Datenpunkt mit `write: false` — der Knopf tut
+  dauerhaft nichts
+- `switch` auf einem `number` ohne `onValue`/`offValue`, `gauge` auf einem `string`
+- Dimmer/Slider/Knob/Rollladen ohne `min`/`max` — weder im Objekt noch im Widget,
+  dann rechnet das Widget mit 0–100 und schreibt Werte, die das Gerät ablehnt
+- `enum`-Werte, die nicht in `common.states` stehen
+- Preset-Werte mit falschem Typ
+
+Immer Warnungen. Das ioBroker-Objekt ist eine Behauptung: Adapter setzen `write`
+falsch, viele Anlagen schalten mit 0/1, und ein Bereich darf auch im Widget
+stehen. Ein verweigerter Schreibzugriff wäre schlimmer als der Fehler.
+
+## Größen: gemessen, nicht geschätzt
+
+Die eine Sache, die ein Modell nicht sehen kann. Es schreibt `gridPos.h` in
+Zeilen, der Browser rendert Pixel, und eine Liste, die nach neun von sechzehn
+Zeilen abgeschnitten ist, sieht im JSON genauso richtig aus wie eine passende.
+
+`tools/schema/measure-widget-metrics.mjs` (`npm run metrics`) rendert dafür jeden
+Typ **in der echten Oberfläche** über den `__auraShot`-Harness — Raster mit 2 px
+Zeilenhöhe für die Auflösung, normale 20 px Spalten für eine realistische Breite
+— und geht mit der Höhe nach unten, bis der Inhalt nicht mehr passt. „Passt"
+heißt zweierlei: nichts scrollt im Widget, und nichts wird außerhalb der Karte
+gezeichnet. Das zweite ist der Punkt, an dem die Kacheln hängen: sie scrollen
+nicht, sie stehen über.
+
+Der Lauf geht **abwärts** von einer Höhe, die passt, nie als Binärsuche — ein
+Diagramm bei 30 px rendert überhaupt keine Achse und würde „passt" melden.
+
+Ergebnis: `public/ai/aura-widget-metrics.json`, gemessen z. B.
+
+| Typ          | Messung                                  |
+| ------------ | ---------------------------------------- |
+| `list`       | 66 px + 33 px je Zeile                   |
+| `jsontable`  | 86 px + 27 px je Zeile                   |
+| `value`      | mind. 72 px (3 Zeilen im Standardraster) |
+| `gauge`      | mind. 162 px (6 Zeilen)                  |
+| `thermostat` | mind. 144 px                             |
+| `echart`     | mind. 52 px                              |
+
+`aura_measure` (`lib/mcp/measure.js`) rechnet damit gegen das Raster **dieses**
+Dashboards (`h × rowHeight + (h−1) × gap`) und antwortet pro Widget mit
+„passt / knapp / ZU KLEIN, es fehlen N px → h=M". Typen, deren Inhalt erst zur
+Laufzeit entsteht (`autolist`, Statusübersicht, Kalender), sagen das — mit
+`items=16` rechnet `autolist` mit der `list`-Messung weiter.
+
+`npm run metrics:check` braucht einen laufenden Dev-Server und ist deshalb
+bewusst **nicht** Teil von `npm test`.
+
+## Und der Blick aufs Ergebnis?
+
+Bleibt beim Nutzer. Ein Screenshot im Adapter hieße Playwright plus Browser im
+Adapter-Paket; das ist nicht vertretbar. Ersatz ist der Link: `aura_measure`
+liefert bei einem Tab dessen URL mit (`tabUrl` in `tools.js`, Hash-Route
+`#/view/<layout>/s/<section>/tab/<tab>`), damit der Nutzer in einer Sekunde
+sieht, was keine Prüfung sagen kann.
+
+## Antwortgröße
+
+Der Typblock war 62–77 % der Antwort von `aura_widget_schema` — und wurde bei
+jedem Aufruf neu ausgegeben, vier Widget-Typen einzeln geholt also viermal
+`CustomCell`. Drei Schalter dagegen:
+
+- `options: ["entries","rowConditions"]` — nur diese Schlüssel (aus 40 KB werden
+  unter 1 KB)
+- `sharedTypes: false` — nennt die Typen mit ihrer Zeilenzahl statt sie
+  auszugeben (`list`: 40 KB → 10 KB)
+- `shape: false` — der „Aufbau eines Widgets"-Block nur beim ersten Aufruf
+
+Dazu `aura_types` mit `names: ["WidgetCondition","CustomCell"]`: holt einen
+benannten Typ **einmal**. Klammern und Groß-/Kleinschreibung werden verziehen
+(`WidgetCondition[]`, `customcell`), ein Fehlgriff bekommt die naheliegenden
+Namen genannt.
 
 ## Dieselben Rezepte im Editor
 
