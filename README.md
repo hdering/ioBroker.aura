@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.52.2 (2026-09-01)
+- 🌟 **New feature:** Calendar - each calendar source can carry its own icon, shown in front of its entries ([#608](https://github.com/hdering/ioBroker.aura/issues/608))
+- 🌟 **New feature:** Calendar - optional calendar week, printed at the first entry of every week ([#608](https://github.com/hdering/ioBroker.aura/issues/608))
+- 🌟 **New feature:** Calendar - multi-day events can be shown as one entry per day ([#608](https://github.com/hdering/ioBroker.aura/issues/608))
+
+
 ### 0.52.1 (2026-09-01)
 - AI assistant (MCP, beta) - two new tools aimed at the same thing: dashboards that use what AURA can do. aura_recipes hands the model finished, valid widgets for the jobs that come up - a room as one list instead of a row of value tiles, a counter as consumption bars, a tile with colour thresholds and conditions, a status overview, a thermostat dial, a whole room tab. aura_review goes the other way and looks over a tab that already exists, naming what would make it better: tile rows that belong in one list, numbers with no good or bad range, a meter shown as its raw reading, a bar chart without an aggregation, a list with no second line - each finding names the widgets and the recipe that fixes it, and stays a suggestion. On top of that the instructions now send the model to a recipe and to an existing tab of the dashboard before it reads the schema, so a generated view no longer comes back as the bare minimum the schema accepts
 - Editor - the "AI prompt" dialog now pastes worked examples into the prompt (the same ones the MCP server hands out) and says what a good dashboard looks like, instead of only what is valid JSON. The old wording asked the model to leave options out, which is why generated views came back as bare tiles
@@ -241,17 +247,6 @@ Release v0.50.6
 - Dynamic list - the frontend filter chip can be hidden, like the static list already could ([#575](https://github.com/hdering/ioBroker.aura/issues/575))
 
 
-### 0.49.0 (2026-08-24)
-- 🌟 **New feature:** Dynamic list - the custom category filter now names the category in the closed field ("Floors: Upper floor, Attic"), so identically named entries from different categories stay distinguishable ([#568](https://github.com/hdering/ioBroker.aura/issues/568))
-- Frontend design - a theme picked for a whole layout is now applied in the frontend; before that only per-section overrides had any effect ([#573](https://github.com/hdering/ioBroker.aura/issues/573))
-- Frontend design - the header light/dark button and the themeMode.frontend datapoint now switch the *mode* only: a design that already matches the requested brightness is kept, and the configured design is no longer overwritten for good ([#573](https://github.com/hdering/ioBroker.aura/issues/573))
-- Frontend design - the theme presets are greyed out with a hint while "theme follows browser" is on, and the admin says when a light/dark mode datapoint replaces the picked design ([#573](https://github.com/hdering/ioBroker.aura/issues/573))
-- Status overview - the "All clear" message is now shown in the card and minimal layouts too; before that they stayed empty when nothing needed attention, and it can now be switched off entirely
-- 🌟 **New feature:** Calendar - new option "adjust height to content": the widget grows with its entries instead of filling a fixed cell height, like the status overview
-- 🌟 **New feature:** HTML and value widget - placeholders can now calculate: vis-style operation chains {id;round(1)}, named variables {a:id1;b:id2;a * b} and inline {{ ... }} expressions with Math functions, comparisons and filters ([#571](https://github.com/hdering/ioBroker.aura/issues/571))
-- 🌟 **New feature:** HTML and value widget - the .ts / .lc suffixes render a datapoint's update and last-change timestamp, e.g. {id.lc;date(HH:mm)} ([#571](https://github.com/hdering/ioBroker.aura/issues/571))
-
-
 ## License
 
 MIT License
@@ -263,6 +258,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
