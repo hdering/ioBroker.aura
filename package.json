@@ -162,13 +162,13 @@
     "test:over-threshold": "node tools/tests/over-threshold.mjs"
   },
   "dependencies": {
-    "@iobroker/adapter-core": "^3.3.2",
+    "@iobroker/adapter-core": "^3.4.1",
     "suncalc": "^2.0.0"
   },
   "devDependencies": {
     "@alcalzone/release-script": "^5.2.1",
     "@alcalzone/release-script-plugin-iobroker": "^5.2.0",
-    "@alcalzone/release-script-plugin-license": "^5.2.0",
+    "@alcalzone/release-script-plugin-license": "^5.2.2",
     "@alcalzone/release-script-plugin-manual-review": "^5.2.0",
     "@iconify/react": "^6.0.2",
     "@iobroker/adapter-dev": "^1.5.0",
@@ -176,6 +176,7 @@
     "@iobroker/testing": "^5.2.2",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@tsconfig/node22": "^22.0.5",
+    "@types/node": ">=22",
     "@types/leaflet": "^1.9.12",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
