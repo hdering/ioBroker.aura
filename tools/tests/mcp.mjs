@@ -131,11 +131,28 @@ check('datapoint ids and datapoint-valued options are checked against the tree',
     assert.ok(hasError(res, /Option "statusDp": Datenpunkt "erfunden\.0\.dp" gibt es nicht/));
 });
 
-check('gridPos must be whole, positive and inside the column bound', () => {
+check('gridPos must be whole and positive', () => {
     assert.ok(hasError(validateWidget({ ...OK_SWITCH, gridPos: { x: 0, y: 0, w: 8.5, h: 4 } }, schema), /ganze Zahl/));
     assert.ok(hasError(validateWidget({ ...OK_SWITCH, gridPos: { x: -1, y: 0, w: 8, h: 4 } }, schema), /negativ/));
+});
+
+check('exceeding the column count warns instead of refusing', () => {
+    // The count is inferred from the widest widget present, and the frontend
+    // widens the grid to fit. Refusing would block building up a thin dashboard:
+    // move its one wide widget and the "limit" shrinks with it.
     const res = validateWidget({ ...OK_SWITCH, gridPos: { x: 40, y: 0, w: 12, h: 4 } }, schema, { columns: 48 });
-    assert.ok(hasError(res, /52 überschreitet die 48 Spalten/));
+    assert.deepEqual(res.errors, []);
+    assert.ok(hasWarning(res, /52 ist breiter als das bisher Vorhandene \(48 Spalten\)/));
+});
+
+check('an option written one level too high is an error, not a shrug', () => {
+    // It would be written, ignored by AURA, and reported to the user as done.
+    const res = validateWidget({ ...OK_SWITCH, conditions: [] }, schema);
+    assert.ok(hasError(res, /"conditions" gehört unter "options"/));
+    const own = validateWidget({ ...OK_SWITCH, controlMode: 'toggle' }, schema);
+    assert.ok(hasError(own, /"controlMode" gehört unter "options"/));
+    // Something nobody knows stays a warning with a suggestion.
+    assert.ok(hasWarning(validateWidget({ ...OK_SWITCH, mobilOrder: 2 }, schema), /meintest du "mobileOrder"/));
 });
 
 check('a group without defId warns about its children living elsewhere', () => {
@@ -468,16 +485,18 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all twenty-six tools are announced with descriptions', () => {
+check('all twenty-eight tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_backups',
+        'aura_copy_node',
         'aura_copy_widget',
         'aura_create_layout',
         'aura_create_section',
         'aura_create_tab',
         'aura_dashboard',
         'aura_delete',
+        'aura_find',
         'aura_group',
         'aura_insert_preset',
         'aura_popup',
@@ -1659,6 +1678,207 @@ check('a preset write is covered by the backup it announces', () => {
     // make the "Sicherung: ..." line a promise the restore cannot keep.
     assert.ok(!restoredPresets.isError, restoredPresets.content[0].text);
     assert.equal(adapter.states['config.widget-presets'], beforePresets);
+});
+
+// ── Vorlagen löschen und umbenennen, und was bei falscher Art passiert ───────
+
+const badKind = await client.callTool({ name: 'aura_delete', arguments: { kind: 'quatsch', target: 'x' } });
+check('an unknown kind is named as such instead of being read as a tab', () => {
+    // It used to fall through to the tab branch and answer "Kein Tab ... gefunden"
+    // with a list of tabs — an answer to a question nobody asked.
+    assert.ok(badKind.isError);
+    assert.match(badKind.content[0].text, /"kind": "quatsch" gibt es hier nicht/);
+    assert.match(badKind.content[0].text, /preset/);
+});
+
+await client.callTool({ name: 'aura_save_preset', arguments: { widgetId: 'quelle', name: 'Zum Umbenennen' } });
+const renamedPreset = await client.callTool({
+    name: 'aura_rename',
+    arguments: { kind: 'preset', target: 'Zum Umbenennen', name: 'Neuer Name' },
+});
+check('a preset can be renamed', () => {
+    assert.ok(!renamedPreset.isError, renamedPreset.content[0].text);
+    const presets = JSON.parse(adapter.states['config.widget-presets']).state.presets;
+    assert.ok(presets.some((p) => p.name === 'Neuer Name'));
+});
+
+const deletedPreset = await client.callTool({
+    name: 'aura_delete',
+    arguments: { kind: 'preset', target: 'Neuer Name' },
+});
+check('a preset can be deleted', () => {
+    assert.ok(!deletedPreset.isError, deletedPreset.content[0].text);
+    const presets = JSON.parse(adapter.states['config.widget-presets']).state.presets;
+    assert.ok(!presets.some((p) => p.name === 'Neuer Name'));
+});
+
+const missingPreset = await client.callTool({ name: 'aura_delete', arguments: { kind: 'preset', target: 'nix' } });
+check('deleting an unknown preset says what there is', () => {
+    assert.ok(missingPreset.isError);
+    assert.match(missingPreset.content[0].text, /Vorhanden:|keine Vorlagen/);
+});
+
+// ── Eine Gruppe über die Widget-Id ansprechen ────────────────────────────────
+
+const byWidgetId = await client.callTool({ name: 'aura_group', arguments: { widgetId: 'quelle' } });
+check('a group can be addressed by the id of its widget', () => {
+    // The defId sits in options; the id a model has in hand comes from aura_tab.
+    assert.ok(!byWidgetId.isError, byWidgetId.content[0].text);
+    assert.match(byWidgetId.content[0].text, /Kind\(er\)/);
+});
+
+const noAddress = await client.callTool({ name: 'aura_group', arguments: {} });
+check('neither defId nor widgetId names both parameters', () => {
+    assert.ok(noAddress.isError);
+    assert.match(noAddress.content[0].text, /"defId" oder "widgetId" angeben/);
+});
+
+await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        tab: 'Eins',
+        layout: 'Werkbank',
+        widget: JSON.stringify({
+            id: 'schlicht',
+            type: 'value',
+            title: 'Schlicht',
+            datapoint: 'zigbee.0.temp',
+            gridPos: { x: 0, w: 6, h: 4 },
+            options: {},
+        }),
+    },
+});
+const notAGroup = await client.callTool({ name: 'aura_group', arguments: { widgetId: 'schlicht' } });
+check('a widget without children says so instead of reporting a missing defId', () => {
+    assert.ok(notAGroup.isError);
+    assert.match(notAGroup.content[0].text, /hat keine Gruppen-Kinder/);
+});
+
+// ── Ein einzelnes Kind anhängen ──────────────────────────────────────────────
+
+const beforeChildren = JSON.parse(adapter.states['config.group-defs']).state.defs;
+const beforeCount = Object.values(beforeChildren)[0].length;
+const appended = await client.callTool({
+    name: 'aura_add_widget',
+    arguments: {
+        widgetId: 'quelle',
+        widget: JSON.stringify({
+            id: 'kind-neu',
+            type: 'value',
+            title: 'Neu',
+            datapoint: 'zigbee.0.temp',
+            gridPos: { x: 0, y: 20, w: 6, h: 4 },
+            options: {},
+        }),
+    },
+});
+check('a single child is appended without rewriting the whole group', () => {
+    assert.ok(!appended.isError, appended.content[0].text);
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    const children = Object.values(defs).find((list) => list.some((w) => w.id === 'kind-neu'));
+    assert.ok(children, 'the new child must be in the group');
+    assert.equal(children.length, beforeCount + 1, 'and the existing ones must still be there');
+});
+
+// ── Tabs, Bereiche und Layouts kopieren und verschieben ──────────────────────
+
+await client.callTool({ name: 'aura_create_section', arguments: { name: 'Zweitbereich', layout: 'Werkbank' } });
+
+const copiedTab = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: { kind: 'tab', target: 'Eins', fromLayout: 'Werkbank', toLayout: 'Werkbank', toSection: 'Zweitbereich' },
+});
+check('a copied tab brings its widgets and its own group children', () => {
+    assert.ok(!copiedTab.isError, copiedTab.content[0].text);
+    const wb = JSON.parse(adapter.states['config.dashboard']).state.layouts.find((l) => l.name === 'Werkbank');
+    const zweit = wb.sections.find((s) => s.name === 'Zweitbereich');
+    const copy = zweit.tabs.find((t) => t.name === 'Eins Kopie');
+    assert.ok(copy, 'the copy must exist under its new name');
+    const source = wb.sections[0].tabs.find((t) => t.name === 'Eins');
+    assert.equal(copy.widgets.length, source.widgets.length);
+    // Fresh ids, or the click-action picker would mark both twins.
+    assert.ok(!copy.widgets.some((w) => source.widgets.some((s) => s.id === w.id)));
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    for (const w of copy.widgets.filter((x) => x.options && x.options.defId)) {
+        assert.ok(defs[w.options.defId], `children of ${w.id} must exist`);
+        assert.ok(!source.widgets.some((s) => s.options && s.options.defId === w.options.defId));
+    }
+});
+
+const movedTab = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: {
+        kind: 'tab',
+        target: 'Eins Kopie',
+        mode: 'move',
+        fromLayout: 'Werkbank',
+        toLayout: 'Werkbank',
+        toSection: 'Standard',
+    },
+});
+check('a moved tab keeps its ids and leaves the source section', () => {
+    assert.ok(!movedTab.isError, movedTab.content[0].text);
+    const wb = JSON.parse(adapter.states['config.dashboard']).state.layouts.find((l) => l.name === 'Werkbank');
+    assert.ok(!wb.sections.find((s) => s.name === 'Zweitbereich').tabs.some((t) => t.name === 'Eins Kopie'));
+    assert.ok(wb.sections.find((s) => s.name === 'Standard').tabs.some((t) => t.name === 'Eins Kopie'));
+});
+
+const emptied = JSON.parse(adapter.states['config.dashboard']).state.layouts.find((l) => l.name === 'Werkbank');
+check('a section emptied by a move gets a fresh tab', () => {
+    // A section with no tabs renders nothing and cannot be filled through the UI.
+    assert.equal(emptied.sections.find((s) => s.name === 'Zweitbereich').tabs.length, 1);
+});
+
+const sameSection = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: { kind: 'tab', target: 'Eins', fromLayout: 'Werkbank', toLayout: 'Werkbank', toSection: 'Standard' },
+});
+check('copying a tab into the section it already sits in is refused', () => {
+    assert.ok(sameSection.isError);
+    assert.match(sameSection.content[0].text, /liegt bereits/);
+});
+
+const copiedLayout = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: { kind: 'layout', target: 'Werkbank', name: 'Werkbank Zwilling' },
+});
+check('a whole layout can be copied', () => {
+    assert.ok(!copiedLayout.isError, copiedLayout.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const twin = layouts.find((l) => l.name === 'Werkbank Zwilling');
+    const source = layouts.find((l) => l.name === 'Werkbank');
+    assert.ok(twin);
+    assert.equal(twin.sections.length, source.sections.length);
+    assert.notEqual(twin.slug, source.slug);
+});
+
+const movedLayout = await client.callTool({
+    name: 'aura_copy_node',
+    arguments: { kind: 'layout', target: 'Werkbank', mode: 'move' },
+});
+check('moving a layout is refused with the tool that does mean something', () => {
+    assert.ok(movedLayout.isError);
+    assert.match(movedLayout.content[0].text, /aura_reorder/);
+});
+
+// ── Suchen ───────────────────────────────────────────────────────────────────
+
+const foundByDp = await client.callTool({ name: 'aura_find', arguments: { datapoint: 'zigbee.0.temp' } });
+check('aura_find reports where a datapoint is used, options included', () => {
+    assert.ok(!foundByDp.isError, foundByDp.content[0].text);
+    assert.match(foundByDp.content[0].text, /Treffer/);
+    assert.match(foundByDp.content[0].text, /kind-neu/, 'group children must be searched too');
+});
+
+const foundNothing = await client.callTool({ name: 'aura_find', arguments: { datapoint: 'gibt.es.nicht' } });
+check('a search without hits says so plainly', () => {
+    assert.match(foundNothing.content[0].text, /Keine Treffer/);
+});
+
+const noNeedle = await client.callTool({ name: 'aura_find', arguments: {} });
+check('a search without a criterion is refused rather than dumping everything', () => {
+    assert.ok(noNeedle.isError);
+    assert.match(noNeedle.content[0].text, /Mindestens eines/);
 });
 
 // ── Token generation (the button in the adapter config) ──────────────────────

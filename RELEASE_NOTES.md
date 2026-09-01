@@ -18,3 +18,6 @@
   a section and a tab inside it sharing the same code ask only once
 - AI assistant (MCP, beta) - reorder layouts, sections and tabs, copy or move a widget between
   tabs, and save a widget as a reusable template
+- AI assistant (MCP, beta) - find widgets by datapoint, type or title across the whole dashboard,
+  copy or move whole tabs, sections and layouts, add a single widget to a group, and delete or
+  rename saved templates

@@ -140,30 +140,32 @@ Die Stufe steht auch in den `instructions`: das Modell weiß beim Verbinden, was
 darf, und plant nichts, was es hinterher nicht ausführen kann. Auf `read` wird es
 angewiesen, das JSON zum manuellen Import anzubieten.
 
-| Werkzeug                              | Zweck                                                                                                       | Stufe        |
-| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------ |
-| `aura_dashboard`                      | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite                                                          | read         |
-| `aura_widget_types`                   | Alle Typen kompakt                                                                                          | read         |
-| `aura_widget_schema`                  | Volle Optionen der genannten Typen                                                                          | read         |
-| `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                        | read         |
-| `aura_validate`                       | Prüfung gegen Schema und Live-Datenpunkte                                                                   | read         |
-| `aura_add_widget`                     | Ein Widget anfügen                                                                                          | write        |
-| `aura_write_tab`                      | Widgetliste eines Tabs ersetzen                                                                             | write        |
-| `aura_create_tab`                     | Neuen Tab anlegen, leer oder gefüllt                                                                        | write        |
-| `aura_create_section`                 | Neuen Bereich (Menüeintrag) anlegen, mit einem Start-Tab                                                    | write        |
-| `aura_create_layout`                  | Neues Layout mit eigener URL anlegen, mit Bereich und Tab                                                   | write        |
-| `aura_popups` / `aura_popup`          | Popup-Ansichten auflisten / eine lesen                                                                      | read         |
-| `aura_write_popup`                    | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`)                                                 | write        |
-| `aura_group` / `aura_write_group`     | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen                                                    | read/write   |
-| `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe                                     | write        |
-| `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen | write        |
-| `aura_reorder`                        | Layouts, Bereiche oder Tabs neu sortieren — die Reihenfolge muss vollständig sein                           | write        |
-| `aura_copy_widget`                    | Ein Widget in einen anderen Tab kopieren oder verschieben (`mode:"move"`)                                   | write        |
-| `aura_presets` / `aura_insert_preset` | Widget-Vorlagen auflisten / eine einfügen                                                                   | read / write |
-| `aura_save_preset`                    | Ein vorhandenes Widget als Vorlage sichern                                                                  | write        |
-| `aura_rename`                         | Layout, Bereich, Tab oder Popup umbenennen — der Slug bleibt                                                | rename       |
-| `aura_delete`                         | Widget, Tab, Bereich, Layout oder Popup löschen                                                             | delete       |
-| `aura_backups` / `aura_restore`       | Sicherungen auflisten / eine zurückspielen                                                                  | read / write |
+| Werkzeug                              | Zweck                                                                                                          | Stufe        |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------ |
+| `aura_dashboard`                      | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite                                                             | read         |
+| `aura_widget_types`                   | Alle Typen kompakt                                                                                             | read         |
+| `aura_widget_schema`                  | Volle Optionen der genannten Typen                                                                             | read         |
+| `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                           | read         |
+| `aura_validate`                       | Prüfung gegen Schema und Live-Datenpunkte                                                                      | read         |
+| `aura_add_widget`                     | Ein Widget anfügen                                                                                             | write        |
+| `aura_write_tab`                      | Widgetliste eines Tabs ersetzen                                                                                | write        |
+| `aura_create_tab`                     | Neuen Tab anlegen, leer oder gefüllt                                                                           | write        |
+| `aura_create_section`                 | Neuen Bereich (Menüeintrag) anlegen, mit einem Start-Tab                                                       | write        |
+| `aura_create_layout`                  | Neues Layout mit eigener URL anlegen, mit Bereich und Tab                                                      | write        |
+| `aura_popups` / `aura_popup`          | Popup-Ansichten auflisten / eine lesen                                                                         | read         |
+| `aura_write_popup`                    | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`)                                                    | write        |
+| `aura_group` / `aura_write_group`     | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen                                                       | read/write   |
+| `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab oder (mit `defId`) in einer Gruppe                                        | write        |
+| `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen    | write        |
+| `aura_find`                           | Widgets nach Datenpunkt, Typ oder Titel finden — über Tabs, Gruppen und Popups, inkl. Datenpunkten in Optionen | read         |
+| `aura_copy_node`                      | Tab, Bereich oder Layout kopieren bzw. verschieben (`mode:"move"`)                                             | write        |
+| `aura_reorder`                        | Layouts, Bereiche oder Tabs neu sortieren — die Reihenfolge muss vollständig sein                              | write        |
+| `aura_copy_widget`                    | Ein Widget in einen anderen Tab kopieren oder verschieben (`mode:"move"`)                                      | write        |
+| `aura_presets` / `aura_insert_preset` | Widget-Vorlagen auflisten / eine einfügen                                                                      | read / write |
+| `aura_save_preset`                    | Ein vorhandenes Widget als Vorlage sichern                                                                     | write        |
+| `aura_rename`                         | Layout, Bereich, Tab, Popup oder Vorlage umbenennen — der Slug bleibt                                          | rename       |
+| `aura_delete`                         | Widget, Tab, Bereich, Layout, Popup oder Vorlage löschen                                                       | delete       |
+| `aura_backups` / `aura_restore`       | Sicherungen auflisten / eine zurückspielen                                                                     | read / write |
 
 ## Warum Validierung der eigentliche Gewinn ist
 
@@ -200,6 +202,34 @@ Frontend eindeutig gemacht und transliteriert (`garten`, `garten-2`, `kueche`).
 **Leere Hüllen.** Ein neues Layout bekommt einen Bereich und einen Tab, ein neuer
 Bereich einen Tab — genau wie im Editor. Ein Bereich ohne Tabs hat nichts
 anzuzeigen und keine `activeTabId`, auf die er zeigen könnte.
+
+**Die Spaltenzahl ist eine Beobachtung, kein Gesetz.** Sie wird aus dem breitesten
+vorhandenen Widget abgeleitet — das Frontend zieht das Raster ohnehin auf die
+belegte Breite auf (`effectiveCols = max(cols, minCols)`). Auf einem dünn belegten
+Dashboard schrumpft die Zahl mit jeder Verschiebung, und eine Ablehnung hätte
+genau den Aufbau blockiert, für den dieser Server da ist. Zu breit ist deshalb
+eine **Warnung**; Maße, die wirklich kaputt sind (negativ, gebrochen), bleiben Fehler.
+
+**Eine Option eine Ebene zu hoch ist ein Fehler.** `conditions`, `badges`,
+`clickAction` und die übrigen gemeinsamen Einstellungen leben unter `options`.
+Direkt am Widget geschrieben liest AURA sie nirgends — der Schreibvorgang
+„gelingt“, das Modell meldet Erfolg, und sichtbar passiert nichts. Deshalb wird
+abgelehnt und der Ort genannt, statt nur zu warnen. Ein Schlüssel, den niemand
+kennt, bleibt eine Warnung mit Vorschlag.
+
+**Kopierte Knoten bekommen frische Ids.** `aura_copy_node` klont Widgets _und_
+Gruppen-Definitionen rekursiv und biegt `widgetId`-Verweise innerhalb der Kopie
+auf die Kopien um (Klick-Aktionen `popup-widget`/`link-widget` tragen sie in
+beliebiger Tiefe) — dieselbe Zwei-Pass-Logik wie `src-vis/utils/widgetCopy.ts` im
+Editor. Beim Verschieben bleibt alles, wie es ist; verliert ein Bereich dabei
+seinen letzten Tab, bekommt er einen leeren neuen, weil ein Bereich ohne Tab
+weder etwas anzeigt noch über die Oberfläche wieder zu füllen ist.
+
+**Gruppen sind über ihr Widget ansprechbar.** `aura_group`, `aura_write_group` und
+`aura_add_widget` nehmen `widgetId` statt `defId` — die Id kennt das Modell aus
+`aura_tab`, die defId steckt eine Ebene tiefer in den Optionen. `aura_add_widget`
+hängt damit ein einzelnes Kind an, statt über `aura_write_group` zwölf Kacheln
+fehlerfrei zurückschreiben zu müssen, um eine dreizehnte zu ergänzen.
 
 **Umsortieren verlangt die vollständige Reihenfolge.** `aura_reorder` nimmt keine
 Teilliste entgegen: fehlt ein Eintrag, wird abgelehnt statt gelöscht. Ein Modell,
