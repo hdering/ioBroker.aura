@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.49.2 (2026-08-24)
+- 🌟 **New feature:** Chart (advanced) - new option to switch off the chart animation ([#574](https://github.com/hdering/ioBroker.aura/issues/574))
+
 ## 0.49.1 (2026-08-24)
 - Static & dynamic list - title alignment (left/centre/right) now actually moves the header title ([#575](https://github.com/hdering/ioBroker.aura/issues/575))
 - Dynamic list - the frontend filter chip can be hidden, like the static list already could ([#575](https://github.com/hdering/ioBroker.aura/issues/575))
