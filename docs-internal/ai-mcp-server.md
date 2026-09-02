@@ -235,6 +235,20 @@ Zahl ohne `colorThresholds`/`conditions`/`badges`, Zählerstand statt Verbrauch
 nichts in diese Richtung gemeldet wurde — dass im ganzen Tab nichts auf irgendetwas
 reagiert. Jeder Befund nennt die Widget-Ids und das Rezept, das ihn behebt.
 
+Die Kachelreihe zählt dabei nur die **nackten** Kacheln. Zwei Regeln zogen sonst
+gegeneinander: „Zahl ohne guten oder schlechten Bereich" verlangt eine Schwelle,
+eine Bedingung oder ein Badge — und die Kachelreihe schlug danach vor, genau die
+Kachel in eine Listenzeile zu falten, wo diese eigene Reaktion verloren geht.
+Gemeldet wurde es an einer bewussten Kennzahlenzeile: fünf Kacheln, die über
+`conditions[].elements` einzeln auf ihren Wert reagieren. Eine Listenzeile kann
+das je Zeile nicht, der Vorschlag war also einer für ein schlechteres Dashboard —
+und er kam bei jedem Review wieder. `isConfiguredTile()` nimmt Kacheln mit
+`conditions`, `colorThresholds`, `badges` oder Zonen darum aus; stehen daneben
+noch fünf nackte, wird weiter gemeldet, und die Begründung sagt, wie viele
+ausgenommen sind und warum. Das ist kein Urteil über die Qualität der
+Konfiguration — nur die Feststellung, dass jemand dieser einen Kachel absichtlich
+ein eigenes Verhalten gegeben hat.
+
 Bewusst nur **mechanisch Prüfbares**. Ein Befund, den man am JSON nachrechnen
 kann, ist überprüfbar; „das wirkt unruhig" wäre geraten. Und es bleiben
 Vorschläge: der Antworttext sagt ausdrücklich, dem Nutzer die Liste zu zeigen und

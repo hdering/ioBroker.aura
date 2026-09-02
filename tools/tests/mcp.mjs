@@ -1274,6 +1274,45 @@ check('a row of single-value tiles is reported, a handful is not', () => {
     assert.ok(found.recipe);
 });
 
+// Reported from the field: a deliberate KPI row of five tiles that react one by
+// one through conditions[].elements kept being told to become a list. The two
+// rules were pulling against each other — value-without-meaning asks for exactly
+// that individual reaction, tile-row proposed to fold it into a list row, where
+// it is lost. A configured tile is not list material.
+check('tiles that carry their own meaning are not list material', () => {
+    const kpi = (i) => ({
+        id: `k${i}`,
+        type: 'value',
+        title: `KPI ${i}`,
+        datapoint: `pv.0.k${i}`,
+        gridPos: { x: i * 4, y: 0, w: 4, h: 3 },
+        options: {
+            conditions: [
+                {
+                    id: 'c1',
+                    clauses: [{ datapoint: `pv.0.k${i}`, operator: 'gt', value: 100 }],
+                    elements: { value: { color: '#e33' } },
+                },
+            ],
+        },
+    });
+    const row = Array.from({ length: TILE_ROW_LIMIT }, (_, i) => kpi(i));
+    assert.ok(!ids(reviewWidgets(row), 'tile-row'), 'a KPI row is not a device list');
+    // A threshold or a badge says the same thing as a condition.
+    const byThreshold = tileRow(TILE_ROW_LIMIT, { options: { colorThresholds: [[10, '#0f0']] } });
+    assert.ok(!ids(reviewWidgets(byThreshold), 'tile-row'));
+    const byBadge = tileRow(TILE_ROW_LIMIT, { options: { badges: [{ id: 'b1', dp: 'hm-rpc.0.X.1.LOW' }] } });
+    assert.ok(!ids(reviewWidgets(byBadge), 'tile-row'));
+
+    // The plain ones still count, and only they are named.
+    const mixed = tileRow(TILE_ROW_LIMIT).concat(row);
+    const found = ids(reviewWidgets(mixed), 'tile-row');
+    assert.ok(found, 'plain tiles next to a KPI row are still a list');
+    assert.equal(found.widgets.length, TILE_ROW_LIMIT);
+    assert.ok(!found.widgets.some((id) => id.startsWith('k')), 'a configured tile must not be named');
+    assert.match(found.why, /ausgenommen/, 'the answer has to say why the others are left out');
+});
+
 check('a number without a good or bad range is reported, one with is not', () => {
     assert.ok(ids(reviewWidgets(tileRow(1)), 'value-without-meaning'));
     const withThresholds = tileRow(1, { options: { colorThresholds: [[20, '#fff']] } });
