@@ -174,3 +174,24 @@ Wirkt auch auf Widgets in Popup-Views, ohne das Popup zu schließen. Das Widget 
 | Wenn Bedingung erfüllt | Klauseln wie oben; Startklausel ist `Haupt-DP ist aktiv` |
 
 Der Datenpunkt im oberen Bereich gehört nur zum Stil `Anzahl` (der angezeigte Wert). Sichtbarkeits-Datenpunkte stehen in den Klauseln.
+
+## Marker: Text mit Datenpunkten
+
+Der Text des Stils `Label` versteht dieselben [Bindings](../widgets/bindings) wie freies HTML — verfügbar bei Widget-, Bereichs- und Tab-Markern.
+
+| Schreibweise | Beispiel | Ergebnis |
+| --- | --- | --- |
+| Datenpunkt | `{0_userdata.0.Pool.MaxRun} min` | `12 min` |
+| Haupt-Datenpunkt des Widgets | `{dp} °C` | `21.46 °C` |
+| Operations-Kette | `{0_userdata.0.Netz;round(0)} W` | `-1235 W` |
+| Ausdruck | `{{ dp1 + dp2 }} W` | Summe zweier Datenpunkte |
+
+Der Datenbank-Knopf neben dem Textfeld hängt einen gewählten Datenpunkt als `{id}` an den Text an.
+
+| Fall | Anzeige |
+| --- | --- |
+| Datenpunkt ohne Wert | `–` |
+| Kein Wort mit Punkt in den Klammern (`{unbekannt}`) | bleibt sichtbar stehen |
+| `{dp}` bei Bereich/Tab | bleibt stehen — dort gibt es keinen Haupt-Datenpunkt |
+
+Zahlen nutzen die global eingestellten Dezimalstellen als **Obergrenze**: `12` bleibt `12`, `21.456` wird `21.46`. Feste Breite bei Bedarf per `{id;formatValue(2)}`.

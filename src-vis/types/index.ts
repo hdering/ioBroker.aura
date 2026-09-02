@@ -769,7 +769,13 @@ export interface BadgeDef {
     color?: string; // dot/pill colour (CSS); falls back to var(--accent)
     size?: BadgeSize; // dot/text size, default 'md'
     dp?: string; // 'count': datapoint ref (supports JSON path) whose live value is shown
-    label?: string; // 'label': fixed text
+    /**
+     * 'label': the text. Carries the same datapoint bindings as free HTML, so the
+     * marker can state a value: '{0_userdata.0.Pool.MaxRun} min', '{dp} °C' for the
+     * widget's own datapoint, '{id;round(0)}' through operations, '{{ a + b }}' as an
+     * expression (see utils/badgeLabel and utils/htmlTemplate).
+     */
+    label?: string;
     icon?: string; // 'label': optional Iconify id
     // default 'always'. 'nonzero' is legacy — the editor no longer offers it and
     // rewrites it to a 'condition' with an 'active' clause on the same dp; the

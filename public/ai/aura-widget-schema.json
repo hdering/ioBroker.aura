@@ -28,7 +28,7 @@
     "title": {
       "type": "string",
       "required": true,
-      "description": "Überschrift des Widgets."
+      "description": "Überschrift des Widgets. Ein Datenpunkt in doppelten eckigen Klammern zeigt seinen Wert, z. B. \"Wohnzimmer [[0_userdata.0.Temp]] °C\" — der Titel folgt dem Wert live."
     },
     "datapoint": {
       "type": "string",
@@ -191,7 +191,7 @@
         "type": "object",
         "ref": "BadgeDef"
       },
-      "description": "Kleine Marker in der Ecke des Widgets, gespeist aus einem Datenpunkt."
+      "description": "Kleine Marker in der Ecke des Widgets, gespeist aus einem Datenpunkt. Der Stil \"label\" kann Datenpunkte im Text zeigen: \"{0_userdata.0.Pool.MaxRun} min\"."
     },
     "clickAction": {
       "type": "object",
@@ -660,7 +660,7 @@
         },
         "label": {
           "type": "string",
-          "description": "'label': fixed text"
+          "description": "'label': the text. Carries the same datapoint bindings as free HTML, so the marker can state a value: '{0_userdata.0.Pool.MaxRun} min', '{dp} °C' for the widget's own datapoint, '{id;round(0)}' through operations, '{{ a + b }}' as an expression (see utils/badgeLabel and utils/htmlTemplate)."
         },
         "icon": {
           "type": "string",

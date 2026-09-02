@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 MCP - aura_review no longer suggests folding a KPI row into a list: tiles with their own thresholds, conditions or badges are left out of the tile-row finding
 Custom layout - a matching cell condition now colors the bar of a progress or bar-style slider cell, not just the text on it
+Markers - the label text of a widget, section or tab marker now shows datapoint values, e.g. "{0_userdata.0.Pool.MaxRun} min", including operation chains and expressions like free HTML

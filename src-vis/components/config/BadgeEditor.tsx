@@ -69,7 +69,9 @@ function BadgeRule({
     const badge = badgeForEdit(rawBadge);
     const t = useT();
     const [open, setOpen] = useState(true);
-    const [showPicker, setShowPicker] = useState(false);
+    // Which field the datapoint picker fills: the count value, or a `{id}` binding
+    // appended to the label text.
+    const [pickerFor, setPickerFor] = useState<'dp' | 'label' | null>(null);
     const [showIcon, setShowIcon] = useState(false);
 
     // Where the badge's count value comes from: a plain datapoint, the widget's
@@ -124,7 +126,7 @@ function BadgeRule({
                             style={inputStyle}
                         />
                         <button
-                            onClick={() => setShowPicker(true)}
+                            onClick={() => setPickerFor('dp')}
                             className="px-1.5 rounded-lg hover:opacity-80 shrink-0"
                             style={{
                                 background: 'var(--app-bg)',
@@ -239,39 +241,62 @@ function BadgeRule({
 
                     {/* Label: text + icon */}
                     {badge.style === 'label' && (
-                        <div className="flex items-center gap-2">
-                            <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                                {t('badge.label')}
-                            </label>
-                            <input
-                                type="text"
-                                value={badge.label ?? ''}
-                                onChange={(e) => update({ label: e.target.value })}
-                                placeholder={t('badge.label')}
-                                className={`${cls} flex-1 min-w-0`}
-                                style={inputStyle}
-                            />
-                            <button
-                                onClick={() => setShowIcon(true)}
-                                className="px-1.5 h-[30px] rounded-lg hover:opacity-80 shrink-0 flex items-center gap-1"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                                title={t('badge.icon')}
-                            >
-                                {badge.icon ? <Icon icon={badge.icon} width={13} height={13} /> : <Plus size={11} />}
-                            </button>
-                            {badge.icon && (
+                        <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                                <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('badge.label')}
+                                </label>
+                                <input
+                                    type="text"
+                                    value={badge.label ?? ''}
+                                    onChange={(e) => update({ label: e.target.value })}
+                                    placeholder={t('badge.label')}
+                                    className={`${cls} flex-1 min-w-0`}
+                                    style={inputStyle}
+                                />
+                                {/* Appends a `{id}` binding instead of replacing the text —
+                                    the unit or a second value usually stays. */}
                                 <button
-                                    onClick={() => update({ icon: undefined })}
-                                    className="shrink-0 hover:opacity-60"
-                                    style={{ color: 'var(--text-secondary)' }}
+                                    onClick={() => setPickerFor('label')}
+                                    className="px-1.5 h-[30px] rounded-lg hover:opacity-80 shrink-0"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    title={t('badge.labelInsertDp')}
                                 >
-                                    <Trash2 size={11} />
+                                    <Database size={11} />
                                 </button>
-                            )}
+                                <button
+                                    onClick={() => setShowIcon(true)}
+                                    className="px-1.5 h-[30px] rounded-lg hover:opacity-80 shrink-0 flex items-center gap-1"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                    title={t('badge.icon')}
+                                >
+                                    {badge.icon ? (
+                                        <Icon icon={badge.icon} width={13} height={13} />
+                                    ) : (
+                                        <Plus size={11} />
+                                    )}
+                                </button>
+                                {badge.icon && (
+                                    <button
+                                        onClick={() => update({ icon: undefined })}
+                                        className="shrink-0 hover:opacity-60"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        <Trash2 size={11} />
+                                    </button>
+                                )}
+                            </div>
+                            <p className="text-[9px] pl-[72px]" style={{ color: 'var(--text-secondary)' }}>
+                                {sourceCtx?.ownDp ? t('badge.labelBindingsOwn') : t('badge.labelBindings')}
+                            </p>
                         </div>
                     )}
 
@@ -336,11 +361,15 @@ function BadgeRule({
                 </div>
             )}
 
-            {showPicker && (
+            {pickerFor && (
                 <DatapointPicker
-                    currentValue={badge.dp ?? ''}
-                    onSelect={(id) => update({ dp: id })}
-                    onClose={() => setShowPicker(false)}
+                    currentValue={(pickerFor === 'dp' ? badge.dp : badge.label) ?? ''}
+                    onSelect={(id) =>
+                        pickerFor === 'dp'
+                            ? update({ dp: id })
+                            : update({ label: `${badge.label ? `${badge.label} ` : ''}{${id}}` })
+                    }
+                    onClose={() => setPickerFor(null)}
                 />
             )}
             {showIcon && (

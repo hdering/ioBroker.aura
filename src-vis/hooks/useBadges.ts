@@ -1,6 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
+import { useTemplateStates } from './useTemplateValues';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
+import { badgeLabelRefs, hasBadgeBinding, renderBadgeLabel } from '../utils/badgeLabel';
+import { formatNum } from '../utils/formatValue';
+import { useGlobalSettingsStore } from '../store/globalSettingsStore';
+import { useT } from '../i18n';
 import {
     applySourceValues,
     clauseSourceRefs,
@@ -89,6 +94,8 @@ function computeBadges(badges: BadgeDef[], values: Map<string, unknown>, ctx?: D
         if (!badgeVisible(b, values, ctx)) continue;
         let text: string | undefined;
         if (b.style === 'count') text = formatValue(resolveRefValue(b.dp, values, ctx));
+        // The label is handed over raw — its `{dp}` bindings are filled in by
+        // useLabelBindings, which needs React state of its own for them.
         else if (b.style === 'label') text = b.label ?? '';
         out.push({
             id: b.id,
@@ -182,7 +189,55 @@ export function useBadges(badges: BadgeDef[] | undefined, ctx?: DpSourceCtx): Re
         };
     }, [badges, subscribe, getState, ctxKey]);
 
-    return result;
+    return useLabelBindings(result, ctx?.ownDp);
+}
+
+/**
+ * Fills the datapoint bindings of the visible label badges (utils/badgeLabel).
+ *
+ * A second subscription set on purpose: the value map above keeps values only, while
+ * a binding may address `ts` / `lc` and run the value through operations — that is
+ * what useTemplateStates delivers. Nothing is subscribed for a label without a
+ * brace, which is every marker that does not use the feature.
+ */
+function useLabelBindings(badges: ResolvedBadge[], ownDp?: string): ResolvedBadge[] {
+    const { defaultDecimals, numberFormat } = useGlobalSettingsStore();
+    const t = useT();
+    const labels = badges.filter((b) => b.style === 'label' && hasBadgeBinding(b.text)).map((b) => b.text);
+    // Depend on the contents, not the array identity — the badge list is rebuilt on
+    // every value change, and an equal set of texts must not re-subscribe.
+    const textKey = labels.join('\n');
+    const refs = useMemo(
+        () => (textKey ? badgeLabelRefs(labels, ownDp) : []),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [textKey, ownDp],
+    );
+    const states = useTemplateStates(refs);
+
+    return useMemo(() => {
+        if (!textKey) return badges;
+        // A marker is a few pixels wide, so the global decimals are a MAXIMUM here,
+        // not a fixed width: '12 min', not '12.00 min'. An explicit
+        // `{id;formatValue(2)}` still pads, being the user's own instruction.
+        const fmt = (v: unknown): string => {
+            if (v === null || v === undefined) return '–';
+            if (typeof v !== 'number' || !Number.isFinite(v)) return String(v);
+            const rounded = Number(v.toFixed(Math.max(0, defaultDecimals)));
+            const decimals = (String(rounded).split('.')[1] ?? '').length;
+            return formatNum(rounded, decimals, numberFormat);
+        };
+        const env = {
+            states,
+            ownDp,
+            fmt,
+            ops: { formatNum: (v: number, d: number) => formatNum(v, d, numberFormat), decimals: defaultDecimals, t },
+        };
+        return badges.map((b) =>
+            b.style === 'label' && hasBadgeBinding(b.text)
+                ? { ...b, text: renderBadgeLabel(b.text as string, env) }
+                : b,
+        );
+    }, [badges, textKey, states, ownDp, defaultDecimals, numberFormat, t]);
 }
 
 /**

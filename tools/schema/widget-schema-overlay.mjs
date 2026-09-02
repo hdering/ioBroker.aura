@@ -686,7 +686,9 @@ export const UNIVERSAL_OPTIONS = {
     },
     badges: {
         ts: 'BadgeDef[]',
-        description: 'Kleine Marker in der Ecke des Widgets, gespeist aus einem Datenpunkt.',
+        description:
+            'Kleine Marker in der Ecke des Widgets, gespeist aus einem Datenpunkt. Der Stil "label" kann ' +
+            'Datenpunkte im Text zeigen: "{0_userdata.0.Pool.MaxRun} min".',
     },
     clickAction: {
         ts: 'ClickAction',

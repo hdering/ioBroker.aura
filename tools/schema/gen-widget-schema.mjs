@@ -577,7 +577,13 @@ async function build() {
         widgetConfig: {
             id: { type: 'string', required: true, description: 'Eindeutige Id, z. B. "w-1712345678-a1b2".' },
             type: { type: 'string', required: true, description: 'Widget-Typ, Schlüssel aus "widgets".' },
-            title: { type: 'string', required: true, description: 'Überschrift des Widgets.' },
+            title: {
+                type: 'string',
+                required: true,
+                description:
+                    'Überschrift des Widgets. Ein Datenpunkt in doppelten eckigen Klammern zeigt seinen Wert, ' +
+                    'z. B. "Wohnzimmer [[0_userdata.0.Temp]] °C" — der Titel folgt dem Wert live.',
+            },
             datapoint: {
                 type: 'string',
                 required: true,

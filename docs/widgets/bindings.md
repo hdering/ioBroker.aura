@@ -8,6 +8,7 @@ Gültig in:
 | --- | --- |
 | [HTML](./html) | `htmlContent` (statisches HTML) **und** der Inhalt aus `htmlDatapoint` |
 | [Wert-Anzeige](./wert-anzeige) | `htmlTemplate` |
+| [Marker](../einstellungen/editor#marker-text-mit-datenpunkten) (Widget, Bereich, Tab) | `Text` beim Stil `Label` |
 
 Die Syntax folgt [ioBroker.vis](https://github.com/ioBroker/ioBroker.vis-2#bindings-of-objects): Bindings aus einer bestehenden vis-Ansicht lassen sich übernehmen. Abweichungen stehen unter [Unterschiede zu ioBroker.vis](#unterschiede-zu-iobroker-vis).
 

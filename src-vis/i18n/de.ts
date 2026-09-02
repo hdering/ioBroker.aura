@@ -1197,6 +1197,11 @@ export const de = {
     'badge.color': 'Farbe',
     'badge.datapoint': 'Datenpunkt',
     'badge.label': 'Text',
+    'badge.labelBindings':
+        'Datenpunkte in geschweiften Klammern zeigen ihren Wert, z. B. „{0_userdata.0.Pool.Restlaufzeit} min“.',
+    'badge.labelBindingsOwn':
+        'Datenpunkte in geschweiften Klammern zeigen ihren Wert, z. B. „{0_userdata.0.Pool.Restlaufzeit} min“. {dp} ist der Haupt-Datenpunkt des Widgets.',
+    'badge.labelInsertDp': 'Datenpunkt in den Text einfügen',
     'badge.icon': 'Icon',
     'badge.visibility': 'Sichtbar',
     'badge.visAlways': 'Immer',

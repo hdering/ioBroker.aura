@@ -1194,6 +1194,10 @@ export const en: Record<TranslationKey, string> = {
     'badge.color': 'Color',
     'badge.datapoint': 'Datapoint',
     'badge.label': 'Label',
+    'badge.labelBindings': 'Datapoints in curly braces show their value, e.g. "{0_userdata.0.Pool.RunTimeLeft} min".',
+    'badge.labelBindingsOwn':
+        'Datapoints in curly braces show their value, e.g. "{0_userdata.0.Pool.RunTimeLeft} min". {dp} is the widget\'s main datapoint.',
+    'badge.labelInsertDp': 'Insert a datapoint into the text',
     'badge.icon': 'Icon',
     'badge.visibility': 'Visible',
     'badge.visAlways': 'Always',
