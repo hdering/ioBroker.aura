@@ -649,6 +649,13 @@ check('a type without a measurement says so, and does not sound like a finding',
     const out = renderMeasure([m], { grid: GRID, metrics: METRICS });
     assert.match(out, /nicht gemessen \(energiebilanz:/);
     assert.match(out, /kein Befund/, 'the answer has to say once that this is not a finding');
+
+    // Same type, chartStyle 'donut' — reported alongside the bar one, so the
+    // reason has to hold for both styles and must not talk only about bars.
+    const ring = { ...pv, id: 'donut', options: { ...pv.options, chartStyle: 'donut', pieSize: 70 } };
+    const r = measureWidget(ring, { metrics: METRICS, grid: GRID });
+    assert.equal(r.unmeasured, m.unmeasured, 'the reason belongs to the type, not to a style');
+    assert.match(r.unmeasured, /Ringe/, 'a donut is not a row of bars');
 });
 
 check('without the metrics file the geometry half still answers', () => {

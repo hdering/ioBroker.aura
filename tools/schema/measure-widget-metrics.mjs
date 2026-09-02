@@ -137,7 +137,7 @@ const SKIP = {
     carousel: 'Inhalt sind andere Widgets',
     menu: 'Höhe folgt den Menüeinträgen des Dashboards',
     html: 'freies HTML',
-    energiebilanz: 'Höhe folgt den konfigurierten Balken und ihren Einträgen',
+    energiebilanz: 'Höhe folgt der Konfiguration — Balken oder Ringe, Einträge, Legende',
     adapterstatus: 'Zeilen entstehen erst zur Laufzeit',
 };
 

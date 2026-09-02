@@ -407,13 +407,16 @@ Feld standen und deshalb beide wie ein Befund klangen:
 - **keine Messung für den Typ** (`unmeasured`) — die Zeile beginnt mit „nicht
   gemessen (<typ>: …)", und der Fuß sagt einmal, dass das **kein Befund** ist
 
-Das war ein echter Fehlbefund: eine funktionierende `energiebilanz` **mit**
-Balken bekam „braucht konfigurierte Balken — ohne sie rendert das Widget
-nichts". Der Satz gehört dem Typ, hier liest nichts das Widget — aber an der
-Stelle, an der sonst „ZU KLEIN" steht, liest man ihn als Urteil über die eigene
-Kachel. Die Gründe im Generator (`SKIP` in `measure-widget-metrics.mjs`) sagen
-darum jetzt durchweg, **warum es keine Zahl gibt** („Höhe folgt den
-konfigurierten Balken und ihren Einträgen"), und fordern nichts mehr ein.
+Das war ein echter Fehlbefund, zweimal gemeldet: eine funktionierende
+`energiebilanz` **mit** Balken bekam „braucht konfigurierte Balken — ohne sie
+rendert das Widget nichts", und derselbe Satz traf den Donut daneben. Der Satz
+gehört dem Typ, hier liest nichts das Widget — aber an der Stelle, an der sonst
+„ZU KLEIN" steht, liest man ihn als Urteil über die eigene Kachel. Die Gründe im
+Generator (`SKIP` in `measure-widget-metrics.mjs`) sagen darum jetzt durchweg,
+**warum es keine Zahl gibt**, und fordern nichts mehr ein. Bei der
+`energiebilanz` nennen sie beide Stile („Höhe folgt der Konfiguration — Balken
+oder Ringe, Einträge, Legende"), weil derselbe Typ mit `chartStyle: 'donut'` ein
+Ring ist und keine Balkenreihe.
 
 `npm run metrics:check` braucht einen laufenden Dev-Server und ist deshalb
 bewusst **nicht** Teil von `npm test`.
