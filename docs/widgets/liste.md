@@ -143,7 +143,7 @@ Gilt auch für die [dynamische Liste](./dynamische-liste) und für das Badges-La
 | ------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------- |
 | `contactPreset`                                                     | `hmip`    | Wertevorlage; `custom` schaltet die drei Wertelisten frei                   |
 | `contactValuesClosed` / `contactValuesTilted` / `contactValuesOpen` | Vorlage   | eigene Werte je Zustand, kommagetrennt (nur bei `custom`)                   |
-| `contactAppearance`                                                 | —         | Text, Farbe und Icon je Zustand                                            |
+| `contactAppearance`                                                 | —         | Text, Farbe und Icon je Zustand: `{ closed: { label, color, icon }, tilted: …, open: … }` — Standard „Geschlossen" / „Gekippt" / „Offen". So wird die Zeile für etwas anderes als ein Fenster beschriftet, z. B. `{ closed: { label: "zu" }, open: { label: "heizt" } }` |
 | `contactLockDp`                                                     | —         | Verriegelungs-Datenpunkt; zeigt ein Schloss-Symbol vor dem Zustand         |
 | `contactLockValues`                                                 | `true,1`  | Werte, die „abgeschlossen" bedeuten (kommagetrennt)                        |
 

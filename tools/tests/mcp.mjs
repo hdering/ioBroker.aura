@@ -195,6 +195,31 @@ check('the list-wide display block is checked too, and needs a display', () => {
     assert.ok(hasWarning(noDisplay, /"entryDisplay" nennt keinen "displayType"/));
 });
 
+check('the labels of a contact row are documented and checked', () => {
+    // Reported from use: contactAppearance was typed `object`, so the labels
+    // could not be looked up — "heizt"/"zu" for a heating valve meant falling
+    // back to the `states` mapping. Now the shape is in the schema, which also
+    // means a typo in it is caught instead of silently doing nothing.
+    const ok = listOfRows([
+        {
+            id: 'demo.a',
+            displayType: 'contact',
+            contactPreset: 'boolean',
+            contactAppearance: { closed: { label: 'zu' }, open: { label: 'heizt', color: '#f59e0b' } },
+        },
+    ]);
+    const res = validateWidget(ok, schema);
+    assert.deepEqual(res.errors, [], res.errors.join(' | '));
+    assert.deepEqual(res.warnings, [], res.warnings.join(' | '));
+
+    const typo = listOfRows([{ id: 'demo.a', displayType: 'contact', contactAppearance: { closed: { labl: 'zu' } } }]);
+    assert.ok(hasError(validateWidget(typo, schema), /"labl" gibt es hier nicht/));
+    const wrongState = listOfRows([
+        { id: 'demo.a', displayType: 'contact', contactAppearance: { geschlossen: { label: 'zu' } } },
+    ]);
+    assert.ok(hasError(validateWidget(wrongState, schema), /"geschlossen" gibt es hier nicht/));
+});
+
 check('a separator is not a row with a display', () => {
     // A divider carries no display and draws no control — the fields on it are a
     // different question, and inventing a display for it would be noise.
@@ -1985,6 +2010,19 @@ check('aura_types spells out a discriminated union instead of answering "object"
     // The question the reader actually arrives with, answered before the list.
     assert.match(t, /KEINE Variante, die einen Datenpunkt schreibt/);
     assert.match(t, /chips/, 'and what to use instead');
+});
+
+const entryType = await client.callTool({ name: 'aura_types', arguments: { names: ['EntryControlConfig'] } });
+check('aura_types writes out an inline object instead of answering "object"', () => {
+    // Reported from use: contactAppearance was "object" here as well as in the
+    // JSON, so the labels of a contact row could not be looked up — "heizt"/"zu"
+    // for a heating valve meant reaching for the `states` mapping instead.
+    const t = entryType.content[0].text;
+    assert.match(t, /contactAppearance\?: \{ closed\?: \{ label\?: string; color\?: string; icon\?: string \}/);
+    assert.match(t, /tilted\?: \{/);
+    assert.match(t, /open\?: \{/);
+    // And the defaults, so it is clear what is being overridden.
+    assert.match(t, /Geschlossen/);
 });
 
 check('the shared-option description no longer promises a write action', () => {

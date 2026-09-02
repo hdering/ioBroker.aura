@@ -134,16 +134,36 @@ function splitTopLevel(s, seps = ',') {
 /** `{ a: 'x'; b?: number }` → one schema entry per field. */
 function inlineObjectFields(body, index, types, depth) {
     const inner = body.trim().replace(/^\{/, '').replace(/\}$/, '');
+    // A field of a multi-line literal may carry its own doc comment, and that is
+    // where the sentence worth having lives. Lifted out BEFORE the split: a comma
+    // in the prose ("default \"Geschlossen\", green") is a top-level comma, and it
+    // tore the field it belonged to in half — the field was then dropped without
+    // a word, which is how a documented literal ends up documented as `object`.
+    const docs = [];
+    const masked = inner.replace(/\/\*\*[\s\S]*?\*\//g, (block) => {
+        docs.push(
+            block
+                .replace(/^\/\*\*|\*\/$/g, '')
+                .replace(/\*/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim(),
+        );
+        return `#${docs.length - 1}#`;
+    });
     const out = {};
-    for (const part of splitTopLevel(inner, ';,')) {
+    for (const raw of splitTopLevel(masked, ';,')) {
+        const lead = raw.match(/^#(\d+)#/);
+        const part = (lead ? raw.slice(lead[0].length) : raw).trim();
         const m = part.match(/^([A-Za-z_$][\w$]*)\s*(\?)?\s*:\s*(.+)$/);
         if (!m) {
             continue;
         }
         const [, name, optional, type] = m;
+        const description = lead ? docs[Number(lead[1])] : null;
         out[name] = {
             ...normalizeType(type.trim(), index, types, depth + 1),
             ...(optional ? {} : { required: true }),
+            ...(description ? { description } : {}),
         };
     }
     return out;
@@ -245,9 +265,25 @@ function normalizeType(raw, index, types, depth = 0) {
     if (t === 'unknown' || t === 'any') {
         return {};
     }
-    // An inline object type spread over several lines; the field reader only
-    // sees its opening brace.
+    // An inline object type. With the whole literal in hand — the field reader
+    // joins a multi-line one — it is expanded into fields like a named type:
+    // `{ type: 'object' }` was the answer for `contactAppearance`,
+    // `CustomCell.entries` and `MessageDraft.actions`, so their fields could only
+    // be found by reading the source. Only a literal that arrived truncated (an
+    // unbalanced brace) still falls back to the bare object.
     if (t.startsWith('{')) {
+        // `{ … }[]` is a list of them — the shape `CustomCell.entries` and
+        // `MessageDraft.actions` are declared in.
+        const list = t.match(/^(\{.*\})\s*\[\]$/);
+        const body = list ? list[1] : t;
+        const balanced = body.endsWith('}') && (body.match(/\{/g) ?? []).length === (body.match(/\}/g) ?? []).length;
+        if (balanced && depth < MAX_TYPE_DEPTH) {
+            const fields = inlineObjectFields(body, index, types, depth);
+            if (Object.keys(fields).length) {
+                const spec = { type: 'object', fields };
+                return list ? { type: 'array', items: spec } : spec;
+            }
+        }
         return { type: 'object' };
     }
 

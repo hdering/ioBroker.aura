@@ -633,6 +633,45 @@ einen ganzen Typ) nennt jetzt vor der Variantenliste die Alternativen: `chips`
 `"buttons"`/`"states"`, das `enum`-Widget, `httpRequest`. Eine falsche Beschreibung
 kostet mehr als eine fehlende.
 
+## Inline-Objekttypen: `contactAppearance`
+
+Derselbe blinde Fleck eine Etage tiefer, ebenfalls aus der Praxis gemeldet:
+`contactAppearance` stand als `object` im Schema, sonst nichts. Damit war nicht
+zu sehen, dass eine Kontaktzeile ihre Beschriftungen mitbringt — für eine
+Fußbodenheizung „heizt"/„zu" statt „Offen"/„Zu" blieb nur der Umweg über
+`states`, eine andere Darstellung mit eigener Werteliste.
+
+Ursache war der Feldleser, nicht der Typ. `interfaceFields()` arbeitet Zeile für
+Zeile; bei
+
+```ts
+contactAppearance?: {
+    closed?: { label?: string; color?: string; icon?: string };
+    …
+};
+```
+
+fing die Regex als Typ das einzelne `{` und übersprang den Rest — `normalizeType()`
+sah einen abgeschnittenen Typ und meldete `object`. Jetzt gilt:
+
+1. **Der Leser sammelt das ganze Literal.** Öffnet eine Feldzeile ein Objekt, wird
+   bis zur schließenden Klammer weitergelesen (`//`-Kommentare vorher entfernt,
+   max. 60 Zeilen, sonst der alte Weg — ein unbalanciertes Literal darf nicht das
+   restliche Interface verschlucken).
+2. **`normalizeType()` löst balancierte Literale auf**, `{ … }[]` als `array` mit
+   `items`. Damit haben auch `CustomCell.entries` und `MessageDraft.actions` ihre
+   Felder — vorher beide `object`.
+3. **`inlineObjectFields()` hebt JSDoc je Feld heraus**, und zwar **vor** dem
+   Split: ein Komma im Prosatext („default »Geschlossen«, green") ist ein
+   Top-Level-Komma und riss das Feld auseinander, zu dem es gehörte — das Feld
+   fiel danach lautlos aus dem Schema. Genau so wird ein dokumentiertes Literal
+   als `object` dokumentiert.
+
+Nebeneffekt, gewollt: die Form wird jetzt auch **geprüft**. `contactAppearance:
+{ closed: { labl: 'zu' } }` ist ein Fehler mit Namensvorschlag statt einer
+Einstellung, die nichts tut. `test/widget-schema.test.js` hält die drei Felder je
+Zustand fest, damit die Form nicht wieder still verschwindet.
+
 ## Zeilen, die es noch nicht gibt
 
 Aus der Praxis gemeldet: `statusoverview` und `autolist` ließen sich nicht

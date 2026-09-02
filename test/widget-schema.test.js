@@ -119,6 +119,37 @@ for (const [key, entry] of Object.entries(schema.commonOptions)) {
     }
 }
 
+// ── 3b. Inline object types keep their fields ────────────────────────────────
+// Reported from use: `contactAppearance` was typed `object` and nothing else, so
+// the labels of a contact row ("Offen"/"Zu") could not be looked up — the way to
+// rename a state for a heating valve was invisible, and the fallback was the
+// `states` mapping. The generator expands an inline object literal, multi-line
+// ones included; if it ever stops, the shape disappears in silence again.
+for (const [type, field] of [
+    ['StaticListEntry', 'contactAppearance'],
+    ['AutoListEntry', 'contactAppearance'],
+    ['EntryControlConfig', 'contactAppearance'],
+]) {
+    const spec = schema.types[type]?.fields?.[field];
+    assert.ok(spec, `${type}.${field} is missing from the schema`);
+    assert.ok(spec.fields, `${type}.${field} must carry its fields — run: npm run schema`);
+    for (const state of ['closed', 'tilted', 'open']) {
+        const st = spec.fields[state];
+        assert.ok(st && st.fields, `${type}.${field}.${state} must carry its fields`);
+        assert.deepStrictEqual(Object.keys(st.fields), ['label', 'color', 'icon'], `${type}.${field}.${state}`);
+    }
+    // The doc comment is what says which label a state carries by default.
+    assert.match(spec.description ?? '', /Geschlossen/, `${type}.${field} must document the defaults`);
+}
+for (const [type, field] of [
+    ['CustomCell', 'entries'],
+    ['MessageDraft', 'actions'],
+]) {
+    const spec = schema.types[type]?.fields?.[field];
+    assert.equal(spec?.type, 'array', `${type}.${field} is a list of inline objects`);
+    assert.ok(spec.items?.fields, `${type}.${field}[] must carry its fields — run: npm run schema`);
+}
+
 // ── 4. Cross-check against real widget configs ───────────────────────────────
 // The screenshot harness configures every widget the way the documentation shows
 // it, so its option keys are a working sample of what people actually write.

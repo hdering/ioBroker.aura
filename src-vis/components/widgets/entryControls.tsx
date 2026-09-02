@@ -314,10 +314,23 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     contactLockDp?: string;
     /** Comma-separated values that mean "locked". Default 'true,1'. */
     contactLockValues?: string;
-    /** Per-state appearance overrides; fall back to WC_FALLBACK when unset. */
+    /**
+     * Text, colour and icon per contact state, field by field over the shared
+     * defaults (WC_FALLBACK: closed "Geschlossen" #22c55e CheckCircle2, tilted
+     * "Gekippt" #f59e0b TriangleAlert, open "Offen" #ef4444 XCircle).
+     *
+     * This is how a contact row is relabelled for something that is not a window:
+     * a heating valve on `contactPreset: "boolean"` becomes
+     * `{ closed: { label: "zu" }, open: { label: "heizt", color: "#f59e0b" } }`.
+     * Without it the only way to rename a state was the `states` mapping, which
+     * is a different display with its own value list.
+     */
     contactAppearance?: {
+        /** The "closed" state — default "Geschlossen", green. */
         closed?: { label?: string; color?: string; icon?: string };
+        /** The "tilted" state, only reachable with a preset that maps one. */
         tilted?: { label?: string; color?: string; icon?: string };
+        /** The "open" state — default "Offen", red. */
         open?: { label?: string; color?: string; icon?: string };
     };
     // ── time (date/time read display) ──────────────────────────────────────────

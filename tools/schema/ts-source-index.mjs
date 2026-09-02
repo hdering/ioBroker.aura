@@ -210,7 +210,8 @@ export class SourceIndex {
         const lines = found.body.split('\n');
         let doc = [];
         let depth = 0;
-        for (const rawLine of lines) {
+        for (let li = 0; li < lines.length; li++) {
+            const rawLine = lines[li];
             const line = rawLine.trim();
             if (!line) {
                 doc = [];
@@ -236,14 +237,43 @@ export class SourceIndex {
                 continue;
             } // section header comment
 
+            // An inline object type that OPENS on this line: collect the rest of
+            // it, so the field's type is the whole literal.
+            //
+            // Without this the type was the lone "{" the regex below captured, and
+            // the schema answered `object` and nothing else — the shape of
+            // `contactAppearance` (the labels of a contact row) lived only in the
+            // source, and a model had to fall back to `states` to rename a state.
+            // A literal that never closes falls through to the line-by-line
+            // behaviour below rather than swallowing the rest of the interface.
+            let joined = null;
+            if (depth === 0 && /:\s*[^/]*\{\s*(?:\/\/.*)?$/.test(line)) {
+                let open = 0;
+                const parts = [];
+                for (let j = li; j < lines.length && j < li + 60; j++) {
+                    const text = stripLineComments(lines[j]).trim();
+                    parts.push(text);
+                    open += (text.match(/\{/g) ?? []).length - (text.match(/\}/g) ?? []).length;
+                    if (open === 0) {
+                        joined = { text: parts.join(' ').replace(/\s+/g, ' '), last: j };
+                        break;
+                    }
+                }
+            }
+            if (joined) {
+                li = joined.last;
+            }
+
             // Skip over nested object literals in a field type.
             const before = depth;
-            depth += (line.match(/\{/g) ?? []).length - (line.match(/\}/g) ?? []).length;
+            if (!joined) {
+                depth += (line.match(/\{/g) ?? []).length - (line.match(/\}/g) ?? []).length;
+            }
             if (before > 0) {
                 continue;
             }
 
-            const m = line.match(/^([A-Za-z_$][\w$]*)(\?)?\s*:\s*(.+?);?\s*(?:\/\/\s*(.*))?$/);
+            const m = (joined ? joined.text : line).match(/^([A-Za-z_$][\w$]*)(\?)?\s*:\s*(.+?);?\s*(?:\/\/\s*(.*))?$/);
             if (!m) {
                 doc = [];
                 continue;
