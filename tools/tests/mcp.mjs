@@ -53,7 +53,7 @@ const {
     CONTACT_LIMIT,
 } = require('../../lib/mcp/review.js');
 const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
-const { collectDatapointRefs, historyFindings, historyReads } = require('../../lib/mcp/dpFit.js');
+const { collectDatapointRefs, historyFindings, historyReads, writeRefs } = require('../../lib/mcp/dpFit.js');
 const { measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
 const { designCanvas, renderCanvas } = require('../../lib/mcp/canvas.js');
 const {
@@ -342,6 +342,86 @@ check('the object behind the datapoint is compared with the widget', () => {
             /erwartet boolean/.test(w),
         ),
         [],
+    );
+});
+
+// ── Controls that are not the widget's own datapoint ─────────────────────────
+// Reported from use: a hm-rpc SWITCH_TRANSMITTER (exists, boolean, write false)
+// went in as a switch row, validated clean, and would have done nothing when
+// pressed. Only `widget.datapoint` was ever compared with the object.
+
+const READ_ONLY = 'hm-rpc.1.00085D89A3C5E2.3.STATE';
+const roMeta = () => new Map([[READ_ONLY, { type: 'boolean', role: 'switch', write: false }]]);
+const listWith = (entries) => ({
+    id: 'l1',
+    type: 'list',
+    title: 'Licht',
+    datapoint: '',
+    gridPos: { x: 0, y: 0, w: 10, h: 6 },
+    options: { entries },
+});
+
+check('a switch row on a read-only datapoint is named, with the row', () => {
+    const res = validateWidget(listWith([{ id: READ_ONLY, label: 'Deckenlicht', displayType: 'switch' }]), schema, {
+        datapointMeta: roMeta(),
+    });
+    assert.deepEqual(res.errors, [], 'a mislabelled object must never refuse a write');
+    assert.ok(hasWarning(res, /Zeile 1 „Deckenlicht“/), JSON.stringify(res.warnings));
+    assert.ok(hasWarning(res, /tut beim Klick nichts/));
+});
+
+check('a display-only row on the same datapoint is not a finding', () => {
+    // Showing a read-only state is exactly what it is for — warning here would
+    // teach the reader to ignore the warning.
+    const res = validateWidget(listWith([{ id: READ_ONLY, label: 'Nur Anzeige', displayType: 'value' }]), schema, {
+        datapointMeta: roMeta(),
+    });
+    assert.deepEqual(res.warnings, []);
+});
+
+check('the list-wide display counts for rows that do not set their own', () => {
+    const w = listWith([{ id: READ_ONLY, label: 'Deckenlicht' }]);
+    w.options.entryDisplay = 'switch';
+    assert.ok(hasWarning(validateWidget(w, schema, { datapointMeta: roMeta() }), /nur lesbar/));
+});
+
+check('the written half of a shutter is checked, the read-back half is not', () => {
+    const shutter = {
+        id: 'sh',
+        type: 'shutter',
+        title: 'Rollo',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 6, h: 6 },
+        options: { openDp: READ_ONLY, actualPositionDp: READ_ONLY },
+    };
+    const res = validateWidget(shutter, schema, { datapointMeta: roMeta() });
+    const hits = res.warnings.filter((w) => /nur lesbar/.test(w));
+    assert.equal(hits.length, 1, `only the written field: ${JSON.stringify(res.warnings)}`);
+    assert.match(hits[0], /openDp/);
+});
+
+check('a lamp on a read-only state warns too', () => {
+    // `light` was missing from the table entirely, so it passed clean.
+    const lamp = {
+        id: 'li',
+        type: 'light',
+        title: 'Lampe',
+        datapoint: READ_ONLY,
+        gridPos: { x: 0, y: 0, w: 6, h: 6 },
+        options: {},
+    };
+    assert.ok(hasWarning(validateWidget(lamp, schema, { datapointMeta: roMeta() }), /nur lesbar/));
+});
+
+check('writeRefs leaves separators and templates alone', () => {
+    const w = listWith([
+        { id: 'divider:1', divider: true, displayType: 'switch' },
+        { id: '{{row.id}}', displayType: 'switch' },
+        { id: READ_ONLY, displayType: 'switch' },
+    ]);
+    assert.deepEqual(
+        writeRefs(w).map((r) => r.id),
+        [READ_ONLY],
     );
 });
 
@@ -1189,7 +1269,11 @@ function makeAdapter() {
             return {
                 rows: (opts.startkey || '').startsWith('alias.')
                     ? [{ id: 'alias.0.licht' }]
-                    : [{ id: 'hm-rpc.0.LEQ1.1.STATE' }, { id: 'zigbee.0.temp' }],
+                    : [
+                          { id: 'hm-rpc.0.LEQ1.1.STATE' },
+                          { id: 'hm-rpc.1.00085D89A3C5E2.3.STATE' },
+                          { id: 'zigbee.0.temp' },
+                      ],
             };
         },
         // The objects and the last values behind those ids: what the datapoint-fit
@@ -1207,6 +1291,10 @@ const FOREIGN_OBJECTS = {
     // Deliberately NOT logged: the datapoint a chart series on it draws nothing from.
     'zigbee.0.temp': { common: { type: 'number', role: 'value.temperature', write: false, unit: '°C' } },
     'alias.0.licht': { common: { type: 'boolean', role: 'switch', write: true } },
+    // A HomeMatic SWITCH_TRANSMITTER: exists, is boolean, looks like a switch —
+    // and is read-only. Reported from use: built as a switch, validated clean,
+    // did nothing when pressed.
+    'hm-rpc.1.00085D89A3C5E2.3.STATE': { common: { type: 'boolean', role: 'switch', write: false } },
 };
 
 const FOREIGN_STATES = {
@@ -1786,7 +1874,7 @@ const badValidate = await client.callTool({
 check('aura_validate reports a bad option and checks live datapoints', () => {
     assert.ok(badValidate.isError);
     assert.match(badValidate.content[0].text, /liest die Option "showTitel" nicht/);
-    assert.match(badValidate.content[0].text, /3 Datenpunkte gegengeprüft/);
+    assert.match(badValidate.content[0].text, /4 Datenpunkte gegengeprüft/);
 });
 
 const chartValidate = await client.callTool({
@@ -1813,6 +1901,35 @@ check('aura_validate warns when a chart series datapoint is not logged', () => {
     assert.match(t, /Reihe s1 „Temperatur"/);
     // Proof the handler looked the series datapoint up, not only widget.datapoint.
     assert.match(t, /Objekt\(e\) gelesen/);
+});
+
+const switchRowValidate = await client.callTool({
+    name: 'aura_validate',
+    arguments: {
+        json: JSON.stringify({
+            id: 'rollos',
+            type: 'list',
+            title: 'Licht',
+            datapoint: '',
+            gridPos: { x: 0, y: 0, w: 10, h: 8 },
+            options: {
+                entries: [
+                    { id: 'hm-rpc.1.00085D89A3C5E2.3.STATE', label: 'Deckenlicht', displayType: 'switch' },
+                    { id: 'hm-rpc.0.LEQ1.1.STATE', label: 'Stehlampe', displayType: 'switch' },
+                ],
+            },
+        }),
+    },
+});
+check('aura_validate reads the objects behind the ROWS of a list, not just the widget', () => {
+    // The whole point: a list is one widget with twenty controls in it. Without
+    // the loose lookup the rows were never looked up at all, and a switch on a
+    // read-only state validated clean.
+    const t = switchRowValidate.content[0].text;
+    assert.ok(!switchRowValidate.isError, t);
+    assert.match(t, /Zeile 1 „Deckenlicht“/);
+    assert.match(t, /nur lesbar \(write: false\)/);
+    assert.doesNotMatch(t, /Stehlampe/, 'the writable row is not a finding');
 });
 
 // ── Writing ──────────────────────────────────────────────────────────────────
@@ -1896,6 +2013,34 @@ check('writing a chart on an unlogged datapoint warns while it writes', () => {
     assert.match(t, /Reihe s1 „Temperatur"/);
     assert.match(t, /wird von keiner History-Instanz geloggt/);
     assert.ok(adapter.states['config.dashboard'].includes('"c9"'), 'the warning must not block the write');
+});
+
+const wroteDeadSwitch = await client.callTool({
+    name: 'aura_write_tab',
+    arguments: {
+        tab: 'Klima',
+        widgets: JSON.stringify([
+            {
+                id: 'tote-liste',
+                type: 'list',
+                title: 'Licht',
+                datapoint: '',
+                gridPos: { x: 0, y: 0, w: 10, h: 8 },
+                options: {
+                    entries: [{ id: 'hm-rpc.1.00085D89A3C5E2.3.STATE', label: 'Deckenlicht', displayType: 'switch' }],
+                },
+            },
+        ]),
+    },
+});
+check('the write path warns about a dead control too, and still writes', () => {
+    // The finding has to reach the tool that actually puts the widget on the
+    // dashboard — that is the moment the mistake becomes the user's.
+    const t = wroteDeadSwitch.content[0].text;
+    assert.ok(!wroteDeadSwitch.isError, t);
+    assert.match(t, /Zeile 1 „Deckenlicht“/);
+    assert.match(t, /tut beim Klick nichts/);
+    assert.ok(adapter.states['config.dashboard'].includes('tote-liste'));
 });
 
 const written = await client.callTool({

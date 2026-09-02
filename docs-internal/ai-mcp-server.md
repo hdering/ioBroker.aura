@@ -303,6 +303,34 @@ nennt (nur die, nicht die ganze Anlage), und vergleicht:
 - `enum`-Werte, die nicht in `common.states` stehen
 - Preset-Werte mit falschem Typ
 
+**Nicht nur `widget.datapoint`.** Genau hier war die gefährlichste Lücke, aus der
+Praxis gemeldet: `hm-rpc.1.…3.STATE` (ein SWITCH_TRANSMITTER, `write: false`) ging
+als Schalter**zeile** einer Liste durch, `aura_validate` sagte „keine
+Beanstandungen", und der Schalter hätte stumm nichts getan. Geprüft wurde nur der
+Datenpunkt des Widgets selbst — eine Liste ist aber ein Widget mit zwanzig
+Bedienelementen darin.
+
+`writeRefs()` sammelt deshalb alles, worauf ein Klick **schreibt**:
+
+| Quelle                                  | geprüft                                                   |
+| --------------------------------------- | --------------------------------------------------------- |
+| Listenzeile (`entries[].id`)            | wenn ihr `displayType` (oder listenweit `entryDisplay`) ein Bedienelement ist: `switch`, `slider`, `shutter`, `stepper`, `buttons`, `momentary`, `states`, `datepicker`, `input`, `select` |
+| Rollladen                               | `openDp`, `closeDp`, `stopDp`, `tiltDp` bzw. je Zeile `shutterUpDp`, `shutterDownDp`, `shutterStopDp`, `shutterTiltDp` |
+| Lampe                                   | `switchDp`, `brightnessDp`, `colorDp`, `hueDp`, `temperatureDp`, `effectDp`, … |
+
+Bewusst **nicht** „jedes Feld, das auf `Dp` endet": neben jedem dieser Felder
+liegt ein `…ActualDp` / `…ActivityDp` / `statusDp`, das vom Gerät zurückgelesen
+wird und `write: false` sein **soll**. Eine Warnung darauf würde dem Leser
+beibringen, die Warnung zu ignorieren. `displayType: 'auto'` bleibt ebenfalls
+aussen vor — was daraus wird, entscheidet erst die Rolle zur Laufzeit.
+
+Damit das überhaupt greifen kann, holen die Werkzeuge die Objekte jetzt mit
+`collectDatapointRefs(..., { loose: true })`: `entries[].id` ist im Schema nicht
+als Datenpunkt markierbar, ohne Trennzeilen mitzunehmen. Eine synthetische Id hat
+kein Objekt und erzeugt darum auch keinen Befund. Und `light` fehlte in `EXPECT`
+ganz — eine Lampe auf einem nur lesbaren Datenpunkt lief sauber durch.
+
+
 Dazu die Prüfung, die am wenigsten nach Fehler aussieht: **Diagramm auf einem
 Datenpunkt, den niemand aufzeichnet.** Die Id existiert, der Typ ist eine Zahl,
 die Optionen sind richtig geschrieben — und das Diagramm zeichnet dauerhaft einen
