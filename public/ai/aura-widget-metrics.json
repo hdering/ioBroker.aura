@@ -7,7 +7,8 @@
     "caveats": [
       "Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.",
       "A minimum is measured with default options and one line of title. A filter row, a statistics line or a second title line add to it.",
-      "Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.notIncluded for what is still left out.",
+      "Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.rowTypes as the surcharge per row display, counted.<type>.notIncluded for what is still left out.",
+      "A row display (rowTypes) is a delta on ONE row, measured per layout: a contact or a state chip is taller than the measured value row, and a list that mixes displays is summed row by row.",
       "Modifiers are measured one at a time. Several at once are added up, which is an approximation, not a measurement of that combination.",
       "A minimum is the point where content starts to be lost, not a recommended size — defaultSize is that."
     ]
@@ -53,7 +54,61 @@
               "n": 8,
               "px": 592
             }
-          ]
+          ],
+          "rowTypes": {
+            "switch": {
+              "label": "Schalter",
+              "perItemPx": 12
+            },
+            "slider": {
+              "label": "Schieberegler",
+              "perItemPx": 22
+            },
+            "value": {
+              "label": "Wert",
+              "perItemPx": 0
+            },
+            "time": {
+              "label": "Datum/Zeit",
+              "perItemPx": 0
+            },
+            "datepicker": {
+              "label": "Datumswähler",
+              "perItemPx": 16
+            },
+            "shutter": {
+              "label": "Rollladen",
+              "perItemPx": 10
+            },
+            "stepper": {
+              "label": "+/−",
+              "perItemPx": 8
+            },
+            "buttons": {
+              "label": "Tasten",
+              "perItemPx": 6.3
+            },
+            "momentary": {
+              "label": "Taster",
+              "perItemPx": 8
+            },
+            "states": {
+              "label": "Wertzuordnung",
+              "perItemPx": 4
+            },
+            "contact": {
+              "label": "Fenster-/Türkontakt",
+              "perItemPx": 4
+            },
+            "input": {
+              "label": "Eingabefeld",
+              "perItemPx": 10
+            },
+            "select": {
+              "label": "Auswahlfeld",
+              "perItemPx": 14
+            }
+          }
         },
         "compact": {
           "label": "Layout \"compact\"",
@@ -68,7 +123,61 @@
               "n": 8,
               "px": 184
             }
-          ]
+          ],
+          "rowTypes": {
+            "switch": {
+              "label": "Schalter",
+              "perItemPx": 1
+            },
+            "slider": {
+              "label": "Schieberegler",
+              "perItemPx": 0
+            },
+            "value": {
+              "label": "Wert",
+              "perItemPx": 0
+            },
+            "time": {
+              "label": "Datum/Zeit",
+              "perItemPx": 0
+            },
+            "datepicker": {
+              "label": "Datumswähler",
+              "perItemPx": 8
+            },
+            "shutter": {
+              "label": "Rollladen",
+              "perItemPx": 5
+            },
+            "stepper": {
+              "label": "+/−",
+              "perItemPx": 4
+            },
+            "buttons": {
+              "label": "Tasten",
+              "perItemPx": 3
+            },
+            "momentary": {
+              "label": "Taster",
+              "perItemPx": 4
+            },
+            "states": {
+              "label": "Wertzuordnung",
+              "perItemPx": 2
+            },
+            "contact": {
+              "label": "Fenster-/Türkontakt",
+              "perItemPx": 2
+            },
+            "input": {
+              "label": "Eingabefeld",
+              "perItemPx": 5
+            },
+            "select": {
+              "label": "Auswahlfeld",
+              "perItemPx": 7
+            }
+          }
         },
         "minimal": {
           "label": "Layout \"minimal\"",
@@ -165,7 +274,62 @@
           "perItemPx": 0
         }
       ],
+      "rowTypes": {
+        "switch": {
+          "label": "Schalter",
+          "perItemPx": 2
+        },
+        "slider": {
+          "label": "Schieberegler",
+          "perItemPx": 0
+        },
+        "value": {
+          "label": "Wert",
+          "perItemPx": 0
+        },
+        "time": {
+          "label": "Datum/Zeit",
+          "perItemPx": 0
+        },
+        "datepicker": {
+          "label": "Datumswähler",
+          "perItemPx": 16
+        },
+        "shutter": {
+          "label": "Rollladen",
+          "perItemPx": 10
+        },
+        "stepper": {
+          "label": "+/−",
+          "perItemPx": 8
+        },
+        "buttons": {
+          "label": "Tasten",
+          "perItemPx": 6.7
+        },
+        "momentary": {
+          "label": "Taster",
+          "perItemPx": 8
+        },
+        "states": {
+          "label": "Wertzuordnung",
+          "perItemPx": 4
+        },
+        "contact": {
+          "label": "Fenster-/Türkontakt",
+          "perItemPx": 4
+        },
+        "input": {
+          "label": "Eingabefeld",
+          "perItemPx": 10
+        },
+        "select": {
+          "label": "Auswahlfeld",
+          "perItemPx": 14
+        }
+      },
       "notIncluded": [
+        "Darstellung „Auto“ folgt der Rolle des Datenpunkts — gemessen ist die Wert-Zeile",
         "Filterzeile mit sichtbaren Filtern und Suchfeld",
         "Raum-Überschriften (groupByRoom) und Trennzeilen (entries[].divider)",
         "umbrochene Beschriftungen (wrapText) und mehrzeilige Titel",

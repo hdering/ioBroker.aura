@@ -862,6 +862,120 @@ check('a factor that changes nothing is named as measured, not left out', () => 
     assert.ok(bare.requiredPx < plain.requiredPx - 20, 'the header row is worth about 34 px');
 });
 
+// ── The row display ──────────────────────────────────────────────────────────
+// Reported from use: "44 px Luft" for a list that scrolls. The default row was
+// measured as a value row (33 px); a contact or a state chip is taller, and
+// eleven of them ate exactly that slack.
+
+const ROW_TYPES = METRICS.counted.list.rowTypes;
+const CARD_ROW_TYPES = METRICS.counted.list.variants.card.rowTypes;
+/** The measured surcharge of one display, in the default layout. */
+const rowPx = (dt) => ROW_TYPES[dt]?.perItemPx ?? 0;
+/** A list of `n` rows, all drawn with the same display. */
+const listOf = (n, displayType, h = 14) => ({
+    ...listWidget(n, h),
+    options: { entries: Array.from({ length: n }, (_, i) => ({ id: `demo.${i}`, displayType })) },
+});
+
+check('a taller row display is charged, and only where it was measured', () => {
+    assert.ok(rowPx('contact') > 0, 'the contact chip is the taller row — that is the whole finding');
+    const plain = measureWidget(listWidget(8, 14), { metrics: METRICS, grid: GRID });
+    const contact = measureWidget(listOf(8, 'contact'), { metrics: METRICS, grid: GRID });
+    assert.equal(contact.requiredPx - plain.requiredPx, 8 * rowPx('contact'));
+    assert.match(contact.basis, /Darstellung/, 'the answer names what it added');
+    assert.ok(contact.needRows > plain.needRows, 'and it reaches the height, not only the text');
+});
+
+check('a list that mixes displays is summed row by row', () => {
+    const mixed = {
+        ...listWidget(8, 14),
+        options: {
+            entries: [
+                ...Array.from({ length: 4 }, (_, i) => ({ id: `demo.v${i}`, displayType: 'value' })),
+                ...Array.from({ length: 4 }, (_, i) => ({ id: `demo.c${i}`, displayType: 'contact' })),
+            ],
+        },
+    };
+    const m = measureWidget(mixed, { metrics: METRICS, grid: GRID });
+    const plain = measureWidget(listWidget(8, 14), { metrics: METRICS, grid: GRID });
+    // Neither eight value rows nor eight contact rows — that is why it is per row.
+    assert.equal(m.requiredPx - plain.requiredPx, 4 * rowPx('value') + 4 * rowPx('contact'));
+    assert.equal(m.rowTypes.length, 1, 'only the display that costs something is named');
+});
+
+check('the list-wide display block reaches the rows that have none', () => {
+    const base = listWidget(8, 14);
+    const wide = { ...base, options: { ...base.options, entryDisplay: { displayType: 'contact' } } };
+    const plain = measureWidget(base, { metrics: METRICS, grid: GRID });
+    assert.equal(
+        measureWidget(wide, { metrics: METRICS, grid: GRID }).requiredPx - plain.requiredPx,
+        8 * rowPx('contact'),
+    );
+    // Precedence is all-or-nothing per row: an entry with a display of its own is
+    // configured on its own and ignores the list-wide block (listDisplayDefaults.ts).
+    const own = {
+        ...wide,
+        options: {
+            ...wide.options,
+            entries: base.options.entries.map((e, i) => (i ? e : { ...e, displayType: 'value' })),
+        },
+    };
+    assert.equal(
+        measureWidget(own, { metrics: METRICS, grid: GRID }).requiredPx - plain.requiredPx,
+        7 * rowPx('contact') + rowPx('value'),
+    );
+});
+
+check('a capped autolist is charged for the display its rows will have', () => {
+    const auto = {
+        id: 'a',
+        type: 'autolist',
+        title: 'Fenster',
+        gridPos: { x: 0, y: 0, w: 8, h: 10 },
+        options: { maxRows: 8 },
+    };
+    const plain = measureWidget(auto, { metrics: METRICS, grid: GRID });
+    const contacts = measureWidget(
+        { ...auto, options: { ...auto.options, entryDisplay: { displayType: 'contact' } } },
+        { metrics: METRICS, grid: GRID },
+    );
+    // Its rows appear at runtime, but every one of them starts from the list-wide
+    // block — so this is knowable, and it was the list in the report.
+    assert.equal(contacts.requiredPx - plain.requiredPx, 8 * rowPx('contact'));
+});
+
+check('the surcharge is the one measured in that layout', () => {
+    const cardSlider = CARD_ROW_TYPES.slider?.perItemPx ?? 0;
+    assert.notEqual(cardSlider, rowPx('slider'), 'a card cell is not a default row');
+    const plain = measureWidget({ ...listWidget(8, 14), layout: 'card' }, { metrics: METRICS, grid: GRID });
+    const slider = measureWidget({ ...listOf(8, 'slider'), layout: 'card' }, { metrics: METRICS, grid: GRID });
+    assert.equal(slider.requiredPx - plain.requiredPx, 8 * cardSlider);
+});
+
+check('the badges layout is not charged for a display it draws itself', () => {
+    // One pill per row, and the pill handles the displays on its own — a surcharge
+    // measured on a default row would be an invention here.
+    const m = measureWidget({ ...listOf(8, 'contact'), layout: 'minimal' }, { metrics: METRICS, grid: GRID });
+    const plain = measureWidget({ ...listWidget(8, 14), layout: 'minimal' }, { metrics: METRICS, grid: GRID });
+    assert.equal(m.requiredPx, plain.requiredPx);
+});
+
+check('a separator is a row, not a display', () => {
+    const w = {
+        ...listWidget(3, 14),
+        options: {
+            entries: [
+                { id: 'demo.a', displayType: 'contact' },
+                { divider: true, id: 'demo.sep' },
+                { id: 'demo.b', displayType: 'contact' },
+            ],
+        },
+    };
+    const m = measureWidget(w, { metrics: METRICS, grid: GRID });
+    const plain = measureWidget(listWidget(3, 14), { metrics: METRICS, grid: GRID });
+    assert.equal(m.requiredPx - plain.requiredPx, 2 * rowPx('contact'));
+});
+
 check('a modifier the layout ignores is not added to it', () => {
     // The badges layout draws a row as one pill and ignores subDps entirely.
     const m = measureWidget({ ...withSubDps(8, 14), layout: 'minimal' }, { metrics: METRICS, grid: GRID });

@@ -147,7 +147,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_widget_schema`                  | Optionen der genannten Typen, mit `brief=true` nur Namen und Typen                                             | read         |
 | `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                           | read         |
 | `aura_types`                          | Benannte Typen einzeln holen (`WidgetCondition`, `CustomCell` …) statt sie je Widget-Typ mitzuschleppen        | read         |
-| `aura_measure`                        | Zeilen in Pixel, gegen die gemessene Mindesthöhe des Typs — plus URL des Tabs                                  | read         |
+| `aura_measure`                        | Zeilen in Pixel, gegen die gemessene Höhe des Typs — Layout, Optionen und Zeilendarstellung, plus Tab-URL      | read         |
 | `aura_validate`                       | Prüfung gegen Schema, Live-Datenpunkte und die Objekte dahinter                                                | read         |
 | `aura_review`                         | Vorhandenes prüfen: Stil (`mode:"style"`) und Gesundheit (tote/leere/eingefrorene DPs, unwirksame Optionen)    | read         |
 | `aura_add_widget`                     | Ein Widget an Tab, Popup oder Gruppe anfügen                                                                   | write        |
@@ -463,6 +463,41 @@ gemeldeten „Mindesthöhe" und scrollte. Der Messstand misst deshalb zusätzlic
 des Widgets — `entries[].subDps` heißt „irgendein Eintrag hat welche". Ein
 Modifier kann per `notForVariants` für ein Layout ausgenommen werden (`minimal`
 zeichnet eine Zeile als Pille und ignoriert `subDps`).
+
+**Und eine Zeile ist nicht eine Darstellung.** Derselbe Befund eine Ebene tiefer,
+aus der Praxis gemeldet: `aura_measure` meldete „44 px Luft" für eine Liste, die
+scrollt. Gemessen war die Wert-Zeile (33 px) — die Liste bestand aus
+Fensterkontakten, und ein Kontakt-Chip macht die Zeile 37 px hoch. Elf Zeilen à
+4 px sind genau die gemeldete Luft.
+
+Der Messstand misst darum jede `displayType`-Darstellung einzeln, als Delta auf
+die Standardzeile **desselben** Layouts (`counted.list.rowTypes`, je Variante
+`counted.list.variants.<layout>.rowTypes`):
+
+| `displayType`         | default | card  | compact |
+| --------------------- | ------- | ----- | ------- |
+| `value`, `time`       | ±0      | ±0    | ±0      |
+| `slider`              | ±0      | +22   | ±0      |
+| `switch`              | +2      | +12   | +1      |
+| `states`, `contact`   | +4      | +4    | +2      |
+| `buttons`             | +6,7    | +6,3  | +3      |
+| `stepper`, `momentary`| +8      | +8    | +4      |
+| `shutter`, `input`    | +10     | +10   | +5      |
+| `select`              | +14     | +14   | +7      |
+| `datepicker`          | +16     | +16   | +8      |
+
+`rowTypeSurcharge()` rechnet das **je Zeile** dazu, nicht je Widget: vier Werte
+und vier Kontakte sind weder acht Wert- noch acht Kontaktzeilen. Welche
+Darstellung eine Zeile hat, entscheidet dieselbe Regel wie im Frontend
+(`utils/listDisplayDefaults.ts`) — der eigene `displayType` des Eintrags, sonst
+der listenweite Block `options.entryDisplay`, sonst `auto`. Damit ist auch eine
+gedeckelte `autolist` rechenbar: ihre Zeilen entstehen erst zur Laufzeit, aber
+jede startet aus `entryDisplay`.
+
+Trennzeilen (`divider`) bekommen keinen Zuschlag, `layout: "minimal"` gar keinen:
+die Pille zeichnet die Darstellungen selbst, ein an der Standardzeile gemessener
+Zuschlag wäre dort erfunden. Und `auto` steht bewusst bei ±0 — es folgt der Rolle
+des Datenpunkts, gemessen ist die Wert-Zeile; das sagt `notIncluded` jetzt auch.
 
 Die gemessenen **Nullen** bleiben im Ergebnis stehen („±0"): dass der
 Gruppenschalter nichts kostet, ist eine Antwort — sein Fehlen liest sich wie

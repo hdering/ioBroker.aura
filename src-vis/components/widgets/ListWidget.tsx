@@ -905,6 +905,11 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const searchReachable = !opts.hideFilterSearch && !opts.hideFilterButton;
     const effectiveSearch = editMode || !searchReachable ? '' : searchTerm;
 
+    // Rows are keyed `${entry.id}#${index}`, not by the id alone: two rows on the
+    // same datapoint (or two separators, which carry no id of their own) are a
+    // configuration anybody can write, and duplicate keys left React with ghost
+    // rows from the previous configuration on every edit. The order is the
+    // configured one, so the index is stable identity here.
     const visibleEntries = useMemo(() => {
         // A separator is chrome, not data: it passes every value filter and the search,
         // and is dropped afterwards only if its section ended up empty.
@@ -1201,7 +1206,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         {visibleEntries.map((entry, i) => {
                             // A separator is a row like any other - it just renders as a rule.
                             if (isDivider(entry))
-                                return <SectionBreak key={entry.id} entry={entry} variant="grid" first={i === 0} />;
+                                return (
+                                    <SectionBreak
+                                        key={`${entry.id}#${i}`}
+                                        entry={entry}
+                                        variant="grid"
+                                        first={i === 0}
+                                    />
+                                );
                             const val = states[entry.id]?.val ?? null;
                             const rc = conds.get(entry.id);
                             if (rowHidden(rc)) return null;
@@ -1231,7 +1243,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             );
                             return (
                                 <div
-                                    key={entry.id}
+                                    key={`${entry.id}#${i}`}
                                     className="rounded-xl p-2.5 flex flex-col gap-2 relative"
                                     style={{
                                         background: stateBg,
@@ -1324,7 +1336,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         {visibleEntries.map((entry, i) => {
                             // A separator is a row like any other - it just renders as a rule.
                             if (isDivider(entry))
-                                return <SectionBreak key={entry.id} entry={entry} variant="grid" first={i === 0} />;
+                                return (
+                                    <SectionBreak
+                                        key={`${entry.id}#${i}`}
+                                        entry={entry}
+                                        variant="grid"
+                                        first={i === 0}
+                                    />
+                                );
                             const val = states[entry.id]?.val ?? null;
                             const rc = conds.get(entry.id);
                             if (rowHidden(rc)) return null;
@@ -1356,7 +1375,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                             );
                             return (
                                 <div
-                                    key={entry.id}
+                                    key={`${entry.id}#${i}`}
                                     className="flex flex-col gap-1 px-2 py-1.5"
                                     style={{
                                         background: stateBg,
@@ -1449,7 +1468,14 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         {visibleEntries.map((entry, i) => {
                             // A separator is a row like any other - it just renders as a rule.
                             if (isDivider(entry))
-                                return <SectionBreak key={entry.id} entry={entry} variant="wrap" first={i === 0} />;
+                                return (
+                                    <SectionBreak
+                                        key={`${entry.id}#${i}`}
+                                        entry={entry}
+                                        variant="wrap"
+                                        first={i === 0}
+                                    />
+                                );
                             const val = states[entry.id]?.val ?? null;
                             const rc = conds.get(entry.id);
                             if (rowHidden(rc)) return null;
@@ -1598,7 +1624,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                                   );
                             return (
                                 <button
-                                    key={entry.id}
+                                    key={`${entry.id}#${i}`}
                                     {...rowProps}
                                     onClick={(e) => {
                                         if (!togglable) return rowProps?.onClick(e);
@@ -1689,7 +1715,9 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                     {visibleEntries.map((entry, i) => {
                         // A separator is a row like any other - it just renders as a rule.
                         if (isDivider(entry))
-                            return <SectionBreak key={entry.id} entry={entry} variant="stack" first={i === 0} />;
+                            return (
+                                <SectionBreak key={`${entry.id}#${i}`} entry={entry} variant="stack" first={i === 0} />
+                            );
                         const val = states[entry.id]?.val ?? null;
                         const rc = conds.get(entry.id);
                         if (rowHidden(rc)) return null;
@@ -1719,7 +1747,7 @@ export function ListWidget({ config, editMode }: WidgetProps) {
                         );
                         return (
                             <div
-                                key={entry.id}
+                                key={`${entry.id}#${i}`}
                                 className="flex flex-col gap-1 px-3 py-2"
                                 style={{
                                     background: stateBg,

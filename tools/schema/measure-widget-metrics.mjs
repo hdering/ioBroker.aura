@@ -28,6 +28,10 @@
  *
  * Everything runs against injected demo state with screenshotMode on, so no
  * ioBroker state is ever written.
+ *
+ * A full run takes its time (every point walks down from 800 px, and the list is
+ * measured per layout AND per row display) — a quarter of an hour is normal. Use
+ * `--only list` while working on one type.
  */
 
 import fs from 'node:fs';
@@ -54,14 +58,71 @@ const DP = 'demo.value';
 const DP_BOOL = 'demo.switch';
 const DP_DIM = 'demo.dim';
 const DP_JSON = 'demo.json';
+const DP_TIME = 'demo.time';
+const DP_STATE = 'demo.state';
 
 const MOCK = {
     [DP]: { val: 21.5, unit: '°C' },
     [DP_BOOL]: true,
     [DP_DIM]: { val: 60, unit: '%' },
+    // Fixed rather than Date.now(), so a re-run measures the same row.
+    [DP_TIME]: 1767225600000,
+    [DP_STATE]: 1,
 };
 
-const listEntries = (n) => Array.from({ length: n }, (_, i) => ({ id: DP, name: `Gerät ${i + 1}`, display: 'value' }));
+/** Presets, so the button row and the select field render at all. */
+const PRESETS = [
+    { value: 0, label: 'Aus' },
+    { value: 50, label: 'Halb' },
+    { value: 100, label: 'Voll' },
+];
+/** A three-state mapping — the window handle the "states" display is made for. */
+const STATES = [
+    { value: 0, label: 'Zu' },
+    { value: 1, label: 'Gekippt' },
+    { value: 2, label: 'Offen' },
+];
+
+/**
+ * The displays a list row can be drawn with, each on a datapoint that display
+ * makes sense on — a slider measured on a boolean is not a row anybody has.
+ *
+ * Why every single one: the row height is NOT one number. A contact or a state
+ * mapping draws a chip that is taller than a value row, a date picker or a select
+ * field taller still, so a list of contacts was sized as one of values —
+ * reported from the field as "44 px Luft" for a list that scrolls. The labels are
+ * the ones the editor shows (TYPE_OPTIONS in EntryControlsConfig.tsx).
+ */
+const ROW_TYPES = [
+    { key: 'switch', label: 'Schalter', dp: DP_BOOL },
+    { key: 'slider', label: 'Schieberegler', dp: DP_DIM },
+    { key: 'value', label: 'Wert', dp: DP },
+    { key: 'time', label: 'Datum/Zeit', dp: DP_TIME },
+    { key: 'datepicker', label: 'Datumswähler', dp: DP_TIME },
+    { key: 'shutter', label: 'Rollladen', dp: DP_DIM },
+    { key: 'stepper', label: '+/−', dp: DP_DIM },
+    { key: 'buttons', label: 'Tasten', dp: DP_DIM, entry: { presets: PRESETS } },
+    { key: 'momentary', label: 'Taster', dp: DP_BOOL },
+    { key: 'states', label: 'Wertzuordnung', dp: DP_STATE, entry: { states: STATES } },
+    { key: 'contact', label: 'Fenster-/Türkontakt', dp: DP_BOOL },
+    { key: 'input', label: 'Eingabefeld', dp: DP },
+    { key: 'select', label: 'Auswahlfeld', dp: DP_DIM, entry: { presets: PRESETS } },
+];
+
+/**
+ * `rt` is a ROW_TYPES entry; without one the rows are the default (display "auto").
+ *
+ * Every row shares one datapoint, so one mocked value feeds them all. That is
+ * only safe because ListWidget keys its rows by id AND index — while it keyed
+ * them by the id alone, a change of display left the previous rows in the DOM and
+ * every measurement after the first was nonsense.
+ */
+const listEntries = (n, rt) =>
+    Array.from({ length: n }, (_, i) => ({
+        id: rt?.dp ?? DP,
+        name: `Gerät ${i + 1}`,
+        ...(rt ? { displayType: rt.key, ...(rt.entry ?? {}) } : {}),
+    }));
 const chipItems = (n) => Array.from({ length: n }, (_, i) => ({ id: DP_BOOL, label: `Chip ${i + 1}` }));
 const jsonRows = (n) => JSON.stringify(Array.from({ length: n }, (_, i) => ({ Name: `Zeile ${i + 1}`, Wert: i })));
 
@@ -87,10 +148,15 @@ const COUNTED = [
         // added up by aura_measure. Two counts are enough for a straight line.
         variantCounts: [2, 8],
         variants: [
-            { key: 'card', layout: 'card', label: 'Layout "card"' },
-            { key: 'compact', layout: 'compact', label: 'Layout "compact"' },
+            // `rowTypes` re-measures the row displays for that layout. The badges
+            // layout draws a row as one pill and handles the displays itself, so a
+            // per-display surcharge measured on a default row means nothing there.
+            { key: 'card', layout: 'card', label: 'Layout "card"', rowTypes: true },
+            { key: 'compact', layout: 'compact', label: 'Layout "compact"', rowTypes: true },
             { key: 'minimal', layout: 'minimal', label: 'Layout "minimal"' },
         ],
+        rowTypes: ROW_TYPES,
+        rowTypeBuild: (n, rt) => ({ options: { entries: listEntries(n, rt) } }),
         modifiers: [
             {
                 key: 'subDps',
@@ -150,6 +216,7 @@ const COUNTED = [
         // Measured factors are named above; these are the ones that are not, and
         // saying so is the point — the answer used to read as if it covered them.
         notIncluded: [
+            'Darstellung „Auto“ folgt der Rolle des Datenpunkts — gemessen ist die Wert-Zeile',
             'Filterzeile mit sichtbaren Filtern und Suchfeld',
             'Raum-Überschriften (groupByRoom) und Trennzeilen (entries[].divider)',
             'umbrochene Beschriftungen (wrapText) und mehrzeilige Titel',
@@ -333,6 +400,36 @@ async function requiredPx(type, setup) {
     return { px: good * PX_PER_ROW };
 }
 
+/**
+ * The row height per display, as the DIFFERENCE to this layout's default row.
+ *
+ * A delta rather than an absolute number so aura_measure can apply it per ROW: a
+ * list of four values and four contacts is neither four value rows nor four
+ * contact rows, and that is exactly the list whose height was wrong.
+ *
+ * Below one pixel a difference is fit noise over the measured span, not a factor
+ * anybody can plan a row height with — reported as the zero it is.
+ */
+async function rowTypeDeltas(spec, { cols, counts, layout, ref }) {
+    const out = {};
+    for (const rt of spec.rowTypes) {
+        const r = await line(spec, { cols, counts, layout, build: (n) => spec.rowTypeBuild(n, rt) });
+        if (r.error) {
+            console.warn(`  skip ${spec.type}/${layout ?? 'default'}:${rt.key}: ${r.error}`);
+            continue;
+        }
+        const d = Math.round((r.perItemPx - ref.perItemPx) * 10) / 10;
+        out[rt.key] = { label: rt.label, perItemPx: Math.abs(d) < 1 ? 0 : d };
+    }
+    const shown = Object.entries(out)
+        .filter(([, v]) => v.perItemPx)
+        .map(([k, v]) => `${k} ${v.perItemPx > 0 ? '+' : ''}${v.perItemPx}`);
+    console.log(
+        `  ${`Zeilen (${layout ?? 'default'})`.padEnd(14)} ${shown.length ? shown.join(', ') : 'alle wie die Wert-Zeile'}`,
+    );
+    return out;
+}
+
 const wanted = (type) => !only || only.has(type);
 const results = {};
 const counted = {};
@@ -400,6 +497,16 @@ for (const spec of COUNTED) {
         entry.variants = entry.variants ?? {};
         entry.variants[v.key] = { label: v.label, basePx: r.basePx, perItemPx: r.perItemPx, measured: r.measured };
         console.log(`  ${v.key.padEnd(14)} ${r.basePx} px + ${r.perItemPx} px/${spec.item}`);
+        // The displays are measured against THIS layout's own row — a card row is
+        // twice a default one, so the same chip is not worth the same delta in it.
+        if (v.rowTypes && (spec.rowTypes ?? []).length) {
+            entry.variants[v.key].rowTypes = await rowTypeDeltas(spec, {
+                cols,
+                counts,
+                layout: v.layout,
+                ref: r,
+            });
+        }
     }
 
     // A modifier is stored as the DIFFERENCE to the default, so aura_measure can
@@ -407,8 +514,12 @@ for (const spec of COUNTED) {
     // them do together is an approximation, and the answer says so.
     //
     // The reference is the default at the SAME counts, or the two lines would
-    // differ by the noise between four measured points and two.
-    const ref = (spec.modifiers ?? []).length ? await line(spec, { cols, counts, build: spec.build }) : null;
+    // differ by the noise between four measured points and two. The row displays
+    // below are deltas against the same line.
+    const ref =
+        (spec.modifiers ?? []).length || (spec.rowTypes ?? []).length
+            ? await line(spec, { cols, counts, build: spec.build })
+            : null;
     for (const m of spec.modifiers ?? []) {
         if (ref.error) {
             console.warn(`  skip ${spec.type} modifiers: ${ref.error}`);
@@ -436,6 +547,13 @@ for (const spec of COUNTED) {
             `  ${m.key.padEnd(14)} ${d.basePx >= 0 ? '+' : ''}${d.basePx} px Basis, ` +
                 `${d.perItemPx >= 0 ? '+' : ''}${d.perItemPx} px/${spec.item}`,
         );
+    }
+    if ((spec.rowTypes ?? []).length) {
+        if (ref.error) {
+            console.warn(`  skip ${spec.type} Zeilendarstellungen: ${ref.error}`);
+        } else {
+            entry.rowTypes = await rowTypeDeltas(spec, { cols, counts, ref });
+        }
     }
     if (spec.notIncluded) {
         entry.notIncluded = spec.notIncluded;
@@ -475,7 +593,8 @@ const metrics = {
         caveats: [
             'Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.',
             'A minimum is measured with default options and one line of title. A filter row, a statistics line or a second title line add to it.',
-            'Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.notIncluded for what is still left out.',
+            'Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.rowTypes as the surcharge per row display, counted.<type>.notIncluded for what is still left out.',
+            'A row display (rowTypes) is a delta on ONE row, measured per layout: a contact or a state chip is taller than the measured value row, and a list that mixes displays is summed row by row.',
             'Modifiers are measured one at a time. Several at once are added up, which is an approximation, not a measurement of that combination.',
             'A minimum is the point where content starts to be lost, not a recommended size — defaultSize is that.',
         ],
