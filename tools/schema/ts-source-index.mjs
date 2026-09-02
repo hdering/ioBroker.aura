@@ -77,6 +77,11 @@ export class SourceIndex {
             const parts = body.split('|').map((p) => p.trim());
             if (parts.length && parts.every((p) => /^'[^']*'$/.test(p))) {
                 result = parts.map((p) => p.slice(1, -1));
+            } else if (parts.length === 1 && /^[A-Za-z_$][\w$]*$/.test(parts[0]) && parts[0] !== name) {
+                // An alias of an alias: `type ConditionPart = ConditionSlot`. Not
+                // following it left the union unresolved, and everything keyed by
+                // it (conditions[].elements) came out as a bare object.
+                result = this.stringUnion(parts[0]);
             }
             break;
         }

@@ -305,6 +305,18 @@ Die Regel ist wörtlich die des Frontends (`detectHistoryAdapters` in
 Der Pfad nennt die Serie mit ihrem **gespeicherten** Index: erst indexieren, dann
 filtern, sonst verschiebt eine JSON-Serie in der Mitte alle Nummern dahinter.
 
+Dieselbe Prüfung gilt für die **Energiebilanz**: jeder Eintrag mit einem
+`aggregate` ausser `last` ist eine History-Abfrage (`last` kommt aus dem
+Live-State, Issue #596), der `totalDatapoint` eines Balkens immer.
+
+Dritter Fall, der auch den ioBroker selbst betrifft: der `custom`-Eintrag nennt
+eine Instanz, die es **nicht mehr gibt** (`history.0` auf einem System mit nur
+`influxdb.0`). Dann zeichnet niemand auf, und eine History-Abfrage darauf
+schlägt nicht fehl, sondern haengt bis zum Timeout des Clients.
+`readLoggingInstances()` liest die vorhandenen Instanzen einmal; `aura_dashboard`
+nennt sie jetzt auch — vorher gab es nirgends eine Liste, aus der ein Modell den
+Instanznamen nehmen konnte.
+
 Nebenbei geschlossen: `EChartSeriesConfig.datapointId` fiel durch jede
 Datenpunkt-Erkennung, weil „endet auf Id" keine Datenpunkt-Regel ist — die eine
 Option, die ein Dutzend Ids trägt, war damit ungeprüft. `DP_KEY` im Generator
@@ -314,6 +326,32 @@ einer Serie ist also ein Fehler und keine leere Kurve.
 Immer Warnungen. Das ioBroker-Objekt ist eine Behauptung: Adapter setzen `write`
 falsch, viele Anlagen schalten mit 0/1, und ein Bereich darf auch im Widget
 stehen. Ein verweigerter Schreibzugriff wäre schlimmer als der Fehler.
+
+## Zwei Fehlbefunde, die teurer waren als die Lücke
+
+**Element-Ids sind keine Datenpunkte.** Die lose Sammlung nahm für eine Liste von
+Typen jedes `id`/`dp` — und `id` heisst je Typ etwas anderes: bei einer
+Listenzeile ist es der Datenpunkt, bei einem Badge (`b-ph-offline`), einer
+Diagramm-Serie (`s-tempout`) oder einem Chip ist es ein Schlüssel, und der
+Datenpunkt steht daneben in `dp` bzw. `datapointId`. Ergebnis waren 23
+Falschmeldungen auf einem Tab, der sauber validiert — und die eine echte Meldung
+ging darin unter. Jetzt entscheidet `LOOSE_DP_FIELDS` **pro Typ**, welches Feld
+einen Datenpunkt hält. Umgekehrt fehlte `dp` ganz: die Regel kannte nur das
+Suffix `…Dp`, also war der Datenpunkt von Badges, Chips, Karussell-Einträgen und
+Slider-Aktionen von keiner Prüfung erreichbar. `DP_KEY` kennt jetzt auch `dp`
+(56 markierte Felder).
+
+**Trennzeilen** wurden über `type === 'divider'` erkannt — das Feld heisst
+`divider: true` (`isDivider` in ListWidget). Jede Trennzeile im Feld kam damit als
+toter Datenpunkt zurück; der Test hatte die falsche Regel festgeschrieben.
+
+**Eine Momentanleistung ist kein Zählerstand.** `…consumption` in **W**
+(`role: value.power`) wurde als „Zählerstand statt Verbrauch" gemeldet, weil der
+Name das Wort enthielt. `looksLikeCounter()` entscheidet jetzt nach Belegen:
+Einheit (aus Widget **oder** Objekt) in beide Richtungen — Wh/kWh/m³ ja, W/A/V/%/°C
+nein —, dann die Rolle (`value.energy`/`counter` ja, `value.power` & Co. nein),
+und erst wenn beides fehlt, darf der Name mitreden. Dafür liest `aura_review`
+jetzt auch für den Stil-Teil die Objekte.
 
 ## Größen: gemessen, nicht geschätzt
 

@@ -300,6 +300,20 @@
         "elements": {
           "type": "object",
           "tsType": "Partial<Record<ConditionPart, ConditionElement>>",
+          "fields": {
+            "icon": {
+              "type": "object",
+              "ref": "ConditionElement"
+            },
+            "title": {
+              "type": "object",
+              "ref": "ConditionElement"
+            },
+            "value": {
+              "type": "object",
+              "ref": "ConditionElement"
+            }
+          },
           "description": "What the rule does to the widget's elements while it matches (issue #96)."
         },
         "effect": {
@@ -410,6 +424,40 @@
         }
       }
     },
+    "ConditionElement": {
+      "type": "object",
+      "fields": {
+        "show": {
+          "type": "boolean",
+          "description": "`undefined` leaves the visibility alone, `true` shows the element (and opens the content fields), `false` hides it. The only way to hide — there is no second switch for it."
+        },
+        "text": {
+          "type": "string",
+          "description": "Replaces the text of the title resp. the value."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Icon element only."
+        },
+        "iconSize": {
+          "type": "number"
+        },
+        "color": {
+          "type": "string",
+          "description": "Appearance. Travels as a class + variable on the frame root, read by the .aura-cond-* rules in index.css against the class every widget puts on its title/icon/value — so it needs no wiring per widget type. `bold`/`italic` and `fontSize` are meaningless on the icon and not offered there (the icon has `iconSize` instead)."
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "fontSize": {
+          "type": "number",
+          "description": "Text size in px. undefined = the size the widget renders the element at."
+        }
+      }
+    },
     "MessageDraft": {
       "type": "object",
       "fields": {
@@ -448,7 +496,8 @@
         },
         "dp": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "position": {
           "type": "string",
@@ -606,7 +655,8 @@
         },
         "dp": {
           "type": "string",
-          "description": "'count': datapoint ref (supports JSON path) whose live value is shown"
+          "description": "'count': datapoint ref (supports JSON path) whose live value is shown",
+          "datapoint": true
         },
         "label": {
           "type": "string",
@@ -1265,7 +1315,8 @@
         },
         "dp": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "value": {
           "type": [
@@ -3936,7 +3987,8 @@
         },
         "dp": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "value": {
           "type": [
@@ -3963,7 +4015,8 @@
         },
         "dp": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "value": {
           "type": [
@@ -4447,7 +4500,8 @@
         },
         "dp": {
           "type": "string",
-          "required": true
+          "required": true,
+          "datapoint": true
         },
         "value": {
           "type": [
@@ -5427,11 +5481,39 @@
         "statIcons": {
           "type": "object",
           "tsType": "Partial<Record<ListStat, string>>",
+          "fields": {
+            "sum": {
+              "type": "string"
+            },
+            "avg": {
+              "type": "string"
+            },
+            "min": {
+              "type": "string"
+            },
+            "max": {
+              "type": "string"
+            }
+          },
           "description": "Per-stat icon (iconify id / lucide name) rendered before the value."
         },
         "statLabels": {
           "type": "object",
           "tsType": "Partial<Record<ListStat, string>>",
+          "fields": {
+            "sum": {
+              "type": "string"
+            },
+            "avg": {
+              "type": "string"
+            },
+            "min": {
+              "type": "string"
+            },
+            "max": {
+              "type": "string"
+            }
+          },
           "description": "Per-stat text prefix. Falls back to a default symbol per stat."
         },
         "subDpTemplate": {
@@ -9124,11 +9206,39 @@
         "statIcons": {
           "type": "object",
           "tsType": "Partial<Record<ListStat, string>>",
+          "fields": {
+            "sum": {
+              "type": "string"
+            },
+            "avg": {
+              "type": "string"
+            },
+            "min": {
+              "type": "string"
+            },
+            "max": {
+              "type": "string"
+            }
+          },
           "description": "Per-stat icon (iconify id / lucide name) rendered before the value."
         },
         "statLabels": {
           "type": "object",
           "tsType": "Partial<Record<ListStat, string>>",
+          "fields": {
+            "sum": {
+              "type": "string"
+            },
+            "avg": {
+              "type": "string"
+            },
+            "min": {
+              "type": "string"
+            },
+            "max": {
+              "type": "string"
+            }
+          },
           "description": "Per-stat text prefix. Falls back to a default symbol per stat."
         },
         "subDpTemplate": {
@@ -10511,11 +10621,45 @@
         "categoryBgColors": {
           "type": "object",
           "tsType": "Partial<Record<CategoryKey, string>>",
+          "fields": {
+            "battery": {
+              "type": "string"
+            },
+            "window": {
+              "type": "string"
+            },
+            "light": {
+              "type": "string"
+            },
+            "unreach": {
+              "type": "string"
+            },
+            "alarm": {
+              "type": "string"
+            }
+          },
           "description": "Per-category background colour for attention rows/tiles (default: tint of the highlight colour)."
         },
         "categoryColors": {
           "type": "object",
           "tsType": "Partial<Record<CategoryKey, string>>",
+          "fields": {
+            "battery": {
+              "type": "string"
+            },
+            "window": {
+              "type": "string"
+            },
+            "light": {
+              "type": "string"
+            },
+            "unreach": {
+              "type": "string"
+            },
+            "alarm": {
+              "type": "string"
+            }
+          },
           "description": "Per-category highlight colour for devices in an attention state (default: per-severity)."
         },
         "contentAlign": {

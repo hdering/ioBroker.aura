@@ -45,7 +45,13 @@ const {
 const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
 const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
 const { RECIPES, findRecipe, renderRecipe, renderRecipeIndex } = require('../../lib/mcp/recipes.js');
-const { reviewWidgets, renderReview, TILE_ROW_LIMIT, CONTACT_LIMIT } = require('../../lib/mcp/review.js');
+const {
+    looksLikeCounter,
+    reviewWidgets,
+    renderReview,
+    TILE_ROW_LIMIT,
+    CONTACT_LIMIT,
+} = require('../../lib/mcp/review.js');
 const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
 const { collectDatapointRefs, historyFindings, historyReads } = require('../../lib/mcp/dpFit.js');
 const { measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
@@ -234,6 +240,49 @@ check('the series path stays the stored index when a JSON series sits in between
     );
 });
 
+check('the energy balance is checked per entry, and only where it aggregates', () => {
+    const bars = (aggregate) => ({
+        id: 'eb',
+        type: 'energiebilanz',
+        title: 'Bilanz',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 20, h: 10 },
+        options: {
+            bars: [
+                {
+                    id: 'b1',
+                    title: 'Verbrauch',
+                    entries: [{ id: 'e1', datapointId: 'zigbee.0.temp', label: 'Wärmepumpe', aggregate }],
+                    totalDatapoint: 'zigbee.0.temp',
+                },
+            ],
+        },
+    });
+    // 'last' is served from the live state (issue #596) — no history needed.
+    assert.deepEqual(historyReads(bars('last')), []);
+    assert.deepEqual(historyReads(bars(undefined)), [], 'the default is last');
+    const reads = historyReads(bars('delta'));
+    assert.equal(reads.length, 1, 'the bar total is a live value and must not be counted');
+    assert.match(reads[0].path, /bars\[0\]\.entries\[0\] „Wärmepumpe" \(delta\)/);
+    const meta = new Map([['zigbee.0.temp', { type: 'number', logging: [] }]]);
+    assert.match(historyFindings(bars('delta'), meta).join(' '), /kein History-Adapter/);
+});
+
+check('a datapoint logged to an instance that does not exist is its own finding', () => {
+    // The case that also hangs a history query: common.custom still names
+    // history.0 on a system that has only influxdb.
+    const meta = new Map([['zigbee.0.temp', { type: 'number', logging: ['history.0'] }]]);
+    const found = historyFindings(chartSeries(), meta, ['influxdb.0']);
+    assert.equal(found.length, 1);
+    assert.match(found[0], /history\.0 eingetragen, aber diese Instanz gibt es .* nicht/);
+    assert.match(found[0], /Vorhanden ist influxdb\.0/);
+    // With that instance installed there is nothing to say.
+    assert.deepEqual(historyFindings(chartSeries(), meta, ['history.0']), []);
+    // And a second, working instance next to a ghost is fine.
+    const both = new Map([['zigbee.0.temp', { type: 'number', logging: ['history.0', 'influxdb.0'] }]]);
+    assert.deepEqual(historyFindings(chartSeries(), both, ['influxdb.0']), []);
+});
+
 check('the simple chart is checked on its own datapoint', () => {
     const meta = new Map([['zigbee.0.temp', { type: 'number', logging: [] }]]);
     const chart = {
@@ -406,6 +455,39 @@ check('a missing required field inside a nested object is caught', () => {
         schema,
     );
     assert.ok(hasError(res, /clauses\[0\]: "datapoint" fehlt/));
+});
+
+check('conditions.elements has a shape now, keys and fields included', () => {
+    // It was `elements?: object` — the most useful option in the schema with its
+    // shape documented nowhere but inside one recipe, so it went unused.
+    const spec = schema.types.WidgetCondition.fields.elements;
+    assert.deepEqual(Object.keys(spec.fields).sort(), ['icon', 'title', 'value']);
+    assert.equal(spec.fields.title.ref, 'ConditionElement');
+    assert.ok(schema.types.ConditionElement, 'ConditionElement must be a named type');
+    assert.deepEqual(Object.keys(schema.types.ConditionElement.fields).sort(), [
+        'bold',
+        'color',
+        'fontSize',
+        'icon',
+        'iconSize',
+        'italic',
+        'show',
+        'text',
+    ]);
+
+    const withElements = (elements) =>
+        withConditions([
+            {
+                id: 'c',
+                logic: 'AND',
+                clauses: [{ datapoint: 'hm-rpc.0.LEQ1.1.STATE', operator: '>', value: '5', valueType: 'static' }],
+                style: {},
+                elements,
+            },
+        ]);
+    assert.deepEqual(validateWidget(withElements({ title: { text: 'Alarm', bold: true } }), schema).errors, []);
+    assert.ok(hasError(validateWidget(withElements({ titel: { text: 'x' } }), schema), /meintest du "title"/));
+    assert.ok(hasError(validateWidget(withElements({ title: { fett: true } }), schema), /"fett" gibt es hier nicht/));
 });
 
 check('a correct condition passes all the way down', () => {
@@ -713,7 +795,11 @@ check('datapoints one level down are collected, dividers and placeholders are no
             options: {
                 entries: [
                     { id: 'hm-rpc.0.LEQ1.1.STATE', statusDp: 'zigbee.0.temp' },
-                    { type: 'divider', id: 'trenner-1' },
+                    // The real shape of a separator: `divider: true` (isDivider in
+                    // ListWidget). A fixture with `type: 'divider'` pinned a rule
+                    // that does not exist, and every actual separator in the field
+                    // was reported as a dead datapoint.
+                    { id: 'divider:1', divider: true, name: 'Abschnitt' },
                     { id: 'weg.0.dp', subDps: [{ id: 'zigbee.0.batt' }] },
                 ],
                 rowConditions: [{ id: 'regel-1', clauses: [{ datapoint: '{{parent}}.STATE' }] }],
@@ -726,9 +812,79 @@ check('datapoints one level down are collected, dividers and placeholders are no
     assert.ok(ids.includes('hm-rpc.0.LEQ1.1.STATE'));
     assert.ok(ids.includes('zigbee.0.temp'), 'a nested statusDp is a datapoint');
     assert.ok(ids.includes('zigbee.0.batt'), 'a second-line datapoint counts too');
-    assert.ok(!ids.includes('trenner-1'), 'a divider row carries no datapoint');
+    assert.ok(!ids.includes('divider:1'), 'a divider row carries no datapoint');
     assert.ok(!ids.includes('regel-1'), 'a rule id is not a datapoint');
     assert.ok(!ids.some((id) => id.includes('{{')), 'a placeholder is resolved per row and must not be checked');
+});
+
+check('a power reading is not a meter, whatever the datapoint is called', () => {
+    // The reported false finding: midas-aquatemp.0.consumption is W, role
+    // value.power — an instantaneous reading. "consumption" in the name had been
+    // enough to suggest a delta aggregation, which is advice about another
+    // datapoint entirely.
+    const tile = (dp, options = {}) => ({
+        id: 'v1',
+        type: 'value',
+        title: 'Leistung',
+        datapoint: dp,
+        gridPos: { x: 0, y: 0, w: 8, h: 3 },
+        options,
+    });
+    const meta = new Map([
+        ['midas.0.consumption', { unit: 'W', role: 'value.power' }],
+        ['sm.0.total_energy', { unit: 'kWh', role: 'value.energy' }],
+    ]);
+    assert.equal(looksLikeCounter(tile('midas.0.consumption'), meta), false);
+    assert.equal(looksLikeCounter(tile('sm.0.total_energy'), meta), true);
+    // The unit set on the widget counts as evidence too.
+    assert.equal(looksLikeCounter(tile('sm.0.verbrauch', { unit: 'W' })), false);
+    // Nothing known at all: the name is all there is, and it may have its say.
+    assert.equal(looksLikeCounter(tile('sm.0.verbrauch_total')), true);
+
+    const findings = reviewWidgets([tile('midas.0.consumption')], meta);
+    assert.ok(
+        !findings.some((f) => f.id === 'counter-as-reading'),
+        `a W reading must not be reported as a meter: ${JSON.stringify(findings.map((f) => f.id))}`,
+    );
+    assert.ok(reviewWidgets([tile('sm.0.total_energy')], meta).some((f) => f.id === 'counter-as-reading'));
+});
+
+check('an element id is never mistaken for a datapoint — the dp next to it is one', () => {
+    // The 23 false findings on a clean tab: badge, chip and series ids taken for
+    // state ids because the type, not the key, decides which field holds one.
+    const refs = collectDatapointRefs(
+        {
+            id: 'w1',
+            type: 'echart',
+            title: 'Verlauf',
+            datapoint: '',
+            options: {
+                echartSeries: [{ id: 's-tempout', name: 'Außen', datapointId: 'hm.0.temp', chartType: 'line' }],
+                badges: [{ id: 'b-ph-offline', dp: 'hm.0.offline' }],
+                chips: [{ id: 'c-1', dp: 'hm.0.chip' }],
+            },
+        },
+        schema,
+        { loose: true },
+    );
+    const ids = refs.map((r) => r.id);
+    assert.deepEqual(ids.filter((id) => id.startsWith('hm.0.')).sort(), ['hm.0.chip', 'hm.0.offline', 'hm.0.temp']);
+    assert.ok(!ids.includes('s-tempout'), 'a series id is a key, datapointId holds the datapoint');
+    assert.ok(!ids.includes('b-ph-offline'), 'a badge id is a key, dp holds the datapoint');
+    assert.ok(!ids.includes('c-1'), 'a chip id is a key too');
+});
+
+check('a bare dp field is flagged by the schema, so the write gate sees it', () => {
+    assert.ok(schema.types.BadgeDef.fields.dp.datapoint, 'BadgeDef.dp must be a datapoint field');
+    assert.ok(schema.types.ChipItem.fields.dp.datapoint, 'ChipItem.dp must be a datapoint field');
+    const strict = collectDatapointRefs(
+        { id: 'w', type: 'value', title: 'V', datapoint: '', options: { badges: [{ id: 'b1', dp: 'weg.0.dp' }] } },
+        schema,
+    );
+    assert.deepEqual(
+        strict.map((r) => r.id),
+        ['weg.0.dp'],
+    );
 });
 
 // ── Config helpers ───────────────────────────────────────────────────────────
@@ -817,11 +973,25 @@ function makeAdapter() {
             }
             return files[name];
         },
-        getObjectViewAsync: async (_design, _type, opts) => ({
-            rows: (opts.startkey || '').startsWith('alias.')
-                ? [{ id: 'alias.0.licht' }]
-                : [{ id: 'hm-rpc.0.LEQ1.1.STATE' }, { id: 'zigbee.0.temp' }],
-        }),
+        getObjectViewAsync: async (_design, type, opts) => {
+            // The instance view is what names the available history adapters; it
+            // used to fall through to the state rows, which made every logging
+            // instance look missing.
+            if (type === 'instance') {
+                return {
+                    rows: [
+                        { id: 'system.adapter.influxdb.0' },
+                        { id: 'system.adapter.admin.0' },
+                        { id: 'system.adapter.web.0' },
+                    ],
+                };
+            }
+            return {
+                rows: (opts.startkey || '').startsWith('alias.')
+                    ? [{ id: 'alias.0.licht' }]
+                    : [{ id: 'hm-rpc.0.LEQ1.1.STATE' }, { id: 'zigbee.0.temp' }],
+            };
+        },
         // The objects and the last values behind those ids: what the datapoint-fit
         // check and the liveness half of aura_review read.
         getForeignObjectAsync: async (id) => FOREIGN_OBJECTS[id] || null,
@@ -952,6 +1122,11 @@ check('all twenty-eight tools are announced with descriptions', () => {
 });
 
 const dash = await client.callTool({ name: 'aura_dashboard', arguments: {} });
+check('aura_dashboard names the available history adapters', () => {
+    // Nothing listed them, so a chart's historyInstance had to be guessed.
+    assert.match(dash.content[0].text, /History-Adapter für Diagramme: influxdb\.0/);
+});
+
 check('aura_dashboard reports tabs, grid and the design width', () => {
     const t = dash.content[0].text;
     // Nested since the section line carries its own markers.
@@ -1279,7 +1454,7 @@ check('aura_review without a tab sweeps the whole dashboard for health', () => {
     const t = sweep.content[0].text;
     assert.match(t, /alle Tabs und Popups/);
     // The counted line proves it actually walked the configuration.
-    assert.match(t, /Widget\(s\) in \d+ Tab\(s\)/);
+    assert.match(t, /Widget\(s\) an \d+ Stelle\(n\)/);
 });
 
 const styleOnly = await client.callTool({ name: 'aura_review', arguments: { tab: 'Klima', mode: 'style' } });

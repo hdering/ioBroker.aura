@@ -234,8 +234,30 @@ function normalizeType(raw, index, types, depth = 0) {
         return { type: 'string' };
     }
 
-    // Record<…> / Partial<…> and other generics — keep the source text, it is
-    // more informative to a reader than a bare "object".
+    // Partial<Record<K, V>> / Record<K, V> where K is a string union: expand it
+    // into one optional field per member.
+    //
+    // This is how `conditions[].elements` is declared
+    // (Partial<Record<ConditionPart, ConditionElement>>), and as a bare "object"
+    // it was the single most useful option in the whole schema with its shape
+    // documented nowhere — the keys (icon/title/value) and their fields only
+    // appeared inside one recipe, so a model either copied that recipe or left
+    // the option alone.
+    const record = t.match(/^(?:Partial<\s*)?Record<\s*([A-Za-z_$][\w$]*)\s*,\s*(.+?)\s*>\s*>?$/);
+    if (record) {
+        const keys = index.stringUnion(record[1]);
+        if (keys && keys.length) {
+            const valueSpec = normalizeType(record[2], index, types, depth + 1);
+            return {
+                type: 'object',
+                tsType: t,
+                fields: Object.fromEntries(keys.map((k) => [k, { ...valueSpec }])),
+            };
+        }
+    }
+
+    // Other generics — keep the source text, it is more informative to a reader
+    // than a bare "object".
     if (/[<>{]/.test(t)) {
         return { type: 'object', tsType: t };
     }
@@ -301,9 +323,12 @@ function markDatapointKeys(options) {
  *
  * `datapointId` had to be spelled out: it is the field an eCharts series holds its
  * state id in, and "ends in Id" is not a datapoint rule — so the one place where
- * a dashboard carries a dozen ids in one option went entirely unchecked.
+ * a dashboard carries a dozen ids in one option went entirely unchecked. A bare
+ * `dp` is the same story from the other side: badges, chips, carousel items and
+ * slider actions all hold their datapoint there, and none of them was reachable
+ * by a rule that only knew the `…Dp` suffix.
  */
-const DP_KEY = /(?:Dp|DpId|Datapoint|DatapointId)$|^datapoint(Id)?$/;
+const DP_KEY = /(?:Dp|DpId|Datapoint|DatapointId)$|^(dp|datapoint(Id)?)$/;
 
 /**
  * The same flag inside the named types.
