@@ -142,7 +142,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 
 | Werkzeug                              | Zweck                                                                                                          | Stufe        |
 | ------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------ |
-| `aura_dashboard`                      | Layouts, Bereiche, Tabs, Rastermaße, Spaltenbreite                                                             | read         |
+| `aura_dashboard`                      | Layouts, Bereiche, Tabs, Rastermaße, Spalten, Zielbildschirm                                                   | read         |
 | `aura_widget_types`                   | Alle Typen kompakt, mit `group=` auf eine Kategorie eingegrenzt                                                | read         |
 | `aura_widget_schema`                  | Optionen der genannten Typen, mit `brief=true` nur Namen und Typen                                             | read         |
 | `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                           | read         |
@@ -651,6 +651,23 @@ dazwischen leer.
 **Spaltenzahl.** Das laufende Dashboard leitet sie aus der Pixelbreite ab, die
 kein Server kennt. `designColumns()` nimmt das größte `x + w` über alle Tabs: die
 Breite, für die dieses Dashboard bereits entworfen ist.
+
+**Zielbildschirm.** Die Hilfslinien im Editor (`guidelinesWidth/-Height`, im
+`app-config`-State) sind die einzige Stelle, an der steht, wie groß das Dashboard
+werden darf. `lib/mcp/canvas.js` rechnet sie in Spalten und Zeilen um — mit
+derselben Formel wie das Frontend (`floor((Breite − gap) / (snapX + gap))`) und
+denselben Rahmenhöhen wie `utils/guidelinesInset.ts` (Kopf 65, Tab-Leiste 44,
+Bereichsleiste 48, Seitenmenü nach Breite). Raster und Hilfslinien sind pro Layout
+**und** pro Bereich überschreibbar, deshalb hängt das Budget am Ziel-Tab, nicht an
+den globalen Einstellungen. Genutzt von `aura_dashboard` (eine Zeile im Kopf, pro
+Bereich nur wiederholt, wenn er anders liegt), `aura_measure` (nennt die Widgets,
+die unter bzw. neben der Linie enden) und der Validierung (Warnung bei
+`y + h > maxRows` und `x + w > maxCols`; die alte Breitenwarnung entfällt dann,
+damit dasselbe Widget nicht zweimal gemeldet wird). Ohne gesetzte Hilfslinien sagt
+die Antwort das ausdrücklich — die Höhe wurde vorher überhaupt nicht geprüft.
+Warnung, kein Fehler: die Rahmenhöhen sind kalibrierte Schätzungen (das Frontend
+misst sie selbst, der Adapter kann das nicht), und Scrollen darf eine Entscheidung
+sein.
 
 **Der offene Editor.** Ein Editor-Fenster mit ungespeicherten Änderungen kann eine
 MCP-Änderung beim nächsten Speichern überschreiben. Die Antwort jedes

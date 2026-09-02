@@ -55,6 +55,7 @@ const {
 const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
 const { collectDatapointRefs, historyFindings, historyReads } = require('../../lib/mcp/dpFit.js');
 const { measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
+const { designCanvas, renderCanvas } = require('../../lib/mcp/canvas.js');
 const {
     TOKEN_PLACEHOLDER,
     baseUrl,
@@ -356,6 +357,24 @@ check('exceeding the column count warns instead of refusing', () => {
     const res = validateWidget({ ...OK_SWITCH, gridPos: { x: 40, y: 0, w: 12, h: 4 } }, schema, { columns: 48 });
     assert.deepEqual(res.errors, []);
     assert.ok(hasWarning(res, /52 ist breiter als das bisher Vorhandene \(48 Spalten\)/));
+});
+
+check('a widget below the guideline is named, not silently placed off screen', () => {
+    // The height was never checked against anything: a tab could end below the
+    // bottom edge of the very device it was built for and nothing said a word.
+    const ctx = { columns: 48, maxCols: 42, maxRows: 23 };
+    const deep = validateWidget({ ...OK_SWITCH, gridPos: { x: 0, y: 20, w: 8, h: 6 } }, schema, ctx);
+    assert.deepEqual(deep.errors, [], 'scrolling is allowed, it just has to be a decision');
+    assert.ok(hasWarning(deep, /26 endet unterhalb der Hilfslinie \(23 Zeilen/));
+    const fits = validateWidget({ ...OK_SWITCH, gridPos: { x: 0, y: 17, w: 8, h: 6 } }, schema, ctx);
+    assert.deepEqual(fits.warnings, [], 'the last row that fits is not a finding');
+});
+
+check('the screen replaces the guessed width, it does not double up on it', () => {
+    const ctx = { columns: 48, maxCols: 42, maxRows: 23 };
+    const wide = validateWidget({ ...OK_SWITCH, gridPos: { x: 40, y: 0, w: 12, h: 4 } }, schema, ctx);
+    assert.ok(hasWarning(wide, /52 reicht über die Hilfslinie hinaus \(42 Spalten/));
+    assert.equal(wide.warnings.length, 1, 'the same widget must not be reported twice');
 });
 
 check('an option written one level too high is an error, not a shrug', () => {
@@ -954,6 +973,75 @@ check('designColumns takes the widest widget across all tabs', () => {
     assert.equal(designColumns([]), 48);
 });
 
+// ── The target screen (guidelines) ───────────────────────────────────────────
+// The guidelines are the one place the user says how big the dashboard may get.
+// Before this the server inferred the width from the widest widget it found and
+// had no notion of height at all.
+
+const GUIDED = { gridRowHeight: 20, gridSnapX: 20, gridGap: 10, guidelinesEnabled: true };
+const TABLET = { ...GUIDED, guidelinesWidth: 1280, guidelinesHeight: 800 };
+
+check('the guidelines become a column and a row budget', () => {
+    const cv = designCanvas({ frontend: TABLET, tabCount: 2 });
+    // Same formula the frontend uses: floor((1280 − 10) / (20 + 10)).
+    assert.equal(cv.maxCols, 42);
+    // 800 minus header (65) and tab bar (44) leaves 691 px: floor((691 + 10) / 30).
+    assert.equal(cv.topInset, 109);
+    assert.equal(cv.maxRows, 23);
+    // The budget must be reachable, not one row optimistic.
+    assert.ok(rowsToPx(cv.maxRows, cv.grid) <= cv.usableHeight, 'the last row must still fit');
+    assert.ok(rowsToPx(cv.maxRows + 1, cv.grid) > cv.usableHeight, 'and one more must not');
+});
+
+check('chrome that is not there does not cost a row', () => {
+    const bare = designCanvas({ frontend: { ...TABLET, showHeader: false }, tabCount: 1 });
+    assert.equal(bare.topInset, 0);
+    assert.equal(bare.maxRows, 27);
+    // A footer tab bar sits below the grid, so the top is unaffected.
+    const footer = designCanvas({ frontend: { ...TABLET, tabBar: { position: 'bottom' } }, tabCount: 3 });
+    assert.equal(footer.topInset, 65);
+});
+
+check('a docked sidebar takes its width off the dashboard, a floating menu does not', () => {
+    const host = {
+        frontend: { ...TABLET, layoutDrawerEnabled: true, layoutDrawerPlacement: 'sidebar', layoutDrawerWidth: 240 },
+        layout: { sections: [{ id: 'a' }, { id: 'b' }] },
+        tabCount: 2,
+    };
+    const docked = designCanvas(host);
+    assert.equal(docked.menuInset, 240);
+    assert.equal(docked.maxCols, 34);
+    const floating = designCanvas({ ...host, frontend: { ...host.frontend, layoutDrawerPlacement: 'floating' } });
+    assert.equal(floating.menuInset, 0);
+    assert.equal(floating.maxCols, 42);
+    // One visible section means no menu at all — nothing to switch between.
+    const single = designCanvas({ ...host, layout: { sections: [{ id: 'a' }] } });
+    assert.equal(single.menuInset, 0);
+});
+
+check('a section may state a screen of its own', () => {
+    // The keys are 3-level in the frontend, so a wall panel and a desk layout in
+    // the same installation do not share a budget.
+    const cv = designCanvas({
+        frontend: TABLET,
+        layout: { sections: [], settings: { guidelinesWidth: 800 } },
+        section: { settings: { guidelinesHeight: 480 } },
+        tabCount: 1,
+    });
+    assert.equal(cv.width, 800);
+    assert.equal(cv.height, 480);
+    assert.equal(cv.maxCols, 26);
+});
+
+check('without guidelines the answer says so instead of inventing a size', () => {
+    const off = designCanvas({ frontend: { gridRowHeight: 20, gridGap: 10 } });
+    assert.equal(off.enabled, false);
+    assert.equal(off.maxRows, null);
+    assert.match(renderCanvas(off), /Hilfslinien sind nicht gesetzt/);
+    assert.match(renderCanvas(off), /Einstellungen/, 'and where to set them');
+    assert.match(renderCanvas(designCanvas({ frontend: TABLET, tabCount: 2 })), /1280×800 px/);
+});
+
 check('findTab refuses to guess when a name is ambiguous', () => {
     assert.ok(/mehrfach/.test(findTab(LAYOUTS, { tab: 'Licht' }).error ?? ''));
     assert.equal(findTab(LAYOUTS, { tab: 'Licht', layout: 'Tablet' }).tab.id, 't3');
@@ -1167,6 +1255,52 @@ check('aura_dashboard reports tabs, grid and the design width', () => {
     assert.match(t, /· Licht — 1 Widget/);
     assert.match(t, /Die vorhandenen Widgets nutzen 44 Spalten/);
     assert.match(t, /Zeilenhöhe 20 px/);
+});
+
+check('with no guidelines set, aura_dashboard says the target size is unknown', () => {
+    assert.match(dash.content[0].text, /Hilfslinien sind nicht gesetzt/);
+});
+
+// The same dashboard, with the target device the user drew in the editor.
+const APP_CONFIG_PLAIN = adapter.states['config.app-config'];
+adapter.states['config.app-config'] = JSON.stringify({
+    version: 0,
+    state: {
+        frontend: {
+            gridRowHeight: 20,
+            gridGap: 10,
+            guidelinesEnabled: true,
+            guidelinesWidth: 1280,
+            guidelinesHeight: 800,
+        },
+    },
+});
+const guidedDash = await client.callTool({ name: 'aura_dashboard', arguments: {} });
+const guidedMeasure = await client.callTool({ name: 'aura_measure', arguments: { tab: 'Klima' } });
+const guidedValidate = await client.callTool({
+    name: 'aura_validate',
+    arguments: {
+        checkDatapoints: false,
+        json: JSON.stringify({ ...OK_SWITCH, gridPos: { x: 0, y: 24, w: 8, h: 4 } }),
+    },
+});
+adapter.states['config.app-config'] = APP_CONFIG_PLAIN;
+
+check('the guidelines reach the model as columns and rows', () => {
+    assert.match(guidedDash.content[0].text, /Zielgröße laut Hilfslinien: 1280×800 px/);
+    assert.match(guidedDash.content[0].text, /42 Spalten und 23 Zeilen/);
+});
+
+check('aura_measure names the widgets that fall off the target screen', () => {
+    // The Klima widget ends at column 44 — every widget can be tall enough and
+    // the tab still not fit on the screen it was built for.
+    const t = guidedMeasure.content[0].text;
+    assert.match(t, /Zielgröße laut Hilfslinien/);
+    assert.match(t, /reichen über die Hilfslinie hinaus .*Spalte 44/s);
+});
+
+check('aura_validate checks a widget against the target screen before it is written', () => {
+    assert.match(guidedValidate.content[0].text, /28 endet unterhalb der Hilfslinie \(23 Zeilen/);
 });
 
 const badReorderKind = await client.callTool({
