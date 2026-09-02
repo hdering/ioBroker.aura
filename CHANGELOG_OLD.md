@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.50.4 (2026-08-26)
+- Calendar - entries are no longer cut off on the left edge, keep the same spacing left and right, and follow the configured widget padding; the highlight bar of important events is visible again ([#590](https://github.com/hdering/ioBroker.aura/issues/590))
+- 🌟 **New feature:** Lists - row conditions can now change the icon size, per datapoint and list-wide, in the static and the dynamic list ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
+- 🌟 **New feature:** List - the icon size of a row can now be set per datapoint, not only for the switch display ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
+
 ## 0.50.3 (2026-08-25)
 - 🌟 **New feature:** Frontend design - tab bar and area menu elements can now be reordered with up/down arrows
 

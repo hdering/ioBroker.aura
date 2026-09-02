@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.52.9 (2026-09-02)
+- MCP - aura_review no longer suggests folding a KPI row into a list: tiles with their own thresholds, conditions or badges are left out of the tile-row finding
+- Custom layout - a matching cell condition now colors the bar of a progress or bar-style slider cell, not just the text on it
+- 🌟 **New feature:** Markers - the label text of a widget, section or tab marker now shows datapoint values, e.g. "{0_userdata.0.Pool.MaxRun} min", including operation chains and expressions like free HTML
+
+
 ### 0.52.8 (2026-09-02)
 - MCP - the history check now also runs while writing: aura_write_tab, aura_add_widget and aura_update_widget report a chart series on an unrecorded datapoint instead of writing it silently
 - MCP - aura_measure no longer reads like a finding when a widget type has no measured height; the reason now says why there is no number instead of demanding a change
@@ -231,12 +237,6 @@ Release v0.50.6
 - 🌟 **New feature:** Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in
 
 
-### 0.50.4 (2026-08-26)
-- Calendar - entries are no longer cut off on the left edge, keep the same spacing left and right, and follow the configured widget padding; the highlight bar of important events is visible again ([#590](https://github.com/hdering/ioBroker.aura/issues/590))
-- 🌟 **New feature:** Lists - row conditions can now change the icon size, per datapoint and list-wide, in the static and the dynamic list ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
-- 🌟 **New feature:** List - the icon size of a row can now be set per datapoint, not only for the switch display ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
-
-
 ## License
 
 MIT License
@@ -248,6 +248,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
