@@ -1349,15 +1349,19 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         ) : null;
 
     return (
-        <div ref={containerRef} className="flex flex-col w-full h-full">
+        <div ref={containerRef} className="aura-widget-row flex flex-col w-full h-full">
             {(showTitle || showIcon || showCurrentBlock) && (
                 <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                     {showIcon && (
-                        <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                        <WidgetIcon
+                            className="aura-widget-icon"
+                            size={iconSize}
+                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                        />
                     )}
                     {showTitle && (
                         <p
-                            className="text-xs truncate flex-1 min-w-0"
+                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
                             style={{
                                 color: 'var(--text-secondary)',
                                 textAlign: titleAlign as React.CSSProperties['textAlign'],
