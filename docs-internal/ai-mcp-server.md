@@ -302,8 +302,12 @@ nicht aufzeichnet — die Abfrage geht an die falsche Instanz und liefert nichts
 Die Regel ist wörtlich die des Frontends (`detectHistoryAdapters` in
 `hooks/useChartHistory.ts`), damit Prüfung und Anzeige nicht auseinanderlaufen.
 
-Der Pfad nennt die Serie mit ihrem **gespeicherten** Index: erst indexieren, dann
-filtern, sonst verschiebt eine JSON-Serie in der Mitte alle Nummern dahinter.
+Der Pfad nennt die Serie mit ihrer **Id** — `Reihe s1`, so wie sie in der Config
+steht und wie `aura_measure` und der Editor sie zeigen. Ohne Id bleibt der
+**gespeicherte** Index: erst indexieren, dann filtern, sonst verschiebt eine
+JSON-Serie in der Mitte alle Nummern dahinter. Der Satz nennt am Ende, was leer
+bleibt — beim Diagramm „das Diagramm bleibt leer", bei der Energiebilanz „die
+Auswertung bleibt leer".
 
 Dieselbe Prüfung gilt für die **Energiebilanz**: jeder Eintrag mit einem
 `aggregate` ausser `last` ist eine History-Abfrage (`last` kommt aus dem
@@ -322,6 +326,16 @@ Datenpunkt-Erkennung, weil „endet auf Id" keine Datenpunkt-Regel ist — die e
 Option, die ein Dutzend Ids trägt, war damit ungeprüft. `DP_KEY` im Generator
 kennt jetzt auch `datapointId` (50 markierte Felder statt 48), ein Tippfehler in
 einer Serie ist also ein Fehler und keine leere Kurve.
+
+Geprüft wird das **beim Schreiben**, nicht nur auf Nachfrage. `aura_validate`
+las die Objekte hinter den Datenpunkten schon eine Weile, die Schreib-Werkzeuge
+nicht: `validateWidgets()` gab nur `knownDatapoints` weiter, und `aura_write_tab`
+und `aura_update_widget` bauten ihren Kontext sogar von Hand. Ein Diagramm auf
+einem nicht aufgezeichneten Datenpunkt ging damit wortlos durch — genau
+verkehrt, denn beim Bauen ist es noch zu ändern. Jetzt sammelt
+`validateWidgets()` die Referenzen selbst und liest Objekte plus
+`readLoggingInstances()`; `strictIndices` begrenzt dabei auch das Nachlesen,
+damit ein Widget mehr an einem gewachsenen Tab nicht zweihundert Objekte liest.
 
 Immer Warnungen. Das ioBroker-Objekt ist eine Behauptung: Adapter setzen `write`
 falsch, viele Anlagen schalten mit 0/1, und ein Bereich darf auch im Widget

@@ -197,9 +197,9 @@ check('a series on an unlogged datapoint is named, with what to do about it', ()
     const meta = new Map([['zigbee.0.temp', { type: 'number', logging: [] }]]);
     const found = historyFindings(chartSeries(), meta);
     assert.equal(found.length, 1);
-    assert.match(found[0], /echartSeries\[0\] „Temperatur"/);
-    assert.match(found[0], /kein History-Adapter/);
-    assert.match(found[0], /bleibt dauerhaft leer/);
+    assert.match(found[0], /Reihe s1 „Temperatur"/);
+    assert.match(found[0], /wird von keiner History-Instanz geloggt/);
+    assert.match(found[0], /das Diagramm bleibt leer/);
 });
 
 check('a logged datapoint produces no remark', () => {
@@ -236,7 +236,7 @@ check('the series path stays the stored index when a JSON series sits in between
     };
     assert.deepEqual(
         historyReads(w).map((r) => r.path),
-        ['echartSeries[0]', 'echartSeries[2]'],
+        ['Reihe a', 'Reihe c'],
     );
 });
 
@@ -265,7 +265,10 @@ check('the energy balance is checked per entry, and only where it aggregates', (
     assert.equal(reads.length, 1, 'the bar total is a live value and must not be counted');
     assert.match(reads[0].path, /bars\[0\]\.entries\[0\] „Wärmepumpe" \(delta\)/);
     const meta = new Map([['zigbee.0.temp', { type: 'number', logging: [] }]]);
-    assert.match(historyFindings(bars('delta'), meta).join(' '), /kein History-Adapter/);
+    const ebFound = historyFindings(bars('delta'), meta);
+    assert.match(ebFound.join(' '), /wird von keiner History-Instanz geloggt/);
+    // The energy balance is not a chart — the sentence has to name what stays empty here.
+    assert.match(ebFound.join(' '), /die Auswertung bleibt leer/);
 });
 
 check('a datapoint logged to an instance that does not exist is its own finding', () => {
@@ -274,8 +277,8 @@ check('a datapoint logged to an instance that does not exist is its own finding'
     const meta = new Map([['zigbee.0.temp', { type: 'number', logging: ['history.0'] }]]);
     const found = historyFindings(chartSeries(), meta, ['influxdb.0']);
     assert.equal(found.length, 1);
-    assert.match(found[0], /history\.0 eingetragen, aber diese Instanz gibt es .* nicht/);
-    assert.match(found[0], /Vorhanden ist influxdb\.0/);
+    assert.match(found[0], /eingetragen ist history\.0, diese Instanz gibt es .* nicht/);
+    assert.match(found[0], /Vorhanden: influxdb\.0/);
     // With that instance installed there is nothing to say.
     assert.deepEqual(historyFindings(chartSeries(), meta, ['history.0']), []);
     // And a second, working instance next to a ghost is fine.
@@ -293,7 +296,7 @@ check('the simple chart is checked on its own datapoint', () => {
         gridPos: { x: 0, y: 0, w: 20, h: 10 },
         options: {},
     };
-    assert.match(historyFindings(chart, meta).join(' '), /kein History-Adapter/);
+    assert.match(historyFindings(chart, meta).join(' '), /datapoint: zigbee\.0\.temp wird von keiner/);
 });
 
 check('an unlogged chart datapoint warns but never refuses the write', () => {
@@ -303,7 +306,7 @@ check('an unlogged chart datapoint warns but never refuses the write', () => {
         datapointMeta: meta,
     });
     assert.deepEqual(res.errors, []);
-    assert.ok(hasWarning(res, /kein History-Adapter/));
+    assert.ok(hasWarning(res, /wird von keiner History-Instanz geloggt/));
 });
 
 check('a typo in a series datapoint is an error now that the field is flagged', () => {
@@ -758,7 +761,7 @@ check('the sweep reports the unlogged chart datapoint too', () => {
     });
     const f = res.findings.find((x) => x.id === 'no-history');
     assert.ok(f, `expected a no-history finding, got ${res.findings.map((x) => x.id).join(', ')}`);
-    assert.match(f.items.join(' '), /Verlauf \/ c1: echartSeries\[0\]/);
+    assert.match(f.items.join(' '), /Verlauf \/ c1: Reihe s1/);
 });
 
 check('a clean dashboard says so instead of inventing findings', () => {
@@ -1524,8 +1527,8 @@ check('aura_validate warns when a chart series datapoint is not logged', () => {
     // Not an error: a series on an unlogged datapoint is a mistake, not a reason
     // to refuse the write — the user may be about to switch logging on.
     assert.ok(!chartValidate.isError, t);
-    assert.match(t, /kein History-Adapter/);
-    assert.match(t, /echartSeries\[0\] „Temperatur"/);
+    assert.match(t, /wird von keiner History-Instanz geloggt/);
+    assert.match(t, /Reihe s1 „Temperatur"/);
     // Proof the handler looked the series datapoint up, not only widget.datapoint.
     assert.match(t, /Objekt\(e\) gelesen/);
 });
@@ -1581,6 +1584,36 @@ check('the write is backed up first and the answer says where', () => {
 
 check('the answer warns about an editor with unsaved changes', () => {
     assert.match(added.content[0].text, /ungespeicherten/);
+});
+
+// The gap aura_validate did not have and the write tools did: building a chart
+// on an unlogged datapoint went through in silence, and the empty frame is the
+// one mistake that looks like a working configuration from every angle
+// afterwards. The write still succeeds — the datapoint may be about to be logged.
+const wroteChart = await client.callTool({
+    name: 'aura_write_tab',
+    arguments: {
+        tab: 'Klima',
+        widgets: JSON.stringify([
+            {
+                id: 'c9',
+                type: 'echart',
+                title: 'Verlauf',
+                datapoint: 'zigbee.0.temp',
+                gridPos: { x: 0, y: 0, w: 20, h: 10 },
+                options: {
+                    echartSeries: [{ id: 's1', name: 'Temperatur', datapointId: 'zigbee.0.temp', chartType: 'line' }],
+                },
+            },
+        ]),
+    },
+});
+check('writing a chart on an unlogged datapoint warns while it writes', () => {
+    const t = wroteChart.content[0].text;
+    assert.ok(!wroteChart.isError, t);
+    assert.match(t, /Reihe s1 „Temperatur"/);
+    assert.match(t, /wird von keiner History-Instanz geloggt/);
+    assert.ok(adapter.states['config.dashboard'].includes('"c9"'), 'the warning must not block the write');
 });
 
 const written = await client.callTool({

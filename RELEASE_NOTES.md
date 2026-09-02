@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+
+MCP - the history check now also runs while writing: aura_write_tab, aura_add_widget and aura_update_widget report a chart series on an unrecorded datapoint instead of writing it silently
