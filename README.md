@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.52.7 (2026-09-02)
+- MCP - aura_validate and aura_review now report a chart series whose datapoint no history adapter records, plus a typo in a series datapoint
+- MCP - aura_review takes a scope (one tab or the whole dashboard) and no longer reports element ids as missing datapoints or a power reading as a meter
+- MCP - energy balance entries are checked for history too, a datapoint logged to an uninstalled instance is reported, and aura_dashboard names the available history adapters
+- MCP - conditions.elements is now described in the schema (icon/title/value with their fields) instead of being an untyped object
+
+
 ### 0.52.6 (2026-09-01)
 - MCP - aura_measure sizes widgets against measured heights, aura_review checks existing tabs for dead datapoints and ineffective options, aura_types fetches shared types once
 
@@ -229,10 +236,6 @@ Release v0.50.6
 - 🌟 **New feature:** Frontend design - tab bar and area menu elements can now be reordered with up/down arrows
 
 
-### 0.50.2 (2026-08-25)
-- 🌟 **New feature:** The installed adapter version is now published as `aura.0.info.version`, so it can be shown anywhere in the frontend
-
-
 ## License
 
 MIT License
@@ -244,6 +247,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

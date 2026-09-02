@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.50.2 (2026-08-25)
+- 🌟 **New feature:** The installed adapter version is now published as `aura.0.info.version`, so it can be shown anywhere in the frontend
+
 ## 0.50.1 (2026-08-25)
 - 🌟 **New feature:** Chart (advanced) - values at the data points can be switched per series, and thinned out to every n-th value ([#584](https://github.com/hdering/ioBroker.aura/issues/584))
 
