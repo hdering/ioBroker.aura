@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.50.6 (2026-08-26)
+Release v0.50.6
+
 ## 0.50.5 (2026-08-26)
 - 🌟 **New feature:** Status overview - rotary handle contacts (HmIP-SRH, HM-Sec-RHS) are now recognised and reported as tilted or open, and the widget shows that data is still loading instead of reporting all-clear before the datapoints are in
 

@@ -115,6 +115,15 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.53.1 (2026-09-02)
+- Editor - the "+ Tab" wizard button is gone; tabs are built with the MCP server or from single widgets
+- Import dialog - the AI prompt generator is gone; the MCP server produces better widget JSON
+- List - editing a list with two rows on the same datapoint no longer leaves stale rows behind
+- MCP server - aura_measure sizes a list row by its display, so a list of window contacts is no longer reported as fitting while it scrolls
+- MCP server - aura_validate warns about row settings the chosen display never reads (on/off labels on a value row, a state mapping without displayType "states")
+- MCP server - the widget schema now spells out inline option shapes, so a contact row can be relabelled through contactAppearance (e.g. "heizt"/"zu" for a heating valve) instead of falling back to a state mapping
+
+
 ### 0.53.0 (2026-09-02)
 - General - widget titles keep their descenders (g, p, y) when the font scale is above 100 %
 - AI assistant (MCP) - now reads the editor guidelines as the target screen and builds tabs that fit it, instead of guessing the width from existing widgets
@@ -246,10 +255,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Advanced chart - horizontal grid lines were missing when every series was assigned to the right y axis ([#594](https://github.com/hdering/ioBroker.aura/issues/594))
 
 
-### 0.50.6 (2026-08-26)
-Release v0.50.6
-
-
 ## License
 
 MIT License
@@ -261,6 +266,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
