@@ -71,9 +71,11 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `calFontScale` | `1` | Schrift-Skalierung |
 | `calNameWidth` | `0` | Agenda: Breite der Kalender-Spalte in % der Zeile; `0` = automatisch (breitester sichtbarer Name, max. 45 %) |
 | `showCalName` | `true` | Kalendername anzeigen |
+| `calNameAlways` | `false` | Kalendername im Default-Layout auch bei nur einer Quelle; Agenda/Card/Compact zeigen ihn immer |
 | `showCalIcon` | `true` | Icon der Quelle anzeigen (nur Quellen mit `icon`) |
 | `showWeek` | `false` | Kalenderwoche anzeigen: Default/Agenda am ersten Termin der Woche, Card/Compact am angezeigten Termin |
 | `showDate` | `true` | Datum anzeigen |
+| `showEndTime` | `false` | Endzeit an das Datum anhängen (`Morgen, 09:00 – 10:30`); nur bei Terminen mit Uhrzeit, die am selben Tag enden |
 | `showLocation` | `true` | Ort anzeigen (Default/Card) |
 | `showSummary` | `true` | Termin-Titel anzeigen (Card) |
 | `showMore` | `true` | „+N weitere" anzeigen (Card) |

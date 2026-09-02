@@ -16,3 +16,5 @@
 - Calendar - custom layout gains the end time, the time span (09:00 - 10:30) and a calendar week that only prints where the week changes; the calendar icon is now per event too (#608)
 - Dynamic list and status overview - new "maximum rows" setting: the widget now fits a planned height and shows the rest as a "+N more" line instead of cutting rows off silently
 - AI assistant (MCP) - new recipe for one row rule covering a whole list (rowConditions with {{parent}}), and the recipes now use theme colour tokens instead of fixed hex values
+- Calendar - new "show end time" option: the date of a timed appointment now reads 09:00 - 10:30 in every layout (#608)
+- Calendar - new "always show calendar name" option: the default layout can now name its source even when only one calendar is configured (#608)

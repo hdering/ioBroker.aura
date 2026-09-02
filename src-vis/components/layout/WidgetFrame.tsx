@@ -704,6 +704,52 @@ function CalendarEditPanel({
                 </p>
             </div>
 
+            {/* -- Endzeit -- */}
+            <div>
+                <div className="flex items-center justify-between">
+                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                        Endzeit anzeigen
+                    </span>
+                    <button
+                        onClick={() => setOpts({ showEndTime: !o.showEndTime })}
+                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                        style={{ background: o.showEndTime ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                            style={{ left: o.showEndTime ? '14px' : '2px' }}
+                        />
+                    </button>
+                </div>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    Hängt bei Terminen mit Uhrzeit die bis-Zeit an das Datum an (Morgen, 09:00 - 10:30). Ganztägige und
+                    mehrtägige Termine bleiben unverändert.
+                </p>
+            </div>
+
+            {/* -- Kalendername bei nur einer Quelle -- */}
+            <div>
+                <div className="flex items-center justify-between">
+                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                        Kalendername immer anzeigen
+                    </span>
+                    <button
+                        onClick={() => setOpts({ calNameAlways: !o.calNameAlways })}
+                        className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                        style={{ background: o.calNameAlways ? 'var(--accent)' : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                            style={{ left: o.calNameAlways ? '14px' : '2px' }}
+                        />
+                    </button>
+                </div>
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                    Default blendet den Namen aus, solange es nur einen Kalender gibt. Agenda, Card und Compact zeigen
+                    ihn ohnehin immer.
+                </p>
+            </div>
+
             {/* agenda layout only: width of the calendar-name column */}
             {config.layout === 'agenda' && (
                 <div>

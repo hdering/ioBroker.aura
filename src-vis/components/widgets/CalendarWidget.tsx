@@ -523,7 +523,7 @@ function formatDayLabel(d: Date, t: TFn): string {
     return `${weekday}, ${day}. ${month}`;
 }
 
-function formatEventDate(event: CalEvent, t: TFn, showSpan = false): string {
+function formatEventDate(event: CalEvent, t: TFn, showSpan = false, showEnd = false): string {
     const d = event.start;
     const time = `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     let startLabel: string;
@@ -531,7 +531,16 @@ function formatEventDate(event: CalEvent, t: TFn, showSpan = false): string {
     else if (isTomorrow(d)) startLabel = event.allDay ? t('calendar.tomorrow') : t('calendar.tomorrowAt', { time });
     else startLabel = event.allDay ? formatDayLabel(d, t) : `${formatDayLabel(d, t)}, ${time}`;
 
-    if (!showSpan || !isMultiDay(event)) return startLabel;
+    if (!showSpan || !isMultiDay(event)) {
+        // The "bis" time only reads correctly while start and end share the day.
+        // A multi-day event names its end through the span below — or, with the
+        // span switched off, deliberately not at all (#608).
+        if (showEnd && !isMultiDay(event)) {
+            const end = endClockLabel(event);
+            if (end) return `${startLabel} – ${end}`;
+        }
+        return startLabel;
+    }
 
     const endDay = eventEndDay(event);
     if (!endDay) return startLabel;
@@ -899,6 +908,14 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     const multiDayMode = getMultiDayMode(options);
     const showSpan = multiDayMode === 'span' || multiDayMode === 'both';
     const showBadge = multiDayMode === 'badge' || multiDayMode === 'both';
+    /** Append the end of a timed event to its date ("Morgen, 09:00 - 10:30"). */
+    const showEndTime = options.showEndTime === true;
+    /**
+     * Default hides the calendar name while there is only one calendar to tell
+     * apart — this shows it anyway, for a dashboard that names the source on
+     * purpose (#608). Agenda, Card and Compact never gated it.
+     */
+    const calNameAlways = options.calNameAlways === true;
     const highlightEnabled = options.highlightEnabled !== false;
     const highlightPriority = options.highlightPriority !== false;
     const highlightColor = (options.highlightColor as string) || '#f59e0b';
@@ -1068,7 +1085,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
         visibleEvents.forEach((ev, i) => {
             const n = i + 1;
             perEventFields[`summary${n}`] = ev.summary ?? '';
-            perEventFields[`date${n}`] = formatEventDate(ev, t, showSpan);
+            perEventFields[`date${n}`] = formatEventDate(ev, t, showSpan, showEndTime);
             perEventFields[`time${n}`] = clockLabel(ev.start);
             perEventFields[`endtime${n}`] = endClockLabel(ev);
             perEventFields[`timespan${n}`] = timeSpanLabel(ev);
@@ -1204,7 +1221,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                 {showBadge && next && <RunningBadge ev={next} t={t} color={color} fontSize={fs(10)} />}
                 {showDate && next && (
                     <span className="shrink-0" style={{ color, fontSize: fs(12) }}>
-                        {formatEventDate(next, t, showSpan)}
+                        {formatEventDate(next, t, showSpan, showEndTime)}
                     </span>
                 )}
                 <button onClick={fetchEvents} className="hover:opacity-70 shrink-0">
@@ -1295,7 +1312,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                 <div className="flex items-center gap-1.5 flex-wrap" style={{ marginTop: 2 }}>
                                     {showDate && (
                                         <p style={{ color: 'var(--text-secondary)', fontSize: fs(11) }}>
-                                            {formatEventDate(next, t, showSpan)}
+                                            {formatEventDate(next, t, showSpan, showEndTime)}
                                         </p>
                                     )}
                                     {showBadge && (
@@ -1469,7 +1486,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                                     fontSize: fs(10),
                                                 }}
                                             >
-                                                {formatEventDate(ev, t, showSpan)}
+                                                {formatEventDate(ev, t, showSpan, showEndTime)}
                                             </p>
                                         )}
                                     </div>
@@ -1577,9 +1594,14 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                         />
                                     )}
                                     <div className="flex-1 min-w-0">
-                                        {showCalName && ev.showSourceName && ev.sourceName && multiCal && (
-                                            <p style={{ color: ev.sourceColor, fontSize: fs(9) }}>{ev.sourceName}</p>
-                                        )}
+                                        {showCalName &&
+                                            ev.showSourceName &&
+                                            ev.sourceName &&
+                                            (multiCal || calNameAlways) && (
+                                                <p style={{ color: ev.sourceColor, fontSize: fs(9) }}>
+                                                    {ev.sourceName}
+                                                </p>
+                                            )}
                                         <p
                                             className="leading-tight truncate"
                                             style={{
@@ -1612,7 +1634,7 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
                                                             fontSize: fs(10),
                                                         }}
                                                     >
-                                                        {formatEventDate(ev, t, showSpan)}
+                                                        {formatEventDate(ev, t, showSpan, showEndTime)}
                                                     </p>
                                                 )}
                                                 {showBadge && (

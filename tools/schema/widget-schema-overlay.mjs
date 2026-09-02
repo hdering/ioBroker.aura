@@ -550,6 +550,14 @@ export const WIDGET_OPTION_NOTES = {
         calFontScale: { description: 'Skaliert die Schrift der Terminliste.' },
         showSummary: { description: 'Terminbezeichnung anzeigen.' },
         showLocation: { description: 'Ort des Termins anzeigen.' },
+        showEndTime: {
+            description:
+                'Endzeit an das Datum anhängen ("Morgen, 09:00 - 10:30"). Nur bei Terminen mit Uhrzeit, die am selben Tag enden; ganztägige und mehrtägige bleiben unverändert.',
+        },
+        calNameAlways: {
+            description:
+                'Kalendername im Default-Layout auch dann anzeigen, wenn es nur einen Kalender gibt. Agenda, Card und Compact zeigen ihn immer. showCalName=false schaltet ihn überall aus.',
+        },
         showMore: { description: '"Mehr"-Zeile anzeigen, wenn Termine abgeschnitten werden.' },
         highlightEnabled: { description: 'Termine mit Stichwörtern hervorheben.' },
         highlightKeywords: { description: 'Stichwörter für die Hervorhebung, kommagetrennt.' },
