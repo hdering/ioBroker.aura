@@ -172,7 +172,8 @@
     "test:list-shutter": "node tools/tests/list-shutter-options.mjs",
     "test:throttle": "node tools/tests/throttle-commit.mjs",
     "test:over-threshold": "node tools/tests/over-threshold.mjs",
-    "test:badge-label": "node tools/tests/badge-label-bindings.mjs"
+    "test:badge-label": "node tools/tests/badge-label-bindings.mjs",
+    "test:badge-overlap": "node tools/tests/badge-neighbour-overlap.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.4.1",

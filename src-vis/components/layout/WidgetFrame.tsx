@@ -7106,7 +7106,7 @@ export function WidgetFrame({
                 })()}
 
             {/* Badge overlay — sits on the widget edge/corner */}
-            <BadgeOverlay badges={resolvedBadges} />
+            <BadgeOverlay badges={resolvedBadges} clampWidth />
 
             {/* Options Menu Dropdown */}
             {openPanel === 'menu' && menuBtnRef.current && (

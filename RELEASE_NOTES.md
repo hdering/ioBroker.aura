@@ -19,3 +19,4 @@
 - Calendar - new "show end time" option: the date of a timed appointment now reads 09:00 - 10:30 in every layout (#608)
 - Calendar - new "always show calendar name" option: the default layout can now name its source even when only one calendar is configured (#608)
 - Editor - the "New widget" dialog is one step now: pick a datapoint or a type and it is added right away; a double click on a tile adds it directly, title, unit and layout stay in the widget editor
+- Markers - a marker with a long label no longer disappears under the widget next to it: it hangs over the edge by a few px only, is clamped to its own card with an ellipsis, and is painted above its neighbours

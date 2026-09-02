@@ -69,13 +69,19 @@ export function Badge({
                 borderRadius: 999,
                 padding: `${Math.round(fs * 0.28)}px ${Math.round(fs * 0.55)}px`,
                 minWidth: fs + 8,
+                maxWidth: '100%',
                 height: fs + 8,
                 boxShadow: RING,
                 whiteSpace: 'nowrap',
             }}
         >
             {icon && <Icon icon={icon} width={fs} height={fs} style={{ color: 'currentColor' }} />}
-            {text}
+            {/* Own element so a text too long for the room the host leaves ends
+                in an ellipsis instead of running across the widget next to it —
+                text-overflow does not reach a flex container's own text node. */}
+            {text !== undefined && (
+                <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{text}</span>
+            )}
         </span>
     );
 }

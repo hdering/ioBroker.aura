@@ -496,6 +496,18 @@ iframe {
     transition: none !important;
 }
 
+/* ── Corner badges vs. the next grid item ────────────────────────────────────
+   A corner badge sits ON the widget edge and overflows outward. Grid items are
+   placed with a transform, so every item is its own stacking context: a z-index
+   inside the widget can never lift that overhang above the NEXT item, which
+   paints on top and swallows the badge (a long label lost its text under the
+   widget to its right). Lifting the item that actually carries a badge is
+   enough - a dragged item keeps z-index 3 from react-grid-layout and still wins.
+   ─────────────────────────────────────────────────────────────────────────── */
+.react-grid-item:has(.aura-badge-corner):not(.react-draggable-dragging) {
+    z-index: 2;
+}
+
 /* ── Range-input track ───────────────────────────────────────────────────────
    appearance-none removes the native track; re-style it so the rail stays
    visible on light themes. The thumb colour is still set per-component via
