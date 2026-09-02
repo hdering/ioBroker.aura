@@ -729,8 +729,8 @@ export interface CellConditionRule {
     /** Which part of the element to paint. Ignored by custom-grid cells. */
     target?: ElementConditionTarget;
     // Effects applied when the rule matches (undefined = no override):
-    color?: string; // text / icon color
-    bg?: string; // element background
+    color?: string; // text / icon color — and the fill of a progress or bar-style slider cell
+    bg?: string; // element background (the whole cell / row, never the bar of a progress cell)
     bold?: boolean;
     italic?: boolean;
     icon?: string; // icon override (icon / state-icon cells, list row icon)

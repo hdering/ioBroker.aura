@@ -15,6 +15,7 @@ import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { useT } from '../../i18n';
 import { baseDpId } from '../../utils/dpRef';
 import { cellStateActive } from '../../utils/cellState';
+import { cellBarColor } from '../../utils/cellBarColor';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { HelpCircle, ChevronDown, Send } from 'lucide-react';
@@ -653,7 +654,9 @@ function SliderCellView({
     const isVertical = cell.orientation === 'vertical';
     const barStyle = !!cell.barStyle;
     const barSize = cell.barSize ?? 100;
-    const color = cell.color || 'var(--accent)';
+    // Same as the progress cell: the fill (and the native slider's accent) follows a
+    // matched condition. Leaving the twin behind would only move the surprise.
+    const color = cellBarColor(cell, cond);
     const num = typeof value === 'number' ? value : Number(value ?? min);
     const displayVal = pending ?? (Number.isFinite(num) ? num : min);
     const fillRatio = Math.max(0, Math.min(1, (displayVal - min) / (max - min)));
@@ -1250,7 +1253,9 @@ function ProgressCellView({
     const max = cell.max ?? 100;
     const isVertical = cell.orientation === 'vertical';
     const barSize = cell.barSize ?? 100;
-    const color = cell.color || 'var(--accent)';
+    // A matched condition paints the bar, not only the number on top of it — see
+    // cellBarColor for why that was not obvious from the outside.
+    const color = cellBarColor(cell, cond);
     // Display-only transform: value mapped into display space; min/max are in display units.
     const rawNum = typeof value === 'number' ? value : Number(value ?? min);
     const num = applyValueTransform(rawNum, cell.valueFactor, cell.valueOffset);

@@ -33,7 +33,11 @@ Klick auf eine Zelle öffnet den Zell-Editor (Schriftgröße, Farbe, Ausrichtung
 | `icon` · `stateIcon` | Lucide-Icon, optional vom Datenpunkt-State abhängig |
 | `image` | Bild aus Datei oder URL |
 | `switch` · `slider` · `button` · `stepper` | Bedien-Element für einen Datenpunkt |
+| `progress` | Balken für einen Zahlenwert zwischen `min` und `max` (nur Anzeige) |
 | `component` | Widget-Komponente (z. B. Temperatur-Balken bei Wetter) |
+
+Die Balkenfarbe von `progress` und `slider` (mit `barStyle`) ist `color`, sonst die Akzentfarbe. Eine zutreffende
+Zell-Bedingung mit `color` färbt den Balken mit — `bg` färbt dagegen die ganze Zelle, nie den Balken.
 
 ### Umrechnung & Zeit-Formatierung (`dp`)
 
