@@ -869,6 +869,40 @@ check('a modifier the layout ignores is not added to it', () => {
     assert.equal(m.requiredPx, plain.requiredPx);
 });
 
+check('a capped runtime list becomes measurable', () => {
+    // Reported from use: statusoverview and autolist could not be capped, so on a
+    // dashboard that must not scroll they were unusable — their height was only
+    // ever a runtime fact.
+    const auto = { id: 'a', type: 'autolist', title: 'Heizung', gridPos: { x: 0, y: 0, w: 8, h: 10 }, options: {} };
+    const open = measureWidget(auto, { metrics: METRICS, grid: GRID });
+    assert.ok(!open.requiredPx, 'without a cap there is nothing to measure');
+    assert.match(open.unknown, /maxRows/, 'and the answer names the way out');
+
+    const capped = measureWidget({ ...auto, options: { maxRows: 8 } }, { metrics: METRICS, grid: GRID });
+    assert.equal(capped.items, 8);
+    assert.ok(capped.requiredPx > 0);
+    assert.equal(capped.needRows, pxToRows(capped.requiredPx, GRID));
+
+    // A static list capped below its entry count follows the cap, not the entries.
+    const short = measureWidget(
+        { ...listWidget(16, 14), options: { ...listWidget(16, 14).options, maxRows: 4 } },
+        { metrics: METRICS, grid: GRID },
+    );
+    assert.equal(short.items, 4);
+});
+
+check('the footer row is named as not included, not silently added', () => {
+    const w = { id: 'a', type: 'autolist', title: 'x', gridPos: { x: 0, y: 0, w: 8, h: 10 }, options: { maxRows: 6 } };
+    const out = renderMeasure([measureWidget(w, { metrics: METRICS, grid: GRID })], { grid: GRID, metrics: METRICS });
+    assert.match(out, /„\+N weitere“-Zeile steckt nicht in der Zahl/);
+    const off = { ...w, options: { maxRows: 6, showMore: false } };
+    const outOff = renderMeasure([measureWidget(off, { metrics: METRICS, grid: GRID })], {
+        grid: GRID,
+        metrics: METRICS,
+    });
+    assert.ok(!/weitere“-Zeile steckt nicht/.test(outOff));
+});
+
 check('the answer says which factors are NOT in the number', () => {
     const out = renderMeasure([measureWidget(listWidget(8, 14), { metrics: METRICS, grid: GRID })], {
         grid: GRID,
@@ -1944,6 +1978,39 @@ check('the recipe index lists every recipe and the ids are unique', () => {
         assert.ok(findRecipe(id.toUpperCase()), `${id} not found case-insensitively`);
     }
     assert.equal(findRecipe('gibtsnicht'), null);
+});
+
+check('one row rule for a whole list has a recipe of its own', () => {
+    // Reported from use: sixteen mode rules were written by hand because
+    // rowConditions with {{parent}} was only mentioned in a note on another
+    // recipe. What replaces sixteen rules with one deserves its own example.
+    const r = findRecipe('zeilenregel');
+    assert.ok(r, 'recipe missing');
+    const rules = r.widgets[0].options.rowConditions;
+    assert.ok(rules.length >= 2);
+    assert.ok(
+        rules.some((x) => x.clauses.some((c) => c.datapoint.includes('{{parent}}'))),
+        'the placeholder is the point of the recipe',
+    );
+    assert.match(r.instead, /je Zeile/);
+    assert.match(r.notes.join(' '), /\{\{parent\}\}/);
+});
+
+check('no recipe teaches a hard-coded colour where a token works', () => {
+    // The reported #f59e0b came from here: the recipes wrote hex values, so the
+    // model did too. eCharts draws on a canvas where var() does not resolve —
+    // those stay literal, and the recipe says why.
+    for (const recipe of RECIPES) {
+        for (const w of recipe.widgets) {
+            if (w.type === 'echart') {
+                continue;
+            }
+            const json = JSON.stringify(w);
+            const hex = json.match(/#[0-9a-fA-F]{6}/g);
+            assert.deepEqual(hex, null, `${recipe.id}/${w.id}: ${hex && hex.join(', ')}`);
+        }
+    }
+    assert.match(findRecipe('verbrauch').notes.join(' '), /Canvas/, 'the exception is explained');
 });
 
 check('a rendered recipe hands over parseable JSON and names its placeholders', () => {

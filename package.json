@@ -71,6 +71,7 @@
     "test:cell-state": "node tools/tests/cell-state.mjs",
     "test:cell-bar-color": "node tools/tests/cell-bar-color.mjs",
     "test:carousel-label": "node tools/tests/carousel-state-label.mjs",
+    "test:list-max-rows": "node tools/tests/list-max-rows.mjs",
     "test:list-switch": "node tools/tests/list-switch.mjs",
     "test:list-switch-ui": "node tools/tests/list-switch-ui.mjs",
     "test:dp-popup": "node tools/tests/dp-popup-trigger.mjs",

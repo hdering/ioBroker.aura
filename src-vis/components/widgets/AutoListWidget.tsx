@@ -174,6 +174,18 @@ export interface AutoListOptions
     valueFilter?: string;
     showTitle?: boolean;
     showCount?: boolean;
+    /**
+     * Cap on the rows actually rendered (0 / unset = no cap).
+     *
+     * The rows of an autolist appear at runtime out of room and function, so its
+     * height cannot be planned: a dashboard built to never scroll had to leave
+     * the widget out entirely. With a cap the height IS known — and what is cut
+     * off is said out loud by the "+N weitere" row rather than silently dropped.
+     * Filters and sorting run first, so the cap keeps the rows that matter.
+     */
+    maxRows?: number;
+    /** Show the "+N weitere" row when `maxRows` cuts the list off. Default true. */
+    showMore?: boolean;
     filterAdapters?: string;
     cardMinWidth?: number;
     /** Global default label for on/true/>0 state (fallback when entry has no trueLabel). */
@@ -1393,7 +1405,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const searchReachable = !opts.hideFilterSearch && !opts.hideFilterButton;
     const effectiveSearch = editMode || !searchReachable ? '' : searchTerm;
 
-    const visibleEntries = useMemo(() => {
+    const matchedEntries = useMemo(() => {
         let result =
             effectiveFilter === 'all' && !effectiveSearch.trim()
                 ? entries
@@ -1425,6 +1437,26 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         opts.sortOrder2,
         resolvedNames,
     ]);
+
+    // ── Row cap ──────────────────────────────────────────────────────────────────
+    // The rows come from a filter, so their number is a runtime fact and the
+    // widget's height could not be planned. `maxRows` turns it back into a known
+    // one; the cut is announced by the "+N weitere" row below, never silent.
+    // Counting, statistics and the empty check keep looking at ALL matched rows —
+    // a sum over the visible slice would be a different number wearing the same
+    // label.
+    const maxRows = Number.isFinite(opts.maxRows) && (opts.maxRows as number) > 0 ? Math.floor(opts.maxRows!) : 0;
+    const visibleEntries = useMemo(
+        () => (maxRows ? matchedEntries.slice(0, maxRows) : matchedEntries),
+        [matchedEntries, maxRows],
+    );
+    const hiddenCount = matchedEntries.length - visibleEntries.length;
+    const moreRow =
+        hiddenCount > 0 && opts.showMore !== false ? (
+            <p className="aura-list-more shrink-0 px-3 py-1" style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
+                {t('calendar.more', { count: hiddenCount })}
+            </p>
+        ) : null;
 
     // ── Room grouping ────────────────────────────────────────────────────────────
     // Partition the (already filtered + sorted) entries by their first room. The
@@ -1473,8 +1505,8 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     // Aggregate (sum / avg / min / max) of numeric values from visible entries.
     const sumInfo = useMemo(
-        () => (opts.showSum ? computeListStats(visibleEntries, states, opts) : null),
-        [visibleEntries, states, opts],
+        () => (opts.showSum ? computeListStats(matchedEntries, states, opts) : null),
+        [matchedEntries, states, opts],
     );
 
     useEffect(() => {
@@ -1597,7 +1629,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                                 {config.title || 'Dynamische Liste'}
                                 {showCount && entries.length > 0 && (
                                     <span className="ml-1 opacity-50">
-                                        ({valueFilter !== 'all' ? `${visibleEntries.length}/` : ''}
+                                        ({valueFilter !== 'all' ? `${matchedEntries.length}/` : ''}
                                         {entries.length})
                                     </span>
                                 )}
@@ -1644,7 +1676,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
             </div>
         ) : null;
 
-    const empty = (editMode ? entries.length === 0 : visibleEntries.length === 0) && (
+    const empty = (editMode ? entries.length === 0 : matchedEntries.length === 0) && (
         <div className="flex-1 flex items-center justify-center p-4">
             <p className="text-xs text-center" style={{ color: 'var(--text-secondary)' }}>
                 {entries.length === 0
@@ -1686,7 +1718,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
 
     // ── ANZAHL (count) — zeigt nur die Anzahl der Einträge ────────────────────
     if (layout === 'count') {
-        const count = effectiveFilter === 'all' ? entries.length : visibleEntries.length;
+        const count = effectiveFilter === 'all' ? entries.length : matchedEntries.length;
         return (
             <div className="aura-widget-row relative flex flex-col items-center justify-center h-full gap-1">
                 {showIcon && <HeaderIcon size={iconSize} style={{ color: 'var(--text-secondary)', opacity: 0.7 }} />}
@@ -1857,6 +1889,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                         ))}
                     </div>
                 )}
+                {moreRow}
                 {lcOverlay}
             </div>
         );
@@ -2002,6 +2035,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                         ))}
                     </div>
                 )}
+                {moreRow}
                 {lcOverlay}
             </div>
         );
@@ -2252,6 +2286,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                         ))}
                     </div>
                 )}
+                {moreRow}
                 {lcOverlay}
             </div>
         );
@@ -2401,6 +2436,7 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                     ))}
                 </div>
             )}
+            {moreRow}
             {lcOverlay}
         </div>
     );

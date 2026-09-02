@@ -1589,6 +1589,10 @@ export const en: Record<TranslationKey, string> = {
     'autolist.manualPh': 'Datapoint ID manually…',
     'autolist.syncMin': 'Auto-Sync (minutes)',
     'autolist.showRoom': 'Show Room',
+    'autolist.maxRows': 'Maximum rows shown (0 = all)',
+    'autolist.maxRowsHint':
+        'The rows appear at runtime, so the height cannot be planned. A cap makes the widget fit reliably; filters and sorting decide which rows stay.',
+    'autolist.showMore': 'Show cut-off rows as “+N more”',
 
     // ── ImportWidget ──────────────────────────────────────────────────────────────
     'import.titleGeneral': 'Import Widget or Tab',

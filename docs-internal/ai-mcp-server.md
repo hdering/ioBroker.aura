@@ -519,6 +519,24 @@ benannten Typ **einmal**. Klammern und Groß-/Kleinschreibung werden verziehen
 (`WidgetCondition[]`, `customcell`), ein Fehlgriff bekommt die naheliegenden
 Namen genannt.
 
+## Ein Rezept für die Zeilenregel
+
+Aus der Praxis gemeldet: Sechzehn Modus-Regeln wurden von Hand geschrieben, weil
+`rowConditions` mit `{{parent}}` nur in einer Notiz eines anderen Rezepts vorkam.
+Was sechzehn Regeln durch eine ersetzt, verdient ein eigenes Beispiel — neu als
+Rezept `zeilenregel`: eine Heizkörperliste, deren Zeilen ihre Betriebsart aus
+`{{parent}}.CONTROL_MODE` lesen, mit den drei Platzhaltern (`{{parent}}`,
+`{{dp}}`, `{{name}}`), der Reihenfolge der Regeln und dem Hinweis, dass eine
+Bedingung am Eintrag selbst danach angewandt wird und die Zeilenregel schlägt.
+
+**Nebenbefund derselben Meldung.** Die gemeldeten `#f59e0b`/`#94a3b8` kamen zum
+Teil aus diesem File: die Rezepte schrieben selbst Hex-Werte, und ein Rezept ist
+das, was ein Modell am zuverlässigsten übernimmt. Sie stehen jetzt als
+`var(--accent-yellow)` und Co. da — außer den eCharts-Serienfarben, denn eCharts
+zeichnet auf ein Canvas, wo `var()` nicht aufgelöst wird; das Rezept sagt das
+dazu. Ein Test hält es fest: kein Widget eines Rezepts außer `echart` darf einen
+Hex-Wert enthalten.
+
 ## Union-Typen: `ClickAction`
 
 Aus der Praxis gemeldet: `aura_widget_schema` **und** `aura_types` antworteten
@@ -552,6 +570,27 @@ einen ganzen Typ) nennt jetzt vor der Variantenliste die Alternativen: `chips`
 (`dp` + `value`), eine Listenzeile mit `displayType: "momentary"`/`"switch"`/
 `"buttons"`/`"states"`, das `enum`-Widget, `httpRequest`. Eine falsche Beschreibung
 kostet mehr als eine fehlende.
+
+## Zeilen, die es noch nicht gibt
+
+Aus der Praxis gemeldet: `statusoverview` und `autolist` ließen sich nicht
+deckeln. Ihre Zeilen entstehen erst zur Laufzeit aus Raum, Gewerk und den
+gefundenen Datenpunkten — die Höhe ist damit keine Konfigurationsgröße, und auf
+einem Dashboard, das nicht scrollen soll, waren beide Widgets deshalb unbrauchbar.
+
+Beide haben jetzt `maxRows` (0 = alle) und `showMore` (Vorgabe an). Gefiltert und
+sortiert wird **vor** dem Schnitt, es bleiben also die Zeilen stehen, auf die es
+ankommt; was wegfällt, sagt die Fußzeile „+N weitere" statt lautlos zu
+verschwinden. Was weiterhin ALLE Zeilen zählt: die Zahl hinter dem Titel, die
+Summen/Statistik der Liste und der Hinweis-Chip der Statusübersicht — ein Chip,
+der nur die sichtbaren Alarme zählt, würde genau das verstecken, wofür er da ist.
+
+Für `aura_measure` ist das der eigentliche Gewinn: `itemCount()` nimmt den Deckel
+als Zeilenzahl (bei einer statischen Liste `min(entries, maxRows)`), das Widget
+ist damit messbar. Ohne Deckel nennt die Antwort jetzt beide Wege — `items=N` für
+diese eine Rechnung, `maxRows` als dauerhafte Antwort. Die Fußzeile selbst steckt
+nicht in der gemessenen Zeilenhöhe; das steht als eigener Satz dabei, statt sie
+mit einer geschätzten Pixelzahl hineinzurechnen.
 
 ## Farben: Token statt Hex
 

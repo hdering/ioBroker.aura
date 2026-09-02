@@ -200,6 +200,45 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
             />
 
             <ConfigSection title="Anzeige">
+                <div>
+                    <label className="text-[11px] block mb-1" style={{ color: 'var(--text-secondary)' }}>
+                        {t('autolist.maxRows')}
+                    </label>
+                    <input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={opts.maxRows ?? 0}
+                        onChange={(e) => setOpts({ maxRows: Number(e.target.value) || undefined })}
+                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    />
+                    <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        {t('autolist.maxRowsHint')}
+                    </p>
+                </div>
+                {!!opts.maxRows && (
+                    <div className="flex items-center justify-between">
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            {t('autolist.showMore')}
+                        </label>
+                        <button
+                            onClick={() => setOpts({ showMore: !(opts.showMore ?? true) })}
+                            className="relative w-9 h-5 rounded-full transition-colors"
+                            style={{ background: (opts.showMore ?? true) ? 'var(--accent)' : 'var(--app-border)' }}
+                        >
+                            <span
+                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all"
+                                style={{ left: (opts.showMore ?? true) ? '18px' : '2px' }}
+                            />
+                        </button>
+                    </div>
+                )}
                 <div className="flex items-center justify-between">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                         Anzahl anzeigen

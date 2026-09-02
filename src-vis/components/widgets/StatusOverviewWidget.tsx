@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { WidgetProps, ioBrokerState } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useT } from '../../i18n';
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import { useConfigStore } from '../../store/configStore';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
@@ -237,7 +238,8 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     // ── Evaluate → attention items ─────────────────────────────────────────────
     const sortBy = opts.sortBy ?? 'severity';
     const showAll = opts.valueFilter === 'all';
-    const items = useMemo<StatusItem[]>(() => {
+    const t = useT();
+    const allItems = useMemo<StatusItem[]>(() => {
         const out: StatusItem[] = [];
         for (const c of candidates) {
             const s = states[c.dp.id];
@@ -254,6 +256,23 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
         out.sort((a, b) => compareItems(a, b, sortBy));
         return out;
     }, [candidates, states, opts, sortBy, showAll, batteryInfo, hiddenSet]);
+
+    // ── Row cap ────────────────────────────────────────────────────────────────
+    // The rows of this widget appear at runtime out of the discovered datapoints,
+    // so its height could not be planned at all — on a dashboard that must not
+    // scroll it had to be left out. `maxRows` bounds it; what is cut off is said
+    // out loud by the "+N weitere" row rather than dropped in silence. The alert
+    // count and the all-clear keep looking at ALL items: a chip that counts only
+    // the visible slice would hide exactly the problem it exists to report.
+    const maxRows = Number.isFinite(opts.maxRows) && (opts.maxRows as number) > 0 ? Math.floor(opts.maxRows!) : 0;
+    const items = useMemo(() => (maxRows ? allItems.slice(0, maxRows) : allItems), [allItems, maxRows]);
+    const hiddenCount = allItems.length - items.length;
+    const moreRow =
+        hiddenCount > 0 && opts.showMore !== false ? (
+            <p className="shrink-0 pt-1" style={{ color: 'var(--text-secondary)', fontSize: 11 }}>
+                {t('calendar.more', { count: hiddenCount })}
+            </p>
+        ) : null;
 
     // ── Loading ────────────────────────────────────────────────────────────────
     // Over a slow (external) connection the datapoint discovery and the first value
@@ -275,8 +294,8 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
     };
 
     // Alerts drive the chip / all-clear; "all" mode additionally lists healthy devices.
-    const total = items.reduce((n, i) => (i.severity !== 'ok' ? n + 1 : n), 0);
-    const hasCrit = items.some((i) => i.severity === 'crit');
+    const total = allItems.reduce((n, i) => (i.severity !== 'ok' ? n + 1 : n), 0);
+    const hasCrit = allItems.some((i) => i.severity === 'crit');
     // Highlight colour for a device in an attention state (per-category, else per-severity).
     const alertColorFor = (item: StatusItem) =>
         item.severity !== 'ok' ? opts.categoryColors?.[item.category] || item.color : item.color;
@@ -566,6 +585,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         );
                     })}
                 </div>
+                {moreRow}
             </div>
         );
     }
@@ -613,6 +633,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                         );
                     })}
                 </div>
+                {moreRow}
             </div>
         );
     }
@@ -671,6 +692,7 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                           })}
                 </div>
             )}
+            {moreRow}
             {editMode && discovered && candidates.length === 0 && (
                 <p className="text-[10px] mt-1 shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                     Keine passenden Datenpunkte gefunden – Kategorien/Filter prüfen.

@@ -251,6 +251,8 @@ Ein Badge ist die ganze Zeile. Bei `Automatisch` schalten schaltbare Badges weit
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `showCount` | `true` | Anzahl hinter dem Titel |
+| `maxRows` | `0` | Höchstzahl angezeigter Zeilen; `0` = alle. Macht die Höhe planbar, weil die Zeilen sonst erst zur Laufzeit entstehen |
+| `showMore` | `true` | Abgeschnittene Zeilen als „+N weitere“ ausweisen |
 | `entryIcon` | — | [Icon vor dem Namen](#icon-vor-dem-namen) — gilt für alle Zeilen |
 | `entryIconSize` | `13` | px |
 | `entryIconColor` | `--text-secondary` | Farbe des Zeilen-Icons (im Layout `minimal` sonst die Badge-Farbe) |

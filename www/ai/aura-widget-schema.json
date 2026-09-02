@@ -5585,6 +5585,10 @@
           "default": "left",
           "description": "Wo die letzte Änderung steht: left oder right."
         },
+        "maxRows": {
+          "type": "number",
+          "description": "Cap on the rows actually rendered (0 / unset = no cap). The rows of an autolist appear at runtime out of room and function, so its height cannot be planned: a dashboard built to never scroll had to leave the widget out entirely. With a cap the height IS known — and what is cut off is said out loud by the \"+N weitere\" row rather than silently dropped. Filters and sorting run first, so the cap keeps the rows that matter."
+        },
         "nameFilters": {
           "type": "array",
           "items": {
@@ -5681,6 +5685,11 @@
           "type": "boolean",
           "default": false,
           "description": "Zeitpunkt der letzten Änderung anzeigen."
+        },
+        "showMore": {
+          "type": "boolean",
+          "description": "Show the \"+N weitere\" row when `maxRows` cuts the list off. Default true.",
+          "default": true
         },
         "showRoom": {
           "type": "boolean",
@@ -9314,6 +9323,9 @@
           "default": "left",
           "description": "Wo die letzte Änderung steht: left oder right."
         },
+        "maxRows": {
+          "type": "number"
+        },
         "nameFilters": {
           "type": "array",
           "items": {
@@ -9411,6 +9423,10 @@
           "type": "boolean",
           "default": false,
           "description": "Zeitpunkt der letzten Änderung anzeigen."
+        },
+        "showMore": {
+          "type": "boolean",
+          "default": true
         },
         "showRoom": {
           "type": "boolean",
@@ -10961,6 +10977,10 @@
           "type": "boolean",
           "description": "when scope 'all', require a \"Licht\"/\"Light\" function enum"
         },
+        "maxRows": {
+          "type": "number",
+          "description": "Cap on the rows actually rendered (0 / unset = no cap). The rows are discovered at runtime, so the widget's height could not be planned — on a dashboard that must not scroll it had to be left out. With a cap the height is known, and the \"+N weitere\" row says what was cut. Sorting runs first, so the cap keeps the most urgent rows; the alert chip keeps counting all of them."
+        },
         "nameFilters": {
           "type": "array",
           "items": {
@@ -11020,6 +11040,10 @@
         "showCount": {
           "type": "boolean",
           "description": "Anzahl-Chip in der Kopfzeile anzeigen."
+        },
+        "showMore": {
+          "type": "boolean",
+          "description": "show the \"+N weitere\" row when maxRows cuts the list off (default true)"
         },
         "showOkCategories": {
           "type": "boolean",

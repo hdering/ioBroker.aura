@@ -523,6 +523,33 @@ export function StatusOverviewConfig({ config, onConfigChange }: Props) {
                         sampleTotal={sampleTotal}
                         onChange={set}
                     />
+                    <div>
+                        <label className={labelCls} style={labelStyle}>
+                            Höchstzahl angezeigter Zeilen (0 = alle)
+                        </label>
+                        <input
+                            type="number"
+                            min={0}
+                            max={100}
+                            step={1}
+                            value={o.maxRows ?? 0}
+                            onChange={(e) => set({ maxRows: Number(e.target.value) || undefined })}
+                            className={inputCls}
+                            style={inputStyle}
+                        />
+                        <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            Die Zeilen entstehen erst zur Laufzeit, die Höhe ist damit nicht planbar. Mit einer
+                            Obergrenze passt das Widget verlässlich auf den Bildschirm; die Sortierung entscheidet,
+                            welche Zeilen bleiben.
+                        </p>
+                    </div>
+                    {!!o.maxRows && (
+                        <Toggle
+                            checked={o.showMore !== false}
+                            onChange={(v) => set({ showMore: v })}
+                            label={'Abgeschnittene Zeilen als „+N weitere“ anzeigen'}
+                        />
+                    )}
                     <Toggle
                         checked={o.showCount !== false}
                         onChange={(v) => set({ showCount: v })}

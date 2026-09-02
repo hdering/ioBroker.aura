@@ -172,6 +172,17 @@ export interface StatusOverviewOptions extends RowPopupOptions {
     nameFilters?: NameFilterRule[]; // text rules applied to the token values before substitution
     showTitle?: boolean; // show the widget title in the header (default true)
     showCount?: boolean; // show the hint-count chip in the header top-right (default true)
+    /**
+     * Cap on the rows actually rendered (0 / unset = no cap).
+     *
+     * The rows are discovered at runtime, so the widget's height could not be
+     * planned — on a dashboard that must not scroll it had to be left out. With
+     * a cap the height is known, and the "+N weitere" row says what was cut.
+     * Sorting runs first, so the cap keeps the most urgent rows; the alert chip
+     * keeps counting all of them.
+     */
+    maxRows?: number;
+    showMore?: boolean; // show the "+N weitere" row when maxRows cuts the list off (default true)
     showRoom?: boolean; // show the device room next to the name (default true; layouts Standard/Kompakt)
     showSince?: boolean; // show how long a window/door has been open ("seit 5 min", default true)
     autoHeight?: boolean; // size the widget to its content in the stacked/mobile view (default false)

@@ -1596,6 +1596,10 @@ export const de = {
     'autolist.manualPh': 'Datenpunkt-ID manuell…',
     'autolist.syncMin': 'Auto-Sync (Minuten)',
     'autolist.showRoom': 'Raum anzeigen',
+    'autolist.maxRows': 'Höchstzahl angezeigter Zeilen (0 = alle)',
+    'autolist.maxRowsHint':
+        'Die Zeilen entstehen erst zur Laufzeit, die Höhe ist damit nicht planbar. Mit einer Obergrenze passt das Widget verlässlich auf den Bildschirm; Filter und Sortierung entscheiden, welche Zeilen bleiben.',
+    'autolist.showMore': 'Abgeschnittene Zeilen als „+N weitere“ anzeigen',
 
     // ── ImportWidget ──────────────────────────────────────────────────────────────
     'import.titleGeneral': 'Widget oder Tab importieren',
