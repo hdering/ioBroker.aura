@@ -691,6 +691,85 @@ check('the grid of this dashboard is used, not the default one', () => {
     assert.equal(m.needRows, Math.ceil(m.requiredPx / 10));
 });
 
+// ── A row is not one shape ───────────────────────────────────────────────────
+// Reported from use: the same list with and without subDps, and in every layout,
+// produced exactly the same number. A shutter list built to that "minimum"
+// scrolled and had to be rebuilt.
+
+const withSubDps = (n, h) => {
+    const w = listWidget(n, h);
+    return {
+        ...w,
+        options: { entries: w.options.entries.map((e) => ({ ...e, subDps: [{ id: 'demo.sub' }] })) },
+    };
+};
+
+check('a second line under every entry costs height', () => {
+    const plain = measureWidget(listWidget(8, 14), { metrics: METRICS, grid: GRID });
+    const sub = measureWidget(withSubDps(8, 14), { metrics: METRICS, grid: GRID });
+    assert.ok(sub.requiredPx > plain.requiredPx, `${sub.requiredPx} must exceed ${plain.requiredPx}`);
+    // Measured at ~15 px per row, so eight rows are worth more than a grid row.
+    assert.ok(sub.requiredPx - plain.requiredPx > 100);
+    assert.match(sub.basis, /subDps/);
+});
+
+check('the layout re-measures the row instead of being ignored', () => {
+    const px = (layout) => measureWidget({ ...listWidget(8, 14), layout }, { metrics: METRICS, grid: GRID }).requiredPx;
+    const plain = px(undefined);
+    assert.ok(px('compact') < plain, 'compact rows are shorter');
+    assert.ok(px('card') > plain, 'card rows are taller');
+    assert.match(
+        measureWidget({ ...listWidget(8, 14), layout: 'card' }, { metrics: METRICS, grid: GRID }).basis,
+        /card/,
+    );
+});
+
+check('a factor that changes nothing is named as measured, not left out', () => {
+    // showTitle alone keeps the header row (the icon holds it open) — the honest
+    // answer is "looked at, ±0", not silence.
+    const w = listWidget(8, 14);
+    const m = measureWidget({ ...w, options: { ...w.options, showTitle: false } }, { metrics: METRICS, grid: GRID });
+    const plain = measureWidget(w, { metrics: METRICS, grid: GRID });
+    assert.equal(m.requiredPx, plain.requiredPx);
+    assert.ok(
+        m.applied.some((a) => /±0/.test(a)),
+        `expected a measured zero, got ${JSON.stringify(m.applied)}`,
+    );
+    // Title AND icon off does remove the row.
+    const bare = measureWidget(
+        { ...w, options: { ...w.options, showTitle: false, showIcon: false } },
+        { metrics: METRICS, grid: GRID },
+    );
+    assert.ok(bare.requiredPx < plain.requiredPx - 20, 'the header row is worth about 34 px');
+});
+
+check('a modifier the layout ignores is not added to it', () => {
+    // The badges layout draws a row as one pill and ignores subDps entirely.
+    const m = measureWidget({ ...withSubDps(8, 14), layout: 'minimal' }, { metrics: METRICS, grid: GRID });
+    const plain = measureWidget({ ...listWidget(8, 14), layout: 'minimal' }, { metrics: METRICS, grid: GRID });
+    assert.equal(m.requiredPx, plain.requiredPx);
+});
+
+check('the answer says which factors are NOT in the number', () => {
+    const out = renderMeasure([measureWidget(listWidget(8, 14), { metrics: METRICS, grid: GRID })], {
+        grid: GRID,
+        metrics: METRICS,
+    });
+    assert.match(out, /Nicht eingerechnet:/);
+    assert.match(out, /Filterzeile/);
+});
+
+check('adding up several measured factors is called an approximation', () => {
+    const w = withSubDps(8, 14);
+    const m = measureWidget(
+        { ...w, layout: 'card', options: { ...w.options, showTitle: false, showIcon: false } },
+        { metrics: METRICS, grid: GRID },
+    );
+    assert.ok(m.applied.length > 1);
+    const out = renderMeasure([m], { grid: GRID, metrics: METRICS });
+    assert.match(out, /Näherung/);
+});
+
 // ── The health check on what already exists ──────────────────────────────────
 
 const AUDIT_PLACES = [

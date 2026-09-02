@@ -72,7 +72,90 @@ const jsonRows = (n) => JSON.stringify(Array.from({ length: n }, (_, i) => ({ Na
  * sized from here.
  */
 const COUNTED = [
-    { type: 'list', item: 'Zeile', counts: [2, 4, 8, 16], build: (n) => ({ options: { entries: listEntries(n) } }) },
+    {
+        type: 'list',
+        item: 'Zeile',
+        counts: [2, 4, 8, 16],
+        build: (n) => ({ options: { entries: listEntries(n) } }),
+        // A list row is not one shape. Measured with default options only, the
+        // number was the same for a plain row and one with a second line under
+        // it, and the same for every layout — a list built at the reported
+        // "minimum" then scrolled on the real dashboard.
+        //
+        // `variants` are re-measurements (a layout changes the whole row);
+        // `modifiers` are deltas measured one at a time against the default and
+        // added up by aura_measure. Two counts are enough for a straight line.
+        variantCounts: [2, 8],
+        variants: [
+            { key: 'card', layout: 'card', label: 'Layout "card"' },
+            { key: 'compact', layout: 'compact', label: 'Layout "compact"' },
+            { key: 'minimal', layout: 'minimal', label: 'Layout "minimal"' },
+        ],
+        modifiers: [
+            {
+                key: 'subDps',
+                label: 'zweite Zeile je Eintrag (subDps)',
+                when: { path: 'entries[].subDps', nonEmpty: true },
+                // The minimal layout draws a row as a single pill and ignores
+                // subDps entirely — adding the delta there would be a lie.
+                notForVariants: ['minimal'],
+                build: (n) => ({
+                    options: {
+                        entries: listEntries(n).map((e) => ({ ...e, subDps: [{ id: DP, label: 'Zusatz' }] })),
+                    },
+                }),
+            },
+            {
+                // ListWidget renders its header when showTitle OR showIcon OR a
+                // sum OR the group switch is on — so ONLY switching both off
+                // removes the row. Turning off just the title keeps it (the icon
+                // holds it open), which is why that is measured too: a zero is an
+                // answer.
+                key: 'noHeader',
+                label: 'ohne Kopfzeile (showTitle und showIcon aus)',
+                when: {
+                    all: [
+                        { path: 'showTitle', equals: false },
+                        { path: 'showIcon', equals: false },
+                        { path: 'showSum', not: true },
+                        { path: 'groupSwitch', not: true },
+                    ],
+                },
+                build: (n) => ({ options: { entries: listEntries(n), showTitle: false, showIcon: false } }),
+            },
+            {
+                key: 'noTitle',
+                label: 'nur der Titel aus (showTitle: false, Icon bleibt)',
+                when: {
+                    all: [
+                        { path: 'showTitle', equals: false },
+                        { path: 'showIcon', not: false },
+                    ],
+                },
+                build: (n) => ({ options: { entries: listEntries(n), showTitle: false } }),
+            },
+            {
+                key: 'groupSwitch',
+                label: 'Gruppenschalter in der Kopfzeile (groupSwitch)',
+                when: { path: 'groupSwitch', equals: true },
+                build: (n) => ({ options: { entries: listEntries(n), groupSwitch: true } }),
+            },
+            {
+                key: 'showSum',
+                label: 'Summe/Statistik (showSum)',
+                when: { path: 'showSum', equals: true },
+                build: (n) => ({ options: { entries: listEntries(n), showSum: true, sumStats: ['sum'] } }),
+            },
+        ],
+        // Measured factors are named above; these are the ones that are not, and
+        // saying so is the point — the answer used to read as if it covered them.
+        notIncluded: [
+            'Filterzeile mit sichtbaren Filtern und Suchfeld',
+            'Raum-Überschriften (groupByRoom) und Trennzeilen (entries[].divider)',
+            'umbrochene Beschriftungen (wrapText) und mehrzeilige Titel',
+            'mehr als ein subDp je Eintrag',
+        ],
+    },
     {
         type: 'jsontable',
         item: 'Tabellenzeile',
@@ -187,7 +270,7 @@ await page.evaluate(() =>
     localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })),
 );
 
-async function render(type, { rows, cols, datapoint, options, mock }) {
+async function render(type, { rows, cols, datapoint, options, mock, layout }) {
     const cfg = {
         id: WID,
         type,
@@ -195,6 +278,7 @@ async function render(type, { rows, cols, datapoint, options, mock }) {
         datapoint: datapoint ?? DP_FOR[type] ?? (schema.widgets[type].addMode === 'free' ? '' : DP),
         gridPos: { x: 0, y: 0, w: cols, h: rows },
         options: options ?? OPTIONS_FOR[type] ?? {},
+        ...(layout ? { layout } : {}),
     };
     await page.evaluate(
         ({ cfg, grid, mock }) => {
@@ -253,44 +337,110 @@ const wanted = (type) => !only || only.has(type);
 const results = {};
 const counted = {};
 
+/**
+ * One straight line through the measured points: base + per item.
+ *
+ * Two counts are the minimum, four give the same slope and catch a row that is
+ * not linear at all.
+ */
+async function line(spec, { cols, counts, build, layout }) {
+    const points = [];
+    for (const n of counts) {
+        const r = await requiredPx(spec.type, {
+            cols,
+            datapoint: spec.datapoint,
+            layout,
+            ...build(n),
+            mock: spec.mock ? spec.mock(n) : undefined,
+        });
+        if (r.error) {
+            return { error: r.error };
+        }
+        points.push({ n, px: r.px });
+    }
+    const first = points[0];
+    const last = points[points.length - 1];
+    const perItem = (last.px - first.px) / (last.n - first.n);
+    return {
+        basePx: Math.round(first.px - perItem * first.n),
+        perItemPx: Math.round(perItem * 10) / 10,
+        measured: points,
+    };
+}
+
 for (const spec of COUNTED) {
     if (!wanted(spec.type)) {
         continue;
     }
     const cols = schema.widgets[spec.type].defaultSize.w;
-    const points = [];
-    let failed = null;
-    for (const n of spec.counts) {
-        const r = await requiredPx(spec.type, {
-            cols,
-            datapoint: spec.datapoint,
-            ...spec.build(n),
-            mock: spec.mock ? spec.mock(n) : undefined,
-        });
-        if (r.error) {
-            failed = r.error;
-            break;
-        }
-        points.push({ n, px: r.px });
-    }
-    if (failed) {
-        console.warn(`skip ${spec.type} (gezählt): ${failed}`);
+    const base = await line(spec, { cols, counts: spec.counts, build: spec.build });
+    if (base.error) {
+        console.warn(`skip ${spec.type} (gezählt): ${base.error}`);
         continue;
     }
-    const first = points[0];
-    const last = points[points.length - 1];
-    const perItem = (last.px - first.px) / (last.n - first.n);
-    counted[spec.type] = {
+    const entry = {
         item: spec.item,
-        basePx: Math.round(first.px - perItem * first.n),
-        perItemPx: Math.round(perItem * 10) / 10,
+        basePx: base.basePx,
+        perItemPx: base.perItemPx,
         atWidthPx: cols * PROBE_GRID.gridSnapX,
-        measured: points,
+        measured: base.measured,
     };
     console.log(
-        `${spec.type.padEnd(16)} ${points.map((p) => `${p.n}→${p.px}px`).join('  ')}   → ` +
-            `${counted[spec.type].basePx} px + ${counted[spec.type].perItemPx} px/${spec.item}`,
+        `${spec.type.padEnd(16)} ${base.measured.map((p) => `${p.n}→${p.px}px`).join('  ')}   → ` +
+            `${entry.basePx} px + ${entry.perItemPx} px/${spec.item}`,
     );
+
+    const counts = spec.variantCounts ?? spec.counts;
+    for (const v of spec.variants ?? []) {
+        const r = await line(spec, { cols, counts, build: v.build ?? spec.build, layout: v.layout });
+        if (r.error) {
+            console.warn(`  skip ${spec.type}/${v.key}: ${r.error}`);
+            continue;
+        }
+        entry.variants = entry.variants ?? {};
+        entry.variants[v.key] = { label: v.label, basePx: r.basePx, perItemPx: r.perItemPx, measured: r.measured };
+        console.log(`  ${v.key.padEnd(14)} ${r.basePx} px + ${r.perItemPx} px/${spec.item}`);
+    }
+
+    // A modifier is stored as the DIFFERENCE to the default, so aura_measure can
+    // add up the ones a widget actually has. Measured one at a time: what two of
+    // them do together is an approximation, and the answer says so.
+    //
+    // The reference is the default at the SAME counts, or the two lines would
+    // differ by the noise between four measured points and two.
+    const ref = (spec.modifiers ?? []).length ? await line(spec, { cols, counts, build: spec.build }) : null;
+    for (const m of spec.modifiers ?? []) {
+        if (ref.error) {
+            console.warn(`  skip ${spec.type} modifiers: ${ref.error}`);
+            break;
+        }
+        const r = await line(spec, { cols, counts, build: m.build });
+        if (r.error) {
+            console.warn(`  skip ${spec.type}/${m.key}: ${r.error}`);
+            continue;
+        }
+        entry.modifiers = entry.modifiers ?? [];
+        // The probe grid resolves to 2 px, so a delta that small is noise from the
+        // fit rather than a factor. Reported as the zero it is.
+        const denoise = (d) => (Math.abs(d) <= PX_PER_ROW ? 0 : d);
+        entry.modifiers.push({
+            key: m.key,
+            label: m.label,
+            when: m.when,
+            ...(m.notForVariants ? { notForVariants: m.notForVariants } : {}),
+            basePx: denoise(r.basePx - ref.basePx),
+            perItemPx: denoise(Math.round((r.perItemPx - ref.perItemPx) * 10) / 10),
+        });
+        const d = entry.modifiers[entry.modifiers.length - 1];
+        console.log(
+            `  ${m.key.padEnd(14)} ${d.basePx >= 0 ? '+' : ''}${d.basePx} px Basis, ` +
+                `${d.perItemPx >= 0 ? '+' : ''}${d.perItemPx} px/${spec.item}`,
+        );
+    }
+    if (spec.notIncluded) {
+        entry.notIncluded = spec.notIncluded;
+    }
+    counted[spec.type] = entry;
 }
 
 for (const type of Object.keys(schema.widgets)) {
@@ -324,7 +474,9 @@ const metrics = {
             `reaches past the card. ${PX_PER_ROW} px resolution, each type at its default width.`,
         caveats: [
             'Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.',
-            'Default options, one line of title. A filter row, a statistics line or a second title line add to it.',
+            'A minimum is measured with default options and one line of title. A filter row, a statistics line or a second title line add to it.',
+            'Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.notIncluded for what is still left out.',
+            'Modifiers are measured one at a time. Several at once are added up, which is an approximation, not a measurement of that combination.',
             'A minimum is the point where content starts to be lost, not a recommended size — defaultSize is that.',
         ],
     },

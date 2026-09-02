@@ -402,7 +402,7 @@ Ergebnis: `public/ai/aura-widget-metrics.json`, gemessen z. B.
 
 | Typ          | Messung                                  |
 | ------------ | ---------------------------------------- |
-| `list`       | 66 px + 33 px je Zeile                   |
+| `list`       | 66 px + 33 px je Zeile (Standardform)    |
 | `jsontable`  | 86 px + 27 px je Zeile                   |
 | `value`      | mind. 72 px (3 Zeilen im Standardraster) |
 | `gauge`      | mind. 162 px (6 Zeilen)                  |
@@ -412,6 +412,37 @@ Ergebnis: `public/ai/aura-widget-metrics.json`, gemessen z. B.
 `aura_measure` (`lib/mcp/measure.js`) rechnet damit gegen das Raster **dieses**
 Dashboards (`h × rowHeight + (h−1) × gap`) und antwortet pro Widget mit
 „passt / knapp / ZU KLEIN, es fehlen N px → h=M".
+
+**Eine Zeile ist nicht eine Form.** Aus der Praxis gemeldet: dieselbe Liste mit
+und ohne `subDps`, in `layout: "compact"` und in `"card"`, ergab exakt dieselbe
+Zahl — 66 px + 33 px je Zeile für alles. Eine Rolladen-Liste stand damit auf der
+gemeldeten „Mindesthöhe" und scrollte. Der Messstand misst deshalb zusätzlich:
+
+| Form                       | gemessen                    |
+| -------------------------- | --------------------------- |
+| `layout: "card"`           | 75 px + 64,7 px je Zeile    |
+| `layout: "compact"`        | 67 px + 14,7 px je Zeile    |
+| `layout: "minimal"`        | 75 px + 32,7 px je Zeile    |
+| `entries[].subDps`         | +15,3 px je Zeile           |
+| Titel **und** Icon aus     | −34 px Basis                |
+| nur `showTitle: false`     | ±0 (das Icon hält die Zeile offen) |
+| `groupSwitch`, `showSum`   | ±0 (sitzen in der Kopfzeile) |
+
+`variants` sind vollständige Neumessungen (ein Layout zeichnet die Zeile anders),
+`modifiers` sind Deltas, jeweils einzeln gegen die Standardform gemessen und von
+`rowShape()` addiert. Welcher Eintrag greift, entscheidet ein `when` im JSON
+(`{path, equals|not|nonEmpty}` bzw. `{all:[…]}`), ausgewertet gegen die Optionen
+des Widgets — `entries[].subDps` heißt „irgendein Eintrag hat welche". Ein
+Modifier kann per `notForVariants` für ein Layout ausgenommen werden (`minimal`
+zeichnet eine Zeile als Pille und ignoriert `subDps`).
+
+Die gemessenen **Nullen** bleiben im Ergebnis stehen („±0"): dass der
+Gruppenschalter nichts kostet, ist eine Antwort — sein Fehlen liest sich wie
+Vergessen. Und weil nicht alles gemessen ist, nennt die Antwort im Fuß
+ausdrücklich, was **nicht** drinsteckt (`counted.<type>.notIncluded`: Filterzeile,
+Raum-Überschriften, Trennzeilen, Umbrüche, mehr als ein `subDp`) und dass mehrere
+Faktoren zusammen addiert werden — eine Näherung, keine Messung dieser
+Kombination.
 
 Wo keine Zahl herauskommt, trennt die Antwort zwei Dinge, die vorher im selben
 Feld standen und deshalb beide wie ein Befund klangen:
