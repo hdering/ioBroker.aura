@@ -148,7 +148,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                           | read         |
 | `aura_types`                          | Benannte Typen einzeln holen (`WidgetCondition`, `CustomCell` …) statt sie je Widget-Typ mitzuschleppen        | read         |
 | `aura_measure`                        | Zeilen in Pixel, gegen die gemessene Höhe des Typs — Layout, Optionen und Zeilendarstellung, plus Tab-URL      | read         |
-| `aura_validate`                       | Prüfung gegen Schema, Live-Datenpunkte und die Objekte dahinter                                                | read         |
+| `aura_validate`                       | Prüfung gegen Schema, Live-Datenpunkte, die Objekte dahinter und die Darstellung der Zeilen                    | read         |
 | `aura_review`                         | Vorhandenes prüfen: Stil (`mode:"style"`) und Gesundheit (tote/leere/eingefrorene DPs, unwirksame Optionen)    | read         |
 | `aura_add_widget`                     | Ein Widget an Tab, Popup oder Gruppe anfügen                                                                   | write        |
 | `aura_write_tab`                      | Widgetliste eines Tabs ersetzen                                                                                | write        |
@@ -185,6 +185,33 @@ korrigieren kann:
 
 Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
+
+**Der richtige Name genügt nicht: er muss auch bei der richtigen Darstellung
+stehen.** Aus der Praxis gemeldet: `trueLabel`/`falseLabel` auf einer Zeile mit
+`displayType: "value"`. Der Schlüssel existiert, das Schema nimmt ihn, und
+gezeichnet wird er nie — der Editor bietet die Felder dort nicht einmal an
+(`usesOnOffLabels()` in `entryControls.tsx`), ein geschriebenes Payload trägt sie
+trotzdem. `entryDisplayFindings()` in `validate.js` prüft deshalb die Felder, die
+nur **eine** Darstellung liest:
+
+| Felder                                              | gelesen von                                   |
+| --------------------------------------------------- | --------------------------------------------- |
+| `trueLabel`, `falseLabel`, `trueIcon`, `falseIcon`  | `switch` (und `auto` auf einem booleschen DP) |
+| `states`                                            | `states`                                      |
+| `presets` und die `presets*`-Felder                 | `buttons`, `select`                           |
+
+Warnung, kein Fehler — der Schlüssel ist gültig, nur wirkungslos. Gruppiert nach
+Darstellung (sechzehn Zeilen desselben Fehlers sind ein Befund, mit maximal sechs
+genannten Zeilen) und gültig für die Zeilen **und** den listenweiten Block
+`entryDisplay`; der bekommt zusätzlich einen Hinweis, wenn er selbst keinen
+`displayType` nennt — dann greift er gar nicht (`listDisplayApplies()`).
+
+Zwei bewusste Ausnahmen, damit kein Fehlbefund entsteht: `layout: "minimal"`
+wertet das AN/AUS-Paar selbst aus (die Pille zeichnet kein Bedienelement, siehe
+`ListWidget`), und `auto` bleibt bei den Labels außen vor, weil die Darstellung
+dort erst aus der Rolle des Datenpunkts entsteht. Neue Zeilen in der Tabelle nur
+mit Blick in den Renderpfad — ein Befund auf einer funktionierenden Zeile ist
+schlimmer als keiner.
 
 ## Warum Rezepte danebenstehen
 

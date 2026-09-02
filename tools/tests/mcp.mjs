@@ -108,6 +108,100 @@ check('an option the widget never reads is an error, not silence', () => {
     assert.ok(hasError(res, /meintest du "showTitle"/));
 });
 
+// ── Row options the chosen display never reads ───────────────────────────────
+// Reported from use: trueLabel/falseLabel on a `displayType: "value"` row are
+// dropped in silence, and you only find out in the browser. The editor does not
+// even offer the fields there — a written payload can carry them anyway.
+
+const listOfRows = (entries, extra = {}) => ({
+    id: 'l-1',
+    type: 'list',
+    title: 'Fenster',
+    datapoint: '',
+    gridPos: { x: 0, y: 0, w: 10, h: 8 },
+    options: { entries, ...extra },
+});
+
+check('on/off labels on a display that cannot show them are named', () => {
+    const res = validateWidget(
+        listOfRows([{ id: 'demo.a', displayType: 'value', trueLabel: 'AN', falseLabel: 'AUS' }]),
+        schema,
+    );
+    assert.deepEqual(res.errors, [], 'the fields exist — this is a warning, not a refusal');
+    assert.ok(hasWarning(res, /trueLabel \/ falseLabel bei displayType "value"/));
+    assert.ok(hasWarning(res, /nur "switch" zeigt sie/), 'and it says what does show them');
+});
+
+check('the displays that do read them stay silent', () => {
+    // 'switch' draws the pair, and 'auto' resolves to a switch on a boolean
+    // datapoint — usesOnOffLabels() in entryControls.tsx is the authority.
+    for (const entry of [
+        { id: 'demo.a', displayType: 'switch', trueLabel: 'AN' },
+        { id: 'demo.a', trueLabel: 'AN' },
+        { id: 'demo.a', displayType: 'auto', falseLabel: 'AUS' },
+    ]) {
+        assert.deepEqual(validateWidget(listOfRows([entry]), schema).warnings, [], JSON.stringify(entry));
+    }
+});
+
+check('the badges layout is not accused — there the pair is read', () => {
+    // ListWidget's minimal layout evaluates trueLabel/falseLabel itself for a
+    // boolean-ish value, whatever the display says. A finding would be wrong.
+    const w = { ...listOfRows([{ id: 'demo.a', displayType: 'value', trueLabel: 'AN' }]), layout: 'minimal' };
+    assert.deepEqual(validateWidget(w, schema).warnings, []);
+});
+
+check('a state mapping or a preset list on the wrong display is named', () => {
+    const states = validateWidget(
+        listOfRows([{ id: 'demo.a', displayType: 'value', states: [{ value: 1, label: 'Zu' }] }]),
+        schema,
+    );
+    assert.ok(hasWarning(states, /states bei displayType "value"/));
+    // 'auto' does not save it either: the mapping is read on strict equality
+    // with 'states', so an undeclared row never sees it.
+    const auto = validateWidget(listOfRows([{ id: 'demo.a', presets: [{ value: 1, label: 'A' }] }]), schema);
+    assert.ok(hasWarning(auto, /presets bei displayType "auto"/));
+    assert.ok(hasWarning(auto, /"buttons" und "select"/));
+    for (const entry of [
+        { id: 'demo.a', displayType: 'states', states: [{ value: 1, label: 'Zu' }] },
+        { id: 'demo.a', displayType: 'buttons', presets: [{ value: 1, label: 'A' }] },
+        { id: 'demo.a', displayType: 'select', presets: [{ value: 1, label: 'A' }] },
+    ]) {
+        assert.deepEqual(validateWidget(listOfRows([entry]), schema).warnings, [], JSON.stringify(entry));
+    }
+});
+
+check('sixteen rows of the same mistake are one finding', () => {
+    const rows = Array.from({ length: 16 }, (_, i) => ({
+        id: `demo.${i}`,
+        displayType: 'contact',
+        trueLabel: 'AN',
+    }));
+    const res = validateWidget(listOfRows(rows), schema);
+    assert.equal(res.warnings.length, 1, res.warnings.join(' | '));
+    assert.match(res.warnings[0], /entries\[0\], entries\[1\]/, 'the rows are named');
+    assert.match(res.warnings[0], /\(\+10\)/, 'and the rest is counted, not printed');
+});
+
+check('the list-wide display block is checked too, and needs a display', () => {
+    const wide = validateWidget(
+        listOfRows([{ id: 'demo.a' }], { entryDisplay: { displayType: 'contact', presets: [{ value: 1 }] } }),
+        schema,
+    );
+    assert.ok(hasWarning(wide, /Option "entryDisplay": presets bei displayType "contact"/));
+    // Without a display of its own the whole block is never applied
+    // (listDisplayApplies in utils/listDisplayDefaults.ts).
+    const noDisplay = validateWidget(listOfRows([{ id: 'demo.a' }], { entryDisplay: { iconSize: 20 } }), schema);
+    assert.ok(hasWarning(noDisplay, /"entryDisplay" nennt keinen "displayType"/));
+});
+
+check('a separator is not a row with a display', () => {
+    // A divider carries no display and draws no control — the fields on it are a
+    // different question, and inventing a display for it would be noise.
+    const res = validateWidget(listOfRows([{ divider: true, id: 'demo.sep' }]), schema);
+    assert.deepEqual(res.warnings, []);
+});
+
 check('an out-of-set enum value lists what is allowed', () => {
     const res = validateWidget({ ...OK_SWITCH, options: { controlMode: 'switch' } }, schema);
     assert.ok(hasError(res, /Option "controlMode".*nicht erlaubt/));
@@ -1116,6 +1210,33 @@ check('a shared setting written one level too high is reported', () => {
     const f = auditResult.findings.find((x) => x.id === 'misplaced-options');
     assert.ok(f);
     assert.match(f.items.join(' '), /conditions/);
+});
+
+check('a row setting left behind by a changed display is reported', () => {
+    // The likeliest way to end up with one: the row was a switch, the display was
+    // changed to a value, and the labels stayed in the configuration.
+    const res = auditDashboard({
+        places: [
+            {
+                where: 'Wohnzimmer / Start / Fenster',
+                widgets: [
+                    {
+                        id: 'liste',
+                        type: 'list',
+                        title: 'Fenster',
+                        datapoint: '',
+                        gridPos: { x: 0, y: 0, w: 10, h: 8 },
+                        options: { entries: [{ id: 'demo.a', displayType: 'value', trueLabel: 'AN' }] },
+                    },
+                ],
+            },
+        ],
+        schema,
+    });
+    const f = res.findings.find((x) => x.id === 'display-mismatch');
+    assert.ok(f, `expected the finding, got ${res.findings.map((x) => x.id).join(', ')}`);
+    assert.match(f.items.join(' '), /Fenster \/ liste: Option "entries"/, 'with the place it sits in');
+    assert.match(f.items.join(' '), /trueLabel bei displayType "value"/);
 });
 
 check('the same widget id in two places is a finding', () => {
