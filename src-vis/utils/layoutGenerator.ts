@@ -100,7 +100,7 @@ const ROW_H: Record<string, Record<string, number>> = {
     },
 };
 
-// Keep SIZES for backward compatibility (e.g. MiniGridPreview in TabWizard)
+// Keep SIZES for backward compatibility
 const SIZES: Record<string, SizeMap> = {
     compact: {
         switch: [6, 4],

@@ -45,7 +45,7 @@
 | [HTML](./html) | Beliebigen HTML/CSS-Code frei einbetten. |
 | [iFrame](./iframe) | Externe Webseite oder lokale URL einbetten. |
 | [JSON-Tabelle](./json-tabelle) | JSON-Array-Datenpunkt als formatierte Tabelle anzeigen. |
-| [Kalender](./kalender) | Termine aus dem iCal-Adapter (nur per Tab-Wizard hinzufügbar). |
+| [Kalender](./kalender) | Termine aus dem iCal-Adapter. |
 | [Kamera](./kamera) | Kamera-Livebild einbinden (go2rtc / MJPEG-Stream). |
 | [Karte](./karte) | Positionen (Auto, Kind, …) aus Datenpunkten auf einer OpenStreetMap-Karte anzeigen – optional mit Entfernung. |
 | [Karussell](./karussell) | Horizontal scrollbare Chip-Liste – pro Item Datenpunkt + eigene Klick-Aktion. |

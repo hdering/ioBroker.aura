@@ -68,7 +68,7 @@ export type AddMode =
     | 'datapoint' // requires an ioBroker state ID
     | 'group' // legacy – no longer used for new widgets
     | 'free' // no datapoint / special config (clock, header, …)
-    | 'wizard-only'; // cannot be added manually (calendar)
+    | 'wizard-only'; // not offered in the widget type switcher / panels list (calendar)
 
 export type WidgetGroup = 'control' | 'special' | 'layout';
 
@@ -76,7 +76,7 @@ export interface WidgetMeta {
     type: WidgetType;
     /** Full German name shown in dialogs, admin lists, … */
     label: string;
-    /** Short name for compact labels (TabWizard badges) */
+    /** Short name for compact labels (badges, dense lists) */
     shortLabel: string;
     /** Lucide icon component – render at any size */
     Icon: LucideIcon;

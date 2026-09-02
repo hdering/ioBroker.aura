@@ -6,3 +6,5 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Editor - the "+ Tab" wizard button is gone; tabs are built with the MCP server or from single widgets
+- Import dialog - the AI prompt generator is gone; the MCP server produces better widget JSON

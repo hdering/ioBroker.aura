@@ -135,7 +135,7 @@ export const WIDGETS = [
     { type: 'weather', slug: 'wetter', label: 'Wetter', group: 'special',
       hint: 'Wetterdaten vom ioBroker-Wetter-Adapter anzeigen.', runtime: null },
     { type: 'calendar', slug: 'kalender', label: 'Kalender', group: 'special',
-      hint: 'Termine aus dem iCal-Adapter (nur per Tab-Wizard hinzufügbar).', runtime: null },
+      hint: 'Termine aus dem iCal-Adapter.', runtime: null },
     { type: 'evcc', slug: 'evcc', label: 'evcc', group: 'special',
       hint: 'evcc Wallbox-Ladesteuerung einbinden.', runtime: null },
     { type: 'camera', slug: 'kamera', label: 'Kamera', group: 'special',

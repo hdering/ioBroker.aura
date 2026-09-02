@@ -28,15 +28,6 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 const SCHEMA_PATH = 'public/ai/aura-widget-schema.json';
 const schema = JSON.parse(read(SCHEMA_PATH));
 
-// ── 0. The prompt dialog fetches exactly this file ───────────────────────────
-// It lives under public/, so the build copies it to www/ and the adapter serves
-// it. Moving either side without the other yields a dialog that loads forever.
-const dialog = read('src-vis/components/config/AiPromptDialog.tsx');
-assert.ok(
-    dialog.includes('ai/aura-widget-schema.json'),
-    `AiPromptDialog must fetch ${SCHEMA_PATH.replace('public/', '')}`,
-);
-
 // ── 0b. The wrapper's options reach every widget ─────────────────────────────
 // conditions, badges, click actions and transparency are read by WidgetFrame, not
 // by the widget components, so the source reader cannot see them: it walks

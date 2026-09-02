@@ -9,7 +9,6 @@ import {
     Edit3,
     Check,
     Database,
-    Wand2,
     Smartphone,
     GripVertical,
     Upload,
@@ -37,7 +36,6 @@ import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { Dashboard } from '../../components/layout/Dashboard';
 import { LayoutDrawer } from '../../components/layout/LayoutDrawer';
 import { FocusedWidgetContext } from '../../contexts/FocusedWidgetContext';
-import { TabWizard } from '../../components/config/TabWizard';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
 import type { WidgetConfig, WidgetType, WidgetPreset } from '../../types';
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
@@ -2052,7 +2050,6 @@ export function AdminEditor() {
     const setActiveLayout = useDashboardStore((s) => s.setActiveLayout);
     const setActiveLayoutAndTab = useDashboardStore((s) => s.setActiveLayoutAndTab);
     const addWidget = useDashboardStore((s) => s.addWidget);
-    const addTab = useDashboardStore((s) => s.addTab);
     const addTabFromImportOuter = useDashboardStore((s) => s.addTabFromImport);
 
     // Deep-link support: ?layout=<id>&tab=<id>&focus=<widgetId>
@@ -2126,7 +2123,6 @@ export function AdminEditor() {
     useCustomJs(activeLayoutId, activeSectionForEditor.id, true);
     // Apply custom CSS inside the editor preview when `customCSSInEditor` is enabled.
     useCustomCss(activeLayoutId, activeSectionForEditor.id, true);
-    const [showTabWizard, setShowTabWizard] = useState(false);
     const [showManual, setShowManual] = useState(false);
     const [showImport, setShowImport] = useState(false);
     const [showMobileOrder, setShowMobileOrder] = useState(false);
@@ -2200,13 +2196,6 @@ export function AdminEditor() {
                     style={{ background: 'var(--accent)' }}
                 >
                     <Plus size={15} /> Neues Widget
-                </button>
-                <button
-                    onClick={() => setShowTabWizard(true)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-white hover:opacity-80"
-                    style={{ background: 'var(--accent-purple, #8b5cf6)' }}
-                >
-                    <Wand2 size={15} /> {t('editor.tab.addTab')}
                 </button>
                 <button
                     onClick={() => setShowImport(true)}
@@ -2309,16 +2298,6 @@ export function AdminEditor() {
                 {showMobileOrder && <MobileOrderPanel layoutId={activeLayoutId} />}
             </div>
 
-            {showTabWizard && (
-                <TabWizard
-                    onAdd={(name, widgets) => {
-                        addTab(name);
-                        widgets.forEach(addWidget);
-                        setShowTabWizard(false);
-                    }}
-                    onClose={() => setShowTabWizard(false)}
-                />
-            )}
             {showManual && <ManualWidgetDialog onAdd={addWidget} onClose={() => setShowManual(false)} />}
             {showImport && (
                 <ImportWidgetDialog

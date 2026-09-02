@@ -704,7 +704,6 @@ export const de = {
 
     'editor.tab.addDevice': '+ Geräte',
     'editor.tab.addManual': '+ Manuell',
-    'editor.tab.addTab': '+ Tab',
     'editor.tab.noWidgets': 'Kein Tab ausgewählt oder Tab leer.',
 
     'editor.layouts.standard': 'Standard',
@@ -1417,25 +1416,7 @@ export const de = {
     'wizard.device.tempDp': 'Ist-Temperatur Datenpunkt (optional)',
 
     // ── Tab Wizard ────────────────────────────────────────────────────────────────
-    'wizard.tab.title': 'Tab-Wizard',
-    'wizard.tab.selectTheme': 'Wähle ein Thema für den neuen Tab.',
-    'wizard.tab.themeAll': 'Alle Datenpunkte',
-    'wizard.tab.themeAllHint': 'Alle verfügbaren Datenpunkte aller Adapter',
-    'wizard.tab.themeBattery': 'Batteriestatus',
-    'wizard.tab.themeBatteryHint': 'Batteriestand aller Geräte im Überblick',
-    'wizard.tab.themeWindow': 'Fensterstatus',
-    'wizard.tab.themeWindowHint': 'Offen/Geschlossen-Status von Fenstern und Türen',
-    'wizard.tab.themePower': 'Stromverbrauch',
-    'wizard.tab.themePowerHint': 'Leistung und Energieverbrauch aller Geräte',
-    'wizard.tab.showAllDp': 'Alle Datenpunkte anzeigen',
-    'wizard.tab.showThemeOnly': 'Nur Thema anzeigen',
-    'wizard.tab.widget': 'Widget',
-    'wizard.tab.widgets': 'Widgets',
-    'wizard.tab.selectLayout': 'Layout wählen',
     'wizard.tab.cancel': 'Abbrechen',
-    'wizard.tab.back': 'Zurück',
-    'wizard.tab.next': 'Weiter',
-    'wizard.tab.create': 'Tab erstellen',
 
     // ── Widget Registry labels ────────────────────────────────────────────────────
     'widget.switch': 'Schalter',
@@ -1613,31 +1594,6 @@ export const de = {
     'import.tabNotSupported': 'Tab-Import hier nicht verfügbar',
     'import.tabWidgetCount': '{count} Widget(s)',
     'import.importTab': 'Tab importieren',
-
-    // ── KI-Prompt ────────────────────────────────────────────────────
-    'aiPrompt.open': 'KI-Prompt',
-    'aiPrompt.title': 'Prompt für eine KI erzeugen',
-    'aiPrompt.intro':
-        'Erzeugt einen Text mit Widget-Schema, Datenpunkten und dem aktuellen Tab. In ChatGPT, Claude o. Ä. einfügen — die Antwort kommt als JSON zurück und wird hier oben eingefügt.',
-    'aiPrompt.targetWidget': 'Einzelnes Widget',
-    'aiPrompt.targetTab': 'Ganzer Tab',
-    'aiPrompt.task': 'Aufgabe',
-    'aiPrompt.taskPlaceholder': 'z. B. „Eine Kachel für jedes Licht im Wohnzimmer, dazu die Raumtemperatur“',
-    'aiPrompt.types': 'Widget-Typen ausführlich beschreiben',
-    'aiPrompt.typesPlaceholder': 'Ohne Auswahl nur die Typenliste',
-    'aiPrompt.rooms': 'Räume',
-    'aiPrompt.funcs': 'Gewerke',
-    'aiPrompt.search': 'Datenpunkte filtern',
-    'aiPrompt.searchPlaceholder': 'Teil einer Id oder eines Namens',
-    'aiPrompt.writableOnly': 'Nur beschreibbare Datenpunkte',
-    'aiPrompt.withTab': 'Tab „{name}“ als Vorlage mitgeben',
-    'aiPrompt.withTabHint': '{count} Widget(s) — hilft bei Stil und Größen',
-    'aiPrompt.summary': '{dps} Datenpunkte · {types} Typ(en) ausführlich · ca. {tokens}k Token',
-    'aiPrompt.noDpHint':
-        'Ohne Raum, Gewerk oder Suche kommen keine Datenpunkte in den Prompt — der ganze Objektbaum wäre zu groß.',
-    'aiPrompt.schemaError': 'Schema nicht ladbar ({error}). Wurde das Frontend nach dem Update neu gebaut?',
-    'aiPrompt.copy': 'Prompt kopieren',
-    'aiPrompt.copied': 'Kopiert',
 
     // ── Export anonymisation ──────────────────────────────────────────────────────
     'exportAnon.title': 'Exportieren',

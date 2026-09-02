@@ -1153,7 +1153,7 @@
       "slug": "kalender",
       "label": "Kalender",
       "group": "special",
-      "hint": "Termine aus dem iCal-Adapter (nur per Tab-Wizard hinzufügbar).",
+      "hint": "Termine aus dem iCal-Adapter.",
       "defaultGrid": {
         "w": 12,
         "h": 6
