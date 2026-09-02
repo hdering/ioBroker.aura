@@ -53,6 +53,8 @@
     "metrics:check": "node tools/schema/measure-widget-metrics.mjs --check",
     "schema": "node tools/schema/gen-widget-schema.mjs",
     "schema:check": "node tools/schema/gen-widget-schema.mjs --check",
+    "theme-tokens": "node tools/schema/gen-theme-tokens.mjs",
+    "theme-tokens:check": "node tools/schema/gen-theme-tokens.mjs --check",
     "test:schema": "node test/widget-schema.test.js",
     "test:ai-prompt": "node tools/tests/ai-prompt.mjs",
     "test:mcp": "node tools/tests/mcp.mjs",

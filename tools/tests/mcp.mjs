@@ -56,6 +56,8 @@ const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
 const { collectDatapointRefs, historyFindings, historyReads, writeRefs } = require('../../lib/mcp/dpFit.js');
 const { measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
 const { designCanvas, renderCanvas } = require('../../lib/mcp/canvas.js');
+const { activeThemes, renderPalette, renderTheme } = require('../../lib/mcp/theme.js');
+const THEME_TOKENS = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-theme-tokens.json'), 'utf8'));
 const {
     TOKEN_PLACEHOLDER,
     baseUrl,
@@ -1164,6 +1166,96 @@ const LAYOUTS = [
     },
 ];
 
+// ── The palette ──────────────────────────────────────────────────────────────
+// Reported from use: the schema mentions var(--accent-green) in its option
+// descriptions, but nothing listed the tokens — so a whole dashboard came back
+// with #f59e0b and #94a3b8 hard-coded, which hold up in one theme only.
+
+check('every theme defines every base token', () => {
+    // A missing one leaves an empty value in the answer, which reads as "no such
+    // colour" and sends the model back to hex.
+    for (const theme of THEME_TOKENS.themes) {
+        for (const t of THEME_TOKENS.baseTokens) {
+            assert.ok(theme.vars[t.name], `${theme.id} has no ${t.name}`);
+        }
+    }
+});
+
+check('the element tokens say which base token they inherit', () => {
+    for (const t of THEME_TOKENS.elementTokens) {
+        assert.ok(t.inherits, `${t.name} has no fallback`);
+        if (t.inherits.startsWith('--')) {
+            assert.ok(
+                THEME_TOKENS.baseTokens.some((b) => b.name === t.inherits),
+                `${t.name} inherits from ${t.inherits}, which is not a base token`,
+            );
+        }
+    }
+});
+
+check('only the themes actually in play are reported', () => {
+    // Appending the default as well produced two values per token on a dashboard
+    // that has one theme — "#a6e3a1 / #22c55e" reads as "it depends".
+    const one = activeThemes(THEME_TOKENS, { themeId: 'catppuccin-mocha' });
+    assert.deepEqual(
+        one.map((t) => t.id),
+        ['catppuccin-mocha'],
+    );
+    // Following the browser really is two, and both have to be named.
+    const two = activeThemes(THEME_TOKENS, {
+        followBrowser: true,
+        browserLightThemeId: 'light',
+        browserDarkThemeId: 'dark',
+    });
+    assert.deepEqual(
+        two.map((t) => t.id),
+        ['light', 'dark'],
+    );
+    // Nothing configured falls back to the default, not to an empty answer.
+    assert.deepEqual(
+        activeThemes(THEME_TOKENS, {}).map((t) => t.id),
+        [THEME_TOKENS.defaultThemeId],
+    );
+});
+
+check('the palette names the tokens with the values of THIS dashboard', () => {
+    const out = renderPalette(THEME_TOKENS, { themeId: 'light', customVars: {} });
+    assert.match(out, /var\(--accent-green\) = #16a34a/);
+    assert.match(out, /var\(--text-secondary\) = #6b7280/);
+    assert.match(out, /nie einen Hex-Wert/, 'the instruction belongs next to the values');
+    // Sizes and shadows are not colours and only make the block longer.
+    assert.ok(!/--widget-radius/.test(out));
+});
+
+check("a user's own colour is shown as theirs, not as the theme's", () => {
+    const out = renderPalette(THEME_TOKENS, { themeId: 'light', customVars: { '--accent': '#ff6600' } });
+    assert.match(out, /var\(--accent\) = #ff6600 \[angepasst\]/);
+});
+
+check('aura_theme adds the per-element tokens and what they inherit', () => {
+    const full = renderTheme(THEME_TOKENS, { themeId: 'light', customVars: {} }, { elements: true });
+    assert.match(full, /var\(--switch-bg\).*wie --accent-green/);
+    assert.match(full, /## Switch \/ toggle/, 'the groups from the source are worth keeping');
+    const base = renderTheme(THEME_TOKENS, { themeId: 'light', customVars: {} }, { elements: false });
+    assert.ok(!/--switch-bg/.test(base));
+    assert.match(base, /mit elements=true/);
+});
+
+check('following the browser is said out loud, not averaged away', () => {
+    const out = renderTheme(
+        THEME_TOKENS,
+        { followBrowser: true, browserLightThemeId: 'light', browserDarkThemeId: 'dark' },
+        { elements: false },
+    );
+    assert.match(out, /ZWEI Themes/);
+    assert.match(out, /var\(--text-primary\) = #111827 \/ #ffffff/);
+});
+
+check('without the generated palette the answer says so instead of inventing one', () => {
+    assert.match(renderTheme(null, {}), /nicht mitgeliefert/);
+    assert.equal(renderPalette(null, {}), '');
+});
+
 check('designColumns takes the widest widget across all tabs', () => {
     assert.equal(designColumns(LAYOUTS), 44);
     assert.equal(designColumns([]), 48);
@@ -1270,6 +1362,11 @@ function makeAdapter() {
         'config.dashboard': JSON.stringify({ version: 0, state: { layouts: JSON.parse(JSON.stringify(LAYOUTS)) } }),
         'config.group-defs': JSON.stringify({ version: 0, state: { defs: {} } }),
         'config.app-config': JSON.stringify({ version: 0, state: { frontend: { gridRowHeight: 20, gridGap: 10 } } }),
+        // The theme the dashboard shows, with one colour the user changed.
+        'config.theme': JSON.stringify({
+            version: 0,
+            state: { themeId: 'light', customVars: { '--accent': '#ff6600' } },
+        }),
     };
     const files = {};
     return {
@@ -1431,6 +1528,7 @@ check('all twenty-eight tools are announced with descriptions', () => {
         'aura_review',
         'aura_save_preset',
         'aura_tab',
+        'aura_theme',
         'aura_types',
         'aura_update_node',
         'aura_update_widget',
@@ -1463,6 +1561,25 @@ check('aura_dashboard reports tabs, grid and the design width', () => {
 
 check('with no guidelines set, aura_dashboard says the target size is unknown', () => {
     assert.match(dash.content[0].text, /Hilfslinien sind nicht gesetzt/);
+});
+
+check('aura_dashboard hands over the palette, so colours need not be invented', () => {
+    const t = dash.content[0].text;
+    assert.match(t, /Farben: Theme „Hell“/);
+    assert.match(t, /var\(--accent-green\) = #16a34a/);
+    assert.match(t, /var\(--accent\) = #ff6600 \[angepasst\]/, "the user's own colour wins");
+    assert.match(t, /nie einen Hex-Wert/);
+});
+
+const themeRes = await client.callTool({ name: 'aura_theme', arguments: {} });
+const themeBase = await client.callTool({ name: 'aura_theme', arguments: { elements: false } });
+check('aura_theme answers with the full palette of the selected theme', () => {
+    const t = themeRes.content[0].text;
+    assert.ok(!themeRes.isError, t);
+    assert.match(t, /Ausgewähltes Theme: Hell \(light\)/);
+    assert.match(t, /var\(--text-secondary\) = #6b7280/);
+    assert.match(t, /var\(--switch-bg\).*wie --accent-green/, 'the per-element tokens too');
+    assert.ok(!/--switch-bg/.test(themeBase.content[0].text), 'elements=false keeps it to the base palette');
 });
 
 // The same dashboard, with the target device the user drew in the editor.

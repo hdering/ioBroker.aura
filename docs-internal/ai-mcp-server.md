@@ -553,6 +553,41 @@ einen ganzen Typ) nennt jetzt vor der Variantenliste die Alternativen: `chips`
 `"buttons"`/`"states"`, das `enum`-Widget, `httpRequest`. Eine falsche Beschreibung
 kostet mehr als eine fehlende.
 
+## Farben: Token statt Hex
+
+Aus der Praxis gemeldet: Ein ganzes Dashboard kam mit hart eingetragenen
+Hex-Werten zurück (`#f59e0b`, `#94a3b8`), weil die Palette nirgends abfragbar
+war. Die Schema-Beschreibungen nennen zwar `var(--accent-green)` und
+`var(--text-secondary)`, aber welche Token es gibt und welche Werte sie in
+*diesem* Dashboard haben, stand nirgends. Ein fester Wert hält genau in dem
+Theme, gegen das er geraten wurde — der Nutzer schaltet hell/dunkel.
+
+`tools/schema/gen-theme-tokens.mjs` (`npm run theme-tokens`,
+`theme-tokens:check`) bündelt `src-vis/themes/index.ts` mit esbuild und schreibt
+`public/ai/aura-theme-tokens.json`: 14 Themes mit ihren Werten, 15 Basis-Token
+und 41 Element-Token mit dem Basis-Token, den sie erben
+(`ELEMENT_VAR_FALLBACKS`). Die Gruppenüberschriften („App", „Text", „Akzente",
+„Switch / toggle" …) und die Notizen je Token kommen aus den Kommentaren der
+beiden Interfaces — die Werte sind ausgeführt, nicht abgeschrieben, können also
+nicht driften.
+
+`lib/mcp/theme.js` liest dazu, was diese Installation ausgewählt hat
+(`<ns>.config.theme`: `themeId`, `customVars`, und bei `followBrowser` das
+Hell/Dunkel-Paar) und setzt beides zusammen:
+
+- **`aura_dashboard`** trägt die Basis-Palette im Kopf mit — dort fängt jedes
+  Gespräch an, und genau dort wurde die Farbe erfunden. Größen (`--widget-radius`,
+  `--widget-shadow`) sind rausgefiltert, sie helfen bei einer Farbe nicht.
+- **`aura_theme`** liefert alles, inklusive der Element-Token mit ihrer Vererbung
+  (`elements: false` kürzt auf die Basis).
+
+Zwei Feinheiten, die die Antwort ehrlich halten: Bei `followBrowser` sind **zwei**
+Themes im Spiel, das steht ausdrücklich da (`#111827 / #ffffff`) statt gemittelt
+zu werden — und das Default-Theme wird **nicht** zusätzlich angehängt, wenn eines
+ausgewählt ist, weil zwei Werte je Token sonst „kommt drauf an" behaupten, wo es
+nur einen gibt. Vom Nutzer geänderte Token stehen mit `[angepasst]` da, denn sie
+gewinnen über den Theme-Wert.
+
 ## Dieselben Rezepte im Editor
 
 `tools/schema/gen-recipes.mjs` schreibt die Rezepte nach

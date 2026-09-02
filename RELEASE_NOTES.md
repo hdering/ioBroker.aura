@@ -11,3 +11,4 @@
 - AI assistant (MCP) - list heights are now measured per layout and per option (second line, header), and the answer names what the number leaves out
 - AI assistant (MCP) - validation now warns when any control sits on a read-only datapoint: a switch row of a list, the up/stop/down of a shutter, the channels of a lamp - not just the widget datapoint
 - AI assistant (MCP) - click actions are documented at last: every kind and its fields, an error for an invented one, and a plain note that no click action writes a datapoint (use chips, a list row, enum or httpRequest for that)
+- AI assistant (MCP) - hands over the dashboard theme palette (new aura_theme tool, and the base tokens in aura_dashboard), so generated widgets use var(--accent-green) instead of a hard-coded hex that only fits one theme
