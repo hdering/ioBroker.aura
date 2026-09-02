@@ -6032,6 +6032,11 @@
           "default": 1,
           "description": "Skaliert die Schrift der Terminliste."
         },
+        "calNameAlways": {
+          "type": "boolean",
+          "default": false,
+          "description": "Kalendername im Default-Layout auch dann anzeigen, wenn es nur einen Kalender gibt. Agenda, Card und Compact zeigen ihn immer. showCalName=false schaltet ihn überall aus."
+        },
         "calNameWidth": {
           "type": "number",
           "default": 0,
@@ -6123,6 +6128,11 @@
           "type": "boolean",
           "default": true,
           "description": "Datum anzeigen."
+        },
+        "showEndTime": {
+          "type": "boolean",
+          "default": false,
+          "description": "Endzeit an das Datum anhängen (\"Morgen, 09:00 - 10:30\"). Nur bei Terminen mit Uhrzeit, die am selben Tag enden; ganztägige und mehrtägige bleiben unverändert."
         },
         "showLocation": {
           "type": "boolean",
