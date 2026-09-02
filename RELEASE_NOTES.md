@@ -18,3 +18,4 @@
 - AI assistant (MCP) - new recipe for one row rule covering a whole list (rowConditions with {{parent}}), and the recipes now use theme colour tokens instead of fixed hex values
 - Calendar - new "show end time" option: the date of a timed appointment now reads 09:00 - 10:30 in every layout (#608)
 - Calendar - new "always show calendar name" option: the default layout can now name its source even when only one calendar is configured (#608)
+- Editor - the "New widget" dialog is one step now: pick a datapoint or a type and it is added right away; a double click on a tile adds it directly, title, unit and layout stay in the widget editor

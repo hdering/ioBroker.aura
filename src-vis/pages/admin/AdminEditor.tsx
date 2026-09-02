@@ -34,13 +34,12 @@ import { useDashboardStore, useActiveSection } from '../../store/dashboardStore'
 import { ConditionEditor } from '../../components/config/ConditionEditor';
 import { BadgeEditor } from '../../components/config/BadgeEditor';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
-import { useGroupStore } from '../../store/groupStore';
 import { Dashboard } from '../../components/layout/Dashboard';
 import { LayoutDrawer } from '../../components/layout/LayoutDrawer';
 import { FocusedWidgetContext } from '../../contexts/FocusedWidgetContext';
 import { TabWizard } from '../../components/config/TabWizard';
 import { DatapointPicker } from '../../components/config/DatapointPicker';
-import type { WidgetConfig, WidgetType, WidgetLayout, WidgetPreset } from '../../types';
+import type { WidgetConfig, WidgetType, WidgetPreset } from '../../types';
 import { WIDGET_REGISTRY, WIDGET_BY_TYPE, getEffectiveSize } from '../../widgetRegistry';
 import { useWidgetPresetsStore } from '../../store/widgetPresetsStore';
 import { PresetInsertDialog } from '../../components/config/PresetInsertDialog';
@@ -63,10 +62,6 @@ import {
 import { slugify } from '../../utils/slugify';
 import { exportTab } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
-
-// Layout labels are resolved inside components via t() to support i18n
-const LAYOUT_IDS: WidgetLayout[] = ['default', 'card', 'compact', 'minimal'];
-const CALENDAR_LAYOUT_IDS: WidgetLayout[] = [...LAYOUT_IDS, 'agenda'];
 
 // ── Recently used templates (persisted in localStorage) ──────────────────────
 const RECENT_TEMPLATES_KEY = 'aura-recent-templates';
@@ -94,24 +89,18 @@ function pushRecentTemplate(entry: RecentTemplate) {
 function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => void; onClose: () => void }) {
     const t = useT();
     const widgetDefaults = useConfigStore((s) => s.widgetDefaults);
-    const LAYOUTS = LAYOUT_IDS.map((id) => ({ id, label: t(`editor.layouts.${id}` as never) }));
-    const CALENDAR_LAYOUTS = CALENDAR_LAYOUT_IDS.map((id) => ({ id, label: t(`editor.layouts.${id}` as never) }));
 
-    const [step, setStep] = useState<1 | 2>(1);
     const [type, setType] = useState<WidgetType>('value');
     const [templateId, setTemplateId] = useState<string>('');
     const [typePicked, setTypePicked] = useState(false);
-    const [layout, setLayout] = useState<WidgetLayout>('default');
     const [title, setTitle] = useState('');
     const [datapoint, setDatapoint] = useState('');
-    const [groupId, setGroupId] = useState('');
     const [unit, setUnit] = useState('');
     const [showPicker, setShowPicker] = useState(false);
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
     const [recentTemplates, setRecentTemplates] = useState<RecentTemplate[]>(() => getRecentTemplates());
     const presets = useWidgetPresetsStore((s) => s.presets);
     const [insertPreset, setInsertPreset] = useState<WidgetPreset | null>(null);
-    const { groups } = useGroupStore();
 
     // Auto-detect type / template / title / unit when the datapoint ID changes
     useEffect(() => {
@@ -157,27 +146,6 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [datapoint, typePicked]);
 
-    // Universal widget only supports the 'custom' layout — keep state in sync.
-    useEffect(() => {
-        if (type === 'universal' && layout !== 'custom') setLayout('custom');
-    }, [type, layout]);
-
-    const def = WIDGET_REGISTRY.find((w) => w.type === type)!;
-    const addMode = WIDGET_BY_TYPE[type].addMode;
-    const isList = addMode === 'group';
-    const isCalendar = type === 'calendar';
-    const isGauge = type === 'gauge';
-    const isChart = type === 'chart';
-    const isUniversal = type === 'universal';
-    const isHeader = type === 'header';
-    const isEchart = type === 'echart';
-    const isEvcc = type === 'evcc';
-    const isWeather = type === 'weather';
-    const isCamera = type === 'camera';
-    const noDatapointNeeded = addMode !== 'datapoint';
-    // iCal URL is optional – calendar sources can be added later in the widget editor.
-    const canAdd = addMode === 'group' ? !!groupId : true;
-
     // Widget types from WIDGET_REGISTRY not covered by any DP_TEMPLATE
     const coveredWidgetTypes = useMemo(() => new Set(DP_TEMPLATES.map((t) => t.widgetType)), []);
     const furtherWidgets = useMemo(
@@ -192,8 +160,6 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
 
     const selectedTemplate = DP_TEMPLATES.find((tpl) => tpl.id === templateId);
     const selectedFurther = furtherWidgets.find((w) => w.type === type && templateId === w.type);
-    const templateLabel = selectedTemplate?.label ?? selectedFurther?.label ?? def?.label ?? '';
-    const templateIcon = selectedTemplate?.icon ?? null;
 
     const selectTemplate = (tplId: string, widgetType: WidgetType) => {
         setType(widgetType);
@@ -205,34 +171,40 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         setType(recent.widgetType);
         setTemplateId(recent.templateId);
         setTypePicked(true);
-        setStep(2);
     };
 
-    const handleAdd = async () => {
-        if (!canAdd) return;
+    // widgetType/tplId are passed explicitly so a double-click can select and add
+    // in one go, without waiting for the state update to land.
+    const handleAdd = async (widgetType: WidgetType = type, tplId: string = templateId) => {
+        const meta = WIDGET_BY_TYPE[widgetType];
+        const addMode = meta.addMode;
+        const isCalendar = widgetType === 'calendar';
+        const isEchart = widgetType === 'echart';
+        const isEvcc = widgetType === 'evcc';
+        const isWeather = widgetType === 'weather';
+        const isCamera = widgetType === 'camera';
         // Persist to recently used
-        const activeTpl = DP_TEMPLATES.find((tpl) => tpl.id === templateId);
-        const activeWidget = WIDGET_REGISTRY.find((w) => w.type === type);
+        const activeTpl = DP_TEMPLATES.find((tpl) => tpl.id === tplId);
         pushRecentTemplate({
-            templateId: templateId || type,
-            widgetType: type,
-            label: activeTpl?.label ?? activeWidget?.shortLabel ?? type,
+            templateId: tplId || widgetType,
+            widgetType,
+            label: activeTpl?.label ?? meta.shortLabel ?? widgetType,
             icon: activeTpl?.icon ?? '',
         });
         setRecentTemplates(getRecentTemplates());
-        const selectedGroup = isList ? groups.find((g) => g.id === groupId) : undefined;
-        const dpId = noDatapointNeeded ? '' : isList ? groupId : datapoint.trim();
+        const dpId = addMode !== 'datapoint' ? '' : datapoint.trim();
 
         let finalTitle = title.trim();
         let finalUnit = unit.trim();
 
-        if (dpId && (!finalTitle || ((type === 'value' || type === 'chart') && !finalUnit))) {
+        if (dpId && (!finalTitle || ((widgetType === 'value' || widgetType === 'chart') && !finalUnit))) {
             try {
                 const entries = await ensureDatapointCache();
                 const entry = entries.find((e) => e.id === dpId);
                 if (entry) {
                     if (!finalTitle && entry.name) finalTitle = entry.name;
-                    if ((type === 'value' || type === 'chart') && !finalUnit && entry.unit) finalUnit = entry.unit;
+                    if ((widgetType === 'value' || widgetType === 'chart') && !finalUnit && entry.unit)
+                        finalUnit = entry.unit;
                 }
             } catch {
                 /* ignore */
@@ -241,8 +213,8 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
 
         // Auto-fill secondary DPs using the selected template's sibling patterns
         const activeTemplate =
-            DP_TEMPLATES.find((tpl) => tpl.id === templateId && tpl.secondaryDps.length > 0) ??
-            DP_TEMPLATES.find((tpl) => tpl.widgetType === type && tpl.secondaryDps.length > 0);
+            DP_TEMPLATES.find((tpl) => tpl.id === tplId && tpl.secondaryDps.length > 0) ??
+            DP_TEMPLATES.find((tpl) => tpl.widgetType === widgetType && tpl.secondaryDps.length > 0);
         const secondaryDpOptions: Record<string, unknown> = {};
         if (dpId) {
             try {
@@ -277,13 +249,13 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
 
         onAdd({
             id: `w-${Date.now()}`,
-            type,
-            layout: type === 'universal' ? 'custom' : layout,
-            title: finalTitle || (isList && selectedGroup ? selectedGroup.name : templateLabel || def.label),
+            type: widgetType,
+            layout: widgetType === 'universal' ? 'custom' : 'default',
+            title: finalTitle || activeTpl?.label || meta.label,
             datapoint: dpId,
-            gridPos: { x: 0, y: 9999, ...getEffectiveSize(type, widgetDefaults) },
+            gridPos: { x: 0, y: 9999, ...getEffectiveSize(widgetType, widgetDefaults) },
             options: {
-                icon: def.iconName,
+                icon: meta.iconName,
                 ...(activeTemplate?.defaultOptions ?? {}),
                 ...secondaryDpOptions,
                 ...(isCalendar
@@ -325,7 +297,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                             }
                           : isCamera
                             ? { streamUrl: '', refreshInterval: 5, fitMode: 'cover', showTitle: true }
-                            : type === 'gauge'
+                            : widgetType === 'gauge'
                               ? {
                                     minValue: 0,
                                     maxValue: 100,
@@ -334,7 +306,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                     showMinMax: true,
                                     colorZones: false,
                                 }
-                              : type === 'knob'
+                              : widgetType === 'knob'
                                 ? {
                                       minValue: 0,
                                       maxValue: 100,
@@ -364,441 +336,12 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         border: '1px solid var(--app-border)',
     };
 
-    // ── STEP 1: type selection ─────────────────────────────────────────────────
-    if (step === 1) {
-        return (
-            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-                <div
-                    className="rounded-xl w-full max-w-5xl shadow-2xl flex flex-col"
-                    style={{
-                        maxHeight: '96vh',
-                        background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)',
-                        border: '1px solid var(--app-border)',
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    {/* Header */}
-                    <div
-                        className="flex items-center justify-between px-6 pt-5 pb-4"
-                        style={{ borderBottom: '1px solid var(--app-border)' }}
-                    >
-                        <h2 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
-                            {t('editor.manual.title')}
-                        </h2>
-                        <div className="flex items-center gap-2">
-                            <span
-                                className="text-xs font-medium px-2 py-0.5 rounded-full"
-                                style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
-                            >
-                                1 / 2
-                            </span>
-                            <button
-                                onClick={onClose}
-                                className="hover:opacity-60"
-                                style={{ color: 'var(--text-secondary)' }}
-                            >
-                                <X size={18} />
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* DP field */}
-                    <div className="px-6 pt-4 pb-2">
-                        <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                            Datenpunkt{' '}
-                            <span className="font-normal opacity-60">(optional – Typ wird automatisch erkannt)</span>
-                        </label>
-                        <div className="flex gap-1.5">
-                            <input
-                                value={datapoint}
-                                onChange={(e) => setDatapoint(e.target.value)}
-                                placeholder="z.B. hm-rpc.0.ABC123.LEVEL"
-                                className={`flex-1 font-mono min-w-0 ${inputCls}`}
-                                style={inputStyle}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => setShowPicker(true)}
-                                className="px-3 rounded-xl hover:opacity-80 shrink-0"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                <Database size={15} />
-                            </button>
-                        </div>
-                        <p
-                            className="mt-1.5 text-xs flex items-center gap-1"
-                            style={{
-                                color: 'var(--accent)',
-                                visibility: templateId && selectedTemplate ? 'visible' : 'hidden',
-                            }}
-                        >
-                            <Check size={11} />
-                            Erkannt als: <strong>{selectedTemplate?.label ?? ' '}</strong>
-                        </p>
-                    </div>
-
-                    {/* Recently used */}
-                    {recentTemplates.length > 0 && (
-                        <div className="px-6 pt-3 pb-1">
-                            <p
-                                className="text-[10px] font-semibold uppercase tracking-wider mb-2"
-                                style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
-                            >
-                                {t('editor.manual.recentlyUsed')}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {recentTemplates.map((recent) => {
-                                    const meta = WIDGET_REGISTRY.find((w) => w.type === recent.widgetType);
-                                    if (!meta) return null;
-                                    const isActive = templateId === recent.templateId;
-                                    return (
-                                        <button
-                                            key={recent.templateId}
-                                            type="button"
-                                            onClick={() => selectRecent(recent)}
-                                            title="Direkt zu Schritt 2"
-                                            className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
-                                            style={{
-                                                background: isActive ? `${meta.color}22` : 'var(--app-bg)',
-                                                color: isActive ? meta.color : 'var(--text-secondary)',
-                                                border: `1px solid ${isActive ? meta.color : 'var(--app-border)'}`,
-                                            }}
-                                        >
-                                            {recent.icon ? (
-                                                <span style={{ fontSize: 12, lineHeight: 1 }}>{recent.icon}</span>
-                                            ) : (
-                                                <meta.Icon size={11} />
-                                            )}
-                                            {recent.label}
-                                            <span style={{ fontSize: 9, opacity: 0.6 }}>→ 2</span>
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* My presets (Widget-Designer) */}
-                    {FEATURES.widgetDesigner && presets.length > 0 && (
-                        <div className="px-6 pt-3 pb-1">
-                            <p
-                                className="text-[10px] font-semibold uppercase tracking-wider mb-2"
-                                style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
-                            >
-                                {t('preset.mine')}
-                            </p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {presets.map((preset) => (
-                                    <button
-                                        key={preset.id}
-                                        type="button"
-                                        onClick={() => setInsertPreset(preset)}
-                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-secondary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        {preset.icon ? (
-                                            <span style={{ fontSize: 12, lineHeight: 1 }}>{preset.icon}</span>
-                                        ) : (
-                                            <Shapes size={11} />
-                                        )}
-                                        {preset.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Category filter tabs */}
-                    <div className="px-6 pt-3 pb-1">
-                        <div className="flex flex-wrap gap-1.5">
-                            <button
-                                type="button"
-                                onClick={() => setCategoryFilter('all')}
-                                className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                                style={{
-                                    background: categoryFilter === 'all' ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: categoryFilter === 'all' ? 'white' : 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                {t('common.all')}
-                            </button>
-                            {DP_TEMPLATE_CATEGORIES.map((cat) => (
-                                <button
-                                    key={cat.id}
-                                    type="button"
-                                    onClick={() => setCategoryFilter(cat.id)}
-                                    className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                                    style={{
-                                        background: categoryFilter === cat.id ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: categoryFilter === cat.id ? 'white' : 'var(--text-secondary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                >
-                                    {cat.label}
-                                </button>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={() => setCategoryFilter('further')}
-                                className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
-                                style={{
-                                    background: categoryFilter === 'further' ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: categoryFilter === 'further' ? 'white' : 'var(--text-secondary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            >
-                                Weitere
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Template grid */}
-                    <div className="px-6 pb-2 overflow-y-auto flex-1">
-                        <div className="py-2 space-y-3">
-                            {/* "Alle"-Ansicht: Kategorien nebeneinander, je eine Spalte mit vertikaler Template-Liste */}
-                            {categoryFilter === 'all' && (
-                                <div className="grid grid-cols-4 gap-x-4 gap-y-4">
-                                    {DP_TEMPLATE_CATEGORIES.map((cat) => {
-                                        const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id).sort(
-                                            (a, b) => a.label.localeCompare(b.label),
-                                        );
-                                        if (!catTpls.length) return null;
-                                        return (
-                                            <div key={cat.id} className="flex flex-col gap-1">
-                                                <p
-                                                    className="text-[10px] font-semibold uppercase tracking-wider mb-1"
-                                                    style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
-                                                >
-                                                    {cat.label}
-                                                </p>
-                                                {catTpls.map((tpl) => {
-                                                    const active = templateId === tpl.id;
-                                                    return (
-                                                        <button
-                                                            key={tpl.id}
-                                                            type="button"
-                                                            onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
-                                                            onDoubleClick={() => {
-                                                                selectTemplate(tpl.id, tpl.widgetType);
-                                                                setStep(2);
-                                                            }}
-                                                            className="flex items-center gap-2 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left w-full"
-                                                            style={{
-                                                                padding: '7px 10px',
-                                                                background: active
-                                                                    ? 'var(--accent)1a'
-                                                                    : 'var(--app-bg)',
-                                                                border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                boxShadow: active
-                                                                    ? '0 0 0 3px var(--accent)22'
-                                                                    : 'none',
-                                                            }}
-                                                        >
-                                                            <span
-                                                                style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}
-                                                            >
-                                                                {tpl.icon}
-                                                            </span>
-                                                            <span
-                                                                className="leading-tight font-medium truncate"
-                                                                style={{
-                                                                    fontSize: 12,
-                                                                    color: active
-                                                                        ? 'var(--accent)'
-                                                                        : 'var(--text-secondary)',
-                                                                }}
-                                                            >
-                                                                {tpl.label}
-                                                            </span>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                            {/* Einzelne Kategorie gefiltert */}
-                            {categoryFilter !== 'all' && categoryFilter !== 'further' && (
-                                <div className="grid grid-cols-3 gap-2">
-                                    {DP_TEMPLATES.filter((tpl) => tpl.category === categoryFilter)
-                                        .sort((a, b) => a.label.localeCompare(b.label))
-                                        .map((tpl) => {
-                                            const active = templateId === tpl.id;
-                                            return (
-                                                <button
-                                                    key={tpl.id}
-                                                    type="button"
-                                                    onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
-                                                    onDoubleClick={() => {
-                                                        selectTemplate(tpl.id, tpl.widgetType);
-                                                        setStep(2);
-                                                    }}
-                                                    className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
-                                                    style={{
-                                                        padding: '8px 12px',
-                                                        background: active ? 'var(--accent)1a' : 'var(--app-bg)',
-                                                        border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                        boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
-                                                    }}
-                                                >
-                                                    <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>
-                                                        {tpl.icon}
-                                                    </span>
-                                                    <span
-                                                        className="leading-tight font-medium truncate"
-                                                        style={{
-                                                            fontSize: 12,
-                                                            color: active ? 'var(--accent)' : 'var(--text-secondary)',
-                                                        }}
-                                                    >
-                                                        {tpl.label}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                </div>
-                            )}
-
-                            {/* Weitere Widgets */}
-                            {(categoryFilter === 'all' || categoryFilter === 'further') && (
-                                <div>
-                                    <p
-                                        className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
-                                        style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
-                                    >
-                                        Weitere Widgets
-                                    </p>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        {furtherWidgets.map((w) => {
-                                            const active = templateId === w.type;
-                                            return (
-                                                <button
-                                                    key={w.type}
-                                                    type="button"
-                                                    title={w.hint}
-                                                    onClick={() => selectTemplate(w.type, w.type)}
-                                                    onDoubleClick={() => {
-                                                        selectTemplate(w.type, w.type);
-                                                        setStep(2);
-                                                    }}
-                                                    className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
-                                                    style={{
-                                                        padding: '8px 12px',
-                                                        background: active ? 'var(--accent)1a' : 'var(--app-bg)',
-                                                        border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                        boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
-                                                    }}
-                                                >
-                                                    <w.Icon
-                                                        size={18}
-                                                        color={active ? 'var(--accent)' : w.color}
-                                                        style={{ flexShrink: 0 }}
-                                                    />
-                                                    <span
-                                                        className="leading-tight font-medium truncate"
-                                                        style={{
-                                                            fontSize: 12,
-                                                            color: active ? 'var(--accent)' : 'var(--text-secondary)',
-                                                        }}
-                                                    >
-                                                        {w.label}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Hint for selected further-widget – outside scroll area to prevent layout shift */}
-                    <div className="px-6 pb-2" style={{ minHeight: '2rem' }}>
-                        <p
-                            className="text-xs rounded-lg px-3 py-1.5"
-                            style={{
-                                visibility: (selectedTemplate?.hint ?? selectedFurther?.hint) ? 'visible' : 'hidden',
-                                color: 'var(--text-secondary)',
-                                background: 'var(--app-bg)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            {selectedTemplate?.hint ?? selectedFurther?.hint ?? ' '}
-                        </p>
-                    </div>
-
-                    {/* Footer */}
-                    <div
-                        className="flex items-center justify-between px-6 py-4"
-                        style={{ borderTop: '1px solid var(--app-border)' }}
-                    >
-                        <button
-                            onClick={onClose}
-                            className="px-4 py-2 rounded-xl text-sm hover:opacity-80"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-secondary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        >
-                            {t('editor.manual.cancel')}
-                        </button>
-                        <button
-                            onClick={() => setStep(2)}
-                            disabled={!templateId}
-                            className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold hover:opacity-80 disabled:opacity-30 transition-opacity"
-                            style={{ background: 'var(--accent)', color: '#fff' }}
-                        >
-                            Weiter
-                            <span style={{ fontSize: 14 }}>→</span>
-                        </button>
-                    </div>
-                </div>
-
-                {showPicker && (
-                    <DatapointPicker
-                        currentValue={datapoint}
-                        onSelect={(id, dpUnit, dpName) => {
-                            setDatapoint(id);
-                            if (!title.trim() && dpName) setTitle(applyDpNameFilter(dpName));
-                            if (!unit.trim() && dpUnit) setUnit(dpUnit);
-                        }}
-                        onClose={() => setShowPicker(false)}
-                    />
-                )}
-
-                {insertPreset && (
-                    <PresetInsertDialog
-                        preset={insertPreset}
-                        onInsert={(widget) => {
-                            onAdd(widget);
-                            setInsertPreset(null);
-                            onClose();
-                        }}
-                        onCancel={() => setInsertPreset(null)}
-                    />
-                )}
-            </div>
-        );
-    }
-
-    // ── STEP 2: details ────────────────────────────────────────────────────────
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <div
-                className="rounded-xl w-full max-w-xl shadow-2xl"
+                className="rounded-xl w-full max-w-5xl shadow-2xl flex flex-col"
                 style={{
+                    maxHeight: '96vh',
                     background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)',
                     border: '1px solid var(--app-border)',
                 }}
@@ -806,184 +349,354 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
             >
                 {/* Header */}
                 <div
-                    className="flex items-center gap-3 px-6 pt-5 pb-4"
+                    className="flex items-center justify-between px-6 pt-5 pb-4"
                     style={{ borderBottom: '1px solid var(--app-border)' }}
                 >
-                    <button
-                        onClick={() => setStep(1)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
+                    <h2 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
+                        {t('editor.manual.title')}
+                    </h2>
+                    <button onClick={onClose} className="hover:opacity-60" style={{ color: 'var(--text-secondary)' }}>
+                        <X size={18} />
+                    </button>
+                </div>
+
+                {/* DP field */}
+                <div className="px-6 pt-4 pb-2">
+                    <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                        Datenpunkt{' '}
+                        <span className="font-normal opacity-60">(optional – Typ wird automatisch erkannt)</span>
+                    </label>
+                    <div className="flex gap-1.5">
+                        <input
+                            value={datapoint}
+                            onChange={(e) => setDatapoint(e.target.value)}
+                            placeholder="z.B. hm-rpc.0.ABC123.LEVEL"
+                            className={`flex-1 font-mono min-w-0 ${inputCls}`}
+                            style={inputStyle}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPicker(true)}
+                            className="px-3 rounded-xl hover:opacity-80 shrink-0"
+                            style={{
+                                background: 'var(--app-bg)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            <Database size={15} />
+                        </button>
+                    </div>
+                    <p
+                        className="mt-1.5 text-xs flex items-center gap-1"
                         style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
+                            color: 'var(--accent)',
+                            visibility: templateId && selectedTemplate ? 'visible' : 'hidden',
                         }}
                     >
-                        <span>←</span>
-                        {templateIcon && <span>{templateIcon}</span>}
-                        {templateLabel}
-                    </button>
-                    <div className="flex items-center gap-2 ml-auto">
-                        <span
-                            className="text-xs font-medium px-2 py-0.5 rounded-full"
-                            style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
+                        <Check size={11} />
+                        Erkannt als: <strong>{selectedTemplate?.label ?? ' '}</strong>
+                    </p>
+                </div>
+
+                {/* Recently used */}
+                {recentTemplates.length > 0 && (
+                    <div className="px-6 pt-3 pb-1">
+                        <p
+                            className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
                         >
-                            2 / 2
-                        </span>
+                            {t('editor.manual.recentlyUsed')}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {recentTemplates.map((recent) => {
+                                const meta = WIDGET_REGISTRY.find((w) => w.type === recent.widgetType);
+                                if (!meta) return null;
+                                const isActive = templateId === recent.templateId;
+                                return (
+                                    <button
+                                        key={recent.templateId}
+                                        type="button"
+                                        onClick={() => selectRecent(recent)}
+                                        onDoubleClick={() => {
+                                            selectRecent(recent);
+                                            void handleAdd(recent.widgetType, recent.templateId);
+                                        }}
+                                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
+                                        style={{
+                                            background: isActive ? `${meta.color}22` : 'var(--app-bg)',
+                                            color: isActive ? meta.color : 'var(--text-secondary)',
+                                            border: `1px solid ${isActive ? meta.color : 'var(--app-border)'}`,
+                                        }}
+                                    >
+                                        {recent.icon ? (
+                                            <span style={{ fontSize: 12, lineHeight: 1 }}>{recent.icon}</span>
+                                        ) : (
+                                            <meta.Icon size={11} />
+                                        )}
+                                        {recent.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
+                {/* My presets (Widget-Designer) */}
+                {FEATURES.widgetDesigner && presets.length > 0 && (
+                    <div className="px-6 pt-3 pb-1">
+                        <p
+                            className="text-[10px] font-semibold uppercase tracking-wider mb-2"
+                            style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
+                        >
+                            {t('preset.mine')}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {presets.map((preset) => (
+                                <button
+                                    key={preset.id}
+                                    type="button"
+                                    onClick={() => setInsertPreset(preset)}
+                                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    {preset.icon ? (
+                                        <span style={{ fontSize: 12, lineHeight: 1 }}>{preset.icon}</span>
+                                    ) : (
+                                        <Shapes size={11} />
+                                    )}
+                                    {preset.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Category filter tabs */}
+                <div className="px-6 pt-3 pb-1">
+                    <div className="flex flex-wrap gap-1.5">
                         <button
-                            onClick={onClose}
-                            className="hover:opacity-60"
-                            style={{ color: 'var(--text-secondary)' }}
+                            type="button"
+                            onClick={() => setCategoryFilter('all')}
+                            className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                            style={{
+                                background: categoryFilter === 'all' ? 'var(--accent)' : 'var(--app-bg)',
+                                color: categoryFilter === 'all' ? 'white' : 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
                         >
-                            <X size={18} />
+                            {t('common.all')}
+                        </button>
+                        {DP_TEMPLATE_CATEGORIES.map((cat) => (
+                            <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => setCategoryFilter(cat.id)}
+                                className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                                style={{
+                                    background: categoryFilter === cat.id ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: categoryFilter === cat.id ? 'white' : 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                {cat.label}
+                            </button>
+                        ))}
+                        <button
+                            type="button"
+                            onClick={() => setCategoryFilter('further')}
+                            className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
+                            style={{
+                                background: categoryFilter === 'further' ? 'var(--accent)' : 'var(--app-bg)',
+                                color: categoryFilter === 'further' ? 'white' : 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                        >
+                            Weitere
                         </button>
                     </div>
                 </div>
 
-                {/* Body */}
-                <div className="flex gap-5 px-6 py-5">
-                    {/* Fields */}
-                    <div className="flex-1 space-y-3.5 min-w-0">
-                        {/* Datapoint (for datapoint-mode widgets) */}
-                        {addMode === 'datapoint' && (
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.manual.datapointId')}
-                                </label>
-                                <div className="flex gap-1.5">
-                                    <input
-                                        value={datapoint}
-                                        onChange={(e) => setDatapoint(e.target.value)}
-                                        placeholder="z.B. hm-rpc.0.ABC123.LEVEL"
-                                        className={`flex-1 font-mono min-w-0 ${inputCls}`}
-                                        style={inputStyle}
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPicker(true)}
-                                        className="px-3 rounded-xl hover:opacity-80 shrink-0"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-secondary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        <Database size={15} />
-                                    </button>
+                {/* Template grid */}
+                <div className="px-6 pb-2 overflow-y-auto flex-1">
+                    <div className="py-2 space-y-3">
+                        {/* "Alle"-Ansicht: Kategorien nebeneinander, je eine Spalte mit vertikaler Template-Liste */}
+                        {categoryFilter === 'all' && (
+                            <div className="grid grid-cols-4 gap-x-4 gap-y-4">
+                                {DP_TEMPLATE_CATEGORIES.map((cat) => {
+                                    const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id).sort((a, b) =>
+                                        a.label.localeCompare(b.label),
+                                    );
+                                    if (!catTpls.length) return null;
+                                    return (
+                                        <div key={cat.id} className="flex flex-col gap-1">
+                                            <p
+                                                className="text-[10px] font-semibold uppercase tracking-wider mb-1"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
+                                            >
+                                                {cat.label}
+                                            </p>
+                                            {catTpls.map((tpl) => {
+                                                const active = templateId === tpl.id;
+                                                return (
+                                                    <button
+                                                        key={tpl.id}
+                                                        type="button"
+                                                        onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
+                                                        onDoubleClick={() => {
+                                                            selectTemplate(tpl.id, tpl.widgetType);
+                                                            void handleAdd(tpl.widgetType, tpl.id);
+                                                        }}
+                                                        className="flex items-center gap-2 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left w-full"
+                                                        style={{
+                                                            padding: '7px 10px',
+                                                            background: active ? 'var(--accent)1a' : 'var(--app-bg)',
+                                                            border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                            boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                                                        }}
+                                                    >
+                                                        <span style={{ fontSize: 18, lineHeight: 1, flexShrink: 0 }}>
+                                                            {tpl.icon}
+                                                        </span>
+                                                        <span
+                                                            className="leading-tight font-medium truncate"
+                                                            style={{
+                                                                fontSize: 12,
+                                                                color: active
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--text-secondary)',
+                                                            }}
+                                                        >
+                                                            {tpl.label}
+                                                        </span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Einzelne Kategorie gefiltert */}
+                        {categoryFilter !== 'all' && categoryFilter !== 'further' && (
+                            <div className="grid grid-cols-3 gap-2">
+                                {DP_TEMPLATES.filter((tpl) => tpl.category === categoryFilter)
+                                    .sort((a, b) => a.label.localeCompare(b.label))
+                                    .map((tpl) => {
+                                        const active = templateId === tpl.id;
+                                        return (
+                                            <button
+                                                key={tpl.id}
+                                                type="button"
+                                                onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
+                                                onDoubleClick={() => {
+                                                    selectTemplate(tpl.id, tpl.widgetType);
+                                                    void handleAdd(tpl.widgetType, tpl.id);
+                                                }}
+                                                className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
+                                                style={{
+                                                    padding: '8px 12px',
+                                                    background: active ? 'var(--accent)1a' : 'var(--app-bg)',
+                                                    border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                                                }}
+                                            >
+                                                <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>
+                                                    {tpl.icon}
+                                                </span>
+                                                <span
+                                                    className="leading-tight font-medium truncate"
+                                                    style={{
+                                                        fontSize: 12,
+                                                        color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                                                    }}
+                                                >
+                                                    {tpl.label}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                            </div>
+                        )}
+
+                        {/* Weitere Widgets */}
+                        {(categoryFilter === 'all' || categoryFilter === 'further') && (
+                            <div>
+                                <p
+                                    className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
+                                    style={{ color: 'var(--text-secondary)', opacity: 0.5 }}
+                                >
+                                    Weitere Widgets
+                                </p>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {furtherWidgets.map((w) => {
+                                        const active = templateId === w.type;
+                                        return (
+                                            <button
+                                                key={w.type}
+                                                type="button"
+                                                title={w.hint}
+                                                onClick={() => selectTemplate(w.type, w.type)}
+                                                onDoubleClick={() => {
+                                                    selectTemplate(w.type, w.type);
+                                                    void handleAdd(w.type, w.type);
+                                                }}
+                                                className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
+                                                style={{
+                                                    padding: '8px 12px',
+                                                    background: active ? 'var(--accent)1a' : 'var(--app-bg)',
+                                                    border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                    boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                                                }}
+                                            >
+                                                <w.Icon
+                                                    size={18}
+                                                    color={active ? 'var(--accent)' : w.color}
+                                                    style={{ flexShrink: 0 }}
+                                                />
+                                                <span
+                                                    className="leading-tight font-medium truncate"
+                                                    style={{
+                                                        fontSize: 12,
+                                                        color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                                                    }}
+                                                >
+                                                    {w.label}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )}
-
-                        {/* Calendar sources are configured in the widget editor after adding */}
-                        {isCalendar && (
-                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                {t('editor.manual.moreCalendars')}
-                            </p>
-                        )}
-
-                        {/* Group selector (list widget) */}
-                        {isList && (
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.manual.group')}
-                                </label>
-                                {groups.length === 0 ? (
-                                    <p className="text-xs rounded-xl px-3 py-2.5" style={inputStyle}>
-                                        {t('editor.manual.noGroups')}
-                                    </p>
-                                ) : (
-                                    <select
-                                        value={groupId}
-                                        onChange={(e) => setGroupId(e.target.value)}
-                                        className={inputCls}
-                                        style={inputStyle}
-                                    >
-                                        <option value="">{t('editor.manual.selectGroup')}</option>
-                                        {groups.map((g) => (
-                                            <option key={g.id} value={g.id}>
-                                                {g.name} ({t('endpoints.dp.count', { count: g.datapoints.length })})
-                                            </option>
-                                        ))}
-                                    </select>
-                                )}
-                            </div>
-                        )}
-
-                        {/* Title */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-                                {t('editor.manual.titleField')}
-                            </label>
-                            <input
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder={def.label}
-                                className={inputCls}
-                                style={inputStyle}
-                            />
-                        </div>
-
-                        {/* Unit (value / chart only) */}
-                        {(type === 'value' || type === 'chart') && (
-                            <div className="space-y-1.5">
-                                <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('editor.manual.unit')}
-                                </label>
-                                <input
-                                    value={unit}
-                                    onChange={(e) => setUnit(e.target.value)}
-                                    placeholder="z.B. °C, %, W"
-                                    className={inputCls}
-                                    style={inputStyle}
-                                />
-                            </div>
-                        )}
-
-                        {/* Layout selection */}
-                        <div className="space-y-1.5">
-                            <label className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>
-                                Layout
-                            </label>
-                            <div className="flex flex-wrap gap-1.5">
-                                {(isCalendar ? CALENDAR_LAYOUTS : LAYOUTS)
-                                    .filter((l) => {
-                                        if (isGauge && l.id !== 'default') return false;
-                                        if (isChart && (l.id === 'compact' || l.id === 'minimal')) return false;
-                                        if (isHeader && l.id === 'card') return false;
-                                        if (isUniversal && l.id !== 'custom') return false;
-                                        return true;
-                                    })
-                                    .map((l) => (
-                                        <button
-                                            key={l.id}
-                                            onClick={() => setLayout(l.id)}
-                                            className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
-                                            style={{
-                                                background: layout === l.id ? 'var(--accent)22' : 'var(--app-bg)',
-                                                color: layout === l.id ? 'var(--accent)' : 'var(--text-secondary)',
-                                                border: `1px solid ${layout === l.id ? 'var(--accent)66' : 'var(--app-border)'}`,
-                                            }}
-                                        >
-                                            {l.label}
-                                        </button>
-                                    ))}
-                            </div>
-                        </div>
                     </div>
                 </div>
 
-                {/* Footer */}
-                <div className="flex items-center gap-2 px-6 py-4" style={{ borderTop: '1px solid var(--app-border)' }}>
-                    <button
-                        onClick={() => setStep(1)}
-                        className="px-4 py-2 rounded-xl text-sm hover:opacity-80"
+                {/* Hint for selected further-widget – outside scroll area to prevent layout shift */}
+                <div className="px-6 pb-2" style={{ minHeight: '2rem' }}>
+                    <p
+                        className="text-xs rounded-lg px-3 py-1.5"
                         style={{
-                            background: 'var(--app-bg)',
+                            visibility: (selectedTemplate?.hint ?? selectedFurther?.hint) ? 'visible' : 'hidden',
                             color: 'var(--text-secondary)',
+                            background: 'var(--app-bg)',
                             border: '1px solid var(--app-border)',
                         }}
                     >
-                        ← Zurück
-                    </button>
+                        {selectedTemplate?.hint ?? selectedFurther?.hint ?? ' '}
+                    </p>
+                </div>
+
+                {/* Footer */}
+                <div
+                    className="flex items-center justify-between px-6 py-4"
+                    style={{ borderTop: '1px solid var(--app-border)' }}
+                >
                     <button
                         onClick={onClose}
                         className="px-4 py-2 rounded-xl text-sm hover:opacity-80"
@@ -997,10 +710,11 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                     </button>
                     <button
                         onClick={() => void handleAdd()}
-                        disabled={!canAdd}
-                        className="flex-1 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-80 disabled:opacity-30 transition-opacity"
-                        style={{ background: 'var(--accent)' }}
+                        disabled={!templateId}
+                        className="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold hover:opacity-80 disabled:opacity-30 transition-opacity"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
                     >
+                        <Plus size={15} />
                         {t('editor.manual.add')}
                     </button>
                 </div>
@@ -1011,10 +725,22 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                     currentValue={datapoint}
                     onSelect={(id, dpUnit, dpName) => {
                         setDatapoint(id);
-                        if (!title.trim() && dpName) setTitle(dpName);
+                        if (!title.trim() && dpName) setTitle(applyDpNameFilter(dpName));
                         if (!unit.trim() && dpUnit) setUnit(dpUnit);
                     }}
                     onClose={() => setShowPicker(false)}
+                />
+            )}
+
+            {insertPreset && (
+                <PresetInsertDialog
+                    preset={insertPreset}
+                    onInsert={(widget) => {
+                        onAdd(widget);
+                        setInsertPreset(null);
+                        onClose();
+                    }}
+                    onCancel={() => setInsertPreset(null)}
                 />
             )}
         </div>

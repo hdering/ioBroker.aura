@@ -16,7 +16,7 @@ WYSIWYG-Editor für die Tabs und Widgets des gewählten Layouts. Widgets werden 
 
 ## Neues Widget
 
-Zweistufiger Assistent: Datenpunkt wählen (Widget-Typ wird automatisch erkannt) oder Typ aus dem Katalog wählen.
+Ein Schritt: Datenpunkt wählen (Widget-Typ wird automatisch erkannt) oder Typ aus dem Katalog wählen. Doppelklick auf eine Kachel fügt direkt hinzu. Titel, Einheit und Layout danach im Widget-Editor.
 
 ![](./assets/editor-neues-widget.png)
 
