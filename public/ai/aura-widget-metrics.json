@@ -208,18 +208,18 @@
         "scriptstatus": "Zeilen entstehen erst zur Laufzeit",
         "trash": "Zeilen entstehen erst zur Laufzeit",
         "trashSchedule": "Zeilen entstehen erst zur Laufzeit",
-        "evcc": "braucht eine evcc-Instanz",
-        "weather": "braucht eine Wetter-Instanz",
+        "evcc": "Inhalt kommt aus einer evcc-Instanz",
+        "weather": "Inhalt kommt aus einer Wetter-Instanz",
         "echartsPreset": "rendert ein gespeichertes eCharts-Preset",
         "timer": "Zeilen entstehen erst zur Laufzeit",
         "alarm": "Zeilen entstehen erst zur Laufzeit",
-        "aircontrol": "braucht die Datenpunkte einer Klimaanlage",
-        "mediaplayer": "braucht die Datenpunkte eines Players",
+        "aircontrol": "Inhalt folgt den Datenpunkten der Klimaanlage",
+        "mediaplayer": "Inhalt folgt den Datenpunkten des Players",
         "loadtimes": "Zeilen entstehen erst zur Laufzeit",
         "carousel": "Inhalt sind andere Widgets",
         "menu": "Höhe folgt den Menüeinträgen des Dashboards",
         "html": "freies HTML",
-        "energiebilanz": "braucht konfigurierte Balken — ohne sie rendert das Widget nichts",
+        "energiebilanz": "Höhe folgt den konfigurierten Balken und ihren Einträgen",
         "adapterstatus": "Zeilen entstehen erst zur Laufzeit"
     }
 }

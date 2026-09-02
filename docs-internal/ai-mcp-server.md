@@ -397,9 +397,23 @@ Ergebnis: `public/ai/aura-widget-metrics.json`, gemessen z. B.
 
 `aura_measure` (`lib/mcp/measure.js`) rechnet damit gegen das Raster **dieses**
 Dashboards (`h × rowHeight + (h−1) × gap`) und antwortet pro Widget mit
-„passt / knapp / ZU KLEIN, es fehlen N px → h=M". Typen, deren Inhalt erst zur
-Laufzeit entsteht (`autolist`, Statusübersicht, Kalender), sagen das — mit
-`items=16` rechnet `autolist` mit der `list`-Messung weiter.
+„passt / knapp / ZU KLEIN, es fehlen N px → h=M".
+
+Wo keine Zahl herauskommt, trennt die Antwort zwei Dinge, die vorher im selben
+Feld standen und deshalb beide wie ein Befund klangen:
+
+- **eine Rückfrage** (`unknown`) — `autolist` weiß seine Zeilenzahl erst zur
+  Laufzeit; mit `items=16` rechnet es mit der `list`-Messung weiter
+- **keine Messung für den Typ** (`unmeasured`) — die Zeile beginnt mit „nicht
+  gemessen (<typ>: …)", und der Fuß sagt einmal, dass das **kein Befund** ist
+
+Das war ein echter Fehlbefund: eine funktionierende `energiebilanz` **mit**
+Balken bekam „braucht konfigurierte Balken — ohne sie rendert das Widget
+nichts". Der Satz gehört dem Typ, hier liest nichts das Widget — aber an der
+Stelle, an der sonst „ZU KLEIN" steht, liest man ihn als Urteil über die eigene
+Kachel. Die Gründe im Generator (`SKIP` in `measure-widget-metrics.mjs`) sagen
+darum jetzt durchweg, **warum es keine Zahl gibt** („Höhe folgt den
+konfigurierten Balken und ihren Einträgen"), und fordern nichts mehr ein.
 
 `npm run metrics:check` braucht einen laufenden Dev-Server und ist deshalb
 bewusst **nicht** Teil von `npm test`.

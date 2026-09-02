@@ -628,6 +628,29 @@ check('a runtime-filled list says so, and computes once given a row count', () =
     assert.equal(withCount.requiredPx, METRICS.counted.list.basePx + 16 * METRICS.counted.list.perItemPx);
 });
 
+// Reported from the field: a working energiebilanz WITH bars was told it "braucht
+// konfigurierte Balken". The reason belongs to the type, nothing here reads the
+// widget — but in the slot where a verdict goes it was read as a finding, and the
+// answer was a second look at a widget that is fine.
+check('a type without a measurement says so, and does not sound like a finding', () => {
+    const pv = {
+        id: 'pv',
+        type: 'energiebilanz',
+        title: 'PV',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 20, h: 14 },
+        options: { bars: [{ id: 'b1', title: 'Erzeugung', entries: [{ id: 'e1', datapointId: 'demo.value' }] }] },
+    };
+    const m = measureWidget(pv, { metrics: METRICS, grid: GRID });
+    assert.ok(!m.requiredPx);
+    assert.ok(!m.unknown, 'a type-level reason is not an ask the caller can answer');
+    assert.ok(m.unmeasured, 'it is the absence of a number for the type');
+    assert.ok(!/braucht/.test(m.unmeasured), 'the reason must not read as a demand on this widget');
+    const out = renderMeasure([m], { grid: GRID, metrics: METRICS });
+    assert.match(out, /nicht gemessen \(energiebilanz:/);
+    assert.match(out, /kein Befund/, 'the answer has to say once that this is not a finding');
+});
+
 check('without the metrics file the geometry half still answers', () => {
     const m = measureWidget(listWidget(16, 14), { metrics: null, grid: GRID });
     assert.equal(m.availPx, rowsToPx(14, GRID));

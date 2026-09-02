@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 
 MCP - the history check now also runs while writing: aura_write_tab, aura_add_widget and aura_update_widget report a chart series on an unrecorded datapoint instead of writing it silently
+MCP - aura_measure no longer reads like a finding when a widget type has no measured height; the reason now says why there is no number instead of demanding a change
