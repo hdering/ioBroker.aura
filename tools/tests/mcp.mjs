@@ -425,6 +425,43 @@ check('writeRefs leaves separators and templates alone', () => {
     );
 });
 
+check('an invented clickAction kind is refused, with the real ones named', () => {
+    // The dead end: no kind writes a datapoint, so a model reaches for one that
+    // sounds right. It used to be written and silently do nothing.
+    const button = { id: 'b1', type: 'button', title: 'Szene', datapoint: '', gridPos: { x: 0, y: 0, w: 4, h: 3 } };
+    const invented = validateWidget(
+        { ...button, options: { clickAction: { kind: 'write-datapoint', dp: 'x', value: 1 } } },
+        schema,
+    );
+    assert.ok(hasError(invented, /kind "write-datapoint" gibt es nicht/));
+    assert.ok(hasError(invented, /popup-view/), 'the allowed kinds belong in the message');
+
+    const typo = validateWidget(
+        { ...button, options: { clickAction: { kind: 'link-tabs', layoutId: 'l1', tabId: 't1' } } },
+        schema,
+    );
+    assert.ok(hasError(typo, /meintest du "link-tab"/));
+});
+
+check('the fields of the chosen kind are checked, and a valid one passes', () => {
+    const button = { id: 'b1', type: 'button', title: 'Sprung', datapoint: '', gridPos: { x: 0, y: 0, w: 4, h: 3 } };
+    const incomplete = validateWidget({ ...button, options: { clickAction: { kind: 'link-tab' } } }, schema);
+    assert.ok(hasError(incomplete, /"layoutId" fehlt/));
+    assert.ok(hasError(incomplete, /"tabId" fehlt/));
+
+    const stray = validateWidget(
+        { ...button, options: { clickAction: { kind: 'popup-view', viewId: 'pv-1', wieId: 'x' } } },
+        schema,
+    );
+    assert.ok(hasError(stray, /"wieId" gibt es hier nicht — meintest du "viewId"/));
+
+    const good = validateWidget(
+        { ...button, options: { clickAction: { kind: 'link-tab', layoutId: 'l1', tabId: 't1' } } },
+        schema,
+    );
+    assert.deepEqual(good.errors, []);
+});
+
 check('gridPos must be whole and positive', () => {
     assert.ok(hasError(validateWidget({ ...OK_SWITCH, gridPos: { x: 0, y: 0, w: 8.5, h: 4 } }, schema), /ganze Zahl/));
     assert.ok(hasError(validateWidget({ ...OK_SWITCH, gridPos: { x: -1, y: 0, w: 8, h: 4 } }, schema), /negativ/));
@@ -1544,6 +1581,32 @@ check('aura_types resolves a type through brackets and case, and names a miss', 
     // "Condition" is not a type — the near-miss list is what gets the model there.
     assert.match(t, /Keinen Typ "Condition"/);
     assert.match(t, /WidgetCondition/);
+});
+
+const clickActionType = await client.callTool({ name: 'aura_types', arguments: { names: ['ClickAction'] } });
+check('aura_types spells out a discriminated union instead of answering "object"', () => {
+    // Reported from use: both aura_widget_schema and aura_types returned
+    // "ClickAction = object". The kinds could only be found by reading a widget
+    // somebody had already built.
+    const t = clickActionType.content[0].text;
+    assert.match(t, /ClickAction = one of/);
+    for (const kind of ['none', 'popup-view', 'popup-image', 'link-tab', 'link-external', 'popup-dps']) {
+        assert.match(t, new RegExp(`kind: "${kind}"`), `${kind} must be listed`);
+    }
+    // The fields per kind, not just the names.
+    assert.match(t, /kind: "link-tab"; layoutId: string; tabId: string; sectionId\?: string/);
+    assert.match(t, /kind: "popup-view"; viewId: string/);
+    // The question the reader actually arrives with, answered before the list.
+    assert.match(t, /KEINE Variante, die einen Datenpunkt schreibt/);
+    assert.match(t, /chips/, 'and what to use instead');
+});
+
+check('the shared-option description no longer promises a write action', () => {
+    // It said "Popup, Navigation, Datenpunkt schreiben, URL" — one of those four
+    // does not exist, which is what sent a reader looking for it.
+    const d = schema.commonOptions.clickAction.description;
+    assert.match(d, /Schreibt KEINEN Datenpunkt/);
+    assert.ok(!/^(?!.*KEINEN).*Datenpunkt schreiben/.test(d));
 });
 
 const noTypes = await client.callTool({ name: 'aura_types', arguments: { names: [] } });

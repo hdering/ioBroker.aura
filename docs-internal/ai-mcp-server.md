@@ -519,6 +519,40 @@ benannten Typ **einmal**. Klammern und Groß-/Kleinschreibung werden verziehen
 (`WidgetCondition[]`, `customcell`), ein Fehlgriff bekommt die naheliegenden
 Namen genannt.
 
+## Union-Typen: `ClickAction`
+
+Aus der Praxis gemeldet: `aura_widget_schema` **und** `aura_types` antworteten
+beide `ClickAction = object`. Die 16 `kind`-Werte und ihre Felder waren nirgends
+zu finden — wer `link-tab` oder `popup-view` brauchte, musste ein bestehendes
+Widget aus einem anderen Tab lesen.
+
+Zwei Ursachen, beide im Generator:
+
+1. `typeAliasBody()` schnitt bei `[^;]+` am **ersten** Semikolon ab — und das
+   steht im zweiten Feld des ersten Union-Mitglieds. Der `tsType` endete mitten
+   in `{ kind: 'popup-thermostat'`. Jetzt wird das erste `;` auf Klammertiefe 0
+   gesucht.
+2. Eine Union aus Objektliteralen hatte keine Darstellung. `unionVariants()`
+   erkennt sie jetzt an einem gemeinsamen Literal-Feld (`kind`) und schreibt
+   `discriminator` + `variants` ins Schema; ein JSDoc über einem Mitglied wird
+   dessen `description`. Nebenbei fiel `TimerTrigger` mit ab.
+
+`renderNamedType()` (MCP) und `renderNamedType()` in `src-vis/utils/aiPrompt.ts`
+(Editor-Prompt) geben das als `ClickAction = one of` mit einer Zeile je Variante
+aus — beide Wege waren betroffen. `validate.js` wählt über den Discriminator das
+richtige Mitglied und prüft dessen Felder: ein erfundenes `kind` ist jetzt ein
+**Fehler** mit der Liste der echten Werte, ein Tippfehler bekommt den nächsten
+Namen vorgeschlagen.
+
+**Und die Frage dahinter.** Gesucht wurde „ein Knopf, der einen Datenpunkt
+schreibt" — das gibt es in `ClickAction` nicht, und die Beschreibung der Option
+behauptete genau das („Popup, Navigation, **Datenpunkt schreiben**, URL"). Der
+Satz ist korrigiert, und `TYPE_NOTES.ClickAction` (neu im Overlay, für Sätze über
+einen ganzen Typ) nennt jetzt vor der Variantenliste die Alternativen: `chips`
+(`dp` + `value`), eine Listenzeile mit `displayType: "momentary"`/`"switch"`/
+`"buttons"`/`"states"`, das `enum`-Widget, `httpRequest`. Eine falsche Beschreibung
+kostet mehr als eine fehlende.
+
 ## Dieselben Rezepte im Editor
 
 `tools/schema/gen-recipes.mjs` schreibt die Rezepte nach

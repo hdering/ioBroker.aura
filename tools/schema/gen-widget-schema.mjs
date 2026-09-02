@@ -33,6 +33,7 @@ import { extractOptionKeys, readWidgetMap, optionsInterfaceName } from './extrac
 import {
     KEY_DESCRIPTIONS,
     KEY_TYPES,
+    TYPE_NOTES,
     WIDGET_OPTION_NOTES,
     DROP_KEYS,
     EXTRA_OPTIONS,
@@ -111,7 +112,7 @@ const MAX_TYPE_DEPTH = 5;
  *
  * @param s
  */
-function splitTopLevel(s) {
+function splitTopLevel(s, seps = ',') {
     const out = [];
     let depth = 0;
     let start = 0;
@@ -121,13 +122,94 @@ function splitTopLevel(s) {
             depth++;
         } else if ('>])}'.includes(c)) {
             depth--;
-        } else if (c === ',' && depth === 0) {
+        } else if (seps.includes(c) && depth === 0) {
             out.push(s.slice(start, i).trim());
             start = i + 1;
         }
     }
     out.push(s.slice(start).trim());
     return out.filter(Boolean);
+}
+
+/** `{ a: 'x'; b?: number }` → one schema entry per field. */
+function inlineObjectFields(body, index, types, depth) {
+    const inner = body.trim().replace(/^\{/, '').replace(/\}$/, '');
+    const out = {};
+    for (const part of splitTopLevel(inner, ';,')) {
+        const m = part.match(/^([A-Za-z_$][\w$]*)\s*(\?)?\s*:\s*(.+)$/);
+        if (!m) {
+            continue;
+        }
+        const [, name, optional, type] = m;
+        out[name] = {
+            ...normalizeType(type.trim(), index, types, depth + 1),
+            ...(optional ? {} : { required: true }),
+        };
+    }
+    return out;
+}
+
+/**
+ * A discriminated union of object literals — `ClickAction` is the one that hurt.
+ *
+ * It reached the schema as a bare `{ type: 'object' }` with a truncated `tsType`
+ * next to it, so both aura_widget_schema and aura_types answered "object" and
+ * nothing else. Every kind and every field of the most-used shared option was
+ * undocumented; the only way to find `popup-view` or `link-tab` was to read a
+ * widget somebody had already built.
+ *
+ * @param body the alias body, comments included
+ * @param index the source index
+ * @param types the registry to fill
+ * @param depth recursion guard
+ * @returns {null | {discriminator: string, variants: object[]}}
+ */
+function unionVariants(body, index, types, depth) {
+    if (!body || !body.includes('|')) {
+        return null;
+    }
+    const parts = splitTopLevel(body.replace(/^\|/, ''), '|');
+    if (parts.length < 2) {
+        return null;
+    }
+    const variants = [];
+    let discriminator = null;
+    // A member may carry its own doc comment — that is where the one sentence
+    // explaining what the kind DOES lives. Written above the `|`, it lands at the
+    // END of the previous part once the body is split, so it is carried forward.
+    let pending = null;
+    for (const raw of parts) {
+        const lead = raw.match(/^\/\*\*([\s\S]*?)\*\//);
+        let part = (lead ? raw.slice(lead[0].length) : raw).trim();
+        const doc = lead ? lead[1] : pending;
+        pending = null;
+        const trail = part.match(/\/\*\*([\s\S]*?)\*\/\s*$/);
+        if (trail) {
+            pending = trail[1];
+            part = part.slice(0, trail.index).trim();
+        }
+        if (!/^\{[\s\S]*\}$/.test(part)) {
+            return null;
+        }
+        const fields = inlineObjectFields(part, index, types, depth);
+        // The discriminator is the first field with a single literal value, and
+        // it has to be the same field in every member.
+        const key = Object.keys(fields).find(
+            (k) => Array.isArray(fields[k].enum) && fields[k].enum.length === 1 && fields[k].required,
+        );
+        if (!key || (discriminator && key !== discriminator)) {
+            return null;
+        }
+        discriminator = key;
+        const value = fields[key].enum[0];
+        delete fields[key];
+        variants.push({
+            value,
+            ...(doc ? { description: doc.replace(/\*/g, ' ').replace(/\s+/g, ' ').trim() } : {}),
+            ...(Object.keys(fields).length ? { fields } : {}),
+        });
+    }
+    return { discriminator, variants };
 }
 
 /**
@@ -282,6 +364,15 @@ function normalizeType(raw, index, types, depth = 0) {
         }
     }
 
+    // A union of object literals telling one shape from the next by a literal
+    // field: `type ClickAction = { kind: 'none' } | { kind: 'link-tab'; … }`.
+    if (depth < MAX_TYPE_DEPTH && !types[t]) {
+        const union2 = unionVariants(index.typeAliasBody(t), index, types, depth);
+        if (union2) {
+            types[t] = { type: 'object', discriminator: union2.discriminator, variants: union2.variants };
+        }
+    }
+
     // An alias that is neither a union of literals nor an object — a tuple, for
     // instance (`type ColorThreshold = [number, string]`). Resolve it one level.
     if (depth < MAX_TYPE_DEPTH && !types[t]) {
@@ -348,12 +439,20 @@ const DP_KEY = /(?:Dp|DpId|Datapoint|DatapointId)$|^(dp|datapoint(Id)?)$/;
  */
 function markDatapointFields(types) {
     let marked = 0;
-    for (const t of Object.values(types)) {
-        for (const [key, field] of Object.entries(t.fields || {})) {
+    const mark = (fields) => {
+        for (const [key, field] of Object.entries(fields || {})) {
             if (field && field.type === 'string' && !field.enum && DP_KEY.test(key)) {
                 field.datapoint = true;
                 marked++;
             }
+        }
+    };
+    for (const t of Object.values(types)) {
+        mark(t.fields);
+        // The members of a discriminated union hold them too: `dp` on
+        // popup-view / popup-json / popup-image is a real state id.
+        for (const v of t.variants || []) {
+            mark(v.fields);
         }
     }
     return marked;
@@ -613,6 +712,14 @@ async function build() {
     };
 
     const dpFields = markDatapointFields(types);
+
+    // A sentence about the whole type, where the shape alone leaves the reader's
+    // real question open (ClickAction: "and which one writes a datapoint?").
+    for (const [name, note] of Object.entries(TYPE_NOTES)) {
+        if (types[name]) {
+            types[name].description = note;
+        }
+    }
 
     return { schema, missingDesc, staleNotes, dpFields };
 }

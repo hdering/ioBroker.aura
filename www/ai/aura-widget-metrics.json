@@ -1,225 +1,359 @@
 {
-    "$meta": {
-        "name": "AURA widget height metrics",
-        "generator": "tools/schema/measure-widget-metrics.mjs",
-        "measured": "2026-09-01",
-        "method": "Measured in the real frontend: the height is walked down until the content either scrolls or reaches past the card. 2 px resolution, each type at its default width.",
-        "caveats": [
-            "Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.",
-            "Default options, one line of title. A filter row, a statistics line or a second title line add to it.",
-            "A minimum is the point where content starts to be lost, not a recommended size — defaultSize is that."
-        ]
-    },
-    "grid": {
-        "note": "rows × rowHeight + (rows − 1) × gap = px. Row height and gap come from aura_dashboard."
-    },
-    "counted": {
-        "list": {
-            "item": "Zeile",
-            "basePx": 66,
-            "perItemPx": 33,
-            "atWidthPx": 200,
-            "measured": [
-                {
-                    "n": 2,
-                    "px": 132
-                },
-                {
-                    "n": 4,
-                    "px": 198
-                },
-                {
-                    "n": 8,
-                    "px": 330
-                },
-                {
-                    "n": 16,
-                    "px": 594
-                }
-            ]
+  "$meta": {
+    "name": "AURA widget height metrics",
+    "generator": "tools/schema/measure-widget-metrics.mjs",
+    "measured": "2026-09-02",
+    "method": "Measured in the real frontend: the height is walked down until the content either scrolls or reaches past the card. 2 px resolution, each type at its default width.",
+    "caveats": [
+      "Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.",
+      "A minimum is measured with default options and one line of title. A filter row, a statistics line or a second title line add to it.",
+      "Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.notIncluded for what is still left out.",
+      "Modifiers are measured one at a time. Several at once are added up, which is an approximation, not a measurement of that combination.",
+      "A minimum is the point where content starts to be lost, not a recommended size — defaultSize is that."
+    ]
+  },
+  "grid": {
+    "note": "rows × rowHeight + (rows − 1) × gap = px. Row height and gap come from aura_dashboard."
+  },
+  "counted": {
+    "list": {
+      "item": "Zeile",
+      "basePx": 66,
+      "perItemPx": 33,
+      "atWidthPx": 200,
+      "measured": [
+        {
+          "n": 2,
+          "px": 132
         },
-        "jsontable": {
-            "item": "Tabellenzeile",
-            "basePx": 86,
-            "perItemPx": 27,
-            "atWidthPx": 240,
-            "measured": [
-                {
-                    "n": 2,
-                    "px": 140
-                },
-                {
-                    "n": 4,
-                    "px": 194
-                },
-                {
-                    "n": 8,
-                    "px": 302
-                }
-            ]
+        {
+          "n": 4,
+          "px": 198
+        },
+        {
+          "n": 8,
+          "px": 330
+        },
+        {
+          "n": 16,
+          "px": 594
         }
-    },
-    "minimum": {
-        "binarysensor": {
-            "minPx": 68,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
+      ],
+      "variants": {
+        "card": {
+          "label": "Layout \"card\"",
+          "basePx": 75,
+          "perItemPx": 64.7,
+          "measured": [
+            {
+              "n": 2,
+              "px": 204
+            },
+            {
+              "n": 8,
+              "px": 592
+            }
+          ]
         },
-        "button": {
-            "minPx": 54,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 80
+        "compact": {
+          "label": "Layout \"compact\"",
+          "basePx": 67,
+          "perItemPx": 14.7,
+          "measured": [
+            {
+              "n": 2,
+              "px": 96
+            },
+            {
+              "n": 8,
+              "px": 184
+            }
+          ]
         },
-        "chart": {
-            "minPx": 62,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 240
-        },
-        "chips": {
-            "minPx": 44,
-            "minRowsDefaultGrid": 2,
-            "atWidthPx": 200
-        },
-        "climate": {
-            "minPx": 70,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 200
-        },
-        "clock": {
-            "minPx": 56,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
-        },
-        "datepicker": {
-            "minPx": 100,
-            "minRowsDefaultGrid": 4,
-            "atWidthPx": 200
-        },
-        "dimmer": {
-            "minPx": 88,
-            "minRowsDefaultGrid": 4,
-            "atWidthPx": 200
-        },
-        "echart": {
-            "minPx": 52,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 240
-        },
-        "enum": {
-            "minPx": 74,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
-        },
-        "fill": {
-            "minPx": 60,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
-        },
-        "gauge": {
-            "minPx": 162,
-            "minRowsDefaultGrid": 6,
-            "atWidthPx": 160
-        },
-        "header": {
-            "minPx": 22,
-            "minRowsDefaultGrid": 2,
-            "atWidthPx": 240
-        },
-        "httpRequest": {
-            "minPx": 96,
-            "minRowsDefaultGrid": 4,
-            "atWidthPx": 160
-        },
-        "input": {
-            "minPx": 76,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 200
-        },
-        "jsontable": {
-            "minPx": 302,
-            "minRowsDefaultGrid": 11,
-            "atWidthPx": 240
-        },
-        "knob": {
-            "minPx": 58,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 120
-        },
-        "light": {
-            "minPx": 78,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
-        },
-        "list": {
-            "minPx": 198,
-            "minRowsDefaultGrid": 7,
-            "atWidthPx": 200
-        },
-        "shutter": {
-            "minPx": 120,
-            "minRowsDefaultGrid": 5,
-            "atWidthPx": 160
-        },
-        "slider": {
-            "minPx": 64,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
-        },
-        "stateimage": {
-            "minPx": 96,
-            "minRowsDefaultGrid": 4,
-            "atWidthPx": 160
-        },
-        "switch": {
-            "minPx": 68,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
-        },
-        "thermostat": {
-            "minPx": 144,
-            "minRowsDefaultGrid": 6,
-            "atWidthPx": 200
-        },
-        "value": {
-            "minPx": 72,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
-        },
-        "windowcontact": {
-            "minPx": 68,
-            "minRowsDefaultGrid": 3,
-            "atWidthPx": 160
+        "minimal": {
+          "label": "Layout \"minimal\"",
+          "basePx": 75,
+          "perItemPx": 32.7,
+          "measured": [
+            {
+              "n": 2,
+              "px": 140
+            },
+            {
+              "n": 8,
+              "px": 336
+            }
+          ]
         }
+      },
+      "modifiers": [
+        {
+          "key": "subDps",
+          "label": "zweite Zeile je Eintrag (subDps)",
+          "when": {
+            "path": "entries[].subDps",
+            "nonEmpty": true
+          },
+          "notForVariants": [
+            "minimal"
+          ],
+          "basePx": 0,
+          "perItemPx": 15.3
+        },
+        {
+          "key": "noHeader",
+          "label": "ohne Kopfzeile (showTitle und showIcon aus)",
+          "when": {
+            "all": [
+              {
+                "path": "showTitle",
+                "equals": false
+              },
+              {
+                "path": "showIcon",
+                "equals": false
+              },
+              {
+                "path": "showSum",
+                "not": true
+              },
+              {
+                "path": "groupSwitch",
+                "not": true
+              }
+            ]
+          },
+          "basePx": -34,
+          "perItemPx": 0
+        },
+        {
+          "key": "noTitle",
+          "label": "nur der Titel aus (showTitle: false, Icon bleibt)",
+          "when": {
+            "all": [
+              {
+                "path": "showTitle",
+                "equals": false
+              },
+              {
+                "path": "showIcon",
+                "not": false
+              }
+            ]
+          },
+          "basePx": 0,
+          "perItemPx": 0
+        },
+        {
+          "key": "groupSwitch",
+          "label": "Gruppenschalter in der Kopfzeile (groupSwitch)",
+          "when": {
+            "path": "groupSwitch",
+            "equals": true
+          },
+          "basePx": 0,
+          "perItemPx": 0
+        },
+        {
+          "key": "showSum",
+          "label": "Summe/Statistik (showSum)",
+          "when": {
+            "path": "showSum",
+            "equals": true
+          },
+          "basePx": 0,
+          "perItemPx": 0
+        }
+      ],
+      "notIncluded": [
+        "Filterzeile mit sichtbaren Filtern und Suchfeld",
+        "Raum-Überschriften (groupByRoom) und Trennzeilen (entries[].divider)",
+        "umbrochene Beschriftungen (wrapText) und mehrzeilige Titel",
+        "mehr als ein subDp je Eintrag"
+      ]
     },
-    "notMeasurable": {
-        "iframe": "zeigt eine fremde Seite — die Höhe bestimmt der Inhalt, nicht das Widget",
-        "camera": "Videostream, Seitenverhältnis der Kamera",
-        "image": "Höhe folgt dem Bild",
-        "map": "Karte füllt jede Höhe",
-        "group": "Höhe ergibt sich aus den Kindern (groupRows)",
-        "panels": "Höhe ergibt sich aus den Kindern",
-        "universal": "Höhe ergibt sich aus den Kindern",
-        "mirror": "spiegelt ein anderes Widget",
-        "autolist": "Zeilen entstehen erst zur Laufzeit aus Raum und Gewerk — wie list rechnen",
-        "statusoverview": "Zeilen entstehen erst zur Laufzeit",
-        "calendar": "Zeilen entstehen erst zur Laufzeit aus den Terminen",
-        "messages": "Zeilen entstehen erst zur Laufzeit",
-        "adapterlogs": "Zeilen entstehen erst zur Laufzeit",
-        "scriptstatus": "Zeilen entstehen erst zur Laufzeit",
-        "trash": "Zeilen entstehen erst zur Laufzeit",
-        "trashSchedule": "Zeilen entstehen erst zur Laufzeit",
-        "evcc": "Inhalt kommt aus einer evcc-Instanz",
-        "weather": "Inhalt kommt aus einer Wetter-Instanz",
-        "echartsPreset": "rendert ein gespeichertes eCharts-Preset",
-        "timer": "Zeilen entstehen erst zur Laufzeit",
-        "alarm": "Zeilen entstehen erst zur Laufzeit",
-        "aircontrol": "Inhalt folgt den Datenpunkten der Klimaanlage",
-        "mediaplayer": "Inhalt folgt den Datenpunkten des Players",
-        "loadtimes": "Zeilen entstehen erst zur Laufzeit",
-        "carousel": "Inhalt sind andere Widgets",
-        "menu": "Höhe folgt den Menüeinträgen des Dashboards",
-        "html": "freies HTML",
-        "energiebilanz": "Höhe folgt der Konfiguration — Balken oder Ringe, Einträge, Legende",
-        "adapterstatus": "Zeilen entstehen erst zur Laufzeit"
+    "jsontable": {
+      "item": "Tabellenzeile",
+      "basePx": 86,
+      "perItemPx": 27,
+      "atWidthPx": 240,
+      "measured": [
+        {
+          "n": 2,
+          "px": 140
+        },
+        {
+          "n": 4,
+          "px": 194
+        },
+        {
+          "n": 8,
+          "px": 302
+        }
+      ]
     }
+  },
+  "minimum": {
+    "binarysensor": {
+      "minPx": 68,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    },
+    "button": {
+      "minPx": 54,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 80
+    },
+    "chart": {
+      "minPx": 62,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 240
+    },
+    "chips": {
+      "minPx": 44,
+      "minRowsDefaultGrid": 2,
+      "atWidthPx": 200
+    },
+    "climate": {
+      "minPx": 70,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 200
+    },
+    "clock": {
+      "minPx": 56,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    },
+    "datepicker": {
+      "minPx": 100,
+      "minRowsDefaultGrid": 4,
+      "atWidthPx": 200
+    },
+    "dimmer": {
+      "minPx": 88,
+      "minRowsDefaultGrid": 4,
+      "atWidthPx": 200
+    },
+    "echart": {
+      "minPx": 52,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 240
+    },
+    "enum": {
+      "minPx": 74,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    },
+    "fill": {
+      "minPx": 60,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    },
+    "gauge": {
+      "minPx": 162,
+      "minRowsDefaultGrid": 6,
+      "atWidthPx": 160
+    },
+    "header": {
+      "minPx": 22,
+      "minRowsDefaultGrid": 2,
+      "atWidthPx": 240
+    },
+    "httpRequest": {
+      "minPx": 96,
+      "minRowsDefaultGrid": 4,
+      "atWidthPx": 160
+    },
+    "input": {
+      "minPx": 76,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 200
+    },
+    "jsontable": {
+      "minPx": 302,
+      "minRowsDefaultGrid": 11,
+      "atWidthPx": 240
+    },
+    "knob": {
+      "minPx": 58,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 120
+    },
+    "light": {
+      "minPx": 78,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    },
+    "list": {
+      "minPx": 198,
+      "minRowsDefaultGrid": 7,
+      "atWidthPx": 200
+    },
+    "shutter": {
+      "minPx": 120,
+      "minRowsDefaultGrid": 5,
+      "atWidthPx": 160
+    },
+    "slider": {
+      "minPx": 64,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    },
+    "stateimage": {
+      "minPx": 96,
+      "minRowsDefaultGrid": 4,
+      "atWidthPx": 160
+    },
+    "switch": {
+      "minPx": 68,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    },
+    "thermostat": {
+      "minPx": 144,
+      "minRowsDefaultGrid": 6,
+      "atWidthPx": 200
+    },
+    "value": {
+      "minPx": 72,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    },
+    "windowcontact": {
+      "minPx": 68,
+      "minRowsDefaultGrid": 3,
+      "atWidthPx": 160
+    }
+  },
+  "notMeasurable": {
+    "iframe": "zeigt eine fremde Seite — die Höhe bestimmt der Inhalt, nicht das Widget",
+    "camera": "Videostream, Seitenverhältnis der Kamera",
+    "image": "Höhe folgt dem Bild",
+    "map": "Karte füllt jede Höhe",
+    "group": "Höhe ergibt sich aus den Kindern (groupRows)",
+    "panels": "Höhe ergibt sich aus den Kindern",
+    "universal": "Höhe ergibt sich aus den Kindern",
+    "mirror": "spiegelt ein anderes Widget",
+    "autolist": "Zeilen entstehen erst zur Laufzeit aus Raum und Gewerk — wie list rechnen",
+    "statusoverview": "Zeilen entstehen erst zur Laufzeit",
+    "calendar": "Zeilen entstehen erst zur Laufzeit aus den Terminen",
+    "messages": "Zeilen entstehen erst zur Laufzeit",
+    "adapterlogs": "Zeilen entstehen erst zur Laufzeit",
+    "scriptstatus": "Zeilen entstehen erst zur Laufzeit",
+    "trash": "Zeilen entstehen erst zur Laufzeit",
+    "trashSchedule": "Zeilen entstehen erst zur Laufzeit",
+    "evcc": "Inhalt kommt aus einer evcc-Instanz",
+    "weather": "Inhalt kommt aus einer Wetter-Instanz",
+    "echartsPreset": "rendert ein gespeichertes eCharts-Preset",
+    "timer": "Zeilen entstehen erst zur Laufzeit",
+    "alarm": "Zeilen entstehen erst zur Laufzeit",
+    "aircontrol": "Inhalt folgt den Datenpunkten der Klimaanlage",
+    "mediaplayer": "Inhalt folgt den Datenpunkten des Players",
+    "loadtimes": "Zeilen entstehen erst zur Laufzeit",
+    "carousel": "Inhalt sind andere Widgets",
+    "menu": "Höhe folgt den Menüeinträgen des Dashboards",
+    "html": "freies HTML",
+    "energiebilanz": "Höhe folgt der Konfiguration — Balken oder Ringe, Einträge, Legende",
+    "adapterstatus": "Zeilen entstehen erst zur Laufzeit"
+  }
 }

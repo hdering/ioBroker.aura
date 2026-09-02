@@ -80,6 +80,9 @@ export interface SchemaOption {
     description?: string;
     tsType?: string;
     fields?: Record<string, SchemaOption>;
+    /** Discriminated union (ClickAction): the field that tells the members apart. */
+    discriminator?: string;
+    variants?: { value: string; description?: string; fields?: Record<string, SchemaOption> }[];
 }
 
 export interface SchemaWidget {
@@ -215,6 +218,19 @@ function collectRefs(options: SchemaOption[], schema: WidgetSchema): string[] {
 function renderNamedType(name: string, t: SchemaOption): string {
     if (t.enum) {
         return `${name} = ${t.enum.map((v) => `"${v}"`).join(' | ')}`;
+    }
+    // A discriminated union — without this ClickAction reached the prompt as a
+    // bare "object" and the kinds it accepts were written down nowhere.
+    if (t.variants) {
+        const key = t.discriminator ?? 'kind';
+        const lines = t.variants.map((v) => {
+            const fields = Object.entries(v.fields ?? {})
+                .map(([k, f]) => `${k}${f.required ? '' : '?'}: ${renderTypeName(f)}`)
+                .join('; ');
+            return `    { ${key}: "${v.value}"${fields ? `; ${fields}` : ''} }${v.description ? `  // ${v.description}` : ''}`;
+        });
+        const head = t.description ? `// ${t.description}\n` : '';
+        return `${head}${name} = one of\n${lines.join('\n')}`;
     }
     if (t.fields) {
         const lines = Object.entries(t.fields).map(

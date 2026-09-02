@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.52.8",
+    "auraVersion": "0.52.9",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -196,7 +196,7 @@
     "clickAction": {
       "type": "object",
       "ref": "ClickAction",
-      "description": "Was ein Klick auf das Widget auslöst — Popup, Navigation, Datenpunkt schreiben, URL."
+      "description": "Was ein Klick auf das Widget auslöst: ein Popup öffnen oder springen (Tab, Widget, externe URL). Schreibt KEINEN Datenpunkt — dafür ein schreibendes Widget nehmen (chips, Listenzeile mit displayType \"momentary\"/\"switch\", enum, httpRequest). Die Varianten stehen unter ClickAction."
     },
     "transparent": {
       "type": "boolean",
@@ -722,7 +722,197 @@
     },
     "ClickAction": {
       "type": "object",
-      "tsType": "| { kind: 'none' } | { kind: 'popup-dimmer' } | { kind: 'popup-thermostat'"
+      "discriminator": "kind",
+      "variants": [
+        {
+          "value": "none"
+        },
+        {
+          "value": "popup-dimmer"
+        },
+        {
+          "value": "popup-thermostat",
+          "fields": {
+            "setpointDp": {
+              "type": "string",
+              "datapoint": true
+            },
+            "modeDp": {
+              "type": "string",
+              "datapoint": true
+            }
+          }
+        },
+        {
+          "value": "popup-switch"
+        },
+        {
+          "value": "popup-shutter"
+        },
+        {
+          "value": "popup-mediaplayer"
+        },
+        {
+          "value": "popup-image",
+          "fields": {
+            "url": {
+              "type": "string"
+            },
+            "dp": {
+              "type": "string",
+              "datapoint": true
+            },
+            "fit": {
+              "type": "string",
+              "enum": [
+                "contain",
+                "cover"
+              ]
+            }
+          }
+        },
+        {
+          "value": "popup-iframe",
+          "fields": {
+            "url": {
+              "type": "string",
+              "required": true
+            },
+            "sandbox": {
+              "type": "boolean"
+            },
+            "sandboxPreset": {
+              "type": "string",
+              "enum": [
+                "off",
+                "minimal",
+                "standard",
+                "extended",
+                "full",
+                "custom"
+              ]
+            },
+            "sandboxCustom": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "value": "popup-json",
+          "fields": {
+            "json": {
+              "type": "string"
+            },
+            "dp": {
+              "type": "string",
+              "datapoint": true
+            }
+          }
+        },
+        {
+          "value": "popup-html",
+          "fields": {
+            "html": {
+              "type": "string"
+            },
+            "dp": {
+              "type": "string",
+              "datapoint": true
+            }
+          }
+        },
+        {
+          "value": "popup-widget",
+          "fields": {
+            "widgetId": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "value": "link-tab",
+          "fields": {
+            "layoutId": {
+              "type": "string",
+              "required": true
+            },
+            "tabId": {
+              "type": "string",
+              "required": true
+            },
+            "sectionId": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "value": "link-external",
+          "fields": {
+            "url": {
+              "type": "string",
+              "required": true
+            },
+            "newTab": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "value": "link-widget",
+          "fields": {
+            "layoutId": {
+              "type": "string",
+              "required": true
+            },
+            "tabId": {
+              "type": "string",
+              "required": true
+            },
+            "widgetId": {
+              "type": "string",
+              "required": true
+            },
+            "sectionId": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "value": "popup-view",
+          "fields": {
+            "viewId": {
+              "type": "string",
+              "required": true
+            },
+            "dp": {
+              "type": "string",
+              "datapoint": true
+            }
+          }
+        },
+        {
+          "value": "popup-dps",
+          "description": "Lists every datapoint that sits under the same parent / channel / device as the clicked one. `dp` overrides the source datapoint (default: the widget's own, or the clicked list row's).",
+          "fields": {
+            "scope": {
+              "type": "string",
+              "enum": [
+                "parent",
+                "channel",
+                "device"
+              ]
+            },
+            "dp": {
+              "type": "string",
+              "datapoint": true
+            },
+            "relevantOnly": {
+              "type": "boolean"
+            }
+          }
+        }
+      ],
+      "description": "Was ein Klick auf das Widget (oder auf eine Listenzeile) auslöst: ein Popup öffnen oder irgendwohin springen. Es gibt bewusst KEINE Variante, die einen Datenpunkt schreibt — wer eine Taste braucht, die einen Wert setzt, nimmt ein Widget, das schreibt: \"chips\" (chips[]: dp + value, die Szenen-/ Aktionsleiste), eine Listenzeile mit displayType \"momentary\" (Taster), \"switch\", \"buttons\" oder \"states\", das \"enum\"-Widget für feste Werte, oder \"httpRequest\" für einen Webhook. popup-dimmer/-thermostat/-switch/-shutter/-mediaplayer sind Altbestand und werden beim Rendern auf popup-view mit der eingebauten View umgeschrieben; neu immer popup-view mit viewId."
     },
     "CustomGridDef": {
       "type": "object",
@@ -4154,9 +4344,70 @@
         "sun"
       ]
     },
+    "TimerAstroEvent": {
+      "type": "string",
+      "enum": [
+        "sunrise",
+        "sunset",
+        "dawn",
+        "dusk",
+        "solarNoon"
+      ]
+    },
     "TimerTrigger": {
       "type": "object",
-      "tsType": "| { kind: 'time'"
+      "discriminator": "kind",
+      "variants": [
+        {
+          "value": "time",
+          "fields": {
+            "hour": {
+              "type": "number",
+              "required": true
+            },
+            "minute": {
+              "type": "number",
+              "required": true
+            }
+          }
+        },
+        {
+          "value": "astro",
+          "fields": {
+            "event": {
+              "type": "string",
+              "ref": "TimerAstroEvent",
+              "required": true
+            },
+            "offsetMin": {
+              "type": "number",
+              "required": true
+            }
+          }
+        },
+        {
+          "value": "once",
+          "fields": {
+            "iso": {
+              "type": "string",
+              "required": true
+            }
+          }
+        },
+        {
+          "value": "range",
+          "fields": {
+            "fromIso": {
+              "type": "string",
+              "required": true
+            },
+            "toIso": {
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      ]
     },
     "TimerFilter": {
       "type": "string",

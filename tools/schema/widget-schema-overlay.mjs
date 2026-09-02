@@ -692,7 +692,13 @@ export const UNIVERSAL_OPTIONS = {
     },
     clickAction: {
         ts: 'ClickAction',
-        description: 'Was ein Klick auf das Widget auslöst — Popup, Navigation, Datenpunkt schreiben, URL.',
+        // "Datenpunkt schreiben" stand hier und gibt es nicht: die Union kennt nur
+        // Popups und Sprünge. Der Satz schickte Leser auf die Suche nach einer
+        // Variante, die es nie gab — siehe TYPE_NOTES.ClickAction für den Ausweg.
+        description:
+            'Was ein Klick auf das Widget auslöst: ein Popup öffnen oder springen (Tab, Widget, externe URL). ' +
+            'Schreibt KEINEN Datenpunkt — dafür ein schreibendes Widget nehmen (chips, Listenzeile mit ' +
+            'displayType "momentary"/"switch", enum, httpRequest). Die Varianten stehen unter ClickAction.',
     },
     transparent: {
         ts: 'boolean',
@@ -724,3 +730,23 @@ export const KEY_TYPES = {
 
 /** Identifiers the readers picked up that are not option keys. */
 export const DROP_KEYS = {};
+
+/**
+ * A sentence about a whole named TYPE, where the shape alone does not answer the
+ * question the reader arrived with.
+ *
+ * `ClickAction` is the case that mattered: it reached the schema as a bare
+ * "object", and even fully expanded the list of kinds does not answer "how do I
+ * make a button that writes a datapoint?" — the answer being that a click action
+ * cannot, and the widget has to be a different one.
+ */
+export const TYPE_NOTES = {
+    ClickAction:
+        'Was ein Klick auf das Widget (oder auf eine Listenzeile) auslöst: ein Popup öffnen oder irgendwohin ' +
+        'springen. Es gibt bewusst KEINE Variante, die einen Datenpunkt schreibt — wer eine Taste braucht, ' +
+        'die einen Wert setzt, nimmt ein Widget, das schreibt: "chips" (chips[]: dp + value, die Szenen-/ ' +
+        'Aktionsleiste), eine Listenzeile mit displayType "momentary" (Taster), "switch", "buttons" oder ' +
+        '"states", das "enum"-Widget für feste Werte, oder "httpRequest" für einen Webhook. ' +
+        'popup-dimmer/-thermostat/-switch/-shutter/-mediaplayer sind Altbestand und werden beim Rendern auf ' +
+        'popup-view mit der eingebauten View umgeschrieben; neu immer popup-view mit viewId.',
+};

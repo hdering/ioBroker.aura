@@ -97,11 +97,30 @@ export class SourceIndex {
      * @param name
      */
     typeAliasBody(name) {
-        const re = new RegExp(`(?:export\\s+)?type\\s+${escapeRe(name)}\\s*=\\s*([^;]+);`);
+        // `[^;]+` stopped at the first semicolon INSIDE the body, which for a
+        // union of object literals is the second field of the first member:
+        // ClickAction came back as "| { kind: 'none' } | { kind: 'popup-thermostat'"
+        // and every kind after it was invisible. The end of the alias is the
+        // first `;` at brace depth zero.
+        const re = new RegExp(`(?:export\\s+)?type\\s+${escapeRe(name)}\\s*=\\s*`);
         for (const [, src] of this.entries()) {
             const m = src.match(re);
-            if (m) {
-                return stripLineComments(m[1]).replace(/\s+/g, ' ').trim();
+            if (!m) {
+                continue;
+            }
+            const from = m.index + m[0].length;
+            let depth = 0;
+            for (let i = from; i < src.length; i++) {
+                const c = src[i];
+                if ('<[({'.includes(c)) {
+                    depth++;
+                } else if ('>])}'.includes(c)) {
+                    // Clamped: a stray `>` (a conditional type) must not push the
+                    // depth negative and make the terminator unreachable.
+                    depth = Math.max(0, depth - 1);
+                } else if (c === ';' && depth === 0) {
+                    return stripLineComments(src.slice(from, i)).replace(/\s+/g, ' ').trim();
+                }
             }
         }
         return null;

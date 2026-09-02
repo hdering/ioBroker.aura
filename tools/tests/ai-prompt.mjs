@@ -135,6 +135,16 @@ check('resolves referenced named types', () => {
     assert.match(withThermostat, /ColorThreshold = \[number, string\]/);
 });
 
+check('a discriminated union arrives with its kinds, not as "object"', () => {
+    // ClickAction is on every widget, and as a bare "object" nothing said which
+    // kinds exist — the prompt sent the model off to invent one.
+    const withButton = buildAiPrompt({ ...base, types: ['button'] });
+    assert.match(withButton, /ClickAction = one of/);
+    assert.match(withButton, /kind: "popup-view"; viewId: string/);
+    assert.match(withButton, /kind: "link-tab"/);
+    assert.match(withButton, /KEINE Variante, die einen Datenpunkt schreibt/);
+});
+
 check('renders every datapoint with room, function, role and unit', () => {
     assert.match(prompt, /## Datenpunkte/);
     assert.match(prompt, /hm-rpc\.0\.LEQ1\.1\.STATE \| Deckenlicht \| Wohnzimmer \| Licht \| switch\.light \| boolean/);
