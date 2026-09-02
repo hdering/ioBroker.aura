@@ -138,6 +138,8 @@
     "test:theme-flicker": "node tools/tests/theme-mode-flicker.mjs",
     "test:theme-scope": "node tools/tests/theme-scope.mjs",
     "test:calendar-auto-height": "node tools/tests/calendar-auto-height.mjs",
+    "test:calendar-custom-editor": "node tools/tests/calendar-custom-editor.mjs",
+    "test:calendar-custom-fields": "node tools/tests/calendar-custom-fields.mjs",
     "test:calendar-events": "node tools/tests/calendar-events.mjs",
     "test:calendar-icon-week": "node tools/tests/calendar-icon-week.mjs",
     "test:status-auto-height": "node tools/tests/status-overview-auto-height.mjs",

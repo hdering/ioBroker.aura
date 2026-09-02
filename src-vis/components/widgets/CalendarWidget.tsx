@@ -5,7 +5,16 @@ import { getSocket, subscribeStateDirect, setStateDirect, getStateDirect } from 
 import { useT } from '../../i18n';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { isoWeek } from '../../utils/timeDisplay';
-import { eventEndDay, isMultiDay, splitMultiDay, firstOfWeekFlags, type SplitPart } from '../../utils/calendarEvents';
+import {
+    eventEndDay,
+    isMultiDay,
+    splitMultiDay,
+    firstOfWeekFlags,
+    clockLabel,
+    endClockLabel,
+    timeSpanLabel,
+    type SplitPart,
+} from '../../utils/calendarEvents';
 import { CustomGridView } from './CustomGridView';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
@@ -1050,33 +1059,62 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
 
     if (layout === 'custom') {
         const next = visibleEvents[0];
-        const d = next?.start;
-        const timeStr = d ? `${pad(d.getHours())}:${pad(d.getMinutes())}` : '';
-        const dateStr = next ? formatEventDate(next, t, showSpan) : '';
-        const count = String(visibleEvents.length);
-        const NextCalIcon = next?.sourceIcon ? getWidgetIcon(next.sourceIcon, CalendarDays) : null;
+        // Every visible event carries its own 1-based field set (summary1, date2, …)
+        // so a grid can lay out a whole agenda — one grid row per event — the way the
+        // Wetter widget exposes its forecast days. The unindexed keys stay what they
+        // always were: aliases of event 1, so old grids keep working.
+        const perEventFields: Record<string, string> = {};
+        const perEventComponents: Record<string, React.ReactNode> = {};
+        visibleEvents.forEach((ev, i) => {
+            const n = i + 1;
+            perEventFields[`summary${n}`] = ev.summary ?? '';
+            perEventFields[`date${n}`] = formatEventDate(ev, t, showSpan);
+            perEventFields[`time${n}`] = clockLabel(ev.start);
+            perEventFields[`endtime${n}`] = endClockLabel(ev);
+            perEventFields[`timespan${n}`] = timeSpanLabel(ev);
+            perEventFields[`calname${n}`] = ev.sourceName ?? '';
+            perEventFields[`location${n}`] = ev.location ?? '';
+            // Same label the RunningBadge of the list layouts prints: which day of a
+            // split run this is, or how much of a multi-day event is left.
+            perEventFields[`running${n}`] = ev.dayCount
+                ? t('calendar.dayOfRun', { day: ev.dayIndex ?? 1, days: ev.dayCount })
+                : (runningBadge(ev, t) ?? '');
+            perEventFields[`week${n}`] = String(isoWeek(ev.start));
+            perEventFields[`kw${n}`] = weekLabel(ev.start, t);
+            // Only the row that opens a calendar week carries this one, the way the
+            // agenda layout prints it — "KW 36" on every row reads badly.
+            perEventFields[`kwnew${n}`] = weekFirst[i] ? weekLabel(ev.start, t) : '';
+            perEventFields[`day${n}`] = ev.dayIndex ? String(ev.dayIndex) : '';
+            perEventFields[`daycount${n}`] = ev.dayCount ? String(ev.dayCount) : '';
+            const SrcIcon = ev.sourceIcon ? getWidgetIcon(ev.sourceIcon, CalendarDays) : null;
+            perEventComponents[`cal-icon${n}`] = SrcIcon ? (
+                <SrcIcon size={20} style={{ color: ev.sourceColor ?? 'var(--accent)' }} />
+            ) : null;
+        });
         return (
             <CustomGridView
                 config={config}
                 value={next?.summary ?? ''}
                 extraFields={{
-                    summary: next?.summary ?? '',
-                    date: dateStr,
-                    time: timeStr,
-                    calname: next?.sourceName ?? '',
-                    location: next?.location ?? '',
-                    running: next ? (runningBadge(next, t) ?? '') : '',
-                    count,
-                    week: d ? String(isoWeek(d)) : '',
-                    kw: d ? weekLabel(d, t) : '',
-                    day: next?.dayIndex ? String(next.dayIndex) : '',
-                    daycount: next?.dayCount ? String(next.dayCount) : '',
+                    summary: perEventFields.summary1 ?? '',
+                    date: perEventFields.date1 ?? '',
+                    time: perEventFields.time1 ?? '',
+                    endtime: perEventFields.endtime1 ?? '',
+                    timespan: perEventFields.timespan1 ?? '',
+                    calname: perEventFields.calname1 ?? '',
+                    location: perEventFields.location1 ?? '',
+                    running: perEventFields.running1 ?? '',
+                    count: String(visibleEvents.length),
+                    week: perEventFields.week1 ?? '',
+                    kw: perEventFields.kw1 ?? '',
+                    day: perEventFields.day1 ?? '',
+                    daycount: perEventFields.daycount1 ?? '',
+                    ...perEventFields,
                 }}
                 extraComponents={{
                     icon: <WidgetIcon size={iconSize} style={{ color: 'var(--text-secondary)' }} />,
-                    'cal-icon': NextCalIcon ? (
-                        <NextCalIcon size={20} style={{ color: next?.sourceColor ?? 'var(--accent)' }} />
-                    ) : null,
+                    'cal-icon': perEventComponents['cal-icon1'] ?? null,
+                    ...perEventComponents,
                 }}
             />
         );

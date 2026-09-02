@@ -20,7 +20,7 @@ Eine Zeile mit Icon, nächstem Termin und Datum — für Listen.
 Nur die Anzahl der Termine als große Zahl zentriert — für sehr kleine Zellen.
 
 ### Custom
-Felder `summary`, `date`, `time`, `calname`, `location`, `running`, `count`, `week`, `kw`, `day`, `daycount` des nächsten Termins frei in einer Zellenmatrix platzieren, dazu die Komponenten `icon` (Widget-Icon) und `cal-icon` (Icon des Kalenders) — siehe [Custom-Layout](./custom-layout).
+Terminfelder frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout) und [Custom-Layout: Felder](#custom-layout-felder).
 
 ## Einstellungen
 
@@ -87,6 +87,33 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `multiDaySplit` | `false` | ein Eintrag je Tag statt einer Zeile für die ganze Laufzeit |
 
 Bei `multiDaySplit` zählt jeder Tag einzeln gegen `maxEvents`, und das Badge nennt den Tag der Laufzeit („Tag 2/5“) statt der Restlaufzeit.
+
+### Custom-Layout: Felder {#custom-layout-felder}
+
+Jedes Feld gilt für einen Termin. Die Zellen-Konfiguration hat dafür ein Feld **Termin**: `1` ist der nächste Termin, `2` der darauf folgende usw. Der Schlüssel bekommt die Nummer angehängt (`summary` → `summary2`); eine Terminliste entsteht als eine Rasterzeile je Termin.
+
+| Feld | |
+| --- | --- |
+| `summary` | Terminname |
+| `date` | Datum / Zeit wie in der Liste („Morgen, 09:00“) |
+| `time` | Uhrzeit von |
+| `endtime` | Uhrzeit bis (leer bei ganztägigen Terminen) |
+| `timespan` | `09:00 – 10:30` |
+| `calname` | Kalendername |
+| `location` | Ort |
+| `running` | „läuft“ / „noch N T“ bzw. „Tag 2/5“ bei `multiDaySplit` |
+| `week` | Kalenderwoche als Zahl |
+| `kw` | `KW 36` |
+| `kwnew` | `KW 36`, nur beim ersten Termin der Woche |
+| `day` · `daycount` | Tag der Laufzeit / Tage gesamt bei `multiDaySplit` |
+| `count` | Anzahl angezeigter Termine (gilt für das ganze Widget, ohne Nummer) |
+
+| Komponente | |
+| --- | --- |
+| `icon` | Widget-Icon |
+| `cal-icon` | Icon des Kalenders, aus dem der Termin stammt |
+
+Mehr Termine als `maxEvents` gibt es nicht; Felder ohne Termin bleiben leer.
 
 ### Hervorhebung
 

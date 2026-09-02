@@ -115,3 +115,26 @@ export function firstOfWeekFlags(starts: Date[]): boolean[] {
         return first;
     });
 }
+
+/** "HH:MM" in local time. */
+export function clockLabel(d: Date): string {
+    return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
+/**
+ * Clock time an event ends at, or '' when there is nothing sensible to print:
+ * an all-day event has no "bis" time, and neither has one whose source sent no
+ * DTEND (or an end that isn't after the start).
+ */
+export function endClockLabel(ev: DaySpan): string {
+    if (ev.allDay || !ev.end) return '';
+    if (ev.end.getTime() <= ev.start.getTime()) return '';
+    return clockLabel(ev.end);
+}
+
+/** "09:00 – 10:30", "09:00" when no end is known, '' for an all-day event. */
+export function timeSpanLabel(ev: DaySpan): string {
+    if (ev.allDay) return '';
+    const end = endClockLabel(ev);
+    return end ? `${clockLabel(ev.start)} – ${end}` : clockLabel(ev.start);
+}

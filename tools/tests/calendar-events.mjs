@@ -20,7 +20,7 @@ const bundle = join(cache, `aura-calendar-events-${process.pid}.mjs`);
 await build({
     stdin: {
         contents:
-            "export { splitMultiDay, isMultiDay, eventEndDay, sameDay, firstOfWeekFlags } from './src-vis/utils/calendarEvents.ts';",
+            "export { splitMultiDay, isMultiDay, eventEndDay, sameDay, firstOfWeekFlags, clockLabel, endClockLabel, timeSpanLabel } from './src-vis/utils/calendarEvents.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -30,7 +30,9 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { splitMultiDay, isMultiDay, firstOfWeekFlags } = await import(pathToFileURL(bundle).href);
+const { splitMultiDay, isMultiDay, firstOfWeekFlags, clockLabel, endClockLabel, timeSpanLabel } = await import(
+    pathToFileURL(bundle).href
+);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -149,6 +151,34 @@ eq('week 52 and week 1 stay apart across the year boundary', firstOfWeekFlags([d
     true,
     true,
 ]);
+
+// ── clock labels: the "bis" time of the custom layout ─────────────────────
+
+const timed = { uid: 't', summary: 'Zahnarzt', start: d(2026, 9, 4, 9, 0), end: d(2026, 9, 4, 10, 30), allDay: false };
+eq('clockLabel pads to HH:MM', clockLabel(d(2026, 9, 4, 9, 5)), '09:05');
+eq('endClockLabel is the end of a timed event', endClockLabel(timed), '10:30');
+eq('timeSpanLabel reads von – bis', timeSpanLabel(timed), '09:00 – 10:30');
+
+// An all-day event has no clock time to print — "00:00 – 00:00" would be noise.
+eq('an all-day event has no end time', endClockLabel(allDayRun), '');
+eq('an all-day event has no time span', timeSpanLabel(allDayRun), '');
+
+// Sources that send no DTEND, or one that is not after the start, leave it empty.
+eq(
+    'a timed event without an end has no end time',
+    endClockLabel({ uid: 'n', start: d(2026, 9, 4, 9, 0), allDay: false }),
+    '',
+);
+eq(
+    'a timed event without an end still spans its start',
+    timeSpanLabel({ uid: 'n', start: d(2026, 9, 4, 9, 0), allDay: false }),
+    '09:00',
+);
+eq(
+    'an end at the start is not a span',
+    timeSpanLabel({ uid: 'z', start: d(2026, 9, 4, 9, 0), end: d(2026, 9, 4, 9, 0), allDay: false }),
+    '09:00',
+);
 
 // ── summary ──────────────────────────────────────────────────────────────────
 

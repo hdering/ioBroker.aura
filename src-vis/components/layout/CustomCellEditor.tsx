@@ -152,7 +152,7 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
     ],
     calendar: [
         { key: 'icon', label: 'Widget-Icon' },
-        { key: 'cal-icon', label: '📅 Kalender-Icon (nächster Termin)' },
+        { key: 'cal-icon', label: '📅 Kalender-Icon des Termins' },
     ],
     clock: [
         { key: 'icon', label: 'Widget-Icon' },
@@ -252,17 +252,51 @@ const STATIC_CELL_OPTS: CellOpt[] = (
     ] satisfies CellOpt[]
 ).sort(sortDe);
 
+/**
+ * Kalender-Felder, die es fuer JEDEN sichtbaren Termin gibt. Das Widget haengt die
+ * 1-basierte Termin-Nummer an den Schluessel (summary -> summary3), damit sich eine
+ * ganze Terminliste als Zellenmatrix bauen laesst; der Editor blendet dafuer ein
+ * Nummernfeld ein. Alles andere (z.B. count) gilt fuer das ganze Widget.
+ */
+const CALENDAR_EVENT_FIELDS = new Set([
+    'summary',
+    'date',
+    'time',
+    'endtime',
+    'timespan',
+    'calname',
+    'location',
+    'running',
+    'week',
+    'kw',
+    'kwnew',
+    'day',
+    'daycount',
+]);
+
+/** Dasselbe fuer die Komponenten-Schluessel des Kalenders. */
+const CALENDAR_EVENT_COMPONENTS = new Set(['cal-icon']);
+
+/** Zerlegt summary3 in Basis-Schluessel + Termin-Nummer (ohne Ziffer: Termin 1). */
+function splitEventKey(key: string): { base: string; index: number } {
+    const m = /^(.*[^0-9])([0-9]+)$/.exec(key);
+    return m ? { base: m[1], index: Number(m[2]) } : { base: key, index: 1 };
+}
+
 const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
     calendar: [
         { key: 'summary', label: 'Terminname' },
         { key: 'date', label: 'Datum / Zeit' },
-        { key: 'time', label: 'Uhrzeit' },
+        { key: 'time', label: 'Uhrzeit (von)' },
+        { key: 'endtime', label: 'Uhrzeit (bis)' },
+        { key: 'timespan', label: 'Uhrzeit von – bis' },
         { key: 'calname', label: 'Kalendername' },
         { key: 'location', label: 'Ort' },
         { key: 'running', label: 'Laufzeit-Badge (mehrtägig)' },
-        { key: 'count', label: 'Anzahl Termine' },
+        { key: 'count', label: 'Anzahl Termine (gesamt)' },
         { key: 'week', label: 'Kalenderwoche (Nr.)' },
         { key: 'kw', label: 'Kalenderwoche (KW xx)' },
+        { key: 'kwnew', label: 'Kalenderwoche (nur bei Wochenwechsel)' },
         { key: 'day', label: 'Tag des Termins (bei „jeden Tag einzeln“)' },
         { key: 'daycount', label: 'Tage gesamt (bei „jeden Tag einzeln“)' },
     ],
@@ -823,6 +857,20 @@ export function CustomCellEditor({
             {cell.type === 'field' &&
                 (() => {
                     const options = FIELD_OPTIONS[widgetType] ?? [];
+                    const perEvent = widgetType === 'calendar';
+                    const { base, index } = perEvent
+                        ? splitEventKey(cell.fieldKey ?? '')
+                        : { base: cell.fieldKey ?? '', index: 1 };
+                    const indexed = perEvent && CALENDAR_EVENT_FIELDS.has(base);
+                    // Termin 1 keeps the plain key, so grids built before the per-event
+                    // fields existed stay byte-identical.
+                    const commit = (nextBase: string, nextIndex: number) =>
+                        onChange({
+                            fieldKey:
+                                perEvent && CALENDAR_EVENT_FIELDS.has(nextBase) && nextIndex > 1
+                                    ? `${nextBase}${nextIndex}`
+                                    : nextBase,
+                        });
                     return (
                         <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -830,8 +878,8 @@ export function CustomCellEditor({
                             </label>
                             {options.length > 0 ? (
                                 <select
-                                    value={cell.fieldKey ?? ''}
-                                    onChange={(e) => onChange({ fieldKey: e.target.value })}
+                                    value={base}
+                                    onChange={(e) => commit(e.target.value, index)}
                                     className={inputCls}
                                     style={inputSty}
                                 >
@@ -852,6 +900,25 @@ export function CustomCellEditor({
                                     style={inputSty}
                                 />
                             )}
+                            {indexed && (
+                                <div className="flex items-center gap-2 mt-1.5">
+                                    <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                        Termin
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={50}
+                                        value={index}
+                                        onChange={(e) => commit(base, Math.max(1, Number(e.target.value) || 1))}
+                                        className="w-20 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                        style={inputSty}
+                                    />
+                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        1 = nächster Termin
+                                    </span>
+                                </div>
+                            )}
                         </div>
                     );
                 })()}
@@ -860,6 +927,18 @@ export function CustomCellEditor({
             {cell.type === 'component' &&
                 (() => {
                     const options = COMPONENT_OPTIONS[widgetType] ?? [];
+                    const perEvent = widgetType === 'calendar';
+                    const { base, index } = perEvent
+                        ? splitEventKey(cell.componentKey ?? '')
+                        : { base: cell.componentKey ?? '', index: 1 };
+                    const indexed = perEvent && CALENDAR_EVENT_COMPONENTS.has(base);
+                    const commit = (nextBase: string, nextIndex: number) =>
+                        onChange({
+                            componentKey:
+                                perEvent && CALENDAR_EVENT_COMPONENTS.has(nextBase) && nextIndex > 1
+                                    ? `${nextBase}${nextIndex}`
+                                    : nextBase,
+                        });
                     return (
                         <>
                             <div>
@@ -867,8 +946,8 @@ export function CustomCellEditor({
                                     Aktion / Icon
                                 </label>
                                 <select
-                                    value={cell.componentKey ?? ''}
-                                    onChange={(e) => onChange({ componentKey: e.target.value })}
+                                    value={base}
+                                    onChange={(e) => commit(e.target.value, index)}
                                     className={inputCls}
                                     style={inputSty}
                                 >
@@ -880,6 +959,25 @@ export function CustomCellEditor({
                                     ))}
                                 </select>
                             </div>
+                            {indexed && (
+                                <div className="flex items-center gap-2">
+                                    <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                        Termin
+                                    </label>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={50}
+                                        value={index}
+                                        onChange={(e) => commit(base, Math.max(1, Number(e.target.value) || 1))}
+                                        className="w-20 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                        style={inputSty}
+                                    />
+                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        1 = nächster Termin
+                                    </span>
+                                </div>
+                            )}
                             <div className="flex items-center gap-2">
                                 <label className="text-[11px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                                     Größe
