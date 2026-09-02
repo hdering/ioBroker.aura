@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.52.8 (2026-09-02)
+- MCP - the history check now also runs while writing: aura_write_tab, aura_add_widget and aura_update_widget report a chart series on an unrecorded datapoint instead of writing it silently
+- MCP - aura_measure no longer reads like a finding when a widget type has no measured height; the reason now says why there is no number instead of demanding a change
+
+
 ### 0.52.7 (2026-09-02)
 - MCP - aura_validate and aura_review now report a chart series whose datapoint no history adapter records, plus a typo in a series datapoint
 - MCP - aura_review takes a scope (one tab or the whole dashboard) and no longer reports element ids as missing datapoints or a power reading as a meter
@@ -232,10 +237,6 @@ Release v0.50.6
 - 🌟 **New feature:** List - the icon size of a row can now be set per datapoint, not only for the switch display ([#572](https://github.com/hdering/ioBroker.aura/issues/572))
 
 
-### 0.50.3 (2026-08-25)
-- 🌟 **New feature:** Frontend design - tab bar and area menu elements can now be reordered with up/down arrows
-
-
 ## License
 
 MIT License
@@ -247,6 +248,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

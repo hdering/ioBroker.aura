@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.50.3 (2026-08-25)
+- 🌟 **New feature:** Frontend design - tab bar and area menu elements can now be reordered with up/down arrows
+
 ## 0.50.2 (2026-08-25)
 - 🌟 **New feature:** The installed adapter version is now published as `aura.0.info.version`, so it can be shown anywhere in the frontend
 
