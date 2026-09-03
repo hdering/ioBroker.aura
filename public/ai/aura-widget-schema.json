@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.53.0",
+    "auraVersion": "0.53.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1617,7 +1617,8 @@
           "required": true
         },
         "color": {
-          "type": "string"
+          "type": "string",
+          "description": "A fixed colour value — `#3b82f6`, `rgb(...)`, `red`. NOT `var(--token)`: eCharts paints on a canvas, where a CSS variable resolves to nothing at all (`ctx.fillStyle = 'var(--accent)'` is dropped, fallback included), so the series is drawn in whatever colour was set last and usually disappears. Unset means the next colour of the built-in palette."
         },
         "historyInstance": {
           "type": "string"

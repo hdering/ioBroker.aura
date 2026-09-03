@@ -744,6 +744,39 @@ Hell/Dunkel-Paar) und setzt beides zusammen:
 - **`aura_theme`** liefert alles, inklusive der Element-Token mit ihrer Vererbung
   (`elements: false` kürzt auf die Basis).
 
+**Und die eine Stelle, an der die Regel nicht gilt.** Aus der Praxis gemeldet:
+`var(--accent)` in `echartSeries[].color` — Diagramm dauerhaft leer. eCharts
+zeichnet mit `renderer: 'canvas'`, und dort ist eine CSS-Variable keine Farbe. Im
+echten Browser gemessen:
+
+| gesetzt                     | `ctx.fillStyle` danach |
+| --------------------------- | ---------------------- |
+| `var(--accent)`             | unverändert            |
+| `var(--accent, #3b82f6)`    | unverändert            |
+| `currentColor`              | unverändert            |
+| `#3b82f6`                   | `#3b82f6`              |
+
+Die Zuweisung wird verworfen — **auch mit Fallback** —, die Serie behält die
+zuletzt gesetzte Farbe und ist auf dunklem Grund weg. Drei Ursachen, alle
+behoben:
+
+1. Die Palette in `aura_dashboard` sagte „Immer var(--token) schreiben, nie einen
+   Hex-Wert" **ohne Ausnahme** — die Anweisung selbst führte in den Fehler. Sie
+   nennt die Ausnahme jetzt, `aura_theme` ebenfalls.
+2. Im Schema stand `color?: string`. Jetzt sagt das JSDoc, was dort hineingehört
+   und warum kein Token.
+3. `aura_validate` schwieg. `canvasColorFindings()` macht daraus einen **Fehler**
+   wie bei jedem anderen unbrauchbaren Wert — und nennt gleich den Wert, der
+   stattdessen hineingehört: `themeValues()` löst das Token gegen das Theme
+   dieses Dashboards auf („--accent ist auf diesem Dashboard #3b82f6"). Ohne
+   Theme im Kontext bleibt der Verweis auf `aura_theme`. `aura_review` meldet
+   dasselbe als `canvas-colors` für das, was schon gespeichert ist.
+
+Dazu der Grund, warum es so lange lief: Ein Rezept (`raum-tab`) hatte selbst ein
+`var(--accent-yellow)` in einer Serie. Der Test dazu prüfte nur die eine
+Richtung — Hex, wo ein Token hingehört — und ließ `echart` ganz aus. Er prüft
+jetzt beide Richtungen.
+
 Zwei Feinheiten, die die Antwort ehrlich halten: Bei `followBrowser` sind **zwei**
 Themes im Spiel, das steht ausdrücklich da (`#111827 / #ffffff`) statt gemittelt
 zu werden — und das Default-Theme wird **nicht** zusätzlich angehängt, wenn eines

@@ -18,6 +18,13 @@ export interface EChartSeriesConfig {
     name: string;
     datapointId: string;
     chartType: 'line' | 'bar' | 'area' | 'scatter';
+    /**
+     * A fixed colour value — `#3b82f6`, `rgb(...)`, `red`. NOT `var(--token)`:
+     * eCharts paints on a canvas, where a CSS variable resolves to nothing at all
+     * (`ctx.fillStyle = 'var(--accent)'` is dropped, fallback included), so the
+     * series is drawn in whatever colour was set last and usually disappears.
+     * Unset means the next colour of the built-in palette.
+     */
     color?: string;
     historyInstance?: string;
     historyRange?: EChartTimeRange;

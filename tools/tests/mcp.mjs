@@ -56,7 +56,7 @@ const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
 const { collectDatapointRefs, historyFindings, historyReads, writeRefs } = require('../../lib/mcp/dpFit.js');
 const { measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
 const { designCanvas, renderCanvas } = require('../../lib/mcp/canvas.js');
-const { activeThemes, renderPalette, renderTheme } = require('../../lib/mcp/theme.js');
+const { activeThemes, renderPalette, renderTheme, themeValues } = require('../../lib/mcp/theme.js');
 const THEME_TOKENS = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-theme-tokens.json'), 'utf8'));
 const {
     TOKEN_PLACEHOLDER,
@@ -464,6 +464,71 @@ check('the object behind the datapoint is compared with the widget', () => {
         ),
         [],
     );
+});
+
+// ── A colour the canvas cannot read ──────────────────────────────────────────
+// Reported from use: `var(--accent)` in echartSeries[].color. The schema said
+// `color?: string` and nothing else, the palette in aura_dashboard said "always
+// var(--token)" without an exception, and the chart stayed empty for good.
+// Measured in the real browser: ctx.fillStyle = 'var(--accent)' is DROPPED, with
+// a fallback too, so the series keeps the colour set last.
+
+const echartWith = (color) => ({
+    id: 'e1',
+    type: 'echart',
+    title: 'Verbrauch',
+    datapoint: 'demo.value',
+    gridPos: { x: 0, y: 0, w: 12, h: 8 },
+    options: {
+        echartSeries: [
+            { id: 's1', name: 'Strom', datapointId: 'demo.value', chartType: 'bar', ...(color ? { color } : {}) },
+        ],
+    },
+});
+const THEME_VALUES = themeValues(THEME_TOKENS, { themeId: 'dark' });
+
+check('a token in a canvas colour is an error, with the value to use instead', () => {
+    const res = validateWidget(echartWith('var(--accent)'), schema, { themeValues: THEME_VALUES });
+    assert.ok(hasError(res, /echartSeries\[0\]\.color/), JSON.stringify(res.errors));
+    assert.ok(hasError(res, /auf dem Canvas keine Farbe/));
+    // The fix, not a pointer to another tool: the token's value on THIS dashboard.
+    assert.ok(hasError(res, /--accent ist auf diesem Dashboard #3b82f6/), JSON.stringify(res.errors));
+});
+
+check('a CSS fallback does not save it, and currentColor is the same trap', () => {
+    // Measured: 'var(--accent, #3b82f6)' leaves fillStyle untouched as well.
+    for (const color of ['var(--accent, #3b82f6)', 'var( --accent-green )', 'currentColor']) {
+        assert.ok(hasError(validateWidget(echartWith(color), schema, { themeValues: THEME_VALUES }), /Canvas/), color);
+    }
+});
+
+check('a real colour, and no colour at all, pass', () => {
+    for (const color of ['#3b82f6', 'rgb(59, 130, 246)', 'red', undefined]) {
+        const res = validateWidget(echartWith(color), schema, { themeValues: THEME_VALUES });
+        assert.deepEqual(res.errors, [], `${color}: ${res.errors.join(' | ')}`);
+    }
+});
+
+check('without the theme the finding still names what to do', () => {
+    const res = validateWidget(echartWith('var(--accent)'), schema, {});
+    assert.ok(hasError(res, /aura_theme nennt ihn/), JSON.stringify(res.errors));
+});
+
+check('the token is right everywhere the widget paints DOM', () => {
+    // The rule is about the canvas, not about tokens: a list row, a badge or a
+    // threshold is DOM and a token is exactly what belongs there.
+    const w = {
+        id: 'l1',
+        type: 'list',
+        title: 'Licht',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 10, h: 6 },
+        options: {
+            entries: [{ id: 'demo.a', colorThresholds: [[18, 'var(--accent)']] }],
+            trueText: 'AN',
+        },
+    };
+    assert.deepEqual(validateWidget(w, schema, { themeValues: THEME_VALUES }).errors, []);
 });
 
 // ── Controls that are not the widget's own datapoint ─────────────────────────
@@ -2342,6 +2407,16 @@ check('no recipe teaches a hard-coded colour where a token works', () => {
         }
     }
     assert.match(findRecipe('verbrauch').notes.join(' '), /Canvas/, 'the exception is explained');
+    // And the inverse, which is how the reported one slipped through: this check
+    // only ever looked for a hex value where a token belongs, so a token in an
+    // echart series colour — dead on the canvas — passed for as long as it existed.
+    for (const recipe of RECIPES) {
+        for (const w of recipe.widgets) {
+            for (const s of w.options?.echartSeries ?? []) {
+                assert.ok(!/var\(/.test(s.color ?? ''), `${recipe.id}/${w.id}: color "${s.color}" is dead on canvas`);
+            }
+        }
+    }
 });
 
 check('a rendered recipe hands over parseable JSON and names its placeholders', () => {
