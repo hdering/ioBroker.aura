@@ -681,6 +681,78 @@ Trenner, die wirklich gebaut wurden. Der erste Anlauf tat das nicht: ein
 führender Trenner wurde beim Rendern verworfen, geteilt wurde trotzdem durch vier
 — und aus −16 px wurden −20,5 px.
 
+**Eine gemessene Höhe gilt nur für die Darstellung, in der sie gemessen wurde.**
+Aus der Praxis gemeldet, mit 17 Listen über sechs Tabs nachgemessen: jede Liste
+war falsch — unter drei Zeilen zu groß, darüber zu klein, und der Fehler wuchs
+mit jeder Zeile. Ursache waren nicht die Zuschläge (die stimmten fast alle),
+sondern die beiden Grundwerte. Das Dashboard läuft mit `widgetPadding` 8 und
+`fontScale` 1.3, gemessen war bei 16 und 1:
+
+| | gemessen | auf dem Dashboard |
+| --- | --- | --- |
+| Karte (Chrome) | 66 px | 52 px |
+| Grundzeile | 33 px | 37,8 px |
+
+Das sind 14 px zu viel einmal je Liste und 4,8 px zu wenig **je Zeile** — bei
+drei Zeilen heben sie sich auf, deshalb sah es lange nach Zufallstreffern aus. Bei
+zwölf Zeilen fehlten 50 px, und die Empfehlung „nimm h=15" scrollte weiter, weil
+sie mit demselben zu kleinen Modell gerechnet war.
+
+Beide Einstellungen sind Drei-Ebenen-Schlüssel wie das Raster und kommen aus
+derselben Auflösung (`effectiveSettings` in `canvas.js`, jetzt auch `fontScale`
+und `widgetPadding`; `designCanvas` gibt sie als `presentation` mit):
+
+- **Innenabstand** ist reine Arithmetik: er steht zweimal im Chrome jeder Karte.
+  Über den ganzen Bereich 0…40 px nachgemessen ist das Chrome der Liste
+  `35 px + 2 × Innenabstand`, auf den Pixel. `paddingDelta()` rechnet
+  `2 × (Abstand − 16)` auf jede Basis und auf jede Mindesthöhe — außer bei den
+  Typen, die der Rahmen randlos zeichnet (`NO_PAD_TYPES`, WidgetFrames `isNoPad`).
+- **Schriftskalierung** ist keine Arithmetik, sie wird gemessen. Der Messstand
+  fährt darum jeden Punkt **zweimal**: bei 1 und bei 1.3 (`SCALE_HIGH`). Aus der
+  Differenz wird `fontScalePx` — was ein Schritt der Skalierung in Pixeln wert
+  ist, je Basis und je Zeile.
+
+Der zweite Messpunkt sagt auch, **welche Art Zeile** eine Darstellung zeichnet, und
+das ist der eigentliche Gewinn: eine Zeile ist entweder Text oder ein Bedienelement.
+
+| Darstellung | bei 1 | bei 1.3 | Art |
+| --- | --- | --- | --- |
+| `contact` | 37 px (+4) | 41,8 px (+4) | Text — der Zuschlag bleibt |
+| `momentary` | 41 px (+8) | 45,8 px (+8) | Text |
+| `switch` | 35 px (+2) | 37,8 px (±0) | Element, 35 px hoch |
+| `shutter` | 43 px (+10) | 43 px (+5,2) | Element, 43 px hoch |
+
+Ein Kontakt-Chip ist eine Textzeile mit etwas Polsterung: seine +4 px sind bei
+jeder Skalierung +4 px. Eine Rollladen-Zeile ist ein Bedienelement von festen
+43 px: ihr Zuschlag schrumpft, während der Text wächst, und ist weg, sobald der
+Text höher ist. `rowKind()` im Messstand unterscheidet die beiden daran, ob der
+Zuschlag zwischen den zwei Messungen **kleiner** wurde, und schreibt beide Fälle
+in dieselbe Formel, die `rowTypePx()` in `measure.js` auswertet:
+
+```
+Zuschlag(f) = max(perItemPx + (fontScalePx − Zeilensteigung) × (f − 1), addPx)
+```
+
+An beiden gemessenen Skalierungen ist das exakt; dazwischen und darüber ist es
+eine Interpolation, und `$meta.caveats` sagt das. Fehlen die Felder (eine ältere
+Metrikdatei), ist die Formel genau `perItemPx` — also das, was vorher galt.
+
+Die Antwort nennt die Darstellung, für die sie gerechnet hat, im Kopf — sonst
+sehen die Zahlen aus, als kämen sie direkt aus der Messung, und auf diesem
+Dashboard taten sie das nicht. `aura_dashboard` nennt sie ebenfalls, gleich neben
+dem Raster.
+
+**Und die Trennzeile hatte nie eine Überschrift.** Beim Nachrechnen des Befunds
+blieben je Trenner rund 9 px offen. Der Messstand setzte `name` auf seine Trenner
+— `SectionBreak` liest aber `dividerLabel`. Gemessen war also immer die nackte
+Linie (17 px: Polsterung um ein Haarlinien-`<span>`), während Dashboards die
+Überschrift benutzen; die kostet eine Textzeile mehr und liegt damit nahe an
+einer vollen Inhaltszeile. Es sind zwei Zeilenformen, und sie stehen jetzt beide
+in `rowTypes` (`divider`, `dividerHeading`); `rowDisplayType()` entscheidet am
+`dividerLabel` des Eintrags, welche gilt. Eine Metrikdatei ohne die neue Form
+fällt über `FALLBACK_ROW_TYPE` auf die nackte Linie zurück, statt die Trennzeile
+als volle Zeile zu zählen.
+
 Die gemessenen **Nullen** bleiben im Ergebnis stehen („±0"): dass der
 Gruppenschalter nichts kostet, ist eine Antwort — sein Fehlen liest sich wie
 Vergessen. Und weil nicht alles gemessen ist, nennt die Antwort im Fuß

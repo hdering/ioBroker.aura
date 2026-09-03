@@ -80,6 +80,12 @@ export interface ShowWidgetsOptions {
     gridRowHeight?: number;
     gridSnapX?: number;
     gridGap?: number;
+    /** Presentation settings the widget height depends on — a row grows with the
+     *  font scale, the card chrome with the padding. The height metrics harness
+     *  measures both, so aura_measure can follow the dashboard instead of
+     *  reporting the numbers of a default installation. */
+    fontScale?: number;
+    widgetPadding?: number;
 }
 
 const DEMO_LAYOUT_ID = 'screenshot-demo';
@@ -180,6 +186,8 @@ function installScreenshotApi(): void {
                     gridRowHeight: opts.gridRowHeight ?? 20,
                     gridSnapX: opts.gridSnapX ?? opts.gridRowHeight ?? 20,
                     gridGap: opts.gridGap ?? 10,
+                    ...(opts.fontScale !== undefined ? { fontScale: opts.fontScale } : {}),
+                    ...(opts.widgetPadding !== undefined ? { widgetPadding: opts.widgetPadding } : {}),
                 },
                 sections: [
                     {

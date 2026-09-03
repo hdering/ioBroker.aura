@@ -24,16 +24,26 @@
 // — no socket write, no real datapoint is touched.
 import fs from 'node:fs';
 import path from 'node:path';
+import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+
+const require = createRequire(import.meta.url);
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 const METRICS = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-widget-metrics.json'), 'utf8'));
 const SCHEMA = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-widget-schema.json'), 'utf8'));
 
+const { measureWidget } = require('../../lib/mcp/measure.js');
+
 /** The same probe grid the metrics harness uses, so the width matches atWidthPx. */
 const GRID = { gridRowHeight: 2, gridSnapX: 20, gridGap: 0 };
+/** The grid aura_measure is asked about — only the pixels it returns matter here. */
+const ASK_GRID = { rowHeight: 20, snapX: 20, gap: 10 };
+/** The presentation the metrics were measured at, and a second one to check against. */
+const REF = METRICS.$meta.reference;
+const SCALES = METRICS.$meta.fontScaleMeasuredAt ?? [REF.fontScale];
 const COLS = SCHEMA.widgets.list.defaultSize.w;
 /** 2 px probe rows: the metrics resolution, and the tolerance here. */
 const TOL = 2;
@@ -115,13 +125,13 @@ const widget = (opts, layout) => ({
     ...(layout && layout !== 'default' ? { layout } : {}),
 });
 
-async function show(cfg) {
+async function show(cfg, settings) {
     await page.evaluate(
         ({ cfg, grid, mock }) => {
             window.__auraShot.mock(mock);
             window.__auraShot.showWidgets([cfg], { editMode: false, ...grid });
         },
-        { cfg, grid: GRID, mock: MOCK },
+        { cfg, grid: { ...GRID, ...(settings ?? {}) }, mock: MOCK },
     );
     await page.waitForTimeout(200);
 }
@@ -143,13 +153,60 @@ const contentPx = () =>
     });
 
 /** px per row, the slope between two and eight rows. */
-async function slope(dt, layout) {
-    await show(widget({ entries: entries(2, dt) }, layout));
+async function slope(dt, layout, settings) {
+    await show(widget({ entries: entries(2, dt) }, layout), settings);
     const two = await contentPx();
-    await show(widget({ entries: entries(8, dt) }, layout));
+    await show(widget({ entries: entries(8, dt) }, layout), settings);
     const eight = await contentPx();
     return Math.round(((eight - two) / 6) * 10) / 10;
 }
+
+/** The same slope as aura_measure would report it, at this presentation. */
+function askedSlope(dt, layout, presentation) {
+    const ask = (n) =>
+        measureWidget(
+            {
+                id: 'rh',
+                type: 'list',
+                title: 'Messung',
+                datapoint: '',
+                gridPos: { x: 0, y: 0, w: COLS, h: 40 },
+                options: { entries: entries(n, dt) },
+                ...(layout && layout !== 'default' ? { layout } : {}),
+            },
+            { metrics: METRICS, grid: ASK_GRID, presentation },
+        ).requiredPx;
+    return Math.round(((ask(8) - ask(2)) / 6) * 10) / 10;
+}
+
+/** What aura_measure thinks the card costs around the rows, at this presentation. */
+function askedChrome(presentation) {
+    const ask = (n) =>
+        measureWidget(
+            {
+                id: 'rh',
+                type: 'list',
+                title: 'Messung',
+                datapoint: '',
+                gridPos: { x: 0, y: 0, w: COLS, h: 40 },
+                options: { entries: entries(n, null) },
+            },
+            { metrics: METRICS, grid: ASK_GRID, presentation },
+        ).requiredPx;
+    return Math.round(ask(2) - 2 * ((ask(8) - ask(2)) / 6));
+}
+
+/** Card minus the row area: what the befund calls the chrome. */
+const chromePx = () =>
+    page.evaluate(() => {
+        const root = document.querySelector('.aura-widget-rh');
+        const scroller = root?.querySelector('.aura-scroll');
+        if (!scroller) return -1;
+        const card = root.getBoundingClientRect();
+        const box = scroller.getBoundingClientRect();
+        const rows = [...scroller.children].map((e) => e.getBoundingClientRect()).filter((r) => r.height > 0);
+        return Math.round(rows[0].top - card.top + (card.bottom - box.bottom));
+    });
 
 // ── the measured row height is the one the browser lays out ──────────────────
 for (const layout of ['default', 'card', 'compact']) {
@@ -190,6 +247,97 @@ for (const layout of ['default', 'card', 'compact', 'minimal']) {
     const b = await contentPx();
     near(`${layout}: the separator against the row it replaces`, Math.round((b - a) * 10) / 10, want.perItemPx);
 }
+
+// ── the presentation the dashboard is actually drawn with ────────────────────
+// Reported from a running dashboard: every list was wrong, one way below three
+// rows and the other way above it. The installation runs widgetPadding 8 and
+// fontScale 1.3 while the metrics are measured at 16 and 1 — 14 px too much
+// chrome and 4.8 px too little per row. These checks bind aura_measure's own
+// answer, for those settings, to what the browser lays out.
+
+for (const fontScale of SCALES) {
+    for (const layout of ['default', 'card', 'compact', 'minimal']) {
+        const pres = { fontScale, widgetPadding: REF.widgetPaddingPx };
+        near(
+            `${layout} at font scale ${fontScale}: the default row`,
+            await slope(null, layout, { fontScale }),
+            askedSlope(null, layout, pres),
+        );
+        for (const dt of Object.keys(ROW_TYPES)) {
+            near(
+                `${layout} at font scale ${fontScale}: ${dt}`,
+                await slope(dt, layout, { fontScale }),
+                askedSlope(dt, layout, pres),
+            );
+        }
+    }
+}
+
+// The chrome: 35 px plus twice the padding, measured across the whole range the
+// setting allows. This is the half of the error that is pure arithmetic.
+for (const widgetPadding of [0, 8, REF.widgetPaddingPx, 24, 40]) {
+    await show(widget({ entries: entries(4, null) }, 'default'), { widgetPadding });
+    near(`the card chrome at ${widgetPadding} px padding`, await chromePx(), askedChrome({ widgetPadding }));
+}
+
+// ── the separator with a heading ─────────────────────────────────────────────
+// The harness set `name` on its separators and the widget reads `dividerLabel`,
+// so every measured separator was a bare rule while dashboards use the titled
+// one — nearly a whole content row taller.
+for (const fontScale of SCALES) {
+    for (const layout of ['default', 'card', 'compact', 'minimal']) {
+        const plain = entries(8, null);
+        const sep = (heading) => [
+            ...entries(3, null),
+            { id: 'demo.sep', divider: true, ...(heading ? { dividerLabel: 'Abschnitt' } : {}) },
+            ...entries(4, null),
+        ];
+        await show(widget({ entries: plain }, layout), { fontScale });
+        const a = await contentPx();
+        for (const [key, heading] of [
+            ['divider', false],
+            ['dividerHeading', true],
+        ]) {
+            await show(widget({ entries: sep(heading) }, layout), { fontScale });
+            const b = await contentPx();
+            const asked = measureWidget(
+                {
+                    id: 'rh',
+                    type: 'list',
+                    title: 'Messung',
+                    datapoint: '',
+                    gridPos: { x: 0, y: 0, w: COLS, h: 40 },
+                    options: { entries: sep(heading) },
+                    ...(layout !== 'default' ? { layout } : {}),
+                },
+                { metrics: METRICS, grid: ASK_GRID, presentation: { fontScale } },
+            );
+            const plainAsked = measureWidget(
+                {
+                    id: 'rh',
+                    type: 'list',
+                    title: 'Messung',
+                    datapoint: '',
+                    gridPos: { x: 0, y: 0, w: COLS, h: 40 },
+                    options: { entries: plain },
+                    ...(layout !== 'default' ? { layout } : {}),
+                },
+                { metrics: METRICS, grid: ASK_GRID, presentation: { fontScale } },
+            );
+            near(
+                `${layout} at font scale ${fontScale}: ${key} against the row it replaces`,
+                Math.round((b - a) * 10) / 10,
+                asked.requiredPx - plainAsked.requiredPx,
+            );
+        }
+    }
+}
+
+check(
+    'a separator with a heading costs more than the bare rule',
+    METRICS.counted.list.rowTypes.dividerHeading.perItemPx > METRICS.counted.list.rowTypes.divider.perItemPx,
+    `${METRICS.counted.list.rowTypes.divider.perItemPx} px vs ${METRICS.counted.list.rowTypes.dividerHeading.perItemPx} px`,
+);
 
 // A contact row being taller than a value row is the whole finding — if these
 // ever come out equal, the surcharge is measuring nothing.

@@ -12,6 +12,8 @@ import {
     CheckCircle2,
     RefreshCw,
     Trash2,
+    Bot,
+    ExternalLink,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useT } from '../../i18n';
@@ -317,6 +319,81 @@ function BrokenDpRefsSection() {
     );
 }
 
+function McpSection() {
+    const t = useT();
+    const steps = [
+        t('dashboard.mcp.step1'),
+        t('dashboard.mcp.step2'),
+        t('dashboard.mcp.step3'),
+        t('dashboard.mcp.step4'),
+    ];
+
+    return (
+        <div
+            className="rounded-xl p-5 space-y-3"
+            style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+        >
+            <div className="flex items-center gap-2">
+                <Bot size={16} style={{ color: 'var(--accent)' }} />
+                <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                    {t('dashboard.mcp.title')}
+                </h2>
+                <span
+                    className="text-[10px] font-bold px-1.5 py-0.5 rounded"
+                    style={{
+                        background: 'color-mix(in srgb, var(--accent-yellow) 22%, transparent)',
+                        color: 'var(--accent-yellow)',
+                    }}
+                >
+                    {t('dashboard.mcp.badge')}
+                </span>
+            </div>
+
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {t('dashboard.mcp.description')}
+            </p>
+
+            <ol className="space-y-1.5">
+                {steps.map((step, i) => (
+                    <li key={i} className="flex items-baseline gap-2 text-xs" style={{ color: 'var(--text-primary)' }}>
+                        <span
+                            className="inline-flex items-center justify-center shrink-0 text-[10px] font-bold rounded-full w-5 h-5"
+                            style={{
+                                background: 'color-mix(in srgb, var(--accent) 18%, transparent)',
+                                color: 'var(--accent)',
+                            }}
+                        >
+                            {i + 1}
+                        </span>
+                        <span>{step}</span>
+                    </li>
+                ))}
+            </ol>
+
+            <p
+                className="text-xs px-3 py-2 rounded-lg"
+                style={{
+                    background: 'color-mix(in srgb, var(--accent-yellow) 12%, transparent)',
+                    color: 'var(--text-secondary)',
+                }}
+            >
+                {t('dashboard.mcp.warning', { ns: NS })}
+            </p>
+
+            <a
+                href="https://hdering.github.io/ioBroker.aura/einstellungen/mcp"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs hover:underline"
+                style={{ color: 'var(--accent)' }}
+            >
+                {t('dashboard.mcp.docs')}
+                <ExternalLink size={12} />
+            </a>
+        </div>
+    );
+}
+
 export function AdminDashboard() {
     const t = useT();
     const { layouts } = useDashboardStore();
@@ -338,6 +415,7 @@ export function AdminDashboard() {
 
             <TimerOrphansSection />
             <BrokenDpRefsSection />
+            <McpSection />
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

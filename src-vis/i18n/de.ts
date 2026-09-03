@@ -322,6 +322,18 @@ export const de = {
     'dashboard.aura.room': 'Raumbasierte Organisation – jedes Tablet sein eigenes Layout',
     'dashboard.aura.automation': 'ioBroker-Automatisierungen live steuern und visualisieren',
 
+    'dashboard.mcp.title': 'Aura per KI steuern (MCP)',
+    'dashboard.mcp.badge': 'BETA',
+    'dashboard.mcp.description':
+        'Aura stellt einen MCP-Server bereit. Ein KI-Assistent (Claude Desktop, Claude Code, …) liest damit die Dashboard-Struktur, schlägt Widget-Optionen nach und baut Tabs — ohne JSON von Hand.',
+    'dashboard.mcp.step1': 'ioBroker-Admin → Instanzen → aura.0 → Konfiguration → „KI-Zugriff (MCP)“ aktivieren.',
+    'dashboard.mcp.step2': 'Token erzeugen und die fertige Client-Konfiguration kopieren.',
+    'dashboard.mcp.step3': 'Block in den KI-Client einfügen (Claude Desktop, Claude Code, …).',
+    'dashboard.mcp.step4': 'Zusätzlich den Adapter ioBroker.mcp einrichten — nur er kennt die Datenpunkte.',
+    'dashboard.mcp.warning':
+        'Der Assistent verändert dein Dashboard. Vor jedem Schreibvorgang sichert Aura nach {ns}.backups. Mit der Stufe „Nur lesen“ anfangen.',
+    'dashboard.mcp.docs': 'Alle Schritte in der Dokumentation',
+
     'dashboard.nav.title': 'Tablet-Navigation via ioBroker',
     'dashboard.nav.description':
         'Setze den folgenden Datenpunkt aus einem ioBroker-Skript oder einer Automatisierung, um das Tablet auf einen bestimmten Tab oder eine externe URL zu navigieren. Der Datenpunkt wird nach der Navigation automatisch zurückgesetzt.',

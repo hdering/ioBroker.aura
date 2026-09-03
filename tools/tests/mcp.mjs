@@ -1297,6 +1297,131 @@ check('a separator is counted as a row, and as the shorter row it is', () => {
     assert.match(two.basis, /2 × Trennzeile/, two.basis);
 });
 
+// ── The dashboard's own presentation ─────────────────────────────────────────
+// Reported from a running dashboard: every list came out wrong, one way below
+// three rows and the other way above it. The installation runs widgetPadding 8
+// and fontScale 1.3, the metrics are measured at 16 and 1 — 14 px too much
+// chrome and 4.8 px too little per row, which cancel at three rows and diverge
+// from there (a twelve-row list came back 50 px short, and the "use h=15" advice
+// still scrolled). Both are read from the dashboard now.
+
+// A stale metrics file would otherwise take the whole suite down with a
+// TypeError instead of saying what is missing.
+const REF_PRESENTATION = METRICS.$meta.reference ?? { fontScale: 1, widgetPaddingPx: 16 };
+
+check('the metrics file says what presentation it was measured at', () => {
+    assert.ok(METRICS.$meta.reference, 'run npm run metrics — the file predates the presentation correction');
+    assert.ok(METRICS.counted.list.fontScalePx, 'the list must carry what a font-scale step is worth');
+});
+const AT = (fontScale, widgetPadding) => ({
+    metrics: METRICS,
+    grid: GRID,
+    presentation: { fontScale, widgetPadding },
+});
+
+check('a dashboard drawn like the measurement gets the measured numbers', () => {
+    const plain = measureWidget(listWidget(8, 25), { metrics: METRICS, grid: GRID });
+    const same = measureWidget(
+        listWidget(8, 25),
+        AT(REF_PRESENTATION.fontScale, REF_PRESENTATION.widgetPaddingPx),
+    );
+    assert.equal(same.requiredPx, plain.requiredPx);
+    // And it does not say anything about a presentation nobody changed.
+    assert.ok(!/Darstellung dieses Dashboards/.test(renderMeasure([plain], { grid: GRID, metrics: METRICS })));
+});
+
+check('the inner padding sits twice in the chrome — two pixels per pixel', () => {
+    const ref = REF_PRESENTATION.widgetPaddingPx;
+    const at = (pad) => measureWidget(listWidget(8, 25), AT(1, pad)).requiredPx;
+    assert.equal(at(ref) - at(ref - 8), 16);
+    assert.equal(at(ref + 8) - at(ref), 16);
+    // A minimum is a card too — it carries the padding just the same.
+    const gauge = { id: 'g', type: 'gauge', title: 'G', datapoint: 'demo.value', gridPos: { x: 0, y: 0, w: 8, h: 3 } };
+    assert.equal(
+        measureWidget(gauge, AT(1, ref)).requiredPx - measureWidget(gauge, AT(1, ref - 8)).requiredPx,
+        16,
+    );
+});
+
+check('the frame types that have no padding are not corrected for it', () => {
+    // WidgetFrame draws these edge to edge (isNoPad) — correcting them would
+    // invent a gutter that is not there.
+    const iframe = { id: 'h', type: 'header', title: 'H', datapoint: '', gridPos: { x: 0, y: 0, w: 8, h: 2 } };
+    const tight = measureWidget(iframe, AT(1, 0)).requiredPx;
+    const wide = measureWidget(iframe, AT(1, 40)).requiredPx;
+    if (tight && wide) {
+        assert.equal(tight, wide, 'a widget drawn without padding does not react to the setting');
+    }
+});
+
+check('the font scale stretches the rows, and the answer says so', () => {
+    const one = measureWidget(listWidget(10, 25), AT(1, 16));
+    const big = measureWidget(listWidget(10, 25), AT(1.3, 16));
+    const rowSlope = METRICS.counted.list.fontScalePx.perItemPx;
+    assert.ok(rowSlope > 0, 'a list row grows with the font scale');
+    // Ten rows, three tenths of a scale step: the whole difference is the rows.
+    assert.equal(big.requiredPx - one.requiredPx, Math.round(10 * rowSlope * 0.3));
+    assert.ok(big.needRows > one.needRows, 'and it costs grid rows, which is the point');
+    const out = renderMeasure([big], { grid: GRID, metrics: METRICS, presentation: { fontScale: 1.3 } });
+    assert.match(out, /Schriftskalierung 1\.3/, out);
+    assert.match(out, /umgerechnet/, out);
+});
+
+check('a row of fixed height stops the surcharge instead of scaling it', () => {
+    // A contact chip is text: its +4 px is +4 px at every scale. A shutter row is
+    // a control 43 px tall: its +10 px shrinks as the text grows and is gone once
+    // the text has passed it. Measured at two scales, told apart by `addPx`.
+    const rowsOf = (dt) => ({
+        ...listWidget(6, 25),
+        options: { entries: Array.from({ length: 6 }, (_, i) => ({ id: `demo.${i}`, displayType: dt })) },
+    });
+    const px = (dt, f) => measureWidget(rowsOf(dt), AT(f, 16)).requiredPx;
+    const plain = (f) => measureWidget(listWidget(6, 25), AT(f, 16)).requiredPx;
+    // The text row: the surcharge survives the scale unchanged.
+    assert.equal(px('contact', 1) - plain(1), px('contact', 1.3) - plain(1.3));
+    // The control: it does not grow at all between the two measured scales.
+    assert.equal(px('shutter', 1), px('shutter', 1.3));
+    assert.ok(px('shutter', 1) > plain(1), 'and it is the taller row at scale 1');
+});
+
+check('the reported dashboard is measured the way it is drawn', () => {
+    // The case from the report, end to end: ten value rows and two section
+    // separators at padding 8 and scale 1.3 — measured at 480 px in the browser.
+    const entries = [
+        { id: 'demo.0' },
+        { id: 'demo.sep1', divider: true, dividerLabel: 'Abschnitt' },
+        ...Array.from({ length: 5 }, (_, i) => ({ id: `demo.a${i}` })),
+        { id: 'demo.sep2', divider: true, dividerLabel: 'Abschnitt' },
+        ...Array.from({ length: 5 }, (_, i) => ({ id: `demo.b${i}` })),
+    ];
+    const w = { ...listWidget(12, 9), options: { entries } };
+    const m = measureWidget(w, AT(1.3, 8));
+    assert.ok(Math.abs(m.requiredPx - 480) <= 12, `expected about 480 px, got ${m.requiredPx} — ${m.basis}`);
+    // And the advice has to fit on the first try: h=9 was reported as needing
+    // h=15, which still scrolled.
+    assert.ok(rowsToPx(m.needRows, GRID) >= m.requiredPx, 'the suggested height must actually fit');
+});
+
+check('a separator with a heading is not the bare rule', () => {
+    // The metrics only ever measured a separator without a heading (the harness
+    // set `name`, the widget reads `dividerLabel`), so every list with section
+    // titles came back short by nearly a row per title.
+    const sep = (label) => ({
+        ...listWidget(6, 25),
+        options: {
+            entries: [
+                { id: 'demo.0' },
+                { id: 'demo.sep', divider: true, ...(label ? { dividerLabel: 'Abschnitt' } : {}) },
+                ...Array.from({ length: 4 }, (_, i) => ({ id: `demo.${i + 1}` })),
+            ],
+        },
+    });
+    const bare = measureWidget(sep(false), { metrics: METRICS, grid: GRID });
+    const titled = measureWidget(sep(true), { metrics: METRICS, grid: GRID });
+    assert.ok(titled.requiredPx > bare.requiredPx, `a heading is a line of text: ${titled.basis}`);
+    assert.match(titled.basis, /Überschrift/, titled.basis);
+});
+
 check('the footnote no longer claims separators are left out', () => {
     // The exact sentence that misled: "Raum-Überschriften (groupByRoom) und
     // Trennzeilen (entries[].divider)" under every measurement.

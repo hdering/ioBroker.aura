@@ -29,9 +29,22 @@
  * Everything runs against injected demo state with screenshotMode on, so no
  * ioBroker state is ever written.
  *
- * A full run takes its time (every point walks down from 800 px, and the list is
- * measured per layout AND per row display) — a quarter of an hour is normal. Use
- * `--only list` while working on one type.
+ * Everything is measured TWICE, at font scale 1 and at 1.3, because a measured
+ * height is only a fact for the presentation it was measured in. Reported from a
+ * running dashboard: with `fontScale` 1.3 and `widgetPadding` 8 every list came
+ * out wrong — 14 px too much chrome and 4.8 px too little per row, which cancel
+ * at three rows and diverge in both directions from there. The padding is exact
+ * arithmetic (it sits twice in the chrome, so aura_measure corrects it without a
+ * second measurement); the font scale is not, so it is measured.
+ *
+ * The second point also says WHICH KIND of row a display draws. A contact chip is
+ * a text line: its +4 px stays +4 px at every scale. A shutter row is a control of
+ * a fixed 43 px: its +10 px at scale 1 shrinks as the text grows and is gone once
+ * the text is taller. `addPx` and `fontScalePx` carry that difference.
+ *
+ * A full run takes its time (every point walks down from 800 px, the list is
+ * measured per layout AND per row display, and all of it twice) — half an hour is
+ * normal. Use `--only list` while working on one type.
  */
 
 import fs from 'node:fs';
@@ -53,6 +66,21 @@ const TOP_ROWS = 400;
 const COARSE = 10; // 20 px steps on the way down
 const WID = 'm';
 const TOL = 2; // px — sub-pixel layout noise and 1px borders
+
+/**
+ * The presentation every number below is measured at, and the second font scale
+ * the growth is measured against.
+ *
+ * 1.3 rather than something larger: it is a scale people actually run (the report
+ * that started this came from one), and the model is exact at both measured
+ * points, so the value that matters most is the one that is not interpolated.
+ */
+const REFERENCE = { fontScale: 1, widgetPaddingPx: 16 };
+const SCALE_HIGH = 1.3;
+const SCALE_SPAN = SCALE_HIGH - REFERENCE.fontScale;
+/** Below this a slope is the 2 px walk-down resolution divided by the span, not an effect. */
+const SLOPE_TOL = PX_PER_ROW / SCALE_SPAN;
+const r1 = (x) => Math.round(x * 10) / 10;
 
 const DP = 'demo.value';
 const DP_BOOL = 'demo.switch';
@@ -135,7 +163,7 @@ const listEntries = (n, rt) => {
  * dropped row silently falsifies the delta (measured: it made a −16 px row look
  * like −20.5 px).
  */
-const listWithDividers = (n, d) => {
+const listWithDividers = (n, d, heading) => {
     const out = [];
     let seps = 0;
     while (out.length < n) {
@@ -143,7 +171,15 @@ const listWithDividers = (n, d) => {
         // `n - 2`, so a separator is never the last entry.
         if (seps < d && out.length < n - 1) {
             seps++;
-            out.push({ id: `sep${seps}`, divider: true, name: `Abschnitt ${seps}` });
+            out.push({
+                id: `sep${seps}`,
+                divider: true,
+                name: `Abschnitt ${seps}`,
+                // The heading is `dividerLabel` — `name` is not read at all, which
+                // is exactly how the first measurement came to describe a bare
+                // rule while every dashboard uses the titled one.
+                ...(heading ? { dividerLabel: `Abschnitt ${seps}` } : {}),
+            });
         }
     }
     return out;
@@ -192,14 +228,27 @@ const COUNTED = [
         // row count with half of them replaced, because a separator has no line of
         // its own to fit: see listWithDividers.
         dividerRow: {
-            label: 'Trennzeile',
             // Eight entries, three separators: enough to divide the difference by
             // and few enough that the card layout (64.7 px a row) still fits in the
             // 800 px probe. The placement rule may fit fewer than asked for, and
             // the delta is divided by what was actually built.
             rows: 8,
             dividers: 3,
-            build: (n, d) => ({ options: { entries: listWithDividers(n, d) } }),
+            // Two shapes, because they are two different rows: the bare rule is
+            // padding around a hairline, the titled one carries a line of text and
+            // costs nearly a whole content row. Dashboards use the titled one.
+            shapes: [
+                {
+                    key: 'divider',
+                    label: 'Trennzeile',
+                    build: (n, d) => ({ options: { entries: listWithDividers(n, d) } }),
+                },
+                {
+                    key: 'dividerHeading',
+                    label: 'Trennzeile mit Überschrift',
+                    build: (n, d) => ({ options: { entries: listWithDividers(n, d, true) } }),
+                },
+            ],
         },
         modifiers: [
             {
@@ -293,6 +342,8 @@ const COUNTED = [
             'Raum-Überschriften (groupByRoom)',
             'Trennzeilen im Layout „compact“: sie unterbrechen zusätzlich den zweispaltigen Fluss, der ' +
                 'gemessene Aufschlag ist ein Mittelwert',
+            'eine Trennzeile ganz oben ist 8 px niedriger als eine zwischen zwei Zeilen (gemessen wird die ' +
+                'zwischen zwei Zeilen)',
             'umbrochene Beschriftungen (wrapText) und mehrzeilige Titel',
             'mehr als ein subDp je Eintrag',
         ],
@@ -411,7 +462,7 @@ await page.evaluate(() =>
     localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })),
 );
 
-async function render(type, { rows, cols, datapoint, options, mock, layout }) {
+async function render(type, { rows, cols, datapoint, options, mock, layout, fontScale }) {
     const cfg = {
         id: WID,
         type,
@@ -426,7 +477,11 @@ async function render(type, { rows, cols, datapoint, options, mock, layout }) {
             window.__auraShot.mock(mock);
             window.__auraShot.showWidgets([cfg], { editMode: false, ...grid });
         },
-        { cfg, grid: PROBE_GRID, mock: { ...MOCK, ...(mock || {}) } },
+        {
+            cfg,
+            grid: { ...PROBE_GRID, fontScale: fontScale ?? REFERENCE.fontScale },
+            mock: { ...MOCK, ...(mock || {}) },
+        },
     );
     // Two identical readings instead of a guessed timeout: fonts, charts and the
     // grid settle over a frame or two.
@@ -484,24 +539,66 @@ async function requiredPx(type, setup) {
  * Below one pixel a difference is fit noise over the measured span, not a factor
  * anybody can plan a row height with — reported as the zero it is.
  */
-async function rowTypeDeltas(spec, { cols, counts, layout, ref }) {
+async function rowTypeDeltas(spec, { cols, counts, layout, ref, refHigh }) {
     const out = {};
     for (const rt of spec.rowTypes) {
-        const r = await line(spec, { cols, counts, layout, build: (n) => spec.rowTypeBuild(n, rt) });
-        if (r.error) {
-            console.warn(`  skip ${spec.type}/${layout ?? 'default'}:${rt.key}: ${r.error}`);
+        const build = (n) => spec.rowTypeBuild(n, rt);
+        const lo = await line(spec, { cols, counts, layout, build });
+        const hi = await line(spec, { cols, counts, layout, build, fontScale: SCALE_HIGH });
+        if (lo.error || hi.error) {
+            console.warn(`  skip ${spec.type}/${layout ?? 'default'}:${rt.key}: ${lo.error || hi.error}`);
             continue;
         }
-        const d = Math.round((r.perItemPx - ref.perItemPx) * 10) / 10;
-        out[rt.key] = { label: rt.label, perItemPx: Math.abs(d) < 1 ? 0 : d };
+        out[rt.key] = { label: rt.label, ...rowKind(lo.perItemPx, hi.perItemPx, ref.perItemPx, refHigh.perItemPx) };
     }
     const shown = Object.entries(out)
-        .filter(([, v]) => v.perItemPx)
-        .map(([k, v]) => `${k} ${v.perItemPx > 0 ? '+' : ''}${v.perItemPx}`);
+        .filter(([, v]) => v.perItemPx || v.addPx)
+        .map(([k, v]) => `${k} ${v.perItemPx > 0 ? '+' : ''}${v.perItemPx}${v.fontScalePx ? '' : ' (fest)'}`);
     console.log(
         `  ${`Zeilen (${layout ?? 'default'})`.padEnd(14)} ${shown.length ? shown.join(', ') : 'alle wie die Wert-Zeile'}`,
     );
     return out;
+}
+
+/** A slope small enough to be the walk-down's own resolution is reported as zero. */
+function denoiseSlope(px) {
+    return Math.abs(px) < SLOPE_TOL ? 0 : r1(px);
+}
+
+/** What one step of the font scale is worth for a measured line, in px. */
+function scaleOf(lo, hi) {
+    return {
+        basePx: denoiseSlope((hi.basePx - lo.basePx) / SCALE_SPAN),
+        perItemPx: r1((hi.perItemPx - lo.perItemPx) / SCALE_SPAN),
+    };
+}
+
+/**
+ * What kind of row this is, from the same row measured at two font scales.
+ *
+ * A row is either text or a control. A contact chip is text with a little
+ * padding: its +4 px over the value row is +4 px at every scale. A shutter row is
+ * a control 43 px tall: its +10 px at scale 1 shrinks as the text grows and is
+ * gone the moment the text is taller than the control. Told apart by whether the
+ * surcharge SHRANK between the two measurements, and written so that
+ * aura_measure's one formula covers both:
+ *
+ *   surcharge(f) = max(perItemPx + (fontScalePx − Zeilensteigung) × (f − 1), addPx)
+ *
+ * Exact at both measured scales either way.
+ */
+function rowKind(rowLo, rowHi, baseLo, baseHi) {
+    const addLo = r1(rowLo - baseLo);
+    const addHi = r1(rowHi - baseHi);
+    // Below a pixel over the measured span it is fit noise, not a row height
+    // anybody can plan with — reported as the zero it is (as it always was).
+    const quiet = (d) => (Math.abs(d) < 1 ? 0 : d);
+    if (addHi < addLo - 0.5) {
+        // A control of a fixed height: it does not follow the text at all, and
+        // `addPx` is what is left of it once the text has caught up.
+        return { perItemPx: quiet(addLo), addPx: addHi, fontScalePx: 0 };
+    }
+    return { perItemPx: quiet(addLo), addPx: quiet(addLo), fontScalePx: r1((rowHi - rowLo) / SCALE_SPAN) };
 }
 
 /**
@@ -516,28 +613,42 @@ async function rowTypeDeltas(spec, { cols, counts, layout, ref }) {
  * its own footnote claimed separators were "not included", which reads as "add
  * space for each of them". Both halves were wrong.
  */
-async function dividerDelta(spec, { cols, layout }) {
-    const { rows, dividers, build, label } = spec.dividerRow;
-    const payload = build(rows, dividers);
-    // Counted from what was BUILT, not from what was asked for: the placement
-    // rule can fit fewer separators than requested, and dividing by the request
-    // would falsify the delta the same way the dropped row did.
-    const n = (payload.options.entries || []).filter((e) => e && e.divider).length;
-    if (!n) {
-        return null;
+async function dividerDeltas(spec, { cols, layout, base, baseHigh }) {
+    const { rows, dividers, shapes } = spec.dividerRow;
+    const out = {};
+    for (const shape of shapes) {
+        const payload = shape.build(rows, dividers);
+        // Counted from what was BUILT, not from what was asked for: the placement
+        // rule can fit fewer separators than requested, and dividing by the request
+        // would falsify the delta the same way the dropped row did.
+        const n = (payload.options.entries || []).filter((e) => e && e.divider).length;
+        if (!n) {
+            continue;
+        }
+        const at = async (fontScale) => {
+            const plain = await requiredPx(spec.type, { cols, layout, fontScale, ...spec.build(rows) });
+            const mixed = await requiredPx(spec.type, { cols, layout, fontScale, ...payload });
+            return plain.error || mixed.error
+                ? { error: plain.error || mixed.error }
+                : { d: (mixed.px - plain.px) / n };
+        };
+        const lo = await at(REFERENCE.fontScale);
+        const hi = await at(SCALE_HIGH);
+        if (lo.error || hi.error) {
+            console.warn(`  skip ${spec.type}/${layout ?? 'default'}:${shape.key}: ${lo.error || hi.error}`);
+            continue;
+        }
+        // A separator is a row like any other — measured as a delta, so its
+        // absolute height is the layout's row plus that delta at the same scale.
+        const kind = rowKind(base.perItemPx + lo.d, baseHigh.perItemPx + hi.d, base.perItemPx, baseHigh.perItemPx);
+        out[shape.key] = { label: shape.label, ...kind };
+        console.log(
+            `  ${`${shape.key} (${layout ?? 'default'})`.padEnd(24)} ${r1(lo.d)} px/Zeile bei Skalierung ` +
+                `${REFERENCE.fontScale}, ${r1(hi.d)} px bei ${SCALE_HIGH} ⇒ ` +
+                `${r1(base.perItemPx + lo.d)} px hohe Zeile${kind.fontScalePx ? '' : ', feste Höhe'}`,
+        );
     }
-    const plain = await requiredPx(spec.type, { cols, layout, ...spec.build(rows) });
-    const mixed = await requiredPx(spec.type, { cols, layout, ...payload });
-    if (plain.error || mixed.error) {
-        console.warn(`  skip ${spec.type}/${layout ?? 'default'}:Trennzeile: ${plain.error || mixed.error}`);
-        return null;
-    }
-    const d = Math.round(((mixed.px - plain.px) / n) * 10) / 10;
-    console.log(
-        `  ${`Trennzeile (${layout ?? 'default'})`.padEnd(14)} ${plain.px} px → ${mixed.px} px bei ${rows} Zeilen, ` +
-            `${n} davon Trenner ⇒ ${d > 0 ? '+' : ''}${d} px/Zeile`,
-    );
-    return { label, perItemPx: Math.abs(d) < 1 ? 0 : d };
+    return Object.keys(out).length ? out : null;
 }
 
 const wanted = (type) => !only || only.has(type);
@@ -550,13 +661,14 @@ const counted = {};
  * Two counts are the minimum, four give the same slope and catch a row that is
  * not linear at all.
  */
-async function line(spec, { cols, counts, build, layout }) {
+async function line(spec, { cols, counts, build, layout, fontScale }) {
     const points = [];
     for (const n of counts) {
         const r = await requiredPx(spec.type, {
             cols,
             datapoint: spec.datapoint,
             layout,
+            fontScale,
             ...build(n),
             mock: spec.mock ? spec.mock(n) : undefined,
         });
@@ -581,31 +693,42 @@ for (const spec of COUNTED) {
     }
     const cols = schema.widgets[spec.type].defaultSize.w;
     const base = await line(spec, { cols, counts: spec.counts, build: spec.build });
-    if (base.error) {
-        console.warn(`skip ${spec.type} (gezählt): ${base.error}`);
+    const baseHigh = await line(spec, { cols, counts: spec.counts, build: spec.build, fontScale: SCALE_HIGH });
+    if (base.error || baseHigh.error) {
+        console.warn(`skip ${spec.type} (gezählt): ${base.error || baseHigh.error}`);
         continue;
     }
     const entry = {
         item: spec.item,
         basePx: base.basePx,
         perItemPx: base.perItemPx,
+        fontScalePx: scaleOf(base, baseHigh),
         atWidthPx: cols * PROBE_GRID.gridSnapX,
         measured: base.measured,
     };
     console.log(
         `${spec.type.padEnd(16)} ${base.measured.map((p) => `${p.n}→${p.px}px`).join('  ')}   → ` +
-            `${entry.basePx} px + ${entry.perItemPx} px/${spec.item}`,
+            `${entry.basePx} px + ${entry.perItemPx} px/${spec.item} ` +
+            `(je Schriftskalierung +${entry.fontScalePx.basePx}/+${entry.fontScalePx.perItemPx} px)`,
     );
 
     const counts = spec.variantCounts ?? spec.counts;
     for (const v of spec.variants ?? []) {
-        const r = await line(spec, { cols, counts, build: v.build ?? spec.build, layout: v.layout });
-        if (r.error) {
-            console.warn(`  skip ${spec.type}/${v.key}: ${r.error}`);
+        const build = v.build ?? spec.build;
+        const r = await line(spec, { cols, counts, build, layout: v.layout });
+        const rHigh = await line(spec, { cols, counts, build, layout: v.layout, fontScale: SCALE_HIGH });
+        if (r.error || rHigh.error) {
+            console.warn(`  skip ${spec.type}/${v.key}: ${r.error || rHigh.error}`);
             continue;
         }
         entry.variants = entry.variants ?? {};
-        entry.variants[v.key] = { label: v.label, basePx: r.basePx, perItemPx: r.perItemPx, measured: r.measured };
+        entry.variants[v.key] = {
+            label: v.label,
+            basePx: r.basePx,
+            perItemPx: r.perItemPx,
+            fontScalePx: scaleOf(r, rHigh),
+            measured: r.measured,
+        };
         console.log(`  ${v.key.padEnd(14)} ${r.basePx} px + ${r.perItemPx} px/${spec.item}`);
         // The displays are measured against THIS layout's own row — a card row is
         // twice a default one, so the same chip is not worth the same delta in it.
@@ -615,12 +738,13 @@ for (const spec of COUNTED) {
                 counts,
                 layout: v.layout,
                 ref: r,
+                refHigh: rHigh,
             });
         }
         if (spec.dividerRow) {
-            const d = await dividerDelta(spec, { cols, layout: v.layout });
+            const d = await dividerDeltas(spec, { cols, layout: v.layout, base: r, baseHigh: rHigh });
             if (d) {
-                entry.variants[v.key].rowTypes = { ...(entry.variants[v.key].rowTypes || {}), divider: d };
+                entry.variants[v.key].rowTypes = { ...(entry.variants[v.key].rowTypes || {}), ...d };
             }
         }
     }
@@ -632,24 +756,34 @@ for (const spec of COUNTED) {
     // The reference is the default at the SAME counts, or the two lines would
     // differ by the noise between four measured points and two. The row displays
     // below are deltas against the same line.
-    const ref =
-        (spec.modifiers ?? []).length || (spec.rowTypes ?? []).length
-            ? await line(spec, { cols, counts, build: spec.build })
-            : null;
+    const needRef = (spec.modifiers ?? []).length || (spec.rowTypes ?? []).length;
+    const ref = needRef ? await line(spec, { cols, counts, build: spec.build }) : null;
+    const refHigh = needRef ? await line(spec, { cols, counts, build: spec.build, fontScale: SCALE_HIGH }) : null;
     for (const m of spec.modifiers ?? []) {
-        if (ref.error) {
-            console.warn(`  skip ${spec.type} modifiers: ${ref.error}`);
+        if (ref.error || refHigh.error) {
+            console.warn(`  skip ${spec.type} modifiers: ${ref.error || refHigh.error}`);
             break;
         }
         const r = await line(spec, { cols, counts, build: m.build });
-        if (r.error) {
-            console.warn(`  skip ${spec.type}/${m.key}: ${r.error}`);
+        const rHigh = await line(spec, { cols, counts, build: m.build, fontScale: SCALE_HIGH });
+        if (r.error || rHigh.error) {
+            console.warn(`  skip ${spec.type}/${m.key}: ${r.error || rHigh.error}`);
             continue;
         }
         entry.modifiers = entry.modifiers ?? [];
         // The probe grid resolves to 2 px, so a delta that small is noise from the
         // fit rather than a factor. Reported as the zero it is.
         const denoise = (d) => (Math.abs(d) <= PX_PER_ROW ? 0 : d);
+        // A modifier can change how the widget REACTS to the scale, not only how
+        // tall it is: switching the header off takes the line that grows with it
+        // away. Stored as the difference of the two slopes, denoised on the same
+        // 2 px the walk-down resolves — divided by the span, so it takes a real
+        // effect to survive.
+        const slope = (a, b) => denoiseSlope((a - b) / SCALE_SPAN);
+        const fontScalePx = {
+            basePx: slope(rHigh.basePx - r.basePx, refHigh.basePx - ref.basePx),
+            perItemPx: slope(rHigh.perItemPx - r.perItemPx, refHigh.perItemPx - ref.perItemPx),
+        };
         entry.modifiers.push({
             key: m.key,
             label: m.label,
@@ -658,6 +792,7 @@ for (const spec of COUNTED) {
             ...(m.notForTypes ? { notForTypes: m.notForTypes } : {}),
             basePx: denoise(r.basePx - ref.basePx),
             perItemPx: denoise(Math.round((r.perItemPx - ref.perItemPx) * 10) / 10),
+            ...(fontScalePx.basePx || fontScalePx.perItemPx ? { fontScalePx } : {}),
         });
         const d = entry.modifiers[entry.modifiers.length - 1];
         console.log(
@@ -666,16 +801,16 @@ for (const spec of COUNTED) {
         );
     }
     if ((spec.rowTypes ?? []).length) {
-        if (ref.error) {
-            console.warn(`  skip ${spec.type} Zeilendarstellungen: ${ref.error}`);
+        if (ref.error || refHigh.error) {
+            console.warn(`  skip ${spec.type} Zeilendarstellungen: ${ref.error || refHigh.error}`);
         } else {
-            entry.rowTypes = await rowTypeDeltas(spec, { cols, counts, ref });
+            entry.rowTypes = await rowTypeDeltas(spec, { cols, counts, ref, refHigh });
         }
     }
     if (spec.dividerRow) {
-        const d = await dividerDelta(spec, { cols });
+        const d = await dividerDeltas(spec, { cols, base, baseHigh });
         if (d) {
-            entry.rowTypes = { ...(entry.rowTypes || {}), divider: d };
+            entry.rowTypes = { ...(entry.rowTypes || {}), ...d };
         }
     }
     if (spec.notIncluded) {
@@ -690,13 +825,24 @@ for (const type of Object.keys(schema.widgets)) {
     }
     const cols = schema.widgets[type].defaultSize.w;
     const r = await requiredPx(type, { cols });
-    if (r.error) {
-        console.warn(`skip ${type}: ${r.error}`);
+    const rHigh = await requiredPx(type, { cols, fontScale: SCALE_HIGH });
+    if (r.error || rHigh.error) {
+        console.warn(`skip ${type}: ${r.error || rHigh.error}`);
         continue;
     }
     const rowsAt20 = Math.ceil((r.px + 10) / 30); // rows at the default grid (20 px + 10 px gap)
-    results[type] = { minPx: r.px, minRowsDefaultGrid: rowsAt20, atWidthPx: cols * PROBE_GRID.gridSnapX };
-    console.log(`${type.padEnd(16)} min ${String(r.px).padStart(4)} px  (${rowsAt20} Zeilen im Standardraster)`);
+    // A minimum grows with the font scale too — a value tile is one big number.
+    const fontScalePx = denoiseSlope((rHigh.px - r.px) / SCALE_SPAN);
+    results[type] = {
+        minPx: r.px,
+        minRowsDefaultGrid: rowsAt20,
+        ...(fontScalePx ? { fontScalePx } : {}),
+        atWidthPx: cols * PROBE_GRID.gridSnapX,
+    };
+    console.log(
+        `${type.padEnd(16)} min ${String(r.px).padStart(4)} px  (${rowsAt20} Zeilen im Standardraster` +
+            `${fontScalePx ? `, +${fontScalePx} px je Schriftskalierung` : ''})`,
+    );
 }
 
 await browser.close();
@@ -710,9 +856,15 @@ const metrics = {
         name: 'AURA widget height metrics',
         generator: 'tools/schema/measure-widget-metrics.mjs',
         measured: new Date().toISOString().slice(0, 10),
+        // What every number below is a fact FOR. aura_measure re-computes them for
+        // the dashboard it is asked about: the padding by arithmetic (it sits
+        // twice in the chrome), the font scale from the second measured point.
+        reference: { fontScale: REFERENCE.fontScale, widgetPaddingPx: REFERENCE.widgetPaddingPx },
+        fontScaleMeasuredAt: [REFERENCE.fontScale, SCALE_HIGH],
         method:
             `Measured in the real frontend: the height is walked down until the content either scrolls or ` +
-            `reaches past the card. ${PX_PER_ROW} px resolution, each type at its default width.`,
+            `reaches past the card. ${PX_PER_ROW} px resolution, each type at its default width, ` +
+            `at font scale ${REFERENCE.fontScale} and ${SCALE_HIGH} with ${REFERENCE.widgetPaddingPx} px widget padding.`,
         caveats: [
             'Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.',
             'A minimum is measured with default options and one line of title. A filter row, a statistics line or a second title line add to it.',
@@ -720,6 +872,7 @@ const metrics = {
             'A row display (rowTypes) is a delta on ONE row, measured per layout: a contact or a state chip is taller than the measured value row, and a list that mixes displays is summed row by row.',
             'Modifiers are measured one at a time. Several at once are added up, which is an approximation, not a measurement of that combination.',
             'A minimum is the point where content starts to be lost, not a recommended size — defaultSize is that.',
+            'Every number is measured at font scale 1 with 16 px widget padding (the reference above). aura_measure corrects for the dashboard it is asked about: the padding exactly (2 px of chrome per px of padding), the font scale from fontScalePx/addPx, which is exact at the two measured scales and an interpolation between and beyond them.',
         ],
     },
     grid: { note: 'rows × rowHeight + (rows − 1) × gap = px. Row height and gap come from aura_dashboard.' },
