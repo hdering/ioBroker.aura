@@ -413,6 +413,7 @@ export type ClickAction =
 // options.popupAutoCloseSec?: number – per-click-action auto-close override (0 = off, >0 = seconds; undefined = inherit view/global)
 // options.popupTransparency?: number – per-click-action popup transparency in % (0 = opaque; undefined = inherit view/global)
 // options.popupBackdropDim?: number – per-click-action backdrop dim in % (0 = clear; undefined = inherit view/global)
+// options.popupBackground?: string – per-click-action popup surface colour (any CSS colour; undefined = inherit view/global/theme)
 
 // ── Messages (issue #429) ─────────────────────────────────────────────────────
 // An info / warning / error notice pushed into Aura by writing JSON — or plain

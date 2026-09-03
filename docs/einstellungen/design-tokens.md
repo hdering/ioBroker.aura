@@ -48,6 +48,7 @@ Element-Tokens verfeinern einzelne Bauteile. Sie sind **nicht** pro Theme gesetz
 | `--light-on` / `--light-off` | `--accent-yellow` / `--text-secondary` | Lampen-Power-Button |
 | `--header-text` / `--header-accent` | `--text-primary` / `--accent` | Abschnittstitel |
 | `--nav-bg` / `--nav-active` | `--app-surface` / `--accent` | Tab-Leiste |
+| `--popup-bg` / `--popup-border` | `--app-surface` / `--app-border` | Popup-Fläche und -Rand |
 
 ## Raster
 

@@ -8,6 +8,8 @@ import {
     DEFAULT_POPUP_TRANSPARENCY,
     MAX_POPUP_TRANSPARENCY,
     DEFAULT_BACKDROP_DIM,
+    DEFAULT_POPUP_BACKGROUND,
+    DEFAULT_POPUP_BORDER,
 } from '../../../store/popupConfigStore';
 import { buildPopupSubMap, popupMainDp, subAll } from '../../../utils/popupPlaceholders';
 import { DynamicTitle } from '../DynamicTitle';
@@ -125,6 +127,16 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
         DEFAULT_BACKDROP_DIM,
     );
 
+    // Surface colour (issue #611): same three levels, then the `--popup-bg` theme
+    // var, then the historical `--app-surface`. A custom colour keeps the popup
+    // distinguishable from the widget cards it contains.
+    const globalBackground = usePopupConfigStore((s) => s.globalPopupBackground);
+    const background =
+        (widget.options?.popupBackground as string | undefined) ??
+        view?.background ??
+        globalBackground ??
+        DEFAULT_POPUP_BACKGROUND;
+
     useEffect(() => {
         const handler = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -197,8 +209,8 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
             <div
                 className="relative flex flex-col rounded-2xl shadow-2xl overflow-hidden"
                 style={{
-                    background: 'var(--app-surface)',
-                    border: '1px solid var(--app-border)',
+                    background,
+                    border: `1px solid ${DEFAULT_POPUP_BORDER}`,
                     // Element opacity (not just a translucent surface) so the embedded
                     // widgets — which paint their own --widget-bg cards — turn see-through
                     // together with the dialog chrome instead of staying solid.
@@ -219,7 +231,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
                     style={{
                         color: 'var(--text-secondary)',
                         background: 'var(--app-bg)',
-                        border: '1px solid var(--app-border)',
+                        border: `1px solid ${DEFAULT_POPUP_BORDER}`,
                     }}
                 >
                     <X size={13} />
@@ -227,7 +239,10 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
 
                 {/* Optional title header */}
                 {!hideTitle && title && (
-                    <div className="shrink-0 px-5 pr-12 py-3" style={{ borderBottom: '1px solid var(--app-border)' }}>
+                    <div
+                        className="shrink-0 px-5 pr-12 py-3"
+                        style={{ borderBottom: `1px solid ${DEFAULT_POPUP_BORDER}` }}
+                    >
                         <span className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
                             <DynamicTitle text={title} />
                         </span>

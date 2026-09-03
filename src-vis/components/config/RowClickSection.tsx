@@ -236,6 +236,7 @@ export function RowClickSection({
                             popupAutoCloseSec: opts.rowPopupAutoCloseSec,
                             popupTransparency: opts.rowPopupTransparency,
                             popupBackdropDim: opts.rowPopupBackdropDim,
+                            popupBackground: opts.rowPopupBackground,
                         },
                     }}
                     onConfigChange={(next) => {
@@ -249,6 +250,7 @@ export function RowClickSection({
                             rowPopupAutoCloseSec: o.popupAutoCloseSec as number | undefined,
                             rowPopupTransparency: o.popupTransparency as number | undefined,
                             rowPopupBackdropDim: o.popupBackdropDim as number | undefined,
+                            rowPopupBackground: o.popupBackground as string | undefined,
                         });
                     }}
                     hideNone

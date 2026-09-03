@@ -482,6 +482,7 @@ export function exportPopupView(view: PopupView, anon?: AnonymizeOptions) {
         ...(view.autoCloseSec !== undefined ? { autoCloseSec: view.autoCloseSec } : {}),
         ...(view.transparency !== undefined ? { transparency: view.transparency } : {}),
         ...(view.backdropDim !== undefined ? { backdropDim: view.backdropDim } : {}),
+        ...(view.background !== undefined ? { background: view.background } : {}),
         widgets: view.widgets,
     };
 
@@ -516,6 +517,7 @@ export function importPopupView(raw: unknown): PopupView | null {
         ...(typeof obj.autoCloseSec === 'number' ? { autoCloseSec: obj.autoCloseSec } : {}),
         ...(typeof obj.transparency === 'number' ? { transparency: obj.transparency } : {}),
         ...(typeof obj.backdropDim === 'number' ? { backdropDim: obj.backdropDim } : {}),
+        ...(typeof obj.background === 'string' ? { background: obj.background } : {}),
     };
     return view;
 }

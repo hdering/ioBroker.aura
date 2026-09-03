@@ -589,6 +589,7 @@ export const de = {
     'theme.vars.elBadge': 'Marker',
     'theme.vars.elLight': 'Licht',
     'theme.vars.elNav': 'Navigation',
+    'theme.vars.elPopup': 'Popup',
     'theme.vars.elOnBg': 'An-Hintergrund',
     'theme.vars.elOffBg': 'Aus-Hintergrund',
     'theme.vars.elThumb': 'Knopf',

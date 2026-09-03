@@ -11,13 +11,16 @@ Eigene Popup-Views erstellen und als Standard für Widget-Typen zuweisen. Ein Po
 | Auto-Schließen nach (Sek.) | Automatisches Schließen; `0` / leer = aus |
 | Popup-Transparenz | `0 %` = deckend, höhere Werte lassen das Dashboard durchscheinen (max. `95 %`) |
 | Hintergrund abdunkeln | Abdunklung hinter dem Popup; `0 %` = keine, Standard `60 %` |
+| Hintergrundfarbe | Fläche des Popups; leer = Theme (`--popup-bg`, sonst `--app-surface`) |
 
-Alle drei Werte gelten als Standard für jedes Popup und lassen sich überschreiben:
+Alle vier Werte gelten als Standard für jedes Popup und lassen sich überschreiben:
 
 | Ebene | Wo |
 | --- | --- |
 | Popup-View | Toolbar im View-Editor (leer = global) |
 | Klick-Aktion | Widget-Optionen → Klick-Aktion (leer = View/global) |
+
+Die Hintergrundfarbe gibt es zusätzlich als Theme-Token: `--popup-bg` (und `--popup-border`) in **Layouts & Theme** färbt jedes Popup eines Layouts, ohne pro Popup etwas zu setzen — siehe [Design-Tokens](./design-tokens.md).
 
 ## Popup per Datenpunkt
 

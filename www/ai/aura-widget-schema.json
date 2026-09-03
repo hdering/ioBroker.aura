@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.53.2",
+    "auraVersion": "0.53.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -5792,6 +5792,10 @@
           "type": "number",
           "description": "Abdunklung des Hintergrunds hinter dem Zeilen-Popup, 0–100."
         },
+        "rowPopupBackground": {
+          "type": "string",
+          "description": "Popup surface colour; undefined = inherit view/global/theme."
+        },
         "rowPopupHeight": {
           "type": "number",
           "description": "Höhe des Zeilen-Popups in px."
@@ -9400,6 +9404,10 @@
           "type": "number",
           "description": "Abdunklung des Hintergrunds hinter dem Zeilen-Popup, 0–100."
         },
+        "rowPopupBackground": {
+          "type": "string",
+          "description": "Popup surface colour; undefined = inherit view/global/theme."
+        },
         "rowPopupHeight": {
           "type": "number",
           "description": "Höhe des Zeilen-Popups in px."
@@ -11010,6 +11018,10 @@
         "rowPopupBackdropDim": {
           "type": "number",
           "description": "Abdunklung des Hintergrunds hinter dem Zeilen-Popup, 0–100."
+        },
+        "rowPopupBackground": {
+          "type": "string",
+          "description": "Popup surface colour; undefined = inherit view/global/theme."
         },
         "rowPopupHeight": {
           "type": "number",

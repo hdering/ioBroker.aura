@@ -588,6 +588,7 @@ export const en: Record<TranslationKey, string> = {
     'theme.vars.elBadge': 'Status badges',
     'theme.vars.elLight': 'Light',
     'theme.vars.elNav': 'Navigation',
+    'theme.vars.elPopup': 'Popup',
     'theme.vars.elOnBg': 'On background',
     'theme.vars.elOffBg': 'Off background',
     'theme.vars.elThumb': 'Thumb',

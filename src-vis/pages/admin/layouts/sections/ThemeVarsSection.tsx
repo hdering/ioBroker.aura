@@ -45,6 +45,7 @@ const VAR_GROUPS: { labelKey: string; keys: (keyof AllVars)[] }[] = [
     { labelKey: 'theme.vars.elBadge', keys: ['--badge-ok', '--badge-warn', '--badge-crit'] },
     { labelKey: 'theme.vars.elLight', keys: ['--light-on', '--light-off'] },
     { labelKey: 'theme.vars.elNav', keys: ['--nav-bg', '--nav-active'] },
+    { labelKey: 'theme.vars.elPopup', keys: ['--popup-bg', '--popup-border'] },
 ];
 
 const VAR_LABEL_KEYS: Partial<Record<keyof AllVars, string>> = {
@@ -104,6 +105,8 @@ const VAR_LABEL_KEYS: Partial<Record<keyof AllVars, string>> = {
     '--light-off': 'theme.vars.elOff',
     '--nav-bg': 'theme.vars.bg',
     '--nav-active': 'theme.vars.elActive',
+    '--popup-bg': 'theme.vars.bg',
+    '--popup-border': 'theme.vars.border',
 };
 
 function isColor(v: string) {

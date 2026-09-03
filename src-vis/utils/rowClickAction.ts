@@ -38,6 +38,8 @@ export interface RowPopupOptions {
     /** Popup transparency / backdrop dim in percent; undefined = inherit view/global. */
     rowPopupTransparency?: number;
     rowPopupBackdropDim?: number;
+    /** Popup surface colour; undefined = inherit view/global/theme. */
+    rowPopupBackground?: string;
 }
 
 /**

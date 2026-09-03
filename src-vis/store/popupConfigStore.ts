@@ -13,12 +13,26 @@ export const DEFAULT_POPUP_TRANSPARENCY = 0;
 export const MAX_POPUP_TRANSPARENCY = 95;
 /** Backdrop dim in percent black behind the popup — matches the historical rgba(0,0,0,.6). */
 export const DEFAULT_BACKDROP_DIM = 60;
+/**
+ * Popup surface when nothing is configured (issue #611). Goes through the
+ * `--popup-bg` element var first so a theme can lift every popup off the widget
+ * cards; without that var it stays on the historical `--app-surface`.
+ */
+export const DEFAULT_POPUP_BACKGROUND = 'var(--popup-bg, var(--app-surface))';
+/** Popup border, same two-step fallback as DEFAULT_POPUP_BACKGROUND. */
+export const DEFAULT_POPUP_BORDER = 'var(--popup-border, var(--app-border))';
 
 /** Percent input → stored value; empty (or garbage) clears the override back to "inherit". */
 export function pctOrUndefined(raw: string): number | undefined {
     if (raw === '') return undefined;
     const n = Number(raw);
     return Number.isFinite(n) && n >= 0 ? n : undefined;
+}
+
+/** Colour input → stored value; empty clears the override back to "inherit". */
+export function colorOrUndefined(raw: string | undefined): string | undefined {
+    const v = (raw ?? '').trim();
+    return v === '' ? undefined : v;
 }
 
 export interface PopupView {
@@ -30,6 +44,8 @@ export interface PopupView {
     // Per-view appearance: undefined = inherit the global setting (percent, 0-100)
     transparency?: number;
     backdropDim?: number;
+    /** Popup surface colour for this view: any CSS colour; undefined = inherit global. */
+    background?: string;
     // Built-in shipping version. Bump in code when a built-in's contents change;
     // ensureBuiltins() then overwrites any persisted copy with a lower version.
     // Only meaningful for entries with an id from BUILTIN_VIEW_IDS.
@@ -212,6 +228,8 @@ interface PopupConfigState {
     // Global appearance fallback (percent): undefined = DEFAULT_POPUP_TRANSPARENCY / DEFAULT_BACKDROP_DIM
     globalPopupTransparency?: number;
     globalBackdropDim?: number;
+    // Global popup surface colour: undefined = DEFAULT_POPUP_BACKGROUND (issue #611)
+    globalPopupBackground?: string;
     // Datapoint-driven popups (issue #523)
     triggers: PopupTrigger[];
 
@@ -228,6 +246,7 @@ interface PopupConfigState {
     setViewAutoCloseSec: (viewId: string, sec: number | undefined) => void;
     setViewTransparency: (viewId: string, pct: number | undefined) => void;
     setViewBackdropDim: (viewId: string, pct: number | undefined) => void;
+    setViewBackground: (viewId: string, color: string | undefined) => void;
     addWidgetToView: (viewId: string, widget: WidgetConfig) => void;
     removeWidgetFromView: (viewId: string, widgetId: string) => void;
     updateWidgetInView: (viewId: string, widgetId: string, patch: Partial<WidgetConfig>) => void;
@@ -236,6 +255,7 @@ interface PopupConfigState {
     setGlobalAutoCloseSec: (sec: number | undefined) => void;
     setGlobalPopupTransparency: (pct: number | undefined) => void;
     setGlobalBackdropDim: (pct: number | undefined) => void;
+    setGlobalPopupBackground: (color: string | undefined) => void;
 
     // DP triggers
     addTrigger: (name: string) => string;
@@ -262,6 +282,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             globalAutoCloseSec: undefined,
             globalPopupTransparency: undefined,
             globalBackdropDim: undefined,
+            globalPopupBackground: undefined,
             triggers: [],
 
             setTypeDefault: (widgetType, viewId) =>
@@ -331,11 +352,16 @@ export const usePopupConfigStore = create<PopupConfigState>()(
             setViewBackdropDim: (viewId, pct) =>
                 set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, backdropDim: pct })) })),
 
+            setViewBackground: (viewId, color) =>
+                set((s) => ({ views: patchView(s.views, viewId, (v) => ({ ...v, background: color })) })),
+
             setGlobalAutoCloseSec: (sec) => set({ globalAutoCloseSec: sec }),
 
             setGlobalPopupTransparency: (pct) => set({ globalPopupTransparency: pct }),
 
             setGlobalBackdropDim: (pct) => set({ globalBackdropDim: pct }),
+
+            setGlobalPopupBackground: (color) => set({ globalPopupBackground: color }),
 
             addTrigger: (name) => {
                 const id = `pt-${Date.now()}`;
@@ -421,6 +447,7 @@ export const usePopupConfigStore = create<PopupConfigState>()(
                         autoCloseSec: source.autoCloseSec,
                         transparency: source.transparency,
                         backdropDim: source.backdropDim,
+                        background: source.background,
                         createdAt: Date.now(),
                     };
                     return { views: [...s.views, copy] };

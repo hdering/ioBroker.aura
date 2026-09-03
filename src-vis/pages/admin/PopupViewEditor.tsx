@@ -7,10 +7,12 @@ import {
     BUILTIN_VIEW_IDS,
     MAX_POPUP_TRANSPARENCY,
     pctOrUndefined,
+    DEFAULT_POPUP_BACKGROUND,
 } from '../../store/popupConfigStore';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { WidgetFrame } from '../../components/layout/WidgetFrame';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
+import { PopupBackgroundField } from '../../components/common/PopupBackgroundField';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
 import { WIDGET_REGISTRY, ALL_POPUP_PLACEHOLDER_KEYS } from '../../widgetRegistry';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
@@ -95,7 +97,10 @@ export function PopupViewEditor() {
         setViewAutoCloseSec,
         setViewTransparency,
         setViewBackdropDim,
+        setViewBackground,
     } = usePopupConfigStore();
+
+    const globalPopupBackground = usePopupConfigStore((s) => s.globalPopupBackground);
 
     const isSuperAdmin = useSuperAdmin();
     const view = views.find((v) => v.id === viewId);
@@ -304,6 +309,13 @@ export function PopupViewEditor() {
                             }}
                         />
                     </label>
+                    <PopupBackgroundField
+                        label="Hintergrund"
+                        value={view.background}
+                        onChange={(v) => setViewBackground(viewId, v)}
+                        inheritLabel="global"
+                        inline
+                    />
                     <select
                         value={addType}
                         onChange={(e) => setAddType(e.target.value as WidgetType)}
@@ -447,8 +459,13 @@ export function PopupViewEditor() {
                     </div>
                 )}
 
-                {/* Grid canvas */}
-                <div ref={containerRefCallback} className="aura-scroll flex-1 overflow-auto p-4">
+                {/* Grid canvas — painted in the popup's own surface colour so the
+                    configured contrast to the widget cards is visible while editing. */}
+                <div
+                    ref={containerRefCallback}
+                    className="aura-scroll flex-1 overflow-auto p-4"
+                    style={{ background: view.background ?? globalPopupBackground ?? DEFAULT_POPUP_BACKGROUND }}
+                >
                     {widgets.length === 0 ? (
                         <div
                             className="flex items-center justify-center h-48 text-sm"

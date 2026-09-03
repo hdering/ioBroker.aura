@@ -83,6 +83,9 @@ export interface ElementVars {
     // Navigation / tab bar
     '--nav-bg': string;
     '--nav-active': string;
+    // Popup dialog (issue #611) — set these to lift a popup off the widgets
+    '--popup-bg': string;
+    '--popup-border': string;
 }
 
 /**
@@ -133,6 +136,8 @@ export const ELEMENT_VAR_FALLBACKS: Record<keyof ElementVars, keyof ThemeVars | 
     '--light-off': '--text-secondary',
     '--nav-bg': '--app-surface',
     '--nav-active': '--accent',
+    '--popup-bg': '--app-surface',
+    '--popup-border': '--app-border',
 };
 
 export interface Theme {

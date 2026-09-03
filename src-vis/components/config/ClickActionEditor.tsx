@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react';
 import { Database } from 'lucide-react';
 import type { WidgetConfig, ClickAction } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { usePopupConfigStore, MAX_POPUP_TRANSPARENCY, pctOrUndefined } from '../../store/popupConfigStore';
+import {
+    usePopupConfigStore,
+    MAX_POPUP_TRANSPARENCY,
+    pctOrUndefined,
+    colorOrUndefined,
+} from '../../store/popupConfigStore';
+import { PopupBackgroundField } from '../common/PopupBackgroundField';
 import { DatapointPicker } from './DatapointPicker';
 import { ImagePathHint } from './ImagePathHint';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
@@ -149,6 +155,7 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
     const popupAutoCloseSec = o.popupAutoCloseSec as number | undefined;
     const popupTransparency = o.popupTransparency as number | undefined;
     const popupBackdropDim = o.popupBackdropDim as number | undefined;
+    const popupBackground = o.popupBackground as string | undefined;
 
     const layouts = useDashboardStore((s) => s.layouts);
 
@@ -1104,6 +1111,12 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                             />
                         </div>
                     </div>
+                    <PopupBackgroundField
+                        label="Hintergrundfarbe (leer = View/Global)"
+                        value={popupBackground}
+                        onChange={(v) => setOpts({ popupBackground: colorOrUndefined(v) })}
+                        inheritLabel="View/Global"
+                    />
                 </div>
             )}
 

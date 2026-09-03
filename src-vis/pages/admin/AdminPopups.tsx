@@ -18,6 +18,7 @@ import {
 import { useDashboardStore } from '../../store/dashboardStore';
 import { getObjectViewDirect, getStateDirect } from '../../hooks/useIoBroker';
 import { NS } from '../../utils/namespace';
+import { PopupBackgroundField } from '../../components/common/PopupBackgroundField';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { ClickActionEditor } from '../../components/config/ClickActionEditor';
 import { ClauseRow, newClause } from '../../components/config/ConditionEditor';
@@ -1043,6 +1044,8 @@ function GlobalSettingsSection() {
     const setGlobalPopupTransparency = usePopupConfigStore((s) => s.setGlobalPopupTransparency);
     const globalBackdropDim = usePopupConfigStore((s) => s.globalBackdropDim);
     const setGlobalBackdropDim = usePopupConfigStore((s) => s.setGlobalBackdropDim);
+    const globalPopupBackground = usePopupConfigStore((s) => s.globalPopupBackground);
+    const setGlobalPopupBackground = usePopupConfigStore((s) => s.setGlobalPopupBackground);
     return (
         <section>
             <h2 className="text-sm font-semibold mb-3" style={{ color: 'var(--text-primary)' }}>
@@ -1089,6 +1092,13 @@ function GlobalSettingsSection() {
                     value={globalBackdropDim ?? DEFAULT_BACKDROP_DIM}
                     max={100}
                     onChange={setGlobalBackdropDim}
+                />
+                <PopupBackgroundField
+                    label="Hintergrundfarbe"
+                    hint="Fläche des Popups. Leer = Theme-Token --popup-bg, sonst die Oberflächenfarbe des Themes."
+                    value={globalPopupBackground}
+                    onChange={setGlobalPopupBackground}
+                    inheritLabel="Theme"
                 />
                 <p className="text-[11px] sm:col-span-3" style={labelStyle}>
                     Standardwerte für alle Popups. Werden durch View- und Klick-Aktions-Einstellungen überschrieben.

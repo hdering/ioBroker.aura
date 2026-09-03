@@ -124,6 +124,7 @@ export function useRowPopup(base: WidgetConfig, opts: RowPopupOptions, editMode:
                         popupAutoCloseSec: opts.rowPopupAutoCloseSec,
                         popupTransparency: opts.rowPopupTransparency,
                         popupBackdropDim: opts.rowPopupBackdropDim,
+                        popupBackground: opts.rowPopupBackground,
                     },
                 } satisfies WidgetConfig
             }
