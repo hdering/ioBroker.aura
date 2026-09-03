@@ -334,7 +334,7 @@ function localImports(src, file, rootDir) {
  * @param root0
  * @param root0.maxDepth
  */
-export function extractOptionKeys(entryFile, rootDir, { maxDepth = 3 } = {}) {
+export function extractOptionKeys(entryFile, rootDir, { maxDepth = 3, otherWidgetFiles } = {}) {
     const keys = {};
     const visited = new Set();
 
@@ -385,6 +385,16 @@ export function extractOptionKeys(entryFile, rootDir, { maxDepth = 3 } = {}) {
         }
 
         for (const next of localImports(src, file, rootDir)) {
+            // Never walk into ANOTHER widget: its option reads are its own. The
+            // list imports one helper from the dynamic list (`resolveName`), and
+            // that single import handed the static list twenty options it does
+            // not read — `maxRows`, `entryDisplay`, `groupByRoom`,
+            // `showEntryLastChange` … all measured as ineffective in the browser.
+            // A schema that advertises them is the "silently ignored setting" this
+            // whole server exists to prevent.
+            if (otherWidgetFiles && otherWidgetFiles.has(path.resolve(next))) {
+                continue;
+            }
             visit(next, depth + 1);
         }
     };

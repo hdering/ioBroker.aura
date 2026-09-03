@@ -494,7 +494,7 @@ function markDatapointFields(types) {
     return marked;
 }
 
-function collectWidgetOptions(type, file, index, types) {
+function collectWidgetOptions(type, file, index, types, otherWidgetFiles) {
     const options = {};
 
     // 3a. A named options interface, where one exists.
@@ -513,7 +513,7 @@ function collectWidgetOptions(type, file, index, types) {
     // 3b. The reads in the component. Fills in defaults the interface does not
     //     carry and adds keys that never made it into one.
     if (file) {
-        for (const [key, info] of Object.entries(extractOptionKeys(file, WIDGETS_DIR))) {
+        for (const [key, info] of Object.entries(extractOptionKeys(file, WIDGETS_DIR, { otherWidgetFiles }))) {
             const existing = options[key];
             if (existing) {
                 if (existing.default === undefined && info.default !== undefined) {
@@ -608,8 +608,22 @@ async function build() {
 
     const perWidget = {};
     const staleNotes = [];
+    // Every widget component file, resolved once: walking into one while reading
+    // another widget's options would attribute its options to the wrong type.
+    // The static list imports a single helper from the dynamic list, and that was
+    // enough to hand it twenty options it never reads.
+    const widgetFiles = new Map(Object.entries(widgetMap).map(([type, file]) => [type, path.resolve(file)]));
     for (const meta of reg.WIDGET_REGISTRY) {
-        const { options, stale } = collectWidgetOptions(meta.type, widgetMap[meta.type] ?? null, index, types);
+        const otherWidgetFiles = new Set(
+            [...widgetFiles].filter(([type]) => type !== meta.type).map(([, file]) => file),
+        );
+        const { options, stale } = collectWidgetOptions(
+            meta.type,
+            widgetMap[meta.type] ?? null,
+            index,
+            types,
+            otherWidgetFiles,
+        );
         perWidget[meta.type] = { meta, options };
         staleNotes.push(...stale);
     }

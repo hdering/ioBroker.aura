@@ -1158,12 +1158,97 @@ check('where every row has one, both sums agree — which is why it stood', () =
 
 check('a capped list counts only the rows it shows', () => {
     // maxRows cuts the list off; the rows below the cap are not drawn and their
-    // second line is not drawn either.
+    // second line is not drawn either. On the DYNAMIC list — the static one does
+    // not read the option (see below).
     const w = someSubDps(12, 12);
-    const capped = { ...w, options: { ...w.options, maxRows: 4 } };
+    const capped = { ...w, type: 'autolist', options: { ...w.options, maxRows: 4 } };
     const m = measureWidget(capped, { metrics: METRICS, grid: GRID });
     assert.equal(m.items, 4);
     assert.equal(m.requiredPx, Math.round(METRICS.counted.list.basePx + 4 * (METRICS.counted.list.perItemPx + SUB_PX)));
+});
+
+check('a cap the widget does not read is not applied', () => {
+    // Measured in the browser: a static list with maxRows: 4 draws all nine rows.
+    // The option was in its schema only because the option reader followed an
+    // import into the dynamic list — and the measurement believed it, reporting
+    // four rows where nine are drawn. The mirror image of every other finding
+    // here: too SMALL a number, and the list then scrolls.
+    const w = { ...listWidget(9, 20), options: { ...listWidget(9, 20).options, maxRows: 4 } };
+    const m = measureWidget(w, { metrics: METRICS, grid: GRID });
+    assert.equal(m.items, 9);
+    assert.ok(!m.moreRow, 'and no footer row is promised either');
+    // The dynamic list and the status overview do read it.
+    for (const type of ['autolist', 'statusoverview']) {
+        const runtime = measureWidget(
+            { id: 'r', type, title: 'R', datapoint: '', gridPos: { x: 0, y: 0, w: 8, h: 10 }, options: { maxRows: 4 } },
+            { metrics: METRICS, grid: GRID },
+        );
+        assert.equal(runtime.items, 4, type);
+    }
+});
+
+const modPx = (key) => METRICS.counted.list.modifiers.find((m) => m.key === key).perItemPx;
+
+// ── The timestamp under a row ────────────────────────────────────────────────
+// Reported from use: `showEntryLastChange` was not in the number at all. It hangs
+// a "vor 3 Min. aktualisiert" line under every row (measured: +13.7 px), so a
+// dynamic list of twelve was short by 164 px.
+//
+// Two forms, and they need different arithmetic — the static list reads
+// `entries[].showLastChange` (per row), the dynamic one has the list-wide
+// `showEntryLastChange` (every row). Both are measured on the same rendering.
+
+check('the timestamp line is in the number, per row where it is per row', () => {
+    const perEntry = modPx('lastChangePerEntry');
+    assert.ok(perEntry > 10, `a timestamp line is worth something, got ${perEntry}`);
+    const rows = (n, withStamp) => ({
+        ...listWidget(n, 25),
+        options: {
+            entries: Array.from({ length: n }, (_, i) => ({
+                id: `demo.${i}`,
+                ...(i < withStamp ? { showLastChange: true } : {}),
+            })),
+        },
+    });
+    const plain = measureWidget(rows(12, 0), { metrics: METRICS, grid: GRID });
+    const some = measureWidget(rows(12, 4), { metrics: METRICS, grid: GRID });
+    const all = measureWidget(rows(12, 12), { metrics: METRICS, grid: GRID });
+    assert.equal(some.requiredPx, Math.round(plain.requiredPx + 4 * perEntry));
+    assert.equal(all.requiredPx, Math.round(plain.requiredPx + 12 * perEntry));
+    assert.match(some.basis, /4 × Zeitstempel je Eintrag/, some.basis);
+});
+
+check('and for the whole list where the option is list-wide', () => {
+    // The reported widget: a dynamic list of twelve with the list-wide switch on.
+    const listWide = modPx('lastChangeList');
+    const auto = {
+        id: 'w-diag',
+        type: 'autolist',
+        title: 'Verbindungen & Diagnose',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 12, h: 25 },
+        options: { maxRows: 12 },
+    };
+    const plain = measureWidget(auto, { metrics: METRICS, grid: GRID });
+    const stamped = measureWidget(
+        { ...auto, options: { ...auto.options, showEntryLastChange: true } },
+        { metrics: METRICS, grid: GRID },
+    );
+    assert.equal(stamped.items, 12);
+    assert.equal(stamped.requiredPx, Math.round(plain.requiredPx + 12 * listWide));
+    // Every row, so it belongs in the per-item number rather than in a count.
+    assert.match(stamped.basis, /Zeitstempel je Zeile/, stamped.basis);
+    assert.ok(stamped.requiredPx - plain.requiredPx > 150, 'the reported ~170 px');
+});
+
+check('the static list is not charged for an option it does not read', () => {
+    // `showEntryLastChange` on a static list draws nothing (measured in the
+    // browser) — and it is not in its schema any more either.
+    const w = { ...listWidget(12, 25), options: { ...listWidget(12, 25).options, showEntryLastChange: true } };
+    const m = measureWidget(w, { metrics: METRICS, grid: GRID });
+    const plain = measureWidget(listWidget(12, 25), { metrics: METRICS, grid: GRID });
+    assert.equal(m.requiredPx, plain.requiredPx);
+    assert.ok(hasError(validateWidget(w, schema), /liest die Option "showEntryLastChange" nicht/));
 });
 
 const DIVIDER_PX = METRICS.counted.list.rowTypes.divider.perItemPx;
@@ -1414,12 +1499,11 @@ check('a capped runtime list becomes measurable', () => {
     assert.ok(capped.requiredPx > 0);
     assert.equal(capped.needRows, pxToRows(capped.requiredPx, GRID));
 
-    // A static list capped below its entry count follows the cap, not the entries.
-    const short = measureWidget(
-        { ...listWidget(16, 14), options: { ...listWidget(16, 14).options, maxRows: 4 } },
-        { metrics: METRICS, grid: GRID },
-    );
-    assert.equal(short.items, 4);
+    // A dynamic list capped below the row count it found follows the cap.
+    const short = measureWidget({ ...auto, options: { maxRows: 4 } }, { metrics: METRICS, grid: GRID, items: 16 });
+    assert.equal(short.items, 16, 'an explicit count from the caller wins');
+    const noCount = measureWidget({ ...auto, options: { maxRows: 4 } }, { metrics: METRICS, grid: GRID });
+    assert.equal(noCount.items, 4);
 });
 
 check('the footer row is named as not included, not silently added', () => {

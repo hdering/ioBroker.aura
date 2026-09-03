@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.53.1",
+    "auraVersion": "0.53.2",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -5509,7 +5509,6 @@
         "clickAction",
         "colorThresholds",
         "conditions",
-        "contentPosition",
         "customGrid",
         "decimals",
         "icon",
@@ -5517,7 +5516,6 @@
         "numberFormat",
         "showIcon",
         "showTitle",
-        "showValue",
         "styleOverride",
         "titleAlign",
         "transparency",
@@ -5552,53 +5550,23 @@
           "required": true,
           "description": "Die Zeilen der Liste."
         },
-        "entriesColorKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der die Farbe liefert."
-        },
-        "entriesDp": {
-          "type": "string",
-          "default": "",
-          "description": "JSON-Datenpunkt, der die Einträge liefert (bei entriesSource \"json\").",
-          "datapoint": true
-        },
-        "entriesIconKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der den Iconnamen liefert."
-        },
-        "entriesImageKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der die Bild-URL liefert."
-        },
-        "entriesLabelKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der die Beschriftung liefert."
-        },
-        "entriesSource": {
-          "description": "\"manual\" = die Einträge aus entries, \"json\" = aus dem JSON-Datenpunkt entriesDp."
-        },
-        "entriesValueKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der den Wert liefert."
-        },
         "entryDisplay": {
           "type": "object",
           "ref": "EntryControlConfig",
-          "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie.",
-          "default": "text"
+          "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
         },
         "entryIcon": {
           "type": "string",
-          "description": "Row icon for EVERY entry — the rows come from a filter and change on each sync, so the icon is configured once for the list (tab \"Icon\"). An entry's own `icon` wins, a condition rule wins over both."
+          "description": "Icon, das alle Zeilen ohne eigenes Icon bekommen."
         },
         "entryIconColor": {
           "type": "string",
-          "description": "Colour of that icon. Unset = --text-secondary (the badge colour in `minimal`).",
+          "description": "Farbe des Zeilen-Icons.",
           "default": "var(--text-secondary)"
         },
         "entryIconSize": {
           "type": "number",
-          "description": "Size of that icon in px. Default 13.",
+          "description": "Größe des Zeilen-Icons in px.",
           "default": 13
         },
         "excludeIdPatterns": {
@@ -5785,7 +5753,7 @@
         },
         "noRoomLabel": {
           "type": "string",
-          "description": "Heading text for entries that have no room assigned. Default 'Ohne Raum'.",
+          "description": "Überschrift für Zeilen ohne Raum.",
           "default": "Ohne Raum"
         },
         "publishCount": {
@@ -5794,15 +5762,15 @@
         },
         "roomHeaderBg": {
           "type": "string",
-          "description": "Background color of room section headings. Default a faint tint."
+          "description": "Hintergrundfarbe der Raumüberschrift."
         },
         "roomHeaderColor": {
           "type": "string",
-          "description": "Text color of room section headings. Default var(--text-secondary)."
+          "description": "Textfarbe der Raumüberschrift."
         },
         "roomHeaderFontSize": {
           "type": "number",
-          "description": "Font size of room section headings in px. Default 10."
+          "description": "Schriftgröße der Raumüberschrift in px."
         },
         "rowClickAction": {
           "tsType": "RowClickSetting",
@@ -5856,7 +5824,7 @@
         },
         "showEntryLastChange": {
           "type": "boolean",
-          "description": "Show last-change timestamp under every entry (global toggle — dynamic list has no per-DP config).",
+          "description": "Letzte Änderung je Zeile anzeigen.",
           "default": false
         },
         "showId": {
@@ -5876,11 +5844,6 @@
         "showRoom": {
           "type": "boolean",
           "description": "Raum des Geräts mit anzeigen."
-        },
-        "showSelect": {
-          "type": "boolean",
-          "default": true,
-          "description": "Auswahlfeld zum Umschalten der Einträge anzeigen."
         },
         "showSum": {
           "type": "boolean",
@@ -5964,11 +5927,11 @@
             "type": "object",
             "ref": "EntrySubDp"
           },
-          "description": "Second line for EVERY entry: ids may use `{{parent}}` / `{{dp}}` / `{{name}}` and are resolved per row. An entry's own `subDps` replaces this."
+          "description": "Vorlage für die Zweitzeile, z. B. ein Batterie- oder Verbrauchs-DP."
         },
         "subDpTemplateHideMissing": {
           "type": "boolean",
-          "description": "Template rows whose resolved datapoint does not exist are left out instead of rendering a dash (a device without BATTERY). Default true.",
+          "description": "Zeilen ohne passenden Zweitzeilen-DP ohne Zweitzeile zeigen.",
           "default": true
         },
         "sumAlign": {
@@ -6002,10 +5965,6 @@
           "type": "number",
           "default": 5,
           "description": "Abstand in Minuten, in dem die Liste neu nach passenden Datenpunkten sucht."
-        },
-        "titlePosition": {
-          "type": "string",
-          "description": "Position der Titelzeile im Widget."
         },
         "trueText": {
           "type": "string",
@@ -6358,30 +6317,16 @@
       ],
       "commonOptions": [
         "badges",
-        "batteryDp",
-        "batteryInvert",
-        "batteryLowThreshold",
-        "batteryMode",
         "clickAction",
         "conditions",
-        "contentPosition",
-        "customGrid",
         "icon",
         "iconSize",
-        "lockDp",
-        "lockLockedValues",
-        "reachMode",
-        "reachTrueValues",
         "showIcon",
-        "showStatusBadges",
         "showTitle",
-        "showValue",
-        "statusBadgesAlertOnly",
         "styleOverride",
         "titleAlign",
         "transparency",
-        "transparent",
-        "unreachDp"
+        "transparent"
       ],
       "options": {
         "cameraTemplate": {
@@ -6396,41 +6341,6 @@
             "type": "object",
             "ref": "CameraSlot"
           }
-        },
-        "entriesColorKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der die Farbe liefert."
-        },
-        "entriesDp": {
-          "type": "string",
-          "default": "",
-          "description": "JSON-Datenpunkt, der die Einträge liefert (bei entriesSource \"json\").",
-          "datapoint": true
-        },
-        "entriesIconKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der den Iconnamen liefert."
-        },
-        "entriesImageKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der die Bild-URL liefert."
-        },
-        "entriesLabelKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der die Beschriftung liefert."
-        },
-        "entriesSource": {
-          "description": "\"manual\" = die Einträge aus entries, \"json\" = aus dem JSON-Datenpunkt entriesDp."
-        },
-        "entriesValueKey": {
-          "type": "string",
-          "description": "Feldname im JSON, der den Wert liefert."
-        },
-        "entryDisplay": {
-          "type": "string",
-          "ref": "EnumEntryDisplay",
-          "default": "text",
-          "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
         },
         "fitMode": {
           "type": "string",
@@ -6459,11 +6369,6 @@
           "default": true,
           "description": "Nach dem Aufwachen des Geräts neu laden."
         },
-        "showSelect": {
-          "type": "boolean",
-          "default": true,
-          "description": "Auswahlfeld zum Umschalten der Einträge anzeigen."
-        },
         "showTimestamp": {
           "type": "boolean",
           "default": true,
@@ -6489,10 +6394,6 @@
           "type": "string",
           "default": "static",
           "description": "Woher die Stream-Adresse kommt: fest oder aus einem Datenpunkt."
-        },
-        "titlePosition": {
-          "type": "string",
-          "description": "Position der Titelzeile im Widget."
         },
         "videoRatio": {
           "type": "number",
@@ -9312,7 +9213,6 @@
         "colorThresholds",
         "conditions",
         "customGrid",
-        "decimals",
         "icon",
         "iconSize",
         "showIcon",
@@ -9337,11 +9237,6 @@
           "description": "Backend display filter — independent from frontend valueFilter. Default 'all'.",
           "default": "all"
         },
-        "cardMinWidth": {
-          "type": "number",
-          "default": 90,
-          "description": "Kartenlayout: Mindestbreite einer Kachel in px."
-        },
         "entries": {
           "type": "array",
           "items": {
@@ -9351,22 +9246,6 @@
           "required": true,
           "description": "Die Zeilen der Liste."
         },
-        "entryDisplay": {
-          "description": "Listenweite Darstellung der Zeilen; eine Zeile mit eigenem displayType ignoriert sie."
-        },
-        "entryIcon": {
-          "description": "Icon, das alle Zeilen ohne eigenes Icon bekommen."
-        },
-        "entryIconColor": {
-          "type": "string",
-          "default": "var(--text-secondary)",
-          "description": "Farbe des Zeilen-Icons."
-        },
-        "entryIconSize": {
-          "type": "number",
-          "default": 13,
-          "description": "Größe des Zeilen-Icons in px."
-        },
         "falseText": {
           "type": "string",
           "description": "Global default label for off/false/0 state (fallback when entry has no falseLabel)."
@@ -9374,18 +9253,6 @@
         "filterActiveLabel": {
           "type": "string",
           "description": "Menu label of the built-in \"active\" mode."
-        },
-        "filterAdapters": {
-          "description": "Auf diese Adapterinstanzen einschränken, z. B. \"zigbee.0\". Leer = alle."
-        },
-        "filterEnums": {
-          "description": "Auf diese Aufzählungen einschränken — volle enum-Ids, kommagetrennt."
-        },
-        "filterFuncs": {
-          "description": "Auf diese Gewerke einschränken, kommagetrennte Namen. Leer = alle."
-        },
-        "filterIdPattern": {
-          "description": "Nur Datenpunkte, deren Id dazu passt (Text oder /regex/)."
         },
         "filterInactiveLabel": {
           "type": "string",
@@ -9399,34 +9266,15 @@
           },
           "description": "Eigene Filter-Schaltflächen über der Liste."
         },
-        "filterRelevant": {
-          "type": "boolean",
-          "default": true,
-          "description": "Nur Datenpunkte anzeigen, die als bedienbar/relevant erkannt wurden."
-        },
-        "filterRoles": {
-          "description": "Auf diese ioBroker-Rollen einschränken, kommagetrennt. Leer = alle."
-        },
-        "filterRooms": {
-          "description": "Auf diese Räume einschränken, kommagetrennte Raumnamen. Leer = alle."
-        },
         "filterSearchPlaceholder": {
           "type": "string",
           "description": "Placeholder of the free-text field. Default 'Suchen …'."
-        },
-        "filterTypes": {
-          "description": "Auf diese Datentypen einschränken, kommagetrennt. Leer = alle."
         },
         "groupActionType": {
           "type": "string",
           "ref": "GroupActionType",
           "description": "Which kind of group control to show. Default 'switch'.",
           "default": "switch"
-        },
-        "groupByRoom": {
-          "type": "boolean",
-          "default": false,
-          "description": "Zeilen nach Raum gruppieren."
         },
         "groupDimmerOnValue": {
           "type": "number",
@@ -9515,9 +9363,6 @@
           "default": "left",
           "description": "Wo die letzte Änderung steht: left oder right."
         },
-        "maxRows": {
-          "type": "number"
-        },
         "nameFilters": {
           "type": "array",
           "items": {
@@ -9531,26 +9376,9 @@
           "description": "Namensvorlage mit den Platzhaltern <Raum> <Gerät> <DPName> <Name> <ID>.",
           "default": ""
         },
-        "noRoomLabel": {
-          "type": "string",
-          "default": "Ohne Raum",
-          "description": "Überschrift für Zeilen ohne Raum."
-        },
-        "numberFormat": {
-          "description": "Tausender-/Dezimaltrennzeichen. Ohne Angabe gilt die globale Einstellung."
-        },
         "publishCount": {
           "type": "boolean",
           "description": "Publish the filtered count to aura.0.lists.<widgetId>.count"
-        },
-        "roomHeaderBg": {
-          "description": "Hintergrundfarbe der Raumüberschrift."
-        },
-        "roomHeaderColor": {
-          "description": "Textfarbe der Raumüberschrift."
-        },
-        "roomHeaderFontSize": {
-          "description": "Schriftgröße der Raumüberschrift in px."
         },
         "rowClickAction": {
           "tsType": "RowClickSetting",
@@ -9602,11 +9430,6 @@
           "description": "Show divider lines between list entries (standard/compact layouts). Default true.",
           "default": true
         },
-        "showEntryLastChange": {
-          "type": "boolean",
-          "default": false,
-          "description": "Letzte Änderung je Zeile anzeigen."
-        },
         "showId": {
           "type": "boolean",
           "description": "Datenpunkt-Id statt/neben dem Namen anzeigen."
@@ -9615,10 +9438,6 @@
           "type": "boolean",
           "default": false,
           "description": "Zeitpunkt der letzten Änderung anzeigen."
-        },
-        "showMore": {
-          "type": "boolean",
-          "default": true
         },
         "showRoom": {
           "type": "boolean",
@@ -9700,14 +9519,6 @@
           },
           "description": "Per-stat text prefix. Falls back to a default symbol per stat."
         },
-        "subDpTemplate": {
-          "description": "Vorlage für die Zweitzeile, z. B. ein Batterie- oder Verbrauchs-DP."
-        },
-        "subDpTemplateHideMissing": {
-          "type": "boolean",
-          "default": true,
-          "description": "Zeilen ohne passenden Zweitzeilen-DP ohne Zweitzeile zeigen."
-        },
         "sumAlign": {
           "type": "string",
           "enum": [
@@ -9734,11 +9545,6 @@
             "ref": "ListStat"
           },
           "description": "Which aggregates to show. Default (undefined/empty) = sum only."
-        },
-        "syncIntervalMin": {
-          "type": "number",
-          "default": 5,
-          "description": "Abstand in Minuten, in dem die Liste neu nach passenden Datenpunkten sucht."
         },
         "trueText": {
           "type": "string",
@@ -11717,14 +11523,6 @@
           "type": "number",
           "default": 0,
           "description": "Größe einer Tonnenkachel in px."
-        },
-        "bins": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "ref": "TrashBin"
-          },
-          "description": "Die Tonnen mit Name, Farbe und Datenpunkt."
         },
         "dateFontSize": {
           "type": "number",

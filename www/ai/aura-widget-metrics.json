@@ -224,6 +224,29 @@
           "perItemPx": 15.3
         },
         {
+          "key": "lastChangePerEntry",
+          "label": "Zeitstempel je Eintrag (entries[].showLastChange)",
+          "when": {
+            "path": "entries[].showLastChange",
+            "equals": true
+          },
+          "basePx": 0,
+          "perItemPx": 13.7
+        },
+        {
+          "key": "lastChangeList",
+          "label": "Zeitstempel je Zeile (showEntryLastChange)",
+          "when": {
+            "path": "showEntryLastChange",
+            "equals": true
+          },
+          "notForTypes": [
+            "list"
+          ],
+          "basePx": 0,
+          "perItemPx": 13.7
+        },
+        {
           "key": "noHeader",
           "label": "ohne Kopfzeile (showTitle und showIcon aus)",
           "when": {

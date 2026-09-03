@@ -216,6 +216,34 @@ const COUNTED = [
                 }),
             },
             {
+                key: 'lastChangePerEntry',
+                label: 'Zeitstempel je Eintrag (entries[].showLastChange)',
+                when: { path: 'entries[].showLastChange', equals: true },
+                // Per ROW: the condition speaks about an entry, so aura_measure
+                // counts the entries that carry it (isPerRowWhen in measure.js).
+                build: (n) => ({
+                    options: { entries: listEntries(n).map((e) => ({ ...e, showLastChange: true })) },
+                }),
+            },
+            {
+                key: 'lastChangeList',
+                label: 'Zeitstempel je Zeile (showEntryLastChange)',
+                when: { path: 'showEntryLastChange', equals: true },
+                // The STATIC list does not read this switch (measured: no
+                // timestamp appears), and it is not in its schema either. Without
+                // this guard the same payload would be charged 12 × 13.7 px for a
+                // line the widget never draws.
+                notForTypes: ['list'],
+                // The dynamic list's list-wide switch, and there it is every row.
+                // It cannot be probed on the dynamic list (its rows appear at
+                // runtime) and the STATIC list ignores it — so the number comes
+                // from the same rendering, driven per entry. Same line, same
+                // markup, same height.
+                build: (n) => ({
+                    options: { entries: listEntries(n).map((e) => ({ ...e, showLastChange: true })) },
+                }),
+            },
+            {
                 // ListWidget renders its header when showTitle OR showIcon OR a
                 // sum OR the group switch is on — so ONLY switching both off
                 // removes the row. Turning off just the title keeps it (the icon
@@ -627,6 +655,7 @@ for (const spec of COUNTED) {
             label: m.label,
             when: m.when,
             ...(m.notForVariants ? { notForVariants: m.notForVariants } : {}),
+            ...(m.notForTypes ? { notForTypes: m.notForTypes } : {}),
             basePx: denoise(r.basePx - ref.basePx),
             perItemPx: denoise(Math.round((r.perItemPx - ref.perItemPx) * 10) / 10),
         });

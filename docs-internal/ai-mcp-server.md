@@ -236,6 +236,38 @@ dort erst aus der Rolle des Datenpunkts entsteht. Neue Zeilen in der Tabelle nur
 mit Blick in den Renderpfad — ein Befund auf einer funktionierenden Zeile ist
 schlimmer als keiner.
 
+## Optionen, die das Widget nie liest
+
+Aus der Praxis gemeldet, und der Anfang war eine fehlende Messung: die statische
+Liste führte `showEntryLastChange` im Schema, die Option tut dort aber nichts.
+Im Browser nachgesehen — und es waren nicht eine, sondern **zwanzig**:
+`maxRows`, `entryDisplay`, `groupByRoom`, `subDpTemplate`, `showMore`,
+`cardMinWidth`, die `filter*`-Felder der Discovery, die Raumüberschriften …
+alles Optionen der **dynamischen** Liste.
+
+Ursache: `extractOptionKeys()` folgt Imports drei Ebenen tief, weil ein Widget
+seine Optionen oft in einem Helfer liest (`listFilter.ts` liest
+`opts.valueFilter`). `ListWidget` importiert aber `resolveName` aus
+`AutoListWidget` — ein einziger Import, und die Reads der dynamischen Liste
+landeten als Optionen der statischen. Dieselbe Mechanik traf `camera` und
+`autolist` (über `entryControls` → `EnumWidget`) und `trashSchedule` (über
+`TrashWidget`).
+
+Die Regel ist jetzt: **niemals in eine andere Widget-Datei laufen** — deren
+Optionen gehören ihr. Ergebnis: 45 Phantom-Optionen weg (1783 → 1738), geprüft
+je Widget, dass keine davon in der eigenen Datei gelesen wird.
+
+Zwei Folgen im Server selbst, beide gemessen statt vermutet:
+
+- `capped()` in `measure.js` wendet `maxRows` nur noch auf die Typen an, die es
+  **lesen** (`autolist`, `statusoverview`, `jsontable`). Vorher meldete eine
+  statische Liste mit `maxRows: 4` vier Zeilen, während neun gezeichnet werden —
+  der umgekehrte Fehler zu allen anderen hier: eine zu KLEINE Zahl, und die Liste
+  scrollt.
+- Ein Payload mit einer dieser Optionen ist jetzt ein Fehler („liest die Option
+  … nicht") statt einer stillen Nichtwirkung. Das ist genau die Klasse, für die
+  dieser Validator existiert — sie stand nur im Schema und war deshalb unsichtbar.
+
 ## Warum Rezepte danebenstehen
 
 Validierung sagt, was **erlaubt** ist. Nichts sagte, was **gut** ist — und das
@@ -536,6 +568,26 @@ gemeldeten „Mindesthöhe" und scrollte. Der Messstand misst deshalb zusätzlic
 des Widgets — `entries[].subDps` heißt „irgendein Eintrag hat welche". Ein
 Modifier kann per `notForVariants` für ein Layout ausgenommen werden (`minimal`
 zeichnet eine Zeile als Pille und ignoriert `subDps`).
+
+**Was gar nicht in der Zahl stand.** Aus der Praxis gemeldet: eine dynamische
+Liste mit `showEntryLastChange: true` hängt unter jede Zeile eine Zeitangabe
+(gemessen **+13,7 px**) — bei zwölf Einträgen 164 px, die in der Messung fehlten.
+Die Option gibt es in zwei Formen, und sie brauchen unterschiedliche Arithmetik:
+
+| Form                        | Widget          | gerechnet          |
+| --------------------------- | --------------- | ------------------ |
+| `entries[].showLastChange`  | statische Liste | je betroffene Zeile |
+| `showEntryLastChange`       | dynamische Liste | jede Zeile         |
+
+Gemessen wird beides an derselben Darstellung: die dynamische Liste lässt sich
+nicht messen (ihre Zeilen entstehen zur Laufzeit), und die statische liest den
+listenweiten Schalter nicht — also treibt der Messstand die Zeile per Eintrag und
+schreibt die Zahl für beide Regeln. Dasselbe Rendering, dieselbe Höhe.
+
+Damit die listenweite Regel nicht auf der statischen Liste greift (dort tut der
+Schalter nichts), tragen Modifier jetzt ein `notForTypes` — dieselbe Mechanik wie
+`notForVariants` für Layouts. Ohne das rechnete dieselbe Konfiguration 12 × 13,7 px
+für eine Zeile, die das Widget nie zeichnet; der eigene Test hat es gefunden.
 
 **„Irgendein Eintrag" ist aber keine Zeilenzahl.** Aus der Praxis gemeldet: genau
 dieses `when` machte aus dem Delta einen Aufschlag auf die **Zeilenhöhe** des

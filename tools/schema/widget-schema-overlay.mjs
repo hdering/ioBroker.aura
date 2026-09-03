@@ -623,7 +623,11 @@ export const WIDGET_OPTION_NOTES = {
         mainScale: { description: 'Skaliert den Hauptbereich.' },
         tariffScale: { description: 'Skaliert die Tarifanzeige.' },
     },
-    list: {
+    // These belong to the DYNAMIC list: the static one never read them. They sat
+    // under `list` because the option reader followed an import into
+    // AutoListWidget and attributed its reads to the static list — twenty options
+    // the schema advertised and the widget ignored (verified in the browser).
+    autolist: {
         entryIcon: { description: 'Icon, das alle Zeilen ohne eigenes Icon bekommen.' },
         entryIconColor: { description: 'Farbe des Zeilen-Icons.' },
         entryIconSize: { description: 'Größe des Zeilen-Icons in px.' },
