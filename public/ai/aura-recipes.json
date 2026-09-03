@@ -393,7 +393,7 @@
         "deltaBucket bestimmt die Balkenbreite, echartRange den sichtbaren Zeitraum.",
         "echartVisibleRanges gibt dem Nutzer die Umschalter im Frontend.",
         "Braucht History auf dem Datenpunkt; autoHistoryInstance sucht die passende Instanz selbst.",
-        "Die Serienfarbe steht als fester Wert da, weil eCharts auf ein Canvas zeichnet — ein var(--token) wird dort nicht aufgelöst. Überall sonst gehört die Farbe als Token in die Konfiguration (aura_theme nennt sie)."
+        "Die Serienfarbe ist ein var(--token) wie überall sonst — das Widget löst sie auf, bevor sie ans Canvas geht, das Diagramm folgt also dem Theme."
       ],
       "widgets": [
         {
@@ -430,7 +430,7 @@
                 "name": "Verbrauch",
                 "datapointId": "%dp.stromzaehler%",
                 "chartType": "bar",
-                "color": "#22c55e",
+                "color": "var(--accent-green)",
                 "aggregate": "delta",
                 "deltaBucket": "day",
                 "yAxisIndex": 0,
@@ -487,7 +487,7 @@
                 "name": "Temperatur",
                 "datapointId": "%dp.temperatur%",
                 "chartType": "area",
-                "color": "#f59e0b",
+                "color": "var(--accent-yellow)",
                 "smooth": true,
                 "areaOpacity": 20,
                 "yAxisIndex": 0,
@@ -498,7 +498,7 @@
                 "name": "Luftfeuchte",
                 "datapointId": "%dp.luftfeuchte%",
                 "chartType": "line",
-                "color": "#3b82f6",
+                "color": "var(--accent)",
                 "smooth": true,
                 "lineWidth": 2,
                 "yAxisIndex": 1,
@@ -665,8 +665,7 @@
       "notes": [
         "Aufteilung: links die Liste aller Geräte, rechts oben was sofort auffallen muss, darunter der Verlauf.",
         "Zwölf Spalten, keine Überlappung — x + w darf die Spaltenzahl aus aura_dashboard nicht überschreiten.",
-        "Die Einzelteile stehen als eigene Rezepte bereit: raum-liste, heizung, status, verlauf.",
-        "Die Serienfarbe des Verlaufs steht als fester Wert da — eCharts zeichnet auf ein Canvas und löst dort kein var(--token) auf. Überall sonst gehört die Farbe als Token hinein."
+        "Die Einzelteile stehen als eigene Rezepte bereit: raum-liste, heizung, status, verlauf."
       ],
       "widgets": [
         {
@@ -772,7 +771,7 @@
                 "name": "Temperatur",
                 "datapointId": "%dp.temperatur%",
                 "chartType": "area",
-                "color": "#eab308",
+                "color": "var(--accent-yellow)",
                 "smooth": true,
                 "areaOpacity": 20,
                 "decimals": 1

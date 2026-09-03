@@ -72,6 +72,7 @@
     "test:carousel-label": "node tools/tests/carousel-state-label.mjs",
     "test:list-max-rows": "node tools/tests/list-max-rows.mjs",
     "test:list-row-heights": "node tools/tests/list-row-heights.mjs",
+    "test:echart-tokens": "node tools/tests/echart-token-colors.mjs",
     "test:list-switch": "node tools/tests/list-switch.mjs",
     "test:list-switch-ui": "node tools/tests/list-switch-ui.mjs",
     "test:dp-popup": "node tools/tests/dp-popup-trigger.mjs",

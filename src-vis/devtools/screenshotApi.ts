@@ -483,14 +483,29 @@ function installScreenshotApi(): void {
             return areaOpacityFor(series);
         },
 
-        /** What the chart on screen actually plots, per series: name, point count and the
-         *  first/last x value. Lets a screenshot script verify the curve covers the whole
-         *  window before saving the image — an empty tail is invisible in a thumbnail. */
-        chartSeries(): { name: unknown; points: number; first: unknown; last: unknown }[] | null {
+        /** What the chart on screen actually plots, per series: name, point count, the
+         *  first/last x value and the colour that reached the canvas. Lets a screenshot
+         *  script verify the curve covers the whole window before saving the image — an
+         *  empty tail is invisible in a thumbnail — and lets a test check that a
+         *  configured `var(--token)` arrived resolved (a canvas drops it unresolved). */
+        chartSeries():
+            | {
+                  name: unknown;
+                  points: number;
+                  first: unknown;
+                  last: unknown;
+                  color: unknown;
+              }[]
+            | null {
             const el = document.querySelector('[_echarts_instance_]');
             const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
             if (!inst) return null;
-            const opt = inst.getOption() as { series?: { name?: unknown; data?: unknown[] }[] };
+            const opt = inst.getOption() as
+                | { series?: { name?: unknown; data?: unknown[]; itemStyle?: { color?: unknown }; color?: unknown }[] }
+                | undefined;
+            // An instance that exists but has no option yet answers undefined —
+            // asking too early must read as "not ready", not throw.
+            if (!opt) return null;
             return (opt.series ?? []).map((s) => {
                 const data = s.data ?? [];
                 const at = (p: unknown) => (Array.isArray(p) ? p[0] : p);
@@ -499,6 +514,7 @@ function installScreenshotApi(): void {
                     points: data.length,
                     first: at(data[0]),
                     last: at(data[data.length - 1]),
+                    color: s.itemStyle?.color ?? s.color,
                 };
             });
         },

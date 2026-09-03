@@ -7,4 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - MCP server - aura_validate no longer reports a write on read-only rows: a state or contact display writes nothing, and a row with writable false is taken at its word
-- MCP server - aura_validate refuses a var(--token) in an eCharts series colour: the canvas cannot resolve it and the series stays invisible, so the finding names the value to use instead
+- Extended chart - series colours follow the theme: a var(--token) is resolved before it reaches the canvas, so the same colour rule now holds for charts as for every other widget (a token the theme does not define is reported by aura_validate)

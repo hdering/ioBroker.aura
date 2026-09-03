@@ -4,6 +4,7 @@ import { useConfigStore } from './store/configStore';
 import { useGlobalThemeId } from './hooks/useEffectiveSettings';
 import { getTheme } from './themes';
 import { BOOT_COLORS_KEY } from './utils/themeModeCache';
+import { bumpThemeEpoch } from './store/themeEpoch';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const customVars = useThemeStore((s) => s.customVars);
@@ -37,6 +38,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         } catch {
             /* quota / private mode */
         }
+        // The variables are in the DOM now — whoever has to read one in
+        // JavaScript (a canvas colour) can do it from here on (store/themeEpoch).
+        bumpThemeEpoch();
     }, [theme, customVars, fontScale]);
 
     return <>{children}</>;

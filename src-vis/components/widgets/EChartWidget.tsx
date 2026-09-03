@@ -2,6 +2,7 @@ import ReactECharts from 'echarts-for-react';
 import { useRef, useState, useEffect } from 'react';
 import { BarChart2, CalendarDays, ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useResolvedColors } from '../../hooks/useResolvedColors';
 import {
     useMultiSeriesData,
     useAutoHistoryInstances,
@@ -354,6 +355,25 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         return () => ro.disconnect();
     }, []);
 
+    // Colours, resolved against this widget's own element before they reach the
+    // canvas. eCharts renders with `renderer: 'canvas'`, and a canvas has no CSS:
+    // `ctx.fillStyle = 'var(--accent)'` is dropped (measured, fallback included),
+    // so a series configured with a token used to be invisible. Resolved here,
+    // the chart follows the theme like every other widget — including a design
+    // picked per layout/section and the widget's own styleOverride, because the
+    // lookup happens at the element and not at the document.
+    const seriesColors = useResolvedColors(
+        containerRef,
+        echartSeries.map((s, idx) => s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length]),
+    );
+    /** The colour of series `idx`, with the palette as the last resort. */
+    const colorAt = (idx: number) => seriesColors[idx] ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length];
+    // Legend and gauge text are drawn on the canvas too — these carried a token
+    // that never resolved, so they were painted in whatever colour came last.
+    // (The tooltip is a real DOM element; its tokens work and stay as they are.)
+    const [canvasTextColor] = useResolvedColors(containerRef, ['var(--text-primary)']);
+    const onCanvasText = canvasTextColor ?? '#ccc';
+
     if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
     const allLoading = echartSeries.length > 0 && echartSeries.every((s) => seriesDataMap.get(s.id)?.loading);
@@ -553,7 +573,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const currentValues = echartSeries
         .map((s, idx) => ({
             value: seriesCurrent(idx, s.id),
-            color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
+            color: colorAt(idx),
             unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
             // Kept around so the block can format each number the way its series asks for.
             series: s,
@@ -566,7 +586,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     if (isGauge) {
         const firstSeries = echartSeries[0];
         const gaugeValue = seriesCurrent(0, firstSeries?.id ?? '') ?? 0;
-        const gaugeColor = firstSeries?.color ?? DEFAULT_COLORS[0];
+        const gaugeColor = colorAt(0);
 
         const gaugeOption: Record<string, unknown> = {
             backgroundColor: 'transparent',
@@ -590,7 +610,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     detail: {
                         formatter: (v: number) =>
                             `${fmtSeries(v, firstSeries)}${echartLeftUnit ? ` ${echartLeftUnit}` : ''}`,
-                        color: 'var(--text-primary)',
+                        color: onCanvasText,
                         fontSize: 16,
                         offsetCenter: [0, '70%'],
                     },
@@ -655,7 +675,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         // series-level label below covers all bars at once (issue #584).
         const values = echartSeries.map((s, idx) => ({
             value: seriesCurrent(idx, s.id),
-            itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
+            itemStyle: { color: colorAt(idx) },
             label: valueLabel(echartLeftUnit, { series: s }),
         }));
         const hasData = values.some((v) => v.value !== null);
@@ -834,7 +854,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 smoothMonotone: 'x',
                 // Stacked bands go without an outline — see `outlineWidthFor`.
                 lineStyle: { width: outlineWidthFor(s) },
-                itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
+                itemStyle: { color: colorAt(idx) },
                 data: jsonData[idx],
                 yAxisIndex: s.yAxisIndex ?? 0,
                 showSymbol: labelSymbols(s),
@@ -869,7 +889,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                       : null;
                 return {
                     value: tail,
-                    color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length],
+                    color: colorAt(idx),
                     unit: (s.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit,
                     series: s,
                 };
@@ -1079,7 +1099,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             smoothMonotone: 'x',
             // Stacked bands go without an outline — see `outlineWidthFor`.
             lineStyle: { width: outlineWidthFor(s) },
-            itemStyle: { color: s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length] },
+            itemStyle: { color: colorAt(idx) },
             data,
             yAxisIndex: s.yAxisIndex ?? 0,
             showSymbol: labelSymbols(s),

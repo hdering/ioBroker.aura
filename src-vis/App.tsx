@@ -27,6 +27,7 @@ import { useConfigStore } from './store/configStore';
 import { useDashboardStore, resolveView, resolveTabBarSettings } from './store/dashboardStore';
 import { useNavigationStore } from './store/navigationStore';
 import { useThemeStore } from './store/themeStore';
+import { bumpThemeEpoch } from './store/themeEpoch';
 import { getTheme } from './themes';
 import { useGroupStore } from './store/groupStore';
 import { loadConfigFromIoBroker, applyRaw } from './utils/configLoader';
@@ -659,7 +660,10 @@ export default function App() {
             layoutSettings?.customVars !== undefined ||
             scopedFontScale !== undefined;
         if (!overridden) {
-            if (layoutThemeRef.current) layoutThemeRef.current.textContent = '';
+            if (layoutThemeRef.current) {
+                layoutThemeRef.current.textContent = '';
+                bumpThemeEpoch();
+            }
             return;
         }
         if (!layoutThemeRef.current) {
@@ -674,6 +678,9 @@ export default function App() {
             .join('\n');
         const fontScaleDecl = scopedFontScale !== undefined ? `\n  --font-scale: ${scopedFontScale};` : '';
         layoutThemeRef.current.textContent = `[data-aura-app="frontend"] {\n${declarations}${fontScaleDecl}\n}`;
+        // Same as in ThemeProvider: the scoped variables are applied, so whoever
+        // has to resolve one in JavaScript (the chart canvas) may do it now.
+        bumpThemeEpoch();
     }, [layoutSettings, sectionSettings, scopedFontScale, currentTheme, effectiveCustomVars]);
 
     // ── Load config from ioBroker on first connect ────────────────────────────

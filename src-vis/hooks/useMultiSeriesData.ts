@@ -19,11 +19,15 @@ export interface EChartSeriesConfig {
     datapointId: string;
     chartType: 'line' | 'bar' | 'area' | 'scatter';
     /**
-     * A fixed colour value — `#3b82f6`, `rgb(...)`, `red`. NOT `var(--token)`:
-     * eCharts paints on a canvas, where a CSS variable resolves to nothing at all
-     * (`ctx.fillStyle = 'var(--accent)'` is dropped, fallback included), so the
-     * series is drawn in whatever colour was set last and usually disappears.
-     * Unset means the next colour of the built-in palette.
+     * The line/bar colour: a theme token (`var(--accent-green)`) like everywhere
+     * else, or a fixed value (`#3b82f6`, `rgb(...)`, `red`).
+     *
+     * A canvas cannot read CSS, so the widget resolves the token at its own
+     * element before handing the option to eCharts (hooks/useResolvedColors.ts) —
+     * which is what lets a chart follow the theme, a design picked per section and
+     * the widget's own `styleOverride`. A token no theme defines resolves to
+     * nothing and leaves the built-in palette in charge, which is also what an
+     * unset colour does.
      */
     color?: string;
     historyInstance?: string;

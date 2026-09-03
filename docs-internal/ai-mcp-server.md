@@ -744,38 +744,53 @@ Hell/Dunkel-Paar) und setzt beides zusammen:
 - **`aura_theme`** liefert alles, inklusive der Element-Token mit ihrer Vererbung
   (`elements: false` kürzt auf die Basis).
 
-**Und die eine Stelle, an der die Regel nicht gilt.** Aus der Praxis gemeldet:
-`var(--accent)` in `echartSeries[].color` — Diagramm dauerhaft leer. eCharts
-zeichnet mit `renderer: 'canvas'`, und dort ist eine CSS-Variable keine Farbe. Im
+**Die eine Stelle, an der die Regel fast nicht gegolten hätte.** Aus der Praxis
+gemeldet: `var(--accent)` in `echartSeries[].color` — Diagramm dauerhaft leer.
+eCharts zeichnet mit `renderer: 'canvas'`, und ein Canvas kennt kein CSS. Im
 echten Browser gemessen:
 
-| gesetzt                     | `ctx.fillStyle` danach |
-| --------------------------- | ---------------------- |
-| `var(--accent)`             | unverändert            |
-| `var(--accent, #3b82f6)`    | unverändert            |
-| `currentColor`              | unverändert            |
-| `#3b82f6`                   | `#3b82f6`              |
+| gesetzt                  | `ctx.fillStyle` danach |
+| ------------------------ | ---------------------- |
+| `var(--accent)`          | unverändert            |
+| `var(--accent, #3b82f6)` | unverändert            |
+| `currentColor`           | unverändert            |
+| `#3b82f6`                | `#3b82f6`              |
 
 Die Zuweisung wird verworfen — **auch mit Fallback** —, die Serie behält die
-zuletzt gesetzte Farbe und ist auf dunklem Grund weg. Drei Ursachen, alle
-behoben:
+zuletzt gesetzte Farbe und ist auf dunklem Grund weg.
 
-1. Die Palette in `aura_dashboard` sagte „Immer var(--token) schreiben, nie einen
-   Hex-Wert" **ohne Ausnahme** — die Anweisung selbst führte in den Fehler. Sie
-   nennt die Ausnahme jetzt, `aura_theme` ebenfalls.
-2. Im Schema stand `color?: string`. Jetzt sagt das JSDoc, was dort hineingehört
-   und warum kein Token.
-3. `aura_validate` schwieg. `canvasColorFindings()` macht daraus einen **Fehler**
-   wie bei jedem anderen unbrauchbaren Wert — und nennt gleich den Wert, der
-   stattdessen hineingehört: `themeValues()` löst das Token gegen das Theme
-   dieses Dashboards auf („--accent ist auf diesem Dashboard #3b82f6"). Ohne
-   Theme im Kontext bleibt der Verweis auf `aura_theme`. `aura_review` meldet
-   dasselbe als `canvas-colors` für das, was schon gespeichert ist.
+Der erste Anlauf verbot darum das Token im Diagramm: Schema-Hinweis, Ausnahme in
+der Palette, Fehler in `aura_validate`. Das war die schlechtere Hälfte der
+Lösung — zwei Farbregeln, und Diagramme, die dem Theme nicht folgen. Jetzt löst
+das **Widget** den Wert auf, bevor er ans Canvas geht:
 
-Dazu der Grund, warum es so lange lief: Ein Rezept (`raum-tab`) hatte selbst ein
-`var(--accent-yellow)` in einer Serie. Der Test dazu prüfte nur die eine
-Richtung — Hex, wo ein Token hingehört — und ließ `echart` ganz aus. Er prüft
-jetzt beide Richtungen.
+- `utils/cssColor.ts` — `resolveCssColor(value, computedStyle)`: `var(--x)`,
+  `var(--x, fallback)` und `currentColor` (das ist `cs.color`) zu einem echten
+  Wert; nicht auflösbar ⇒ `undefined`, damit der Aufrufer seine Palette nimmt
+  statt dem Canvas eine Zeichenkette zu geben, die es wegwirft.
+- `hooks/useResolvedColors.ts` liest über `getComputedStyle` **am Element des
+  Widgets** — damit gelten Layout-/Bereichs-Design und das `styleOverride` der
+  Kachel mit, und Ketten (`--x: var(--y)`) hat der Browser schon aufgelöst.
+- `store/themeEpoch.ts` löst das Reihenfolgeproblem: React führt Effekte von
+  innen nach außen aus, ein Widget liest also **vor** dem Effekt des
+  `ThemeProvider` und würde beim Theme-Wechsel das alte Theme auflösen und nie
+  wieder davon hören. Die beiden Schreiber (ThemeProvider global, App für das
+  bereichsbezogene `<style>`) zählen darum nach dem Schreiben einen Zähler hoch,
+  die Leser hängen daran.
+
+Damit ist die Farbregel überall dieselbe, und `echartSeries[].color` folgt dem
+Theme wie jede andere Farbe. Geblieben ist von der Prüfung genau eine Frage:
+**gibt es das Token überhaupt?** Ein unbekanntes löst sich zu nichts auf und die
+Serie nimmt still die nächste Palettenfarbe — `tokenColorFindings()` sagt das als
+**Warnung** (kein Fehler: das Diagramm zeichnet, und eigene Variablen aus
+Admin → CSS/JS sieht die Prüfung nicht). `aura_review` meldet dasselbe als
+`unknown-tokens`.
+
+`tools/tests/echart-token-colors.mjs` prüft die Kette im Browser: Token kommt
+aufgelöst an, folgt dem Theme (`#eab308` → `#ca8a04`), der `var()`-Fallback
+greift, ein unbekanntes Token landet bei der Palette statt bei `var(…)`, ein
+Hex-Wert bleibt unangetastet. Die Rezepte tragen jetzt durchweg Token — auch in
+den Serien, wo der Test sie früher ausnahm.
 
 Zwei Feinheiten, die die Antwort ehrlich halten: Bei `followBrowser` sind **zwei**
 Themes im Spiel, das steht ausdrücklich da (`#111827 / #ffffff`) statt gemittelt
