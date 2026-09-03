@@ -14,6 +14,8 @@ Der Adminbereich liegt unter `/#/admin` und konfiguriert das gesamte Dashboard. 
 | [CSS & JS](./css-js) | Eigenes CSS/JavaScript einbinden |
 | [Einstellungen](./settings) | Sprache, PIN, Backup, Geräte, Reset |
 
+Die Instanzkonfiguration im ioBroker-Admin ist getrennt davon: [KI-Zugriff (MCP)](./mcp) beschreibt, wie ein KI-Assistent das Dashboard bauen darf.
+
 ## Übersicht
 
 Status und Statistiken zum Dashboard sowie zwei Diagnose-Bereiche.

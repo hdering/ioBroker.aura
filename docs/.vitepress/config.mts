@@ -47,6 +47,10 @@ export default defineConfig({
             { text: 'Einstellungen', link: '/einstellungen/settings' },
           ],
         },
+        {
+          text: 'Instanz',
+          items: [{ text: 'KI-Zugriff (MCP)', link: '/einstellungen/mcp' }],
+        },
       ],
     },
 
