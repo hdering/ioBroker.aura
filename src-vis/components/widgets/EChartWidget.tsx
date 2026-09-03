@@ -109,6 +109,44 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const fmtSeries = (v: number, s?: EChartSeriesConfig): string =>
         formatNum(v, s?.decimals ?? decimals, s?.numberFormat ?? numFmt);
     const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
+    const containerRef = useRef<HTMLDivElement>(null);
+    // Colours, resolved against this widget's own element before they reach the
+    // canvas. eCharts renders with `renderer: 'canvas'`, and a canvas has no CSS:
+    // `ctx.fillStyle = 'var(--accent)'` is dropped (measured, fallback included),
+    // so a series configured with a token used to be invisible. Resolved here,
+    // the chart follows the theme like every other widget — including a design
+    // picked per layout/section and the widget's own styleOverride, because the
+    // lookup happens at the element and not at the document.
+    const seriesColors = useResolvedColors(
+        containerRef,
+        echartSeries.map((s, idx) => s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length]),
+    );
+    /** The colour of series `idx`, with the palette as the last resort. */
+    const colorAt = (idx: number) => seriesColors[idx] ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length];
+    // Everything the canvas paints itself: labels, axis lines, grid lines, the
+    // gauge track. These were hard-coded greys (#888/#444/#333/#555) — invisible
+    // in the JSON and wrong in every light theme, where a #333 grid line is nearly
+    // black on white. The fallbacks keep exactly the old look if a token is
+    // missing. (The tooltip is a real DOM element; its tokens work and stay.)
+    const [textColor, mutedColor, lineColor, gridColor, trackColor] = useResolvedColors(containerRef, [
+        'var(--text-primary)',
+        'var(--text-secondary)',
+        'var(--app-border)',
+        'var(--widget-border)',
+        // An element token nobody has to set: unset it inherits the app border,
+        // which is what the gauge track was approximating with #333.
+        'var(--gauge-track, var(--app-border))',
+    ]);
+    const onCanvasText = textColor ?? '#ccc';
+    /** Axis and legend labels. */
+    const onCanvasMuted = mutedColor ?? '#888';
+    /** Axis lines and the gauge's tick marks. */
+    const onCanvasLine = lineColor ?? '#444';
+    /** Grid lines behind the series. */
+    const onCanvasGrid = gridColor ?? '#333';
+    /** The unfilled part of the gauge arc. */
+    const onCanvasTrack = trackColor ?? '#333';
+
     const echartShowLegend = (o.echartShowLegend as boolean | undefined) ?? true;
     const echartLeftUnit = (o.echartLeftUnit as string | undefined) ?? '';
     const echartRightUnit = (o.echartRightUnit as string | undefined) ?? '';
@@ -218,7 +256,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         return {
             show: true,
             position: inside ? 'inside' : drawsNegative ? 'bottom' : 'top',
-            color: inside ? '#fff' : '#888',
+            color: inside ? '#fff' : onCanvasMuted,
             fontSize: 10,
             formatter: (p: { value: number | [number, number] | null; dataIndex: number }) => {
                 const v = Array.isArray(p.value) ? p.value[1] : p.value;
@@ -333,7 +371,6 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chartRef = useRef<any>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
     const [hasSize, setHasSize] = useState(false);
     // Single ResizeObserver handles both initial sizing and tab-switch resize.
     // Avoids the two-effect race where the first effect returns early on visible
@@ -354,25 +391,6 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         ro.observe(el);
         return () => ro.disconnect();
     }, []);
-
-    // Colours, resolved against this widget's own element before they reach the
-    // canvas. eCharts renders with `renderer: 'canvas'`, and a canvas has no CSS:
-    // `ctx.fillStyle = 'var(--accent)'` is dropped (measured, fallback included),
-    // so a series configured with a token used to be invisible. Resolved here,
-    // the chart follows the theme like every other widget — including a design
-    // picked per layout/section and the widget's own styleOverride, because the
-    // lookup happens at the element and not at the document.
-    const seriesColors = useResolvedColors(
-        containerRef,
-        echartSeries.map((s, idx) => s.color ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length]),
-    );
-    /** The colour of series `idx`, with the palette as the last resort. */
-    const colorAt = (idx: number) => seriesColors[idx] ?? DEFAULT_COLORS[idx % DEFAULT_COLORS.length];
-    // Legend and gauge text are drawn on the canvas too — these carried a token
-    // that never resolved, so they were painted in whatever colour came last.
-    // (The tooltip is a real DOM element; its tokens work and stay as they are.)
-    const [canvasTextColor] = useResolvedColors(containerRef, ['var(--text-primary)']);
-    const onCanvasText = canvasTextColor ?? '#ccc';
 
     if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
@@ -540,13 +558,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         scale: !zeroBased(0) || leftMin !== undefined,
         axisLabel: {
             show: echartShowYAxis,
-            color: '#888',
+            color: onCanvasMuted,
             fontSize: 10,
             formatter: axisLabelFormatter(echartLeftUnit),
         },
         axisTick: { show: echartShowYAxis },
-        axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
-        splitLine: { show: showGridOn(0), lineStyle: { color: '#333' } },
+        axisLine: { show: echartShowYAxis, lineStyle: { color: onCanvasLine } },
+        splitLine: { show: showGridOn(0), lineStyle: { color: onCanvasGrid } },
         ...(leftMin !== undefined ? { min: leftMin } : {}),
         ...(leftMax !== undefined ? { max: leftMax } : {}),
     };
@@ -557,13 +575,13 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
               scale: !zeroBased(1) || rightMin !== undefined,
               axisLabel: {
                   show: echartShowYAxisRight,
-                  color: '#888',
+                  color: onCanvasMuted,
                   fontSize: 10,
                   formatter: axisLabelFormatter(echartRightUnit),
               },
               axisTick: { show: echartShowYAxisRight },
-              axisLine: { show: echartShowYAxisRight, lineStyle: { color: '#444' } },
-              splitLine: { show: showGridOn(1), lineStyle: { color: '#333' } },
+              axisLine: { show: echartShowYAxisRight, lineStyle: { color: onCanvasLine } },
+              splitLine: { show: showGridOn(1), lineStyle: { color: onCanvasGrid } },
               ...(rightMin !== undefined ? { min: rightMin } : {}),
               ...(rightMax !== undefined ? { max: rightMax } : {}),
           }
@@ -601,10 +619,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     ...(typeof leftMax === 'number' ? { max: leftMax } : {}),
                     radius: '85%',
                     progress: { show: true, width: 12 },
-                    axisLine: { lineStyle: { width: 12, color: [[1, '#333']] } },
+                    axisLine: { lineStyle: { width: 12, color: [[1, onCanvasTrack]] } },
                     axisTick: { show: false },
-                    splitLine: { length: 8, lineStyle: { color: '#555', width: 1 } },
-                    axisLabel: { color: '#888', fontSize: 10 },
+                    splitLine: { length: 8, lineStyle: { color: onCanvasLine, width: 1 } },
+                    axisLabel: { color: onCanvasMuted, fontSize: 10 },
                     pointer: { show: true, length: '60%', width: 4 },
                     itemStyle: { color: gaugeColor },
                     detail: {
@@ -614,7 +632,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         fontSize: 16,
                         offsetCenter: [0, '70%'],
                     },
-                    title: { color: '#888', fontSize: 11 },
+                    title: { color: onCanvasMuted, fontSize: 11 },
                     data: [{ value: gaugeValue, name: firstSeries?.name ?? '' }],
                 },
             ],
@@ -713,22 +731,22 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 type: 'category',
                 data: categories,
                 show: echartShowXAxis,
-                axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+                axisLabel: { show: echartShowXAxis, color: onCanvasMuted, fontSize: 10 },
                 axisTick: { show: echartShowXAxis },
-                axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
+                axisLine: { show: echartShowXAxis, lineStyle: { color: onCanvasLine } },
                 splitLine: { show: false },
             },
             yAxis: {
                 type: 'value',
                 axisLabel: {
                     show: echartShowYAxis,
-                    color: '#888',
+                    color: onCanvasMuted,
                     fontSize: 10,
                     formatter: axisLabelFormatter(echartLeftUnit),
                 },
                 axisTick: { show: echartShowYAxis },
-                axisLine: { show: echartShowYAxis, lineStyle: { color: '#444' } },
-                splitLine: { show: echartShowYAxis, lineStyle: { color: '#333' } },
+                axisLine: { show: echartShowYAxis, lineStyle: { color: onCanvasLine } },
+                splitLine: { show: echartShowYAxis, lineStyle: { color: onCanvasGrid } },
                 ...(leftMin !== undefined ? { min: leftMin } : {}),
                 ...(leftMax !== undefined ? { max: leftMax } : {}),
             },
@@ -937,7 +955,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 },
             },
             legend: echartShowLegend
-                ? { show: true, textStyle: { color: '#888', fontSize: 11 }, top: 4 }
+                ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: 4 }
                 : { show: false },
             grid: {
                 left: AXIS_GAP,
@@ -950,9 +968,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 ? {
                       type: 'time',
                       show: echartShowXAxis,
-                      axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+                      axisLabel: { show: echartShowXAxis, color: onCanvasMuted, fontSize: 10 },
                       axisTick: { show: echartShowXAxis },
-                      axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
+                      axisLine: { show: echartShowXAxis, lineStyle: { color: onCanvasLine } },
                       splitLine: { show: false },
                   }
                 : {
@@ -960,9 +978,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                       data: categories,
                       show: echartShowXAxis,
                       boundaryGap: echartSeries.some((s) => s.chartType === 'bar'),
-                      axisLabel: { show: echartShowXAxis, color: '#888', fontSize: 10 },
+                      axisLabel: { show: echartShowXAxis, color: onCanvasMuted, fontSize: 10 },
                       axisTick: { show: echartShowXAxis },
-                      axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
+                      axisLine: { show: echartShowXAxis, lineStyle: { color: onCanvasLine } },
                       splitLine: { show: false },
                   },
             yAxis: [leftAxis, rightAxis],
@@ -1186,7 +1204,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 return `${timeStr}<br/>${lines.join('<br/>')}`;
             },
         },
-        legend: echartShowLegend ? { show: true, textStyle: { color: '#888', fontSize: 11 }, top: 4 } : { show: false },
+        legend: echartShowLegend
+            ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: 4 }
+            : { show: false },
         grid: {
             left: AXIS_GAP,
             right: AXIS_GAP,
@@ -1199,7 +1219,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             show: echartShowXAxis,
             axisLabel: {
                 show: echartShowXAxis,
-                color: '#888',
+                color: onCanvasMuted,
                 fontSize: 10,
                 // Monthly bars over several years put a label at every month start — echarts drops
                 // the ones that would collide instead of overprinting them.
@@ -1207,7 +1227,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 formatter: axisBucket ? (v: number) => bucketAxisLabel(v, axisBucket, dateLocale) : null,
             },
             axisTick: { show: echartShowXAxis },
-            axisLine: { show: echartShowXAxis, lineStyle: { color: '#444' } },
+            axisLine: { show: echartShowXAxis, lineStyle: { color: onCanvasLine } },
             splitLine: { show: false },
             // Ticks have to land ON the bucket grid, or the formatter above finds nothing to label:
             // a two-bar yearly chart would otherwise get month ticks, none of them a January.

@@ -859,7 +859,13 @@ das **Widget** den Wert auf, bevor er ans Canvas geht:
   die Leser hängen daran.
 
 Damit ist die Farbregel überall dieselbe, und `echartSeries[].color` folgt dem
-Theme wie jede andere Farbe. Geblieben ist von der Prüfung genau eine Frage:
+Theme wie jede andere Farbe. Dasselbe gilt inzwischen für das, was das Diagramm
+**selbst** zeichnet: Achsenbeschriftungen (`--text-secondary`), Achsenlinien
+(`--app-border`), Gitterlinien (`--widget-border`), Legende und Gauge-Spur
+(`--gauge-track`, ohne eigene Einstellung `--app-border`). Das waren feste
+Grautöne (#888/#444/#333/#555) — im dunklen Theme unauffällig, im hellen falsch:
+eine #333-Gitterlinie ist auf Weiß fast schwarz. Die Fallbacks sind die alten
+Werte, damit ein fehlendes Token nichts verschlimmert. Geblieben ist von der Prüfung genau eine Frage:
 **gibt es das Token überhaupt?** Ein unbekanntes löst sich zu nichts auf und die
 Serie nimmt still die nächste Palettenfarbe — `tokenColorFindings()` sagt das als
 **Warnung** (kein Fehler: das Diagramm zeichnet, und eigene Variablen aus

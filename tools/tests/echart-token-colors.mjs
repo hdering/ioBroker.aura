@@ -112,6 +112,62 @@ check('and never hands var() to the canvas', !/var\(/.test(String(palette)), Str
 eq('a hex value passes through', await colorOf('#123456', 'dark'), '#123456');
 eq('a colour name passes through', await colorOf('red', 'dark'), 'red');
 
+// ── the chrome follows the theme too ────────────────────────────────────────
+// Axis labels, axis lines, grid lines and the legend were hard-coded greys
+// (#888/#444/#333). Invisible in the JSON, and wrong in every light theme: a
+// #333 grid line is nearly black on white.
+async function chrome(themeId) {
+    await page.evaluate(
+        ({ cfg, themeId }) => {
+            window.__auraShot.setTheme(themeId);
+            window.__auraShot.mock({ 'demo.0.temp': { val: 21.5, unit: '°C' } });
+            window.__auraShot.enableHistory(true);
+            window.__auraShot.showWidgets([cfg], { editMode: false });
+        },
+        { cfg: { ...widget('#123456'), options: { ...widget('#123456').options, echartShowLegend: true } }, themeId },
+    );
+    let last = null;
+    let prev = '';
+    for (let i = 0; i < 15; i++) {
+        await page.waitForTimeout(80);
+        last = await page.evaluate(() => {
+            const a = window.__auraShot.chartAxes();
+            if (!a) return null;
+            const y = Array.isArray(a.yAxis) ? a.yAxis[0] : a.yAxis;
+            return {
+                label: a.xAxis?.axisLabel?.color ?? null,
+                line: a.xAxis?.axisLine?.lineStyle?.color ?? null,
+                grid: y?.splitLine?.lineStyle?.color ?? null,
+                legend: a.legend?.textStyle?.color ?? null,
+            };
+        });
+        const key = JSON.stringify(last);
+        if (key === prev && last && last.label) break;
+        prev = key;
+    }
+    return last;
+}
+
+const darkChrome = await chrome('dark');
+const darkMuted = await tokenValue('--text-secondary');
+eq('the axis labels take the muted text token', darkChrome.label, darkMuted);
+eq('the legend takes it as well', darkChrome.legend, darkMuted);
+eq('the axis line takes the app border', darkChrome.line, await tokenValue('--app-border'));
+eq('the grid line takes the widget border', darkChrome.grid, await tokenValue('--widget-border'));
+check(
+    'and none of them reaches the canvas as var()',
+    !Object.values(darkChrome).some((v) => /var\(/.test(String(v))),
+    JSON.stringify(darkChrome),
+);
+
+const lightChrome = await chrome('light');
+eq('the chrome follows the theme', lightChrome.label, await tokenValue('--text-secondary'));
+check(
+    'which is a different grey than in the dark theme',
+    lightChrome.label !== darkChrome.label && lightChrome.grid !== darkChrome.grid,
+    `${darkChrome.label}/${darkChrome.grid} → ${lightChrome.label}/${lightChrome.grid}`,
+);
+
 check('no uncaught page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

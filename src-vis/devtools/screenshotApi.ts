@@ -524,13 +524,21 @@ function installScreenshotApi(): void {
          *  they are pixels, and pixels are not what a test should assert on (issue #541).
          *  `xExtent` is the time window the x axis really frames: `setOption` merges, so a
          *  min/max the option no longer carries can still be pinning it (issue #594). */
-        chartAxes(): { grid: unknown; yAxis: unknown; xAxis: unknown; xExtent: [number, number] | null } | null {
+        chartAxes(): {
+            grid: unknown;
+            yAxis: unknown;
+            xAxis: unknown;
+            legend: unknown;
+            xExtent: [number, number] | null;
+        } | null {
             const el = document.querySelector('[_echarts_instance_]');
             const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
             if (!inst) return null;
             // A chart that has just been mounted (or replaced by one with a new widget id) can
             // answer before it holds an option at all — that is a "not ready yet", not a failure.
-            const opt = inst.getOption() as { grid?: unknown[]; yAxis?: unknown[]; xAxis?: unknown[] } | undefined;
+            const opt = inst.getOption() as
+                | { grid?: unknown[]; yAxis?: unknown[]; xAxis?: unknown[]; legend?: unknown[] }
+                | undefined;
             if (!opt) return null;
             let xExtent: [number, number] | null = null;
             try {
@@ -554,6 +562,9 @@ function installScreenshotApi(): void {
                     grid: opt.grid?.[0] ?? null,
                     yAxis: opt.yAxis ?? null,
                     xAxis: opt.xAxis?.[0] ?? null,
+                    // The legend is canvas-drawn too, so its colour is worth reading
+                    // back: it carried a token that never resolved.
+                    legend: opt.legend?.[0] ?? null,
                     xExtent,
                 }),
             );
