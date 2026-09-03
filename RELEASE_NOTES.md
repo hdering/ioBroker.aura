@@ -10,3 +10,4 @@
 - Extended chart - series colours follow the theme: a var(--token) is resolved before it reaches the canvas, so the same colour rule now holds for charts as for every other widget (a token the theme does not define is reported by aura_validate)
 - MCP server - aura_measure charges the second line under a list entry to the rows that have one, instead of to every row (a list of twelve with four second lines was reported 123 px too big)
 - Documentation - step-by-step guide for connecting the AI assistant (MCP): enabling the endpoint, generating the token, pasting the client block, and setting up the ioBroker MCP server it needs
+- MCP server - aura_measure counts a separator row as the shorter row it is (17 px instead of a full content row) and no longer claims separators are left out of the number

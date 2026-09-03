@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-09-02",
+    "measured": "2026-09-03",
     "method": "Measured in the real frontend: the height is walked down until the content either scrolls or reaches past the card. 2 px resolution, each type at its default width.",
     "caveats": [
       "Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.",
@@ -107,6 +107,10 @@
             "select": {
               "label": "Auswahlfeld",
               "perItemPx": 14
+            },
+            "divider": {
+              "label": "Trennzeile",
+              "perItemPx": -41.3
             }
           }
         },
@@ -176,6 +180,10 @@
             "select": {
               "label": "Auswahlfeld",
               "perItemPx": 7
+            },
+            "divider": {
+              "label": "Trennzeile",
+              "perItemPx": 16.7
             }
           }
         },
@@ -192,7 +200,13 @@
               "n": 8,
               "px": 336
             }
-          ]
+          ],
+          "rowTypes": {
+            "divider": {
+              "label": "Trennzeile",
+              "perItemPx": -9.3
+            }
+          }
         }
       },
       "modifiers": [
@@ -326,12 +340,17 @@
         "select": {
           "label": "Auswahlfeld",
           "perItemPx": 14
+        },
+        "divider": {
+          "label": "Trennzeile",
+          "perItemPx": -16
         }
       },
       "notIncluded": [
         "Darstellung „Auto“ folgt der Rolle des Datenpunkts — gemessen ist die Wert-Zeile",
         "Filterzeile mit sichtbaren Filtern und Suchfeld",
-        "Raum-Überschriften (groupByRoom) und Trennzeilen (entries[].divider)",
+        "Raum-Überschriften (groupByRoom)",
+        "Trennzeilen im Layout „compact“: sie unterbrechen zusätzlich den zweispaltigen Fluss, der gemessene Aufschlag ist ein Mittelwert",
         "umbrochene Beschriftungen (wrapText) und mehrzeilige Titel",
         "mehr als ein subDp je Eintrag"
       ]

@@ -169,6 +169,28 @@ for (const layout of ['default', 'card', 'compact']) {
     }
 }
 
+// ── the separator row ────────────────────────────────────────────────────────
+// Reported from use: a separator was charged as a full content row while the
+// footnote claimed separators were not counted at all. It is a row — a 17 px one.
+// The first measurement of it was wrong too (a leading separator is dropped as an
+// empty section, so the delta came out at −20.5 px instead of −16), which is why
+// this checks the difference against the live DOM.
+for (const layout of ['default', 'card', 'compact', 'minimal']) {
+    const shape = layout === 'default' ? METRICS.counted.list : METRICS.counted.list.variants[layout];
+    const want = shape.rowTypes?.divider;
+    check(`${layout}: the layout carries a measured separator`, !!want);
+    if (!want) continue;
+    // Eight entries either way — one of them a separator, sitting between content
+    // rows so it is not dropped.
+    const plain = entries(8, null);
+    const mixed = [...entries(3, null), { id: 'demo.sep', divider: true, label: 'Abschnitt' }, ...entries(4, null)];
+    await show(widget({ entries: plain }, layout));
+    const a = await contentPx();
+    await show(widget({ entries: mixed }, layout));
+    const b = await contentPx();
+    near(`${layout}: the separator against the row it replaces`, Math.round((b - a) * 10) / 10, want.perItemPx);
+}
+
 // A contact row being taller than a value row is the whole finding — if these
 // ever come out equal, the surcharge is measuring nothing.
 check(

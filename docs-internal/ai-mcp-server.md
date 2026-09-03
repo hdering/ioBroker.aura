@@ -523,8 +523,8 @@ selbst: „12 × 48.3 px/Zeile — zweite Zeile je Eintrag (subDps)".
 `isPerRowWhen()` erkennt eine Bedingung, die von einer **Zeile** spricht
 (`when.path` beginnt mit `entries[].`, bei `all` alle Klauseln). Deren Delta
 wandert nicht in `perItemPx`, sondern wird von `perRowSurcharge()` über die
-Zeilen gezählt, die es wirklich betrifft — Trennzeilen und alles unterhalb von
-`maxRows` fallen dabei heraus, wie beim Darstellungs-Aufschlag. Die Antwort
+Zeilen gezählt, die es wirklich betrifft — Trennzeilen (die zeichnen keine zweite
+Zeile) und alles unterhalb von `maxRows` fallen dabei heraus. Die Antwort
 rechnet es getrennt vor:
 
 ```
@@ -568,16 +568,49 @@ der listenweite Block `options.entryDisplay`, sonst `auto`. Damit ist auch eine
 gedeckelte `autolist` rechenbar: ihre Zeilen entstehen erst zur Laufzeit, aber
 jede startet aus `entryDisplay`.
 
-Trennzeilen (`divider`) bekommen keinen Zuschlag, `layout: "minimal"` gar keinen:
-die Pille zeichnet die Darstellungen selbst, ein an der Standardzeile gemessener
-Zuschlag wäre dort erfunden. Und `auto` steht bewusst bei ±0 — es folgt der Rolle
-des Datenpunkts, gemessen ist die Wert-Zeile; das sagt `notIncluded` jetzt auch.
+`layout: "minimal"` bekommt keine Darstellungs-Zuschläge: die Pille zeichnet die
+Darstellungen selbst, ein an der Standardzeile gemessener Zuschlag wäre dort
+erfunden. Und `auto` steht bewusst bei ±0 — es folgt der Rolle des Datenpunkts,
+gemessen ist die Wert-Zeile; das sagt `notIncluded` auch.
+
+**Die Trennzeile war doppelt falsch.** Aus der Praxis gemeldet: unter jeder
+Messung stand „Nicht eingerechnet: … Trennzeilen (entries[].divider)" — während
+`itemCount()` jede Trennzeile als vollwertige Zeile mitzählte. Beide Hälften
+falsch, und zwar gegenläufig: der Satz las sich als „pro Trennzeile Platz
+draufschlagen", genau das wurde getan, obendrauf auf eine Zahl, die schon zu groß
+war.
+
+Eine Trennzeile ist eine **Zeilenform**, keine Ausnahme — sie steht darum in
+derselben Tabelle wie die Darstellungen (`rowTypes.divider`) und wird pro Zeile
+gezählt. Gemessen (17 px hoch, gegen die Zeile, die sie ersetzt):
+
+| Layout    | Trennzeile |
+| --------- | ---------- |
+| default   | −16 px     |
+| card      | −41,3 px   |
+| compact   | **+16,7 px** |
+| minimal   | −9,3 px    |
+
+`compact` ist das interessante Vorzeichen: dort teilen sich zwei Inhaltszeilen
+eine Rasterzeile, eine Trennzeile läuft aber über die volle Breite **und** bricht
+den zweispaltigen Fluss — sie kostet mehr als die halbe Zeile, die sie ersetzt.
+Weil dieser Anteil von der Anordnung abhängt, steht der Mittelwert-Vorbehalt in
+`notIncluded`.
+
+Der Messstand kann eine Trennzeile nicht wie eine Darstellung messen: eine Liste
+aus lauter Trennzeilen zeigt den Leerzustand, und zwei aufeinanderfolgende werden
+als leerer Abschnitt verworfen. `dividerDelta()` misst deshalb bei **gleicher
+Zeilenzahl** einmal mit und einmal ohne Trenner (`listWithDividers` setzt sie
+strikt zwischen Inhaltszeilen) und teilt die Differenz durch die Zahl der
+Trenner, die wirklich gebaut wurden. Der erste Anlauf tat das nicht: ein
+führender Trenner wurde beim Rendern verworfen, geteilt wurde trotzdem durch vier
+— und aus −16 px wurden −20,5 px.
 
 Die gemessenen **Nullen** bleiben im Ergebnis stehen („±0"): dass der
 Gruppenschalter nichts kostet, ist eine Antwort — sein Fehlen liest sich wie
 Vergessen. Und weil nicht alles gemessen ist, nennt die Antwort im Fuß
 ausdrücklich, was **nicht** drinsteckt (`counted.<type>.notIncluded`: Filterzeile,
-Raum-Überschriften, Trennzeilen, Umbrüche, mehr als ein `subDp`) und dass mehrere
+Raum-Überschriften, Umbrüche, mehr als ein `subDp`) und dass mehrere
 Faktoren zusammen addiert werden — eine Näherung, keine Messung dieser
 Kombination.
 

@@ -1130,6 +1130,8 @@ check('a capped list counts only the rows it shows', () => {
     assert.equal(m.requiredPx, Math.round(METRICS.counted.list.basePx + 4 * (METRICS.counted.list.perItemPx + SUB_PX)));
 });
 
+const DIVIDER_PX = METRICS.counted.list.rowTypes.divider.perItemPx;
+
 check('a separator carrying the field is not a row with a second line', () => {
     const w = {
         ...listWidget(3, 25),
@@ -1142,7 +1144,71 @@ check('a separator carrying the field is not a row with a second line', () => {
         },
     };
     const m = measureWidget(w, { metrics: METRICS, grid: GRID });
-    assert.equal(m.requiredPx, Math.round(METRICS.counted.list.basePx + 3 * METRICS.counted.list.perItemPx + SUB_PX));
+    assert.equal(
+        m.requiredPx,
+        Math.round(METRICS.counted.list.basePx + 3 * METRICS.counted.list.perItemPx + SUB_PX + DIVIDER_PX),
+    );
+});
+
+// ── The separator: a row, and a shorter one ──────────────────────────────────
+// Reported from use: the footnote said separators were "not included" while the
+// row count charged a full content row for each. Both halves wrong at once — the
+// sentence read as "add space per separator", which is what the reader did, on
+// top of a number that was already too big.
+
+check('a separator is counted as a row, and as the shorter row it is', () => {
+    assert.ok(DIVIDER_PX < 0, `a separator is shorter than a content row, got ${DIVIDER_PX}`);
+    const rows = (n, dividers) => ({
+        ...listWidget(n, 25),
+        options: {
+            entries: Array.from({ length: n }, (_, i) =>
+                i > 0 && i <= dividers ? { id: `demo.sep${i}`, divider: true } : { id: `demo.${i}` },
+            ),
+        },
+    });
+    const plain = measureWidget(rows(6, 0), { metrics: METRICS, grid: GRID });
+    const two = measureWidget(rows(6, 2), { metrics: METRICS, grid: GRID });
+    // The reported case: six entries, two of them separators. The row count stays
+    // six — that part was right and is what the answer showed.
+    assert.equal(two.items, 6);
+    assert.match(two.basis, /6 × 33 px\/Zeile/);
+    assert.equal(two.requiredPx, Math.round(plain.requiredPx + 2 * DIVIDER_PX));
+    assert.match(two.basis, /2 × Trennzeile/, two.basis);
+});
+
+check('the footnote no longer claims separators are left out', () => {
+    // The exact sentence that misled: "Raum-Überschriften (groupByRoom) und
+    // Trennzeilen (entries[].divider)" under every measurement.
+    const out = renderMeasure([measureWidget(listWidget(8, 25), { metrics: METRICS, grid: GRID })], {
+        grid: GRID,
+        metrics: METRICS,
+    });
+    assert.ok(!/Trennzeilen \(entries\[\]\.divider\)/.test(out), out);
+    assert.match(out, /groupByRoom/, 'the room headings are still not included — those are not rows');
+});
+
+check('every layout knows its own separator', () => {
+    // A separator is 17 px in every layout, but the row it replaces is not: in
+    // `compact` two content rows share a grid row, so a full-width separator
+    // costs MORE there, not less.
+    for (const layout of ['card', 'compact', 'minimal']) {
+        const d = METRICS.counted.list.variants[layout].rowTypes?.divider;
+        assert.ok(d, `${layout} must carry a measured separator`);
+        const w = {
+            ...listWidget(4, 25),
+            layout,
+            options: {
+                entries: [{ id: 'demo.0' }, { id: 'demo.sep', divider: true }, { id: 'demo.1' }, { id: 'demo.2' }],
+            },
+        };
+        const plain = measureWidget({ ...listWidget(4, 25), layout }, { metrics: METRICS, grid: GRID });
+        const withSep = measureWidget(w, { metrics: METRICS, grid: GRID });
+        assert.equal(withSep.requiredPx, Math.round(plain.requiredPx + d.perItemPx), `${layout}: ${withSep.basis}`);
+    }
+    assert.ok(
+        METRICS.counted.list.variants.compact.rowTypes.divider.perItemPx > 0,
+        'the compact separator costs more than the half row it replaces',
+    );
 });
 
 check('the layout re-measures the row instead of being ignored', () => {
@@ -1195,7 +1261,7 @@ check('a taller row display is charged, and only where it was measured', () => {
     const plain = measureWidget(listWidget(8, 14), { metrics: METRICS, grid: GRID });
     const contact = measureWidget(listOf(8, 'contact'), { metrics: METRICS, grid: GRID });
     assert.equal(contact.requiredPx - plain.requiredPx, 8 * rowPx('contact'));
-    assert.match(contact.basis, /Darstellung/, 'the answer names what it added');
+    assert.match(contact.basis, /je Zeilenform/, 'the answer names what it added');
     assert.ok(contact.needRows > plain.needRows, 'and it reaches the height, not only the text');
 });
 
@@ -1273,7 +1339,7 @@ check('the badges layout is not charged for a display it draws itself', () => {
     assert.equal(m.requiredPx, plain.requiredPx);
 });
 
-check('a separator is a row, not a display', () => {
+check('a separator is a row of its own, not a display', () => {
     const w = {
         ...listWidget(3, 14),
         options: {
@@ -1286,7 +1352,9 @@ check('a separator is a row, not a display', () => {
     };
     const m = measureWidget(w, { metrics: METRICS, grid: GRID });
     const plain = measureWidget(listWidget(3, 14), { metrics: METRICS, grid: GRID });
-    assert.equal(m.requiredPx - plain.requiredPx, 2 * rowPx('contact'));
+    // No display surcharge for the separator — it is not a contact row — but it is
+    // a row of its own, and a shorter one (rowTypes.divider).
+    assert.equal(m.requiredPx - plain.requiredPx, 2 * rowPx('contact') + DIVIDER_PX);
 });
 
 check('a modifier the layout ignores is not added to it', () => {

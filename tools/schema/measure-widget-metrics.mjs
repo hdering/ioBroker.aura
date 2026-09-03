@@ -117,12 +117,37 @@ const ROW_TYPES = [
  * them by the id alone, a change of display left the previous rows in the DOM and
  * every measurement after the first was nonsense.
  */
-const listEntries = (n, rt) =>
-    Array.from({ length: n }, (_, i) => ({
+const listEntries = (n, rt) => {
+    return Array.from({ length: n }, (_, i) => ({
         id: rt?.dp ?? DP,
         name: `Gerät ${i + 1}`,
         ...(rt ? { displayType: rt.key, ...(rt.entry ?? {}) } : {}),
     }));
+};
+
+/**
+ * `n` entries of which `d` are separators, sitting strictly BETWEEN content rows.
+ *
+ * A separator cannot be measured the way a display is: a list of nothing but
+ * separators renders the empty state, so the probe keeps the entry COUNT and
+ * turns some of them into separators. The placement matters — a leading or
+ * trailing separator, and two in a row, are dropped as an empty section, and a
+ * dropped row silently falsifies the delta (measured: it made a −16 px row look
+ * like −20.5 px).
+ */
+const listWithDividers = (n, d) => {
+    const out = [];
+    let seps = 0;
+    while (out.length < n) {
+        out.push({ id: DP, name: `Gerät ${out.length + 1}` });
+        // `n - 2`, so a separator is never the last entry.
+        if (seps < d && out.length < n - 1) {
+            seps++;
+            out.push({ id: `sep${seps}`, divider: true, name: `Abschnitt ${seps}` });
+        }
+    }
+    return out;
+};
 const chipItems = (n) => Array.from({ length: n }, (_, i) => ({ id: DP_BOOL, label: `Chip ${i + 1}` }));
 const jsonRows = (n) => JSON.stringify(Array.from({ length: n }, (_, i) => ({ Name: `Zeile ${i + 1}`, Wert: i })));
 
@@ -163,6 +188,19 @@ const COUNTED = [
         ],
         rowTypes: ROW_TYPES,
         rowTypeBuild: (n, rt) => ({ options: { entries: listEntries(n, rt) } }),
+        // A separator IS a row — it just is not a content row. Measured at a fixed
+        // row count with half of them replaced, because a separator has no line of
+        // its own to fit: see listWithDividers.
+        dividerRow: {
+            label: 'Trennzeile',
+            // Eight entries, three separators: enough to divide the difference by
+            // and few enough that the card layout (64.7 px a row) still fits in the
+            // 800 px probe. The placement rule may fit fewer than asked for, and
+            // the delta is divided by what was actually built.
+            rows: 8,
+            dividers: 3,
+            build: (n, d) => ({ options: { entries: listWithDividers(n, d) } }),
+        },
         modifiers: [
             {
                 key: 'subDps',
@@ -224,7 +262,9 @@ const COUNTED = [
         notIncluded: [
             'Darstellung „Auto“ folgt der Rolle des Datenpunkts — gemessen ist die Wert-Zeile',
             'Filterzeile mit sichtbaren Filtern und Suchfeld',
-            'Raum-Überschriften (groupByRoom) und Trennzeilen (entries[].divider)',
+            'Raum-Überschriften (groupByRoom)',
+            'Trennzeilen im Layout „compact“: sie unterbrechen zusätzlich den zweispaltigen Fluss, der ' +
+                'gemessene Aufschlag ist ein Mittelwert',
             'umbrochene Beschriftungen (wrapText) und mehrzeilige Titel',
             'mehr als ein subDp je Eintrag',
         ],
@@ -436,6 +476,42 @@ async function rowTypeDeltas(spec, { cols, counts, layout, ref }) {
     return out;
 }
 
+/**
+ * What a separator row costs against a content row, per layout.
+ *
+ * Not a line fit: `rows` stays the same and `dividers` of those rows become
+ * separators, so the difference to the plain probe at that count divided by the
+ * number of separators IS the delta. A list of only separators renders the empty
+ * state and two in a row are dropped as an empty section — neither can be fitted.
+ *
+ * Reported from use: aura_measure counted a separator as a full content row while
+ * its own footnote claimed separators were "not included", which reads as "add
+ * space for each of them". Both halves were wrong.
+ */
+async function dividerDelta(spec, { cols, layout }) {
+    const { rows, dividers, build, label } = spec.dividerRow;
+    const payload = build(rows, dividers);
+    // Counted from what was BUILT, not from what was asked for: the placement
+    // rule can fit fewer separators than requested, and dividing by the request
+    // would falsify the delta the same way the dropped row did.
+    const n = (payload.options.entries || []).filter((e) => e && e.divider).length;
+    if (!n) {
+        return null;
+    }
+    const plain = await requiredPx(spec.type, { cols, layout, ...spec.build(rows) });
+    const mixed = await requiredPx(spec.type, { cols, layout, ...payload });
+    if (plain.error || mixed.error) {
+        console.warn(`  skip ${spec.type}/${layout ?? 'default'}:Trennzeile: ${plain.error || mixed.error}`);
+        return null;
+    }
+    const d = Math.round(((mixed.px - plain.px) / n) * 10) / 10;
+    console.log(
+        `  ${`Trennzeile (${layout ?? 'default'})`.padEnd(14)} ${plain.px} px → ${mixed.px} px bei ${rows} Zeilen, ` +
+            `${n} davon Trenner ⇒ ${d > 0 ? '+' : ''}${d} px/Zeile`,
+    );
+    return { label, perItemPx: Math.abs(d) < 1 ? 0 : d };
+}
+
 const wanted = (type) => !only || only.has(type);
 const results = {};
 const counted = {};
@@ -513,6 +589,12 @@ for (const spec of COUNTED) {
                 ref: r,
             });
         }
+        if (spec.dividerRow) {
+            const d = await dividerDelta(spec, { cols, layout: v.layout });
+            if (d) {
+                entry.variants[v.key].rowTypes = { ...(entry.variants[v.key].rowTypes || {}), divider: d };
+            }
+        }
     }
 
     // A modifier is stored as the DIFFERENCE to the default, so aura_measure can
@@ -559,6 +641,12 @@ for (const spec of COUNTED) {
             console.warn(`  skip ${spec.type} Zeilendarstellungen: ${ref.error}`);
         } else {
             entry.rowTypes = await rowTypeDeltas(spec, { cols, counts, ref });
+        }
+    }
+    if (spec.dividerRow) {
+        const d = await dividerDelta(spec, { cols });
+        if (d) {
+            entry.rowTypes = { ...(entry.rowTypes || {}), divider: d };
         }
     }
     if (spec.notIncluded) {
