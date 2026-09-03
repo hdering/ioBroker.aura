@@ -186,6 +186,29 @@ korrigieren kann:
 Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
 
+**Dieselbe Eingabe, dasselbe Format.** Aus der Praxis gemeldet: `aura_validate`
+antwortete auf ein nacktes Widget-**Array** mit „widget: kein Objekt" und
+verlangte eine `aura-tab`-Hülle — während `aura_write_tab` im selben Gespräch
+genau dieses Array annahm. `widgetListOf()` kennt jetzt alle Formen an einer
+Stelle, und beide Werkzeuge nehmen dieselben:
+
+| Eingabe                              | geprüft als                                  |
+| ------------------------------------ | -------------------------------------------- |
+| ein Widget-Objekt                    | Widget                                       |
+| `[…]` (nacktes Array)                | Widgetliste (Überlappungen, doppelte Ids)    |
+| `{ widgets: […] }`                   | Widgetliste                                  |
+| `{ tab: { widgets: […] } }`          | Widgetliste                                  |
+| `{ _type: "aura-tab", tab: {…} }`    | Import-Hülle, hier **mit** `name`            |
+
+`validateWidgetList()` trägt jetzt die Regeln, die vom **Ergebnis** sprechen
+(jedes Widget einzeln, doppelte Ids, Überlappungen); `validateTab()` prüft
+darüber nur noch die Hülle. Der `name` gehört ausdrücklich zur Hülle: bei
+`{ widgets: […] }` kommt er vom Ziel-Tab, ihn dort zu verlangen hieße, ein
+gültiges Schreib-Payload abzulehnen. Nebenbei stimmten auch die Datenpunkt-Reads
+nicht: der Handler holte die Widgets mit einer eigenen Fallunterscheidung, in der
+das Array fehlte — die Objekte einer so übergebenen Liste wurden also nie
+gelesen.
+
 **Der richtige Name genügt nicht: er muss auch bei der richtigen Darstellung
 stehen.** Aus der Praxis gemeldet: `trueLabel`/`falseLabel` auf einer Zeile mit
 `displayType: "value"`. Der Schlüssel existiert, das Schema nimmt ihn, und

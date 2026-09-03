@@ -772,6 +772,42 @@ check('validateAny tells a widget from a tab', () => {
     assert.ok(hasError(validateAny({ _type: 'aura-tab', tab: { name: 'x' } }, schema), /widgets/));
 });
 
+check('every shape the write tools take passes the validator too', () => {
+    // Reported from use: a bare widget ARRAY came back as "widget: kein Objekt"
+    // with a demand for an aura-tab envelope — while aura_write_tab took that very
+    // array in the same conversation.
+    const at = (id, x) => ({ ...OK_SWITCH, id, gridPos: { x, y: 0, w: 8, h: 4 } });
+    const list = [at('a', 0), at('b', 8)];
+    for (const [label, payload] of [
+        ['bare array', list],
+        ['{ widgets }', { widgets: list }],
+        ['{ tab: { widgets } }', { tab: { widgets: list } }],
+        ['aura-tab', { _type: 'aura-tab', tab: { name: 'T', widgets: list } }],
+        ['one widget', OK_SWITCH],
+        ['empty array', []],
+    ]) {
+        const res = validateAny(payload, schema);
+        assert.deepEqual(res.errors, [], `${label}: ${res.errors.join(' | ')}`);
+    }
+});
+
+check('a bare array still gets the rules that are about the whole list', () => {
+    const at = (id, x) => ({ ...OK_SWITCH, id, gridPos: { x, y: 0, w: 8, h: 4 } });
+    assert.ok(hasError(validateAny([at('a', 0), at('b', 4)], schema), /überlappen/), 'overlaps');
+    assert.ok(hasError(validateAny([at('a', 0), at('a', 8)], schema), /mehrfach/), 'duplicate ids');
+    // And the per-widget rules, with the index in the path.
+    assert.ok(
+        hasError(validateAny([at('a', 0), { ...at('b', 8), options: { showTitel: true } }], schema), /widgets\[1\]/),
+    );
+});
+
+check('the name belongs to the aura-tab envelope, not to a widget list', () => {
+    // `{ widgets: [...] }` is the list the write tools take; the name comes from
+    // the target tab there. Demanding one would refuse a valid write payload.
+    assert.deepEqual(validateAny({ widgets: [] }, schema).errors, []);
+    assert.ok(hasError(validateAny({ _type: 'aura-tab', tab: { widgets: [] } }, schema), /"name" fehlt/));
+});
+
 check('allowedOptions merges own and shared keys', () => {
     const opts = allowedOptions('switch', schema);
     assert.ok('onValue' in opts && 'showTitle' in opts);
