@@ -514,6 +514,30 @@ des Widgets — `entries[].subDps` heißt „irgendein Eintrag hat welche". Ein
 Modifier kann per `notForVariants` für ein Layout ausgenommen werden (`minimal`
 zeichnet eine Zeile als Pille und ignoriert `subDps`).
 
+**„Irgendein Eintrag" ist aber keine Zeilenzahl.** Aus der Praxis gemeldet: genau
+dieses `when` machte aus dem Delta einen Aufschlag auf die **Zeilenhöhe** des
+Widgets, also mal aller Zeilen. Eine Liste mit zwölf Einträgen, von denen vier
+eine zweite Zeile haben, kam 123 px zu groß heraus — und die Antwort verriet es
+selbst: „12 × 48.3 px/Zeile — zweite Zeile je Eintrag (subDps)".
+
+`isPerRowWhen()` erkennt eine Bedingung, die von einer **Zeile** spricht
+(`when.path` beginnt mit `entries[].`, bei `all` alle Klauseln). Deren Delta
+wandert nicht in `perItemPx`, sondern wird von `perRowSurcharge()` über die
+Zeilen gezählt, die es wirklich betrifft — Trennzeilen und alles unterhalb von
+`maxRows` fallen dabei heraus, wie beim Darstellungs-Aufschlag. Die Antwort
+rechnet es getrennt vor:
+
+```
+66 px + 12 × 33 px/Zeile + 61.2 px Zeilen mit Zusatz (4 × zweite Zeile je Eintrag
+(subDps) +15.3 px/Zeile) + 90 px Darstellung (9 × Rollladen +10 px/Zeile)
+```
+
+Warum es so lange stand: wo **jede** Zeile eine zweite hat, sind beide Rechnungen
+identisch — und genau so war der Modifier gemessen und getestet. Die vier
+gemeldeten Fälle (12/4, 12/1, 5/2, 7/7) stehen jetzt als Testfälle in
+`tools/tests/mcp.mjs`, der 7/7-Fall ausdrücklich mit dem Hinweis, dass er den
+Fehler nicht zeigt.
+
 **Und eine Zeile ist nicht eine Darstellung.** Derselbe Befund eine Ebene tiefer,
 aus der Praxis gemeldet: `aura_measure` meldete „44 px Luft" für eine Liste, die
 scrollt. Gemessen war die Wert-Zeile (33 px) — die Liste bestand aus

@@ -146,6 +146,12 @@ const COUNTED = [
         // `variants` are re-measurements (a layout changes the whole row);
         // `modifiers` are deltas measured one at a time against the default and
         // added up by aura_measure. Two counts are enough for a straight line.
+        //
+        // A modifier whose `when` reads `entries[].…` is a PER-ROW factor: it is
+        // measured with every row carrying it (that is the honest way to get the
+        // delta), but aura_measure then counts it over the rows that actually
+        // have it. Reported from use: subDps was charged for all twelve rows of a
+        // list where four had a second line, 123 px too much.
         variantCounts: [2, 8],
         variants: [
             // `rowTypes` re-measures the row displays for that layout. The badges

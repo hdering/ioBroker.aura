@@ -1065,6 +1065,86 @@ check('a second line under every entry costs height', () => {
     assert.match(sub.basis, /subDps/);
 });
 
+/** A list of `n` rows of which the first `withSub` have a second line. */
+const someSubDps = (n, withSub, h = 25) => {
+    const w = listWidget(n, h);
+    return {
+        ...w,
+        options: {
+            entries: w.options.entries.map((e, i) => (i < withSub ? { ...e, subDps: [{ id: 'demo.sub' }] } : e)),
+        },
+    };
+};
+const SUB_PX = METRICS.counted.list.modifiers.find((m) => m.key === 'subDps').perItemPx;
+
+check('the second line is charged to the rows that have one', () => {
+    // Reported from use: the surcharge was added to the widget's per-item height,
+    // so it was multiplied by EVERY row. A list of twelve with four second lines
+    // came back 123 px too big — and the answer said so itself ("12 × 48.3
+    // px/Zeile — zweite Zeile je Eintrag").
+    const base = METRICS.counted.list.basePx;
+    const row = METRICS.counted.list.perItemPx;
+    for (const [n, withSub] of [
+        [12, 4],
+        [12, 1],
+        [5, 2],
+        [7, 7],
+        [12, 0],
+    ]) {
+        const m = measureWidget(someSubDps(n, withSub), { metrics: METRICS, grid: GRID });
+        assert.equal(
+            m.requiredPx,
+            Math.round(base + n * row + withSub * SUB_PX),
+            `${n} rows, ${withSub} with a second line: ${m.basis}`,
+        );
+    }
+});
+
+check('and the answer counts them instead of claiming every row', () => {
+    const m = measureWidget(someSubDps(12, 4), { metrics: METRICS, grid: GRID });
+    assert.match(m.basis, /12 × 33 px\/Zeile/, 'the row height stays the plain one');
+    assert.match(m.basis, /4 × zweite Zeile je Eintrag/, 'and the second line is counted');
+    assert.equal(m.perRow.length, 1);
+    // The old text put the surcharge INTO the per-item number, which is what made
+    // the mistake invisible in the answer.
+    assert.ok(!/12 × 48/.test(m.basis), m.basis);
+});
+
+check('where every row has one, both sums agree — which is why it stood', () => {
+    const all = measureWidget(withSubDps(8, 25), { metrics: METRICS, grid: GRID });
+    const counted = measureWidget(someSubDps(8, 8), { metrics: METRICS, grid: GRID });
+    assert.equal(all.requiredPx, counted.requiredPx);
+    assert.equal(
+        all.requiredPx,
+        Math.round(METRICS.counted.list.basePx + 8 * (METRICS.counted.list.perItemPx + SUB_PX)),
+    );
+});
+
+check('a capped list counts only the rows it shows', () => {
+    // maxRows cuts the list off; the rows below the cap are not drawn and their
+    // second line is not drawn either.
+    const w = someSubDps(12, 12);
+    const capped = { ...w, options: { ...w.options, maxRows: 4 } };
+    const m = measureWidget(capped, { metrics: METRICS, grid: GRID });
+    assert.equal(m.items, 4);
+    assert.equal(m.requiredPx, Math.round(METRICS.counted.list.basePx + 4 * (METRICS.counted.list.perItemPx + SUB_PX)));
+});
+
+check('a separator carrying the field is not a row with a second line', () => {
+    const w = {
+        ...listWidget(3, 25),
+        options: {
+            entries: [
+                { id: 'demo.a', subDps: [{ id: 'demo.sub' }] },
+                { id: 'demo.sep', divider: true, subDps: [{ id: 'demo.sub' }] },
+                { id: 'demo.b' },
+            ],
+        },
+    };
+    const m = measureWidget(w, { metrics: METRICS, grid: GRID });
+    assert.equal(m.requiredPx, Math.round(METRICS.counted.list.basePx + 3 * METRICS.counted.list.perItemPx + SUB_PX));
+});
+
 check('the layout re-measures the row instead of being ignored', () => {
     const px = (layout) => measureWidget({ ...listWidget(8, 14), layout }, { metrics: METRICS, grid: GRID }).requiredPx;
     const plain = px(undefined);
