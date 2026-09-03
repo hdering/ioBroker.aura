@@ -1379,8 +1379,12 @@ check('a row of fixed height stops the surcharge instead of scaling it', () => {
     const plain = (f) => measureWidget(listWidget(6, 25), AT(f, 16)).requiredPx;
     // The text row: the surcharge survives the scale unchanged.
     assert.equal(px('contact', 1) - plain(1), px('contact', 1.3) - plain(1.3));
-    // The control: it does not grow at all between the two measured scales.
-    assert.equal(px('shutter', 1), px('shutter', 1.3));
+    // The control: it stays where it is while the text row underneath it grows by
+    // a fifth. Not exactly equal — the two ends are measured to a tenth of a
+    // pixel, and six rows carry that rounding.
+    const grew = px('shutter', 1.3) - px('shutter', 1);
+    assert.ok(Math.abs(grew) <= 6, `a fixed control must not follow the scale, grew ${grew} px over 6 rows`);
+    assert.ok(plain(1.3) - plain(1) > 20, 'while the text row does follow it');
     assert.ok(px('shutter', 1) > plain(1), 'and it is the taller row at scale 1');
 });
 
@@ -1388,11 +1392,11 @@ check('the reported dashboard is measured the way it is drawn', () => {
     // The case from the report, end to end: ten value rows and two section
     // separators at padding 8 and scale 1.3 — measured at 480 px in the browser.
     const entries = [
-        { id: 'demo.0' },
-        { id: 'demo.sep1', divider: true, dividerLabel: 'Abschnitt' },
         ...Array.from({ length: 5 }, (_, i) => ({ id: `demo.a${i}` })),
+        { id: 'demo.sep1', divider: true, dividerLabel: 'Abschnitt' },
+        ...Array.from({ length: 3 }, (_, i) => ({ id: `demo.b${i}` })),
         { id: 'demo.sep2', divider: true, dividerLabel: 'Abschnitt' },
-        ...Array.from({ length: 5 }, (_, i) => ({ id: `demo.b${i}` })),
+        ...Array.from({ length: 2 }, (_, i) => ({ id: `demo.c${i}` })),
     ];
     const w = { ...listWidget(12, 9), options: { entries } };
     const m = measureWidget(w, AT(1.3, 8));

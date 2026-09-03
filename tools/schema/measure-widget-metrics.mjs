@@ -27,7 +27,10 @@
  * would happily return that.
  *
  * Everything runs against injected demo state with screenshotMode on, so no
- * ioBroker state is ever written.
+ * ioBroker state is ever written. The frontend does not need a reachable ioBroker
+ * to render — it boots "Getrennt" and the harness feeds it — but index.html loads
+ * /socket.io/socket.io.js as a blocking script, so a dev proxy whose target hangs
+ * (unreachable host, not a refused port) never lets the page start at all.
  *
  * Everything is measured TWICE, at font scale 1 and at 1.3, because a measured
  * height is only a fact for the presentation it was measured in. Reported from a
@@ -64,7 +67,17 @@ const PX_PER_ROW = PROBE_GRID.gridRowHeight;
 /** 800 px: taller than any widget on a dashboard, the starting point that fits. */
 const TOP_ROWS = 400;
 const COARSE = 10; // 20 px steps on the way down
-const WID = 'm';
+/**
+ * A FRESH widget id for every render, not one reused id.
+ *
+ * React keys a widget by its id, so re-showing the same one keeps the component
+ * mounted — and a mounted widget only sees a new injected value through its live
+ * subscription. Measuring against a dev server without a reachable ioBroker there
+ * is none, so `mock()` reached nobody and every count of the jsontable rendered
+ * the value of the FIRST one: 140 px + 0 px per row instead of 86 + 27. A new id
+ * remounts, and a fresh mount reads the injected value out of the cache.
+ */
+let widSeq = 0;
 const TOL = 2; // px — sub-pixel layout noise and 1px borders
 
 /**
@@ -463,8 +476,9 @@ await page.evaluate(() =>
 );
 
 async function render(type, { rows, cols, datapoint, options, mock, layout, fontScale }) {
+    const wid = `m${++widSeq}`;
     const cfg = {
-        id: WID,
+        id: wid,
         type,
         title: 'Messung',
         datapoint: datapoint ?? DP_FOR[type] ?? (schema.widgets[type].addMode === 'free' ? '' : DP),
@@ -475,6 +489,9 @@ async function render(type, { rows, cols, datapoint, options, mock, layout, font
     await page.evaluate(
         ({ cfg, grid, mock }) => {
             window.__auraShot.mock(mock);
+            // What the SERVER holds too: a fresh mount asks getState, and without
+            // this it falls through to a socket that may not be there.
+            window.__auraShot.mockServerState(mock);
             window.__auraShot.showWidgets([cfg], { editMode: false, ...grid });
         },
         {
@@ -489,7 +506,7 @@ async function render(type, { rows, cols, datapoint, options, mock, layout, font
     let prev = '';
     for (let i = 0; i < 12; i++) {
         await page.waitForTimeout(60);
-        last = await page.evaluate(FITS, WID);
+        last = await page.evaluate(FITS, wid);
         const key = JSON.stringify(last);
         if (key === prev) {
             break;
@@ -501,15 +518,24 @@ async function render(type, { rows, cols, datapoint, options, mock, layout, font
 
 /** Walk down from a height that fits and return the last one that still does. */
 async function requiredPx(type, setup) {
-    const top = await render(type, { ...setup, rows: TOP_ROWS });
+    // The ceiling is raised rather than reported as "does not fit": a row that
+    // grows with the font scale can push a tall layout past 800 px, and eight
+    // card rows at scale 1.3 do exactly that (measured: 67 px over). Doubling
+    // only costs the walk that needs it.
+    let start = TOP_ROWS;
+    let top = await render(type, { ...setup, rows: start });
+    while (!top.error && top.over > TOL && start < TOP_ROWS * 4) {
+        start *= 2;
+        top = await render(type, { ...setup, rows: start });
+    }
     if (top.error) {
         return { error: top.error };
     }
     if (top.over > TOL) {
-        return { error: `passt selbst in ${TOP_ROWS * PX_PER_ROW} px nicht (${top.over} px darüber)` };
+        return { error: `passt selbst in ${start * PX_PER_ROW} px nicht (${top.over} px darüber)` };
     }
-    let good = TOP_ROWS;
-    let rows = TOP_ROWS - COARSE;
+    let good = start;
+    let rows = start - COARSE;
     while (rows >= 1) {
         const m = await render(type, { ...setup, rows });
         if (m.error || m.over > TOL) {
