@@ -341,7 +341,7 @@ Bedienelementen darin.
 
 | Quelle                                  | geprüft                                                   |
 | --------------------------------------- | --------------------------------------------------------- |
-| Listenzeile (`entries[].id`)            | wenn ihr `displayType` (oder listenweit `entryDisplay`) ein Bedienelement ist: `switch`, `slider`, `shutter`, `stepper`, `buttons`, `momentary`, `states`, `datepicker`, `input`, `select` |
+| Listenzeile (`entries[].id`)            | wenn ihr `displayType` (oder listenweit `entryDisplay`) ein Bedienelement ist: `switch`, `slider`, `shutter`, `stepper`, `buttons`, `momentary`, `datepicker`, `input`, `select` — und die Zeile nicht `writable: false` sagt |
 | Rollladen                               | `openDp`, `closeDp`, `stopDp`, `tiltDp` bzw. je Zeile `shutterUpDp`, `shutterDownDp`, `shutterStopDp`, `shutterTiltDp` |
 | Lampe                                   | `switchDp`, `brightnessDp`, `colorDp`, `hueDp`, `temperatureDp`, `effectDp`, … |
 
@@ -350,6 +350,29 @@ liegt ein `…ActualDp` / `…ActivityDp` / `statusDp`, das vom Gerät zurückge
 wird und `write: false` sein **soll**. Eine Warnung darauf würde dem Leser
 beibringen, die Warnung zu ignorieren. `displayType: 'auto'` bleibt ebenfalls
 aussen vor — was daraus wird, entscheidet erst die Rolle zur Laufzeit.
+
+**Zwei Wege, auf denen die Prüfung selbst falsch lag** — beide aus der Praxis
+gemeldet, beide dieselbe Sorte Schaden: ein Befund auf einer richtigen Zeile.
+
+1. `states` stand in der Tabelle der Bedienelemente. Es ist eine
+   **Lese**-Darstellung: `StateDisplay` zeichnet aus der Wertzuordnung einen
+   Chip und schreibt nirgends. Ein Raum voller Rauch- und Wassermelder — nur
+   lesbare States, für die Anzeige zugeordnet, genau der Zweck der Darstellung —
+   ergab neun Hinweise, jeder davon unbegründet. `contact`, `time` und `value`
+   standen aus demselben Grund nie darin.
+2. `writable: false` wurde nicht ausgewertet. Das Feld ist die Zeile, die sagt
+   „ich schreibe nicht" — ihr danach zu erklären, ihr Bedienelement sitze auf
+   einem nur lesbaren Datenpunkt, wiederholt bloß die eigene Angabe.
+
+Das Feld hält das Frontend allerdings nur zur Hälfte: `SwitchControl` und
+`SliderControl` bekommen es als Prop (der Regler zeigt dann seinen Wert statt
+des Balkens), der `auto`-Pfad sichert seinen Toggle — die reichen Bedienelemente
+(`shutter`, `stepper`, `buttons`, `momentary`, `select`, `input`, `datepicker`)
+sehen es überhaupt nicht und zeichnen auf einer als lesend deklarierten Zeile
+weiter ein bedienbares Feld. Damit das Wort-für-Wort-Nehmen oben das nicht
+verdeckt, sagt `entryDisplayFindings()` es an genau diesen Darstellungen
+ausdrücklich (`onlyFor` + `onlyValue: false` in `ENTRY_DISPLAY_FIELDS`) — auf
+einer Lese-Darstellung ist das Feld harmlose Absicht und darum kein Befund.
 
 Damit das überhaupt greifen kann, holen die Werkzeuge die Objekte jetzt mit
 `collectDatapointRefs(..., { loose: true })`: `entries[].id` ist im Schema nicht

@@ -500,6 +500,64 @@ check('a display-only row on the same datapoint is not a finding', () => {
     assert.deepEqual(res.warnings, []);
 });
 
+check('a read display on a read-only datapoint is never a finding', () => {
+    // Reported from use: a room of smoke and water sensors — read-only states,
+    // mapped for display — produced nine findings claiming `states` wrote on
+    // them. StateDisplay draws a chip out of the mapping and writes nowhere.
+    for (const displayType of ['states', 'contact', 'time', 'value']) {
+        const res = validateWidget(listWith([{ id: READ_ONLY, label: 'Rauch Küche', displayType }]), schema, {
+            datapointMeta: roMeta(),
+        });
+        assert.deepEqual(res.warnings, [], `${displayType}: ${res.warnings.join(' | ')}`);
+    }
+    assert.ok(
+        !writeRefs(listWith([{ id: READ_ONLY, displayType: 'states' }])).length,
+        'states must not count as a write',
+    );
+});
+
+check('a row declared read-only is taken at its word', () => {
+    // `writable: false` is the row saying it does not write. Warning that its
+    // control sits on a read-only datapoint repeated what the author declared.
+    const res = validateWidget(
+        listWith([{ id: READ_ONLY, label: 'Deckenlicht', displayType: 'switch', writable: false }]),
+        schema,
+        { datapointMeta: roMeta() },
+    );
+    assert.deepEqual(res.warnings, [], res.warnings.join(' | '));
+    // Without the flag the finding is exactly the one this check exists for.
+    assert.ok(
+        hasWarning(
+            validateWidget(listWith([{ id: READ_ONLY, label: 'Deckenlicht', displayType: 'switch' }]), schema, {
+                datapointMeta: roMeta(),
+            }),
+            /nur lesbar/,
+        ),
+    );
+});
+
+check('a display that ignores writable says so instead of staying silent', () => {
+    // The flag is only half kept: SwitchControl and SliderControl take it as a
+    // prop and the `auto` path guards its toggle, the rich controls never see it.
+    // Taking the declaration at face value above must not hide that.
+    const res = validateWidget(
+        listWith([{ id: READ_ONLY, label: 'Text', displayType: 'input', writable: false }]),
+        schema,
+        { datapointMeta: roMeta() },
+    );
+    assert.ok(hasWarning(res, /writable bei displayType "input"/), res.warnings.join(' | '));
+    assert.ok(hasWarning(res, /bleibt trotzdem bedienbar/));
+    // Where it IS evaluated, and on a display that writes nothing anyway, the
+    // flag is not a finding — that would be the noise this whole fix removes.
+    for (const displayType of ['switch', 'slider', 'value', 'states', 'contact']) {
+        const quiet = validateWidget(listWith([{ id: 'demo.a', displayType, writable: false }]), schema);
+        assert.deepEqual(quiet.warnings, [], `${displayType}: ${quiet.warnings.join(' | ')}`);
+    }
+    // `writable: true` is the default spelled out, never a finding.
+    const on = validateWidget(listWith([{ id: 'demo.a', displayType: 'input', writable: true }]), schema);
+    assert.deepEqual(on.warnings, []);
+});
+
 check('the list-wide display counts for rows that do not set their own', () => {
     const w = listWith([{ id: READ_ONLY, label: 'Deckenlicht' }]);
     w.options.entryDisplay = 'switch';
