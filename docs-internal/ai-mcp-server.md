@@ -720,7 +720,7 @@ das ist der eigentliche Gewinn: eine Zeile ist entweder Text oder ein Bedienelem
 | `contact` | 37 px (+4) | 41,8 px (+4) | Text — der Zuschlag bleibt |
 | `momentary` | 41 px (+8) | 45,8 px (+8) | Text |
 | `switch` | 35 px (+2) | 37,8 px (±0) | Element, 35 px hoch |
-| `shutter` | 43 px (+10) | 43 px (+5,2) | Element, 43 px hoch |
+| `shutter` | 43 px (+10) | 43 px (+5,3) | Element, 43 px hoch |
 
 Ein Kontakt-Chip ist eine Textzeile mit etwas Polsterung: seine +4 px sind bei
 jeder Skalierung +4 px. Eine Rollladen-Zeile ist ein Bedienelement von festen
