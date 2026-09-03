@@ -32,6 +32,8 @@ Ohne den ioBroker-MCP weiß das Modell nicht, welche Geräte es gibt, und fängt
 
 ioBroker-Admin → **Instanzen** → `aura.0` → Konfiguration (Schraubenschlüssel) → Abschnitt **„KI-Zugriff (MCP) — BETA“**.
 
+![](./assets/mcp-config.png)
+
 | Feld | Vorgabe | |
 | --- | --- | --- |
 | MCP-Endpunkt aktivieren | aus | Ohne Haken antwortet `/mcp` mit `404` |
@@ -45,6 +47,8 @@ Haken bei **MCP-Endpunkt aktivieren** setzen, danach erscheinen die übrigen Fel
 ## Schritt 2 — Token erzeugen
 
 **Token erzeugen** klicken (die Instanz muss laufen). Das Feld **Client-Konfiguration** enthält jetzt den vollständigen Block:
+
+![](./assets/mcp-client-config.png)
 
 ```json
 {
@@ -68,8 +72,9 @@ Den vollständigen Block wie ein Passwort behandeln — er gibt Lese- und Schrei
 
 ## Schritt 3 — Block in den KI-Client übernehmen
 
-| Client | |
+| Weg | |
 | --- | --- |
+| Einfach sagen | Den kopierten Block in den Prompt eines laufenden KI-Assistenten geben: „Füg diesen MCP-Server hinzu: …“ — Claude Code trägt ihn selbst ein |
 | Claude Desktop | Einstellungen → Entwickler → `claude_desktop_config.json`, Block in `mcpServers` einfügen, Client neu starten |
 | Claude Code | `claude mcp add --transport http aura http://<ip>:8095/mcp --header "Authorization: Bearer <Token>"` |
 | Andere | Server-Typ „HTTP“ / „Streamable HTTP“, URL `…/mcp`, Header `Authorization: Bearer <Token>` |
