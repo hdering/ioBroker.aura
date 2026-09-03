@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.50.8 (2026-08-27)
+- 🌟 **New feature:** Dynamic list - one icon for all rows (icon, size and colour), set in the new "Icon" tab of the datapoint dialog; a per-datapoint icon and conditions still override it
+- Color picker - dragging a colour no longer freezes the UI: the value now reaches the config at most every 120 ms, with the final one always applied
+
 ## 0.50.7 (2026-08-27)
 - 🌟 **New feature:** Image - datapoints holding raw SVG markup are now displayed, e.g. the guest WLAN QR code of fb-checkpresence ([#592](https://github.com/hdering/ioBroker.aura/issues/592))
 - Image - optional background colour behind the picture, keeps transparent SVGs such as QR codes readable on dark themes ([#592](https://github.com/hdering/ioBroker.aura/issues/592))
