@@ -9,6 +9,10 @@ const DEFAULT_URL = 'http://192.168.188.168:8082';
 const URL_FILE = path.resolve('.iobroker-url');
 
 function readUrlFile(): string {
+  // AURA_IOBROKER_URL wins over the file so a harness can aim the proxy
+  // somewhere else for one run without touching the developer's .iobroker-url.
+  const env = process.env.AURA_IOBROKER_URL?.trim();
+  if (env) return env;
   try {
     const v = fs.readFileSync(URL_FILE, 'utf-8').trim();
     return v || DEFAULT_URL;
@@ -22,6 +26,24 @@ let proxyTarget = readUrlFile();
 function ioBrokerDevPlugin(): Plugin {
   return {
     name: 'iobroker-dev-proxy',
+
+    // Tell the boot-splash watchdog in index.html which host it is waiting for,
+    // so a hanging target names itself instead of spinning anonymously. Read per
+    // request, because /api/dev/set-iobroker-url can retarget the proxy at
+    // runtime. `ctx.server` is only set while serving — a production build,
+    // which has no proxy at all, gets nothing injected.
+    transformIndexHtml(html, ctx) {
+      if (!ctx.server) return;
+      return {
+        html,
+        tags: [{
+          tag: 'script',
+          children: `window.__auraDevProxyTarget=${JSON.stringify(proxyTarget)};`,
+          injectTo: 'head',
+        }],
+      };
+    },
+
     configureServer(server) {
 
       // Server-side iframe proxy – strips X-Frame-Options so pages can be embedded

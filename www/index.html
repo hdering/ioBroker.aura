@@ -38,6 +38,23 @@
       @keyframes aura-spin {
         to { transform: rotate(360deg); }
       }
+      #aura-boot-diag {
+        display: flex; flex-direction: column; align-items: center; gap: 10px;
+        max-width: 34em; padding: 0 24px;
+        text-align: center; line-height: 1.55;
+      }
+      #aura-boot-diag[hidden] { display: none; }
+      #aura-boot-text.is-error { font-size: 15px; font-weight: 600; }
+      #aura-boot-diag-dev {
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px; opacity: 0.75; word-break: break-all;
+      }
+      #aura-boot-reload {
+        margin-top: 4px; padding: 6px 14px; border-radius: 6px;
+        border: 1px solid currentColor; background: transparent;
+        color: inherit; font: inherit; cursor: pointer;
+      }
+      #aura-boot-reload:hover { border-color: #6366f1; color: #6366f1; }
     </style>
     <script>
       // Repaint the boot splash in the theme this device rendered last (written by
@@ -67,9 +84,55 @@
     <div id="aura-boot">
       <div id="aura-boot-bar-wrap"><div id="aura-boot-bar"></div></div>
       <div id="aura-boot-spinner"></div>
-      <span>Aura wird geladen…</span>
+      <span id="aura-boot-text">Aura wird geladen…</span>
+      <div id="aura-boot-diag" hidden>
+        <div id="aura-boot-diag-detail"></div>
+        <div id="aura-boot-diag-dev"></div>
+        <button type="button" id="aura-boot-reload">Neu laden</button>
+      </div>
     </div>
     <div id="root"></div>
+    <script>
+      // Watchdog for the boot splash. socket.io.js below is a parser-blocking
+      // script: if the ioBroker server accepts the TCP connection but never
+      // answers (hung js-controller, overloaded host), that request never
+      // finishes, main.tsx never runs, and the splash spins forever with no
+      // explanation. Timers do keep firing while the parser waits on a script,
+      // so this runs even in that state — it is the only layer that can report
+      // the hang, since no application code has executed yet.
+      (function () {
+        var TIMEOUT_MS = 8000;
+        function ioReady() {
+          var lib = window.io;
+          return !!lib && typeof lib.connect === 'function';
+        }
+        setTimeout(function () {
+          if (ioReady()) return; // library arrived, boot is progressing
+          var boot = document.getElementById('aura-boot');
+          if (!boot || boot.classList.contains('hidden')) return; // app already painted
+          var text = document.getElementById('aura-boot-text');
+          if (text) {
+            text.textContent = 'ioBroker antwortet nicht';
+            text.className = 'is-error';
+          }
+          var detail = document.getElementById('aura-boot-diag-detail');
+          if (detail) {
+            detail.textContent =
+              'socket.io.js wurde nach ' + TIMEOUT_MS / 1000 + ' Sekunden nicht geladen. ' +
+              'Prüfe, ob ioBroker unter ' + window.location.origin + ' läuft.';
+          }
+          // Only the dev server knows a proxy target; a production build is
+          // served by ioBroker itself, where naming an origin adds nothing.
+          var target = window.__auraDevProxyTarget;
+          var dev = document.getElementById('aura-boot-diag-dev');
+          if (dev && target) dev.textContent = 'Dev-Proxy-Ziel: ' + target + ' (aus .iobroker-url)';
+          var btn = document.getElementById('aura-boot-reload');
+          if (btn) btn.onclick = function () { window.location.reload(); };
+          var diag = document.getElementById('aura-boot-diag');
+          if (diag) diag.hidden = false;
+        }, TIMEOUT_MS);
+      })();
+    </script>
     <script src="/socket.io/socket.io.js"></script>
   </body>
 </html>

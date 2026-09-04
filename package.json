@@ -2,7 +2,7 @@
   "name": "iobroker.aura",
   "version": "0.53.3",
   "description": "Modern visualization dashboard for ioBroker",
-  "author": "Hermann Dering <aura@dering-online.de>",
+  "author": "hdering <aura@dering-online.de>",
   "main": "main.js",
   "license": "MIT",
   "engines": {
@@ -82,6 +82,7 @@
     "test:row-popup": "node tools/tests/row-popup.mjs",
     "test:popup-persist": "node tools/tests/popup-config-persist.mjs",
     "test:popup-bg": "node tools/tests/popup-background.mjs",
+    "test:boot-splash": "node tools/tests/boot-splash-offline.mjs",
     "test:popup-prune": "node tools/tests/popup-builtin-prune.mjs",
     "test:backup-retention": "node tools/tests/backup-retention.mjs",
     "test:sanity": "node test/adapter.test.js",
