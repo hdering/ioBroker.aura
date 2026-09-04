@@ -19,6 +19,10 @@ Tank-Behälter mit abgerundeten Ecken, gefüllt bis zum Wert — mit Skalenstric
 ### Battery
 Batterie-Silhouette mit Pol-Nub und Füllstands-Markierungen.
 
+### Bar
+Flacher Balken mit runden Enden. Für Grenzen, die kein Tank sind (Ladelimit, Entladegrenze).
+`showTicks` zeigt hier Skalenanfang und -ende an den Balkenenden.
+
 ### Segments
 Zwölf LED-Segmente, die je nach Füllstand aufleuchten.
 
@@ -86,6 +90,47 @@ Färbt die Füllung abhängig vom Wert; ohne Zonen wird `--accent` verwendet.
 | --- | --- | --- |
 | `colorZones` | `false` | Zonen-Einfärbung aktivieren |
 | `zones` | — | Liste aus `{ max, color }`; Fallback: 33 % `#ef4444`, 66 % `#f59e0b`, Rest `#22c55e` |
+
+### Grenzen
+
+Verstellbare Linien auf der Skala: Ladelimit, Entladegrenze, Priorisierungsschwelle. Jede Grenze bringt
+einen eigenen Datenpunkt mit, kann im Dashboard gezogen werden und schreibt den neuen Wert zurück.
+N Grenzen teilen die Skala in N+1 Abschnitte, die je eine eigene Farbe und ein eigenes Icon tragen.
+
+Eingerichtet unter **Grenzen → bearbeiten** in einem eigenen Dialog.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `limits` | `[]` | Liste der Grenzen, siehe unten |
+| `baseIcon` | — | Icon im untersten Abschnitt (unter der niedrigsten Grenze) |
+| `baseBandColor` | — | Farbe des untersten Abschnitts; leer = normale Füllfarbe |
+| `limitsEditable` | `true` | Hauptschalter; `false` = nur Anzeige |
+| `limitCommitOnRelease` | `true` | Datenpunkt erst beim Loslassen schreiben |
+| `limitClampNeighbours` | `true` | Eine Grenze darf ihre Nachbarn nicht überholen |
+
+Pro Grenze:
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `datapoint` | — | Datenpunkt mit dem Grenzwert; leer = `value` |
+| `value` | — | Fester Grenzwert ohne Datenpunkt |
+| `label` | — | Bezeichnung (Tooltip am Handle) |
+| `editable` | `true` | Im Dashboard verstellbar; braucht `datapoint` |
+| `step` | `1` | Rasterung beim Ziehen, in Anzeige-Einheiten |
+| `showValue` | `true` | Wert-Plakette an der Grenze |
+| `color` | `--accent` | Farbe der Grenzlinie |
+| `icon` | — | Icon im Abschnitt **über** der Grenze |
+| `bandColor` | — | Farbe des Abschnitts **über** der Grenze |
+| `reachedColor` | — | Füllfarbe, sobald der Wert diese Grenze erreicht |
+
+::: tip Reihenfolge der Farben
+`overColor` (Warnfarbe) → `reachedColor` → Abschnittsfarben → Farbzonen → `--accent`. Sobald ein
+Abschnitt eine eigene Farbe hat, werden die Farbzonen nicht mehr gezeichnet.
+:::
+
+Nur eine Grenze mit Datenpunkt ist verstellbar — ein fester Wert ist Konfiguration. Der gezogene Wert
+läuft durch `valueFactor`/`valueOffset` zurück, bevor er geschrieben wird. Grenzen gibt es in den
+Layouts Tank, Batterie und Balken.
 
 ### Warnfarbe
 

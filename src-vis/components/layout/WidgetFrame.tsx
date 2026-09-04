@@ -53,6 +53,7 @@ import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry'
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
 import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
+import { FillLimitsSection } from '../config/FillLimitsEditor';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
@@ -7753,6 +7754,7 @@ export function WidgetFrame({
                                           ? [
                                                 { value: 'default', label: 'Tank' },
                                                 { value: 'battery', label: 'Batterie' },
+                                                { value: 'bar', label: 'Balken' },
                                                 { value: 'segments', label: 'LED-Segmente' },
                                                 { value: 'wave', label: 'Welle' },
                                             ]
@@ -12680,6 +12682,11 @@ export function WidgetFrame({
                                                     </div>
                                                 );
                                             })()}
+
+                                        {/* Adjustable limits with their own datapoints (#613). Kept in
+                                            its own dialog: a limit row carries a datapoint, an icon and
+                                            two colours, which does not belong in this column. */}
+                                        <FillLimitsSection options={o} set={set} />
 
                                         {/* Warning colour past a share of the scale. Wins over the
                                             zones, because a value clamped to max cannot be told from

@@ -89,6 +89,13 @@ export type WidgetType =
     | 'menu'
     | 'messages';
 
+/**
+ * Every layout any widget offers. `segments` / `wave` / `bar` belong to the fill
+ * widget — the flat `bar` is the one that carries the draggable limits (#613).
+ *
+ * Keep this a plain union of string literals: test/widget-schema.test.js parses it
+ * by splitting on `|`, so a comment between the members breaks the parse.
+ */
 export type WidgetLayout =
     | 'default'
     | 'card'
@@ -110,7 +117,10 @@ export type WidgetLayout =
     | 'light-custom'
     | 'knob-endless'
     | 'knob-scale'
-    | 'dial';
+    | 'dial'
+    | 'segments'
+    | 'wave'
+    | 'bar';
 
 // ── Light widget option types ─────────────────────────────────────────────────
 

@@ -82,6 +82,7 @@
     "test:row-popup": "node tools/tests/row-popup.mjs",
     "test:popup-persist": "node tools/tests/popup-config-persist.mjs",
     "test:popup-bg": "node tools/tests/popup-background.mjs",
+    "test:fill-limits": "node tools/tests/fill-limits.mjs",
     "test:boot-splash": "node tools/tests/boot-splash-offline.mjs",
     "test:overview": "node tools/tests/admin-overview-layout.mjs",
     "test:popup-prune": "node tools/tests/popup-builtin-prune.mjs",

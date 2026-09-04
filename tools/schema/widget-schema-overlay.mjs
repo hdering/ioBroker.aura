@@ -261,6 +261,29 @@ export const WIDGET_OPTION_NOTES = {
         statusAlign: { description: 'Ausrichtung des Zustandstexts.' },
     },
     fill: {
+        limits: {
+            description:
+                'Verstellbare Grenzen auf der Skala (#613) — Ladelimit, Entladegrenze, Priorisierungsschwelle. '
+                + 'Jede Grenze bringt einen eigenen Datenpunkt mit und kann im Dashboard gezogen werden; sie teilen '
+                + 'die Skala in Abschnitte, die je ein Icon und eine Farbe tragen. Icon und bandColor einer Grenze '
+                + 'gelten für den Abschnitt ÜBER ihr; der unterste Abschnitt nutzt baseIcon/baseBandColor. '
+                + 'Abschnittsfarben gewinnen über colorZones.',
+        },
+        limitsEditable: {
+            description: 'Hauptschalter: false macht alle Grenzen zur reinen Anzeige, unabhängig von limit.editable.',
+        },
+        limitCommitOnRelease: {
+            description:
+                'Datenpunkt erst beim Loslassen schreiben. false schreibt bei jeder Bewegung — nur für träge Ziele sinnvoll.',
+        },
+        limitClampNeighbours: {
+            description: 'Eine gezogene Grenze darf die Grenzen unter und über ihr nicht überholen.',
+        },
+        baseIcon: {
+            description:
+                'Icon im untersten Abschnitt, also unter der niedrigsten Grenze. Der hat keine Grenze über sich, an der ein Icon hängen könnte.',
+        },
+        baseBandColor: { description: 'Farbe des untersten Abschnitts. Leer = normale Füllfarbe.' },
         overActive: { description: 'Farbwechsel ab einer Schwelle einschalten.' },
         overThreshold: {
             description:

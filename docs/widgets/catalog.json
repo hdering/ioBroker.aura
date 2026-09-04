@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-08-19",
+  "generatedAt": "2026-09-04",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -166,6 +166,7 @@
         "default",
         "compact",
         "minimal",
+        "dial",
         "custom"
       ],
       "options": [
@@ -290,8 +291,10 @@
           "layout-default": "assets/thermostat/layout-default.png",
           "layout-compact": "assets/thermostat/layout-compact.png",
           "layout-minimal": "assets/thermostat/layout-minimal.png",
+          "layout-dial": "assets/thermostat/layout-dial.png",
           "layout-custom": "assets/thermostat/layout-custom.png",
-          "variant-schwellwerte": "assets/thermostat/variant-schwellwerte.png"
+          "variant-schwellwerte": "assets/thermostat/variant-schwellwerte.png",
+          "variant-dial-schwellen": "assets/thermostat/variant-dial-schwellen.png"
         }
       }
     },
@@ -360,13 +363,18 @@
       "slug": "fuellstandsanzeige",
       "label": "Füllstandsanzeige",
       "group": "control",
-      "hint": "Füllstand (z. B. Wassertank, Heizöl) als Balken visualisieren.",
+      "hint": "Füllstand (z. B. Wassertank, Heizöl) als Balken visualisieren, mit verstellbaren Grenzen.",
       "defaultGrid": {
         "w": 9,
         "h": 9
       },
       "layouts": [
-        "default"
+        "default",
+        "battery",
+        "bar",
+        "segments",
+        "wave",
+        "custom"
       ],
       "options": [],
       "crosscutting": [

@@ -16,3 +16,6 @@ AI access - a write is read back and says so when it did not stick, instead of r
 AI access - height measurement: charts, chips, media players, energy balances and carousels were measured empty and are now measured with content; a chart also reports the height it is readable at instead of the height at which nothing is cut off yet
 AI access - height measurement: the compact list layout is counted per row pair and the "+N more" row is part of the number
 AI access - height measurement: a row factor is measured per list layout — the per-entry timestamp costs a whole line in the default layout and nothing in "minimal", and one number for all of them was wrong in three of the four
+Fill level - adjustable limits: any number of lines on the scale, each from its own datapoint, draggable in the dashboard and written straight back - charge ceiling, discharge floor, priority thresholds (#613)
+Fill level - the sections between two limits carry their own colour and their own icon, and the fill can switch colour as soon as a limit is reached (#613)
+Fill level - new "Balken" layout: a flat bar with rounded ends for a limit that is not a tank (#613)

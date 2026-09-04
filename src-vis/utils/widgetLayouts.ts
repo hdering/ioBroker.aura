@@ -30,7 +30,9 @@ export function getAvailableLayouts(widgetType: string): WidgetLayout[] {
         case 'camera':
             return ['minimal', 'default', 'custom'];
         case 'fill':
-            return ['default', 'battery'];
+            // segments/wave have always been in the editor's dropdown but were missing
+            // here, so neither MCP nor the popup editor could select them.
+            return ['default', 'battery', 'segments', 'wave', 'bar'];
         case 'trashSchedule':
             return ['default', 'list', 'compact'];
         case 'gauge':

@@ -1,11 +1,24 @@
-import { useId } from 'react';
+import { useEffect, useId, useRef, useState, type RefObject } from 'react';
 import { Droplets } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useIoBroker } from '../../hooks/useIoBroker';
+import { useTemplateValues } from '../../hooks/useTemplateValues';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
+import { FillLimits } from './FillLimits';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import {
+    bandSegments,
+    limitBands,
+    numericOrNull,
+    reachedLimitColor,
+    resolveLimits,
+    toRawLimit,
+    type FillBand,
+    type FillLimit,
+} from '../../utils/fillLimits';
 
 export interface ColorZone {
     max: number;
@@ -30,9 +43,34 @@ interface TankProps {
     colorZones: boolean;
     /** Value is at or past the warning threshold - `fillColor` is then the warning colour. */
     isOver: boolean;
+    /**
+     * `fillColor` is a single verdict about the whole fill and nothing else may paint:
+     * the warning colour, or a reached limit. Zones and sections are both skipped -
+     * without this a reached limit only changed a colour nobody drew, because the zone
+     * segments paint themselves rather than reading `fillColor`.
+     */
+    solid: boolean;
     showTicks: boolean;
     showValue: boolean;
     uid: string;
+    /**
+     * Sections between the configured limits (#613). Empty = no limits, and the
+     * renderers keep painting zones or a single colour exactly as before.
+     */
+    bands: FillBand[];
+    /** The bar rect, so the limits overlay can measure where 0 % and 100 % are. */
+    trackRef?: RefObject<SVGRectElement>;
+}
+
+/**
+ * The filled sub-sections to paint, or null when no section carries its own colour.
+ * Sections win over the colour zones — mixing both is a configuration mistake the
+ * editor warns about, and a live section edge is the more specific statement.
+ */
+function paintedBands(bands: FillBand[], pct: number, fallback: string, solid: boolean) {
+    if (solid || !bands.some((b) => b.color)) return null;
+    const segs = bandSegments(bands, pct / 100, fallback);
+    return segs.length ? segs : null;
 }
 
 // ── Vertical tank ──────────────────────────────────────────────────────────
@@ -48,9 +86,12 @@ function TankVertical({
     zones,
     colorZones,
     isOver,
+    solid,
     showTicks,
     showValue,
     uid,
+    bands,
+    trackRef,
 }: TankProps) {
     // Layout constants (viewBox 0 0 100 220)
     const bx = 32,
@@ -62,6 +103,7 @@ function TankVertical({
     const fillY = by + bh - fillH;
     const clipId = `fv-${uid}`;
     const labelY = Math.max(fillY + 4, by + 12); // clamp so label stays inside viewBox
+    const bandSegs = paintedBands(bands, pct, fillColor, solid);
 
     const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
 
@@ -85,6 +127,7 @@ function TankVertical({
 
             {/* Tank background */}
             <rect
+                ref={trackRef}
                 x={bx}
                 y={by}
                 width={bw}
@@ -95,8 +138,41 @@ function TankVertical({
                 strokeWidth={1.5}
             />
 
+            {/* Limit sections – faint above the fill, so the edges read even when empty */}
+            {bandSegs &&
+                bands.map((band, i) =>
+                    band.color ? (
+                        <rect
+                            key={`band-bg-${i}`}
+                            x={bx}
+                            y={by + bh - band.to * bh}
+                            width={bw}
+                            height={(band.to - band.from) * bh}
+                            fill={band.color}
+                            opacity={0.22}
+                            clipPath={`url(#${clipId})`}
+                        />
+                    ) : null,
+                )}
+
+            {/* Limit sections – the filled part, at full strength */}
+            {bandSegs?.map((seg, i) => (
+                <rect
+                    key={`band-fill-${i}`}
+                    x={bx}
+                    y={by + bh - seg.to * bh}
+                    width={bw}
+                    height={(seg.to - seg.from) * bh}
+                    fill={seg.color}
+                    clipPath={`url(#${clipId})`}
+                    data-aura-fill-level=""
+                    data-aura-fill-band={i}
+                />
+            ))}
+
             {/* Zone bands – entire tank at 45% (vivid context) */}
-            {colorZones &&
+            {!bandSegs &&
+                colorZones &&
                 zones.map((zone, i) => {
                     const prev = i === 0 ? min : zones[i - 1].max;
                     const s = max > min ? Math.max(0, Math.min(1, (prev - min) / (max - min))) : 0;
@@ -117,8 +193,9 @@ function TankVertical({
                 })}
 
             {/* Fill – zone-colored segments at 100% up to fill level */}
-            {colorZones &&
-                !isOver &&
+            {!bandSegs &&
+                colorZones &&
+                !solid &&
                 fillH > 0 &&
                 zones.map((zone, i) => {
                     const prev = i === 0 ? min : zones[i - 1].max;
@@ -145,7 +222,7 @@ function TankVertical({
                 })}
 
             {/* Fill – single color (no zones) */}
-            {(!colorZones || isOver) && fillH > 0 && (
+            {!bandSegs && (!colorZones || solid) && fillH > 0 && (
                 <rect
                     x={bx}
                     y={fillY}
@@ -239,9 +316,12 @@ function TankHorizontal({
     zones,
     colorZones,
     isOver,
+    solid,
     showTicks,
     showValue,
     uid,
+    bands,
+    trackRef,
 }: TankProps) {
     // Layout constants (viewBox 0 0 220 80)
     const bx = 10,
@@ -251,6 +331,7 @@ function TankHorizontal({
         br = 13;
     const fillW = Math.max(0, (pct / 100) * bw);
     const clipId = `fh-${uid}`;
+    const bandSegs = paintedBands(bands, pct, fillColor, solid);
 
     const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
 
@@ -274,6 +355,7 @@ function TankHorizontal({
 
             {/* Tank background */}
             <rect
+                ref={trackRef}
                 x={bx}
                 y={by}
                 width={bw}
@@ -284,8 +366,41 @@ function TankHorizontal({
                 strokeWidth={1.5}
             />
 
+            {/* Limit sections – faint above the fill, so the edges read even when empty */}
+            {bandSegs &&
+                bands.map((band, i) =>
+                    band.color ? (
+                        <rect
+                            key={`band-bg-${i}`}
+                            x={bx + band.from * bw}
+                            y={by}
+                            width={(band.to - band.from) * bw}
+                            height={bh}
+                            fill={band.color}
+                            opacity={0.22}
+                            clipPath={`url(#${clipId})`}
+                        />
+                    ) : null,
+                )}
+
+            {/* Limit sections – the filled part, at full strength */}
+            {bandSegs?.map((seg, i) => (
+                <rect
+                    key={`band-fill-${i}`}
+                    x={bx + seg.from * bw}
+                    y={by}
+                    width={(seg.to - seg.from) * bw}
+                    height={bh}
+                    fill={seg.color}
+                    clipPath={`url(#${clipId})`}
+                    data-aura-fill-level=""
+                    data-aura-fill-band={i}
+                />
+            ))}
+
             {/* Zone bands – entire tank at 45% */}
-            {colorZones &&
+            {!bandSegs &&
+                colorZones &&
                 zones.map((zone, i) => {
                     const prev = i === 0 ? min : zones[i - 1].max;
                     const s = max > min ? Math.max(0, Math.min(1, (prev - min) / (max - min))) : 0;
@@ -306,8 +421,9 @@ function TankHorizontal({
                 })}
 
             {/* Fill – zone-colored segments at 100% up to fill level */}
-            {colorZones &&
-                !isOver &&
+            {!bandSegs &&
+                colorZones &&
+                !solid &&
                 fillW > 0 &&
                 zones.map((zone, i) => {
                     const prev = i === 0 ? min : zones[i - 1].max;
@@ -334,7 +450,7 @@ function TankHorizontal({
                 })}
 
             {/* Fill – single color (no zones) */}
-            {(!colorZones || isOver) && fillW > 0 && (
+            {!bandSegs && (!colorZones || solid) && fillW > 0 && (
                 <rect
                     x={bx}
                     y={by}
@@ -675,10 +791,29 @@ function BatteryViz({
     showValue,
     uid,
     orientation,
-}: Pick<TankProps, 'pct' | 'value' | 'unit' | 'decimals' | 'numFmt' | 'fillColor' | 'showValue' | 'uid'> & {
+    bands,
+    trackRef,
+    solid,
+}: Pick<
+    TankProps,
+    | 'pct'
+    | 'value'
+    | 'unit'
+    | 'decimals'
+    | 'numFmt'
+    | 'fillColor'
+    | 'showValue'
+    | 'uid'
+    | 'bands'
+    | 'trackRef'
+    | 'solid'
+> & {
     orientation: Orientation;
 }) {
     const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
+    // The battery never had colour zones, so the limit sections are its only source
+    // of more than one colour - no zone branch to step around here.
+    const bandSegs = paintedBands(bands, pct, fillColor, solid);
 
     if (orientation === 'vertical') {
         const bx = 12,
@@ -712,7 +847,12 @@ function BatteryViz({
             </text>
         );
         return (
-            <svg viewBox="0 0 90 260" style={{ width: '100%', height: '100%' }}>
+            <svg
+                viewBox="0 0 90 260"
+                style={{ width: '100%', height: '100%' }}
+                data-aura-fill="vertical"
+                data-aura-fill-pct={Math.round(pct)}
+            >
                 <defs>
                     <clipPath id={clipId}>
                         <rect x={bx} y={by} width={bw} height={bh} rx={br} />
@@ -733,6 +873,7 @@ function BatteryViz({
                     fill="var(--app-border)"
                 />
                 <rect
+                    ref={trackRef}
                     x={bx}
                     y={by}
                     width={bw}
@@ -742,7 +883,35 @@ function BatteryViz({
                     stroke="var(--app-border)"
                     strokeWidth={2}
                 />
-                {fillH > 0 && (
+                {bandSegs &&
+                    bands.map((band, i) =>
+                        band.color ? (
+                            <rect
+                                key={`band-bg-${i}`}
+                                x={bx}
+                                y={by + bh - band.to * bh}
+                                width={bw}
+                                height={(band.to - band.from) * bh}
+                                fill={band.color}
+                                opacity={0.22}
+                                clipPath={`url(#${clipId})`}
+                            />
+                        ) : null,
+                    )}
+                {bandSegs?.map((seg, i) => (
+                    <rect
+                        key={`band-fill-${i}`}
+                        x={bx}
+                        y={by + bh - seg.to * bh}
+                        width={bw}
+                        height={(seg.to - seg.from) * bh}
+                        fill={seg.color}
+                        clipPath={`url(#${clipId})`}
+                        data-aura-fill-level=""
+                        data-aura-fill-band={i}
+                    />
+                ))}
+                {!bandSegs && fillH > 0 && (
                     <rect
                         x={bx}
                         y={by + bh - fillH}
@@ -750,6 +919,7 @@ function BatteryViz({
                         height={fillH}
                         fill={fillColor}
                         clipPath={`url(#${clipId})`}
+                        data-aura-fill-level=""
                     />
                 )}
                 {[0.25, 0.5, 0.75].map((t, i) => (
@@ -834,6 +1004,8 @@ function BatteryViz({
                 viewBox="0 0 260 90"
                 preserveAspectRatio="none"
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+                data-aura-fill="horizontal"
+                data-aura-fill-pct={Math.round(pct)}
             >
                 <defs>
                     <clipPath id={clipId}>
@@ -841,6 +1013,7 @@ function BatteryViz({
                     </clipPath>
                 </defs>
                 <rect
+                    ref={trackRef}
                     x={bx}
                     y={by}
                     width={bw}
@@ -858,8 +1031,44 @@ function BatteryViz({
                     rx={5}
                     fill="var(--app-border)"
                 />
-                {fillW > 0 && (
-                    <rect x={bx} y={by} width={fillW} height={bh} fill={fillColor} clipPath={`url(#${clipId})`} />
+                {bandSegs &&
+                    bands.map((band, i) =>
+                        band.color ? (
+                            <rect
+                                key={`band-bg-${i}`}
+                                x={bx + band.from * bw}
+                                y={by}
+                                width={(band.to - band.from) * bw}
+                                height={bh}
+                                fill={band.color}
+                                opacity={0.22}
+                                clipPath={`url(#${clipId})`}
+                            />
+                        ) : null,
+                    )}
+                {bandSegs?.map((seg, i) => (
+                    <rect
+                        key={`band-fill-${i}`}
+                        x={bx + seg.from * bw}
+                        y={by}
+                        width={(seg.to - seg.from) * bw}
+                        height={bh}
+                        fill={seg.color}
+                        clipPath={`url(#${clipId})`}
+                        data-aura-fill-level=""
+                        data-aura-fill-band={i}
+                    />
+                ))}
+                {!bandSegs && fillW > 0 && (
+                    <rect
+                        x={bx}
+                        y={by}
+                        width={fillW}
+                        height={bh}
+                        fill={fillColor}
+                        clipPath={`url(#${clipId})`}
+                        data-aura-fill-level=""
+                    />
                 )}
                 {[0.25, 0.5, 0.75].map((t, i) => (
                     <line
@@ -898,11 +1107,154 @@ function BatteryViz({
     );
 }
 
+// ── Flat bar ("bar" layout) ─────────────────────────────────────
+// Plain HTML, not SVG: a rounded bar with draggable limits wants a real pixel
+// thickness and undistorted round caps, which a viewBox that scales to the cell
+// cannot give (the tanks letterbox, the horizontal battery stretches). This is also
+// the shape the request actually showed - a charge limit is not a tank.
+function BarViz({
+    pct,
+    min,
+    max,
+    value,
+    unit,
+    decimals,
+    numFmt,
+    fillColor,
+    showValue,
+    showTicks,
+    bands,
+    orientation,
+    barSize,
+    barRef,
+    solid,
+}: Pick<
+    TankProps,
+    | 'pct'
+    | 'min'
+    | 'max'
+    | 'value'
+    | 'unit'
+    | 'decimals'
+    | 'numFmt'
+    | 'fillColor'
+    | 'showValue'
+    | 'showTicks'
+    | 'bands'
+    | 'solid'
+> & {
+    orientation: Orientation;
+    barSize: number;
+    barRef: RefObject<HTMLDivElement>;
+}) {
+    const vertical = orientation === 'vertical';
+    // barSize keeps its meaning ("how chunky is the bar") but maps to px here: a
+    // percentage of the cell would collapse the bar to a hairline in a short widget,
+    // which is where this layout is most likely to sit.
+    const thickness = Math.round(8 + (Math.max(10, Math.min(100, barSize)) / 100) * 24);
+    const bandSegs = paintedBands(bands, pct, fillColor, solid);
+    const displayVal = isNaN(value) ? '–' : formatNum(value, decimals, numFmt);
+    const endLabel = (v: number) => `${formatNum(v, decimals === 0 ? 0 : 1, numFmt)}${unit}`;
+
+    const seg = (from: number, to: number, color: string, faint?: boolean) => ({
+        position: 'absolute' as const,
+        background: color,
+        ...(faint ? { opacity: 0.22 } : null),
+        ...(vertical
+            ? { left: 0, right: 0, bottom: `${from * 100}%`, height: `${(to - from) * 100}%` }
+            : { top: 0, bottom: 0, left: `${from * 100}%`, width: `${(to - from) * 100}%` }),
+    });
+
+    const bar = (
+        <div
+            ref={barRef}
+            data-aura-fill={vertical ? 'vertical' : 'horizontal'}
+            data-aura-fill-pct={Math.round(pct)}
+            data-aura-fill-max={max}
+            style={{
+                position: 'relative',
+                overflow: 'hidden',
+                borderRadius: thickness / 2,
+                background: 'var(--app-bg)',
+                border: '1px solid var(--app-border)',
+                ...(vertical ? { width: thickness, height: '100%' } : { height: thickness, width: '100%' }),
+            }}
+        >
+            {bandSegs &&
+                bands.map((b, i) =>
+                    b.color ? <div key={`bg-${i}`} style={seg(b.from, b.to, b.color, true)} /> : null,
+                )}
+            {bandSegs?.map((sg, i) => (
+                <div
+                    key={`fill-${i}`}
+                    data-aura-fill-level=""
+                    data-aura-fill-band={i}
+                    style={seg(sg.from, sg.to, sg.color)}
+                />
+            ))}
+            {!bandSegs && pct > 0 && <div data-aura-fill-level="" style={seg(0, pct / 100, fillColor)} />}
+        </div>
+    );
+
+    const valueEl = showValue ? (
+        <span className="text-xs font-bold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+            {displayVal}
+            {unit && (
+                <span className="text-[10px] font-normal ml-0.5" style={{ color: 'var(--text-secondary)' }}>
+                    {unit}
+                </span>
+            )}
+        </span>
+    ) : null;
+
+    if (vertical) {
+        return (
+            <div className="h-full flex items-stretch justify-center gap-1.5">
+                {showTicks && (
+                    <div
+                        className="flex flex-col justify-between text-[9px] shrink-0"
+                        style={{ color: 'var(--text-secondary)', opacity: 0.75 }}
+                    >
+                        <span>{endLabel(max)}</span>
+                        <span>{endLabel(min)}</span>
+                    </div>
+                )}
+                <div className="shrink-0">{bar}</div>
+                {valueEl && <div className="flex items-center shrink-0">{valueEl}</div>}
+            </div>
+        );
+    }
+
+    return (
+        <div className="h-full flex flex-col justify-center gap-1">
+            <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">{bar}</div>
+                {valueEl}
+            </div>
+            {showTicks && (
+                <div
+                    className="flex justify-between text-[9px]"
+                    style={{ color: 'var(--text-secondary)', opacity: 0.75 }}
+                >
+                    <span>{endLabel(min)}</span>
+                    <span>{endLabel(max)}</span>
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ── Main widget ────────────────────────────────────────────────────────────
 export function FillWidget({ config }: WidgetProps) {
     const opts = config.options ?? {};
     const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
+    // The limits layer is measured, not computed from the viewBox: `hostRef` is the
+    // positioned wrapper it draws in, `trackRef` the bar whose box defines 0 %/100 %.
+    const hostRef = useRef<HTMLDivElement>(null);
+    const trackRef = useRef<SVGRectElement>(null);
+    const barRef = useRef<HTMLDivElement>(null);
 
+    const { setState } = useIoBroker();
     const { value } = useDatapoint(config.datapoint);
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
 
@@ -939,6 +1291,38 @@ export function FillWidget({ config }: WidgetProps) {
     // barSize: % of widget width (vertical) or height (horizontal), 10-100
     const barSize = (opts.barSize as number) ?? 80;
 
+    // ── Limits (#613) ──────────────────────────────────────────────────────────
+    // Every limit brings its own datapoint, so the set of subscriptions changes with
+    // the configuration - useTemplateStates takes a dynamic list, which is exactly
+    // what the rules of hooks forbid doing with useDatapoint in a loop.
+    const limits = (opts.limits as FillLimit[] | undefined) ?? [];
+    const limitsEditable = opts.limitsEditable !== false;
+    const commitOnRelease = opts.limitCommitOnRelease !== false;
+    const clampNeighbours = opts.limitClampNeighbours !== false;
+    const limitValues = useTemplateValues(limits.map((l) => l.datapoint?.trim() ?? '').filter(Boolean));
+
+    // Display value of the limit being dragged. Kept until the datapoint echoes it
+    // back (or 3 s pass), otherwise the handle jumps back to the old value for the
+    // round-trip and reads as a rejected drag.
+    const [pending, setPending] = useState<{ id: string; at: number } | null>(null);
+    useEffect(() => {
+        if (!pending) return;
+        const dp = limits.find((l) => l.id === pending.id)?.datapoint?.trim();
+        if (!dp) {
+            setPending(null);
+            return;
+        }
+        const live = numericOrNull(limitValues[dp]);
+        if (live !== null && Math.abs(live * factor + offset - pending.at) < 1e-6) {
+            setPending(null);
+            return;
+        }
+        // The adapter may clamp or refuse the write - never hold the marker hostage.
+        const t = setTimeout(() => setPending(null), 3000);
+        return () => clearTimeout(t);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [pending, limitValues, factor, offset]);
+
     // Zone array – new format first, fall back to 3 default zones
     const zones: ColorZone[] = (() => {
         const raw = opts.zones as ColorZone[] | undefined;
@@ -960,16 +1344,71 @@ export function FillWidget({ config }: WidgetProps) {
     const rawPct = max > min && !isNaN(numVal) ? ((numVal - min) / (max - min)) * 100 : 0;
     const isOver = overActive && !isNaN(numVal) && rawPct >= overThreshold;
 
+    const resolvedLimits = resolveLimits(limits, {
+        scale: { min, max },
+        values: limitValues,
+        tx,
+        editable: limitsEditable,
+        override: pending,
+    });
+    const bands = limitBands(resolvedLimits, {
+        icon: opts.baseIcon as string | undefined,
+        color: opts.baseBandColor as string | undefined,
+    });
+    const bandsActive = bands.some((b) => b.color);
+
     // Determine fill color
     let fillColor = 'var(--accent)';
-    if (colorZones && zones.length > 0) {
+    // Once a section has its own colour, the sections own the colouring - a section
+    // WITHOUT one falls back to `fillColor`, and taking that out of the zones would
+    // smuggle a zone colour back into a bar that is no longer drawing zones.
+    if (!bandsActive && colorZones && zones.length > 0) {
         const match = zones.find((z) => safeVal <= z.max);
         fillColor = match ? match.color : zones[zones.length - 1].color;
     }
+    // A reached limit repaints the whole fill - that is the "turns green once the top
+    // limit is met" half of the request. It beats the zones and the sections; the
+    // warning colour still beats it, because an overrun is the louder statement.
+    const reached = reachedLimitColor(resolvedLimits, numVal);
+    if (reached) fillColor = reached;
     // The warning colour wins over both the plain fill colour and the zones.
     if (isOver) fillColor = (opts.overColor as string) ?? OVER_COLOR;
+    const solid = isOver || !!reached;
+
+    const writeLimit = (id: string, at: number) => {
+        const dp = limits.find((l) => l.id === id)?.datapoint?.trim();
+        if (dp) setState(dp, toRawLimit(at, factor, offset));
+    };
+    const onLimitDrag = (id: string, at: number) => {
+        setPending({ id, at });
+        if (!commitOnRelease) writeLimit(id, at);
+    };
+    const onLimitCommit = (id: string, at: number) => {
+        setPending({ id, at });
+        writeLimit(id, at);
+    };
 
     const layout = (config.layout ?? 'default') as string;
+    /** The limits layer, mounted inside the (relative) bar wrapper of each layout. */
+    const limitsLayerFor = (ref: RefObject<Element>) =>
+        resolvedLimits.length ? (
+            <FillLimits
+                hostRef={hostRef}
+                trackRef={ref}
+                limits={resolvedLimits}
+                bands={bands}
+                scale={{ min, max }}
+                orientation={orientation}
+                fillFrac={pct / 100}
+                unit={unit}
+                decimals={decimals}
+                numFmt={numFmt}
+                clampNeighbours={clampNeighbours}
+                onDrag={onLimitDrag}
+                onCommit={onLimitCommit}
+            />
+        ) : null;
+    const limitsLayer = limitsLayerFor(trackRef);
 
     const tankProps: TankProps = {
         pct,
@@ -983,9 +1422,12 @@ export function FillWidget({ config }: WidgetProps) {
         zones,
         colorZones,
         isOver,
+        solid,
         showTicks,
         showValue,
         uid,
+        bands,
+        trackRef,
     };
 
     const showTitle = opts.showTitle !== false;
@@ -1034,13 +1476,19 @@ export function FillWidget({ config }: WidgetProps) {
                     style={{ padding: '4px 0' }}
                 >
                     <div
+                        ref={hostRef}
                         style={
                             orientation === 'vertical'
-                                ? { width: `${barSize}%`, height: '100%' }
+                                ? { width: `${barSize}%`, height: '100%', position: 'relative' }
                                 : // horizontal: keep the battery's natural aspect ratio (matches the
                                   // segments layout) so barSize actually scales it and it no longer
                                   // stretches to full width on narrow (mobile) cells. #453
-                                  { height: `${barSize}%`, aspectRatio: '260 / 90', maxWidth: '100%' }
+                                  {
+                                      height: `${barSize}%`,
+                                      aspectRatio: '260 / 90',
+                                      maxWidth: '100%',
+                                      position: 'relative',
+                                  }
                         }
                     >
                         <BatteryViz
@@ -1053,8 +1501,67 @@ export function FillWidget({ config }: WidgetProps) {
                             showValue={showValue}
                             uid={uid}
                             orientation={orientation}
+                            bands={bands}
+                            trackRef={trackRef}
+                            solid={solid}
+                        />
+                        {limitsLayer}
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (layout === 'bar') {
+        return (
+            <div className="flex flex-col h-full">
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                    </div>
+                )}
+                <div
+                    ref={hostRef}
+                    className="aura-widget-value flex-1 flex items-center justify-center min-h-0 min-w-0"
+                    style={{ position: 'relative' }}
+                >
+                    <div style={orientation === 'vertical' ? { height: '100%' } : { width: '100%' }}>
+                        <BarViz
+                            pct={pct}
+                            min={min}
+                            max={max}
+                            value={safeVal}
+                            unit={unit}
+                            decimals={decimals}
+                            numFmt={numFmt}
+                            fillColor={fillColor}
+                            showValue={showValue}
+                            showTicks={showTicks}
+                            bands={bands}
+                            orientation={orientation}
+                            barSize={barSize}
+                            barRef={barRef}
+                            solid={solid}
                         />
                     </div>
+                    {limitsLayerFor(barRef)}
                 </div>
             </div>
         );
@@ -1224,12 +1731,14 @@ export function FillWidget({ config }: WidgetProps) {
             )}
             <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
                 {orientation === 'vertical' ? (
-                    <div style={{ width: `${barSize}%`, height: '100%' }}>
+                    <div ref={hostRef} style={{ width: `${barSize}%`, height: '100%', position: 'relative' }}>
                         <TankVertical {...tankProps} />
+                        {limitsLayer}
                     </div>
                 ) : (
-                    <div style={{ width: '100%', height: `${barSize}%` }}>
+                    <div ref={hostRef} style={{ width: '100%', height: `${barSize}%`, position: 'relative' }}>
                         <TankHorizontal {...tankProps} />
+                        {limitsLayer}
                     </div>
                 )}
             </div>
