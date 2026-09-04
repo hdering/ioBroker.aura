@@ -75,9 +75,45 @@ Den vollständigen Block wie ein Passwort behandeln — er gibt Lese- und Schrei
 | Weg | |
 | --- | --- |
 | Einfach sagen | Den kopierten Block in den Prompt eines laufenden KI-Assistenten geben: „Füg diesen MCP-Server hinzu: …“ — Claude Code trägt ihn selbst ein |
-| Claude Desktop | Einstellungen → Entwickler → `claude_desktop_config.json`, Block in `mcpServers` einfügen, Client neu starten |
 | Claude Code | `claude mcp add --transport http aura http://<ip>:8095/mcp --header "Authorization: Bearer <Token>"` |
+| Claude Desktop | Kein HTTP-Server mit eigenem Header, deshalb über eine Brücke — siehe [unten](#claude-desktop) |
 | Andere | Server-Typ „HTTP“ / „Streamable HTTP“, URL `…/mcp`, Header `Authorization: Bearer <Token>` |
+
+### Claude Desktop {#claude-desktop}
+
+Claude Desktop startet MCP-Server als lokale Prozesse. Der Umweg ist [`mcp-remote`](https://www.npmjs.com/package/mcp-remote); Node.js muss auf dem Rechner installiert sein, auf dem Claude Desktop läuft.
+
+Einstellungen → Entwickler → **Konfiguration bearbeiten** → `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "aura": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "http://192.168.1.20:8095/mcp",
+        "--transport",
+        "http-only",
+        "--allow-http",
+        "--header",
+        "Authorization:${AURA_TOKEN}"
+      ],
+      "env": { "AURA_TOKEN": "Bearer 8f3c…" }
+    }
+  }
+}
+```
+
+Danach Claude Desktop **vollständig beenden** und neu starten (Tray-Symbol, nicht nur das Fenster schließen).
+
+| | |
+| --- | --- |
+| `--transport http-only` | Ohne das versucht `mcp-remote` zuerst SSE, das Aura nicht anbietet |
+| `--allow-http` | Nur nötig ohne HTTPS — also im LAN der Normalfall |
+| Token über `env` | Claude Desktop zerlegt `--header "Authorization: Bearer …"` am Leerzeichen; `Authorization:${AURA_TOKEN}` mit dem vollständigen Wert `Bearer <Token>` in `env` umgeht das |
+| Aura ab 0.54.0 | Ältere Versionen antworten auf die OAuth-Suche von `mcp-remote` mit HTML, `mcp-remote` bricht dann mit `Unexpected token '<'` ab |
 
 Verbindung prüfen: „Welche Tabs hat mein Aura-Dashboard?“ — die Antwort kommt aus `aura_dashboard`.
 
@@ -133,9 +169,12 @@ Vor jedem Schreibvorgang prüft Aura das Widget gegen Schema, Datenpunkte und Ze
 | --- | --- |
 | `404` | Haken „MCP-Endpunkt aktivieren“ fehlt oder Instanz läuft nicht |
 | `503` | Endpunkt aktiv, aber kein Token gesetzt (steht auch als Warnung im Adapter-Log) |
-| `401` | Token im Client stimmt nicht mit dem in der Instanz überein |
+| `401` | Der Client schickt gar keinen Token — Header `Authorization` fehlt |
+| `403` | Token im Client stimmt nicht mit dem in der Instanz überein |
 | `405` | Client spricht nicht MCP über HTTP (`/mcp` nimmt nur POST) |
 | Keine Verbindung | Falscher Port — Aura läuft auf `8095`, nicht auf dem Port des Web-Adapters |
+| `Unexpected token '<'` in Claude Desktop | Aura älter als 0.54.0 — die OAuth-Suche von `mcp-remote` bekam die Oberfläche statt einer Absage |
+| Claude Desktop zeigt den Server nicht | App nicht vollständig beendet, oder `node`/`npx` fehlt auf dem Rechner mit Claude Desktop |
 | Modell erfindet Datenpunkte | ioBroker-MCP fehlt oder zeigt auf eine andere Installation |
 | Widget bleibt leer | Datenpunkt-ID existiert nicht — `aura_validate` bzw. `aura_review` darüber laufen lassen |
 | Änderung ging daneben | ioBroker-Admin → Objekte → `aura.0.backups`, oder das Modell eine Sicherung zurückspielen lassen |

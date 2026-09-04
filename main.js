@@ -6,7 +6,7 @@ const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
-const { handleMcpRequest } = require('./lib/mcp/httpEndpoint');
+const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveClientConfig } = require('./lib/mcp/clientConfig');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
@@ -902,6 +902,17 @@ class Aura extends utils.Adapter {
                 return;
             }
             const { pathname } = parsedUrl;
+
+            // Discovery probes must never reach the SPA fallback. An unknown path
+            // without a file extension is answered with index.html and status 200,
+            // so a client asking /.well-known/oauth-authorization-server got
+            // "<!doctype html>" where it expected JSON and died on JSON.parse —
+            // which is exactly what stops mcp-remote (Claude Desktop) from
+            // connecting. A plain 404 is the honest answer: /mcp authenticates
+            // with a static token, there is no authorization server to find. (#612)
+            if (handleAuthDiscovery(pathname, res, req.method)) {
+                return;
+            }
 
             // MCP endpoint for AI assistants. Off unless enabled in the instance
             // config, and it refuses everything without a token — this server has

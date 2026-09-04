@@ -42,7 +42,7 @@ const {
     collectDefIds,
     replaceTabWidgets,
 } = require('../../lib/mcp/auraConfig.js');
-const { handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
+const { handleAuthDiscovery, handleMcpRequest } = require('../../lib/mcp/httpEndpoint.js');
 const { LEVELS, levelIndex, toolsFor } = require('../../lib/mcp/tools.js');
 const { RECIPES, findRecipe, renderRecipe, renderRecipeIndex } = require('../../lib/mcp/recipes.js');
 const {
@@ -1321,10 +1321,7 @@ const AT = (fontScale, widgetPadding) => ({
 
 check('a dashboard drawn like the measurement gets the measured numbers', () => {
     const plain = measureWidget(listWidget(8, 25), { metrics: METRICS, grid: GRID });
-    const same = measureWidget(
-        listWidget(8, 25),
-        AT(REF_PRESENTATION.fontScale, REF_PRESENTATION.widgetPaddingPx),
-    );
+    const same = measureWidget(listWidget(8, 25), AT(REF_PRESENTATION.fontScale, REF_PRESENTATION.widgetPaddingPx));
     assert.equal(same.requiredPx, plain.requiredPx);
     // And it does not say anything about a presentation nobody changed.
     assert.ok(!/Darstellung dieses Dashboards/.test(renderMeasure([plain], { grid: GRID, metrics: METRICS })));
@@ -1337,10 +1334,7 @@ check('the inner padding sits twice in the chrome — two pixels per pixel', () 
     assert.equal(at(ref + 8) - at(ref), 16);
     // A minimum is a card too — it carries the padding just the same.
     const gauge = { id: 'g', type: 'gauge', title: 'G', datapoint: 'demo.value', gridPos: { x: 0, y: 0, w: 8, h: 3 } };
-    assert.equal(
-        measureWidget(gauge, AT(1, ref)).requiredPx - measureWidget(gauge, AT(1, ref - 8)).requiredPx,
-        16,
-    );
+    assert.equal(measureWidget(gauge, AT(1, ref)).requiredPx - measureWidget(gauge, AT(1, ref - 8)).requiredPx, 16);
 });
 
 check('the frame types that have no padding are not corrected for it', () => {
@@ -2267,8 +2261,11 @@ const wrongToken = await fetch(base, {
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer falsch' },
     body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'ping' }),
 });
-check('a wrong token is rejected too', () => {
-    assert.equal(wrongToken.status, 401);
+check('a wrong token is rejected with 403, not 401', () => {
+    // 401 makes every client library start an OAuth flow it cannot finish, and
+    // the user then reads a registration error instead of "wrong token". (#612)
+    assert.equal(wrongToken.status, 403);
+    assert.equal(wrongToken.headers.get('www-authenticate'), null);
 });
 
 const noConfiguredToken = await new Promise((resolve) => {
@@ -2285,6 +2282,121 @@ const noConfiguredToken = await new Promise((resolve) => {
 check('enabled without a configured token serves nothing and says why', () => {
     assert.equal(noConfiguredToken.status, 503);
     assert.match(noConfiguredToken.body.error, /kein Token gesetzt/);
+});
+
+// ── Reachability for clients other than Claude Code (#612) ──────────────────
+// A bridge like mcp-remote probes for an authorization server first. Aura's
+// static handler answers unknown extension-less paths with index.html and 200,
+// so the probe used to receive HTML and the client died parsing it as JSON.
+
+const wellKnown = await new Promise((resolve) => {
+    const s = http.createServer((req, res) => {
+        if (handleAuthDiscovery(new URL(req.url, 'http://x').pathname, res, req.method)) {
+            return;
+        }
+        // Stand-in for the SPA fallback in main.js: HTML with status 200.
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end('<!doctype html><html></html>');
+    });
+    s.listen(0, '127.0.0.1', async () => {
+        const at = async (p, method = 'GET') => {
+            const r = await fetch(`http://127.0.0.1:${s.address().port}${p}`, { method });
+            return { status: r.status, type: r.headers.get('content-type'), body: await r.text() };
+        };
+        // Every path a real mcp-remote 0.8.3 run probed, in the order it did.
+        const out = {
+            resource: await at('/.well-known/oauth-protected-resource/mcp'),
+            authServer: await at('/.well-known/oauth-authorization-server'),
+            openid: await at('/.well-known/openid-configuration'),
+            // Nested under the endpoint — a prefix match on /.well-known/ misses it.
+            nested: await at('/mcp/.well-known/openid-configuration'),
+            register: await at('/register', 'POST'),
+            spa: await at('/some/router/route'),
+            registerGet: await at('/register'),
+        };
+        s.close();
+        resolve(out);
+    });
+});
+
+check('OAuth discovery answers 404 JSON instead of the SPA', () => {
+    for (const key of ['authServer', 'resource', 'openid', 'nested', 'register']) {
+        assert.equal(wellKnown[key].status, 404, key);
+        assert.match(wellKnown[key].type, /application\/json/, key);
+        // The whole point: parseable, so the client reports "no OAuth" and
+        // keeps the static token instead of throwing on "<!doctype".
+        assert.equal(JSON.parse(wellKnown[key].body).error, 'not_found', key);
+    }
+});
+
+check('other unknown paths still reach the SPA fallback', () => {
+    assert.equal(wellKnown.spa.status, 200);
+    assert.match(wellKnown.spa.body, /doctype/);
+    // Only the registration POST is intercepted; a navigation to the same path
+    // stays a frontend route.
+    assert.equal(wellKnown.registerGet.status, 200);
+});
+
+const transport = await new Promise((resolve) => {
+    const s = http.createServer((req, res) => {
+        handleMcpRequest(req, res, { adapter, token: TOKEN, mode: 'read', version: '1' }).catch(() => {});
+    });
+    s.listen(0, '127.0.0.1', async () => {
+        const url = `http://127.0.0.1:${s.address().port}/mcp`;
+        const preflight = await fetch(url, {
+            method: 'OPTIONS',
+            headers: { Origin: 'https://claude.ai', 'Access-Control-Request-Method': 'POST' },
+        });
+        const del = await fetch(url, { method: 'DELETE', headers: { Authorization: `Bearer ${TOKEN}` } });
+        const get = await fetch(url, { headers: { Authorization: `Bearer ${TOKEN}` } });
+        const bad = await fetch(url, { method: 'POST', headers: { Authorization: 'Bearer nope' }, body: '{}' });
+        const none = await fetch(url, { method: 'POST', body: '{}' });
+        const bare = await fetch(url, {
+            method: 'POST',
+            headers: { Authorization: TOKEN, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'ping' }),
+        });
+        s.close();
+        resolve({
+            preflight: { status: preflight.status, headers: preflight.headers },
+            del: del.status,
+            get: { status: get.status, allow: get.headers.get('allow') },
+            bad: { status: bad.status, body: await bad.json() },
+            none: { status: none.status, auth: none.headers.get('www-authenticate') },
+            bare: { status: bare.status, body: await bare.json() },
+        });
+    });
+});
+
+check('the CORS preflight is answered before the token is checked', () => {
+    // A browser sends OPTIONS without the Authorization header — replying 401
+    // would refuse the request that asks whether the header may be sent.
+    assert.equal(transport.preflight.status, 204);
+    assert.equal(transport.preflight.headers.get('access-control-allow-origin'), '*');
+    assert.match(transport.preflight.headers.get('access-control-allow-headers'), /Authorization/i);
+    assert.match(transport.preflight.headers.get('access-control-allow-methods'), /POST/);
+});
+
+check('DELETE closes without an error, GET names the allowed methods', () => {
+    assert.equal(transport.del, 204);
+    assert.equal(transport.get.status, 405);
+    assert.match(transport.get.allow, /POST/);
+});
+
+check('a missing token gets the challenge, a wrong one does not', () => {
+    // Only "nothing presented" is worth telling a client to authenticate about.
+    assert.equal(transport.none.status, 401);
+    assert.match(transport.none.auth, /^Bearer/);
+    // resource_metadata would send the client to an authorization server that
+    // does not exist, and it would report that instead of the real cause.
+    assert.ok(!/resource_metadata/.test(transport.none.auth));
+    assert.equal(transport.bad.status, 403);
+    assert.match(transport.bad.body.error, /Token/);
+});
+
+check('a bare token without the Bearer prefix is accepted', () => {
+    assert.equal(transport.bare.status, 200);
+    assert.deepEqual(transport.bare.body.result, {});
 });
 
 const client = new Client({ name: 'aura-test', version: '1.0.0' }, { capabilities: {} });
@@ -4873,8 +4985,8 @@ const nearMiss = await askWith(fresh.slice(0, -1) + (fresh.endsWith('a') ? 'b' :
 const truncated = await askWith(fresh.slice(0, -1));
 check('a valid token is accepted, a near-miss and a truncation are not', () => {
     assert.equal(okStatus, 200);
-    assert.equal(nearMiss, 401);
-    assert.equal(truncated, 401);
+    assert.equal(nearMiss, 403);
+    assert.equal(truncated, 403);
 });
 
 await client.close();

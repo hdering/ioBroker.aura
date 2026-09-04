@@ -1222,6 +1222,71 @@ sein.
 MCP-Änderung beim nächsten Speichern überschreiben. Die Antwort jedes
 Schreibwerkzeugs sagt das dazu.
 
+## Erreichbar auch für Clients, die nicht Claude Code sind
+
+Claude Code spricht HTTP-MCP direkt; Claude Desktop startet nur lokale Prozesse
+und braucht `mcp-remote` als Brücke. Die Brücke kam nicht durch, und der Grund
+lag nicht im Endpunkt, sondern im statischen Handler: ein unbekannter Pfad **ohne
+Dateiendung** bekommt `index.html` mit Status 200 (SPA-Fallback für React
+Router). `mcp-remote` sucht vor dem Verbinden nach einem Autorisierungsserver,
+bekam die Oberfläche und starb an `JSON.parse` — `Unexpected token '<'`. (#612)
+
+Die abgefragten Pfade sind an einem echten `mcp-remote`-Lauf abgelesen, nicht
+geraten:
+
+```
+405 auth GET  /mcp
+404 ---- GET  /.well-known/oauth-protected-resource/mcp
+404 ---- GET  /.well-known/oauth-protected-resource
+404 ---- GET  /.well-known/oauth-authorization-server/mcp
+404 ---- GET  /.well-known/oauth-authorization-server
+404 ---- GET  /.well-known/openid-configuration/mcp
+404 ---- GET  /mcp/.well-known/openid-configuration   <- unter dem Endpunkt!
+405 auth GET  /mcp
+200 auth POST /mcp
+202 auth POST /mcp
+```
+
+Zwei Dinge, die man beim Lesen der Spezifikation nicht sieht:
+
+| | |
+| --- | --- |
+| `.well-known` steht auch **verschachtelt** | `/mcp/.well-known/openid-configuration` — ein Präfix-Vergleich auf `/.well-known/` fällt darauf herein, deshalb `pathname.includes('/.well-known/')` |
+| Die Suche läuft **ohne** Authorization | Die Sonden tragen keinen Header (`----`), also darf die Absage nicht hinter dem Token-Gate liegen |
+
+`handleAuthDiscovery()` beantwortet das mit einem JSON-`404` — „hier ist kein
+Autorisierungsserver". Der Client behält daraufhin die Zugangsdaten aus seiner
+Konfiguration und verbindet sich. Bewusst kein echtes Metadaten-Dokument: es
+gibt keinen Autorisierungsserver, auf den es zeigen könnte.
+
+### Falscher Token ist 403, nicht 401
+
+Ein `401` ist für jede Client-Bibliothek das Startsignal für OAuth: Discovery,
+dann Client-Registrierung. Beides scheitert hier zwangsläufig, und der Nutzer
+liest am Ende einen Stacktrace aus `mcp-remote` (`Invalid OAuth error response`)
+statt „dein Token ist falsch". Mit `403` endet die Anfrage, und der Client gibt
+Auras eigenen Text aus:
+
+```
+Connection error: StreamableHTTPError: Error POSTing to endpoint:
+{"error":"Ungültiger Token — er stimmt nicht mit dem in der Adapter-Konfiguration überein."}
+  code: 403
+```
+
+Ein **fehlender** Token bekommt weiter `401` mit `WWW-Authenticate: Bearer` —
+dort muss der Client tatsächlich erst zum Authentifizieren aufgefordert werden.
+Ohne `resource_metadata` im Challenge: das würde ihn zu einem Server schicken,
+den es nicht gibt. `POST /register` wird ebenfalls mit `404` abgewiesen, sonst
+endet genau dieser Fall wieder im Parse-Fehler von oben.
+
+### CORS und die übrigen Methoden
+
+`OPTIONS` wird **vor** dem Token-Gate beantwortet: ein Browser schickt den
+Preflight ohne `Authorization`, ein `401` darauf würde die Frage abweisen, ob
+der Header überhaupt gesendet werden darf. `DELETE` bekommt `204` — der
+Transport ist zustandslos, aber ein Client, der sauber schließt, schickt es und
+würde sonst einen Fehler protokollieren. `GET` bleibt `405`, jetzt mit `Allow`.
+
 ## Kein MCP-SDK
 
 `httpEndpoint.js` spricht JSON-RPC 2.0 selbst. Das SDK hätte **95 Pakete / 24 MB**
