@@ -179,6 +179,8 @@ Jede Stufe schließt die vorherigen ein. Werkzeuge oberhalb der Stufe werden dem
 | …und umbenennen | zusätzlich Layout, Bereich, Tab, Popup, Vorlage umbenennen (Slug bleibt) |
 | …und löschen | zusätzlich löschen — ein Tab nimmt seine Widgets mit, ein Bereich seine Tabs |
 
+Unterhalb von **…und löschen** wird auch ein Schreibvorgang abgelehnt, der vorhandene Widgets weglässt — das Weglassen würde sie entfernen.
+
 Mit **Nur lesen** anfangen und erst erhöhen, wenn das Ergebnis überzeugt.
 
 ## Schritt 5 — Loslegen

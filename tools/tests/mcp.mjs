@@ -3767,6 +3767,235 @@ check('at delete the model is told to ask before removing anything', () => {
     assert.match(initDelete.result.instructions, /Ask the user before deleting/);
 });
 
+const initRename = await atLevel('rename', {
+    jsonrpc: '2.0',
+    id: 6,
+    method: 'initialize',
+    params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 't', version: '1' } },
+});
+check('below delete the model is warned that an omitting write counts as one', () => {
+    // The refusal it would otherwise run into only after building the whole call.
+    assert.match(initRename.result.instructions, /Permission: rename/);
+    assert.match(initRename.result.instructions, /leaves existing widgets out is a deletion too/);
+});
+
+// ── Removing by omission (#614) ──────────────────────────────────────────────
+// The list-replacing tools take the complete new content, so leaving a widget
+// out removes it. Reported from use: at „… und umbenennen“ there is no delete
+// tool, but rewriting the tab without the widget did the same job — while the
+// server had just told the model that deleting was not allowed.
+
+/** A dashboard of its own, so refusing or writing here disturbs no other check. */
+function seeded() {
+    const a = makeAdapter();
+    a.states['config.dashboard'] = JSON.stringify({
+        version: 0,
+        state: {
+            layouts: [
+                {
+                    id: 'l9',
+                    name: 'Haus',
+                    slug: 'haus',
+                    sections: [
+                        {
+                            id: 's9',
+                            name: 'Start',
+                            slug: 'start',
+                            tabs: [
+                                {
+                                    id: 't9',
+                                    name: 'Büro',
+                                    slug: 'buero',
+                                    widgets: [
+                                        { ...OK_SWITCH, id: 'bleibt', gridPos: { x: 0, y: 0, w: 8, h: 4 } },
+                                        {
+                                            ...OK_SWITCH,
+                                            id: 'test',
+                                            title: 'Test',
+                                            gridPos: { x: 8, y: 0, w: 8, h: 4 },
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
+                },
+            ],
+        },
+    });
+    a.states['config.group-defs'] = JSON.stringify({
+        version: 0,
+        state: {
+            defs: {
+                d9: [
+                    { ...OK_SWITCH, id: 'kind-a' },
+                    { ...OK_SWITCH, id: 'kind-b' },
+                ],
+            },
+        },
+    });
+    return a;
+}
+
+/** Call one tool at a permission level, against its own adapter. */
+async function callAt(mode, name, args, on) {
+    const target = on || seeded();
+    const s = http.createServer((req, res) => {
+        handleMcpRequest(req, res, { adapter: target, token: TOKEN, mode, version: '1' }).catch(() => {});
+    });
+    await new Promise((r) => s.listen(0, '127.0.0.1', r));
+    const r = await fetch(`http://127.0.0.1:${s.address().port}/mcp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${TOKEN}` },
+        body: JSON.stringify({ jsonrpc: '2.0', id: 9, method: 'tools/call', params: { name, arguments: args } }),
+    });
+    const json = await r.json();
+    s.close();
+    return { res: json.result, adapter: target };
+}
+
+const keptOne = JSON.stringify([{ ...OK_SWITCH, id: 'bleibt', gridPos: { x: 0, y: 0, w: 8, h: 4 } }]);
+
+const omitted = await callAt('rename', 'aura_write_tab', { tab: 'Büro', widgets: keptOne });
+check('at rename a write that drops a widget is refused, naming it', () => {
+    assert.equal(omitted.res.isError, true);
+    const t = omitted.res.content[0].text;
+    assert.match(t, /Nicht geschrieben/);
+    assert.match(t, /- test \(switch\) „Test“/, t);
+    assert.match(t, /braucht „delete“/);
+    // And nothing was written on the way to the refusal.
+    assert.ok(omitted.adapter.states['config.dashboard'].includes('"test"'));
+});
+
+const omittedAtWrite = await callAt('write', 'aura_write_tab', { tab: 'Büro', widgets: keptOne });
+check('the same holds one level lower', () => {
+    assert.equal(omittedAtWrite.res.isError, true);
+    assert.match(omittedAtWrite.res.content[0].text, /Berechtigung „write“/);
+});
+
+const omittedAtDelete = await callAt('delete', 'aura_write_tab', { tab: 'Büro', widgets: keptOne });
+check('at delete the same write goes through', () => {
+    assert.ok(!omittedAtDelete.res.isError, omittedAtDelete.res.content[0].text);
+    const layouts = JSON.parse(omittedAtDelete.adapter.states['config.dashboard']).state.layouts;
+    assert.deepEqual(
+        layouts[0].sections[0].tabs[0].widgets.map((w) => w.id),
+        ['bleibt'],
+    );
+});
+
+const reshuffled = await callAt('rename', 'aura_write_tab', {
+    tab: 'Büro',
+    widgets: JSON.stringify([
+        { ...OK_SWITCH, id: 'test', title: 'Test neu', gridPos: { x: 0, y: 0, w: 8, h: 4 } },
+        { ...OK_SWITCH, id: 'bleibt', gridPos: { x: 8, y: 0, w: 8, h: 4 } },
+    ]),
+});
+check('reordering, retitling and moving the same widgets is not a removal', () => {
+    // The guard compares ids — otherwise every ordinary edit would be refused.
+    assert.ok(!reshuffled.res.isError, reshuffled.res.content[0].text);
+    const layouts = JSON.parse(reshuffled.adapter.states['config.dashboard']).state.layouts;
+    assert.deepEqual(
+        layouts[0].sections[0].tabs[0].widgets.map((w) => w.id),
+        ['test', 'bleibt'],
+    );
+});
+
+const appendedAtRename = await callAt('rename', 'aura_add_widget', {
+    tab: 'Büro',
+    widget: JSON.stringify({ ...OK_SWITCH, id: 'neu', gridPos: { x: 0, y: 8, w: 8, h: 4 } }),
+});
+check('aura_add_widget still appends at rename', () => {
+    assert.ok(!appendedAtRename.res.isError, appendedAtRename.res.content[0].text);
+    assert.ok(appendedAtRename.adapter.states['config.dashboard'].includes('"neu"'));
+});
+
+const nameless = makeAdapter();
+nameless.states['config.dashboard'] = JSON.stringify({
+    version: 0,
+    state: {
+        layouts: [
+            {
+                id: 'l8',
+                name: 'Alt',
+                slug: 'alt',
+                sections: [
+                    {
+                        id: 's8',
+                        name: 'Start',
+                        slug: 'start',
+                        // Two widgets the editor never gave an id: they can only be
+                        // counted, and removing the id must not be the way past this.
+                        tabs: [
+                            { id: 't8', name: 'Alt', slug: 'alt', widgets: [{ type: 'switch' }, { type: 'switch' }] },
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
+});
+const droppedNameless = await callAt(
+    'rename',
+    'aura_write_tab',
+    { tab: 'Alt', widgets: JSON.stringify([{ ...OK_SWITCH, id: 'eins' }]) },
+    nameless,
+);
+check('widgets without an id are counted, not waved through', () => {
+    assert.equal(droppedNameless.res.isError, true);
+    assert.match(droppedNameless.res.content[0].text, /ohne id/);
+});
+
+const droppedChild = await callAt('rename', 'aura_write_group', {
+    defId: 'd9',
+    widgets: JSON.stringify([{ ...OK_SWITCH, id: 'kind-a' }]),
+});
+check('a group child cannot be dropped either', () => {
+    assert.equal(droppedChild.res.isError, true);
+    assert.match(droppedChild.res.content[0].text, /kind-b/);
+    assert.match(droppedChild.res.content[0].text, /Gruppe d9/);
+});
+
+const viaDefs = await callAt('rename', 'aura_write_tab', {
+    tab: 'Büro',
+    widgets: JSON.stringify([
+        { ...OK_SWITCH, id: 'bleibt', gridPos: { x: 0, y: 0, w: 8, h: 4 } },
+        { ...OK_SWITCH, id: 'test', title: 'Test', gridPos: { x: 8, y: 0, w: 8, h: 4 } },
+    ]),
+    groupDefs: JSON.stringify({ d9: [{ ...OK_SWITCH, id: 'kind-a' }] }),
+});
+check('nor through the groupDefs a tab write carries along', () => {
+    assert.equal(viaDefs.res.isError, true);
+    assert.match(viaDefs.res.content[0].text, /kind-b/);
+});
+
+const popupSeed = seeded();
+popupSeed.states['config.popup-config'] = JSON.stringify({
+    version: 0,
+    state: {
+        views: [
+            {
+                id: 'v9',
+                name: 'Details',
+                widgets: [
+                    { ...OK_SWITCH, id: 'p-eins' },
+                    { ...OK_SWITCH, id: 'p-zwei' },
+                ],
+            },
+        ],
+    },
+});
+const droppedPopup = await callAt(
+    'rename',
+    'aura_write_popup',
+    { view: 'Details', widgets: JSON.stringify([{ ...OK_SWITCH, id: 'p-eins' }]) },
+    popupSeed,
+);
+check('a popup is a widget list like any other', () => {
+    assert.equal(droppedPopup.res.isError, true);
+    assert.match(droppedPopup.res.content[0].text, /p-zwei/);
+    assert.match(droppedPopup.res.content[0].text, /Popup „Details“/);
+});
+
 // ── Navigation properties: conditions, badges, aggregate ─────────────────────
 
 check('each kind advertises exactly the fields it really has', () => {

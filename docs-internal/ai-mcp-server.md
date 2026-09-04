@@ -1167,6 +1167,24 @@ würde stumm ignoriert.
 **Umbenennen führt nicht durch die Hintertür.** `aura_update_node` nimmt `name`
 nicht an. Täte es das, könnte die Stufe `write` die Stufe `rename` umgehen.
 
+**Löschen auch nicht.** `aura_write_tab`, `aura_write_popup` und
+`aura_write_group` bekommen die _komplette_ neue Liste — ein weggelassener
+Eintrag ist damit gelöscht. Unterhalb von `delete` gab es also kein
+Löschwerkzeug, aber sehr wohl einen Weg zu löschen, während der Server dem Modell
+gerade gesagt hatte, Löschen sei nicht erlaubt (Issue #614). `removalGuard()`
+vergleicht darum vor jedem dieser Schreibvorgänge die vorhandenen Widget-Ids mit
+der neuen Liste und lehnt ab, was fehlt — dieselbe Regel, die `aura_reorder` von
+Anfang an hat. Verglichen werden **Ids**, nicht Objekte: verschieben, umsortieren
+und Optionen ändern bleiben gewöhnliche Schreibvorgänge. Einträge ohne Id lassen
+sich nur zählen, eine sinkende Anzahl gilt darum ebenfalls als Entfernung — sonst
+wäre das Löschen der Id der Weg daran vorbei. Die `groupDefs`, die ein
+Tab-Schreibvorgang mitträgt, laufen durch dieselbe Prüfung
+(`groupDefsRemovalGuard()`), sonst gingen Gruppen-Kinder still verloren.
+`callTool` bekommt die Stufe dafür im `ctx` — die Prüfung am Endpunkt allein
+reicht nicht, weil sie nur den Werkzeugnamen kennt. `aura_restore` bleibt bewusst
+auf `write`: es ist ein Rückspulen des ganzen Standes mit eigenem Schnappschuss
+davor, kein gezieltes Entfernen.
+
 **Sichern allein reicht nicht.** Vor jeder Änderung wird gesichert — ohne Weg
 zurück war das nur die halbe Absicherung. `aura_restore` legt zuerst einen
 Schnappschuss des aktuellen Standes an, damit auch das Zurückspielen der falschen
