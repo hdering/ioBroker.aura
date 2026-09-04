@@ -446,8 +446,8 @@
     "mcpHowTo3": {
       "type": "staticText",
       "text": {
-        "de": "3. Den passenden Block unten über den Kopier-Knopf übernehmen: HTTP für Claude Code, den mcp-remote-Block für Claude Desktop. Beides gehört in den Abschnitt mcpServers des Clients.",
-        "en": "3. Copy the block you need with its copy button: HTTP for Claude Code, the mcp-remote one for Claude Desktop. Either goes into the client's mcpServers section."
+        "de": "3. Den passenden Block unten kopieren (hineinklicken, Strg+A, Strg+C): HTTP für Claude Code, den mcp-remote-Block für Claude Desktop. Beides gehört in den Abschnitt mcpServers des Clients.",
+        "en": "3. Copy the block you need (click into it, Ctrl+A, Ctrl+C): HTTP for Claude Code, the mcp-remote one for Claude Desktop. Either goes into the client's mcpServers section."
       },
       "xs": 12,
       "sm": 12,
@@ -626,11 +626,13 @@
         "de": "Client-Konfiguration — HTTP (Claude Code und alles, was MCP über HTTP spricht)"
       },
       "help": {
-        "en": "The short way: URL and token, nothing to install. One line here, the copy button on the right hands over the complete block — after saving, the token here is replaced by a placeholder so it is not readable when this page is opened again; the URL stays correct and you paste the token from the field above. Treat the complete block like a password.",
-        "de": "Der kurze Weg: URL und Token, nichts zu installieren. Hier einzeilig, der Kopier-Knopf rechts gibt den vollständigen Block heraus — nach dem Speichern steht hier statt des Tokens ein Platzhalter, damit er beim erneuten Öffnen nicht lesbar ist; die URL bleibt korrekt, den Token setzt du dann aus dem Feld darüber ein. Den vollständigen Block wie ein Passwort behandeln."
+        "en": "The short way: URL and token, nothing to install. Click into the field, Ctrl+A, Ctrl+C — after saving, the token here is replaced by a placeholder so it is not readable when this page is opened again; the URL stays correct and you paste the token from the field above. Treat the complete block like a password.",
+        "de": "Der kurze Weg: URL und Token, nichts zu installieren. Ins Feld klicken, Strg+A, Strg+C — nach dem Speichern steht hier statt des Tokens ein Platzhalter, damit er beim erneuten Öffnen nicht lesbar ist; die URL bleibt korrekt, den Token setzt du dann aus dem Feld darüber ein. Den vollständigen Block wie ein Passwort behandeln."
       },
+      "minRows": 12,
       "readOnly": true,
       "copyToClipboard": true,
+      "noClearButton": true,
       "default": "",
       "hidden": "!data.mcpEnabled",
       "xs": 12,
@@ -649,8 +651,10 @@
         "en": "For clients that can only start a local process. Goes into claude_desktop_config.json (Settings → Developer → Edit config) — do NOT replace that file: it already holds the app's own settings, so add only the \"aura\" entry to the existing mcpServers object. Node.js must be installed on that machine, npx fetches mcp-remote itself. Then quit Claude Desktop completely and start it again — closing the window is not enough.",
         "de": "Für Clients, die nur einen lokalen Prozess starten können. Gehört in die claude_desktop_config.json (Einstellungen → Entwickler → Konfiguration bearbeiten) — die Datei NICHT ersetzen: dort stehen schon die Einstellungen der App, also nur den Eintrag \"aura\" in das bestehende mcpServers-Objekt einhängen. Node.js muss auf dem Rechner installiert sein, mcp-remote holt npx selbst. Danach Claude Desktop vollständig beenden und neu starten — das Fenster zu schließen reicht nicht."
       },
+      "minRows": 12,
       "readOnly": true,
       "copyToClipboard": true,
+      "noClearButton": true,
       "default": "",
       "hidden": "!data.mcpEnabled",
       "xs": 12,

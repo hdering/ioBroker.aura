@@ -47,7 +47,7 @@ Haken bei **MCP-Endpunkt aktivieren** setzen, danach erscheinen die übrigen Fel
 
 ## Schritt 2 — Token erzeugen
 
-**Token erzeugen** klicken (die Instanz muss laufen). Beide Felder stehen jetzt fertig nebeneinander, jedes mit Kopier-Knopf rechts. Das Feld zeigt den Block einzeilig — kopiert wird er vollständig, mit Zeilenumbrüchen. Links der HTTP-Block:
+**Token erzeugen** klicken (die Instanz muss laufen). Beide Blöcke stehen jetzt fertig nebeneinander. Links der HTTP-Block:
 
 ![](./assets/mcp-client-config.png)
 
@@ -67,6 +67,7 @@ Rechts derselbe Server für Claude Desktop, siehe [Schritt 3](#claude-desktop).
 
 | | |
 | --- | --- |
+| Kopieren | Ins Feld klicken, Strg+A, Strg+C. Einen Kopier-Knopf kann ioBroker an einem mehrzeiligen Feld derzeit nicht anzeigen |
 | Sofort kopieren | Nach dem Speichern steht in **beiden** Blöcken statt des Tokens ein Platzhalter. Die URL bleibt korrekt, den Token setzt du dann aus dem Feld darüber ein |
 | Falsche URL? | Läuft Aura hinter einem Reverse-Proxy oder unter einem Hostnamen, das Feld **Basis-URL** weiter oben setzen — es gewinnt gegenüber der erkannten Adresse |
 | `<ioBroker-IP>` im Block | Adresse wurde nicht erkannt, von Hand eintragen |

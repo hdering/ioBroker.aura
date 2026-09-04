@@ -1279,6 +1279,28 @@ Ohne `resource_metadata` im Challenge: das würde ihn zu einem Server schicken,
 den es nicht gibt. `POST /register` wird ebenfalls mit `404` abgewiesen, sonst
 endet genau dieser Fall wieder im Parse-Fehler von oben.
 
+### Kein Kopier-Knopf am mehrzeiligen Feld
+
+Die beiden Client-Blöcke tragen `copyToClipboard: true`, und der Knopf erscheint
+trotzdem nicht. Der Grund steht in `@iobroker/json-config` 9.1.2,
+`ConfigText.tsx`: der Knopf wird gebaut, für den mehrzeiligen Fall absolut
+positioniert — und dann kehrt die Komponente über den `TextareaAutosize`-Zweig
+zurück, ohne ihn zu platzieren. `copyToClipboard` wirkt nur im einzeiligen
+Zweig, wo er als `endAdornment` hängt.
+
+Einzeilig ausprobiert (der Wert behält seine Umbrüche, der Knopf gäbe also den
+vollständigen Block heraus) — sieht als Konfigurationsfeld aber schlecht aus,
+darum bleibt es mehrzeilig. Das Attribut bleibt bewusst stehen: sobald der
+Multiline-Zweig upstream den Knopf platziert, ist er da, ohne dass hier etwas
+passieren muss.
+
+`type: "pattern"` rendert den Knopf bedingungslos und wäre der offensichtliche
+Ausweg — ist aber einer: `getPatternAsync` schickt den Wert durch
+`escapeString`, das in interpolierten Werten jedes `"` zu `\"` macht und
+Backslashes verdoppelt. Der kopierte Block käme als `{
+ \"mcpServers\": …`
+an, also unbrauchbar. Nicht benutzen.
+
 ### CORS und die übrigen Methoden
 
 `OPTIONS` wird **vor** dem Token-Gate beantwortet: ein Browser schickt den
