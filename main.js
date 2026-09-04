@@ -7,7 +7,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
-const { maskClientConfig, resolveClientConfig } = require('./lib/mcp/clientConfig');
+const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -2805,13 +2805,21 @@ class Aura extends utils.Adapter {
                         changed = true;
                         this.log.info(`localLinks updated to port ${port}${base ? ` (custom URL: ${base})` : ''}`);
                     }
-                    // The generated client block shows the token in full so it can be
-                    // copied; once it has been stored there is no reason for it to
-                    // stay readable on every later visit to the config page.
-                    const maskedMcp = maskClientConfig(obj.native?.mcpClientConfig);
-                    if (maskedMcp) {
-                        obj.native.mcpClientConfig = maskedMcp;
-                        changed = true;
+                    // The generated client blocks show the token in full so they can
+                    // be copied; once they have been stored there is no reason for it
+                    // to stay readable on every later visit to the config page. Both
+                    // blocks carry it, so both are masked — leaving one behind would
+                    // defeat the whole point.
+                    let maskedAny = false;
+                    for (const field of ['mcpClientConfig', 'mcpDesktopConfig']) {
+                        const masked = maskClientConfig(obj.native?.[field]);
+                        if (masked) {
+                            obj.native[field] = masked;
+                            changed = true;
+                            maskedAny = true;
+                        }
+                    }
+                    if (maskedAny) {
                         this.log.info(
                             'aura: MCP client configuration stored — token replaced by a placeholder. ' +
                                 'Generate a new token to see a complete block again.',
@@ -3129,7 +3137,7 @@ class Aura extends utils.Adapter {
                 // The adapter cannot know which address the client will use to reach
                 // it, so a configured customUrl wins and otherwise a placeholder is
                 // left in — better an obvious gap than a confidently wrong host.
-                const snippet = await resolveClientConfig(
+                const blocks = await resolveBothConfigs(
                     {
                         customUrl: this.config.customUrl,
                         port: this.config.port,
@@ -3138,7 +3146,11 @@ class Aura extends utils.Adapter {
                     token,
                 );
                 reply({
-                    native: { mcpToken: token, mcpClientConfig: snippet },
+                    native: {
+                        mcpToken: token,
+                        mcpClientConfig: blocks.http,
+                        mcpDesktopConfig: blocks.desktop,
+                    },
                     result: 'MCP token generated',
                 });
                 return;

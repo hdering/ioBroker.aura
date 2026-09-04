@@ -39,14 +39,15 @@ ioBroker-Admin → **Instanzen** → `aura.0` → Konfiguration (Schraubenschlü
 | MCP-Endpunkt aktivieren | aus | Ohne Haken antwortet `/mcp` mit `404` |
 | MCP-Token | leer | Pflicht — ohne Token weist der Endpunkt jede Anfrage ab |
 | Was die KI darf | Nur lesen | Berechtigungsstufe, siehe [unten](#berechtigungsstufen) |
-| Token erzeugen | — | Knopf; füllt Token und Client-Konfiguration |
-| Client-Konfiguration | leer | Fertiger Block zum Kopieren |
+| Token erzeugen | — | Knopf; füllt Token und beide Client-Blöcke |
+| Client-Konfiguration — HTTP | leer | Für Claude Code und alles, was MCP über HTTP spricht |
+| Client-Konfiguration — Claude Desktop | leer | Derselbe Server über `mcp-remote`, für Clients, die nur lokale Prozesse starten |
 
 Haken bei **MCP-Endpunkt aktivieren** setzen, danach erscheinen die übrigen Felder.
 
 ## Schritt 2 — Token erzeugen
 
-**Token erzeugen** klicken (die Instanz muss laufen). Das Feld **Client-Konfiguration** enthält jetzt den vollständigen Block:
+**Token erzeugen** klicken (die Instanz muss laufen). Beide Blöcke stehen jetzt fertig nebeneinander, jeder mit Kopier-Knopf rechts im Feld. Links der HTTP-Block:
 
 ![](./assets/mcp-client-config.png)
 
@@ -62,9 +63,11 @@ Haken bei **MCP-Endpunkt aktivieren** setzen, danach erscheinen die übrigen Fel
 }
 ```
 
+Rechts derselbe Server für Claude Desktop, siehe [Schritt 3](#claude-desktop).
+
 | | |
 | --- | --- |
-| Sofort kopieren | Nach dem Speichern steht im Block statt des Tokens ein Platzhalter. Die URL bleibt korrekt, den Token setzt du dann aus dem Feld darüber ein |
+| Sofort kopieren | Nach dem Speichern steht in **beiden** Blöcken statt des Tokens ein Platzhalter. Die URL bleibt korrekt, den Token setzt du dann aus dem Feld darüber ein |
 | Falsche URL? | Läuft Aura hinter einem Reverse-Proxy oder unter einem Hostnamen, das Feld **Basis-URL** weiter oben setzen — es gewinnt gegenüber der erkannten Adresse |
 | `<ioBroker-IP>` im Block | Adresse wurde nicht erkannt, von Hand eintragen |
 
@@ -81,13 +84,34 @@ Den vollständigen Block wie ein Passwort behandeln — er gibt Lese- und Schrei
 
 ### Claude Desktop {#claude-desktop}
 
-Claude Desktop startet MCP-Server als lokale Prozesse. Der Umweg ist [`mcp-remote`](https://www.npmjs.com/package/mcp-remote); Node.js muss auf dem Rechner installiert sein, auf dem Claude Desktop läuft.
+Claude Desktop startet MCP-Server als lokale Prozesse. Der Umweg ist [`mcp-remote`](https://www.npmjs.com/package/mcp-remote); Node.js muss auf dem Rechner installiert sein, auf dem Claude Desktop läuft — `npx` holt `mcp-remote` selbst.
 
-Einstellungen → Entwickler → **Konfiguration bearbeiten** → `claude_desktop_config.json`:
+Den Block aus dem Feld **Client-Konfiguration — Claude Desktop** kopieren, dann Einstellungen → Entwickler → **Konfiguration bearbeiten** → `claude_desktop_config.json`.
+
+::: warning Die Datei nicht ersetzen
+`claude_desktop_config.json` enthält meist schon Einstellungen der App (`coworkUserFilesPath`, `preferences`, …) und eventuell andere MCP-Server. Aus dem kopierten Block gehört nur der **`"aura"`-Eintrag** in das bestehende `mcpServers`-Objekt — alles andere bleibt stehen.
+:::
+
+Vorher:
 
 ```json
 {
+  "globalShortcut": "",
+  "preferences": { "sidebarMode": "chat" },
   "mcpServers": {
+    "iobroker": { "type": "http", "url": "http://<ioBroker-IP>:8093/mcp" }
+  }
+}
+```
+
+Nachher — `"aura"` ist dazugekommen, der Rest unverändert:
+
+```json
+{
+  "globalShortcut": "",
+  "preferences": { "sidebarMode": "chat" },
+  "mcpServers": {
+    "iobroker": { "type": "http", "url": "http://<ioBroker-IP>:8093/mcp" },
     "aura": {
       "command": "npx",
       "args": [
@@ -106,11 +130,13 @@ Einstellungen → Entwickler → **Konfiguration bearbeiten** → `claude_deskto
 }
 ```
 
+Gibt es noch kein `mcpServers`, den kopierten Block als Ganzes als neuen Schlüssel einhängen. Ist die Datei leer oder existiert sie nicht, kann der Block komplett hinein. Auf das **Komma** achten: Einträge im selben Objekt werden mit Komma getrennt, hinter dem letzten steht keins.
+
 Danach Claude Desktop **vollständig beenden** und neu starten (Tray-Symbol, nicht nur das Fenster schließen).
 
 | | |
 | --- | --- |
-| URL | **Nicht** aus diesem Beispiel übernehmen — die aus dem Feld **Client-Konfiguration** in der Instanz-Konfiguration, die trägt die richtige Adresse |
+| URL | **Nicht** aus diesem Beispiel übernehmen — der Block aus der Instanz-Konfiguration trägt die richtige Adresse schon |
 | `--transport http-only` | Ohne das versucht `mcp-remote` zuerst SSE, das Aura nicht anbietet |
 | `--allow-http` | Nur nötig ohne HTTPS — also im LAN der Normalfall |
 | Token über `env` | Claude Desktop zerlegt `--header "Authorization: Bearer …"` am Leerzeichen; `Authorization:${AURA_TOKEN}` mit dem vollständigen Wert `Bearer <Token>` in `env` umgeht das |
@@ -176,6 +202,7 @@ Vor jedem Schreibvorgang prüft Aura das Widget gegen Schema, Datenpunkte und Ze
 | Keine Verbindung | Falscher Port — Aura läuft auf `8095`, nicht auf dem Port des Web-Adapters |
 | `Unexpected token '<'` in Claude Desktop | Aura älter als 0.54.0 — die OAuth-Suche von `mcp-remote` bekam die Oberfläche statt einer Absage |
 | Claude Desktop zeigt den Server nicht | App nicht vollständig beendet, oder `node`/`npx` fehlt auf dem Rechner mit Claude Desktop |
+| Claude Desktop verhält sich nach dem Eintrag seltsam | `claude_desktop_config.json` wurde durch den Block **ersetzt** statt ergänzt — die App-Einstellungen sind dann weg; nur der `"aura"`-Eintrag gehört in `mcpServers` |
 | `UND_ERR_CONNECT_TIMEOUT` / `ConnectTimeoutError` | Die URL zeigt auf eine Adresse, die es im Netz nicht gibt — meist die Beispiel-IP aus dieser Seite statt der eigenen |
 | Modell erfindet Datenpunkte | ioBroker-MCP fehlt oder zeigt auf eine andere Installation |
 | Widget bleibt leer | Datenpunkt-ID existiert nicht — `aura_validate` bzw. `aura_review` darüber laufen lassen |

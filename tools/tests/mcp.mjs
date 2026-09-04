@@ -62,10 +62,12 @@ const {
     TOKEN_PLACEHOLDER,
     baseUrl,
     clientConfig,
+    desktopConfig,
     hostAddresses,
     maskClientConfig,
     outboundAddress,
     resolveBaseUrl,
+    resolveBothConfigs,
 } = require('../../lib/mcp/clientConfig.js');
 
 const schema = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-widget-schema.json'), 'utf8'));
@@ -4870,6 +4872,39 @@ check('the client block is valid JSON and carries the token', () => {
     assert.match(parsed.mcpServers.aura.url, /\/mcp$/);
 });
 
+// The second block: for a client that can only start a local process (#612).
+
+check('the desktop block runs mcp-remote against the same URL', () => {
+    const token = genToken();
+    const parsed = JSON.parse(desktopConfig({ customUrl: 'http://192.168.188.140:8095' }, token));
+    const srv = parsed.mcpServers.aura;
+    assert.equal(srv.command, 'npx');
+    assert.ok(srv.args.includes('mcp-remote'));
+    assert.ok(srv.args.includes('http://192.168.188.140:8095/mcp'));
+    // Without http-only the bridge tries SSE first, which Aura does not serve.
+    assert.equal(srv.args[srv.args.indexOf('--transport') + 1], 'http-only');
+    // The token travels through env: the client splits its argument list on
+    // whitespace, and "Bearer <token>" has one.
+    assert.equal(srv.args[srv.args.indexOf('--header') + 1], 'Authorization:${AURA_TOKEN}');
+    assert.equal(srv.env.AURA_TOKEN, `Bearer ${token}`);
+});
+
+check('--allow-http only where it is needed', () => {
+    const plain = JSON.parse(desktopConfig({ customUrl: 'http://192.168.188.140:8095' }, 'tok'));
+    assert.ok(plain.mcpServers.aura.args.includes('--allow-http'));
+    const secure = JSON.parse(desktopConfig({ customUrl: 'https://aura.example.org' }, 'tok'));
+    assert.ok(!secure.mcpServers.aura.args.includes('--allow-http'));
+});
+
+check('both blocks come out of one address lookup and agree on the host', async () => {
+    const token = genToken();
+    const both = await resolveBothConfigs({ customUrl: 'https://aura.example.org/' }, token);
+    const url = JSON.parse(both.http).mcpServers.aura.url;
+    assert.equal(url, 'https://aura.example.org/mcp');
+    // A disagreement here would be the hardest bug to see: same shape, other host.
+    assert.ok(JSON.parse(both.desktop).mcpServers.aura.args.includes(url));
+});
+
 check('a configured base URL wins and loses its trailing slash', () => {
     assert.equal(baseUrl({ customUrl: 'https://aura.example.org/', port: 8095 }), 'https://aura.example.org');
     assert.equal(baseUrl({ customUrl: 'https://aura.example.org//' }), 'https://aura.example.org');
@@ -4945,6 +4980,15 @@ check('the stored block loses its token, and says where to get it', () => {
     assert.ok(masked.includes(TOKEN_PLACEHOLDER), 'the placeholder must point at the field above');
     // Still pasteable: the URL is the part that is tedious to work out by hand.
     assert.equal(JSON.parse(masked).mcpServers.aura.url, 'http://192.168.188.140:8095/mcp');
+});
+
+check('the desktop block loses its token as well', () => {
+    // It carries the token too — masking only the HTTP block would leave it
+    // readable on the config page, which is the whole reason for masking.
+    const masked = maskClientConfig(desktopConfig({ customUrl: 'http://x:1' }, 'abcdef0123456789abcdef0123456789'));
+    assert.ok(!masked.includes('abcdef0123456789abcdef0123456789'));
+    assert.ok(masked.includes(TOKEN_PLACEHOLDER));
+    assert.equal(JSON.parse(masked).mcpServers.aura.command, 'npx');
 });
 
 check('masking is idempotent, so it cannot restart the adapter in a loop', () => {

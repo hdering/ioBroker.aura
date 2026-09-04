@@ -225,7 +225,8 @@
     "mcpEnabled": false,
     "mcpToken": "",
     "mcpMode": "read",
-    "mcpClientConfig": ""
+    "mcpClientConfig": "",
+    "mcpDesktopConfig": ""
   },
   "objects": [],
   "instanceObjects": [
@@ -494,7 +495,8 @@
   ],
   "protectedNative": [
     "mcpToken",
-    "mcpClientConfig"
+    "mcpClientConfig",
+    "mcpDesktopConfig"
   ],
   "encryptedNative": [
     "mcpToken"
