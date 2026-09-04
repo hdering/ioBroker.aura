@@ -47,7 +47,7 @@ Haken bei **MCP-Endpunkt aktivieren** setzen, danach erscheinen die übrigen Fel
 
 ## Schritt 2 — Token erzeugen
 
-**Token erzeugen** klicken (die Instanz muss laufen). Beide Blöcke stehen jetzt fertig nebeneinander, jeder mit Kopier-Knopf rechts im Feld. Links der HTTP-Block:
+**Token erzeugen** klicken (die Instanz muss laufen). Beide Felder stehen jetzt fertig nebeneinander, jedes mit Kopier-Knopf rechts. Das Feld zeigt den Block einzeilig — kopiert wird er vollständig, mit Zeilenumbrüchen. Links der HTTP-Block:
 
 ![](./assets/mcp-client-config.png)
 
