@@ -93,7 +93,7 @@ Einstellungen → Entwickler → **Konfiguration bearbeiten** → `claude_deskto
       "args": [
         "-y",
         "mcp-remote",
-        "http://192.168.1.20:8095/mcp",
+        "http://<ioBroker-IP>:8095/mcp",
         "--transport",
         "http-only",
         "--allow-http",
@@ -110,6 +110,7 @@ Danach Claude Desktop **vollständig beenden** und neu starten (Tray-Symbol, nic
 
 | | |
 | --- | --- |
+| URL | **Nicht** aus diesem Beispiel übernehmen — die aus dem Feld **Client-Konfiguration** in der Instanz-Konfiguration, die trägt die richtige Adresse |
 | `--transport http-only` | Ohne das versucht `mcp-remote` zuerst SSE, das Aura nicht anbietet |
 | `--allow-http` | Nur nötig ohne HTTPS — also im LAN der Normalfall |
 | Token über `env` | Claude Desktop zerlegt `--header "Authorization: Bearer …"` am Leerzeichen; `Authorization:${AURA_TOKEN}` mit dem vollständigen Wert `Bearer <Token>` in `env` umgeht das |
@@ -175,6 +176,7 @@ Vor jedem Schreibvorgang prüft Aura das Widget gegen Schema, Datenpunkte und Ze
 | Keine Verbindung | Falscher Port — Aura läuft auf `8095`, nicht auf dem Port des Web-Adapters |
 | `Unexpected token '<'` in Claude Desktop | Aura älter als 0.54.0 — die OAuth-Suche von `mcp-remote` bekam die Oberfläche statt einer Absage |
 | Claude Desktop zeigt den Server nicht | App nicht vollständig beendet, oder `node`/`npx` fehlt auf dem Rechner mit Claude Desktop |
+| `UND_ERR_CONNECT_TIMEOUT` / `ConnectTimeoutError` | Die URL zeigt auf eine Adresse, die es im Netz nicht gibt — meist die Beispiel-IP aus dieser Seite statt der eigenen |
 | Modell erfindet Datenpunkte | ioBroker-MCP fehlt oder zeigt auf eine andere Installation |
 | Widget bleibt leer | Datenpunkt-ID existiert nicht — `aura_validate` bzw. `aura_review` darüber laufen lassen |
 | Änderung ging daneben | ioBroker-Admin → Objekte → `aura.0.backups`, oder das Modell eine Sicherung zurückspielen lassen |
