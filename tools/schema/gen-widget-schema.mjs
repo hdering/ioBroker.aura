@@ -433,13 +433,36 @@ function normalizeType(raw, index, types, depth = 0) {
  * them is the single most useful hint in the whole schema: it tells a generator
  * that the value must be an id that exists, not free text it may invent.
  *
+ * The name decides the TYPE here too, not just the flag. A `…Dp` option is a
+ * state id in every one of them, and the source reader cannot always see that:
+ * `!!o.nextDp` is a truthiness test, so the inference read "boolean, default
+ * false" — and the mediaplayer's next/prev/shuffle/repeat arrived in the schema
+ * as booleans while the frontend's own device detection writes ids into them.
+ * The result was a widget type nothing could write at all: every payload came
+ * back as `Option "nextDp": string übergeben, erwartet boolean`. `playDp` and
+ * `pauseDp` were the other half of the same miss — no type at all, so they were
+ * never checked for being an id either.
+ *
+ * Verified against the whole generated schema: the only keys this rule changes
+ * are those six. An enum is left alone — that is a named set of values, not an id.
+ *
  * @param options
  */
 function markDatapointKeys(options) {
     for (const [key, entry] of Object.entries(options)) {
-        if (entry.type === 'string' && DP_KEY.test(key)) {
-            entry.datapoint = true;
+        if (!DP_KEY.test(key) || entry.enum) {
+            continue;
         }
+        if (entry.type !== 'string') {
+            // A boolean default came from the truthiness test, not from a value
+            // anybody stores — carrying it over would advertise `false` as the
+            // way to say "no datapoint".
+            if (typeof entry.default === 'boolean') {
+                delete entry.default;
+            }
+            entry.type = 'string';
+        }
+        entry.datapoint = true;
     }
     return options;
 }

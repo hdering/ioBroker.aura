@@ -163,6 +163,7 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
     ],
     mediaplayer: [
         { key: 'play-pause', label: '▶ / ⏸ Play / Pause' },
+        { key: 'stop', label: '⏹ Stop' },
         { key: 'prev', label: '⏮ Vorheriger Titel' },
         { key: 'next', label: '⏭ Nächster Titel' },
         { key: 'shuffle', label: '⇄ Shuffle' },

@@ -1,4 +1,4 @@
-import { Music, Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { Music, Play, Pause, Square, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
 import { useDatapoint } from '../../../hooks/useDatapoint';
 import { useIoBroker } from '../../../hooks/useIoBroker';
 import { isPlaybackActive } from '../../../utils/mediaPlayback';
@@ -45,6 +45,9 @@ export function MediaplayerPopupBody({ widget }: Props) {
     const coverSrc = cover ? String(cover) : '';
     const hasPrev = !!o.prevDp;
     const hasNext = !!o.nextDp;
+    // Same rule as in the widget: a configured stopDp is the request for the
+    // button, showStop can take it away again.
+    const hasStop = o.showStop !== false && !!o.stopDp;
     const hasVol = !!o.volumeDp;
     const hasMute = !!o.muteDp;
 
@@ -108,6 +111,15 @@ export function MediaplayerPopupBody({ widget }: Props) {
                 >
                     {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" />}
                 </button>
+                {hasStop && (
+                    <button
+                        onClick={() => trigger(o.stopDp)}
+                        className="p-2 rounded-full hover:opacity-80 transition-opacity"
+                        style={btnBase}
+                    >
+                        <Square size={18} />
+                    </button>
+                )}
                 {hasNext && (
                     <button
                         onClick={() => trigger(o.nextDp)}

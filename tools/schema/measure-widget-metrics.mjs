@@ -5,6 +5,10 @@
  *   node tools/schema/measure-widget-metrics.mjs            (dev server on 5174)
  *   AURA_BASE=http://localhost:5174 node tools/schema/measure-widget-metrics.mjs
  *   … --only list,value    measure a few types while working on the table
+ *   … --only list --write  measure those types and MERGE them into the committed
+ *                          JSON — everything else keeps its numbers. A full run
+ *                          takes the best part of an hour, so re-measuring 29
+ *                          types to change one is not the way to fix one type.
  *   … --check              fail when the committed JSON is stale
  *
  * Output: public/ai/aura-widget-metrics.json, served to a model by aura_measure.
@@ -101,6 +105,9 @@ const DP_DIM = 'demo.dim';
 const DP_JSON = 'demo.json';
 const DP_TIME = 'demo.time';
 const DP_STATE = 'demo.state';
+/** A datapoint with a fabricated HISTORY behind it, for the chart types. */
+const DP_HIST = 'demo.hist';
+const DP_TEXT = 'demo.text';
 
 const MOCK = {
     [DP]: { val: 21.5, unit: '°C' },
@@ -109,7 +116,26 @@ const MOCK = {
     // Fixed rather than Date.now(), so a re-run measures the same row.
     [DP_TIME]: 1767225600000,
     [DP_STATE]: 1,
+    [DP_HIST]: { val: 1500, unit: 'W' },
+    [DP_TEXT]: 'Mein Titel',
 };
+
+/** history.0: the instance the chart types name, fabricated by the shot harness. */
+const HISTORY_INSTANCE = 'history.0';
+
+/**
+ * How much drawing surface a chart needs to be worth putting on a dashboard.
+ *
+ * Not a cliff the walk-down can find — this is the one measurement where the
+ * "does anything get cut off" question has no useful answer. eCharts and recharts
+ * both paint into whatever box they are given: at 132 px of card the plot area is
+ * 59 px, the curve is a stripe, the y labels collide, and NOTHING overflows. So
+ * `usablePx` is the height at which the plot surface first reaches this many
+ * pixels — a stated recommendation, and the one number to change if it turns out
+ * too generous or too mean. 140 px is about five label bands; below it a value
+ * cannot be read off the chart at all, which is the only reason to draw one.
+ */
+const MIN_PLOT_PX = 140;
 
 /** Presets, so the button row and the select field render at all. */
 const PRESETS = [
@@ -198,6 +224,17 @@ const listWithDividers = (n, d, heading) => {
     return out;
 };
 const chipItems = (n) => Array.from({ length: n }, (_, i) => ({ id: DP_BOOL, label: `Chip ${i + 1}` }));
+/** `n` energy bars, two entries each — the shape a real balance sheet has. */
+const energyBars = (n) =>
+    Array.from({ length: n }, (_, i) => ({
+        id: `b${i + 1}`,
+        title: `Bereich ${i + 1}`,
+        totalValue: 3000,
+        entries: [
+            { id: `b${i + 1}e1`, datapointId: DP_HIST, label: 'Haushalt', unit: 'W' },
+            { id: `b${i + 1}e2`, datapointId: DP_DIM, label: 'Wärmepumpe', unit: 'W' },
+        ],
+    }));
 const jsonRows = (n) => JSON.stringify(Array.from({ length: n }, (_, i) => ({ Name: `Zeile ${i + 1}`, Wert: i })));
 
 /**
@@ -232,7 +269,13 @@ const COUNTED = [
             // layout draws a row as one pill and handles the displays itself, so a
             // per-display surcharge measured on a default row means nothing there.
             { key: 'card', layout: 'card', label: 'Layout "card"', rowTypes: true },
-            { key: 'compact', layout: 'compact', label: 'Layout "compact"', rowTypes: true },
+            // Two columns: the height is a staircase in PAIRS, not in rows.
+            // Measured row by row (1→96, 2→96, 3→124, 4→124 … 9→214 px), and the
+            // straight line through the even counts the fit uses is therefore
+            // half a pair short on every ODD one — nine rows came back 199 px
+            // instead of 214. `columns` is what lets aura_measure round the item
+            // count up to a full row before it multiplies.
+            { key: 'compact', layout: 'compact', label: 'Layout "compact"', rowTypes: true, columns: 2 },
             { key: 'minimal', layout: 'minimal', label: 'Layout "minimal"' },
         ],
         rowTypes: ROW_TYPES,
@@ -271,6 +314,7 @@ const COUNTED = [
                 // The minimal layout draws a row as a single pill and ignores
                 // subDps entirely — adding the delta there would be a lie.
                 notForVariants: ['minimal'],
+                perVariant: true,
                 build: (n) => ({
                     options: {
                         entries: listEntries(n).map((e) => ({ ...e, subDps: [{ id: DP, label: 'Zusatz' }] })),
@@ -281,6 +325,12 @@ const COUNTED = [
                 key: 'lastChangePerEntry',
                 label: 'Zeitstempel je Eintrag (entries[].showLastChange)',
                 when: { path: 'entries[].showLastChange', equals: true },
+                // Measured per layout. One number for all of them was wrong in
+                // three of the four: default +13.5, card +21.5, compact +6.0 and
+                // minimal ±0 px a row — the pill puts the timestamp in the row it
+                // already has. Reported from the field as exactly that ±0, while
+                // the answer charged 13.7 px a row for a line nothing draws.
+                perVariant: true,
                 // Per ROW: the condition speaks about an entry, so aura_measure
                 // counts the entries that carry it (isPerRowWhen in measure.js).
                 build: (n) => ({
@@ -291,6 +341,7 @@ const COUNTED = [
                 key: 'lastChangeList',
                 label: 'Zeitstempel je Zeile (showEntryLastChange)',
                 when: { path: 'showEntryLastChange', equals: true },
+                perVariant: true,
                 // The STATIC list does not read this switch (measured: no
                 // timestamp appears), and it is not in its schema either. Without
                 // this guard the same payload would be charged 12 × 13.7 px for a
@@ -352,7 +403,10 @@ const COUNTED = [
         notIncluded: [
             'Darstellung „Auto“ folgt der Rolle des Datenpunkts — gemessen ist die Wert-Zeile',
             'Filterzeile mit sichtbaren Filtern und Suchfeld',
-            'Raum-Überschriften (groupByRoom)',
+            'Raum-Überschriften (groupByRoom) und der Raum je Zeile (showRoom): beide brauchen die ' +
+                'Raum-Aufzählungen aus ioBroker, die es beim Messen nicht gibt. Aus dem Betrieb gemeldet: mit ' +
+                'showRoom wird die Zeile deutlich höher (statt einer Zeile Text stehen zwei da) — dafür ' +
+                'reichlich Reserve geben',
             'Trennzeilen im Layout „compact“: sie unterbrechen zusätzlich den zweispaltigen Fluss, der ' +
                 'gemessene Aufschlag ist ein Mittelwert',
             'eine Trennzeile ganz oben ist 8 px niedriger als eine zwischen zwei Zeilen (gemessen wird die ' +
@@ -384,13 +438,88 @@ const DP_FOR = {
     windowcontact: DP_BOOL,
     stateimage: DP_BOOL,
     jsontable: DP_JSON,
+    // The simple chart reads the widget's own datapoint; the fabricated history
+    // is generated per id, so it needs the id that has one.
+    chart: DP_HIST,
 };
 
-/** Options a type needs before it renders anything at all. */
+/**
+ * Options a type needs before it renders anything at all.
+ *
+ * Getting one of these wrong does not fail — it measures the EMPTY state and
+ * reports it as the type's minimum height. Four types were doing exactly that:
+ *
+ *   chips        the option is `chips`, not `items` — measured as an empty row
+ *                (44 px), and the answer for a real chip row was 44 px too small
+ *   chart        no historyInstance, so it drew "Keine Daten" (52 px, i.e. the
+ *                bare card) instead of a curve
+ *   echart       no echartMode and no series instance — same, 52 px
+ *   mediaplayer  had no options at all and sat in SKIP with "content follows the
+ *                player's datapoints", which is true of every widget here
+ *
+ * A minimum is only a fact for a widget with content in it, so every entry below
+ * has to be checked against what the widget actually reads. CONTENT (further
+ * down) is the guard that stops this happening again: it names, per type, the
+ * element that has to BE there for a height to count as fitting.
+ */
 const OPTIONS_FOR = {
     enum: { entries: [{ value: 1, label: 'Eins' }] },
     list: { entries: listEntries(4) },
-    chips: { items: chipItems(4) },
+    chips: { chips: chipItems(4) },
+    carousel: { items: chipItems(4) },
+    chart: { historyInstance: HISTORY_INSTANCE, historyRange: '24h', decimals: 1, unit: 'W' },
+    echart: {
+        echartMode: 'timeseries',
+        // echarts drives its entrance animation off the wall clock, and the walk
+        // reads the height a frame or two after the mount — a growing bar would
+        // measure as a short one.
+        echartJsonExtra: '{"animation":false}',
+        echartSeries: [
+            {
+                id: 's1',
+                name: 'Leistung',
+                datapointId: DP_HIST,
+                chartType: 'line',
+                historyInstance: HISTORY_INSTANCE,
+                yAxisIndex: 0,
+            },
+        ],
+    },
+    mediaplayer: {
+        titleDp: DP_TEXT,
+        artistDp: DP_TEXT,
+        playStateDp: DP_BOOL,
+        volumeDp: DP_DIM,
+        playDp: DP_BOOL,
+        pauseDp: DP_BOOL,
+        nextDp: DP_BOOL,
+        prevDp: DP_BOOL,
+    },
+    energiebilanz: { bars: energyBars(1) },
+};
+
+/**
+ * What a measured MINIMUM does not cover, per type — the same field the counted
+ * types carry, so aura_measure prints it the same way.
+ *
+ * The list below is what the measurement actually ran into, not caution:
+ * energiebilanz was tried as a counted type first (base + per bar) and the
+ * linearity guard threw it out — 1→224, 2→288, 4→306 px, because the bars are
+ * laid out to fit the card instead of being stacked. So its number is one
+ * configuration's minimum, and the shape of the configuration is what moves it.
+ */
+const MIN_NOTES = {
+    energiebilanz: [
+        'gemessen mit EINEM Balken aus zwei Einträgen. Die Balken werden in die Karte eingepasst, nicht ' +
+            'gestapelt (gemessen 1→224, 2→288, 4→306 px) — für mehrere Balken die Höhe am Ergebnis prüfen',
+        'Zeitbereichs-Umschalter (visibleRanges) und eine umbrechende Legende kommen oben drauf',
+    ],
+    mediaplayer: [
+        'gemessen mit Titel, Interpret, Abspielzustand, Lautstärke und den vier Tasten. Cover, Chips und ' +
+            'die Fortschrittsleiste ändern die Höhe',
+    ],
+    chips: ['gemessen mit vier Chips in einer Reihe. Mehr Chips als in eine Reihe passen brechen um (wrapCols)'],
+    carousel: ['gemessen mit vier Einträgen. Das Karussell rollt waagerecht, die Höhe hängt nicht an der Anzahl'],
 };
 
 /**
@@ -420,24 +549,45 @@ const SKIP = {
     timer: 'Zeilen entstehen erst zur Laufzeit',
     alarm: 'Zeilen entstehen erst zur Laufzeit',
     aircontrol: 'Inhalt folgt den Datenpunkten der Klimaanlage',
-    mediaplayer: 'Inhalt folgt den Datenpunkten des Players',
     loadtimes: 'Zeilen entstehen erst zur Laufzeit',
-    carousel: 'Inhalt sind andere Widgets',
     menu: 'Höhe folgt den Menüeinträgen des Dashboards',
     html: 'freies HTML',
-    energiebilanz: 'Höhe folgt der Konfiguration — Balken oder Ringe, Einträge, Legende',
     adapterstatus: 'Zeilen entstehen erst zur Laufzeit',
+};
+
+/**
+ * What has to BE in the card for a height to count as fitting, per type.
+ *
+ * The overflow test below cannot see a widget that draws less instead of
+ * spilling, and the chart types do exactly that: recharts stops drawing the
+ * curve entirely below roughly 150 px of card and reports no overflow at all, so
+ * the walk-down happily returned 52 px — the bare card, with "Keine Daten" in it
+ * (the probe had no history behind its datapoint either, so it never drew a curve
+ * at any height). A missing series IS content loss, so it belongs in the hard
+ * minimum, not in a footnote.
+ *
+ * `plot` names the drawing surface whose HEIGHT decides whether a chart is worth
+ * looking at — see MIN_PLOT_PX and the usable minimum.
+ */
+const CONTENT = {
+    chart: { need: '.recharts-line, .recharts-area, .recharts-bar', what: 'die Kurve', plot: '.recharts-surface' },
+    echart: { plot: '[_echarts_instance_]' },
+    chips: { need: '.aura-chip, button', what: 'die Chips' },
 };
 
 /**
  * Does the content fit in the card?
  *
- * Two questions in one: does anything scroll (a list with a scrollbar), and does
+ * Three questions in one: does anything scroll (a list with a scrollbar), does
  * anything reach past the card's own box (a tile whose number spills over the
  * edge — it does not scroll, it just sticks out, which is why an overflow check
- * alone reported that a gauge fits in 20 px).
+ * alone reported that a gauge fits in 20 px), and is the content the type is
+ * supposed to draw actually THERE (CONTENT above).
+ *
+ * `plotPx` is reported alongside rather than judged here: a canvas never
+ * overflows, so the usable minimum is a second walk with its own criterion.
  */
-const FITS = (id) => {
+const FITS = ({ id, need, plot }) => {
     const root = document.querySelector(`.aura-widget-${id}`);
     if (!root) {
         return { error: 'not rendered' };
@@ -454,7 +604,13 @@ const FITS = (id) => {
             scroll = Math.max(scroll, el.scrollHeight - el.clientHeight);
         }
     }
-    return { over: Math.round(Math.max(out, scroll)), height: Math.round(rb.height) };
+    const plotEl = plot ? root.querySelector(plot) : null;
+    return {
+        over: Math.round(Math.max(out, scroll)),
+        height: Math.round(rb.height),
+        missing: !!need && !root.querySelector(need),
+        plotPx: plotEl ? Math.round(plotEl.getBoundingClientRect().height) : null,
+    };
 };
 
 const schema = JSON.parse(fs.readFileSync(SCHEMA_FILE, 'utf8'));
@@ -471,9 +627,13 @@ page.on('pageerror', (e) => pageErrors.push(e.message));
 
 await page.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 });
-await page.evaluate(() =>
-    localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 })),
-);
+await page.evaluate(() => {
+    localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 }));
+    // Without this the chart types have no history behind their datapoints and
+    // draw "Keine Daten" at EVERY height — which the walk-down then reported as
+    // the type's minimum (52 px, the bare card).
+    window.__auraShot.enableHistory(true);
+});
 
 async function render(type, { rows, cols, datapoint, options, mock, layout, fontScale }) {
     const wid = `m${++widSeq}`;
@@ -502,13 +662,20 @@ async function render(type, { rows, cols, datapoint, options, mock, layout, font
     );
     // Two identical readings instead of a guessed timeout: fonts, charts and the
     // grid settle over a frame or two.
+    const content = CONTENT[type] || {};
     let last = null;
     let prev = '';
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 16; i++) {
         await page.waitForTimeout(60);
-        last = await page.evaluate(FITS, wid);
+        last = await page.evaluate(FITS, { id: wid, need: content.need, plot: content.plot });
         const key = JSON.stringify(last);
-        if (key === prev) {
+        // "Two identical readings" is settled enough for layout — but not for a
+        // chart, which fetches its history after the mount. The first two
+        // readings of a perfectly tall chart are both "no curve yet", identical,
+        // and the walk read that as "the content is missing at 800 px" and gave
+        // up on the whole type. While something the type must draw is still
+        // absent, keep polling to the end of the loop.
+        if (key === prev && !last.missing) {
             break;
         }
         prev = key;
@@ -516,29 +683,46 @@ async function render(type, { rows, cols, datapoint, options, mock, layout, font
     return last;
 }
 
-/** Walk down from a height that fits and return the last one that still does. */
+/**
+ * Walk down from a height that fits and return the last one that still does.
+ *
+ * `setup.plot` turns on the usable-plot criterion instead of the "nothing is cut
+ * off" one — the second walk the chart types need, because they never cut
+ * anything off (MIN_PLOT_PX).
+ */
 async function requiredPx(type, setup) {
+    const { plot } = setup || {};
     // The ceiling is raised rather than reported as "does not fit": a row that
     // grows with the font scale can push a tall layout past 800 px, and eight
     // card rows at scale 1.3 do exactly that (measured: 67 px over). Doubling
     // only costs the walk that needs it.
+    // A height "fits" only when nothing is cut off AND the content the type is
+    // supposed to draw is present. `plot` adds the second criterion for the chart
+    // types, where nothing is ever cut off (see MIN_PLOT_PX).
+    const ok = (m) => m.over <= TOL && !m.missing && (!plot || (m.plotPx ?? 0) >= MIN_PLOT_PX);
+
     let start = TOP_ROWS;
     let top = await render(type, { ...setup, rows: start });
-    while (!top.error && top.over > TOL && start < TOP_ROWS * 4) {
+    while (!top.error && !ok(top) && start < TOP_ROWS * 4) {
         start *= 2;
         top = await render(type, { ...setup, rows: start });
     }
     if (top.error) {
         return { error: top.error };
     }
-    if (top.over > TOL) {
-        return { error: `passt selbst in ${start * PX_PER_ROW} px nicht (${top.over} px darüber)` };
+    if (!ok(top)) {
+        return {
+            error:
+                `passt selbst in ${start * PX_PER_ROW} px nicht ` +
+                `(${top.over} px darüber${top.missing ? ', Inhalt fehlt' : ''}` +
+                `${plot ? `, Zeichenfläche ${top.plotPx} px` : ''})`,
+        };
     }
     let good = start;
     let rows = start - COARSE;
     while (rows >= 1) {
         const m = await render(type, { ...setup, rows });
-        if (m.error || m.over > TOL) {
+        if (m.error || !ok(m)) {
             break;
         }
         good = rows;
@@ -547,7 +731,7 @@ async function requiredPx(type, setup) {
     // Refine the last coarse step one row at a time.
     for (let r = good - 1; r >= 1 && r > good - COARSE; r--) {
         const m = await render(type, { ...setup, rows: r });
-        if (m.error || m.over > TOL) {
+        if (m.error || !ok(m)) {
             break;
         }
         good = r;
@@ -584,6 +768,41 @@ async function rowTypeDeltas(spec, { cols, counts, layout, ref, refHigh }) {
         `  ${`Zeilen (${layout ?? 'default'})`.padEnd(14)} ${shown.length ? shown.join(', ') : 'alle wie die Wert-Zeile'}`,
     );
     return out;
+}
+
+/**
+ * One modifier as the DIFFERENCE to a reference line, ready to store.
+ *
+ * Pulled out of the main loop because the variants need exactly the same
+ * arithmetic against THEIR line: a factor that changes the row changes it
+ * differently per layout, and one number for all of them was wrong in three of
+ * the list's four (the timestamp per entry: default +13.5, card +21.5, compact
+ * +6.0, minimal ±0 px a row).
+ */
+function modifierDelta(m, { r, rHigh, ref, refHigh }) {
+    // The probe grid resolves to 2 px, so a delta that small is noise from the
+    // fit rather than a factor. Reported as the zero it is.
+    const denoise = (d) => (Math.abs(d) <= PX_PER_ROW ? 0 : d);
+    // A modifier can change how the widget REACTS to the scale, not only how
+    // tall it is: switching the header off takes the line that grows with it
+    // away. Stored as the difference of the two slopes, denoised on the same
+    // 2 px the walk-down resolves — divided by the span, so it takes a real
+    // effect to survive.
+    const slope = (a, b) => denoiseSlope((a - b) / SCALE_SPAN);
+    const fontScalePx = {
+        basePx: slope(rHigh.basePx - r.basePx, refHigh.basePx - ref.basePx),
+        perItemPx: slope(rHigh.perItemPx - r.perItemPx, refHigh.perItemPx - ref.perItemPx),
+    };
+    return {
+        key: m.key,
+        label: m.label,
+        when: m.when,
+        ...(m.notForVariants ? { notForVariants: m.notForVariants } : {}),
+        ...(m.notForTypes ? { notForTypes: m.notForTypes } : {}),
+        basePx: denoise(r.basePx - ref.basePx),
+        perItemPx: denoise(Math.round((r.perItemPx - ref.perItemPx) * 10) / 10),
+        ...(fontScalePx.basePx || fontScalePx.perItemPx ? { fontScalePx } : {}),
+    };
 }
 
 /** A slope small enough to be the walk-down's own resolution is reported as zero. */
@@ -706,12 +925,34 @@ async function line(spec, { cols, counts, build, layout, fontScale }) {
     const first = points[0];
     const last = points[points.length - 1];
     const perItem = (last.px - first.px) / (last.n - first.n);
+    const basePx = Math.round(first.px - perItem * first.n);
+    // How far the points in BETWEEN are from the line through the outer two.
+    // The comment above used to claim four counts "catch a row that is not
+    // linear at all" — nothing actually checked, and energiebilanz walked
+    // straight through it: 1→224, 2→288, 4→306 px, because its bars are laid out
+    // to fit the card instead of being stacked. The fit through 1 and 4 reported
+    // 27.3 px a bar, which is wrong at every measured point except those two.
+    let off = 0;
+    for (const p of points) {
+        off = Math.max(off, Math.abs(p.px - (basePx + perItem * p.n)));
+    }
     return {
-        basePx: Math.round(first.px - perItem * first.n),
+        basePx,
         perItemPx: Math.round(perItem * 10) / 10,
+        offLinePx: Math.round(off),
         measured: points,
     };
 }
+
+/**
+ * How far off the straight line a counted type may be before "base + per item"
+ * is the wrong shape for it.
+ *
+ * Two probe rows of resolution plus a pixel of layout noise. Above that the type
+ * does not stack its content, and a linear model of it is not an approximation —
+ * it is a different widget.
+ */
+const LINEAR_TOL = 3 * PX_PER_ROW;
 
 for (const spec of COUNTED) {
     if (!wanted(spec.type)) {
@@ -724,10 +965,22 @@ for (const spec of COUNTED) {
         console.warn(`skip ${spec.type} (gezählt): ${base.error || baseHigh.error}`);
         continue;
     }
+    // Not a straight line: the type does not stack its content, so no per-item
+    // number describes it. It keeps its measured MINIMUM (the loop below) — a
+    // number that is right for one configuration beats a slope that is wrong for
+    // every count but two.
+    if (base.offLinePx > LINEAR_TOL) {
+        console.warn(
+            `skip ${spec.type} (gezählt): nicht linear — ${base.measured.map((p) => `${p.n}→${p.px}px`).join(' ')} ` +
+                `liegt bis zu ${base.offLinePx} px neben der Gerade (${base.basePx} px + ${base.perItemPx} px/${spec.item})`,
+        );
+        continue;
+    }
     const entry = {
         item: spec.item,
         basePx: base.basePx,
         perItemPx: base.perItemPx,
+        ...(base.offLinePx ? { offLinePx: base.offLinePx } : {}),
         fontScalePx: scaleOf(base, baseHigh),
         atWidthPx: cols * PROBE_GRID.gridSnapX,
         measured: base.measured,
@@ -752,6 +1005,7 @@ for (const spec of COUNTED) {
             label: v.label,
             basePx: r.basePx,
             perItemPx: r.perItemPx,
+            ...(v.columns ? { columns: v.columns } : {}),
             fontScalePx: scaleOf(r, rHigh),
             measured: r.measured,
         };
@@ -772,6 +1026,34 @@ for (const spec of COUNTED) {
             if (d) {
                 entry.variants[v.key].rowTypes = { ...(entry.variants[v.key].rowTypes || {}), ...d };
             }
+        }
+        // Modifiers that change the ROW have to be measured against THIS layout's
+        // row. One number for all of them was wrong in three of the list's four:
+        // the timestamp per entry is +13.5 px a row by default, +21.5 in "card",
+        // +6.0 in "compact" and ±0 in "minimal", where the pill puts it in the row
+        // it already has. Reported from the field as exactly that ±0, against an
+        // answer that charged 13.7 px a row for a line nothing draws.
+        //
+        // Only the modifiers that opt in (`perVariant`) are re-measured — the
+        // header ones (title, icon, group switch, sum) sit above the rows and are
+        // the same in every layout, and every extra one costs four walk-downs.
+        for (const m of (spec.modifiers ?? []).filter((x) => x.perVariant)) {
+            if ((m.notForVariants || []).includes(v.key)) {
+                continue;
+            }
+            const mr = await line(spec, { cols, counts, build: m.build, layout: v.layout });
+            const mrHigh = await line(spec, { cols, counts, build: m.build, layout: v.layout, fontScale: SCALE_HIGH });
+            if (mr.error || mrHigh.error) {
+                console.warn(`  skip ${spec.type}/${v.key}/${m.key}: ${mr.error || mrHigh.error}`);
+                continue;
+            }
+            const delta = modifierDelta(m, { r: mr, rHigh: mrHigh, ref: r, refHigh: rHigh });
+            entry.variants[v.key].modifiers = entry.variants[v.key].modifiers ?? [];
+            entry.variants[v.key].modifiers.push(delta);
+            console.log(
+                `  ${`${m.key} (${v.key})`.padEnd(24)} ${delta.basePx >= 0 ? '+' : ''}${delta.basePx} px Basis, ` +
+                    `${delta.perItemPx >= 0 ? '+' : ''}${delta.perItemPx} px/${spec.item}`,
+            );
         }
     }
 
@@ -797,29 +1079,7 @@ for (const spec of COUNTED) {
             continue;
         }
         entry.modifiers = entry.modifiers ?? [];
-        // The probe grid resolves to 2 px, so a delta that small is noise from the
-        // fit rather than a factor. Reported as the zero it is.
-        const denoise = (d) => (Math.abs(d) <= PX_PER_ROW ? 0 : d);
-        // A modifier can change how the widget REACTS to the scale, not only how
-        // tall it is: switching the header off takes the line that grows with it
-        // away. Stored as the difference of the two slopes, denoised on the same
-        // 2 px the walk-down resolves — divided by the span, so it takes a real
-        // effect to survive.
-        const slope = (a, b) => denoiseSlope((a - b) / SCALE_SPAN);
-        const fontScalePx = {
-            basePx: slope(rHigh.basePx - r.basePx, refHigh.basePx - ref.basePx),
-            perItemPx: slope(rHigh.perItemPx - r.perItemPx, refHigh.perItemPx - ref.perItemPx),
-        };
-        entry.modifiers.push({
-            key: m.key,
-            label: m.label,
-            when: m.when,
-            ...(m.notForVariants ? { notForVariants: m.notForVariants } : {}),
-            ...(m.notForTypes ? { notForTypes: m.notForTypes } : {}),
-            basePx: denoise(r.basePx - ref.basePx),
-            perItemPx: denoise(Math.round((r.perItemPx - ref.perItemPx) * 10) / 10),
-            ...(fontScalePx.basePx || fontScalePx.perItemPx ? { fontScalePx } : {}),
-        });
+        entry.modifiers.push(modifierDelta(m, { r, rHigh, ref, refHigh }));
         const d = entry.modifiers[entry.modifiers.length - 1];
         console.log(
             `  ${m.key.padEnd(14)} ${d.basePx >= 0 ? '+' : ''}${d.basePx} px Basis, ` +
@@ -859,15 +1119,28 @@ for (const type of Object.keys(schema.widgets)) {
     const rowsAt20 = Math.ceil((r.px + 10) / 30); // rows at the default grid (20 px + 10 px gap)
     // A minimum grows with the font scale too — a value tile is one big number.
     const fontScalePx = denoiseSlope((rHigh.px - r.px) / SCALE_SPAN);
+    // A second, higher number for the types that draw into a plot area: nothing
+    // is ever cut off there, so "the minimum" alone said a chart fits in 132 px
+    // and had 80 px to spare, while its drawing surface was 59 px.
+    const plotType = !!(CONTENT[type] || {}).plot;
+    const usable = plotType ? await requiredPx(type, { cols, plot: true }) : null;
+    if (usable && usable.error) {
+        console.warn(`  ${type}: keine nutzbare Mindesthöhe (${usable.error})`);
+    }
     results[type] = {
         minPx: r.px,
         minRowsDefaultGrid: rowsAt20,
+        ...(MIN_NOTES[type] ? { notIncluded: MIN_NOTES[type] } : {}),
+        ...(usable && usable.px
+            ? { usablePx: usable.px, usableRowsDefaultGrid: Math.ceil((usable.px + 10) / 30) }
+            : {}),
         ...(fontScalePx ? { fontScalePx } : {}),
         atWidthPx: cols * PROBE_GRID.gridSnapX,
     };
     console.log(
         `${type.padEnd(16)} min ${String(r.px).padStart(4)} px  (${rowsAt20} Zeilen im Standardraster` +
-            `${fontScalePx ? `, +${fontScalePx} px je Schriftskalierung` : ''})`,
+            `${fontScalePx ? `, +${fontScalePx} px je Schriftskalierung` : ''})` +
+            `${usable && usable.px ? `  brauchbar ab ${usable.px} px (${results[type].usableRowsDefaultGrid} Zeilen)` : ''}`,
     );
 }
 
@@ -887,6 +1160,8 @@ const metrics = {
         // twice in the chrome), the font scale from the second measured point.
         reference: { fontScale: REFERENCE.fontScale, widgetPaddingPx: REFERENCE.widgetPaddingPx },
         fontScaleMeasuredAt: [REFERENCE.fontScale, SCALE_HIGH],
+        // What `minimum.<type>.usablePx` means, and the one number behind it.
+        usablePlotPx: MIN_PLOT_PX,
         method:
             `Measured in the real frontend: the height is walked down until the content either scrolls or ` +
             `reaches past the card. ${PX_PER_ROW} px resolution, each type at its default width, ` +
@@ -897,7 +1172,11 @@ const metrics = {
             'Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.rowTypes as the surcharge per row display, counted.<type>.notIncluded for what is still left out.',
             'A row display (rowTypes) is a delta on ONE row, measured per layout: a contact or a state chip is taller than the measured value row, and a list that mixes displays is summed row by row.',
             'Modifiers are measured one at a time. Several at once are added up, which is an approximation, not a measurement of that combination.',
+            'A variant with counted.<type>.variants.<v>.columns draws its rows in that many columns, so its height grows per ROW OF COLUMNS: aura_measure rounds the item count up to a full row before multiplying. The per-row surcharges are still counted per item, which is an approximation for a mixed list.',
+            'counted.<type>.variants.<v>.modifiers overrides the top-level modifier of the same key for that layout: a factor that changes the ROW changes it differently per layout (the timestamp per entry is +13.5 px a row by default, +21.5 in "card", +6.0 in "compact" and ±0 in "minimal"). A key a variant does not list keeps the top-level number.',
             'A minimum is the point where content starts to be lost, not a recommended size — defaultSize is that.',
+            `A chart never loses content: eCharts and recharts paint into whatever box they get, so "nothing is cut off" is satisfied long before the chart is readable. Those types therefore carry a second number, minimum.<type>.usablePx — the height at which the plot surface first reaches ${MIN_PLOT_PX} px. That is a stated recommendation, not a measured cliff; everything else here is a cliff.`,
+            'Every type is measured WITH content in it (OPTIONS_FOR). A type measured empty reports the height of its empty state, which is what chips, chart and echart used to do.',
             'Every number is measured at font scale 1 with 16 px widget padding (the reference above). aura_measure corrects for the dashboard it is asked about: the padding exactly (2 px of chrome per px of padding), the font scale from fontScalePx/addPx, which is exact at the two measured scales and an interpolation between and beyond them.',
         ],
     },
@@ -916,8 +1195,44 @@ if (process.argv.includes('--check')) {
         process.exit(1);
     }
     console.log('aura-widget-metrics.json is up to date.');
+} else if (only && !process.argv.includes('--write')) {
+    console.log('--only: nothing written, this is a working run. Mit --write in die Datei einmischen.');
 } else if (only) {
-    console.log('--only: nothing written, this is a working run.');
+    // A partial run, merged into the committed file. The full run takes the best
+    // part of an hour, and re-measuring 29 types to change one is why --only
+    // exists in the first place — it just had nowhere to put the result.
+    //
+    // Merged per TYPE, and only for the types that were asked for: everything
+    // else keeps the numbers it has, and nothing measured for a type survives
+    // half-way (the whole entry is replaced). `notMeasurable` is filtered by
+    // `wanted()` above, so it is merged the same way rather than assigned.
+    const current = fs.existsSync(OUT_FILE) ? JSON.parse(fs.readFileSync(OUT_FILE, 'utf8')) : null;
+    if (!current) {
+        console.error(`${path.relative(ROOT, OUT_FILE)} gibt es nicht — ein voller Lauf muss der erste sein.`);
+        process.exit(1);
+    }
+    const merged = {
+        ...current,
+        $meta: { ...current.$meta, ...metrics.$meta },
+        counted: { ...current.counted, ...counted },
+        minimum: { ...current.minimum, ...results },
+        notMeasurable: { ...current.notMeasurable, ...metrics.notMeasurable },
+    };
+    // A type that USED to be unmeasurable and now has a number must lose the
+    // other entry, or aura_measure would read the reason instead of the number.
+    for (const type of [...Object.keys(counted), ...Object.keys(results)]) {
+        delete merged.notMeasurable[type];
+    }
+    for (const type of Object.keys(metrics.notMeasurable)) {
+        delete merged.counted[type];
+        delete merged.minimum[type];
+    }
+    fs.writeFileSync(OUT_FILE, `${JSON.stringify(merged, null, 2)}\n`);
+    console.log(
+        `${path.relative(ROOT, OUT_FILE)}: ${[...only].join(', ')} eingemischt ` +
+            `(${Object.keys(merged.minimum).length} Mindesthöhen, ${Object.keys(merged.counted).length} gezählte Typen). ` +
+            'Die übrigen Typen behalten ihre Zahlen.',
+    );
 } else {
     fs.mkdirSync(path.dirname(OUT_FILE), { recursive: true });
     fs.writeFileSync(OUT_FILE, json);

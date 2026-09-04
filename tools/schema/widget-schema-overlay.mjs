@@ -367,7 +367,18 @@ export const WIDGET_OPTION_NOTES = {
         volumeMax: { description: 'Größter Lautstärkewert des Geräts.' },
         volumeStep: { description: 'Schrittweite der Lautstärke.' },
         muteDp: { description: 'Datenpunkt für Stummschaltung.' },
-        muteViaVolume: { description: 'Stummschalten, indem die Lautstärke auf 0 gesetzt wird.' },
+        stopDp: {
+            description:
+                'Datenpunkt, der die Wiedergabe stoppt. Gesetzt zeigt das Widget eine Stop-Taste neben ' +
+                'Play/Pause; showStop schaltet sie wieder ab.',
+        },
+        showStop: { description: 'Stop-Taste anzeigen (greift nur, wenn stopDp gesetzt ist).' },
+        muteViaVolume: {
+            description:
+                'Stummschalten, indem die Lautstärke auf 0 gesetzt wird — für Geräte ohne schreibbaren ' +
+                'Mute-Datenpunkt (Alexa). Neu immer als echter Boolean true; die Geräteerkennung hat ' +
+                'früher den String "true" geschrieben, deshalb ist beides erlaubt.',
+        },
         mediaProgressDp: { description: 'Datenpunkt der Abspielposition als Zahl.' },
         mediaLengthDp: { description: 'Datenpunkt der Titellänge als Zahl.' },
         mediaProgressStrDp: { description: 'Datenpunkt der Abspielposition als fertiger Text.' },
@@ -738,6 +749,12 @@ export const KEY_TYPES = {
     // The stored value may also be a bare CustomCell[] (legacy 3x3); normalizeGrid
     // accepts both. Describing the current shape is what a generator needs.
     customGrid: 'CustomGridDef',
+    // A flag the widget reads as `!!o.muteViaVolume`, so the string 'true' has
+    // always worked — and the frontend's Alexa detection wrote exactly that until
+    // it was corrected. Declaring it boolean-only made every dashboard that had
+    // ever used the Alexa detection unwritable through the MCP, because the
+    // validator refuses the whole widget over one option's type.
+    muteViaVolume: 'boolean | string',
 };
 
 /** Identifiers the readers picked up that are not option keys. */

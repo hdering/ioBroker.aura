@@ -22,8 +22,14 @@ interface DeviceDetector {
     match: (dpId: string) => string | null;
     /** Fallback label built from the DP cache alone (no live state reads). */
     label: (root: string, entries: DatapointEntry[]) => string;
-    /** Maps the device root to a full set of widget option keys → DP IDs. */
-    buildConfig: (root: string) => Record<string, string>;
+    /**
+     * Maps the device root to a full set of widget option keys → DP IDs.
+     *
+     * `ConfigValue`, not `string`: a detector also sets plain flags (Alexa needs
+     * `muteViaVolume`), and typing the map as string-only is what turned that
+     * flag into the string `'true'`.
+     */
+    buildConfig: (root: string) => Record<string, ConfigValue>;
     /** Optional: DP containing the real device name (value fetched at runtime). */
     nameDp?: (root: string) => string;
     /** Optional: DP containing the serial number (value fetched at runtime). */
@@ -64,8 +70,11 @@ const DETECTORS: DeviceDetector[] = [
             sourceDp: `${root}.providerName`,
             playStateDp: `${root}.currentState`,
             volumeDp: `${root}.volume`,
-            // muteDp ist read-only bei Alexa → muteViaVolume stattdessen
-            muteViaVolume: 'true',
+            // muteDp ist read-only bei Alexa → muteViaVolume stattdessen.
+            // Echter Boolean: als String 'true' war die Option zwar wahrheitswertig
+            // richtig, passte aber zu keiner Typangabe — das MCP wies jeden Schreib-
+            // vorgang auf so einem Widget ab.
+            muteViaVolume: true,
             playDp: `${root}.controlPlay`,
             pauseDp: `${root}.controlPause`,
             nextDp: `${root}.controlNext`,

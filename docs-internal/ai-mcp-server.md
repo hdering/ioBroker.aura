@@ -173,11 +173,11 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 ## Warum Validierung der eigentliche Gewinn ist
 
 Eine falsch benannte Option ist sonst **unsichtbar**: Aura rendert das Widget und
-ignoriert den Schlüssel. Hier wird daraus ein Fehler, den das Modell selbst
+ignoriert den Schlüssel. Hier wird daraus ein Befund, den das Modell selbst
 korrigieren kann:
 
 ```
-- widget: switch liest die Option "showTitel" nicht — meintest du "showTitle"?
+- widget: switch liest die Option "showTitel" nicht — sie bleibt wirkungslos — meintest du "showTitle"?. Mit "showTitel": null entfernen.
 - widgets[2]: layout "dial" gibt es für switch nicht — erlaubt: default, card, compact, minimal, custom
 - widgets[3]: Datenpunkt "hm-rpc.0.NOPE" gibt es in dieser ioBroker-Installation nicht
 - widgets[1] ("a") und widgets[4] ("b") überlappen sich im Raster
@@ -186,19 +186,76 @@ korrigieren kann:
 Alle Schreibwerkzeuge validieren vorher und **schreiben bei jedem Fehler gar
 nicht** — auch keine Sicherung.
 
+### Fehler oder Warnung: was ein Schreiben verhindern darf
+
+Aus der Praxis gemeldet, und es war der teuerste Befund der ganzen Liste: die
+Regeln laufen über das **ganze** Widget, also blockierte eine einzige Option, die
+seit ihrer Einführung umbenannt wurde, jede Änderung daran — auch eine reine
+Verschiebung von `gridPos`. Ein Dashboard mit 52 solchen Altlasten (durch Kopien
+entstandene Wetter-, Clock- und Universal-Widgets) war komplett unschreibbar,
+und der Weg heraus hätte darin bestanden, an Widgets zu editieren, nach denen
+niemand gefragt hatte.
+
+Die Trennlinie liegt jetzt dort, wo sie hingehört:
+
+| Befund                                                      | Stufe   | Grund                                                           |
+| ----------------------------------------------------------- | ------- | --------------------------------------------------------------- |
+| Option, die der Typ nicht liest (auch verschachtelt)        | Warnung | Aura verwirft sie ohnehin — sie war vor dem Schreiben schon tot |
+| Falscher **Typ** auf einer bekannten Option                 | Fehler  | Das Widget liest den Schlüssel und bekäme etwas Unbrauchbares   |
+| Option eine Ebene zu hoch (neben `options` statt darin)     | Fehler  | Die beabsichtigte Änderung würde nichts tun — und ist neu       |
+| Unbekanntes Feld in einer verschachtelten Struktur          | Warnung | Gleiche Begründung wie oben, eine Ebene tiefer                  |
+| Überlappung, die dieser Schreibvorgang **anlegt**           | Fehler  | react-grid-layout schiebt dann Widgets herum                    |
+| Überlappung, die schon gespeichert war und unberührt bleibt | Warnung | Siehe `aura_compact` unten                                      |
+
+Verloren geht dadurch nichts: die Warnungen stehen in derselben Antwort, mit dem
+nächstliegenden gültigen Namen und dem Hinweis, dass `"key": null` sie entfernt.
+`aura_review` sammelt sie zusätzlich unter `ignored-options` — der Bericht über
+den Bestand ist die richtige Stelle dafür, nicht die Absage an einen Write.
+
+### Gespeicherte Überlappungen und `aura_compact`
+
+Aus der Praxis gemeldet: eine Startseite, die **korrekt aussieht** und drei
+Überlappungen im gespeicherten `gridPos` trägt. Beides stimmt — außerhalb des
+Editors rendert das Frontend die y-Werte gar nicht, die es hat, sondern schiebt
+die Widgets nach oben zusammen (`utils/gridCompact.ts`, react-grid-layout
+`compactType: 'vertical'`). Im Editor ist der gespeicherte Stand dagegen der
+gezeichnete, und beim ersten Anfassen fängt das Verschieben an.
+
+`ctx.baselineWidgets` ist der gespeicherte Stand; eine Überlappung zwischen zwei
+Widgets, deren `gridPos` dieser Schreibvorgang nicht anfasst, ist eine Warnung —
+sonst verweigert ein seit Monaten so laufender Tab jede Änderung, auch die, die
+das Problem behebt. `aura_compact` (Stufe `write`) schreibt die gerenderten
+Positionen fest: **nur y**, x/w/h bleiben, die gespeicherte Reihenfolge bleibt,
+und `dryRun: true` nennt die Verschiebungen vorher.
+
+### Quittiert und doch nicht gespeichert
+
+Aus der Praxis gemeldet: `aura_update_widget` antwortete „Widget geändert" samt
+Sicherungsdatei, und der nächste Read zeigte weiter die alte Höhe; der zweite
+Versuch griff. Ein Write, der als erledigt gemeldet wird und nicht da ist, ist
+die schlechteste Antwort, die dieser Server geben kann — alles, was darauf
+aufbaut, wird gegen ein Dashboard geplant, das es nicht gibt.
+
+Die wahrscheinliche Ursache lässt sich von hier aus nicht verhindern: ein Browser
+mit ungespeicherten Editor-Änderungen hält den Schlüssel als `dirty` und
+übernimmt die eingehende Änderung nicht (richtig so), schreibt beim nächsten
+Speichern aber seinen eigenen Stand zurück. **Auffallen** kann es: `confirmWritten()`
+liest die Stelle nach jedem Write zurück und vergleicht; stimmt sie nicht, sagt
+die Antwort das ausdrücklich statt zu quittieren.
+
 **Dieselbe Eingabe, dasselbe Format.** Aus der Praxis gemeldet: `aura_validate`
 antwortete auf ein nacktes Widget-**Array** mit „widget: kein Objekt" und
 verlangte eine `aura-tab`-Hülle — während `aura_write_tab` im selben Gespräch
 genau dieses Array annahm. `widgetListOf()` kennt jetzt alle Formen an einer
 Stelle, und beide Werkzeuge nehmen dieselben:
 
-| Eingabe                              | geprüft als                                  |
-| ------------------------------------ | -------------------------------------------- |
-| ein Widget-Objekt                    | Widget                                       |
-| `[…]` (nacktes Array)                | Widgetliste (Überlappungen, doppelte Ids)    |
-| `{ widgets: […] }`                   | Widgetliste                                  |
-| `{ tab: { widgets: […] } }`          | Widgetliste                                  |
-| `{ _type: "aura-tab", tab: {…} }`    | Import-Hülle, hier **mit** `name`            |
+| Eingabe                           | geprüft als                               |
+| --------------------------------- | ----------------------------------------- |
+| ein Widget-Objekt                 | Widget                                    |
+| `[…]` (nacktes Array)             | Widgetliste (Überlappungen, doppelte Ids) |
+| `{ widgets: […] }`                | Widgetliste                               |
+| `{ tab: { widgets: […] } }`       | Widgetliste                               |
+| `{ _type: "aura-tab", tab: {…} }` | Import-Hülle, hier **mit** `name`         |
 
 `validateWidgetList()` trägt jetzt die Regeln, die vom **Ergebnis** sprechen
 (jedes Widget einzeln, doppelte Ids, Überlappungen); `validateTab()` prüft
@@ -217,11 +274,11 @@ gezeichnet wird er nie — der Editor bietet die Felder dort nicht einmal an
 trotzdem. `entryDisplayFindings()` in `validate.js` prüft deshalb die Felder, die
 nur **eine** Darstellung liest:
 
-| Felder                                              | gelesen von                                   |
-| --------------------------------------------------- | --------------------------------------------- |
-| `trueLabel`, `falseLabel`, `trueIcon`, `falseIcon`  | `switch` (und `auto` auf einem booleschen DP) |
-| `states`                                            | `states`                                      |
-| `presets` und die `presets*`-Felder                 | `buttons`, `select`                           |
+| Felder                                             | gelesen von                                   |
+| -------------------------------------------------- | --------------------------------------------- |
+| `trueLabel`, `falseLabel`, `trueIcon`, `falseIcon` | `switch` (und `auto` auf einem booleschen DP) |
+| `states`                                           | `states`                                      |
+| `presets` und die `presets*`-Felder                | `buttons`, `select`                           |
 
 Warnung, kein Fehler — der Schlüssel ist gültig, nur wirkungslos. Gruppiert nach
 Darstellung (sechzehn Zeilen desselben Fehlers sind ein Befund, mit maximal sechs
@@ -394,11 +451,11 @@ Bedienelementen darin.
 
 `writeRefs()` sammelt deshalb alles, worauf ein Klick **schreibt**:
 
-| Quelle                                  | geprüft                                                   |
-| --------------------------------------- | --------------------------------------------------------- |
-| Listenzeile (`entries[].id`)            | wenn ihr `displayType` (oder listenweit `entryDisplay`) ein Bedienelement ist: `switch`, `slider`, `shutter`, `stepper`, `buttons`, `momentary`, `datepicker`, `input`, `select` — und die Zeile nicht `writable: false` sagt |
-| Rollladen                               | `openDp`, `closeDp`, `stopDp`, `tiltDp` bzw. je Zeile `shutterUpDp`, `shutterDownDp`, `shutterStopDp`, `shutterTiltDp` |
-| Lampe                                   | `switchDp`, `brightnessDp`, `colorDp`, `hueDp`, `temperatureDp`, `effectDp`, … |
+| Quelle                       | geprüft                                                                                                                                                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Listenzeile (`entries[].id`) | wenn ihr `displayType` (oder listenweit `entryDisplay`) ein Bedienelement ist: `switch`, `slider`, `shutter`, `stepper`, `buttons`, `momentary`, `datepicker`, `input`, `select` — und die Zeile nicht `writable: false` sagt |
+| Rollladen                    | `openDp`, `closeDp`, `stopDp`, `tiltDp` bzw. je Zeile `shutterUpDp`, `shutterDownDp`, `shutterStopDp`, `shutterTiltDp`                                                                                                        |
+| Lampe                        | `switchDp`, `brightnessDp`, `colorDp`, `hueDp`, `temperatureDp`, `effectDp`, …                                                                                                                                                |
 
 Bewusst **nicht** „jedes Feld, das auf `Dp` endet": neben jedem dieser Felder
 liegt ein `…ActualDp` / `…ActivityDp` / `statusDp`, das vom Gerät zurückgelesen
@@ -434,7 +491,6 @@ Damit das überhaupt greifen kann, holen die Werkzeuge die Objekte jetzt mit
 als Datenpunkt markierbar, ohne Trennzeilen mitzunehmen. Eine synthetische Id hat
 kein Objekt und erzeugt darum auch keinen Befund. Und `light` fehlte in `EXPECT`
 ganz — eine Lampe auf einem nur lesbaren Datenpunkt lief sauber durch.
-
 
 Dazu die Prüfung, die am wenigsten nach Fehler aussieht: **Diagramm auf einem
 Datenpunkt, den niemand aufzeichnet.** Die Id existiert, der Typ ist eine Zahl,
@@ -533,33 +589,194 @@ Diagramm bei 30 px rendert überhaupt keine Achse und würde „passt" melden.
 
 Ergebnis: `public/ai/aura-widget-metrics.json`, gemessen z. B.
 
-| Typ          | Messung                                  |
-| ------------ | ---------------------------------------- |
-| `list`       | 66 px + 33 px je Zeile (Standardform)    |
-| `jsontable`  | 86 px + 27 px je Zeile                   |
-| `value`      | mind. 72 px (3 Zeilen im Standardraster) |
-| `gauge`      | mind. 162 px (6 Zeilen)                  |
-| `thermostat` | mind. 144 px                             |
-| `echart`     | mind. 52 px                              |
+| Typ             | Messung                                          |
+| --------------- | ------------------------------------------------ |
+| `list`          | 66 px + 33 px je Zeile (Standardform)            |
+| `jsontable`     | 86 px + 27 px je Zeile                           |
+| `value`         | mind. 72 px (3 Zeilen im Standardraster)         |
+| `gauge`         | mind. 162 px (6 Zeilen)                          |
+| `thermostat`    | mind. 144 px                                     |
+| `echart`        | mind. 58 px, **brauchbar ab 222 px** (8 Zeilen)  |
+| `chart`         | mind. 146 px, **brauchbar ab 244 px** (9 Zeilen) |
+| `mediaplayer`   | mind. 142 px                                     |
+| `energiebilanz` | mind. 224 px (ein Balken aus zwei Einträgen)     |
+| `chips`         | mind. 78 px (vier Chips in einer Reihe)          |
+| `carousel`      | mind. 96 px                                      |
 
 `aura_measure` (`lib/mcp/measure.js`) rechnet damit gegen das Raster **dieses**
 Dashboards (`h × rowHeight + (h−1) × gap`) und antwortet pro Widget mit
 „passt / knapp / ZU KLEIN, es fehlen N px → h=M".
+
+### Vier Typen wurden **leer** gemessen
+
+Aus der Praxis gemeldet („`aura_measure` misst chips, mediaplayer, energiebilanz
+und carousel nicht", und „ein Diagramm auf h=5 hat 59 px Zeichenfläche, gemeldet
+wird ‚passt, 80 px Luft'"). Der Grund war in allen Fällen derselbe und schlimmer
+als eine fehlende Messung: der Messstand hatte den Typ **ohne Inhalt** gerendert
+und die Höhe seines Leerzustands als Mindesthöhe abgelegt.
+
+| Typ             | vorher | Ursache                                                | jetzt                       |
+| --------------- | ------ | ------------------------------------------------------ | --------------------------- |
+| `chips`         | 44 px  | `OPTIONS_FOR` setzte `items`, die Option heißt `chips` | 78 px                       |
+| `chart`         | 52 px  | kein `historyInstance` → „Keine Daten" in jeder Höhe   | 146 px, brauchbar ab 244 px |
+| `echart`        | 52 px  | kein `echartMode`, keine Serien-Instanz                | 58 px, brauchbar ab 222 px  |
+| `mediaplayer`   | —      | stand ohne Optionen in `SKIP`                          | 142 px                      |
+| `energiebilanz` | —      | stand in `SKIP`                                        | 224 px                      |
+| `carousel`      | —      | Begründung „Inhalt sind andere Widgets" war falsch     | 96 px                       |
+
+Damit das nicht wieder passiert, gibt es `CONTENT` im Messstand: pro Typ das
+Element, das **da sein muss**, damit eine Höhe als passend gilt. Das ist keine
+Vorsichtsmaßnahme, sondern ein echter Befund — recharts zeichnet die Kurve unter
+etwa 150 px Karte gar nicht mehr und meldet dabei **keinen** Überlauf, der
+Abstieg lief also fröhlich bis 52 px durch. Eine fehlende Serie ist Inhaltsverlust
+und gehört damit in die harte Mindesthöhe, nicht in eine Fußnote.
+
+Nebenbei: die Abbruchbedingung „zwei gleiche Messwerte" reicht für Layout, nicht
+für ein Diagramm — das holt seine History **nach** dem Mount, die ersten zwei
+Messwerte einer beliebig hohen Karte sind beide „noch keine Kurve", identisch,
+und der Abstieg gab den ganzen Typ auf. Solange etwas fehlt, wird jetzt bis zum
+Ende der Schleife gemessen.
+
+### `usablePx`: die einzige Zahl hier, die eine Empfehlung ist
+
+Ein Diagramm verliert **nie** Inhalt: eCharts und recharts zeichnen in jede Box,
+die sie bekommen. „Wird etwas abgeschnitten" ist dort also längst erfüllt, bevor
+das Diagramm lesbar ist. Deshalb tragen diese Typen eine zweite Zahl,
+`minimum.<type>.usablePx` — die Höhe, bei der die Zeichenfläche erstmals
+`$meta.usablePlotPx` (140 px) erreicht. Alles andere hier ist eine Kante, die
+gemessen wurde; das hier ist eine gesetzte Schwelle, und die Antwort sagt es
+auch so. `MIN_PLOT_PX` im Messstand ist die eine Zeile, an der man dreht.
+
+Für den Verdikt nimmt `aura_measure` die brauchbare Höhe, nennt aber die harte
+daneben: „brauchbare Mindesthöhe … Abgeschnitten wird erst unter 58 px —
+dazwischen zeichnet das Diagramm, nur ist nichts mehr ablesbar."
+
+### `compact` ist eine Treppe in Paaren
+
+Aus der Praxis gemeldet („Layout compact: 52 px + 33 px je **Zeilenpaar**,
+zweispaltig"). Nachgemessen, Zeile für Zeile:
+
+```
+1→96  2→96  3→124  4→124  5→154  6→154  7→184  8→184  9→214   (px, Messraster)
+```
+
+Die Gerade durch die geraden Anzahlen (67 px + 14,7 px je Zeile) ist auf genau
+diesen exakt und auf **jeder ungeraden** ein halbes Paar zu klein — neun Zeilen
+kamen mit 199 px statt 214 px. Die Variante trägt jetzt `columns: 2`, und
+`measureWidget()` rundet die Zeilenzahl vor der Multiplikation auf eine volle
+Spaltenzeile auf (`paddedItems()`): `ceil(9/2) × 2 = 10 → 214 px`. Die
+Zuschläge je Zeilenform bleiben je Eintrag — für eine gemischte Liste ist das
+eine Näherung, und die Antwort sagt das.
+
+### Teil-Lauf mit `--write`
+
+Ein voller Lauf braucht knapp eine Stunde (jeder Punkt steigt von 800 px ab, die
+Liste wird je Layout **und** je Zeilendarstellung gemessen, alles zweimal). 29
+Typen neu zu messen, um einen zu korrigieren, ist nicht der Weg — und `--only`
+schrieb bisher gar nichts, hatte also keine Stelle für sein Ergebnis.
+`--only list --write` mischt die gemessenen Typen in die committete Datei ein;
+alles andere behält seine Zahlen. Ein Typ, der von `notMeasurable` in `minimum`
+wandert (oder zurück), verliert dabei den anderen Eintrag — sonst läse
+`aura_measure` die Begründung statt der Zahl.
+
+### Linearität wird geprüft
+
+Der Kommentar am Messstand behauptete, vier Messpunkte würden „eine Zeile
+auffangen, die gar nicht linear ist". Geprüft hat das nichts, und
+`energiebilanz` lief mitten hindurch: 1→224, 2→288, 4→306 px, weil die Balken in
+die Karte **eingepasst** und nicht gestapelt werden. Die Gerade durch 1 und 4
+meldete 27,3 px je Balken — falsch an jedem Punkt außer diesen beiden.
+
+`line()` gibt jetzt `offLinePx` zurück (die größte Abweichung der inneren Punkte
+von der Gerade), und über `LINEAR_TOL` (drei Messzeilen) fliegt der Typ aus dem
+gezählten Modell und behält seine gemessene **Mindesthöhe**. Eine Zahl, die für
+eine Konfiguration stimmt, ist besser als eine Steigung, die für jede Anzahl
+außer zwei falsch ist. Was die Mindesthöhe nicht abdeckt, steht in `MIN_NOTES`
+und wird von `aura_measure` unter „Nicht eingerechnet" ausgegeben.
+
+### Die „+N weitere"-Zeile steckt jetzt in der Zahl
+
+Sie war eine Fußnote („nicht in der Zahl, eine Zeile Reserve geben") — also ein
+Rechenauftrag an den Aufrufer, und aus der Praxis gemeldet war die Empfehlung
+zweimal genau eine Zeile zu klein. Wo `maxRows` greift und `showMore` nicht aus
+ist, wird sie als **ganze** Inhaltszeile eingerechnet (Obergrenze: der Fuß ist
+eine Textzeile, kein Bedienelement) — bei einer Höhenempfehlung ist eine Zeile
+zu großzügig die harmlose Richtung. `shape.plainPerItemPx` ist dafür die Zeile
+des Layouts **ohne** Optionszuschläge: der Fuß zeichnet keine zweite Zeile und
+keinen Zeitstempel.
+
+### Ein Faktor je Layout, nicht ein Faktor für alle
+
+Aus der Praxis gemeldet: `entries[].showLastChange` sei ±0, „der Zeitstempel steht
+in derselben Zeile" — gegen gemessene +13,7 px. Beides stimmt, an
+unterschiedlichen Layouts. Nachgemessen, acht Zeilen, gleiche Breite:
+
+| Layout    | Aufschlag je Zeile |
+| --------- | ------------------ |
+| `default` | +13,5 px           |
+| `card`    | +21,5 px           |
+| `compact` | +6,0 px            |
+| `minimal` | **±0**             |
+
+Die Pille des `minimal`-Layouts setzt den Zeitstempel in die Zeile, die sie schon
+hat. Die Metrik trug **einen** Wert und rechnete ihn überall — in drei von vier
+Layouts falsch, und im gemeldeten Fall 13,7 px je Zeile für eine Zeile, die
+nichts zeichnet. (An der Breite hängt es nicht: bei 200, 320, 480 und 800 px
+kommen dieselben 13,5 px heraus.)
+
+Ein Modifier mit `perVariant: true` wird deshalb **je Variante** gegen deren
+eigene Zeile gemessen und landet unter `counted.<type>.variants.<v>.modifiers`;
+`rowShape()` nimmt die Variante, wo sie den Schlüssel führt, sonst den
+typweiten Wert. Nur die drei Zeilen-Faktoren (`subDps`, die zwei
+Zeitstempel-Formen) tragen das Flag — die Kopfzeilen-Faktoren sitzen über den
+Zeilen und sind in jedem Layout gleich, und jeder zusätzliche kostet vier
+Abstiege.
+
+### Zwei Punkte aus derselben Meldung, die schon stimmten
+
+**Trennzeilen** („17 pauschal" gegen „21 für die erste, 29 für jede weitere"):
+gemessen sind es zwei Zeilenformen, und die Zahlen treffen sich genau. Die nackte
+Linie (`divider`) ist 17 px hoch, die **mit Überschrift** (`dividerHeading`,
+`dividerLabel` gesetzt) 29 px — und eine Trennzeile ganz oben ist 8 px niedriger,
+also 21 px. Das ist genau die gemeldete Beobachtung; die 17 px sind der Wert der
+Form **ohne** Überschrift. Wichtig dabei: die Überschrift ist `dividerLabel`,
+`name` wird nicht gelesen — eine Trennzeile, die ihren Text in `name` trägt, ist
+für Aura und für die Messung die nackte Linie.
+
+**Raum je Zeile** (`showRoom`, gemeldet 58–62 px statt 38 px): nicht messbar. Die
+Zeile holt ihre Räume über `getObjectViewDirect('enum', 'enum.rooms.')`, und die
+Raum-Aufzählungen gibt es hinter dem Messstand nicht — der Messstand darf keine
+ioBroker-Instanz brauchen. Steht als „nicht eingerechnet" in der Antwort, mit der
+gemeldeten Größenordnung.
+
+### Die Darstellung steht jetzt immer in der Antwort
+
+Aus der Praxis gemeldet als Tabelle „aura_measure gegen real": jede Zeile war um
+**genau** den Korrekturbetrag daneben (14 px Chrome, 4,8 px je Zeile) — die
+Schriftskalierung und der Innenabstand des Dashboards waren nicht angekommen.
+Von der Antwort aus war das nicht zu sehen, weil sie bei den Messwerten schwieg.
+Zwei Änderungen:
+
+- `aura_measure` nennt die verwendete Darstellung **immer**, auch wenn sie der
+  Messgrundlage entspricht — mit dem Zusatz, dass alle Zahlen falsch sind, wenn
+  das nicht zu den Einstellungen des Dashboards passt.
+- Der Popup-Zweig hat sie ersatzlos verloren (`canvas = { enabled: false, grid }`),
+  ein Popup wurde also grundsätzlich bei Skalierung 1 und 16 px gemessen.
 
 **Eine Zeile ist nicht eine Form.** Aus der Praxis gemeldet: dieselbe Liste mit
 und ohne `subDps`, in `layout: "compact"` und in `"card"`, ergab exakt dieselbe
 Zahl — 66 px + 33 px je Zeile für alles. Eine Rolladen-Liste stand damit auf der
 gemeldeten „Mindesthöhe" und scrollte. Der Messstand misst deshalb zusätzlich:
 
-| Form                       | gemessen                    |
-| -------------------------- | --------------------------- |
-| `layout: "card"`           | 75 px + 64,7 px je Zeile    |
-| `layout: "compact"`        | 67 px + 14,7 px je Zeile    |
-| `layout: "minimal"`        | 75 px + 32,7 px je Zeile    |
-| `entries[].subDps`         | +15,3 px je Zeile           |
-| Titel **und** Icon aus     | −34 px Basis                |
-| nur `showTitle: false`     | ±0 (das Icon hält die Zeile offen) |
-| `groupSwitch`, `showSum`   | ±0 (sitzen in der Kopfzeile) |
+| Form                     | gemessen                           |
+| ------------------------ | ---------------------------------- |
+| `layout: "card"`         | 75 px + 64,7 px je Zeile           |
+| `layout: "compact"`      | 67 px + 14,7 px je Zeile           |
+| `layout: "minimal"`      | 75 px + 32,7 px je Zeile           |
+| `entries[].subDps`       | +15,3 px je Zeile                  |
+| Titel **und** Icon aus   | −34 px Basis                       |
+| nur `showTitle: false`   | ±0 (das Icon hält die Zeile offen) |
+| `groupSwitch`, `showSum` | ±0 (sitzen in der Kopfzeile)       |
 
 `variants` sind vollständige Neumessungen (ein Layout zeichnet die Zeile anders),
 `modifiers` sind Deltas, jeweils einzeln gegen die Standardform gemessen und von
@@ -574,10 +791,10 @@ Liste mit `showEntryLastChange: true` hängt unter jede Zeile eine Zeitangabe
 (gemessen **+13,7 px**) — bei zwölf Einträgen 164 px, die in der Messung fehlten.
 Die Option gibt es in zwei Formen, und sie brauchen unterschiedliche Arithmetik:
 
-| Form                        | Widget          | gerechnet          |
-| --------------------------- | --------------- | ------------------ |
-| `entries[].showLastChange`  | statische Liste | je betroffene Zeile |
-| `showEntryLastChange`       | dynamische Liste | jede Zeile         |
+| Form                       | Widget           | gerechnet           |
+| -------------------------- | ---------------- | ------------------- |
+| `entries[].showLastChange` | statische Liste  | je betroffene Zeile |
+| `showEntryLastChange`      | dynamische Liste | jede Zeile          |
 
 Gemessen wird beides an derselben Darstellung: die dynamische Liste lässt sich
 nicht messen (ihre Zeilen entstehen zur Laufzeit), und die statische liest den
@@ -623,17 +840,17 @@ Der Messstand misst darum jede `displayType`-Darstellung einzeln, als Delta auf
 die Standardzeile **desselben** Layouts (`counted.list.rowTypes`, je Variante
 `counted.list.variants.<layout>.rowTypes`):
 
-| `displayType`         | default | card  | compact |
-| --------------------- | ------- | ----- | ------- |
-| `value`, `time`       | ±0      | ±0    | ±0      |
-| `slider`              | ±0      | +22   | ±0      |
-| `switch`              | +2      | +12   | +1      |
-| `states`, `contact`   | +4      | +4    | +2      |
-| `buttons`             | +6,7    | +6,3  | +3      |
-| `stepper`, `momentary`| +8      | +8    | +4      |
-| `shutter`, `input`    | +10     | +10   | +5      |
-| `select`              | +14     | +14   | +7      |
-| `datepicker`          | +16     | +16   | +8      |
+| `displayType`          | default | card | compact |
+| ---------------------- | ------- | ---- | ------- |
+| `value`, `time`        | ±0      | ±0   | ±0      |
+| `slider`               | ±0      | +22  | ±0      |
+| `switch`               | +2      | +12  | +1      |
+| `states`, `contact`    | +4      | +4   | +2      |
+| `buttons`              | +6,7    | +6,3 | +3      |
+| `stepper`, `momentary` | +8      | +8   | +4      |
+| `shutter`, `input`     | +10     | +10  | +5      |
+| `select`               | +14     | +14  | +7      |
+| `datepicker`           | +16     | +16  | +8      |
 
 `rowTypeSurcharge()` rechnet das **je Zeile** dazu, nicht je Widget: vier Werte
 und vier Kontakte sind weder acht Wert- noch acht Kontaktzeilen. Welche
@@ -659,12 +876,12 @@ Eine Trennzeile ist eine **Zeilenform**, keine Ausnahme — sie steht darum in
 derselben Tabelle wie die Darstellungen (`rowTypes.divider`) und wird pro Zeile
 gezählt. Gemessen (17 px hoch, gegen die Zeile, die sie ersetzt):
 
-| Layout    | Trennzeile |
-| --------- | ---------- |
-| default   | −16 px     |
-| card      | −41,3 px   |
-| compact   | **+16,7 px** |
-| minimal   | −9,3 px    |
+| Layout  | Trennzeile   |
+| ------- | ------------ |
+| default | −16 px       |
+| card    | −41,3 px     |
+| compact | **+16,7 px** |
+| minimal | −9,3 px      |
 
 `compact` ist das interessante Vorzeichen: dort teilen sich zwei Inhaltszeilen
 eine Rasterzeile, eine Trennzeile läuft aber über die volle Breite **und** bricht
@@ -688,10 +905,10 @@ mit jeder Zeile. Ursache waren nicht die Zuschläge (die stimmten fast alle),
 sondern die beiden Grundwerte. Das Dashboard läuft mit `widgetPadding` 8 und
 `fontScale` 1.3, gemessen war bei 16 und 1:
 
-| | gemessen | auf dem Dashboard |
-| --- | --- | --- |
-| Karte (Chrome) | 66 px | 52 px |
-| Grundzeile | 33 px | 37,8 px |
+|                | gemessen | auf dem Dashboard |
+| -------------- | -------- | ----------------- |
+| Karte (Chrome) | 66 px    | 52 px             |
+| Grundzeile     | 33 px    | 37,8 px           |
 
 Das sind 14 px zu viel einmal je Liste und 4,8 px zu wenig **je Zeile** — bei
 drei Zeilen heben sie sich auf, deshalb sah es lange nach Zufallstreffern aus. Bei
@@ -715,12 +932,12 @@ und `widgetPadding`; `designCanvas` gibt sie als `presentation` mit):
 Der zweite Messpunkt sagt auch, **welche Art Zeile** eine Darstellung zeichnet, und
 das ist der eigentliche Gewinn: eine Zeile ist entweder Text oder ein Bedienelement.
 
-| Darstellung | bei 1 | bei 1.3 | Art |
-| --- | --- | --- | --- |
-| `contact` | 37 px (+4) | 41,8 px (+4) | Text — der Zuschlag bleibt |
-| `momentary` | 41 px (+8) | 45,8 px (+8) | Text |
-| `switch` | 35 px (+2) | 37,8 px (±0) | Element, 35 px hoch |
-| `shutter` | 43 px (+10) | 43 px (+5,3) | Element, 43 px hoch |
+| Darstellung | bei 1       | bei 1.3      | Art                        |
+| ----------- | ----------- | ------------ | -------------------------- |
+| `contact`   | 37 px (+4)  | 41,8 px (+4) | Text — der Zuschlag bleibt |
+| `momentary` | 41 px (+8)  | 45,8 px (+8) | Text                       |
+| `switch`    | 35 px (+2)  | 37,8 px (±0) | Element, 35 px hoch        |
+| `shutter`   | 43 px (+10) | 43 px (+5,3) | Element, 43 px hoch        |
 
 Ein Kontakt-Chip ist eine Textzeile mit etwas Polsterung: seine +4 px sind bei
 jeder Skalierung +4 px. Eine Rollladen-Zeile ist ein Bedienelement von festen
@@ -926,7 +1143,7 @@ Aus der Praxis gemeldet: Ein ganzes Dashboard kam mit hart eingetragenen
 Hex-Werten zurück (`#f59e0b`, `#94a3b8`), weil die Palette nirgends abfragbar
 war. Die Schema-Beschreibungen nennen zwar `var(--accent-green)` und
 `var(--text-secondary)`, aber welche Token es gibt und welche Werte sie in
-*diesem* Dashboard haben, stand nirgends. Ein fester Wert hält genau in dem
+_diesem_ Dashboard haben, stand nirgends. Ein fester Wert hält genau in dem
 Theme, gegen das er geraten wurde — der Nutzer schaltet hell/dunkel.
 
 `tools/schema/gen-theme-tokens.mjs` (`npm run theme-tokens`,
@@ -1267,10 +1484,10 @@ geraten:
 
 Zwei Dinge, die man beim Lesen der Spezifikation nicht sieht:
 
-| | |
-| --- | --- |
+|                                            |                                                                                                                                                      |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `.well-known` steht auch **verschachtelt** | `/mcp/.well-known/openid-configuration` — ein Präfix-Vergleich auf `/.well-known/` fällt darauf herein, deshalb `pathname.includes('/.well-known/')` |
-| Die Suche läuft **ohne** Authorization | Die Sonden tragen keinen Header (`----`), also darf die Absage nicht hinter dem Token-Gate liegen |
+| Die Suche läuft **ohne** Authorization     | Die Sonden tragen keinen Header (`----`), also darf die Absage nicht hinter dem Token-Gate liegen                                                    |
 
 `handleAuthDiscovery()` beantwortet das mit einem JSON-`404` — „hier ist kein
 Autorisierungsserver". Der Client behält daraufhin die Zugangsdaten aus seiner

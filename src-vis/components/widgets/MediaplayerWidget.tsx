@@ -1,5 +1,17 @@
 import { useMemo, useState } from 'react';
-import { Music, Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Volume2, VolumeX, Speaker } from 'lucide-react';
+import {
+    Music,
+    Play,
+    Pause,
+    Square,
+    SkipBack,
+    SkipForward,
+    Shuffle,
+    Repeat,
+    Volume2,
+    VolumeX,
+    Speaker,
+} from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, CustomGrid } from '../../types';
@@ -275,6 +287,10 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     const showRepeat = o.showRepeat !== false && !!o.repeatDp;
     const showPrev = o.showPrev !== false && !!o.prevDp;
     const showNext = o.showNext !== false && !!o.nextDp;
+    // Stop has no default button: the editor has offered stopDp for a long time
+    // and nothing ever read it, so a configured datapoint is the request for the
+    // button. showStop can still switch it off again.
+    const showStop = o.showStop !== false && !!o.stopDp;
     const showVolume = o.showVolume !== false && !!o.volumeDp;
     const showMute = o.showMute !== false && (!!o.muteDp || muteViaVolume);
     const chips = (o.chips as MediaChip[] | undefined) ?? [];
@@ -315,6 +331,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                 extraComponents={{
                     cover: <CoverImage src={coverStr} Icon={showIcon ? WidgetIcon : null} iconSize={iconSize} />,
                     'play-pause': <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />,
+                    stop: <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />,
                     prev: <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />,
                     next: <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />,
                     shuffle: <IconBtn icon={Shuffle} onClick={() => trigger(o.shuffleDp)} />,
@@ -384,6 +401,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     {showShuffle && <IconBtn icon={Shuffle} onClick={() => trigger(o.shuffleDp)} />}
                     {showPrev && <IconBtn icon={SkipBack} size="md" onClick={() => trigger(o.prevDp)} />}
                     <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
+                    {showStop && <IconBtn icon={Square} size="md" onClick={() => trigger(o.stopDp)} />}
                     {showNext && <IconBtn icon={SkipForward} size="md" onClick={() => trigger(o.nextDp)} />}
                     {showRepeat && <IconBtn icon={Repeat} onClick={() => trigger(o.repeatDp)} />}
                 </div>
@@ -472,6 +490,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     <div className="shrink-0 flex items-center gap-0.5">
                         {showPrev && <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />}
                         <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
+                        {showStop && <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />}
                         {showNext && <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />}
                     </div>
 
@@ -558,6 +577,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                         {showShuffle && <IconBtn icon={Shuffle} onClick={() => trigger(o.shuffleDp)} />}
                         {showPrev && <IconBtn icon={SkipBack} onClick={() => trigger(o.prevDp)} />}
                         <PlayPauseBtn playing={isPlaying} onClick={handlePlayPause} />
+                        {showStop && <IconBtn icon={Square} onClick={() => trigger(o.stopDp)} />}
                         {showNext && <IconBtn icon={SkipForward} onClick={() => trigger(o.nextDp)} />}
                         {showRepeat && <IconBtn icon={Repeat} onClick={() => trigger(o.repeatDp)} />}
                     </div>

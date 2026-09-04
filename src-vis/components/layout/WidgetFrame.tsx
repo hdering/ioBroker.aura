@@ -222,6 +222,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
         { key: 'showShuffle', label: 'Shuffle' },
         { key: 'showPrev', label: 'Vorheriger' },
         { key: 'showNext', label: 'Nächster' },
+        { key: 'showStop', label: 'Stop (nur mit Stop-Datenpunkt)' },
         { key: 'showRepeat', label: 'Repeat' },
         { key: 'showVolume', label: 'Lautstärke-Slider' },
         { key: 'showMute', label: 'Mute' },

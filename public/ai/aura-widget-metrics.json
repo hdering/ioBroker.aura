@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-09-03",
+    "measured": "2026-09-04",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -11,6 +11,7 @@
       1,
       1.3
     ],
+    "usablePlotPx": 140,
     "method": "Measured in the real frontend: the height is walked down until the content either scrolls or reaches past the card. 2 px resolution, each type at its default width, at font scale 1 and 1.3 with 16 px widget padding.",
     "caveats": [
       "Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.",
@@ -18,7 +19,11 @@
       "Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.rowTypes as the surcharge per row display, counted.<type>.notIncluded for what is still left out.",
       "A row display (rowTypes) is a delta on ONE row, measured per layout: a contact or a state chip is taller than the measured value row, and a list that mixes displays is summed row by row.",
       "Modifiers are measured one at a time. Several at once are added up, which is an approximation, not a measurement of that combination.",
+      "A variant with counted.<type>.variants.<v>.columns draws its rows in that many columns, so its height grows per ROW OF COLUMNS: aura_measure rounds the item count up to a full row before multiplying. The per-row surcharges are still counted per item, which is an approximation for a mixed list.",
+      "counted.<type>.variants.<v>.modifiers overrides the top-level modifier of the same key for that layout: a factor that changes the ROW changes it differently per layout (the timestamp per entry is +13.5 px a row by default, +21.5 in \"card\", +6.0 in \"compact\" and ±0 in \"minimal\"). A key a variant does not list keeps the top-level number.",
       "A minimum is the point where content starts to be lost, not a recommended size — defaultSize is that.",
+      "A chart never loses content: eCharts and recharts paint into whatever box they get, so \"nothing is cut off\" is satisfied long before the chart is readable. Those types therefore carry a second number, minimum.<type>.usablePx — the height at which the plot surface first reaches 140 px. That is a stated recommendation, not a measured cliff; everything else here is a cliff.",
+      "Every type is measured WITH content in it (OPTIONS_FOR). A type measured empty reports the height of its empty state, which is what chips, chart and echart used to do.",
       "Every number is measured at font scale 1 with 16 px widget padding (the reference above). aura_measure corrects for the dashboard it is asked about: the padding exactly (2 px of chrome per px of padding), the font scale from fontScalePx/addPx, which is exact at the two measured scales and an interpolation between and beyond them."
     ]
   },
@@ -163,12 +168,59 @@
               "addPx": -38,
               "fontScalePx": 0
             }
-          }
+          },
+          "modifiers": [
+            {
+              "key": "subDps",
+              "label": "zweite Zeile je Eintrag (subDps)",
+              "when": {
+                "path": "entries[].subDps",
+                "nonEmpty": true
+              },
+              "notForVariants": [
+                "minimal"
+              ],
+              "basePx": 0,
+              "perItemPx": 19
+            },
+            {
+              "key": "lastChangePerEntry",
+              "label": "Zeitstempel je Eintrag (entries[].showLastChange)",
+              "when": {
+                "path": "entries[].showLastChange",
+                "equals": true
+              },
+              "basePx": 0,
+              "perItemPx": 21.3,
+              "fontScalePx": {
+                "basePx": 0,
+                "perItemPx": 14.7
+              }
+            },
+            {
+              "key": "lastChangeList",
+              "label": "Zeitstempel je Zeile (showEntryLastChange)",
+              "when": {
+                "path": "showEntryLastChange",
+                "equals": true
+              },
+              "notForTypes": [
+                "list"
+              ],
+              "basePx": 0,
+              "perItemPx": 21.3,
+              "fontScalePx": {
+                "basePx": 0,
+                "perItemPx": 14.7
+              }
+            }
+          ]
         },
         "compact": {
           "label": "Layout \"compact\"",
           "basePx": 67,
           "perItemPx": 14.7,
+          "columns": 2,
           "fontScalePx": {
             "basePx": -6.7,
             "perItemPx": 8.7
@@ -274,7 +326,49 @@
               "addPx": 28.7,
               "fontScalePx": 10.9
             }
-          }
+          },
+          "modifiers": [
+            {
+              "key": "subDps",
+              "label": "zweite Zeile je Eintrag (subDps)",
+              "when": {
+                "path": "entries[].subDps",
+                "nonEmpty": true
+              },
+              "notForVariants": [
+                "minimal"
+              ],
+              "basePx": 0,
+              "perItemPx": 7.6,
+              "fontScalePx": {
+                "basePx": 10,
+                "perItemPx": 0
+              }
+            },
+            {
+              "key": "lastChangePerEntry",
+              "label": "Zeitstempel je Eintrag (entries[].showLastChange)",
+              "when": {
+                "path": "entries[].showLastChange",
+                "equals": true
+              },
+              "basePx": 0,
+              "perItemPx": 6
+            },
+            {
+              "key": "lastChangeList",
+              "label": "Zeitstempel je Zeile (showEntryLastChange)",
+              "when": {
+                "path": "showEntryLastChange",
+                "equals": true
+              },
+              "notForTypes": [
+                "list"
+              ],
+              "basePx": 0,
+              "perItemPx": 6
+            }
+          ]
         },
         "minimal": {
           "label": "Layout \"minimal\"",
@@ -307,7 +401,32 @@
               "addPx": -2.7,
               "fontScalePx": 0
             }
-          }
+          },
+          "modifiers": [
+            {
+              "key": "lastChangePerEntry",
+              "label": "Zeitstempel je Eintrag (entries[].showLastChange)",
+              "when": {
+                "path": "entries[].showLastChange",
+                "equals": true
+              },
+              "basePx": 0,
+              "perItemPx": 0
+            },
+            {
+              "key": "lastChangeList",
+              "label": "Zeitstempel je Zeile (showEntryLastChange)",
+              "when": {
+                "path": "showEntryLastChange",
+                "equals": true
+              },
+              "notForTypes": [
+                "list"
+              ],
+              "basePx": 0,
+              "perItemPx": 0
+            }
+          ]
         }
       },
       "modifiers": [
@@ -515,7 +634,7 @@
       "notIncluded": [
         "Darstellung „Auto“ folgt der Rolle des Datenpunkts — gemessen ist die Wert-Zeile",
         "Filterzeile mit sichtbaren Filtern und Suchfeld",
-        "Raum-Überschriften (groupByRoom)",
+        "Raum-Überschriften (groupByRoom) und der Raum je Zeile (showRoom): beide brauchen die Raum-Aufzählungen aus ioBroker, die es beim Messen nicht gibt. Aus dem Betrieb gemeldet: mit showRoom wird die Zeile deutlich höher (statt einer Zeile Text stehen zwei da) — dafür reichlich Reserve geben",
         "Trennzeilen im Layout „compact“: sie unterbrechen zusätzlich den zweispaltigen Fluss, der gemessene Aufschlag ist ein Mittelwert",
         "eine Trennzeile ganz oben ist 8 px niedriger als eine zwischen zwei Zeilen (gemessen wird die zwischen zwei Zeilen)",
         "umbrochene Beschriftungen (wrapText) und mehrzeilige Titel",
@@ -560,15 +679,29 @@
       "fontScalePx": 33.3,
       "atWidthPx": 80
     },
+    "carousel": {
+      "minPx": 96,
+      "minRowsDefaultGrid": 4,
+      "notIncluded": [
+        "gemessen mit vier Einträgen. Das Karussell rollt waagerecht, die Höhe hängt nicht an der Anzahl"
+      ],
+      "fontScalePx": 6.7,
+      "atWidthPx": 120
+    },
     "chart": {
-      "minPx": 52,
-      "minRowsDefaultGrid": 3,
-      "fontScalePx": 13.3,
+      "minPx": 146,
+      "minRowsDefaultGrid": 6,
+      "usablePx": 244,
+      "usableRowsDefaultGrid": 9,
+      "fontScalePx": 46.7,
       "atWidthPx": 240
     },
     "chips": {
-      "minPx": 44,
-      "minRowsDefaultGrid": 2,
+      "minPx": 78,
+      "minRowsDefaultGrid": 3,
+      "notIncluded": [
+        "gemessen mit vier Chips in einer Reihe. Mehr Chips als in eine Reihe passen brechen um (wrapCols)"
+      ],
       "atWidthPx": 200
     },
     "climate": {
@@ -596,10 +729,22 @@
       "atWidthPx": 200
     },
     "echart": {
-      "minPx": 52,
+      "minPx": 58,
       "minRowsDefaultGrid": 3,
-      "fontScalePx": 6.7,
+      "usablePx": 222,
+      "usableRowsDefaultGrid": 8,
+      "fontScalePx": 20,
       "atWidthPx": 240
+    },
+    "energiebilanz": {
+      "minPx": 224,
+      "minRowsDefaultGrid": 8,
+      "notIncluded": [
+        "gemessen mit EINEM Balken aus zwei Einträgen. Die Balken werden in die Karte eingepasst, nicht gestapelt (gemessen 1→224, 2→288, 4→306 px) — für mehrere Balken die Höhe am Ergebnis prüfen",
+        "Zeitbereichs-Umschalter (visibleRanges) und eine umbrechende Legende kommen oben drauf"
+      ],
+      "fontScalePx": 20,
+      "atWidthPx": 160
     },
     "enum": {
       "minPx": 74,
@@ -658,6 +803,15 @@
       "minRowsDefaultGrid": 7,
       "fontScalePx": 66.7,
       "atWidthPx": 200
+    },
+    "mediaplayer": {
+      "minPx": 142,
+      "minRowsDefaultGrid": 6,
+      "notIncluded": [
+        "gemessen mit Titel, Interpret, Abspielzustand, Lautstärke und den vier Tasten. Cover, Chips und die Fortschrittsleiste ändern die Höhe"
+      ],
+      "fontScalePx": 66.7,
+      "atWidthPx": 280
     },
     "shutter": {
       "minPx": 120,
@@ -725,12 +879,9 @@
     "timer": "Zeilen entstehen erst zur Laufzeit",
     "alarm": "Zeilen entstehen erst zur Laufzeit",
     "aircontrol": "Inhalt folgt den Datenpunkten der Klimaanlage",
-    "mediaplayer": "Inhalt folgt den Datenpunkten des Players",
     "loadtimes": "Zeilen entstehen erst zur Laufzeit",
-    "carousel": "Inhalt sind andere Widgets",
     "menu": "Höhe folgt den Menüeinträgen des Dashboards",
     "html": "freies HTML",
-    "energiebilanz": "Höhe folgt der Konfiguration — Balken oder Ringe, Einträge, Legende",
     "adapterstatus": "Zeilen entstehen erst zur Laufzeit"
   }
 }
