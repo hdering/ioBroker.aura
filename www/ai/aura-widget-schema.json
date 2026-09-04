@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.53.3",
+    "auraVersion": "0.53.5",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -9880,20 +9880,27 @@
           "datapoint": true
         },
         "muteViaVolume": {
-          "type": "boolean",
+          "type": [
+            "boolean",
+            "string"
+          ],
           "default": false,
-          "description": "Stummschalten, indem die Lautstärke auf 0 gesetzt wird."
+          "description": "Stummschalten, indem die Lautstärke auf 0 gesetzt wird — für Geräte ohne schreibbaren Mute-Datenpunkt (Alexa). Neu immer als echter Boolean true; die Geräteerkennung hat früher den String \"true\" geschrieben, deshalb ist beides erlaubt."
         },
         "nextDp": {
-          "type": "boolean",
-          "default": false,
-          "description": "Datenpunkt für nächster Titel."
+          "type": "string",
+          "description": "Datenpunkt für nächster Titel.",
+          "datapoint": true
         },
         "pauseDp": {
-          "description": "Datenpunkt für Pause."
+          "description": "Datenpunkt für Pause.",
+          "type": "string",
+          "datapoint": true
         },
         "playDp": {
-          "description": "Datenpunkt für Wiedergabe starten."
+          "description": "Datenpunkt für Wiedergabe starten.",
+          "type": "string",
+          "datapoint": true
         },
         "playStateDp": {
           "type": "string",
@@ -9905,14 +9912,14 @@
           "description": "Wert von playStateDp, der \"spielt\" bedeutet."
         },
         "prevDp": {
-          "type": "boolean",
-          "default": false,
-          "description": "Datenpunkt für vorheriger Titel."
+          "type": "string",
+          "description": "Datenpunkt für vorheriger Titel.",
+          "datapoint": true
         },
         "repeatDp": {
-          "type": "boolean",
-          "default": false,
-          "description": "Datenpunkt für Wiederholung."
+          "type": "string",
+          "description": "Datenpunkt für Wiederholung.",
+          "datapoint": true
         },
         "showChips": {
           "type": "boolean",
@@ -9946,6 +9953,11 @@
           "type": "boolean",
           "default": true
         },
+        "showStop": {
+          "type": "boolean",
+          "default": true,
+          "description": "Stop-Taste anzeigen (greift nur, wenn stopDp gesetzt ist)."
+        },
         "showSubtitle": {
           "type": "boolean",
           "default": true,
@@ -9956,14 +9968,19 @@
           "default": true
         },
         "shuffleDp": {
-          "type": "boolean",
-          "default": false,
-          "description": "Datenpunkt für Zufallswiedergabe."
+          "type": "string",
+          "description": "Datenpunkt für Zufallswiedergabe.",
+          "datapoint": true
         },
         "sourceDp": {
           "type": "string",
           "default": "",
           "description": "Datenpunkt der Quelle/des Geräts.",
+          "datapoint": true
+        },
+        "stopDp": {
+          "type": "string",
+          "description": "Datenpunkt, der die Wiedergabe stoppt. Gesetzt zeigt das Widget eine Stop-Taste neben Play/Pause; showStop schaltet sie wieder ab.",
           "datapoint": true
         },
         "titleDp": {
