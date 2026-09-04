@@ -10,6 +10,8 @@ import {
     Check,
     AlertTriangle,
     CheckCircle2,
+    ChevronDown,
+    ChevronRight,
     RefreshCw,
     Trash2,
     Bot,
@@ -19,9 +21,16 @@ import { useState } from 'react';
 import { useT } from '../../i18n';
 import { copyToClipboard } from '../../utils/clipboard';
 import { useTimerOrphans, type OrphanItem } from '../../hooks/useTimerOrphans';
-import { useBrokenDpRefs } from '../../hooks/useBrokenDpRefs';
+import { useBrokenDpRefs, type BrokenRef } from '../../hooks/useBrokenDpRefs';
+import { useMcpStatus } from '../../hooks/useMcpStatus';
+import { ConfigModal } from '../../components/config/ConfigModal';
 import { Link } from 'react-router-dom';
 import { NS } from '../../utils/namespace';
+
+/** Rows a health list shows inline; everything beyond moves into its dialog.
+ *  Keeps the overview the same height no matter how damaged the installation
+ *  is — otherwise the cards below (MCP guide, stats) get pushed off screen. */
+const PREVIEW_ROWS = 5;
 
 function StatCard({
     label,
@@ -76,10 +85,56 @@ function CopyButton({ text }: { text: string }) {
     );
 }
 
-function OrphanRow({ label, ns, items }: { label: string; ns: 'timers' | 'lists' | 'panels'; items: OrphanItem[] }) {
-    const clean = items.length === 0;
+/** Small secondary button — refresh, "show all", dialog actions. */
+function GhostButton({
+    onClick,
+    disabled,
+    title,
+    testId,
+    children,
+}: {
+    onClick: () => void;
+    disabled?: boolean;
+    title?: string;
+    testId?: string;
+    children: React.ReactNode;
+}) {
     return (
-        <div className="space-y-1.5">
+        <button
+            onClick={onClick}
+            disabled={disabled}
+            title={title}
+            data-aura-action={testId}
+            className="flex items-center gap-1.5 px-2.5 h-7 text-xs rounded-lg hover:opacity-80 disabled:opacity-50"
+            style={{
+                background: 'var(--app-bg)',
+                color: 'var(--text-secondary)',
+                border: '1px solid var(--app-border)',
+            }}
+        >
+            {children}
+        </button>
+    );
+}
+
+function OrphanRow({
+    label,
+    ns,
+    items,
+    limit,
+}: {
+    label: string;
+    ns: 'timers' | 'lists' | 'panels';
+    items: OrphanItem[];
+    /** Caps the inline list. Omitted = show everything (dialog). */
+    limit?: number;
+}) {
+    const t = useT();
+    const clean = items.length === 0;
+    const shown = limit ? items.slice(0, limit) : items;
+    const hidden = items.length - shown.length;
+    return (
+        <div className="space-y-1.5" data-aura-orphan-row={ns}>
             <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-primary)' }}>
                 <span
                     className="inline-flex items-center justify-center text-[10px] font-bold rounded-full w-5 h-5"
@@ -94,13 +149,17 @@ function OrphanRow({ label, ns, items }: { label: string; ns: 'timers' | 'lists'
                 </span>
                 <span>{label}</span>
             </div>
-            {items.length > 0 && (
+            {shown.length > 0 && (
                 <ul
-                    className="aura-scroll text-xs max-h-32 overflow-y-auto space-y-0.5 px-3 py-1.5 rounded-lg ml-7"
+                    className={
+                        limit
+                            ? 'text-xs space-y-0.5 px-3 py-1.5 rounded-lg ml-7'
+                            : 'aura-scroll text-xs max-h-64 overflow-y-auto space-y-0.5 px-3 py-1.5 rounded-lg ml-7'
+                    }
                     style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
                 >
-                    {items.map((it) => (
-                        <li key={it.id} className="font-mono flex items-baseline gap-2">
+                    {shown.map((it) => (
+                        <li key={it.id} className="font-mono flex items-baseline gap-2" data-aura-orphan-item>
                             <span>
                                 {NS}.{ns}.{it.id}
                             </span>
@@ -111,6 +170,11 @@ function OrphanRow({ label, ns, items }: { label: string; ns: 'timers' | 'lists'
                             )}
                         </li>
                     ))}
+                    {hidden > 0 && (
+                        <li className="italic" style={{ opacity: 0.7 }} data-aura-orphan-more>
+                            {t('dashboard.orphans.more', { count: hidden })}
+                        </li>
+                    )}
                 </ul>
             )}
         </div>
@@ -122,10 +186,13 @@ function TimerOrphansSection() {
     const { timer, list, panel, loading, refresh, cleanup } = useTimerOrphans();
     const [busy, setBusy] = useState(false);
     const [confirm, setConfirm] = useState(false);
+    const [showAll, setShowAll] = useState(false);
 
     const total = timer.length + list.length + panel.length;
     const clean = total === 0;
     const accent = clean ? 'var(--accent-green)' : 'var(--accent-yellow)';
+    const truncated =
+        timer.length + list.length + panel.length > 0 && [timer, list, panel].some((g) => g.length > PREVIEW_ROWS);
 
     const handleCleanup = async () => {
         setBusy(true);
@@ -137,10 +204,19 @@ function TimerOrphansSection() {
         }
     };
 
+    const rows = (limit?: number) => (
+        <div className="space-y-3 pt-1">
+            <OrphanRow label={t('dashboard.orphans.timerLabel')} ns="timers" items={timer} limit={limit} />
+            <OrphanRow label={t('dashboard.orphans.listLabel')} ns="lists" items={list} limit={limit} />
+            <OrphanRow label={t('dashboard.orphans.panelLabel')} ns="panels" items={panel} limit={limit} />
+        </div>
+    );
+
     return (
         <div
             className="rounded-xl p-5 space-y-3"
             style={{ background: 'var(--app-surface)', border: `1px solid ${accent}` }}
+            data-aura-health="orphans"
         >
             <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
@@ -154,20 +230,19 @@ function TimerOrphansSection() {
                     </h2>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button
+                    <GhostButton
                         onClick={() => void refresh()}
                         disabled={loading || busy}
-                        className="flex items-center gap-1.5 px-2.5 h-7 text-xs rounded-lg hover:opacity-80 disabled:opacity-50"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-secondary)',
-                            border: '1px solid var(--app-border)',
-                        }}
                         title={t('dashboard.orphans.refresh')}
                     >
                         <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
                         {t('dashboard.orphans.refresh')}
-                    </button>
+                    </GhostButton>
+                    {truncated && (
+                        <GhostButton onClick={() => setShowAll(true)} testId="orphans-show-all">
+                            {t('dashboard.orphans.showAll', { count: total })}
+                        </GhostButton>
+                    )}
                     {!clean &&
                         (confirm ? (
                             <>
@@ -180,18 +255,9 @@ function TimerOrphansSection() {
                                     <Trash2 size={12} />
                                     {t('common.confirm')}
                                 </button>
-                                <button
-                                    onClick={() => setConfirm(false)}
-                                    disabled={busy}
-                                    className="px-2.5 h-7 text-xs rounded-lg hover:opacity-80 disabled:opacity-50"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-secondary)',
-                                        border: '1px solid var(--app-border)',
-                                    }}
-                                >
+                                <GhostButton onClick={() => setConfirm(false)} disabled={busy}>
                                     {t('common.cancel')}
-                                </button>
+                                </GhostButton>
                             </>
                         ) : (
                             <button
@@ -208,25 +274,82 @@ function TimerOrphansSection() {
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                 {clean ? t('dashboard.orphans.hintClean') : t('dashboard.orphans.hint')}
             </p>
-            <div className="space-y-3 pt-1">
-                <OrphanRow label={t('dashboard.orphans.timerLabel')} ns="timers" items={timer} />
-                <OrphanRow label={t('dashboard.orphans.listLabel')} ns="lists" items={list} />
-                <OrphanRow label={t('dashboard.orphans.panelLabel')} ns="panels" items={panel} />
-            </div>
+            {rows(PREVIEW_ROWS)}
+            {showAll && (
+                <ConfigModal
+                    title={t('dashboard.orphans.allTitle', { count: total })}
+                    maxWidth={720}
+                    maxHeight={640}
+                    padded
+                    onClose={() => setShowAll(false)}
+                >
+                    {rows()}
+                </ConfigModal>
+            )}
         </div>
+    );
+}
+
+function BrokenDpTable({ rows }: { rows: BrokenRef[] }) {
+    const t = useT();
+    return (
+        <table className="w-full text-xs">
+            <thead>
+                <tr style={{ color: 'var(--text-secondary)' }}>
+                    <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colWidget')}</th>
+                    <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colLocation')}</th>
+                    <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colField')}</th>
+                    <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colDp')}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {rows.map((ref, i) => (
+                    <tr
+                        key={`${ref.widgetId}-${ref.field}-${i}`}
+                        style={{ color: 'var(--text-primary)', borderTop: '1px solid var(--app-border)' }}
+                        data-aura-broken-row
+                    >
+                        <td className="px-3 py-1.5">
+                            {ref.routeTo ? (
+                                <Link to={ref.routeTo} className="hover:underline" style={{ color: 'var(--accent)' }}>
+                                    <span className="font-medium">{ref.widgetTitle}</span>
+                                </Link>
+                            ) : (
+                                <span className="font-medium">{ref.widgetTitle}</span>
+                            )}
+                            <span className="ml-1.5" style={{ color: 'var(--text-secondary)' }}>
+                                · {ref.widgetType}
+                            </span>
+                        </td>
+                        <td className="px-3 py-1.5" style={{ color: 'var(--text-secondary)' }}>
+                            {ref.location}
+                        </td>
+                        <td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-secondary)' }}>
+                            {ref.field}
+                        </td>
+                        <td className="px-3 py-1.5 font-mono" style={{ color: 'var(--accent-red)' }}>
+                            {ref.dp}
+                        </td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
     );
 }
 
 function BrokenDpRefsSection() {
     const t = useT();
     const { broken, loading, refresh } = useBrokenDpRefs();
+    const [showAll, setShowAll] = useState(false);
     const clean = broken.length === 0;
     const accent = clean ? 'var(--accent-green)' : 'var(--accent-yellow)';
+    const hidden = broken.length - PREVIEW_ROWS;
 
     return (
         <div
             className="rounded-xl p-5 space-y-3"
             style={{ background: 'var(--app-surface)', border: `1px solid ${accent}` }}
+            data-aura-health="broken"
         >
             <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
@@ -241,79 +364,51 @@ function BrokenDpRefsSection() {
                             : t('dashboard.brokenDps.title', { count: broken.length })}
                     </h2>
                 </div>
-                <button
-                    onClick={() => void refresh()}
-                    disabled={loading}
-                    className="flex items-center gap-1.5 px-2.5 h-7 text-xs rounded-lg hover:opacity-80 disabled:opacity-50"
-                    style={{
-                        background: 'var(--app-bg)',
-                        color: 'var(--text-secondary)',
-                        border: '1px solid var(--app-border)',
-                    }}
-                >
-                    <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-                    {t('dashboard.orphans.refresh')}
-                </button>
+                <div className="flex items-center gap-2">
+                    <GhostButton onClick={() => void refresh()} disabled={loading}>
+                        <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
+                        {t('dashboard.orphans.refresh')}
+                    </GhostButton>
+                    {hidden > 0 && (
+                        <GhostButton onClick={() => setShowAll(true)} testId="broken-show-all">
+                            {t('dashboard.brokenDps.showAll', { count: broken.length })}
+                        </GhostButton>
+                    )}
+                </div>
             </div>
             <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                 {clean ? t('dashboard.brokenDps.hintClean') : t('dashboard.brokenDps.hint')}
             </p>
             {!clean && (
-                <div
-                    className="aura-scroll max-h-64 overflow-y-auto rounded-lg"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                <>
+                    <div
+                        className="rounded-lg overflow-hidden"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    >
+                        <BrokenDpTable rows={broken.slice(0, PREVIEW_ROWS)} />
+                    </div>
+                    {hidden > 0 && (
+                        <p className="text-xs italic" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            {t('dashboard.orphans.more', { count: hidden })}
+                        </p>
+                    )}
+                </>
+            )}
+            {showAll && (
+                <ConfigModal
+                    title={t('dashboard.brokenDps.allTitle', { count: broken.length })}
+                    maxWidth={900}
+                    maxHeight={640}
+                    padded
+                    onClose={() => setShowAll(false)}
                 >
-                    <table className="w-full text-xs">
-                        <thead>
-                            <tr style={{ color: 'var(--text-secondary)' }}>
-                                <th className="text-left font-medium px-3 py-1.5">
-                                    {t('dashboard.brokenDps.colWidget')}
-                                </th>
-                                <th className="text-left font-medium px-3 py-1.5">
-                                    {t('dashboard.brokenDps.colLocation')}
-                                </th>
-                                <th className="text-left font-medium px-3 py-1.5">
-                                    {t('dashboard.brokenDps.colField')}
-                                </th>
-                                <th className="text-left font-medium px-3 py-1.5">{t('dashboard.brokenDps.colDp')}</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {broken.map((ref, i) => (
-                                <tr
-                                    key={`${ref.widgetId}-${ref.field}-${i}`}
-                                    style={{ color: 'var(--text-primary)', borderTop: '1px solid var(--app-border)' }}
-                                >
-                                    <td className="px-3 py-1.5">
-                                        {ref.routeTo ? (
-                                            <Link
-                                                to={ref.routeTo}
-                                                className="hover:underline"
-                                                style={{ color: 'var(--accent)' }}
-                                            >
-                                                <span className="font-medium">{ref.widgetTitle}</span>
-                                            </Link>
-                                        ) : (
-                                            <span className="font-medium">{ref.widgetTitle}</span>
-                                        )}
-                                        <span className="ml-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                            · {ref.widgetType}
-                                        </span>
-                                    </td>
-                                    <td className="px-3 py-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                        {ref.location}
-                                    </td>
-                                    <td className="px-3 py-1.5 font-mono" style={{ color: 'var(--text-secondary)' }}>
-                                        {ref.field}
-                                    </td>
-                                    <td className="px-3 py-1.5 font-mono" style={{ color: 'var(--accent-red)' }}>
-                                        {ref.dp}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                    <div
+                        className="aura-scroll max-h-[70vh] overflow-y-auto rounded-lg"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    >
+                        <BrokenDpTable rows={broken} />
+                    </div>
+                </ConfigModal>
             )}
         </div>
     );
@@ -321,6 +416,14 @@ function BrokenDpRefsSection() {
 
 function McpSection() {
     const t = useT();
+    const { enabled, mode } = useMcpStatus();
+    const [expanded, setExpanded] = useState(false);
+
+    // Until the instance config answered we do not know whether MCP is set up —
+    // rendering nothing beats a full guide card that collapses a moment later.
+    if (enabled === null) return null;
+
+    const guideVisible = !enabled || expanded;
     const steps = [
         t('dashboard.mcp.step1'),
         t('dashboard.mcp.step2'),
@@ -328,15 +431,34 @@ function McpSection() {
         t('dashboard.mcp.step4'),
     ];
 
+    const docsLink = (
+        <a
+            href="https://hdering.github.io/ioBroker.aura/einstellungen/mcp"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs hover:underline"
+            style={{ color: 'var(--accent)' }}
+        >
+            {t('dashboard.mcp.docs')}
+            <ExternalLink size={12} />
+        </a>
+    );
+
     return (
         <div
             className="rounded-xl p-5 space-y-3"
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+            data-aura-mcp-card
+            data-aura-mcp-state={enabled ? 'active' : 'setup'}
         >
-            <div className="flex items-center gap-2">
-                <Bot size={16} style={{ color: 'var(--accent)' }} />
+            <div className="flex items-center gap-2 flex-wrap">
+                {enabled ? (
+                    <CheckCircle2 size={16} style={{ color: 'var(--accent-green)' }} />
+                ) : (
+                    <Bot size={16} style={{ color: 'var(--accent)' }} />
+                )}
                 <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
-                    {t('dashboard.mcp.title')}
+                    {enabled ? t('dashboard.mcp.titleActive') : t('dashboard.mcp.title')}
                 </h2>
                 <span
                     className="text-[10px] font-bold px-1.5 py-0.5 rounded"
@@ -347,49 +469,69 @@ function McpSection() {
                 >
                     {t('dashboard.mcp.badge')}
                 </span>
+                {enabled && (
+                    <span
+                        className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+                        style={{
+                            background: 'color-mix(in srgb, var(--accent) 18%, transparent)',
+                            color: 'var(--accent)',
+                        }}
+                        data-aura-mcp-mode={mode}
+                    >
+                        {t(`dashboard.mcp.mode.${mode}`)}
+                    </span>
+                )}
+                {enabled && (
+                    <div className="ml-auto flex items-center gap-3">
+                        {!expanded && docsLink}
+                        <GhostButton onClick={() => setExpanded((v) => !v)} testId="mcp-toggle-guide">
+                            {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+                            {expanded ? t('dashboard.mcp.hideGuide') : t('dashboard.mcp.showGuide')}
+                        </GhostButton>
+                    </div>
+                )}
             </div>
 
-            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                {t('dashboard.mcp.description')}
-            </p>
+            {guideVisible && (
+                <>
+                    <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        {t('dashboard.mcp.description')}
+                    </p>
 
-            <ol className="space-y-1.5">
-                {steps.map((step, i) => (
-                    <li key={i} className="flex items-baseline gap-2 text-xs" style={{ color: 'var(--text-primary)' }}>
-                        <span
-                            className="inline-flex items-center justify-center shrink-0 text-[10px] font-bold rounded-full w-5 h-5"
-                            style={{
-                                background: 'color-mix(in srgb, var(--accent) 18%, transparent)',
-                                color: 'var(--accent)',
-                            }}
-                        >
-                            {i + 1}
-                        </span>
-                        <span>{step}</span>
-                    </li>
-                ))}
-            </ol>
+                    <ol className="space-y-1.5" data-aura-mcp-steps>
+                        {steps.map((step, i) => (
+                            <li
+                                key={i}
+                                className="flex items-baseline gap-2 text-xs"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                <span
+                                    className="inline-flex items-center justify-center shrink-0 text-[10px] font-bold rounded-full w-5 h-5"
+                                    style={{
+                                        background: 'color-mix(in srgb, var(--accent) 18%, transparent)',
+                                        color: 'var(--accent)',
+                                    }}
+                                >
+                                    {i + 1}
+                                </span>
+                                <span>{step}</span>
+                            </li>
+                        ))}
+                    </ol>
 
-            <p
-                className="text-xs px-3 py-2 rounded-lg"
-                style={{
-                    background: 'color-mix(in srgb, var(--accent-yellow) 12%, transparent)',
-                    color: 'var(--text-secondary)',
-                }}
-            >
-                {t('dashboard.mcp.warning', { ns: NS })}
-            </p>
+                    <p
+                        className="text-xs px-3 py-2 rounded-lg"
+                        style={{
+                            background: 'color-mix(in srgb, var(--accent-yellow) 12%, transparent)',
+                            color: 'var(--text-secondary)',
+                        }}
+                    >
+                        {t('dashboard.mcp.warning', { ns: NS })}
+                    </p>
 
-            <a
-                href="https://hdering.github.io/ioBroker.aura/einstellungen/mcp"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs hover:underline"
-                style={{ color: 'var(--accent)' }}
-            >
-                {t('dashboard.mcp.docs')}
-                <ExternalLink size={12} />
-            </a>
+                    {docsLink}
+                </>
+            )}
         </div>
     );
 }
@@ -413,9 +555,12 @@ export function AdminDashboard() {
                 </p>
             </div>
 
+            {/* Onboarding before status: the health cards below grow with the damage,
+                so anything placed after them can be pushed off screen entirely. */}
+            <McpSection />
+
             <TimerOrphansSection />
             <BrokenDpRefsSection />
-            <McpSection />
 
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

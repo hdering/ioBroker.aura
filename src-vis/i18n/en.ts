@@ -334,6 +334,13 @@ export const en: Record<TranslationKey, string> = {
     'dashboard.mcp.warning':
         'The assistant changes your dashboard. Before every write Aura backs up to {ns}.backups. Start with the "read only" level.',
     'dashboard.mcp.docs': 'All steps in the documentation',
+    'dashboard.mcp.titleActive': 'AI access active (MCP)',
+    'dashboard.mcp.mode.read': 'Read only',
+    'dashboard.mcp.mode.write': 'Read & write',
+    'dashboard.mcp.mode.rename': 'Write & rename',
+    'dashboard.mcp.mode.delete': 'Write, rename & delete',
+    'dashboard.mcp.showGuide': 'Setup guide',
+    'dashboard.mcp.hideGuide': 'Hide guide',
 
     'dashboard.nav.title': 'Tablet Navigation via ioBroker',
     'dashboard.nav.description':
@@ -354,6 +361,9 @@ export const en: Record<TranslationKey, string> = {
     'dashboard.orphans.panelLabel': 'Panels DPs without a widget',
     'dashboard.orphans.refresh': 'Refresh',
     'dashboard.orphans.cleanup': 'Clean up',
+    'dashboard.orphans.showAll': 'Show all {count}',
+    'dashboard.orphans.more': '… and {count} more',
+    'dashboard.orphans.allTitle': 'Orphaned DPs in ioBroker ({count})',
 
     'dashboard.brokenDps.title': '{count} widget reference(s) to missing DPs',
     'dashboard.brokenDps.titleClean': 'All widget DP references are valid',
@@ -364,6 +374,8 @@ export const en: Record<TranslationKey, string> = {
     'dashboard.brokenDps.colLocation': 'Location',
     'dashboard.brokenDps.colField': 'Field',
     'dashboard.brokenDps.colDp': 'Datapoint',
+    'dashboard.brokenDps.showAll': 'Show all {count}',
+    'dashboard.brokenDps.allTitle': 'Widget references to missing DPs ({count})',
 
     // ── Layouts ───────────────────────────────────────────────────────────────────
     'layouts.title': 'Layouts',

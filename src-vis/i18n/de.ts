@@ -333,6 +333,13 @@ export const de = {
     'dashboard.mcp.warning':
         'Der Assistent verändert dein Dashboard. Vor jedem Schreibvorgang sichert Aura nach {ns}.backups. Mit der Stufe „Nur lesen“ anfangen.',
     'dashboard.mcp.docs': 'Alle Schritte in der Dokumentation',
+    'dashboard.mcp.titleActive': 'KI-Zugriff aktiv (MCP)',
+    'dashboard.mcp.mode.read': 'Nur lesen',
+    'dashboard.mcp.mode.write': 'Lesen & schreiben',
+    'dashboard.mcp.mode.rename': 'Schreiben & umbenennen',
+    'dashboard.mcp.mode.delete': 'Schreiben, umbenennen & löschen',
+    'dashboard.mcp.showGuide': 'Anleitung',
+    'dashboard.mcp.hideGuide': 'Anleitung ausblenden',
 
     'dashboard.nav.title': 'Tablet-Navigation via ioBroker',
     'dashboard.nav.description':
@@ -354,6 +361,9 @@ export const de = {
     'dashboard.orphans.panelLabel': 'Panels-DPs ohne Widget',
     'dashboard.orphans.refresh': 'Aktualisieren',
     'dashboard.orphans.cleanup': 'Aufräumen',
+    'dashboard.orphans.showAll': 'Alle {count} anzeigen',
+    'dashboard.orphans.more': '… und {count} weitere',
+    'dashboard.orphans.allTitle': 'Verwaiste DPs in ioBroker ({count})',
 
     'dashboard.brokenDps.title': '{count} Widget-Referenz(en) auf fehlende DPs',
     'dashboard.brokenDps.titleClean': 'Alle Widget-DP-Referenzen sind gültig',
@@ -364,6 +374,8 @@ export const de = {
     'dashboard.brokenDps.colLocation': 'Ort',
     'dashboard.brokenDps.colField': 'Feld',
     'dashboard.brokenDps.colDp': 'Datenpunkt',
+    'dashboard.brokenDps.showAll': 'Alle {count} anzeigen',
+    'dashboard.brokenDps.allTitle': 'Widget-Referenzen auf fehlende DPs ({count})',
 
     // ── Layouts ───────────────────────────────────────────────────────────────────
     'layouts.title': 'Layouts',

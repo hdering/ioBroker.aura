@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useGroupDefsStore } from '../store/groupDefsStore';
 import { usePopupConfigStore } from '../store/popupConfigStore';
-import { isDirty, subscribeDirty, isScreenshotMode } from '../store/persistManager';
+import { isDirty, subscribeDirty } from '../store/persistManager';
+import { healthChecksSuppressed } from './healthChecks';
 import { sendToDirect } from './useIoBroker';
 import { NS } from '../utils/namespace';
 import { baseDpId } from '../utils/dpRef';
@@ -147,7 +148,7 @@ export function useBrokenDpRefs(): BrokenDpRefsState {
     const [loading, setLoading] = useState(false);
 
     const refresh = useCallback(async () => {
-        if (isScreenshotMode()) {
+        if (healthChecksSuppressed()) {
             setBroken([]);
             return;
         }

@@ -39,6 +39,7 @@ import {
 } from '../store/popupConfigStore';
 import { __devForceDpTriggers } from '../components/widgets/popup/DpPopupTriggers';
 import { __devForceConditionRefresh, __devForceConditionNotify } from '../hooks/useConditionStyle';
+import { __devForceHealthChecks } from '../hooks/healthChecks';
 import {
     useMessagesStore,
     __devForceMessages,
@@ -318,6 +319,14 @@ function installScreenshotApi(): void {
         dpTriggers(triggers: PopupTrigger[] | false): void {
             __devForceDpTriggers(triggers !== false);
             withSuppressedDirty(() => usePopupConfigStore.setState({ triggers: triggers === false ? [] : triggers }));
+        },
+
+        /** Run the overview's health checks (orphaned DPs, widget references to
+         *  missing DPs) even in screenshot mode. Off by default so a shot never
+         *  shows what the demo instance happens to be missing; set the flag
+         *  before the overview mounts, the hooks read it once per refresh. */
+        healthChecks(on = true): void {
+            __devForceHealthChecks(on);
         },
 
         /** Arm condition rules with "reload widget". Off in screenshot mode by
