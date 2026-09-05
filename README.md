@@ -115,6 +115,15 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.54.0 (2026-09-05)
+- Mediaplayer - a stop datapoint now works: a stop button appears next to play/pause when one is configured
+- Mediaplayer - players found by device detection (Alexa, Sonos, Spotify, Kodi) can be edited through AI access again; their next/previous/shuffle/repeat datapoints were declared as switches and every write was refused
+- AI access - widgets can be edited far more reliably: a leftover option no longer blocks every change, a position can be changed one value at a time, every write is read back and reported honestly, the new tool aura_compact clears editor-only overlaps, and height measurement now uses real content (charts, chips, media players, energy balances, carousels) with a row factor measured per list layout
+- 🌟 **New feature:** Fill level - adjustable limits: any number of lines on the scale, each from its own datapoint, draggable in the dashboard and written straight back - charge ceiling, discharge floor, priority thresholds ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
+- 🌟 **New feature:** Fill level - the sections between two limits carry their own colour and their own icon, and the fill can switch colour as soon as a limit is reached ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
+- 🌟 **New feature:** Fill level - new "Balken" layout: a flat bar with rounded ends for a limit that is not a tank ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
+
+
 ### 0.53.5 (2026-09-04)
 - AI access (MCP) - below the delete permission, a write that leaves existing widgets out is now refused instead of removing them ([#614](https://github.com/hdering/ioBroker.aura/issues/614))
 
@@ -237,19 +246,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Thermostat - new "Rundskala" layout: a 270 dial with a draggable handle, the setpoint in its centre and the +/- buttons in the arc gap; the scale colour is configurable, either fixed or from a colour-threshold scale ([#599](https://github.com/hdering/ioBroker.aura/issues/599))
 
 
-### 0.51.0 (2026-08-29)
-- 🌟 **New feature:** Distribution chart, fill level and gauge - the scale can now come from datapoints instead of fixed numbers: a group takes its 100 % from a datapoint (a prepayment, a budget), the unused part becomes a "Rest" segment and the bar stack direction can be flipped, so the used part sits at the bottom; the gauge min/max datapoints are now offered in the editor at all ([#596](https://github.com/hdering/ioBroker.aura/issues/596))
-- Advanced chart - a consumption ("delta") bar series no longer pushes the time axis out past the selected period: the window now opens on the same day/hour boundary the bars sit on, so lines and bars start at the same point instead of the line appearing to begin half a day late ([#598](https://github.com/hdering/ioBroker.aura/issues/598))
-- Advanced chart - decimal places and thousands separator moved from the options panel into the "Manage datapoints" dialog, whose tabs now run Mode (with a tip on what each mode is for), Number format, Series, Values - and a single series can override decimals and separator for itself ([#600](https://github.com/hdering/ioBroker.aura/issues/600))
-- List / Dynamic list - the row displays caught up with their standalone widgets: the slider brings scale and step, colour, bar look, track size, value / unit / min-max labels, write-on-release and a read-only progress bar; the input field a number range and a multi-line text area; the buttons colour, icon, image or HTML per button, a JSON datapoint as their source and a dropdown for long lists; the shutter a position slider in the row, a feedback datapoint, inverted counting and the slat control; on top of that a value mapping can draw an image per state and compare with an operator, and a window/door contact can show a lock datapoint as a padlock
-- List / Dynamic list - the per-datapoint editor now runs Datapoint, Label, Display, Second line, Conditions, Colour thresholds, Behaviour, so the display and its settings sit right below the name
-- List / Dynamic list - two display fixes: the dynamic list's "Slider" and "Value" displays now actually render (a slider used to be drawn only when the datapoint name looked like a dimmer), and a switch entry in the card layout now fills its cell with the labelled button instead of keeping the compact toggle
-- Dynamic list - the display of the datapoints (switch, slider, value mapping ...) can now be set once for the whole list in the datapoint dialog, including that display's own settings, while a single datapoint can still override it; decimals, thousands separator and the colour scale can now also be set per row instead of only list-wide
-- 🌟 **New feature:** Conditions - a rule can now set the text size as well: per element (title / value) in the widget conditions, and in the row rules of both lists, their second line and the custom-layout cells; the field sits above the text colour and empty keeps the configured size
-- Slider - the track thickness set in the editor is now applied (the field was written but never read)
-- Editor - dialogs no longer open partly off screen after a switch to a smaller resolution: the remembered size is capped to the current window (and kept for the bigger screen), and a dialog can no longer be dragged out of reach
-
-
 ## License
 
 MIT License
@@ -261,6 +257,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
