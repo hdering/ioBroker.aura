@@ -12685,8 +12685,9 @@ export function WidgetFrame({
 
                                         {/* Adjustable limits with their own datapoints (#613). Kept in
                                             its own dialog: a limit row carries a datapoint, an icon and
-                                            two colours, which does not belong in this column. */}
-                                        <FillLimitsSection options={o} set={set} />
+                                            two colours, which does not belong in this column. Hides
+                                            itself in the layouts that have no bar to hang a line on. */}
+                                        <FillLimitsSection options={o} layout={config.layout} set={set} />
 
                                         {/* Warning colour past a share of the scale. Wins over the
                                             zones, because a value clamped to max cannot be told from

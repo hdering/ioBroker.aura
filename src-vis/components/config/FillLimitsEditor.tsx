@@ -13,7 +13,7 @@ import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { ColorField } from './ConditionEditor';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import type { FillLimit } from '../../utils/fillLimits';
+import { layoutHasLimits, type FillLimit } from '../../utils/fillLimits';
 
 const cls = 'text-xs rounded-lg px-2 py-1.5 focus:outline-none w-full';
 const inputStyle: React.CSSProperties = {
@@ -396,14 +396,44 @@ export function FillLimitsEditor({
  */
 export function FillLimitsSection({
     options,
+    layout,
     set,
 }: {
     options: Record<string, unknown>;
+    /** The widget's layout — only the ones with a bar can carry limits. */
+    layout: string | undefined;
     set: (patch: Record<string, unknown>) => void;
 }) {
     const [open, setOpen] = useState(false);
     const limits = (options.limits as FillLimit[] | undefined) ?? [];
     const draggable = limits.filter((l) => !!l.datapoint?.trim() && l.editable !== false).length;
+
+    if (!layoutHasLimits(layout)) {
+        // Nothing to offer here — but silently swallowing limits that are still
+        // configured would leave the author hunting for markers that never appear.
+        if (!limits.length) return null;
+        return (
+            <>
+                <div
+                    className="text-[10px] font-semibold uppercase tracking-wider pt-1"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    Grenzen
+                </div>
+                <p
+                    className="text-[10px] leading-snug rounded-lg px-2 py-1.5"
+                    style={{
+                        color: 'var(--text-secondary)',
+                        background: 'color-mix(in srgb, #f59e0b 14%, transparent)',
+                    }}
+                >
+                    {limits.length === 1 ? 'Eine Grenze ist' : `${limits.length} Grenzen sind`} eingerichtet, dieses
+                    Layout zeigt sie aber nicht. Grenzen gibt es in Tank, Batterie und Balken. Die Einstellungen bleiben
+                    erhalten.
+                </p>
+            </>
+        );
+    }
 
     return (
         <>

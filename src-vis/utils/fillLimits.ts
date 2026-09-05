@@ -10,6 +10,23 @@
  * renderer only turns fractions into pixels.
  */
 
+/**
+ * The fill layouts that can carry limits: the two tanks, the battery and the flat
+ * bar — everything with a continuous track to hang a line on. LED segments are a
+ * stepped readout and the wave has no straight surface, so a marker there would
+ * point at nothing; `custom` places cells, not a bar.
+ *
+ * One list for both sides: the editor hides the section for the other layouts and
+ * the widget ignores whatever is still configured, so a limit can never be visible
+ * in the options and dead on screen.
+ */
+export const LIMIT_LAYOUTS = ['default', 'battery', 'bar'];
+
+/** True when this layout draws a bar the limits can sit on. */
+export function layoutHasLimits(layout: string | undefined): boolean {
+    return LIMIT_LAYOUTS.includes(layout ?? 'default');
+}
+
 /** One configured limit. Everything but `id` is optional — an empty row draws nothing. */
 export interface FillLimit {
     /** Stable key, also used to address the row in the editor. */

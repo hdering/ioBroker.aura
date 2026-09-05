@@ -93,6 +93,10 @@ Färbt die Füllung abhängig vom Wert; ohne Zonen wird `--accent` verwendet.
 
 ### Grenzen
 
+Nur in den Layouts **Tank**, **Batterie** und **Balken** — LED-Segmente, Welle und Custom haben keinen
+durchgehenden Balken, an dem eine Grenze hängen könnte, und ignorieren sie. Der Editor blendet den
+Abschnitt dort aus; bereits eingerichtete Grenzen bleiben erhalten.
+
 Verstellbare Linien auf der Skala: Ladelimit, Entladegrenze, Priorisierungsschwelle. Jede Grenze bringt
 einen eigenen Datenpunkt mit, kann im Dashboard gezogen werden und schreibt den neuen Wert zurück.
 N Grenzen teilen die Skala in N+1 Abschnitte, die je eine eigene Farbe und ein eigenes Icon tragen.
@@ -129,8 +133,7 @@ Abschnitt eine eigene Farbe hat, werden die Farbzonen nicht mehr gezeichnet.
 :::
 
 Nur eine Grenze mit Datenpunkt ist verstellbar — ein fester Wert ist Konfiguration. Der gezogene Wert
-läuft durch `valueFactor`/`valueOffset` zurück, bevor er geschrieben wird. Grenzen gibt es in den
-Layouts Tank, Batterie und Balken.
+läuft durch `valueFactor`/`valueOffset` zurück, bevor er geschrieben wird.
 
 ### Warnfarbe
 

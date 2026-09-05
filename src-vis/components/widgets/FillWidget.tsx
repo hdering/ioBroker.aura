@@ -11,6 +11,7 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import {
     bandSegments,
+    layoutHasLimits,
     limitBands,
     numericOrNull,
     reachedLimitColor,
@@ -1295,7 +1296,10 @@ export function FillWidget({ config }: WidgetProps) {
     // Every limit brings its own datapoint, so the set of subscriptions changes with
     // the configuration - useTemplateStates takes a dynamic list, which is exactly
     // what the rules of hooks forbid doing with useDatapoint in a loop.
-    const limits = (opts.limits as FillLimit[] | undefined) ?? [];
+    // Only the layouts with a continuous bar. Read here rather than at the render
+    // branches so a limit left over from a layout switch has no effect at all — not
+    // on the sections, and not on the fill colour through reachedColor.
+    const limits = layoutHasLimits(config.layout) ? ((opts.limits as FillLimit[] | undefined) ?? []) : [];
     const limitsEditable = opts.limitsEditable !== false;
     const commitOnRelease = opts.limitCommitOnRelease !== false;
     const clampNeighbours = opts.limitClampNeighbours !== false;

@@ -267,7 +267,8 @@ export const WIDGET_OPTION_NOTES = {
                 + 'Jede Grenze bringt einen eigenen Datenpunkt mit und kann im Dashboard gezogen werden; sie teilen '
                 + 'die Skala in Abschnitte, die je ein Icon und eine Farbe tragen. Icon und bandColor einer Grenze '
                 + 'gelten für den Abschnitt ÜBER ihr; der unterste Abschnitt nutzt baseIcon/baseBandColor. '
-                + 'Abschnittsfarben gewinnen über colorZones.',
+                + 'Abschnittsfarben gewinnen über colorZones. Nur in den Layouts default, battery und bar — '
+                + 'segments, wave und custom haben keinen durchgehenden Balken und ignorieren die Grenzen.',
         },
         limitsEditable: {
             description: 'Hauptschalter: false macht alle Grenzen zur reinen Anzeige, unabhängig von limit.editable.',

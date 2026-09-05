@@ -407,7 +407,28 @@ for (const [name, extra, wait] of [
     );
 }
 
-// ── 6. Crowding ─────────────────────────────────────────────────────────────
+// ── 6. Layouts without a bar ────────────────────────────────────────────────
+{
+    // Segments are a stepped readout and the wave has no straight surface: a marker
+    // there would point at nothing, so the limits are ignored outright — including
+    // reachedColor, which would otherwise recolour a fill that shows no limit.
+    for (const layout of ['segments', 'wave']) {
+        await show(
+            widget({ limits: [{ id: 'a', value: 60, bandColor: GREEN, reachedColor: PURPLE }] }, { layout }),
+            { [SOC]: 80 },
+            '.aura-widget-value',
+        );
+        const r = await state();
+        check(`${layout} draws no limits`, r.count === 0, String(r.count));
+        check(
+            `${layout} is not recoloured by a reached limit`,
+            !r.fills.includes(PURPLE) && !r.fills.includes(rgb(PURPLE)),
+            r.fills.join(' '),
+        );
+    }
+}
+
+// ── 7. Crowding ─────────────────────────────────────────────────────────────
 {
     // Five limits within a few percent: the pills would print on top of each other.
     await show(
@@ -422,21 +443,37 @@ for (const [name, extra, wait] of [
     check('but crowded value pills are thinned out', labels < 5, `${labels} pills`);
 }
 
-// ── 7. The editor panel ─────────────────────────────────────────────────────
+// ── 8. The editor panel ─────────────────────────────────────────────────────
 {
-    await show(
-        widget({ limits: [{ id: 'a', value: 50 }] }, { id: 'w-lim' }),
-        { [SOC]: 40 },
-        '[data-aura-fill-limits]',
-    );
+    await show(widget({ limits: [{ id: 'a', value: 50 }] }), { [SOC]: 40 }, '[data-aura-fill-limits]');
     await page.evaluate(() => window.__auraShot.setEditMode(true));
     await page.locator('.aura-edit-chrome button').first().click();
     await page.locator('button:text-is("Bearbeiten")').click();
     await page.waitForTimeout(400);
 
-    const btn = page.locator('button', { hasText: 'Grenze bearbeiten' });
-    check('the panel offers the limits dialog', (await btn.count()) >= 1, `${await btn.count()}`);
-    await btn.first().click();
+    const dialogBtn = page.locator('button', { hasText: 'Grenze bearbeiten' });
+    check('the panel offers the limits dialog', (await dialogBtn.count()) >= 1, `${await dialogBtn.count()}`);
+
+    // The section belongs to the layouts that have a bar. With limits already set it
+    // says so rather than vanishing, so nobody hunts for markers that cannot appear.
+    for (const [label, expected] of [
+        ['Balken', 1],
+        ['LED-Segmente', 0],
+        ['Welle', 0],
+        ['Batterie', 1],
+        ['Tank', 1],
+    ]) {
+        await page.locator(`button:text-is("${label}")`).first().click();
+        await page.waitForTimeout(350);
+        const n = await dialogBtn.count();
+        check(`layout "${label}" ${expected ? 'offers' : 'hides'} the limits dialog`, n === expected, String(n));
+        if (!expected) {
+            const warn = await page.locator('text=dieses Layout zeigt sie aber nicht').count();
+            check(`layout "${label}" says the configured limits are not drawn`, warn === 1, String(warn));
+        }
+    }
+
+    await dialogBtn.first().click();
     await page.waitForTimeout(400);
 
     const add = page.locator('.aura-config-modal button', { hasText: 'Grenze hinzufügen' });
