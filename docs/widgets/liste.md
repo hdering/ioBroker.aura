@@ -17,7 +17,7 @@ Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene 
 | `switchStyle`                  | `slide`   | `slide` (Schiebeschalter) · `icon` (klickbares Icon) · `image` (klickbares Bild)                                                   |
 | `trueIcon` / `falseIcon`       | Power     | Icon je Zustand (bei `icon` und `image`)                                                                                           |
 | `onImage` / `offImage`         | —         | Bild je Zustand (bei `image`); ohne Bild greift das Icon                                                                           |
-| `iconSize`                     | `22`      | Größe von Icon/Bild in px                                                                                                          |
+| `switchIconSize`               | `22`      | Größe von Icon/Bild in px. Leer = wie `iconSize` (das Icon vor dem Namen)                                                          |
 | `onValue` / `offValue`         | —         | Schreibwerte, z. B. `0`/`255`, `ON`/`OFF`. Leer = wie der Datenpunkt (`true`/`false` bzw. `1`/`0`)                                 |
 | `statusDp`                     | —         | Separater Status-Datenpunkt für Geräte, die Schalten und Rückmeldung trennen (Tasmota: `cmnd.POWER` schaltet, `stat.POWER` meldet) |
 | `stateMode`                    | `boolean` | `boolean` (an bei `true`, Zahl ungleich 0, `ON`) · `condition` (Vergleich)                                                         |
@@ -358,7 +358,7 @@ Links alle Einträge, rechts die vollständige Konfiguration des ausgewählten. 
 | Klick auf Zeile | Detail-Popup beim Klick auf eine Zeile (siehe unten)                                                                                                                                |
 | Namen           | Namensmuster und Namens-Filter                                                                                                                                                      |
 
-Das Icon vor dem Namen wird je Datenpunkt im Abschnitt **Beschriftung** gesetzt (`entries[].icon`, [Lucide](https://lucide.dev) / Iconify-ID), die Größe daneben in px (`entries[].iconSize`, Standard `11`, im Default-Layout `13`).
+Das Icon vor dem Namen wird je Datenpunkt im Abschnitt **Beschriftung** gesetzt (`entries[].icon`, [Lucide](https://lucide.dev) / Iconify-ID), die Größe daneben in px (`entries[].iconSize`, Standard `11`, im Default-Layout `13`). Die Größe gilt für jede Darstellung; das Icon eines Schalters hat mit `entries[].switchIconSize` eine eigene.
 
 Der Detail-Editor rechts ist in Abschnitte gegliedert: **Datenpunkt** · **Beschriftung** · **Darstellung** (mit dem gewählten Typ als Kennzeichen, darin alle typabhängigen Felder) · **Zweite Zeile** · **Bedingungen** · **Farbschwellen** · **Verhalten** (letzte Änderung, Klick auf Zeile).
 

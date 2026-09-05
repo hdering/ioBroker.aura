@@ -436,6 +436,9 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                     </div>
                                 ))}
                                 <div>
+                                    {/* Size of the SWITCH icon only — the icon in front of the name has its
+                                        own field in the entry's "Beschriftung" section (issue #616). Reads
+                                        the old shared `iconSize` while nothing has been set here yet. */}
                                     <Label>Größe (px)</Label>
                                     <input
                                         type="number"
@@ -444,10 +447,10 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                         className={`${iCls} tabular-nums`}
                                         style={iSty}
                                         placeholder="22"
-                                        value={entry.iconSize ?? ''}
+                                        value={entry.switchIconSize ?? entry.iconSize ?? ''}
                                         onChange={(e) => {
                                             const n = parseInt(e.target.value, 10);
-                                            onUpdate({ iconSize: Number.isFinite(n) && n > 0 ? n : undefined });
+                                            onUpdate({ switchIconSize: Number.isFinite(n) && n > 0 ? n : undefined });
                                         }}
                                     />
                                 </div>

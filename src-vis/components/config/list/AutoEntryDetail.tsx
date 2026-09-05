@@ -3,7 +3,7 @@ import { Plus, X } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../../types';
 import type { AutoListEntry } from '../../widgets/AutoListWidget';
-import { ColorField, DetailSection } from './listFieldUi';
+import { ColorField, DetailSection, pinSwitchIconSize } from './listFieldUi';
 import { ValueTransformButton } from '../ValueTransformButton';
 import { EntryControlsConfig, entryDisplayTypeLabel } from '../EntryControlsConfig';
 import { usesOnOffLabels } from '../../widgets/entryControls';
@@ -160,7 +160,10 @@ export function AutoEntryDetail({
                                 title="Icon-Größe in px"
                                 value={entry.iconSize ?? ''}
                                 onChange={(e) =>
-                                    onUpdate({ iconSize: e.target.value === '' ? undefined : Number(e.target.value) })
+                                    onUpdate({
+                                        iconSize: e.target.value === '' ? undefined : Number(e.target.value),
+                                        ...pinSwitchIconSize(effective, isSwitch),
+                                    })
                                 }
                             />
                         </div>

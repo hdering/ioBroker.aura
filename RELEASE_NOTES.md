@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- List - the icon size of a row can be set for every display type again, and an icon switch now has a size of its own (#616)

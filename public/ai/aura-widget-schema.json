@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.53.5",
+    "auraVersion": "0.54.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -2010,7 +2010,11 @@
         },
         "iconSize": {
           "type": "number",
-          "description": "Size in px of the row icon and of the icon/image switch. Unset = per-layout default."
+          "description": "Size in px of the row icon (left of the name). Unset = per-layout default."
+        },
+        "switchIconSize": {
+          "type": "number",
+          "description": "Size in px of the icon/image switch. Its own key, because a row can show BOTH a name icon and an icon switch (issue #616) — one shared size made the row icon jump to the switch size and hid the row-icon field in the editor. Falls back to `iconSize` so configs written before the split keep rendering unchanged."
         },
         "shutterMode": {
           "type": "string",
@@ -3027,7 +3031,11 @@
         },
         "iconSize": {
           "type": "number",
-          "description": "Size in px of the row icon and of the icon/image switch. Unset = per-layout default."
+          "description": "Size in px of the row icon (left of the name). Unset = per-layout default."
+        },
+        "switchIconSize": {
+          "type": "number",
+          "description": "Size in px of the icon/image switch. Its own key, because a row can show BOTH a name icon and an icon switch (issue #616) — one shared size made the row icon jump to the switch size and hid the row-icon field in the editor. Falls back to `iconSize` so configs written before the split keep rendering unchanged."
         },
         "shutterMode": {
           "type": "string",
@@ -3662,7 +3670,11 @@
         },
         "iconSize": {
           "type": "number",
-          "description": "Size in px of the row icon and of the icon/image switch. Unset = per-layout default."
+          "description": "Size in px of the row icon (left of the name). Unset = per-layout default."
+        },
+        "switchIconSize": {
+          "type": "number",
+          "description": "Size in px of the icon/image switch. Its own key, because a row can show BOTH a name icon and an icon switch (issue #616) — one shared size made the row icon jump to the switch size and hid the row-icon field in the editor. Falls back to `iconSize` so configs written before the split keep rendering unchanged."
         },
         "shutterMode": {
           "type": "string",

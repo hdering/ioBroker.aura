@@ -3,7 +3,7 @@ import { Database, X, Plus } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../../types';
 import type { StaticListEntry } from '../../widgets/ListWidget';
-import { ColorField, DetailSection } from './listFieldUi';
+import { ColorField, DetailSection, pinSwitchIconSize } from './listFieldUi';
 import { DatapointPicker } from '../DatapointPicker';
 import { ValueFormatRow } from '../ValueFormatRow';
 import { ValueTransformButton } from '../ValueTransformButton';
@@ -171,10 +171,10 @@ export function StaticEntryDetail({
                             )}
                         </div>
                     </div>
-                    {/* Größe des Zeilen-Icons, wie in der dynamischen Liste. Bei der
-                        Schalter-Darstellung bearbeitet das Feld unter "Darstellung"
-                        denselben Wert — dann steht es nur dort. */}
-                    {entry.icon && !isSwitch && (
+                    {/* Größe des Zeilen-Icons, wie in der dynamischen Liste — für jede
+                        Darstellung, auch für den Schalter (Issue #616). Das Feld unter
+                        "Darstellung" gehört dem Schalter-Icon, nicht diesem hier. */}
+                    {entry.icon && (
                         <div className="w-11 shrink-0">
                             <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                 px
@@ -190,7 +190,10 @@ export function StaticEntryDetail({
                                 value={entry.iconSize ?? ''}
                                 onChange={(e) => {
                                     const n = parseInt(e.target.value, 10);
-                                    onUpdate({ iconSize: isFinite(n) && n > 0 ? n : undefined });
+                                    onUpdate({
+                                        iconSize: isFinite(n) && n > 0 ? n : undefined,
+                                        ...pinSwitchIconSize(entry, isSwitch),
+                                    });
                                 }}
                             />
                         </div>

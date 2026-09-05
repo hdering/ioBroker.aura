@@ -178,8 +178,15 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     // ── switch (on/off) ───────────────────────────────────────────────────────
     // The option set itself lives in utils/switchEntry (SwitchEntryConfig), so the
     // group master switch and the unit test can apply the same rule (issue #591).
-    /** Size in px of the row icon and of the icon/image switch. Unset = per-layout default. */
+    /** Size in px of the row icon (left of the name). Unset = per-layout default. */
     iconSize?: number;
+    /**
+     * Size in px of the icon/image switch. Its own key, because a row can show BOTH a
+     * name icon and an icon switch (issue #616) — one shared size made the row icon
+     * jump to the switch size and hid the row-icon field in the editor. Falls back to
+     * `iconSize` so configs written before the split keep rendering unchanged.
+     */
+    switchIconSize?: number;
     // ── shutter ──────────────────────────────────────────────────────────────
     /**
      * Shutter control model:
@@ -538,7 +545,7 @@ export function SwitchControl({
     const style = entry.switchStyle ?? 'slide';
 
     if (style === 'icon' || style === 'image') {
-        const size = entry.iconSize ?? 22;
+        const size = entry.switchIconSize ?? entry.iconSize ?? 22;
         const image = active ? entry.onImage : entry.offImage;
         const StateIcon = getWidgetIcon(active ? entry.trueIcon : entry.falseIcon, Power);
         return (

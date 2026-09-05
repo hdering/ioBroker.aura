@@ -148,3 +148,18 @@ export function ColorField({
         </div>
     );
 }
+
+/**
+ * Before issue #616 the row icon and the icon switch shared one `iconSize`. The switch
+ * still falls back to it while `switchIconSize` is unset, so an entry saved back then
+ * would shrink its switch as soon as the (newly reachable) row-icon field is used.
+ * Patch the switch to the size it renders at right now, once, alongside that change.
+ */
+export function pinSwitchIconSize(
+    entry: { iconSize?: number; switchIconSize?: number },
+    isSwitch: boolean,
+): { switchIconSize?: number } {
+    return isSwitch && entry.switchIconSize === undefined && entry.iconSize !== undefined
+        ? { switchIconSize: entry.iconSize }
+        : {};
+}

@@ -469,7 +469,7 @@ function EntryValue({
                     }}
                     aria-pressed={active}
                 >
-                    <ToggleIcon size={entry.iconSize ?? 22} strokeWidth={active ? 2.5 : 1.75} />
+                    <ToggleIcon size={entry.switchIconSize ?? entry.iconSize ?? 22} strokeWidth={active ? 2.5 : 1.75} />
                 </button>
                 {confirmOverlay}
             </>
