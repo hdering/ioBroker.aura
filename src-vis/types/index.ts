@@ -306,7 +306,24 @@ export interface CustomCell {
     trueText?: string; // 'state-text' cell / 'switch' cell (button mode): label rendered for truthy value
     falseText?: string; // 'state-text' cell / 'switch' cell (button mode): label rendered for falsy value
     // 'select' type — dropdown that maps DP values to labels (mini enum widget per cell)
-    entries?: { value: string; label: string; color?: string; icon?: string }[]; // 'select' cell: selectable value/label pairs (icon: Lucide/Iconify ID)
+    // Everything the standalone Auswahlfeld widget can do, including the JSON
+    // source and the rich render modes (issue #615).
+    entries?: {
+        value: string;
+        label: string;
+        color?: string;
+        icon?: string; // Lucide/Iconify ID
+        image?: string; // image URL or aura-file: path (render === 'image')
+        render?: 'text' | 'image' | 'html' | 'icon'; // default: text (html when the label is markup)
+        size?: number; // px size for image/icon entries
+    }[]; // 'select' cell: selectable value/label pairs
+    entriesSource?: 'manual' | 'json'; // 'select' cell: where the entries come from (default 'manual')
+    entriesDp?: string; // 'select' cell: datapoint holding the JSON list (entriesSource 'json'), may carry a ?path
+    entriesValueKey?: string; // 'select' cell: field name overrides for the JSON rows (empty = auto-detect)
+    entriesLabelKey?: string;
+    entriesColorKey?: string;
+    entriesIconKey?: string;
+    entriesImageKey?: string;
     showSelectedLabel?: boolean; // 'select' cell: render current label next to dropdown
     hideSelect?: boolean; // 'select' cell: hide dropdown and render entries as a button group
     entryDisplay?: 'icon' | 'icon-text' | 'text'; // 'select' cell: how the current entry is shown (default 'text')

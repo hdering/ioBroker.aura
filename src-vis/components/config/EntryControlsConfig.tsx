@@ -18,7 +18,7 @@ import { TIME_DISPLAY_PRESETS, formatTimeDisplay } from '../../utils/timeDisplay
 import { ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
 import type { ConditionOperator } from '../../types';
 import type { EntryControlConfig, EntryDisplayType, EntryPreset, EntryStateMap } from '../widgets/entryControls';
-import type { EnumEntryDisplay, EnumRender } from '../widgets/EnumWidget';
+import type { EnumEntryDisplay, EnumRender } from '../widgets/enumEntry';
 import { entryDateText } from '../widgets/entryControls';
 import { DATE_PATTERN_TOKENS, FORMAT_LABELS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import {

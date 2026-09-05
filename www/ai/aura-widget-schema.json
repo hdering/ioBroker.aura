@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.54.1",
+    "auraVersion": "0.54.2",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1334,10 +1334,53 @@
               },
               "icon": {
                 "type": "string"
+              },
+              "image": {
+                "type": "string"
+              },
+              "render": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "image",
+                  "html",
+                  "icon"
+                ]
+              },
+              "size": {
+                "type": "number"
               }
             }
-          },
-          "description": "'select' cell: selectable value/label pairs (icon: Lucide/Iconify ID)"
+          }
+        },
+        "entriesSource": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "json"
+          ],
+          "description": "'select' cell: where the entries come from (default 'manual')"
+        },
+        "entriesDp": {
+          "type": "string",
+          "description": "'select' cell: datapoint holding the JSON list (entriesSource 'json'), may carry a ?path",
+          "datapoint": true
+        },
+        "entriesValueKey": {
+          "type": "string",
+          "description": "'select' cell: field name overrides for the JSON rows (empty = auto-detect)"
+        },
+        "entriesLabelKey": {
+          "type": "string"
+        },
+        "entriesColorKey": {
+          "type": "string"
+        },
+        "entriesIconKey": {
+          "type": "string"
+        },
+        "entriesImageKey": {
+          "type": "string"
         },
         "showSelectedLabel": {
           "type": "boolean",

@@ -166,6 +166,7 @@
     "test:list-sort-rules": "node tools/tests/list-sort-rules.mjs",
     "test:enum-json": "node tools/tests/enum-json-entries.mjs",
     "test:enum-json-ui": "node tools/tests/enum-json-widget.mjs",
+    "test:universal-select": "node tools/tests/universal-select-cell.mjs",
     "test:menu-item-order": "node tools/tests/menu-item-order.mjs",
     "test:image-source": "node tools/tests/image-source.mjs",
     "test:media-detect": "node tools/tests/media-role-detect.mjs",

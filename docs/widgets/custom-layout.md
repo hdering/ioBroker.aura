@@ -32,7 +32,10 @@ Klick auf eine Zelle öffnet den Zell-Editor (Schriftgröße, Farbe, Ausrichtung
 | `text` | Freitext |
 | `icon` · `stateIcon` | Lucide-Icon, optional vom Datenpunkt-State abhängig |
 | `image` | Bild aus Datei oder URL |
-| `switch` · `slider` · `button` · `stepper` | Bedien-Element für einen Datenpunkt |
+| `switch` · `slider` · `button` · `stepper` · `input` | Bedien-Element für einen Datenpunkt |
+| `select` | Auswahlfeld für einen Datenpunkt |
+| `datepicker` | Datums-/Zeitwähler für einen Datenpunkt |
+| `state-text` · `lastchange` | Text je nach Zustand · Zeitpunkt der letzten Änderung |
 | `progress` | Balken für einen Zahlenwert zwischen `min` und `max` (nur Anzeige) |
 | `component` | Widget-Komponente (z. B. Temperatur-Balken bei Wetter) |
 
@@ -51,6 +54,22 @@ Der Button neben dem Datenpunkt-Feld öffnet beide Anzeige-Optionen — der Date
 
 Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und `HH:mm` werden automatisch erkannt; nicht lesbare
 Werte zeigen `–`. Tokens siehe [Wert-Anzeige](./wert-anzeige.md#zeit-formatierung).
+
+### Auswahlfeld (`select`)
+
+Das [Auswahlfeld](./auswahlfeld)-Widget als Zelle — mit denselben Einträgen, denselben Quellen und denselben Anzeige-Optionen.
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `entriesSource` | `manual` | `manual` = Liste in der Zelle · `json` = aus Datenpunkt |
+| `entries` | `[]` | Wert→Label-Paare mit optionaler Farbe und [Lucide-Icon](https://lucide.dev); Knopf **Aus common.states importieren** füllt sie |
+| `entriesDp` | — | DP mit dem JSON, optional mit JSON-Pfad (`…liste?data.modes`) |
+| `entriesValueKey` · `entriesLabelKey` · `entriesColorKey` · `entriesIconKey` · `entriesImageKey` | auto | Feldnamen im JSON |
+| `showSelectedLabel` | `false` | aktuellen Eintrag neben dem Dropdown anzeigen |
+| `hideSelect` | `false` | Dropdown ausblenden (nur der aktuelle Eintrag) |
+| `entryDisplay` | `text` | `text` · `icon-text` · `icon` |
+
+Akzeptierte JSON-Formen und die Feldnamen-Erkennung: siehe [Auswahlfeld → JSON-Datenpunkt](./auswahlfeld#json-datenpunkt).
 
 ### Bedienelement (`switch`)
 

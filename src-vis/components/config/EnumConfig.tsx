@@ -9,28 +9,20 @@
  *
  * Alternatively the whole list can come from a datapoint holding JSON
  * (issue #577) — then the entries are read live instead of being maintained
- * here, and this panel only configures the source and its field names.
+ * here, and this panel only configures the source and its field names via
+ * the shared EnumJsonSourceSection (the Universal Widget's Auswahl cell
+ * offers the very same editor).
  */
-import { useEffect, useState } from 'react';
-import { Plus, Trash2, HelpCircle, Database, Copy } from 'lucide-react';
+import { useState } from 'react';
+import { Plus, Trash2, HelpCircle } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
-import { type EnumEntry } from '../widgets/EnumWidget';
-import { getObjectDirect, getStateDirect } from '../../hooks/useIoBroker';
+import { type EnumEntry } from '../widgets/enumEntry';
+import { getObjectDirect } from '../../hooks/useIoBroker';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
-import { splitDpRef, extractJsonPath } from '../../utils/dpRef';
-import { copyToClipboard } from '../../utils/clipboard';
+import type { EnumJsonKeys } from '../../utils/enumEntriesJson';
 import { ColorPicker } from '../common/ColorPicker';
 import { IconPickerModal } from './IconPickerModal';
-import { DatapointPicker } from './DatapointPicker';
-import { JsonPathButton } from './JsonPathButton';
-
-/** Shown as the "so muss das JSON aussehen" example in the panel and the docs. */
-const JSON_EXAMPLE = `[
-  { "value": 0, "label": "Aus",   "color": "#ef4444" },
-  { "value": 1, "label": "Heizen","color": "#f59e0b", "icon": "Flame" },
-  { "value": 2, "label": "Kühlen","color": "#3b82f6", "icon": "Snowflake" }
-]`;
+import { EnumJsonSourceSection } from './EnumJsonSourceSection';
 
 interface Props {
     config: WidgetConfig;
@@ -60,218 +52,14 @@ const iSty: React.CSSProperties = {
 };
 const fieldCls = 'text-xs rounded-lg px-2 py-1.5 focus:outline-none';
 
-/** One "Feldname" row of the JSON mapping (empty = auto-detect). */
-function KeyField({
-    label,
-    value,
-    placeholder,
-    onChange,
-}: {
-    label: string;
-    value: string;
-    placeholder: string;
-    onChange: (v: string | undefined) => void;
-}) {
-    return (
-        <div className="flex items-center gap-2">
-            <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
-                {label}
-            </label>
-            <input
-                type="text"
-                value={value}
-                onChange={(e) => onChange(e.target.value.trim() || undefined)}
-                placeholder={placeholder}
-                className={`${fieldCls} flex-1 min-w-0 font-mono`}
-                style={iSty}
-            />
-        </div>
-    );
-}
-
-/**
- * Source panel for the JSON mode: DP reference (with optional JSON path),
- * the field names, a live preview of what the current DP value parses into,
- * and the example payload.
- */
-function JsonEntriesSection({
-    o,
-    setO,
-}: {
-    o: Record<string, unknown>;
-    setO: (patch: Record<string, unknown>) => void;
-}) {
-    const dp = (o.entriesDp as string) ?? '';
-    const [showPicker, setShowPicker] = useState(false);
-    const [showExample, setShowExample] = useState(false);
-    const [showKeys, setShowKeys] = useState(false);
-    const [preview, setPreview] = useState<{ entries: EnumEntry[]; error: string | null } | null>(null);
-
-    const valueKey = (o.entriesValueKey as string) ?? '';
-    const labelKey = (o.entriesLabelKey as string) ?? '';
-    const colorKey = (o.entriesColorKey as string) ?? '';
-    const iconKey = (o.entriesIconKey as string) ?? '';
-    const imageKey = (o.entriesImageKey as string) ?? '';
-
-    // Preview: read the DP once whenever the reference or a field name changes.
-    useEffect(() => {
-        let cancelled = false;
-        const { id, path } = splitDpRef(dp);
-        if (!id) {
-            setPreview(null);
-            return;
-        }
-        void (async () => {
-            try {
-                const state = await getStateDirect(id);
-                if (cancelled) return;
-                if (!state) {
-                    setPreview({ entries: [], error: 'Datenpunkt nicht lesbar' });
-                    return;
-                }
-                const raw = path ? extractJsonPath(state.val, path) : state.val;
-                const entries = parseEnumEntriesJson(raw, {
-                    value: valueKey || undefined,
-                    label: labelKey || undefined,
-                    color: colorKey || undefined,
-                    icon: iconKey || undefined,
-                    image: imageKey || undefined,
-                });
-                setPreview({ entries, error: entries.length ? null : 'Kein verwertbares JSON gefunden' });
-            } catch {
-                if (!cancelled) setPreview({ entries: [], error: 'Fehler beim Lesen des DP' });
-            }
-        })();
-        return () => {
-            cancelled = true;
-        };
-    }, [dp, valueKey, labelKey, colorKey, iconKey, imageKey]);
-
-    return (
-        <div className="space-y-1.5">
-            <div className="flex items-center gap-1">
-                <input
-                    type="text"
-                    value={dp}
-                    onChange={(e) => setO({ entriesDp: e.target.value })}
-                    placeholder="0_userdata.0.auswahl.liste"
-                    className={`${fieldCls} flex-1 min-w-0 font-mono`}
-                    style={iSty}
-                />
-                <button
-                    onClick={() => setShowPicker(true)}
-                    className="px-1.5 py-1.5 rounded-lg hover:opacity-80 shrink-0"
-                    style={iSty}
-                    title="Aus ioBroker wählen"
-                >
-                    <Database size={12} />
-                </button>
-                <JsonPathButton value={dp} onChange={(ref) => setO({ entriesDp: ref })} size={12} />
-            </div>
-
-            {preview && (
-                <div
-                    className="text-[10px]"
-                    style={{ color: preview.error ? 'var(--accent-yellow, #f59e0b)' : 'var(--text-secondary)' }}
-                >
-                    {preview.error ?? `${preview.entries.length} Einträge erkannt`}
-                    {preview.entries.length > 0 && (
-                        <span style={{ opacity: 0.75 }}>
-                            {' · '}
-                            {preview.entries
-                                .slice(0, 5)
-                                .map((e) => `${e.value} → ${e.label}`)
-                                .join(', ')}
-                            {preview.entries.length > 5 ? ' …' : ''}
-                        </span>
-                    )}
-                </div>
-            )}
-
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={() => setShowExample((v) => !v)}
-                    className="text-[10px] px-2 py-1 rounded-lg hover:opacity-80"
-                    style={{ ...iSty, color: 'var(--text-secondary)' }}
-                >
-                    {showExample ? 'Beispiel ausblenden' : 'Beispiel-JSON'}
-                </button>
-                <button
-                    onClick={() => setShowKeys((v) => !v)}
-                    className="text-[10px] px-2 py-1 rounded-lg hover:opacity-80"
-                    style={{ ...iSty, color: 'var(--text-secondary)' }}
-                >
-                    {showKeys ? 'Feldnamen ausblenden' : 'Feldnamen'}
-                </button>
-            </div>
-
-            {showExample && (
-                <div className="rounded-lg p-2 space-y-1" style={{ ...iSty, color: 'var(--text-secondary)' }}>
-                    <pre className="text-[10px] font-mono whitespace-pre overflow-x-auto m-0">{JSON_EXAMPLE}</pre>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => copyToClipboard(JSON_EXAMPLE)}
-                            className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80 flex items-center gap-1"
-                            style={iSty}
-                        >
-                            <Copy size={10} /> Kopieren
-                        </button>
-                        <span className="text-[10px]" style={{ opacity: 0.8 }}>
-                            Auch erlaubt: {'{ "0": "Aus", "1": "An" }'} oder {'["Aus", "An"]'}
-                        </span>
-                    </div>
-                </div>
-            )}
-
-            {showKeys && (
-                <div className="space-y-1">
-                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                        Leer = automatisch erkennen (value/val/id/key bzw. label/name/text …). Pfade wie
-                        {' attributes.name'} sind erlaubt.
-                    </p>
-                    <KeyField
-                        label="Wert"
-                        value={valueKey}
-                        placeholder="value"
-                        onChange={(v) => setO({ entriesValueKey: v })}
-                    />
-                    <KeyField
-                        label="Label"
-                        value={labelKey}
-                        placeholder="label"
-                        onChange={(v) => setO({ entriesLabelKey: v })}
-                    />
-                    <KeyField
-                        label="Farbe"
-                        value={colorKey}
-                        placeholder="color"
-                        onChange={(v) => setO({ entriesColorKey: v })}
-                    />
-                    <KeyField
-                        label="Icon"
-                        value={iconKey}
-                        placeholder="icon"
-                        onChange={(v) => setO({ entriesIconKey: v })}
-                    />
-                    <KeyField
-                        label="Bild"
-                        value={imageKey}
-                        placeholder="image"
-                        onChange={(v) => setO({ entriesImageKey: v })}
-                    />
-                </div>
-            )}
-
-            {showPicker && (
-                <DatapointPicker
-                    currentValue={dp}
-                    onSelect={(id) => setO({ entriesDp: id })}
-                    onClose={() => setShowPicker(false)}
-                />
-            )}
-        </div>
-    );
-}
+/** Widget option name carrying the field-name override for one JSON field. */
+const KEY_OPTION: Record<keyof EnumJsonKeys, string> = {
+    value: 'entriesValueKey',
+    label: 'entriesLabelKey',
+    color: 'entriesColorKey',
+    icon: 'entriesIconKey',
+    image: 'entriesImageKey',
+};
 
 export function EnumConfig({ config, onConfigChange }: Props) {
     const o = config.options ?? {};
@@ -377,7 +165,20 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                 </div>
             </div>
 
-            {fromJson && <JsonEntriesSection o={o} setO={setO} />}
+            {fromJson && (
+                <EnumJsonSourceSection
+                    dp={(o.entriesDp as string) ?? ''}
+                    keys={{
+                        value: o.entriesValueKey as string | undefined,
+                        label: o.entriesLabelKey as string | undefined,
+                        color: o.entriesColorKey as string | undefined,
+                        icon: o.entriesIconKey as string | undefined,
+                        image: o.entriesImageKey as string | undefined,
+                    }}
+                    onDpChange={(dp) => setO({ entriesDp: dp })}
+                    onKeyChange={(field, v) => setO({ [KEY_OPTION[field]]: v })}
+                />
+            )}
 
             {!fromJson && (
                 <>

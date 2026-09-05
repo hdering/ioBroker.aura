@@ -52,9 +52,12 @@ interface Props {
     /** Shown while no entry matches the value. Default a dash; a list row hands
      *  in the raw value so an unmapped state stays readable. */
     placeholder?: React.ReactNode;
+    /** Extra style for the closed control — a custom-grid cell hands in its own
+     *  font size, colour and weight so the dropdown matches the rest of the cell. */
+    style?: React.CSSProperties;
 }
 
-export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder }: Props) {
+export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder, style }: Props) {
     const [open, setOpen] = useState(false);
     const anchorRef = useRef<HTMLButtonElement>(null);
 
@@ -75,6 +78,7 @@ export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder }: P
                     color: 'var(--text-primary)',
                     border: '1px solid var(--app-border)',
                     maxWidth: '100%',
+                    ...style,
                 }}
             >
                 {current ? (

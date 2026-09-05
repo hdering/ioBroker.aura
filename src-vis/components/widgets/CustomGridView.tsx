@@ -2,7 +2,7 @@
  * Shared custom-grid layout renderer used by all widgets that support layout='custom'.
  * Default 3×3 grid, but parameterized via CustomGridDef for arbitrary cols/rows (used by Universal Widget).
  */
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfirmAction } from '../../hooks/useConfirmAction';
@@ -17,8 +17,11 @@ import { baseDpId } from '../../utils/dpRef';
 import { cellStateActive } from '../../utils/cellState';
 import { cellBarColor } from '../../utils/cellBarColor';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
+import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
+import { EnumCurrent, EnumOptionLabel, type EnumEntry } from './enumEntry';
+import { HtmlSelect } from '../common/HtmlSelect';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { HelpCircle, ChevronDown, Send } from 'lucide-react';
+import { HelpCircle, Send } from 'lucide-react';
 import type { DateOutputFormat } from '../../utils/dateValue';
 import { useDateValueFields, type DateValueSettings } from '../common/DateValueFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
@@ -1357,13 +1360,40 @@ function StateTextCellView({
     );
 }
 
-/** Dropdown bound to a DP — maps DP values to labels (mini enum widget per cell). */
+/**
+ * Dropdown bound to a DP — the standalone Auswahlfeld widget as a single cell.
+ *
+ * Entries come either from the cell's own list or, in JSON mode, live from a
+ * datapoint holding the list (issue #615, same option set as the widget). The
+ * dropdown is the shared HtmlSelect, so an entry's icon, image or HTML shows up
+ * in the open list too — a native <option> can only print text.
+ */
 function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: number; cols: number; rows: number }) {
     const { state, value, setValue } = useDatapoint(cell.dpId ?? '');
     const cond = useCellConditionStyle(cell, value);
-    const selRef = useRef<HTMLSelectElement>(null);
+    // The JSON datapoint is only subscribed in that mode — an empty id is a no-op.
+    const fromJson = cell.entriesSource === 'json';
+    const { value: entriesRaw } = useDatapoint(fromJson ? (cell.entriesDp ?? '') : '');
+    const valueKey = cell.entriesValueKey;
+    const labelKey = cell.entriesLabelKey;
+    const colorKey = cell.entriesColorKey;
+    const iconKey = cell.entriesIconKey;
+    const imageKey = cell.entriesImageKey;
+    const jsonEntries = useMemo(
+        () =>
+            fromJson
+                ? parseEnumEntriesJson(entriesRaw, {
+                      value: valueKey,
+                      label: labelKey,
+                      color: colorKey,
+                      icon: iconKey,
+                      image: imageKey,
+                  })
+                : [],
+        [fromJson, entriesRaw, valueKey, labelKey, colorKey, iconKey, imageKey],
+    );
     if (!cell.dpId) return <div className={`aura-custom-cell-${index}`} style={emptyCellStyle(index, cols)} />;
-    const entries = cell.entries ?? [];
+    const entries: EnumEntry[] = fromJson ? jsonEntries : ((cell.entries as EnumEntry[] | undefined) ?? []);
     const currentStr = value === null || value === undefined ? '' : String(value);
     const current = entries.find((e) => e.value === currentStr);
     const onPick = (raw: string) => {
@@ -1373,44 +1403,30 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
         if (raw !== '' && Number.isFinite(n)) return setValue(n);
         setValue(raw);
     };
-    // Native <select> fires onChange only on a *real* value change, so re-picking
-    // the already-selected entry would be a no-op and never write. Blank the DOM
-    // value right before the dropdown opens (mousedown covers mouse+touch) so any
-    // pick — including the current one — counts as a change and re-sends the write,
-    // matching the EnumWidget Auswahlfeld. Restore on blur if closed without a pick.
-    const armReselect = () => {
-        if (selRef.current) selRef.current.value = '';
-    };
-    const restoreValue = () => {
-        if (selRef.current) selRef.current.value = current?.value ?? '';
-    };
-    const showLabel = cell.showSelectedLabel === true;
     const hideSelect = cell.hideSelect === true;
+    // The closed dropdown already prints the current entry, so the extra label is
+    // off by default — but without a dropdown it is all the cell would show.
+    const showLabel = cell.showSelectedLabel ?? hideSelect;
     const display = cell.entryDisplay ?? 'text';
-    const showIcon = display === 'icon' || display === 'icon-text';
-    const showText = display === 'text' || display === 'icon-text';
-    const labelText = current?.label ?? (currentStr || '–');
-    const labelColor = current?.color;
+    const fallback = currentStr || '–';
     // A matched per-cell condition takes precedence over the entry / cell color.
-    const finalColor = cond.color || labelColor || cell.color || 'var(--text-primary)';
+    const finalColor = cond.color || current?.color || cell.color || 'var(--text-primary)';
     const iconSize = cell.fontSize ?? 16;
-    const Icon = current?.icon ? getWidgetIcon(current.icon, HelpCircle) : null;
 
     const selectedView = (grow: boolean) => (
         <div className="flex items-center gap-1 min-w-0" style={{ flex: grow ? '1 1 auto' : '0 1 auto', minWidth: 0 }}>
-            {showIcon && Icon && <Icon size={iconSize} style={{ color: finalColor, flexShrink: 0 }} />}
-            {showText && (
-                <span
-                    style={{
-                        ...cellTextStyle(cell, 'var(--text-primary)', cond),
-                        color: finalColor,
-                        minWidth: 0,
-                        flex: '1 1 0',
-                    }}
-                >
-                    {labelText}
-                </span>
-            )}
+            <EnumCurrent
+                entry={current ? { ...current, size: current.size ?? iconSize } : undefined}
+                display={display}
+                fallback={fallback}
+                style={{
+                    ...cellTextStyle(cell, 'var(--text-primary)', cond),
+                    color: finalColor,
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                }}
+            />
         </div>
     );
 
@@ -1437,44 +1453,26 @@ function SelectCellView({ cell, index, cols, rows }: { cell: CustomCell; index: 
         >
             <div className="flex items-center gap-1 w-full min-w-0">
                 {showLabel && selectedView(true)}
-                <div
-                    className="relative inline-flex items-center"
-                    style={{ minWidth: 0, flex: showLabel ? '0 1 auto' : '1 1 auto' }}
-                >
-                    <select
-                        ref={selRef}
+                <div className="min-w-0" style={{ flex: showLabel ? '0 1 auto' : '1 1 auto' }}>
+                    <HtmlSelect
+                        fullWidth
+                        // A value no entry covers still has to be readable — the
+                        // closed dropdown prints it instead of an empty dash.
+                        placeholder={fallback}
                         value={current?.value ?? ''}
-                        onMouseDown={armReselect}
-                        onBlur={restoreValue}
-                        onChange={(e) => onPick(e.target.value)}
-                        className="nodrag rounded-lg pl-2 pr-6 py-1 focus:outline-none appearance-none truncate w-full"
+                        onPick={onPick}
+                        entries={entries.map((e) => ({
+                            value: e.value,
+                            content: <EnumOptionLabel entry={e} size={iconSize} />,
+                        }))}
                         style={{
-                            background: 'var(--app-bg)',
                             // A matched per-cell condition overrides the dropdown's
-                            // current-entry color/weight/style (it shows the current value).
-                            // WebkitTextFillColor is required for the *selected* value text
-                            // of a native <select> to honor the color on Chromium/Windows.
+                            // colour/weight/style (it shows the current value).
                             color: cond.color || cell.color || 'var(--text-primary)',
-                            WebkitTextFillColor: cond.color || cell.color || 'var(--text-primary)',
-                            border: '1px solid var(--app-border)',
-                            fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
+                            fontSize: cell.fontSize ? `${cell.fontSize}px` : undefined,
                             fontWeight: (cond.bold ?? cell.bold) ? 'bold' : undefined,
                             fontStyle: (cond.italic ?? cell.italic) ? 'italic' : undefined,
-                            maxWidth: '100%',
-                            minWidth: 0,
                         }}
-                    >
-                        {!current && <option value="">–</option>}
-                        {entries.map((e) => (
-                            <option key={e.value} value={e.value}>
-                                {e.label || e.value}
-                            </option>
-                        ))}
-                    </select>
-                    <ChevronDown
-                        size={12}
-                        className="absolute right-1.5 pointer-events-none"
-                        style={{ color: 'var(--text-secondary)' }}
                     />
                 </div>
             </div>

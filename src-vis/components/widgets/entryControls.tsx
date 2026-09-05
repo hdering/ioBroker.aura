@@ -30,7 +30,7 @@ import {
     type EnumEntry,
     type EnumEntryDisplay,
     type EnumRender,
-} from './EnumWidget';
+} from './enumEntry';
 import { HtmlSelect } from '../common/HtmlSelect';
 import { TiltButton, TiltPopover } from './TiltControls';
 import { tiltRange, rawToTiltPct, tiltPctToRaw } from '../../utils/shutterTilt';

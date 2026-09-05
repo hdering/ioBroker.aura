@@ -13,11 +13,22 @@ import type { CustomCell, WidgetType } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { FORMAT_LABELS, DATE_PATTERN_TOKENS, DEFAULT_DATE_PATTERN, type DateOutputFormat } from '../../utils/dateValue';
 import { IconPickerModal } from '../config/IconPickerModal';
+import { EnumJsonSourceSection } from '../config/EnumJsonSourceSection';
 import { ImagePathHint } from '../config/ImagePathHint';
 import { ValueTransformButton } from '../config/ValueTransformButton';
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import { getObjectDirect } from '../../hooks/useIoBroker';
+import type { EnumJsonKeys } from '../../utils/enumEntriesJson';
 import { ColorPicker } from '../common/ColorPicker';
+
+/** Cell option carrying the field-name override for one JSON field (#615). */
+const ENTRY_KEY_OPTION: Record<keyof EnumJsonKeys, string> = {
+    value: 'entriesValueKey',
+    label: 'entriesLabelKey',
+    color: 'entriesColorKey',
+    icon: 'entriesIconKey',
+    image: 'entriesImageKey',
+};
 
 export const CELL_LABELS: Record<string, string> = {
     empty: '–',
@@ -1052,7 +1063,9 @@ export function CustomCellEditor({
                             />
                         )}
                     </div>
-                    {cell.type === 'select' && (
+                    {/* The states import fills the manual list — pointless while the
+                        entries come from a JSON datapoint. */}
+                    {cell.type === 'select' && cell.entriesSource !== 'json' && (
                         <div className="flex items-center gap-2 mt-1">
                             <button
                                 onClick={importSelectStates}
@@ -2334,10 +2347,11 @@ export function CustomCellEditor({
                 </>
             )}
 
-            {/* Select: entries (value/label/color) + showSelectedLabel toggle */}
+            {/* Select: entries (manual list or JSON datapoint) + presentation toggles */}
             {cell.type === 'select' &&
                 (() => {
                     const entries = cell.entries ?? [];
+                    const fromJson = cell.entriesSource === 'json';
                     const update = (next: NonNullable<CustomCell['entries']>) => onChange({ entries: next });
                     const patchEntry = (i: number, patch: Partial<NonNullable<CustomCell['entries']>[number]>) =>
                         update(entries.map((e, idx) => (idx === i ? { ...e, ...patch } : e)));
@@ -2352,151 +2366,208 @@ export function CustomCellEditor({
                     };
                     return (
                         <>
-                            <div>
-                                <div className="mb-1">
-                                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                        Einträge ({entries.length})
-                                    </label>
-                                </div>
-                                {entries.length === 0 && (
-                                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
-                                        Bilde DP-Werte (z.B. 0, 1, 2) auf Labels ab. Beim Auswählen wird der Wert in den
-                                        Datenpunkt geschrieben.
-                                    </p>
-                                )}
-                                <div className="flex flex-col gap-1">
-                                    {entries.map((e, i) => {
-                                        const EntryIcon = e.icon ? getWidgetIcon(e.icon, HelpCircle) : null;
+                            {/* Herkunft der Einträge — Liste oder JSON-Datenpunkt (#615),
+                                dieselben Optionen wie beim Auswahlfeld-Widget. */}
+                            <div className="flex items-center justify-between gap-2">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    Einträge
+                                </label>
+                                <div
+                                    className="flex rounded-lg overflow-hidden shrink-0"
+                                    style={{ border: '1px solid var(--app-border)' }}
+                                >
+                                    {(
+                                        [
+                                            { key: 'manual', label: 'Manuell' },
+                                            { key: 'json', label: 'JSON-Datenpunkt' },
+                                        ] as const
+                                    ).map(({ key, label }) => {
+                                        const active = (fromJson ? 'json' : 'manual') === key;
                                         return (
-                                            <div key={i} className="flex items-center gap-1">
-                                                <input
-                                                    type="text"
-                                                    value={e.value}
-                                                    onChange={(ev) => patchEntry(i, { value: ev.target.value })}
-                                                    placeholder="Wert"
-                                                    className="text-xs rounded-lg px-2 py-1 focus:outline-none"
-                                                    style={{ ...inputSty, width: 60, flexShrink: 0 }}
-                                                />
-                                                <button
-                                                    onClick={() => setEntryIconPicker(i)}
-                                                    title={e.icon ? `Icon: ${e.icon}` : 'Icon wählen…'}
-                                                    className="h-7 w-7 rounded flex items-center justify-center shrink-0"
-                                                    style={{
-                                                        background: 'var(--app-bg)',
-                                                        border: '1px solid var(--app-border)',
-                                                        color: e.icon ? 'var(--text-primary)' : 'var(--text-secondary)',
-                                                    }}
-                                                >
-                                                    {EntryIcon ? (
-                                                        <EntryIcon size={14} />
-                                                    ) : (
-                                                        <HelpCircle size={14} style={{ opacity: 0.4 }} />
-                                                    )}
-                                                </button>
-                                                {e.icon && (
-                                                    <button
-                                                        onClick={() => patchEntry(i, { icon: undefined })}
-                                                        title="Icon entfernen"
-                                                        className="text-[10px] px-1 py-1 rounded shrink-0"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                    >
-                                                        ×
-                                                    </button>
-                                                )}
-                                                <input
-                                                    type="text"
-                                                    value={e.label}
-                                                    onChange={(ev) => patchEntry(i, { label: ev.target.value })}
-                                                    placeholder="Label"
-                                                    className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
-                                                    style={inputSty}
-                                                />
-                                                <ColorPicker
-                                                    value={e.color && e.color.startsWith('#') ? e.color : '#ffffff'}
-                                                    onChange={(v) => patchEntry(i, { color: v })}
-                                                    title="Farbe (optional)"
-                                                    className="h-7 w-7 rounded cursor-pointer border-0 p-0 shrink-0"
-                                                />
-                                                {e.color && (
-                                                    <button
-                                                        onClick={() => patchEntry(i, { color: undefined })}
-                                                        title="Farbe zurücksetzen"
-                                                        className="text-[10px] px-1 py-1 rounded shrink-0"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-secondary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                    >
-                                                        ×
-                                                    </button>
-                                                )}
-                                                <div className="flex flex-col shrink-0">
-                                                    <button
-                                                        onClick={() => moveEntry(i, -1)}
-                                                        disabled={i === 0}
-                                                        className="text-[9px] leading-none px-1"
-                                                        style={{
-                                                            color: 'var(--text-secondary)',
-                                                            opacity: i === 0 ? 0.3 : 1,
-                                                        }}
-                                                    >
-                                                        ▲
-                                                    </button>
-                                                    <button
-                                                        onClick={() => moveEntry(i, 1)}
-                                                        disabled={i === entries.length - 1}
-                                                        className="text-[9px] leading-none px-1"
-                                                        style={{
-                                                            color: 'var(--text-secondary)',
-                                                            opacity: i === entries.length - 1 ? 0.3 : 1,
-                                                        }}
-                                                    >
-                                                        ▼
-                                                    </button>
-                                                </div>
-                                                <button
-                                                    onClick={() => removeEntry(i)}
-                                                    title="Eintrag löschen"
-                                                    className="text-[11px] px-1.5 py-1 rounded shrink-0"
-                                                    style={{
-                                                        background: 'var(--app-bg)',
-                                                        color: 'var(--text-secondary)',
-                                                        border: '1px solid var(--app-border)',
-                                                    }}
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
+                                            <button
+                                                key={key}
+                                                onClick={() => onChange({ entriesSource: key })}
+                                                className="text-[10px] px-2 py-1 transition-colors"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: 'none',
+                                                }}
+                                            >
+                                                {label}
+                                            </button>
                                         );
                                     })}
                                 </div>
-                                <button
-                                    onClick={addEntry}
-                                    className="w-full mt-1 text-[11px] py-1.5 rounded-lg hover:opacity-80 flex items-center justify-center gap-1"
-                                    style={{
-                                        background: 'var(--app-bg)',
-                                        color: 'var(--text-secondary)',
-                                        border: '1px dashed var(--app-border)',
-                                    }}
-                                >
-                                    <Plus size={12} /> Einträge hinzufügen
-                                </button>
-                                {entryIconPicker !== null && entries[entryIconPicker] && (
-                                    <IconPickerModal
-                                        current={entries[entryIconPicker].icon ?? ''}
-                                        onSelect={(name) => {
-                                            patchEntry(entryIconPicker, { icon: name || undefined });
-                                            setEntryIconPicker(null);
-                                        }}
-                                        onClose={() => setEntryIconPicker(null)}
-                                    />
-                                )}
                             </div>
+
+                            {fromJson && (
+                                <EnumJsonSourceSection
+                                    dp={cell.entriesDp ?? ''}
+                                    keys={{
+                                        value: cell.entriesValueKey,
+                                        label: cell.entriesLabelKey,
+                                        color: cell.entriesColorKey,
+                                        icon: cell.entriesIconKey,
+                                        image: cell.entriesImageKey,
+                                    }}
+                                    onDpChange={(dp) => onChange({ entriesDp: dp })}
+                                    onKeyChange={(field, v) => onChange({ [ENTRY_KEY_OPTION[field]]: v })}
+                                />
+                            )}
+
+                            {!fromJson && (
+                                <div>
+                                    <div className="mb-1">
+                                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                            Wert → Eintrag ({entries.length})
+                                        </label>
+                                    </div>
+                                    {entries.length === 0 && (
+                                        <p
+                                            className="text-[10px]"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                        >
+                                            Bilde DP-Werte (z.B. 0, 1, 2) auf Labels ab. Beim Auswählen wird der Wert in
+                                            den Datenpunkt geschrieben.
+                                        </p>
+                                    )}
+                                    <div className="flex flex-col gap-1">
+                                        {entries.map((e, i) => {
+                                            const EntryIcon = e.icon ? getWidgetIcon(e.icon, HelpCircle) : null;
+                                            return (
+                                                <div key={i} className="flex items-center gap-1">
+                                                    <input
+                                                        type="text"
+                                                        value={e.value}
+                                                        onChange={(ev) => patchEntry(i, { value: ev.target.value })}
+                                                        placeholder="Wert"
+                                                        className="text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                                        style={{ ...inputSty, width: 60, flexShrink: 0 }}
+                                                    />
+                                                    <button
+                                                        onClick={() => setEntryIconPicker(i)}
+                                                        title={e.icon ? `Icon: ${e.icon}` : 'Icon wählen…'}
+                                                        className="h-7 w-7 rounded flex items-center justify-center shrink-0"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            border: '1px solid var(--app-border)',
+                                                            color: e.icon
+                                                                ? 'var(--text-primary)'
+                                                                : 'var(--text-secondary)',
+                                                        }}
+                                                    >
+                                                        {EntryIcon ? (
+                                                            <EntryIcon size={14} />
+                                                        ) : (
+                                                            <HelpCircle size={14} style={{ opacity: 0.4 }} />
+                                                        )}
+                                                    </button>
+                                                    {e.icon && (
+                                                        <button
+                                                            onClick={() => patchEntry(i, { icon: undefined })}
+                                                            title="Icon entfernen"
+                                                            className="text-[10px] px-1 py-1 rounded shrink-0"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    )}
+                                                    <input
+                                                        type="text"
+                                                        value={e.label}
+                                                        onChange={(ev) => patchEntry(i, { label: ev.target.value })}
+                                                        placeholder="Label"
+                                                        className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                                        style={inputSty}
+                                                    />
+                                                    <ColorPicker
+                                                        value={e.color && e.color.startsWith('#') ? e.color : '#ffffff'}
+                                                        onChange={(v) => patchEntry(i, { color: v })}
+                                                        title="Farbe (optional)"
+                                                        className="h-7 w-7 rounded cursor-pointer border-0 p-0 shrink-0"
+                                                    />
+                                                    {e.color && (
+                                                        <button
+                                                            onClick={() => patchEntry(i, { color: undefined })}
+                                                            title="Farbe zurücksetzen"
+                                                            className="text-[10px] px-1 py-1 rounded shrink-0"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                color: 'var(--text-secondary)',
+                                                                border: '1px solid var(--app-border)',
+                                                            }}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    )}
+                                                    <div className="flex flex-col shrink-0">
+                                                        <button
+                                                            onClick={() => moveEntry(i, -1)}
+                                                            disabled={i === 0}
+                                                            className="text-[9px] leading-none px-1"
+                                                            style={{
+                                                                color: 'var(--text-secondary)',
+                                                                opacity: i === 0 ? 0.3 : 1,
+                                                            }}
+                                                        >
+                                                            ▲
+                                                        </button>
+                                                        <button
+                                                            onClick={() => moveEntry(i, 1)}
+                                                            disabled={i === entries.length - 1}
+                                                            className="text-[9px] leading-none px-1"
+                                                            style={{
+                                                                color: 'var(--text-secondary)',
+                                                                opacity: i === entries.length - 1 ? 0.3 : 1,
+                                                            }}
+                                                        >
+                                                            ▼
+                                                        </button>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removeEntry(i)}
+                                                        title="Eintrag löschen"
+                                                        className="text-[11px] px-1.5 py-1 rounded shrink-0"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-secondary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    <button
+                                        onClick={addEntry}
+                                        className="w-full mt-1 text-[11px] py-1.5 rounded-lg hover:opacity-80 flex items-center justify-center gap-1"
+                                        style={{
+                                            background: 'var(--app-bg)',
+                                            color: 'var(--text-secondary)',
+                                            border: '1px dashed var(--app-border)',
+                                        }}
+                                    >
+                                        <Plus size={12} /> Einträge hinzufügen
+                                    </button>
+                                    {entryIconPicker !== null && entries[entryIconPicker] && (
+                                        <IconPickerModal
+                                            current={entries[entryIconPicker].icon ?? ''}
+                                            onSelect={(name) => {
+                                                patchEntry(entryIconPicker, { icon: name || undefined });
+                                                setEntryIconPicker(null);
+                                            }}
+                                            onClose={() => setEntryIconPicker(null)}
+                                        />
+                                    )}
+                                </div>
+                            )}
                             <div className="flex items-center justify-between">
                                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                     Aktuelles Label anzeigen

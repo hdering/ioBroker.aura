@@ -16,7 +16,7 @@
  * über `EnumJsonKeys` lässt sich die Erkennung überschreiben, inklusive
  * verschachtelter Pfade wie `attributes.name`.
  */
-import type { EnumEntry, EnumRender } from '../components/widgets/EnumWidget';
+import type { EnumEntry, EnumRender } from '../components/widgets/enumEntry';
 import { extractJsonPath } from './dpRef';
 
 export interface EnumJsonKeys {

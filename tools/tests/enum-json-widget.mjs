@@ -128,6 +128,101 @@ eq('a configured JSON DP is ignored in manual mode', await openOptions(), ['Manu
 await show({ entriesSource: 'json', entriesDp: 'demo.broken' }, { 'demo.mode': 1, 'demo.broken': '{ not json' });
 eq('unparsable JSON falls back to the raw value', (await currentLabel()).trim(), '1');
 
+// ── the same entries in a Universal-Widget cell (issue #615) ─────────────────
+// The Auswahl cell reads the identical option set, so everything above has to
+// work there too — including the JSON source it did not have before.
+
+/** Mount a Universal Widget whose only cell is an Auswahl cell. */
+async function showCell(cell, values) {
+    const widget = {
+        id: `w-uni-${++seq}`,
+        type: 'universal',
+        title: '',
+        layout: 'custom',
+        gridPos: { x: 0, y: 0, w: 12, h: 6 },
+        options: {
+            showTitle: false,
+            showIcon: false,
+            customGrid: {
+                cols: 1,
+                rows: 1,
+                cells: [{ type: 'select', dpId: 'demo.mode', ...cell }],
+            },
+        },
+    };
+    await page.evaluate(
+        ([w, vals]) => {
+            window.__auraShot.mock(vals);
+            window.__auraShot.mockServerState(vals);
+            window.__auraShot.showWidgets([w]);
+        },
+        [widget, values],
+    );
+    await page.waitForTimeout(400);
+}
+
+/** The closed dropdown prints the current entry. */
+const cellCurrent = () => page.locator('.aura-widget-action button').first().innerText();
+
+await showCell({ entriesSource: 'json', entriesDp: 'demo.modes' }, { 'demo.mode': 1, 'demo.modes': MODES });
+eq('cell: current value maps to the JSON label', (await cellCurrent()).trim(), 'Heizen');
+eq('cell: dropdown lists every JSON entry', await openOptions(), ['Aus', 'Heizen', 'Kühlen']);
+
+await page.evaluate(() => window.__auraShot.mock({ 'demo.mode': 2 }));
+await page.waitForTimeout(300);
+eq('cell: label follows the datapoint', (await cellCurrent()).trim(), 'Kühlen');
+
+await page.evaluate(() => window.__auraShot.mock({ 'demo.modes': JSON.stringify({ 0: 'Zu', 1: 'Auf' }) }));
+await page.waitForTimeout(300);
+eq('cell: map form rebuilds the list live', await openOptions(), ['Zu', 'Auf']);
+
+await showCell(
+    { entriesSource: 'json', entriesDp: 'demo.nested?data.modes' },
+    { 'demo.mode': 0, 'demo.nested': JSON.stringify({ data: { modes: [{ id: 0, name: 'Halt' }] } }) },
+);
+eq('cell: JSON path selects the nested list', await openOptions(), ['Halt']);
+
+// The manual list must keep working exactly as before, JSON DP or not.
+await showCell(
+    {
+        entries: [
+            { value: '0', label: 'Manuell A' },
+            { value: '1', label: 'Manuell B' },
+        ],
+    },
+    { 'demo.mode': 0 },
+);
+eq('cell: manual entries still win when no source is set', await openOptions(), ['Manuell A', 'Manuell B']);
+
+await showCell(
+    { entriesSource: 'manual', entriesDp: 'demo.modes', entries: [{ value: '0', label: 'Manuell A' }] },
+    { 'demo.mode': 0, 'demo.modes': MODES },
+);
+eq('cell: a configured JSON DP is ignored in manual mode', await openOptions(), ['Manuell A']);
+
+// An unmapped value has to stay readable instead of showing an empty dash.
+await showCell({ entriesSource: 'json', entriesDp: 'demo.broken' }, { 'demo.mode': 1, 'demo.broken': '{ not json' });
+eq('cell: unparsable JSON falls back to the raw value', (await cellCurrent()).trim(), '1');
+
+// Picking an entry writes the value to the cell's datapoint.
+await showCell({ entriesSource: 'json', entriesDp: 'demo.modes' }, { 'demo.mode': 0, 'demo.modes': MODES });
+await page.locator('.aura-widget-action button').first().click();
+await page.waitForTimeout(200);
+await page.locator('.z-\\[9999\\] button').filter({ hasText: 'Kühlen' }).first().click();
+await page.waitForTimeout(300);
+eq('cell: picking an entry writes the value', (await cellCurrent()).trim(), 'Kühlen');
+
+// Without a dropdown the cell has to print the current entry by itself.
+await showCell(
+    { entriesSource: 'json', entriesDp: 'demo.modes', hideSelect: true },
+    { 'demo.mode': 2, 'demo.modes': MODES },
+);
+eq(
+    'cell: a hidden dropdown still prints the current entry',
+    (await page.locator('.aura-custom-cell-0').first().innerText()).trim(),
+    'Kühlen',
+);
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();
