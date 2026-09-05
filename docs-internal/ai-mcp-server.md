@@ -148,6 +148,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_tab`                            | Widgets eines Tabs inkl. `groupDefs`                                                                           | read         |
 | `aura_types`                          | Benannte Typen einzeln holen (`WidgetCondition`, `CustomCell` …) statt sie je Widget-Typ mitzuschleppen        | read         |
 | `aura_measure`                        | Zeilen in Pixel, gegen die gemessene Höhe des Typs — Layout, Optionen und Zeilendarstellung, plus Tab-URL      | read         |
+| `aura_rendered`                       | Was der Browser wirklich gezeichnet hat: Renderhöhe, Inhaltshöhe, scrollt ja/nein — je Tab, der offen war      | read         |
 | `aura_validate`                       | Prüfung gegen Schema, Live-Datenpunkte, die Objekte dahinter und die Darstellung der Zeilen                    | read         |
 | `aura_review`                         | Vorhandenes prüfen: Stil (`mode:"style"`) und Gesundheit (tote/leere/eingefrorene DPs, unwirksame Optionen)    | read         |
 | `aura_add_widget`                     | Ein Widget an Tab, Popup oder Gruppe anfügen                                                                   | write        |
@@ -159,6 +160,7 @@ angewiesen, das JSON zum manuellen Import anzubieten.
 | `aura_write_popup`                    | Popup-Widgets ersetzen oder Ansicht anlegen (`create:true`)                                                    | write        |
 | `aura_group` / `aura_write_group`     | Kinder einer Gruppe/Panels/Universal lesen bzw. ersetzen                                                       | read/write   |
 | `aura_update_widget`                  | Ein einzelnes Widget ändern — im Tab, im Popup oder in einer Gruppe                                            | write        |
+| `aura_update_widgets`                 | Mehrere Widgets in einem Schreibvorgang ändern — eine Prüfung des Endzustands, eine Sicherung                  | write        |
 | `aura_update_node`                    | Eigenschaften von Layout, Bereich oder Tab-Button: Icon, ausgeblendet, Marker, Aggregat-Anzahl, Bedingungen    | write        |
 | `aura_find`                           | Widgets nach Datenpunkt, Typ oder Titel finden — über Tabs, Gruppen und Popups, inkl. Datenpunkten in Optionen | read         |
 | `aura_copy_node`                      | Tab, Bereich, Layout oder Popup kopieren bzw. verschieben (`mode:"move"`)                                      | write        |
@@ -336,8 +338,8 @@ Darstellungen der Listen ungenutzt im Schema lagen.
 
 `lib/mcp/recipes.js` hält deshalb fertige, gültige Widgets: Raumliste,
 gemischte Gerätliste, Wertkachel mit Schwellen und Bedingung, Verbrauchsbalken,
-Zwei-Achsen-Verlauf, Statusübersicht, Thermostat-Rundskala, Füllstand und ein
-kompletter Raum-Tab. Jedes Rezept sagt dazu, **wofür** es gedacht ist und
+Zwei-Achsen-Verlauf, Statusübersicht, Thermostat-Rundskala, Füllstand, Multiroom-
+Audio und ein kompletter Raum-Tab. Jedes Rezept sagt dazu, **wofür** es gedacht ist und
 **welche billigere Bauweise** es ersetzt — das ist der Teil, der die Wahl
 verschiebt. `aura_recipes` ohne `id` listet sie, mit `id` kommt das vollständige
 JSON.
@@ -358,6 +360,16 @@ Zwei Entscheidungen dazu:
 In den `instructions` steht der Schritt vor der Schemaabfrage, zusammen mit dem
 Hinweis, einen vorhandenen Tab per `aura_tab` als Stilvorlage zu lesen: das eigene
 Dashboard des Nutzers ist die bessere Vorlage als jede mitgelieferte.
+
+**Multiroom kam später dazu.** Aus der Praxis gemeldet: zehn Rezepte, keins für
+Medien — also wurde ein Musik-Tab direkt aus dem Schema gebaut, mit `showTitle`
+am Player (wirkungslos, siehe `onlyLayouts`) und drei Runden Höhenraten. Das
+Rezept `multiroom` zeigt einen Player in `default` und einen in `compact`, die
+Chips als Direktwahl, `muteViaVolume` für Alexa — und sagt in den Hinweisen, dass
+Geräte über `list_devices` des ioBroker-MCP kommen und nicht über
+`search_objects`: eine Namenssuche nach einem Echo liefert jedes Wecker-,
+Erinnerungs- und Timer-Unterobjekt mit. Derselbe Satz steht in den
+`instructions`.
 
 ## Der Rückblick auf das, was schon da ist
 
@@ -1002,11 +1014,117 @@ bewusst **nicht** Teil von `npm test`.
 
 ## Und der Blick aufs Ergebnis?
 
-Bleibt beim Nutzer. Ein Screenshot im Adapter hieße Playwright plus Browser im
-Adapter-Paket; das ist nicht vertretbar. Ersatz ist der Link: `aura_measure`
-liefert bei einem Tab dessen URL mit (`tabUrl` in `tools.js`, Hash-Route
-`#/view/<layout>/s/<section>/tab/<tab>`), damit der Nutzer in einer Sekunde
-sieht, was keine Prüfung sagen kann.
+Ein Screenshot im Adapter hieße Playwright plus Browser im Adapter-Paket; das ist
+nicht vertretbar. Zwei Ersatzwege gibt es trotzdem:
+
+**Der Link.** `aura_measure` liefert bei einem Tab dessen URL mit (`tabUrl` in
+`tools.js`, Hash-Route `#/view/<layout>/s/<section>/tab/<tab>`), damit der Nutzer
+in einer Sekunde sieht, was keine Prüfung sagen kann.
+
+**Die Messung aus dem Browser.** `aura_rendered` — das Frontend kennt sein
+eigenes Layout und meldet es.
+
+Aus der Praxis gemeldet (eine Sitzung, in der 28 Listen vermessen wurden): jede
+Zahl, die am Ende stimmte, kam aus dem echten DOM über den Browser, keine aus dem
+Server. Die Tabelle hinter `aura_measure` ist außerdem eine Momentaufnahme — sie
+veraltet mit jedem CSS-Commit, und nichts sagt es. Der Weg jetzt:
+
+1. `src-vis/utils/renderReport.ts` misst nach dem Rendern jedes Grid-Item des
+   **aktiven** Tabs: Renderhöhe, Inhaltshöhe (Renderhöhe plus das, was in einem
+   Scroller verschwindet) und ob überhaupt etwas scrollt. Die Widgets tragen dafür
+   `data-aura-widget` / `-type` / `-rows`, der Tab-Container `data-aura-tab-id`.
+2. 1,2 s nach der letzten Änderung, und nur wenn sich etwas geändert hat, geht das
+   per `sendTo('renderReport')` an den Adapter — derselbe Weg wie die Ladezeiten.
+   Nur aus dem echten Frontend (`viewTabs`), nie aus dem Editor: dessen Vorschau
+   ist schmaler als das Dashboard und würde Höhen melden, die niemand sieht.
+   Im Screenshot-Modus schweigt es ganz.
+3. `main.js` mischt den Bericht je Tab-Id in `aura.0.info.rendered`
+   (`renderReportEntry` / `mergeRenderReport` in `auraConfig.js`, 40 Tabs, ältester
+   fliegt zuerst). Gemischt wird im Adapter und nicht im Browser: mehrere Clients
+   melden, und ein Client, der selbst mischte, würde die Tabs der anderen
+   überschreiben.
+4. `aura_rendered` liest das zurück, stellt die Schätzung daneben und nennt jede
+   Abweichung über 8 px. `aura_measure` sagt am Ende seiner Antwort, ob es für
+   diesen Tab eine echte Messung gibt.
+
+Die Grenze steht in der Antwort: gemeldet wird nur, was offen **war**. Ein Tab,
+den niemand aufgemacht hat, hat keine Messung — dann bittet man den Nutzer, ihn zu
+öffnen, statt eine Zahl zu erfinden.
+
+Geprüft wird die Messung selbst gegen das echte DOM: `npm run test:render-report`
+(braucht wie die anderen DOM-Tests einen laufenden Dev-Server) rendert eine Liste,
+die passt, und eine, die überläuft, und vergleicht `px` zusätzlich mit der
+Rasterarithmetik. `window.__auraShot.rendered()` gibt dieselbe Messung im Browser
+aus.
+
+## Vier Höhenklassen statt einem „nicht gemessen"
+
+Aus derselben Meldung: `aura_measure` meldete für drei völlig verschiedene Fälle
+dasselbe. Ein Player, der jede Höhe annimmt; eine Liste, die auf die Zeile genau
+gerechnet werden muss; eine Autolist, deren Zeilen es noch gar nicht gibt. Ohne
+den Unterschied wurde der Player dreimal in der Höhe verändert (h=11 → 9 → 7), um
+eine Zahl zu finden, die er nie gebraucht hätte.
+
+Jede Zeile der Antwort trägt jetzt ihre Klasse (`measure.js`, `heightClass`):
+
+| Klasse     | heißt                                                         | Beispiele                        |
+| ---------- | ------------------------------------------------------------- | -------------------------------- |
+| `fills`    | füllt die Karte, über der Mindesthöhe ist `h` frei            | mediaplayer, echart, fill, value |
+| `content`  | feste Inhaltshöhe — zu wenig heißt Scrollbalken               | list, jsontable                  |
+| `runtime`  | Zeilen entstehen erst zur Laufzeit, planbar nur mit `maxRows` | autolist, statusoverview, timer  |
+| `children` | die Höhe kommt von den Kindern                                | group, panels, universal, mirror |
+
+Ein Test hält die Liste vollständig: jeder Typ im Schema muss einer Klasse
+zugeordnet sein.
+
+## Mehrere Widgets, ein Schreibvorgang
+
+Aus der Praxis gemeldet: ~45 Einzelschreibvorgänge für einen Umbau, jeder mit
+eigener Sicherung. Schlimmer als die Menge war die Reihenfolge — `w-rl-og` auf
+h=18 wurde abgelehnt, bis vorher `w-rl-draussen` verschoben war, obwohl der
+**Endzustand** sauber war. Die Prüfung sieht bei Einzelschreibvorgängen immer nur
+einen Zwischenstand, und der überlappt.
+
+`aura_update_widgets` nimmt eine Liste `[{widgetId, patch, defId?, replace?}]`:
+
+- Der Dashboard-Baum wird **einmal** gelesen (`loadModel`), alle Patches werden
+  darauf angewandt, und erst der Endzustand wird geprüft.
+- `baselineWidgets` ist der Stand **vor** dem Batch — sonst sähe jede Überlappung,
+  die der Batch erzeugt, wie eine alte aus und käme als Warnung durch.
+- Eine Sicherung, ein Schreibvorgang je berührtem Speicher (Tabs, Popups,
+  Gruppen dürfen gemischt vorkommen).
+- Zweimal dieselbe Widget-Id wird abgelehnt: sonst hinge das Ergebnis von der
+  Reihenfolge im Array ab.
+- `dryRun: true` prüft und meldet, schreibt nichts.
+
+## `onlyLayouts`: im Schema und trotzdem wirkungslos
+
+Aus der Praxis gemeldet: `showTitle` am `mediaplayer` wurde anstandslos
+angenommen und vom Widget ignoriert. Kein Phantom im Sinne des Extraktors — im
+Layout `custom` liest eine Titelzelle die Option sehr wohl (`CustomGridView`) —
+aber in `default` und `compact` zeichnet der Player seine eigene Kopfzeile, und
+der Editor bietet den Schalter dort gar nicht erst an.
+
+Dafür gibt es jetzt `onlyLayouts` am Options-Eintrag
+(`widget-schema-overlay.mjs` → `WIDGET_OPTION_NOTES`). Die Generierung hebt einen
+so markierten Schlüssel **nicht** in den gemeinsamen Block (sonst wäre die
+Einschränkung wieder weg), und `aura_validate` warnt, wenn das Widget auf einem
+anderen Layout steht.
+
+## Vorschläge, die als Eingabe funktionieren
+
+Zwei Fehlermeldungen nannten Werte, die der Server selbst nicht annahm:
+
+- Ein Popup wurde als „Popup Wohnzimmer" aufgelistet, akzeptiert wurde nur die
+  Id. `findPopupView` nimmt jetzt auch das Präfix (und die Liste druckt den
+  nackten Namen mit der Id daneben).
+- Ein Tab wurde als „Layout / Bereich / Tab" aufgelistet, akzeptiert wurde nur der
+  nackte Name. `findTab` nimmt jetzt den ganzen Pfad — und der ist zugleich die
+  Auflösung, wenn ein Tabname mehrfach vorkommt.
+
+Dazu die Tab-Liste in `aura_dashboard`: sie nennt je Tab „endet auf Zeile N (von
+M)". Das ist `max(y+h)`, kostet nichts und ersetzt siebzehn `aura_measure`-Aufrufe
+mit der Frage, welcher Tab unter die Hilfslinie läuft.
 
 ## Antwortgröße
 

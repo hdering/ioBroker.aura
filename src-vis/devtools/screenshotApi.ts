@@ -13,6 +13,7 @@
 // Stripped from production: only imported from main.tsx under import.meta.env.DEV.
 
 import { getInstanceByDom } from 'echarts';
+import { measureRenderedWidgets } from '../utils/renderReport';
 import {
     __devInjectObject,
     __devInjectState,
@@ -226,6 +227,14 @@ function installScreenshotApi(): void {
                         if (found) return (found.options ?? {}) as Record<string, unknown>;
                     }
             return null;
+        },
+
+        /** What the widgets of the open tab MEASURE right now — the same walk the
+         *  frontend reports to the adapter (utils/renderReport.ts). Exposed so the
+         *  measurement itself can be tested against a real layout instead of being
+         *  trusted; in the live frontend nothing calls this. */
+        rendered(): ReturnType<typeof measureRenderedWidgets> {
+            return measureRenderedWidgets(document);
         },
 
         setEditMode(on: boolean): void {

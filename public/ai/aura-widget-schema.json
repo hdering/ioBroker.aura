@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.54.0",
+    "auraVersion": "0.54.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -9911,7 +9911,6 @@
         "reachTrueValues",
         "showIcon",
         "showStatusBadges",
-        "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
         "transparency",
@@ -10058,6 +10057,14 @@
           "type": "boolean",
           "default": true,
           "description": "Zweite Zeile unter dem Titel anzeigen."
+        },
+        "showTitle": {
+          "type": "boolean",
+          "default": true,
+          "description": "Titelzeile anzeigen — wirkt NUR im Layout \"custom\" (Titelzelle). In \"default\" und \"compact\" zeichnet der Player seine eigene Kopfzeile und ignoriert die Option.",
+          "onlyLayouts": [
+            "custom"
+          ]
         },
         "showVolume": {
           "type": "boolean",

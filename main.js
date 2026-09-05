@@ -8,6 +8,7 @@ const path = require('node:path');
 const SunCalc = require('suncalc');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
+const { mergeRenderReport, renderReportEntry } = require('./lib/mcp/auraConfig');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -2272,6 +2273,26 @@ class Aura extends utils.Adapter {
             native: {},
         });
 
+        // ── Rendered widget geometry (read-only, written by the frontend) ────
+        // What the widgets of the open tab actually measure in the browser. The
+        // MCP server can compute a height from its metrics table but cannot look
+        // at the result — and that table ages with every CSS change. The frontend
+        // reports rendered height, content height and "does it scroll" per widget
+        // once a tab has settled (src-vis/utils/renderReport.ts → sendTo
+        // 'renderReport'), and aura_rendered reads it back from here.
+        await this.setObjectNotExistsAsync('info.rendered', {
+            type: 'state',
+            common: {
+                name: 'Rendered widget geometry per tab (JSON, written by the frontend)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: false,
+                def: '',
+            },
+            native: {},
+        });
+
         // ── Installed adapter version ────────────────────────────────────────
         // Read-only mirror of package.json/io-package common.version so the
         // running version can be bound anywhere in the frontend (or read by
@@ -3366,6 +3387,33 @@ class Aura extends utils.Adapter {
             if (msg.command === 'ping') {
                 // No-op round-trip so the frontend can measure network RTT.
                 reply({ ok: true, t: Date.now() });
+                return;
+            }
+
+            // ── Rendered geometry from the frontend ──────────────────────────
+            // What the widgets of the open tab actually measure in the browser.
+            // Shape and cap live in lib/mcp/auraConfig.js next to the reader, so
+            // writer and reader cannot drift apart in silence.
+            if (msg.command === 'renderReport') {
+                const parsed = renderReportEntry(msg.message);
+                if (!parsed) {
+                    reply({ ok: false, error: 'missing tabId or widgets' });
+                    return;
+                }
+                let store = {};
+                try {
+                    const cur = await this.getStateAsync('info.rendered');
+                    const prev = cur && cur.val ? JSON.parse(cur.val) : null;
+                    if (prev && prev.tabs && typeof prev.tabs === 'object') store = prev.tabs;
+                } catch {
+                    // Unreadable or not JSON — start over rather than lose the new report.
+                }
+                const tabs = mergeRenderReport(store, parsed.tabId, parsed.entry);
+                await this.setStateAsync('info.rendered', {
+                    val: JSON.stringify({ ts: parsed.entry.ts, tabs }),
+                    ack: true,
+                });
+                reply({ ok: true, tabId: parsed.tabId, widgets: parsed.entry.widgets.length });
                 return;
             }
 

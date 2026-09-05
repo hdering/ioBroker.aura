@@ -263,12 +263,12 @@ export const WIDGET_OPTION_NOTES = {
     fill: {
         limits: {
             description:
-                'Verstellbare Grenzen auf der Skala (#613) — Ladelimit, Entladegrenze, Priorisierungsschwelle. '
-                + 'Jede Grenze bringt einen eigenen Datenpunkt mit und kann im Dashboard gezogen werden; sie teilen '
-                + 'die Skala in Abschnitte, die je ein Icon und eine Farbe tragen. Icon und bandColor einer Grenze '
-                + 'gelten für den Abschnitt ÜBER ihr; der unterste Abschnitt nutzt baseIcon/baseBandColor. '
-                + 'Abschnittsfarben gewinnen über colorZones. Nur in den Layouts default, battery und bar — '
-                + 'segments, wave und custom haben keinen durchgehenden Balken und ignorieren die Grenzen.',
+                'Verstellbare Grenzen auf der Skala (#613) — Ladelimit, Entladegrenze, Priorisierungsschwelle. ' +
+                'Jede Grenze bringt einen eigenen Datenpunkt mit und kann im Dashboard gezogen werden; sie teilen ' +
+                'die Skala in Abschnitte, die je ein Icon und eine Farbe tragen. Icon und bandColor einer Grenze ' +
+                'gelten für den Abschnitt ÜBER ihr; der unterste Abschnitt nutzt baseIcon/baseBandColor. ' +
+                'Abschnittsfarben gewinnen über colorZones. Nur in den Layouts default, battery und bar — ' +
+                'segments, wave und custom haben keinen durchgehenden Balken und ignorieren die Grenzen.',
         },
         limitsEditable: {
             description: 'Hauptschalter: false macht alle Grenzen zur reinen Anzeige, unabhängig von limit.editable.',
@@ -373,6 +373,17 @@ export const WIDGET_OPTION_NOTES = {
         falseLabel: { description: 'Beschriftung für den falschen Zustand.' },
     },
     mediaplayer: {
+        // Reported from use: set, accepted by the validator, and without any
+        // effect — the player draws its own header and the editor does not even
+        // offer the toggle. It is not a phantom either: in layout "custom" a
+        // title cell honours it (CustomGridView). `onlyLayouts` says exactly
+        // that, and aura_validate warns when the widget is on another layout.
+        showTitle: {
+            onlyLayouts: ['custom'],
+            description:
+                'Titelzeile anzeigen — wirkt NUR im Layout "custom" (Titelzelle). In "default" und ' +
+                '"compact" zeichnet der Player seine eigene Kopfzeile und ignoriert die Option.',
+        },
         titleDp: { description: 'Datenpunkt des Titels.' },
         artistDp: { description: 'Datenpunkt des Interpreten.' },
         albumDp: { description: 'Datenpunkt des Albums.' },

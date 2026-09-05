@@ -695,7 +695,12 @@ async function build() {
         for (const key of Object.keys(options).sort()) {
             const entry = options[key];
             const shared = commonOptions[key];
-            if (shared && sameShape(entry, shared)) {
+            // `onlyLayouts` is the one annotation that must NOT be hoisted away:
+            // it says this widget reads the key on some layouts only, and folding
+            // the key into the shared block would advertise it unconditionally —
+            // the "accepted and silently ignored" case the whole file exists to
+            // prevent (mediaplayer.showTitle).
+            if (shared && sameShape(entry, shared) && !entry.onlyLayouts) {
                 common.push(key);
                 continue;
             }

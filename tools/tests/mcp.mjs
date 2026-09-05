@@ -33,7 +33,11 @@ const {
     designColumns,
     loggingInstances,
     allTabs,
+    findPopupView,
     findTab,
+    mergeRenderReport,
+    renderReportEntry,
+    RENDER_REPORT_TABS,
     findWidget,
     mergeWidget,
     NODE_FIELDS,
@@ -54,7 +58,7 @@ const {
 } = require('../../lib/mcp/review.js');
 const { auditDashboard, renderAudit } = require('../../lib/mcp/audit.js');
 const { collectDatapointRefs, historyFindings, historyReads, writeRefs } = require('../../lib/mcp/dpFit.js');
-const { measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
+const { heightClass, measureWidget, renderMeasure, rowsToPx, pxToRows } = require('../../lib/mcp/measure.js');
 const { designCanvas, renderCanvas } = require('../../lib/mcp/canvas.js');
 const { activeThemes, renderPalette, renderTheme, themeValues } = require('../../lib/mcp/theme.js');
 const THEME_TOKENS = JSON.parse(fs.readFileSync(path.join(ROOT, 'public/ai/aura-theme-tokens.json'), 'utf8'));
@@ -1042,6 +1046,77 @@ check('a type measured only as a minimum is compared against that', () => {
     const m = measureWidget(gauge, { metrics: METRICS, grid: GRID });
     assert.equal(m.requiredPx, METRICS.minimum.gauge.minPx);
     assert.equal(m.verdict, 'zu klein');
+});
+
+// ── Height class: which of the three "no number" situations this is ─────────
+// Reported from the field: aura_measure said „nicht gemessen“ for a player that
+// would have taken any height, for a list that has to be computed to the row and
+// for an autolist whose rows do not exist yet. Told apart, the player is not
+// resized three times to find a number it never needed.
+
+check('every widget type is filed under one of the four height classes', () => {
+    for (const type of Object.keys(schema.widgets)) {
+        const cls = heightClass(type, METRICS);
+        assert.ok(['fills', 'content', 'runtime', 'children'].includes(cls), `${type}: unknown height class ${cls}`);
+    }
+    assert.equal(heightClass('list', METRICS), 'content');
+    assert.equal(heightClass('autolist', METRICS), 'runtime');
+    assert.equal(heightClass('mediaplayer', METRICS), 'fills');
+    assert.equal(heightClass('echart', METRICS), 'fills');
+    assert.equal(heightClass('group', METRICS), 'children');
+});
+
+check('the class is on every line of the answer, with its legend underneath', () => {
+    const player = {
+        id: 'p',
+        type: 'mediaplayer',
+        title: 'Echo',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 14, h: 9 },
+    };
+    const auto = { id: 'a', type: 'autolist', title: 'A', datapoint: '', gridPos: { x: 0, y: 9, w: 10, h: 8 } };
+    const rows = [player, auto].map((w) => measureWidget(w, { metrics: METRICS, grid: GRID }));
+    const out = renderMeasure(rows, { grid: GRID, metrics: METRICS });
+    assert.match(out, /- p — mediaplayer.*\[fills\]/);
+    assert.match(out, /- a — autolist.*\[runtime: /);
+    assert.match(out, /Höhenverhalten: /);
+});
+
+// ── An option the widget reads only on some layouts ─────────────────────────
+// mediaplayer.showTitle was accepted by the validator and ignored by the widget:
+// the player draws its own header. In layout "custom" a title cell does honour
+// it, so the key is not a phantom — it is conditional, and the schema says so.
+
+check('an option that only works on another layout is a warning, not silence', () => {
+    const player = {
+        id: 'p',
+        type: 'mediaplayer',
+        title: 'Echo',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 14, h: 9 },
+        options: { showTitle: false },
+    };
+    const res = validateWidget(player, schema);
+    assert.equal(res.errors.length, 0);
+    assert.ok(hasWarning(res, /showTitle.*nur im Layout "custom"/));
+    const custom = { ...player, layout: 'custom', options: { showTitle: false, customGrid: { cells: [] } } };
+    assert.ok(!hasWarning(validateWidget(custom, schema), /showTitle/), 'on the custom layout it does work');
+});
+
+// ── Every suggestion has to work as an input ────────────────────────────────
+// A popup was offered as „Popup Wohnzimmer“ and only its id was accepted; a tab
+// was offered as „Layout / Bereich / Tab“ and only the bare name was.
+
+check('a popup answers to the name the listings print, prefix and all', () => {
+    const views = [{ id: 'pv-1', name: 'Wohnzimmer', widgets: [] }];
+    assert.equal(findPopupView(views, 'Wohnzimmer').view.id, 'pv-1');
+    assert.equal(findPopupView(views, 'Popup Wohnzimmer').view.id, 'pv-1');
+    assert.equal(findPopupView(views, 'Popup „Wohnzimmer“').view.id, 'pv-1');
+    assert.equal(findPopupView(views, 'pv-1').view.id, 'pv-1');
+    assert.ok(findPopupView(views, 'Küche').error);
+    // A popup actually called „Popup X“ still answers to its own name.
+    const named = [{ id: 'pv-2', name: 'Popup X', widgets: [] }];
+    assert.equal(findPopupView(named, 'Popup X').view.id, 'pv-2');
 });
 
 check('a runtime-filled list says so, and computes once given a row count', () => {
@@ -2348,6 +2423,58 @@ check('findTab refuses to guess when a name is ambiguous', () => {
     assert.ok(/Kein Tab/.test(findTab(LAYOUTS, { tab: 'Garage' }).error ?? ''));
 });
 
+check('a tab answers to the printed Layout / Bereich / Tab path', () => {
+    const byPath = findTab(LAYOUTS, { tab: 'Wohnzimmer / Start / Licht' });
+    assert.ok(!byPath.error, byPath.error);
+    assert.equal(byPath.tab.name, 'Licht');
+    // The path disambiguates a name that exists twice — without it, an error.
+    assert.ok(findTab(LAYOUTS, { tab: 'Licht' }).error);
+    assert.equal(findTab(LAYOUTS, { tab: 'Tablet / Haupt / Licht' }).tab.layoutName, 'Tablet');
+    assert.ok(findTab(LAYOUTS, { tab: 'Wohnzimmer / Start / Gibtsnicht' }).error);
+});
+
+check('a report from a browser is cut to shape, and a useless one is refused', () => {
+    assert.equal(renderReportEntry({ widgets: [] }), null, 'no tab id, no entry');
+    assert.equal(renderReportEntry({ tabId: 't1' }), null, 'no widgets, no entry');
+    const { tabId, entry } = renderReportEntry({
+        tabId: 't1',
+        tab: 'Wohnzimmer / Start / Licht',
+        ts: 1000,
+        client: 'c1',
+        clientName: 'Flurtablet',
+        viewport: { w: '1280', h: 800 },
+        presentation: { fontScale: 1.3, widgetPadding: 8 },
+        grid: { rowHeight: 20, gap: 10, snapX: 20 },
+        widgets: [{ id: 'w-1', type: 'list', rows: '14', px: 388.4, contentPx: 452, scrolls: 'ja' }],
+    });
+    assert.equal(tabId, 't1');
+    assert.equal(entry.viewport.w, 1280, 'numbers arrive as numbers');
+    assert.equal(entry.presentation.fontScale, 1.3);
+    assert.deepEqual(entry.widgets[0], {
+        id: 'w-1',
+        type: 'list',
+        rows: 14,
+        px: 388,
+        contentPx: 452,
+        scrolls: true,
+    });
+});
+
+check('the store keeps one measurement per tab and drops the oldest over the cap', () => {
+    let store = {};
+    for (let i = 0; i < RENDER_REPORT_TABS + 5; i++) {
+        store = mergeRenderReport(store, `t${i}`, { ts: 1000 + i, widgets: [] });
+    }
+    assert.equal(Object.keys(store).length, RENDER_REPORT_TABS);
+    assert.ok(!store.t0, 'the oldest tab must have been dropped');
+    assert.ok(store[`t${RENDER_REPORT_TABS + 4}`], 'the newest tab must be kept');
+    // A second report for a tab replaces the first instead of piling up.
+    const before = Object.keys(store).length;
+    store = mergeRenderReport(store, 't10', { ts: 9999, widgets: [] });
+    assert.equal(Object.keys(store).length, before);
+    assert.equal(store.t10.ts, 9999);
+});
+
 check('allTabs flattens and replaceTabWidgets touches only the target tab', () => {
     assert.equal(allTabs(LAYOUTS).length, 3);
     const next = replaceTabWidgets(LAYOUTS, 't2', [{ id: 'neu' }]);
@@ -2632,7 +2759,7 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all thirty-four tools are announced with descriptions', () => {
+check('all thirty-six tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_backups',
@@ -2653,6 +2780,7 @@ check('all thirty-four tools are announced with descriptions', () => {
         'aura_presets',
         'aura_recipes',
         'aura_rename',
+        'aura_rendered',
         'aura_reorder',
         'aura_restore',
         'aura_review',
@@ -2662,6 +2790,7 @@ check('all thirty-four tools are announced with descriptions', () => {
         'aura_types',
         'aura_update_node',
         'aura_update_widget',
+        'aura_update_widgets',
         'aura_validate',
         'aura_widget_schema',
         'aura_widget_types',
@@ -2678,6 +2807,12 @@ const dash = await client.callTool({ name: 'aura_dashboard', arguments: {} });
 check('aura_dashboard names the available history adapters', () => {
     // Nothing listed them, so a chart's historyInstance had to be guessed.
     assert.match(dash.content[0].text, /History-Adapter für Diagramme: influxdb\.0/);
+});
+
+check('aura_dashboard says where each tab ends, so the over-long ones are visible at once', () => {
+    // Reported from use: seventeen aura_measure calls, one per tab, only to find
+    // which ones run past the guideline. It is max(y+h) and it is free here.
+    assert.match(dash.content[0].text, /endet auf Zeile \d+/);
 });
 
 check('aura_dashboard reports tabs, grid and the design width', () => {
@@ -3089,6 +3224,21 @@ check('the recipe index lists every recipe and the ids are unique', () => {
     assert.equal(findRecipe('gibtsnicht'), null);
 });
 
+check('multiroom audio has a recipe: nothing covered mediaplayer before', () => {
+    // Reported from use: ten recipes, none of them for a player, so a music tab
+    // was built straight off the schema — showTitle set (ignored by the player)
+    // and three rounds of guessing the height.
+    const r = findRecipe('multiroom');
+    assert.ok(r, 'no multiroom recipe');
+    assert.ok(
+        r.widgets.some((w) => w.type === 'mediaplayer'),
+        'the multiroom recipe has to contain a player',
+    );
+    const text = renderRecipe(r);
+    assert.match(text, /showTitle wirkt hier NUR im Layout "custom"/);
+    assert.match(text, /list_devices/);
+});
+
 check('one row rule for a whole list has a recipe of its own', () => {
     // Reported from use: sixteen mode rules were written by hand because
     // rowConditions with {{parent}} was only mentioned in a note on another
@@ -3181,7 +3331,10 @@ ${t}`,
 const reviewUnknown = await client.callTool({ name: 'aura_review', arguments: { tab: 'Gibtsnicht' } });
 check('aura_review names the tabs there are instead of guessing', () => {
     assert.ok(reviewUnknown.isError);
-    assert.match(reviewUnknown.content[0].text, /Vorhanden:/);
+    // Every line of that list has to work as an input — see the findTab/
+    // findPopupView path form.
+    assert.match(reviewUnknown.content[0].text, /Vorhanden \(so, wie sie hier stehen/);
+    assert.match(reviewUnknown.content[0].text, /- Wohnzimmer \/ Start \/ Licht/);
 });
 
 const sweep = await client.callTool({ name: 'aura_review', arguments: {} });
@@ -3890,6 +4043,187 @@ check('a widget that exists nowhere says where it was looked for', () => {
     assert.ok(missingWidget.isError);
     assert.match(missingWidget.content[0].text, /weder in einem Tab, einem Popup noch in einer Gruppe/);
 });
+
+// ── aura_update_widgets: several widgets, one validation, one write ──────────
+// The reason it exists: a stack of single writes is checked one at a time, so an
+// intermediate overlap is refused even when the FINAL layout is clean — reported
+// from a session that had to work out a collision-free write order by hand.
+
+await client.callTool({
+    name: 'aura_write_tab',
+    arguments: {
+        tab: 'Klima',
+        widgets: JSON.stringify([
+            { ...OK_SWITCH, id: 'stack-a', title: 'Oben', gridPos: { x: 0, y: 0, w: 8, h: 4 } },
+            { ...OK_SWITCH, id: 'stack-b', title: 'Unten', gridPos: { x: 0, y: 4, w: 8, h: 4 } },
+        ]),
+    },
+});
+
+const growAlone = await client.callTool({
+    name: 'aura_update_widget',
+    arguments: { widgetId: 'stack-a', patch: JSON.stringify({ gridPos: { h: 8 } }) },
+});
+check('one widget grown on its own is refused because it would overlap its neighbour', () => {
+    assert.ok(growAlone.isError);
+    assert.match(growAlone.content[0].text, /überlappen/);
+});
+
+const growTogether = await client.callTool({
+    name: 'aura_update_widgets',
+    arguments: {
+        patches: JSON.stringify([
+            { widgetId: 'stack-a', patch: { gridPos: { h: 8 } } },
+            { widgetId: 'stack-b', patch: { gridPos: { y: 8 } } },
+        ]),
+    },
+});
+check('the same two changes together are written: only the end state is validated', () => {
+    assert.ok(!growTogether.isError, growTogether.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    const klima = layouts[0].sections[0].tabs[1].widgets;
+    assert.equal(klima.find((w) => w.id === 'stack-a').gridPos.h, 8);
+    assert.equal(klima.find((w) => w.id === 'stack-b').gridPos.y, 8);
+    // One backup for the batch, not one per widget.
+    assert.equal((growTogether.content[0].text.match(/Sicherung:/g) || []).length, 1);
+});
+
+const overlapEnd = await client.callTool({
+    name: 'aura_update_widgets',
+    arguments: {
+        patches: JSON.stringify([
+            { widgetId: 'stack-a', patch: { gridPos: { h: 12 } } },
+            { widgetId: 'stack-b', patch: { gridPos: { y: 8 } } },
+        ]),
+    },
+});
+check('an end state that still overlaps is refused and nothing is written', () => {
+    assert.ok(overlapEnd.isError);
+    assert.match(overlapEnd.content[0].text, /Nichts geändert/);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.equal(
+        layouts[0].sections[0].tabs[1].widgets.find((w) => w.id === 'stack-a').gridPos.h,
+        8,
+        'the refused batch must not have written the first patch either',
+    );
+});
+
+const batchDry = await client.callTool({
+    name: 'aura_update_widgets',
+    arguments: {
+        dryRun: true,
+        patches: JSON.stringify([{ widgetId: 'stack-a', patch: { title: 'Anders' } }]),
+    },
+});
+check('dryRun reports the change and writes nothing', () => {
+    assert.ok(!batchDry.isError, batchDry.content[0].text);
+    assert.match(batchDry.content[0].text, /dryRun/);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.equal(layouts[0].sections[0].tabs[1].widgets.find((w) => w.id === 'stack-a').title, 'Oben');
+});
+
+const batchTwice = await client.callTool({
+    name: 'aura_update_widgets',
+    arguments: {
+        patches: JSON.stringify([
+            { widgetId: 'stack-a', patch: { title: 'Eins' } },
+            { widgetId: 'stack-a', patch: { title: 'Zwei' } },
+        ]),
+    },
+});
+check('the same widget twice in one batch is refused instead of silently ordered', () => {
+    assert.ok(batchTwice.isError);
+    assert.match(batchTwice.content[0].text, /kommt zweimal vor/);
+});
+
+// The group defs the earlier block set up were rewritten in between — put a
+// known child back so the batch has a second kind of target.
+adapter.states['config.group-defs'] = JSON.stringify({
+    version: 0,
+    state: {
+        defs: { d1: [{ ...OK_SWITCH, id: 'kind-b', title: 'Kind B', gridPos: { x: 0, y: 0, w: 8, h: 4 } }] },
+        hydrated: true,
+    },
+});
+
+const batchMixed = await client.callTool({
+    name: 'aura_update_widgets',
+    arguments: {
+        patches: JSON.stringify([
+            { widgetId: 'stack-a', patch: { title: 'Aus dem Tab' } },
+            { widgetId: 'kind-b', defId: 'd1', patch: { title: 'Aus der Gruppe' } },
+        ]),
+    },
+});
+check('a batch reaches into a tab and a group in the same write', () => {
+    assert.ok(!batchMixed.isError, batchMixed.content[0].text);
+    const layouts = JSON.parse(adapter.states['config.dashboard']).state.layouts;
+    assert.equal(layouts[0].sections[0].tabs[1].widgets.find((w) => w.id === 'stack-a').title, 'Aus dem Tab');
+    const defs = JSON.parse(adapter.states['config.group-defs']).state.defs;
+    assert.equal(defs.d1.find((w) => w.id === 'kind-b').title, 'Aus der Gruppe');
+    assert.match(batchMixed.content[0].text, /2 Widget\(s\) in 2 Ziel\(en\)/);
+});
+
+// ── aura_rendered: what the browser actually drew ────────────────────────────
+
+const noReport = await client.callTool({ name: 'aura_rendered', arguments: {} });
+check('without a report from a browser aura_rendered says what to do about it', () => {
+    assert.ok(!noReport.isError, noReport.content[0].text);
+    assert.match(noReport.content[0].text, /keine Messung aus dem Browser/);
+    assert.match(noReport.content[0].text, /nicht im Editor/);
+});
+
+const klimaTabId = JSON.parse(adapter.states['config.dashboard']).state.layouts[0].sections[0].tabs[1].id;
+adapter.states['info.rendered'] = JSON.stringify({
+    ts: Date.now(),
+    tabs: {
+        [klimaTabId]: {
+            ts: Date.now(),
+            tab: 'Wohnzimmer / Start / Klima',
+            clientName: 'Flurtablet',
+            viewport: { w: 1280, h: 800 },
+            presentation: { fontScale: 1, widgetPadding: 16 },
+            grid: { rowHeight: 20, gap: 10, snapX: 20 },
+            widgets: [
+                { id: 'stack-a', type: 'switch', rows: 8, px: 230, contentPx: 300, scrolls: true },
+                { id: 'stack-b', type: 'switch', rows: 4, px: 110, contentPx: 110, scrolls: false },
+            ],
+        },
+    },
+});
+
+const rendered = await client.callTool({ name: 'aura_rendered', arguments: {} });
+check('aura_rendered reports rendered height, overflow and the age of the measurement', () => {
+    const t = rendered.content[0].text;
+    assert.ok(!rendered.isError, t);
+    assert.match(t, /Wohnzimmer \/ Start \/ Klima/);
+    assert.match(t, /Flurtablet/);
+    assert.match(t, /stack-a .*gerendert 230 px.*SCROLLT.*70 px/);
+    assert.match(t, /stack-b .*kein Überlauf/);
+    // The row count, not only the pixels: that is what gets written.
+    assert.match(t, /stack-a .*→ h=\d+/);
+    // The estimate is only mentioned where it disagrees with the browser.
+    assert.match(t, /aura_measure schätzt \d+ px/);
+});
+
+// The path form the listings print, handed straight back: this used to be
+// „Kein Tab gefunden“ with the same line in the list underneath.
+const renderedTab = await client.callTool({
+    name: 'aura_rendered',
+    arguments: { tab: 'Wohnzimmer / Start / Licht' },
+});
+check('a tab nobody has opened has no measurement, and says so instead of inventing one', () => {
+    assert.ok(!renderedTab.isError, renderedTab.content[0].text);
+    assert.match(renderedTab.content[0].text, /liegt keine Messung/);
+});
+
+const measuredLive = await client.callTool({ name: 'aura_measure', arguments: { tab: 'Klima' } });
+check('aura_measure points at the browser measurement when there is one for that tab', () => {
+    const t = measuredLive.content[0].text;
+    assert.match(t, /Der Browser hat diesen Tab wirklich gezeichnet/);
+    assert.match(t, /aura_rendered/);
+});
+delete adapter.states['info.rendered'];
 
 // ── Permission levels ────────────────────────────────────────────────────────
 
