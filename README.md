@@ -115,6 +115,15 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.54.2 (2026-09-05)
+- Fill - dragging an adjustable limit no longer triggers the click action of the surrounding group ([#619](https://github.com/hdering/ioBroker.aura/issues/619))
+- AI access (MCP) - the dashboard now reports the heights it really renders; aura_rendered shows what scrolls and where the estimate is off
+- AI access (MCP) - aura_update_widgets changes several widgets in one validated write, so rearranging a column no longer fails on intermediate overlaps
+- AI access (MCP) - aura_measure says how each widget type reacts to height, and aura_dashboard says on which row every tab ends
+- AI access (MCP) - tab paths and popup names are accepted exactly as the error messages print them
+- AI access (MCP) - new multiroom recipe, and an option a widget only reads on another layout is now reported instead of silently ignored
+
+
 ### 0.54.1 (2026-09-05)
 - List - the icon size of a row can be set for every display type again, and an icon switch now has a size of its own ([#616](https://github.com/hdering/ioBroker.aura/issues/616))
 
@@ -240,11 +249,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Lists - a row can now be a select field: the dropdown of the select field widget with its full option set - values with text, colour, icon, image or HTML, entries from a JSON datapoint, the current entry as text, icon + text or icon only, and a fixed width. Available in the static and the dynamic list; the value list is shared with the button display, so switching between the two keeps it ([#609](https://github.com/hdering/ioBroker.aura/issues/609))
 
 
-### 0.51.2 (2026-08-30)
-- 🌟 **New feature:** Lists - a condition on a row now reaches every display type and every layout: text size and colour on the switch labels, sensor states, window contacts, sliders, steppers and the date/text fields, and the icon swap/hide in the minimal layout and on a datapoint of the second line ([#601](https://github.com/hdering/ioBroker.aura/issues/601))
-- 🌟 **New feature:** Conditions - a condition can now send one message per triggering list row: on a row condition (Datenpunkte verwalten) or on a widget rule watching "one entry" of the list. The message can address the row that triggered with {{dp}} / {{parent}} / {{name}} - e.g. a title of "Motion: [[{{parent}}.NAME]]" ([#605](https://github.com/hdering/ioBroker.aura/issues/605))
-
-
 ## License
 
 MIT License
@@ -256,6 +260,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
