@@ -13,6 +13,7 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { suppressNextClick } from '../../utils/interactiveTargets';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import {
     neighbourBounds,
@@ -222,6 +223,11 @@ export function FillLimits({
             drag.current = null;
             setDragging(null);
             onCommit(active.id, at);
+            // The click after the release is dispatched on the common ancestor of
+            // press and release - the surrounding card once the pointer left the
+            // handle. Inside a group with a click action that opened its popup on
+            // every limit change (issue #619).
+            suppressNextClick();
         };
         window.addEventListener('pointermove', move);
         window.addEventListener('pointerup', end);
@@ -356,6 +362,7 @@ export function FillLimits({
                                 <div
                                     className="nodrag"
                                     data-aura-fill-limit-handle={limit.id}
+                                    data-widget-interactive=""
                                     onPointerDown={(e) => startDrag(e, limit)}
                                     title={limit.label || label}
                                     style={{

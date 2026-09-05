@@ -202,6 +202,7 @@ export function WidgetClickPopup({ widget, action: rawAction, onClose, allWidget
 
     return createPortal(
         <div
+            data-aura-click-popup={action.kind}
             className="fixed inset-0 flex items-center justify-center z-[300] p-4"
             style={{ background: `rgba(0,0,0,${backdropDim / 100})` }}
             onClick={onClose}

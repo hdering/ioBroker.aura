@@ -443,7 +443,63 @@ for (const [name, extra, wait] of [
     check('but crowded value pills are thinned out', labels < 5, `${labels} pills`);
 }
 
-// ── 8. The editor panel ─────────────────────────────────────────────────────
+// ── 8. A limit inside a group with a click action (issue #619) ──────────
+{
+    // The click the browser fires after the release lands on the common ancestor of
+    // press and release - the group card, once the pointer left the handle. That card
+    // carries a click action, so every limit change opened its popup.
+    const GID = 'w-grp';
+    const DEF = 'gd-lim';
+    const child = widget(
+        { limits: [lim({ step: 5 })], limitsEditable: true, limitCommitOnRelease: true },
+        {
+            gridPos: { x: 0, y: 0, w: 12, h: 6 },
+        },
+    );
+    const group = {
+        id: GID,
+        type: 'group',
+        title: 'Einstellungen',
+        datapoint: '',
+        layout: 'default',
+        options: { icon: 'Layers2', defId: DEF, clickAction: { kind: 'popup-html', html: '<b>hi</b>' } },
+        gridPos: { x: 0, y: 0, w: 12, h: 14 },
+    };
+    await page.evaluate(
+        ([g, c, def, vals]) => {
+            window.__auraShot.mock(vals);
+            window.__auraShot.mockServerState(vals);
+            window.__auraShot.groupDefs({ [def]: [c] });
+            window.__auraShot.showWidgets([g], { editMode: false });
+        },
+        [group, child, DEF, { [SOC]: 40, [MAXDP]: 80 }],
+    );
+    await page.waitForSelector('[data-aura-fill-limits]', { timeout: 15000 });
+    await page.waitForTimeout(350);
+
+    const popups = () => page.locator('[data-aura-click-popup]').count();
+    check('no popup before the drag', (await popups()) === 0);
+
+    const { after } = await drag('a', 0.5);
+    check('dragging the limit still writes', after.length === 1, JSON.stringify(after));
+    check('and the release does not open the group popup', (await popups()) === 0);
+
+    // Counter-check: the card itself still reacts, so the guard is not a blanket mute.
+    await page.locator(`.aura-widget-${GID} >> text=Einstellungen`).first().click();
+    await page.waitForTimeout(300);
+    check('a plain click on the group still opens it', (await popups()) === 1);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    if ((await popups()) > 0)
+        await page
+            .locator('[data-aura-click-popup]')
+            .first()
+            .click({ position: { x: 5, y: 5 } });
+    await page.waitForTimeout(300);
+    await page.evaluate(() => window.__auraShot.groupDefs({}));
+}
+
+// ── 9. The editor panel ─────────────────────────────────────────────────────
 {
     await show(widget({ limits: [{ id: 'a', value: 50 }] }), { [SOC]: 40 }, '[data-aura-fill-limits]');
     await page.evaluate(() => window.__auraShot.setEditMode(true));
@@ -497,7 +553,11 @@ for (const [name, extra, wait] of [
     await hex.blur();
     await page.waitForTimeout(400);
     o = await page.evaluate(() => window.__auraShot.widgetOptions('w-lim'));
-    check('a colour typed into the field is stored', o?.limits?.[0]?.color === '#ff0000', String(o?.limits?.[0]?.color));
+    check(
+        'a colour typed into the field is stored',
+        o?.limits?.[0]?.color === '#ff0000',
+        String(o?.limits?.[0]?.color),
+    );
     const swatch = await hex
         .locator('xpath=preceding-sibling::button[1]/span')
         .evaluate((el) => getComputedStyle(el).backgroundColor);

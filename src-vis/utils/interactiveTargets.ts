@@ -26,3 +26,30 @@ export function isInteractiveTarget(target: EventTarget | null, container: HTMLE
     }
     return false;
 }
+
+/**
+ * Swallows the `click` the browser fires after a pointer drag.
+ *
+ * A drag handle only sees pointerdown/pointerup. The click that follows is
+ * dispatched on the common ancestor of both targets, so as soon as the pointer
+ * leaves the handle that ancestor is the surrounding card - and inside a group
+ * with a click action the release opened its popup (issue #619). Marking the
+ * handle interactive only covers releases that land back on it, so a drag
+ * additionally eats the next click in the capture phase. The timeout is the
+ * escape hatch for releases that produce no click at all (pointercancel, or a
+ * release outside the window).
+ */
+export function suppressNextClick(windowMs = 400): void {
+    if (typeof window === 'undefined') return;
+    const ctl = new AbortController();
+    const timer = setTimeout(() => ctl.abort(), windowMs);
+    window.addEventListener(
+        'click',
+        (e) => {
+            e.stopPropagation();
+            clearTimeout(timer);
+            ctl.abort();
+        },
+        { capture: true, signal: ctl.signal },
+    );
+}
