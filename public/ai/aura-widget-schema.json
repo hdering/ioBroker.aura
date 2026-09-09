@@ -7958,10 +7958,10 @@
       }
     },
     "evcc": {
-      "label": "evcc",
+      "label": "Energiefluss (evcc)",
       "group": "special",
       "addMode": "free",
-      "hint": "evcc Wallbox-Ladesteuerung einbinden",
+      "hint": "PV-Erzeugung, Haus, Netz und Hausbatterie als Flussgrafik – aus einer evcc-Instanz, samt Ladepunkt-Steuerung",
       "defaultSize": {
         "w": 12,
         "h": 6

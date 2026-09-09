@@ -41,7 +41,7 @@ Nicht nur das Default-Layout verwenden: jedes Widget kann in **allen** unten gel
 | [Uhrzeit](./uhrzeit) | `clock` | `default` · `card` · `minimal` · `custom` | 11×6 |
 | [Wetter](./wetter) | `weather` | `default` · `compact` · `minimal` · `custom` | 12×6 |
 | [Kalender](./kalender) | `calendar` | `default` · `card` · `compact` · `minimal` · `agenda` · `custom` | 12×6 |
-| [evcc](./evcc) | `evcc` | `default` · `compact` · `flow` · `battery` · `production` · `consumption` · `loadpoints` · `custom` | 12×6 |
+| [Energiefluss (evcc)](./evcc) | `evcc` | `default` · `compact` · `flow` · `battery` · `production` · `consumption` · `loadpoints` · `custom` | 12×6 |
 | [Kamera](./kamera) | `camera` | `minimal` · `default` · `custom` | 12×6 |
 | [Bild](./bild) | `image` | `default` · `custom` | 12×6 |
 | [Müllabfuhr](./muellabfuhr) | `trash` | `default` | 12×6 |

@@ -1,4 +1,4 @@
-# evcc
+# Energiefluss (evcc)
 
 Bindet die Wallbox- und Energiefluss-Daten des [evcc](https://evcc.io)-Adapters ein: PV-Erzeugung, Haus, Netz, Hausbatterie und bis zu acht Ladepunkte. Pro Ladepunkt lassen sich Lademodus (`AUS` · `PV` · `MIN+PV` · `SOFORT`) und Ziel-SoC direkt umschalten.
 

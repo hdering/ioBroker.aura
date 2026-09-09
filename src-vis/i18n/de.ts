@@ -1511,7 +1511,7 @@ export const de = {
     'widget.clock': 'Uhrzeit',
     'widget.weather': 'Wetter',
     'widget.calendar': 'Kalender',
-    'widget.evcc': 'evcc',
+    'widget.evcc': 'Energiefluss (evcc)',
     'widget.camera': 'Kamera',
     'widget.image': 'Bild',
     'widget.trash': 'Müllabfuhr',

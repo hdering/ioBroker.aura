@@ -74,6 +74,45 @@ function customCellWidget(cell) {
     };
 }
 
+/** The same picker as a row of a list widget — the export attached to #633. */
+function listEntryWidget(entry) {
+    return {
+        id: 'w-list',
+        type: 'list',
+        title: 'Text 1',
+        datapoint: '',
+        layout: 'default',
+        gridPos: { x: 0, y: 0, w: 24, h: 6 },
+        options: {
+            showTitle: false,
+            transparent: true,
+            entries: [
+                {
+                    id: 'demo.time',
+                    label: 'Text 2',
+                    role: 'state',
+                    icon: 'wi:time-9',
+                    iconSize: 25,
+                    displayType: 'datepicker',
+                    dateTimeOnly: true,
+                    dateShowTime: true,
+                    dateOutputFormat: 'time_hhmm',
+                    ...entry,
+                },
+            ],
+        },
+    };
+}
+
+/**
+ * Makes the engine's own picker icon come back — what issue #633 reported: a
+ * Chromium that kept painting its clock although the hiding rule was there.
+ * `all: revert` puts the pseudo-element back exactly as the UA styles it, so the
+ * field looks to the app like an engine that ignores the rule altogether.
+ * On an engine that does not know the selector (Gecko) it changes nothing.
+ */
+const REVERT_INDICATOR = '.aura-dt-input::-webkit-calendar-picker-indicator{ all: revert !important; }';
+
 // ── page helpers ─────────────────────────────────────────────────────────────
 
 /** Renders one widget and reports every input plus the picker buttons next to it. */
@@ -407,6 +446,61 @@ async function runEngine(engineName) {
         cell.inputs.some((i) => i.type === 'time') && cell.buttons === 1 && cell.wrapped,
         JSON.stringify(cell),
     );
+
+    // ── 7. Same treatment in a list row (issue #633) ────────────────────────
+    // The reported widget: a list entry with the "Datumswähler" display type.
+    // It goes through the same DateTimeInput, so the field must carry exactly
+    // one picker affordance here too — the entry's own icon (wi:time-9) sits in
+    // front of the label and has nothing to do with the field.
+    for (const editMode of [false, true]) {
+        const view = editMode ? 'editor' : 'frontend';
+        const row = await show(page, listEntryWidget(), editMode);
+        check(
+            `${engineName}/list/${view}: the row renders the time field`,
+            row.inputs.filter((i) => i.type === 'time').length === 1,
+            JSON.stringify(row.inputs),
+        );
+        check(
+            `${engineName}/list/${view}: one picker button, inside the field`,
+            row.buttons === 1 && row.wrapped,
+            `buttons=${row.buttons} wrapped=${row.wrapped}`,
+        );
+    }
+
+    // ── 8. Never two icons in one field (issue #633) ────────────────────────
+    // An engine that paints its own clock DESPITE the hiding rule must get no
+    // button from us — one working picker beats two icons. Simulated by putting
+    // the pseudo-element back (see REVERT_INDICATOR); on Gecko, which never
+    // reacted to that selector, nothing changes and our button stays.
+    // Its own context, not this page again: the app measures the engine once per
+    // document, and the harness remembers the last widgets — a reload would put
+    // a field on screen before the style is in place and the answer would stick.
+    const simCtx = await browser.newContext({ viewport: { width: 1280, height: 900 }, ignoreHTTPSErrors: true });
+    const simPage = await simCtx.newPage();
+    simPage.on('pageerror', (e) => pageErrors.push(e.message));
+    await simPage.goto(`${BASE}/?shot=1#/`, { waitUntil: 'domcontentloaded' });
+    await simPage.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 20000 });
+    await simPage.addStyleTag({ content: REVERT_INDICATOR });
+    const wantBtn = canHideNative ? 0 : 1;
+    for (const widget of [datepicker(ISSUE_OPTS), listEntryWidget()]) {
+        const dom = await show(simPage, widget);
+        const field = await simPage.evaluate(() => ({
+            cls: document.querySelector('input[type="time"]')?.className ?? '',
+            padRight: getComputedStyle(document.querySelector('input[type="time"]')).paddingRight,
+        }));
+        check(
+            `${engineName}/${widget.type}: engine keeps its icon → ${wantBtn ? 'still' : 'no'} button of ours`,
+            dom.buttons === wantBtn,
+            `buttons=${dom.buttons} want=${wantBtn}`,
+        );
+        // No button of ours also means no room reserved for one and no hiding
+        // class — the field is the engine's again, exactly as it ships it.
+        check(
+            `${engineName}/${widget.type}: the field is left to the engine`,
+            wantBtn ? field.cls.includes('aura-dt-input') : !field.cls.includes('aura-dt-input'),
+            JSON.stringify(field),
+        );
+    }
 
     check(`${engineName}: no page errors`, pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
     await browser.close();

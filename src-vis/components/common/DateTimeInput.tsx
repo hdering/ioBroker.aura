@@ -6,11 +6,15 @@
  *
  *  1. The BUTTON. Chromium paints a calendar/clock button into every date/time
  *     field; Gecko paints one for date fields and leaves `time` completely bare.
- *     So we draw our own — where Chromium's can be hidden (it exposes
- *     ::-webkit-calendar-picker-indicator, hidden via `.aura-dt-input` in
- *     index.css) ours replaces it, and where it cannot be hidden (Gecko) we only
- *     step in for the field types the engine leaves bare. Two buttons in one
- *     field would be worse than the bug.
+ *     So we draw our own — where the engine's own can be taken out (via
+ *     `.aura-dt-input` in index.css) ours replaces it, and where it stays we
+ *     keep out of the field. Two buttons in one field would be worse than the
+ *     bug: that is issue #633, a Chromium that kept painting its clock next to
+ *     ours.
+ *
+ *     Which of the two it is, is MEASURED rather than assumed (`nativeOwnsField`
+ *     below) — a browser list would be wrong again the next time an engine gains
+ *     or loses a button.
  *
  *  2. The PICKER ITSELF. Gecko has no time picker at all: showPicker() on a
  *     `time` field is a silent no-op there (it neither throws nor opens
@@ -27,22 +31,59 @@ import { PickerButton, PickerColumn, PickerPopover, PICKER_BTN_SPACE, type Picke
 
 export type PickerKind = 'date' | 'time' | 'datetime-local' | 'month';
 
-/** Whether the engine lets us take its own picker button out of the field. */
-const CAN_HIDE_NATIVE =
-    typeof CSS !== 'undefined' &&
-    typeof CSS.supports === 'function' &&
-    CSS.supports('selector(::-webkit-calendar-picker-indicator)');
+const cssSupports = (q: string) => typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports(q);
+
+/** Whether the engine even parses the selector our hiding rule is written with. */
+const KNOWS_INDICATOR = cssSupports('selector(::-webkit-calendar-picker-indicator)');
 
 /** `:open` matches a field whose picker is showing — how we notice a no-op. */
-const CAN_SEE_OPEN =
-    typeof CSS !== 'undefined' && typeof CSS.supports === 'function' && CSS.supports('selector(:open)');
+const CAN_SEE_OPEN = cssSupports('selector(:open)');
+
+/** Sub-pixel noise in a width comparison; a picker button is far wider than this. */
+const WIDTH_SLACK = 2;
+
+/** Intrinsic width of a throwaway field of this kind — the engine's own picture of it. */
+function fieldWidth(kind: PickerKind, ours: boolean, disabled: boolean): number {
+    const el = document.createElement('input');
+    el.type = kind;
+    if (ours) el.className = 'aura-dt-input';
+    if (disabled) el.disabled = true;
+    // No padding/border of our own: what is left is the engine's own layout —
+    // the text segments plus whatever affordance it puts beside them.
+    el.style.cssText = 'position:absolute;left:-9999px;top:0;font-size:14px;padding:0;border:0;box-sizing:content-box';
+    document.body.appendChild(el);
+    const w = el.getBoundingClientRect().width;
+    el.remove();
+    return w;
+}
+
+const ownershipCache = new Map<PickerKind, boolean>();
 
 /**
- * Field types that get no picker button from an engine whose own button we
- * cannot hide. Gecko is the case in point: its date fields carry a calendar
- * button, its time fields carry nothing — that gap is issue #544.
+ * Whether the engine still owns this field's picker affordance — i.e. whether
+ * drawing ours would put a SECOND icon in the field (issue #633).
+ *
+ * Measured, not assumed: a field that reserves less room once `.aura-dt-input`
+ * applies has lost its icon to us, and one that shrinks when it is disabled
+ * carries an icon the rule never touched (Gecko draws one on `date`, none on
+ * `time`). An engine that parses `::-webkit-calendar-picker-indicator` yet does
+ * not budge for it keeps whatever it paints there — the field stays the
+ * engine's, and we stay out of it.
  */
-const BARE_WITHOUT_OURS: PickerKind[] = ['time'];
+function nativeOwnsField(kind: PickerKind): boolean {
+    const cached = ownershipCache.get(kind);
+    if (cached !== undefined) return cached;
+    const plain = fieldWidth(kind, false, false);
+    const withRule = fieldWidth(kind, true, false);
+    let owns: boolean;
+    if (plain - withRule > WIDTH_SLACK)
+        owns = false; // the rule took the engine's icon out
+    else if (KNOWS_INDICATOR)
+        owns = true; // rule understood, nothing moved → not ours to remove
+    else owns = withRule - fieldWidth(kind, true, true) > WIDTH_SLACK; // shrinks when disabled = its own button
+    ownershipCache.set(kind, owns);
+    return owns;
+}
 
 const supportCache = new Map<PickerKind, boolean>();
 
@@ -51,15 +92,11 @@ function canOpenPicker(kind: PickerKind): boolean {
     const cached = supportCache.get(kind);
     if (cached !== undefined) return cached;
     let ok = false;
-    if (
-        typeof document !== 'undefined' &&
-        typeof HTMLInputElement.prototype.showPicker === 'function' &&
-        (CAN_HIDE_NATIVE || BARE_WITHOUT_OURS.includes(kind))
-    ) {
+    if (typeof document !== 'undefined' && typeof HTMLInputElement.prototype.showPicker === 'function') {
         // An unimplemented type silently falls back to 'text' — no picker behind it.
         const probe = document.createElement('input');
         probe.type = kind;
-        ok = probe.type === kind;
+        ok = probe.type === kind && !nativeOwnsField(kind);
     }
     supportCache.set(kind, ok);
     return ok;
@@ -153,8 +190,9 @@ export function DateTimeInput({
         if (kind !== 'time') return;
         if (!CAN_SEE_OPEN) {
             // No way to tell whether it opened. Blink/WebKit have a time picker;
-            // an engine whose button we cannot hide (Gecko) never had one.
-            nativeTimePicker = CAN_HIDE_NATIVE;
+            // an engine that does not even know the indicator selector (Gecko)
+            // never had one.
+            nativeTimePicker = KNOWS_INDICATOR;
             if (!nativeTimePicker) setOwnList(true);
             return;
         }

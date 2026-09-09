@@ -551,9 +551,26 @@ input[type='range']::-moz-range-thumb {
    none at all — the same field looked openable in one browser and dead in the
    other (issue #544). DateTimeInput draws a themed button instead, so the
    native one has to go wherever it exists.
+
+   `display: none` alone was not enough everywhere: issue #633 showed a Chromium
+   that kept painting its clock right next to ours. So the icon is taken out
+   every way at once — hidden, collapsed, transparent and inert — and any engine
+   that still keeps it gets no button from us at all (DateTimeInput measures
+   whether this rule actually shrank the field).
    ─────────────────────────────────────────────────────────────────────────── */
 .aura-dt-input::-webkit-calendar-picker-indicator {
-    display: none;
+    display: none !important;
+    -webkit-appearance: none;
+    appearance: none;
+    opacity: 0;
+    width: 0;
+    min-width: 0;
+    height: 0;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    background: none;
+    pointer-events: none;
 }
 
 /* Arbitrary px sizes used in some widgets */

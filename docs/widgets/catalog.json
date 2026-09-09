@@ -1,7 +1,7 @@
 {
   "version": 1,
   "generatedFrom": "tools/screenshots/widgets-meta.mjs",
-  "generatedAt": "2026-09-08",
+  "generatedAt": "2026-09-09",
   "note": "SSoT for Aura widgets. Options are seeded semi-automatically (see build-widget-catalog.mjs).",
   "groups": [
     {
@@ -1240,9 +1240,9 @@
     {
       "type": "evcc",
       "slug": "evcc",
-      "label": "evcc",
+      "label": "Energiefluss (evcc)",
       "group": "special",
-      "hint": "evcc Wallbox-Ladesteuerung einbinden.",
+      "hint": "PV-Erzeugung, Haus, Netz und Hausbatterie als Flussgrafik – aus einer evcc-Instanz, samt Ladepunkt-Steuerung.",
       "defaultGrid": {
         "w": 12,
         "h": 6

@@ -376,8 +376,8 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
     },
     {
         type: 'evcc',
-        label: 'evcc',
-        shortLabel: 'evcc',
+        label: 'Energiefluss (evcc)',
+        shortLabel: 'Energiefluss',
         Icon: Zap,
         iconName: 'Zap',
         color: '#6366f1',
@@ -385,8 +385,8 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         defaultH: 6,
         addMode: 'free',
         widgetGroup: 'special',
-        mock: { t: 'evcc', v: '' },
-        hint: 'evcc Wallbox-Ladesteuerung einbinden',
+        mock: { t: 'Energiefluss', v: '' },
+        hint: 'PV-Erzeugung, Haus, Netz und Hausbatterie als Flussgrafik – aus einer evcc-Instanz, samt Ladepunkt-Steuerung',
     },
     {
         type: 'camera',

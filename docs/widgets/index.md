@@ -41,7 +41,7 @@
 | [Adapter-Status](./adapter-status) | Liste aller ioBroker-Instanzen mit Status, Update-Hinweisen und Aktionen. |
 | [Alarmanlage](./alarmanlage) | ioBroker.alarm-Adapter steuern — Scharf/Inside/Nacht, Zonen, PIN, Tages-Log. |
 | [Bild](./bild) | Statisches Bild, lokale Datei oder URL anzeigen. |
-| [evcc](./evcc) | evcc Wallbox-Ladesteuerung einbinden. |
+| [Energiefluss (evcc)](./evcc) | PV-Erzeugung, Haus, Netz und Hausbatterie als Flussgrafik – aus einer evcc-Instanz, samt Ladepunkt-Steuerung. |
 | [HTML](./html) | Beliebigen HTML/CSS-Code frei einbetten. |
 | [iFrame](./iframe) | Externe Webseite oder lokale URL einbetten. |
 | [JSON-Tabelle](./json-tabelle) | JSON-Array-Datenpunkt als formatierte Tabelle anzeigen. |

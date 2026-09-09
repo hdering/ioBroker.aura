@@ -6,5 +6,6 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
-- evcc - a freshly added widget now matches the text and icon size of every other widget instead of towering over them; automatic scaling only shrinks a narrow tile, and the size sliders still scale it up
+- evcc - the widget is now called "Energiefluss (evcc)", and a freshly added one matches the text and icon size of every other widget instead of towering over them; automatic scaling only shrinks a narrow tile, and the size sliders still scale it up (#629)
 - evcc - the widget now follows the global font scale like the other widgets do
+- Date/time fields - no more double picker icon: where a browser insists on drawing its own clock, Aura no longer puts a second one next to it (#633)

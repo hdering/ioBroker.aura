@@ -1502,7 +1502,7 @@ export const en: Record<TranslationKey, string> = {
     'widget.clock': 'Clock',
     'widget.weather': 'Weather',
     'widget.calendar': 'Calendar',
-    'widget.evcc': 'evcc',
+    'widget.evcc': 'Energy flow (evcc)',
     'widget.camera': 'Camera',
     'widget.image': 'Image',
     'widget.trash': 'Waste Collection',
