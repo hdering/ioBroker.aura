@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 
 - General - verified on Node.js 26; the CI adapter tests now run on Node 22, 24 and 26 (#631)
+- Knob - only the dial reacts to touch now: a swipe on the free area next to it scrolls the page instead of turning the knob, and the value no longer skews on widgets that are not square (#630)

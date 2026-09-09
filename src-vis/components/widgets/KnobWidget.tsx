@@ -173,14 +173,19 @@ export function KnobWidget({ config }: WidgetProps) {
     };
 
     // Map a screen coordinate to SVG-local coords using the current viewBox.
+    // preserveAspectRatio="xMidYMid meet" centres the square viewBox inside the
+    // element box and letterboxes the rest, so both axes share one scale —
+    // dividing by rect.width/rect.height instead skews the angle on every
+    // widget that is not square.
     const screenToSvg = (clientX: number, clientY: number): { px: number; py: number } | null => {
         const svg = svgRef.current;
         if (!svg) return null;
         const rect = svg.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
         const vbSize = 200 + 2 * ringPad;
-        const vbOff = -ringPad;
-        const px = ((clientX - rect.left) / rect.width) * vbSize + vbOff;
-        const py = ((clientY - rect.top) / rect.height) * vbSize + vbOff;
+        const side = Math.min(rect.width, rect.height);
+        const px = ((clientX - rect.left - (rect.width - side) / 2) / side) * vbSize - ringPad;
+        const py = ((clientY - rect.top - (rect.height - side) / 2) / side) * vbSize - ringPad;
         return { px, py };
     };
 
@@ -209,10 +214,10 @@ export function KnobWidget({ config }: WidgetProps) {
         return dragAccumValueRef.current;
     };
 
-    const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
+    const onPointerDown = (e: React.PointerEvent<SVGCircleElement>) => {
         if (readOnly) return;
         e.preventDefault();
-        (e.target as Element).setPointerCapture?.(e.pointerId);
+        (e.currentTarget as Element).setPointerCapture?.(e.pointerId);
         draggingRef.current = true;
         if (infinite) {
             dragAccumValueRef.current = Number.isFinite(numericVal) ? numericVal : min;
@@ -224,7 +229,7 @@ export function KnobWidget({ config }: WidgetProps) {
             if (v != null) setPending(v);
         }
     };
-    const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
+    const onPointerMove = (e: React.PointerEvent<SVGCircleElement>) => {
         if (readOnly || !draggingRef.current) return;
         if (infinite) {
             const v = advanceInfiniteFromEvent(e.clientX, e.clientY);
@@ -234,11 +239,11 @@ export function KnobWidget({ config }: WidgetProps) {
             if (v != null) setPending(v);
         }
     };
-    const onPointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
+    const onPointerUp = (e: React.PointerEvent<SVGCircleElement>) => {
         if (readOnly || !draggingRef.current) return;
         draggingRef.current = false;
         dragLastDegRef.current = null;
-        (e.target as Element).releasePointerCapture?.(e.pointerId);
+        (e.currentTarget as Element).releasePointerCapture?.(e.pointerId);
         if (pending != null) {
             writeStepped(pending, !infinite);
             setPending(null);
@@ -815,6 +820,18 @@ export function KnobWidget({ config }: WidgetProps) {
         );
     };
 
+    // Drag target: the dial disc, nothing else. With the handlers on the <svg>
+    // root every touch inside the element box counted — the letterboxed area
+    // next to the dial included — so on a phone a finger set down beside the
+    // dial to carry on scrolling turned the knob instead (#630). The root keeps
+    // `touch-action: none` but no longer takes hits, which also hands the free
+    // area back to the page scroller: touch-action is read from the node that
+    // was actually hit upwards, and out there that is the card, not the svg.
+    const hitR = Math.max(
+        isEndless ? 109 : isScale ? 106 : 98, // outermost painted dial part (labels / ticks)
+        ringActive ? ringOuter : 0,
+        bgActive ? discR : 0,
+    );
     const dialEl = (
         <svg
             ref={svgRef}
@@ -825,17 +842,28 @@ export function KnobWidget({ config }: WidgetProps) {
                 width: '100%',
                 height: '100%',
                 maxHeight: '100%',
-                touchAction: 'none',
-                cursor: readOnly ? 'default' : 'pointer',
+                touchAction: readOnly ? undefined : 'none',
+                pointerEvents: 'none',
             }}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerUp}
-            onPointerCancel={onPointerUp}
         >
             {renderRingBackground()}
             {isEndless ? renderCircleLayout() : isScale ? renderScaleLayout() : renderBoundedLayout()}
             {renderRing()}
+            {!readOnly && (
+                <circle
+                    data-aura-knob-hit=""
+                    cx={cx}
+                    cy={cy}
+                    r={hitR}
+                    fill="transparent"
+                    pointerEvents="all"
+                    style={{ cursor: 'pointer', touchAction: 'none' }}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    onPointerCancel={onPointerUp}
+                />
+            )}
         </svg>
     );
 

@@ -1,6 +1,6 @@
 # Drehregler
 
-Stellt einen `number`-Datenpunkt per Drehknopf ein — Wert wird durch Ziehen auf dem Bogen verändert. Drei Zeigertypen, konfigurierbarer Winkelbereich und ein Endlos-Modus.
+Stellt einen `number`-Datenpunkt per Drehknopf ein — Wert wird durch Ziehen auf dem Bogen verändert. Drei Zeigertypen, konfigurierbarer Winkelbereich und ein Endlos-Modus. Bedient wird nur der Knopf selbst — der freie Bereich daneben bleibt zum Scrollen.
 
 ![](./assets/drehregler/runtime.png)
 
