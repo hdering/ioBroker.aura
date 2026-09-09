@@ -241,6 +241,21 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // The server-side security API. Without this, /api/aura fell into vite's
+      // SPA fallback — index.html with status 200, which the login page read as
+      // „API reachable, no admin PIN set“ and offered a setup that then 404'd
+      // (#632). Point .iobroker-url / AURA_IOBROKER_URL at Aura's OWN server
+      // (default port 8095, not the web adapter) to log in against a real vault;
+      // anything else answers no JSON and the dev editor degrades to its local
+      // login. Short timeouts so a dead target fails fast instead of hanging the
+      // login page.
+      '/api/aura': {
+        target: proxyTarget,
+        changeOrigin: true,
+        secure: false,
+        timeout: 4000,
+        proxyTimeout: 4000,
+      },
     },
   },
   build: {

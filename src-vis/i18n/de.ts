@@ -589,6 +589,8 @@ export const de = {
     'login.unavailable':
         'Adapter nicht erreichbar – die Aura-Instanz muss laufen und diese Seite von ihr ausgeliefert werden',
     'login.retry': 'Erneut versuchen',
+    'login.devNoCheck':
+        'Dev-Server ohne Aura-Instanz: die Anmeldung wird nicht geprüft, jede PIN wird angenommen. Dev-Proxy auf Auras eigenen Server (Port 8095) richten, um gegen den echten Tresor zu testen.',
 
     // ── Theme ─────────────────────────────────────────────────────────────────────
     'theme.title': 'Theme & CSS',

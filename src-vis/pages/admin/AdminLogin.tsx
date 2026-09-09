@@ -125,6 +125,22 @@ export function AdminLogin() {
                         </p>
                     </div>
 
+                    {/* No adapter behind the dev server: the login below checks
+                        nothing and takes any PIN. Silent acceptance is
+                        indistinguishable from broken auth — say it out loud. */}
+                    {!apiAvailable && (
+                        <p
+                            className="aura-login-dev-hint text-xs mb-4 p-2 rounded-lg text-center"
+                            style={{
+                                color: 'var(--accent-yellow)',
+                                background: 'var(--accent-yellow)1a',
+                                border: '1px solid var(--accent-yellow)44',
+                            }}
+                        >
+                            {t('login.devNoCheck')}
+                        </p>
+                    )}
+
                     {sessionExpired && !error && (
                         <p className="text-xs mb-4 text-center" style={{ color: 'var(--accent-yellow)' }}>
                             {t('login.expired')}

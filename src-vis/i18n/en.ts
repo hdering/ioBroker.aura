@@ -587,6 +587,8 @@ export const en: Record<TranslationKey, string> = {
     'login.lockedFor': 'Too many attempts – please wait {seconds} s',
     'login.unavailable': 'Adapter not reachable – the Aura instance must be running and serving this page',
     'login.retry': 'Try again',
+    'login.devNoCheck':
+        'Dev server with no Aura instance: this login is not checked and takes any PIN. Point the dev proxy at Aura’s own server (port 8095) to test against the real vault.',
 
     // ── Theme ─────────────────────────────────────────────────────────────────────
     'theme.title': 'Theme & CSS',

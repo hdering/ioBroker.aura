@@ -101,6 +101,14 @@ try {
     await openLogin('html');
     eq('an HTML answer is not read as „not configured“', await confirmField().count(), 0);
     check('… so no first-run setup is offered', !(await bodyText()).includes('Admin einrichten'), await bodyText());
+    // The dev editor deliberately opens without a check — but it has to admit it,
+    // or a login that takes any PIN looks exactly like broken authentication.
+    eq('… the unchecked dev login is announced', await page.locator('.aura-login-dev-hint').count(), 1);
+    check(
+        '… naming both the cause and the consequence',
+        (await page.locator('.aura-login-dev-hint').innerText()).includes('nicht geprüft'),
+        await page.locator('.aura-login-dev-hint').innerText(),
+    );
     await submit('1234');
     check('… and no attempt is called a wrong PIN', !(await bodyText()).includes('Falscher PIN'), await bodyText());
     eq('… the dev build lets the editor open', (await hash()).includes('/admin/login'), false);
@@ -108,6 +116,7 @@ try {
     // ── 2. a configured vault refusing the password ──────────────────────────
     await openLogin('wrong');
     eq('a configured vault asks for one PIN, not two', await confirmField().count(), 0);
+    eq('… and a real API shows no dev warning', await page.locator('.aura-login-dev-hint').count(), 0);
     await submit('9999');
     check('a refused password IS a wrong PIN', (await bodyText()).includes('Falscher PIN'), await bodyText());
     eq('… and the page stays put', (await hash()).includes('/admin/login'), true);
