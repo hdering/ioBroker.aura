@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame } from 'lucide-react';
+import { useThemeEpoch } from '../../store/themeEpoch';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -50,26 +51,50 @@ function parsePower(raw: unknown): number | null {
 
 // ── responsive container-size hook (ResizeObserver via callback ref) ──────────
 
+// The node comes back as well: the layout branches below each mount their own
+// box, and useCssFontScale has to read the variable off whichever one is live.
 function useContainerSize() {
     const [size, setSize] = useState<{ w: number; h: number }>({ w: 280, h: 220 });
-    const observerRef = useRef<ResizeObserver | null>(null);
+    const [node, setNode] = useState<HTMLElement | null>(null);
 
-    const ref = useCallback((node: HTMLElement | null) => {
-        if (observerRef.current) {
-            observerRef.current.disconnect();
-            observerRef.current = null;
-        }
-        if (node) {
-            const ro = new ResizeObserver((entries) => {
-                const e = entries[0];
-                if (e) setSize({ w: e.contentRect.width, h: e.contentRect.height });
-            });
-            ro.observe(node);
-            observerRef.current = ro;
-        }
-    }, []);
+    const ref = useCallback((n: HTMLElement | null) => setNode(n), []);
 
-    return [ref, size] as const;
+    useEffect(() => {
+        if (!node) return;
+        const ro = new ResizeObserver((entries) => {
+            const e = entries[0];
+            if (e) setSize({ w: e.contentRect.width, h: e.contentRect.height });
+        });
+        ro.observe(node);
+        return () => ro.disconnect();
+    }, [node]);
+
+    return [ref, size, node] as const;
+}
+
+// ── the global font scale, as a number ────────────────────────────────────────
+
+/**
+ * `--font-scale` as it applies at `node`.
+ *
+ * The widget sizes itself in inline pixels, so it is invisible to the Tailwind
+ * text-* rules through which every other widget picks the scale up. Reading the
+ * computed variable instead also covers the per-layout and per-section overrides
+ * App.tsx writes into a scoped <style> — and the theme epoch is what tells us the
+ * variables in the DOM have changed (see store/themeEpoch).
+ */
+function useCssFontScale(node: HTMLElement | null): number {
+    const epoch = useThemeEpoch();
+    const [scale, setScale] = useState(1);
+
+    useEffect(() => {
+        if (!node) return;
+        const raw = parseFloat(getComputedStyle(node).getPropertyValue('--font-scale'));
+        const next = Number.isFinite(raw) && raw > 0 ? raw : 1;
+        setScale((prev) => (prev === next ? prev : next));
+    }, [node, epoch]);
+
+    return scale;
 }
 
 const MODE_MAP: Record<string, number> = { off: 0, pv: 1, minpv: 2, now: 3 };
@@ -1084,13 +1109,24 @@ export function EvccWidget({ config }: WidgetProps) {
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Zap);
 
     // ── responsive sizing ─────────────────────────────────────────────────────
-    const [boxRef, boxSize] = useContainerSize();
+    // Everything below is measured against scale 1, and scale 1 is deliberately the
+    // size of every other widget: a 12 px title next to a 20 px icon, 14/12/11 px in
+    // the loadpoint card. So the automatic scaling only ever SHRINKS — down to
+    // `autoScaleMin` for a tile too narrow for the three flow columns (3 × 58 px plus
+    // the arrows ≈ REF_W). It used to run up to 2.2×, which made a freshly added
+    // widget (12 columns, and 2.2× at full width) tower over its neighbours; growing
+    // is now the user's decision, via the scale sliders or a raised `autoScaleMax`.
+    const [boxRef, boxSize, boxNode] = useContainerSize();
     const autoScaleEnabled = o.autoScale !== false;
     const REF_W = 280;
     const autoMin = (o.autoScaleMin as number) ?? 0.6;
-    const autoMax = (o.autoScaleMax as number) ?? 2.2;
+    const autoMax = (o.autoScaleMax as number) ?? 1;
     const autoScale = autoScaleEnabled ? Math.max(autoMin, Math.min(autoMax, boxSize.w / REF_W)) : 1;
-    const globalScale = (o.sizeScale as number) ?? 1;
+    // Every size here is an inline pixel value, so the Tailwind text-* rules that
+    // carry --font-scale for the other widgets never reach it. Read the variable off
+    // our own box instead — that picks up a layout- or section-scoped override too.
+    const fontScale = useCssFontScale(boxNode);
+    const globalScale = ((o.sizeScale as number) ?? 1) * fontScale;
     const headerScale = ((o.headerScale as number) ?? 1) * autoScale * globalScale;
     const flowScale = ((o.flowScale as number) ?? 1) * autoScale * globalScale;
     const lpScale = ((o.loadpointScale as number) ?? 1) * autoScale * globalScale;
@@ -1551,7 +1587,7 @@ export function EvccConfig({
 
                 <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                        Auto-Skalierung <span style={{ opacity: 0.6 }}>(mit Widget-Breite)</span>
+                        Auto-Skalierung <span style={{ opacity: 0.6 }}>(schrumpft bei schmalem Widget)</span>
                     </label>
                     <button
                         onClick={() => set({ autoScale: !autoScale })}

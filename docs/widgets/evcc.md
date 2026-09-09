@@ -75,13 +75,13 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Größe & Skalierung
 
-Skaliert die einzelnen Bereiche; bei `autoScale` zusätzlich automatisch mit der Widget-Breite.
+Bei `1` entspricht die Darstellung der übrigen Widgets (12 px Titel, 20 px Icon). `autoScale` verkleinert nur — sobald das Widget schmaler als 280 px ist. Größer wird es über die Regler oder ein angehobenes `autoScaleMax`.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `autoScale` | `true` | mit Widget-Breite skalieren |
+| `autoScale` | `true` | bei schmalem Widget verkleinern |
 | `autoScaleMin` | `0.6` | untere Skalierungsgrenze |
-| `autoScaleMax` | `2.2` | obere Skalierungsgrenze |
+| `autoScaleMax` | `1` | obere Skalierungsgrenze |
 | `sizeScale` | `1` | globale Skalierung |
 | `headerScale` | `1` | Kopfzeile |
 | `flowScale` | `1` | Energiefluss |
