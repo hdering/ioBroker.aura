@@ -27,7 +27,7 @@ import {
     Activity,
     Shapes,
 } from 'lucide-react';
-import { useAuthStore, logout, adminToken } from '../../store/authStore';
+import { useAuthStore, logout, adminToken, verifyAdminSession } from '../../store/authStore';
 import { vaultRead, vaultSetMcp } from '../../utils/pinApi';
 import { useMcpReleaseStore } from '../../store/mcpReleaseStore';
 import { useThemeStore } from '../../store/themeStore';
@@ -178,9 +178,32 @@ function useProtectedContentMerge(connected: boolean) {
     }, [connected, sessionActive, hasStub, merge, setReleases]);
 }
 
+/**
+ * The gate below is a persisted flag; the session behind it is an 8 h server token.
+ * Ask the server whether it still stands — on mount and whenever the tab comes
+ * back — so a long-open editor lands on the login page instead of quietly failing
+ * every admin call (#632: the PIN change answered „wrong PIN“).
+ */
+function useSessionWatch(sessionActive: boolean) {
+    useEffect(() => {
+        if (!sessionActive) return;
+        void verifyAdminSession();
+        const onVisible = () => {
+            if (document.visibilityState === 'visible') void verifyAdminSession();
+        };
+        document.addEventListener('visibilitychange', onVisible);
+        window.addEventListener('focus', onVisible);
+        return () => {
+            document.removeEventListener('visibilitychange', onVisible);
+            window.removeEventListener('focus', onVisible);
+        };
+    }, [sessionActive]);
+}
+
 export function AdminLayout() {
     const t = useT();
     const { sessionActive } = useAuthStore();
+    useSessionWatch(sessionActive);
     const { dirty, save, revert, saveError } = useSaveState();
     // Keep a stable ref to the latest save() so the Ctrl+S / auto-save effects
     // (which don't depend on `save`) always invoke the current closure — and so

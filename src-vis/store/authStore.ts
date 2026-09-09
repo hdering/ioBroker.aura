@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { adminStatus, adminSetup, adminLogin, adminChange } from '../utils/pinApi';
+import {
+    adminStatus,
+    adminSetup,
+    adminLogin,
+    adminChange,
+    adminSession,
+    type AdminChangeResult,
+    type AdminSession,
+} from '../utils/pinApi';
 
 /**
  * Admin authentication — now verified server-side (main.js /api/aura/admin/*).
@@ -25,9 +33,13 @@ interface AuthState {
     apiAvailable: boolean;
     /** Signed admin session token from the server, or null when logged out. */
     token: string | null;
+    /** Epoch ms the server stops honouring the token (null = unknown, e.g. dev). */
+    tokenExp: number | null;
     sessionActive: boolean;
+    /** Set when a session was dropped because the server no longer honours it. */
+    sessionExpired: boolean;
     setStatus: (configured: boolean) => void;
-    setSession: (token: string | null) => void;
+    setSession: (session: AdminSession | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -37,13 +49,38 @@ export const useAuthStore = create<AuthState>()(
             statusLoaded: false,
             apiAvailable: true,
             token: null,
+            tokenExp: null,
             sessionActive: false,
+            sessionExpired: false,
             setStatus: (configured) => set({ configured, statusLoaded: true }),
-            // A token is the session; the server enforces its expiry, so a stale one
-            // simply fails the next admin call and bounces back to the login page.
-            setSession: (token) => set({ token, sessionActive: !!token }),
+            // A token is the session, and its expiry comes along: the token outlives
+            // the server's patience in localStorage, so the frontend has to know when
+            // to ask for the password again instead of failing every admin call.
+            setSession: (session) =>
+                set({
+                    token: session ? session.token : null,
+                    tokenExp: session ? session.exp : null,
+                    sessionActive: !!session,
+                    sessionExpired: false,
+                }),
         }),
-        { name: 'aura-auth', partialize: (s) => ({ token: s.token, sessionActive: s.sessionActive }) },
+        {
+            name: 'aura-auth',
+            partialize: (s) => ({ token: s.token, tokenExp: s.tokenExp, sessionActive: s.sessionActive }),
+            // A token whose expiry has passed is no session — drop it while the app
+            // boots, so the editor never renders as logged in behind a dead token.
+            onRehydrateStorage: () => (state) => {
+                if (!state) return;
+                if (typeof state.tokenExp === 'number' && state.tokenExp <= Date.now()) {
+                    useAuthStore.setState({
+                        token: null,
+                        tokenExp: null,
+                        sessionActive: false,
+                        sessionExpired: true,
+                    });
+                }
+            },
+        },
     ),
 );
 
@@ -63,13 +100,13 @@ export async function loadAdminStatus(): Promise<void> {
 /** First-run: set the admin password on the server and start a session. */
 export async function setupAdmin(password: string): Promise<boolean> {
     if (DEV && !useAuthStore.getState().apiAvailable) {
-        useAuthStore.getState().setSession('dev-local');
+        useAuthStore.getState().setSession({ token: 'dev-local', exp: null });
         useAuthStore.getState().setStatus(true);
         return true;
     }
     const res = await adminSetup(password);
     if (!res) return false;
-    useAuthStore.getState().setSession(res.token);
+    useAuthStore.getState().setSession(res);
     useAuthStore.getState().setStatus(true);
     return true;
 }
@@ -77,21 +114,59 @@ export async function setupAdmin(password: string): Promise<boolean> {
 /** Verify the password server-side; on success keep the returned session token. */
 export async function loginWithPin(password: string): Promise<boolean> {
     if (DEV && !useAuthStore.getState().apiAvailable) {
-        useAuthStore.getState().setSession('dev-local');
+        useAuthStore.getState().setSession({ token: 'dev-local', exp: null });
         return true;
     }
     const res = await adminLogin(password);
     if (!res) return false;
-    useAuthStore.getState().setSession(res.token);
+    useAuthStore.getState().setSession(res);
     return true;
 }
 
 /** Change the admin password (requires an active session). */
-export async function changeAdmin(newPassword: string): Promise<boolean> {
-    if (DEV && !useAuthStore.getState().apiAvailable) return true; // no server to change in dev
+export async function changeAdmin(newPassword: string): Promise<AdminChangeResult> {
+    if (DEV && !useAuthStore.getState().apiAvailable) return { ok: true, session: null }; // no server in dev
     const token = useAuthStore.getState().token;
-    if (!token) return false;
-    return adminChange(token, newPassword);
+    if (!token) {
+        expireSession();
+        return { ok: false, reason: 'expired' };
+    }
+    const res = await adminChange(token, newPassword);
+    // The server hands back a fresh token with the new password — keep it, or the
+    // next admin call runs on a session that is already on its way out.
+    if (res.ok && res.session) useAuthStore.getState().setSession(res.session);
+    if (!res.ok && res.reason === 'expired') expireSession();
+    return res;
+}
+
+/** Drop the session and remember why, so the login page can say what happened. */
+function expireSession(): void {
+    useAuthStore.setState({ token: null, tokenExp: null, sessionActive: false, sessionExpired: true });
+}
+
+/**
+ * Ask the server whether the kept token is still valid; drop the session if not.
+ *
+ * The editor gate is a persisted flag, the session is an 8 h server token: a tab
+ * left open overnight looked logged in while every admin call 401'd — the reported
+ * symptom was „wrong PIN“ when changing the admin PIN (#632).
+ */
+export async function verifyAdminSession(): Promise<boolean> {
+    const { token, tokenExp, sessionActive, apiAvailable } = useAuthStore.getState();
+    if (!sessionActive) return false;
+    if (DEV && !apiAvailable) return true; // no security API behind the dev server
+    // No token behind the flag: nothing to verify (dev/test fake) — leave it alone.
+    if (!token) return true;
+    if (typeof tokenExp === 'number' && tokenExp <= Date.now()) {
+        expireSession();
+        return false;
+    }
+    const res = await adminSession(token);
+    if (res === 'expired') {
+        expireSession();
+        return false;
+    }
+    return true; // 'unavailable' — an adapter restart is not a logout
 }
 
 /** The current admin Bearer token, or null. Used by admin-only API calls. */

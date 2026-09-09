@@ -232,6 +232,9 @@ export const de = {
     'settings.pin.mismatch': 'PINs stimmen nicht überein',
     'settings.pin.success': 'PIN erfolgreich geändert',
     'settings.pin.wrong': 'Falscher PIN',
+    'settings.pin.sessionExpired': 'Sitzung abgelaufen – bitte neu anmelden',
+    'settings.pin.unavailable': 'Adapter nicht erreichbar',
+    'settings.pin.error': 'PIN konnte nicht geändert werden',
 
     'settings.backup.title': 'Backup & Restore',
     'settings.backup.description': 'Dashboard ({count} Tab{s}), Theme und Config als JSON.',
@@ -579,6 +582,7 @@ export const de = {
     'login.tooShort': 'Mindestens 4 Zeichen',
     'login.mismatch': 'PINs stimmen nicht überein',
     'login.wrong': 'Falscher PIN',
+    'login.expired': 'Sitzung abgelaufen – bitte neu anmelden',
 
     // ── Theme ─────────────────────────────────────────────────────────────────────
     'theme.title': 'Theme & CSS',

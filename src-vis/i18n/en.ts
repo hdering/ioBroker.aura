@@ -233,6 +233,9 @@ export const en: Record<TranslationKey, string> = {
     'settings.pin.mismatch': "PINs don't match",
     'settings.pin.success': 'PIN changed successfully',
     'settings.pin.wrong': 'Wrong PIN',
+    'settings.pin.sessionExpired': 'Session expired – please log in again',
+    'settings.pin.unavailable': 'Adapter not reachable',
+    'settings.pin.error': 'Could not change the PIN',
 
     'settings.backup.title': 'Backup & Restore',
     'settings.backup.description': 'Dashboard ({count} Tab{s}), Theme and Config as JSON.',
@@ -578,6 +581,7 @@ export const en: Record<TranslationKey, string> = {
     'login.tooShort': 'At least 4 characters',
     'login.mismatch': "PINs don't match",
     'login.wrong': 'Wrong PIN',
+    'login.expired': 'Session expired – please log in again',
 
     // ── Theme ─────────────────────────────────────────────────────────────────────
     'theme.title': 'Theme & CSS',

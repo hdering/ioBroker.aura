@@ -17,7 +17,7 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { createSecurityApi } = require('../../lib/security/apiHandler.js');
-const { generateServerSecret } = require('../../lib/security/authCore.js');
+const { generateServerSecret, signToken } = require('../../lib/security/authCore.js');
 const vaultMod = require('../../lib/security/dashboardVault.js');
 
 let pass = 0;
@@ -152,9 +152,35 @@ try {
     ok(r.status === 200 && r.json.mcpWrite === false, 'and can take it back');
     ok(!('mcpWrite' in vault.load().sections['section:sLocked']), 'revoking removes the flag entirely');
 
+    // ── session probe (#632) ─────────────────────────────────────────────────
+    // The frontend keeps the token in localStorage, which outlives the 8 h the
+    // server honours it. Without a way to ask, an expired session still looked
+    // logged in and every admin call failed with a misleading message.
+    r = await call('GET', 'admin/session');
+    ok(r.status === 401, 'session probe without a token → 401');
+    r = await call('GET', 'admin/session', { token: 'not.a.valid.token' });
+    ok(r.status === 401, 'session probe with a forged token → 401');
+    r = await call('GET', 'admin/session', { token: adminToken });
+    ok(r.status === 200 && r.json.ok === true, 'session probe accepts the live token');
+    ok(typeof r.json.exp === 'number' && r.json.exp > Date.now(), 'and reports when it runs out');
+
+    const staleToken = signToken({ role: 'admin' }, vault.load().serverSecret, -1000);
+    r = await call('GET', 'admin/session', { token: staleToken });
+    ok(r.status === 401, 'a token past its expiry → 401 (the reported case)');
+    r = await call('GET', 'vault', { token: staleToken });
+    ok(r.status === 401, 'and it opens nothing else either');
+    r = await call('POST', 'admin/change', { token: staleToken, body: { newPassword: 'hijack' } });
+    ok(r.status === 401, 'an expired session cannot change the password');
+    r = await call('POST', 'admin/login', { body: { password: 'hijack' } });
+    ok(r.status === 401, 'the refused change did not go through');
+
     // ── admin change ─────────────────────────────────────────────────────────
     r = await call('POST', 'admin/change', { token: adminToken, body: { newPassword: 'newpass' } });
     ok(r.status === 200, 'admin can change the password');
+    ok(r.json.token && r.json.token !== adminToken, 'the change hands back a fresh session token');
+    const changedToken = r.json.token;
+    r = await call('GET', 'admin/session', { token: changedToken });
+    ok(r.status === 200, 'the fresh token is a valid session');
     r = await call('POST', 'admin/login', { body: { password: 'newpass' } });
     ok(r.status === 200, 'login works with the new password');
     r = await call('POST', 'admin/login', { body: { password: 'letmein' } });

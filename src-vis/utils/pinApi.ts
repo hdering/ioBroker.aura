@@ -52,19 +52,57 @@ export async function adminStatus(): Promise<{ configured: boolean; available: b
     return { configured: status === 200 && !!json?.configured, available: true };
 }
 
-export async function adminSetup(password: string): Promise<{ token: string } | null> {
+export interface AdminSession {
+    token: string;
+    /** Epoch ms the server stops honouring this token, if it told us. */
+    exp: number | null;
+}
+
+const session = (json: { token: string; exp?: unknown }): AdminSession => ({
+    token: json.token,
+    exp: typeof json.exp === 'number' ? json.exp : null,
+});
+
+export async function adminSetup(password: string): Promise<AdminSession | null> {
     const { status, json } = await request('POST', 'admin/setup', { body: { password } });
-    return status === 200 && json?.token ? { token: json.token } : null;
+    return status === 200 && json?.token ? session(json) : null;
 }
 
-export async function adminLogin(password: string): Promise<{ token: string } | null> {
+export async function adminLogin(password: string): Promise<AdminSession | null> {
     const { status, json } = await request('POST', 'admin/login', { body: { password } });
-    return status === 200 && json?.token ? { token: json.token } : null;
+    return status === 200 && json?.token ? session(json) : null;
 }
 
-export async function adminChange(token: string, newPassword: string): Promise<boolean> {
-    const { status } = await request('POST', 'admin/change', { body: { newPassword }, token });
-    return status === 200;
+/**
+ * Is the admin token we kept still one the server accepts?
+ *
+ * `'unavailable'` is deliberately distinct from `'expired'`: a network hiccup or an
+ * adapter restart must not throw an admin out of the editor, only a real 401 does.
+ */
+export async function adminSession(token: string): Promise<'ok' | 'expired' | 'unavailable'> {
+    const { status } = await request('GET', 'admin/session', { token });
+    if (status === 200) return 'ok';
+    if (status === 401) return 'expired';
+    return 'unavailable';
+}
+
+export type AdminChangeResult =
+    | { ok: true; session: AdminSession | null }
+    | { ok: false; reason: 'expired' | 'tooShort' | 'unavailable' | 'error' };
+
+/**
+ * Change the admin password. The reason matters: every failure used to surface as
+ * „wrong PIN“ although the form never asks for the old one (#632) — an expired
+ * session was the usual cause and the least guessable message.
+ */
+export async function adminChange(token: string, newPassword: string): Promise<AdminChangeResult> {
+    const { status, json } = await request('POST', 'admin/change', { body: { newPassword }, token });
+    if (status === 200) return { ok: true, session: json?.token ? session(json) : null };
+    if (status === 401) return { ok: false, reason: 'expired' };
+    if (status === 400) return { ok: false, reason: 'tooShort' };
+    // 0 = network error, 404 = no adapter behind this origin.
+    if (status === 0 || status === 404) return { ok: false, reason: 'unavailable' };
+    return { ok: false, reason: 'error' };
 }
 
 export interface VaultSectionMeta {

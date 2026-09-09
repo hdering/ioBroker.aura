@@ -1056,6 +1056,14 @@ function AdminBaseUrlCard() {
 
 // ── Main ───────────────────────────────────────────────────────────────────────
 
+/** Why a PIN change failed → what the user is told. */
+const PIN_FAIL_KEY = {
+    expired: 'settings.pin.sessionExpired',
+    tooShort: 'settings.pin.tooShort',
+    unavailable: 'settings.pin.unavailable',
+    error: 'settings.pin.error',
+} as const;
+
 export function AdminSettings() {
     const t = useT();
     const { frontend, updateFrontend } = useConfigStore();
@@ -1064,11 +1072,13 @@ export function AdminSettings() {
     const [confirm, setConfirm] = useState('');
     const [show, setShow] = useState(false);
     const [pinMsg, setPinMsg] = useState('');
+    const [pinOk, setPinOk] = useState(false);
     const [showReset, setShowReset] = useState(false);
     const [resetting, setResetting] = useState(false);
 
     const handlePinChange = async (e: React.FormEvent) => {
         e.preventDefault();
+        setPinOk(false);
         if (newPin.length < 4) {
             setPinMsg(t('settings.pin.tooShort'));
             return;
@@ -1077,13 +1087,18 @@ export function AdminSettings() {
             setPinMsg(t('settings.pin.mismatch'));
             return;
         }
-        const ok = await changeAdmin(newPin);
-        setPinMsg(ok ? t('settings.pin.success') : t('login.wrong'));
-        if (ok) {
+        const res = await changeAdmin(newPin);
+        if (res.ok) {
+            setPinOk(true);
+            setPinMsg(t('settings.pin.success'));
             setNewPin('');
             setConfirm('');
+        } else {
+            // The form never asks for the old PIN, so „wrong PIN“ was never the
+            // reason — an expired session was (#632). Say which one it is.
+            setPinMsg(t(PIN_FAIL_KEY[res.reason]));
         }
-        setTimeout(() => setPinMsg(''), 3000);
+        setTimeout(() => setPinMsg(''), 5000);
     };
 
     return (
@@ -1180,7 +1195,9 @@ export function AdminSettings() {
                                 value={newPin}
                                 onChange={(e) => setNewPin(e.target.value)}
                                 placeholder={t('settings.pin.newPin')}
-                                className="w-full rounded-lg px-3 py-2 pr-9 text-sm focus:outline-none"
+                                autoComplete="new-password"
+                                name="aura-new-admin-pin"
+                                className="aura-admin-pin-new w-full rounded-lg px-3 py-2 pr-9 text-sm focus:outline-none"
                                 style={{
                                     background: 'var(--app-bg)',
                                     color: 'var(--text-primary)',
@@ -1201,7 +1218,9 @@ export function AdminSettings() {
                             value={confirm}
                             onChange={(e) => setConfirm(e.target.value)}
                             placeholder={t('settings.pin.confirm')}
-                            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
+                            autoComplete="new-password"
+                            name="aura-confirm-admin-pin"
+                            className="aura-admin-pin-confirm w-full rounded-lg px-3 py-2 text-sm focus:outline-none"
                             style={{
                                 background: 'var(--app-bg)',
                                 color: 'var(--text-primary)',
@@ -1210,12 +1229,9 @@ export function AdminSettings() {
                         />
                         {pinMsg && (
                             <p
-                                className="text-xs"
+                                className="aura-admin-pin-msg text-xs"
                                 style={{
-                                    color:
-                                        pinMsg.includes('erfolgreich') || pinMsg.includes('successfully')
-                                            ? 'var(--accent-green)'
-                                            : 'var(--accent-red)',
+                                    color: pinOk ? 'var(--accent-green)' : 'var(--accent-red)',
                                 }}
                             >
                                 {pinMsg}
@@ -1223,7 +1239,7 @@ export function AdminSettings() {
                         )}
                         <button
                             type="submit"
-                            className="px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80"
+                            className="aura-admin-pin-save px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80"
                             style={{ background: 'var(--accent)' }}
                         >
                             {t('settings.pin.save')}

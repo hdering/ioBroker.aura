@@ -8,7 +8,7 @@ Allgemeine Einstellungen: Frontend, Grid, Sicherheit und Backup.
 | --- | --- |
 | Sprache | Deutsch / Englisch |
 | Editor | Automatisch speichern + Intervall (`Strg+S` speichert sofort) |
-| Admin-PIN | Passwort für den Adminbereich (min. 4 Zeichen). Wird serverseitig im Adapter geprüft (scrypt); nach dem Update auf diese Version einmalig neu setzen |
+| Admin-PIN | Passwort für den Adminbereich (min. 4 Zeichen). Wird serverseitig im Adapter geprüft (scrypt); nach dem Update auf diese Version einmalig neu setzen. Die Anmeldung gilt 8 Stunden — danach führt der Editor zurück zur Anmeldung |
 | Super-Admin-Schlüssel | Schützt Standard-Views vor Löschen; aktiviert über `/admin/popups?key=…` |
 | Admin-Basis-URL | Relative Bildpfade in JSON-Tabellen-Widgets auflösen |
 | Verbundene Geräte | Liste der Clients; umbenennen, feste ID vergeben, entfernen |

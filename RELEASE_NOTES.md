@@ -9,3 +9,4 @@
 
 - General - verified on Node.js 26; the CI adapter tests now run on Node 22, 24 and 26 (#631)
 - Knob - only the dial reacts to touch now: a swipe on the free area next to it scrolls the page instead of turning the knob, and the value no longer skews on widgets that are not square (#630)
+- Settings - the admin PIN can be changed again: an expired admin session now says so and sends you to the login page instead of answering "Wrong PIN", and the password manager no longer prefills the new-PIN field (#632)

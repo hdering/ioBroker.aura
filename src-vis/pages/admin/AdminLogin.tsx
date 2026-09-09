@@ -6,7 +6,7 @@ import { useT } from '../../i18n';
 
 export function AdminLogin() {
     const t = useT();
-    const { configured, statusLoaded } = useAuthStore();
+    const { configured, statusLoaded, sessionExpired } = useAuthStore();
     const isFirstTime = !configured;
     const [pin, setPin] = useState('');
     const [confirm, setConfirm] = useState('');
@@ -83,6 +83,12 @@ export function AdminLogin() {
                         </p>
                     </div>
 
+                    {sessionExpired && !error && (
+                        <p className="text-xs mb-4 text-center" style={{ color: 'var(--accent-yellow)' }}>
+                            {t('login.expired')}
+                        </p>
+                    )}
+
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="relative">
                             <input
@@ -90,6 +96,8 @@ export function AdminLogin() {
                                 value={pin}
                                 onChange={(e) => setPin(e.target.value)}
                                 placeholder={isFirstTime ? t('login.newPin') : t('login.pin')}
+                                autoComplete={isFirstTime ? 'new-password' : 'current-password'}
+                                name="aura-admin-pin"
                                 autoFocus
                                 className="w-full rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none"
                                 style={{
@@ -114,6 +122,8 @@ export function AdminLogin() {
                                 value={confirm}
                                 onChange={(e) => setConfirm(e.target.value)}
                                 placeholder={t('login.pinConfirm')}
+                                autoComplete="new-password"
+                                name="aura-admin-pin-confirm"
                                 className="w-full rounded-xl px-4 py-3 text-sm focus:outline-none"
                                 style={{
                                     background: 'var(--app-bg)',
