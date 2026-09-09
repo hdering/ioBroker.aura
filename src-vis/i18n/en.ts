@@ -582,6 +582,11 @@ export const en: Record<TranslationKey, string> = {
     'login.mismatch': "PINs don't match",
     'login.wrong': 'Wrong PIN',
     'login.expired': 'Session expired – please log in again',
+    'login.exists': 'An admin PIN is already set – please log in with it',
+    'login.locked': 'Too many attempts – please wait a moment',
+    'login.lockedFor': 'Too many attempts – please wait {seconds} s',
+    'login.unavailable': 'Adapter not reachable – the Aura instance must be running and serving this page',
+    'login.retry': 'Try again',
 
     // ── Theme ─────────────────────────────────────────────────────────────────────
     'theme.title': 'Theme & CSS',

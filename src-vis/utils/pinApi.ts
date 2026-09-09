@@ -32,10 +32,15 @@ async function request(
             body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
         });
         let json: any = null;
-        try {
-            json = await res.json();
-        } catch {
-            /* empty body */
+        // Only a body that claims to be JSON is an answer from the API. The vite
+        // dev server serves index.html for unknown paths — with status 200 — so a
+        // status code alone says nothing about who answered (#632 follow-up).
+        if ((res.headers.get('content-type') ?? '').includes('json')) {
+            try {
+                json = await res.json();
+            } catch {
+                /* empty or broken body */
+            }
         }
         return { status: res.status, json };
     } catch {
@@ -45,11 +50,13 @@ async function request(
 }
 
 export async function adminStatus(): Promise<{ configured: boolean; available: boolean }> {
-    const { status, json } = await request('GET', 'admin/status');
-    // status 0 = network error, 404 = no adapter behind this origin (vite dev
-    // server). Either way the security API is not reachable here.
-    if (status === 0 || status === 404) return { configured: false, available: false };
-    return { configured: status === 200 && !!json?.configured, available: true };
+    const { json } = await request('GET', 'admin/status');
+    // Anything that is not this endpoint's own answer means the security API is
+    // not behind this origin: a network error, a 404, the dev server's index.html
+    // or a proxy error page. Trusting the status code offered a first-run setup
+    // over a live vault, and every attempt then failed as „wrong PIN“ (#632).
+    if (!json || typeof json.configured !== 'boolean') return { configured: false, available: false };
+    return { configured: json.configured, available: true };
 }
 
 export interface AdminSession {
@@ -63,14 +70,27 @@ const session = (json: { token: string; exp?: unknown }): AdminSession => ({
     exp: typeof json.exp === 'number' ? json.exp : null,
 });
 
-export async function adminSetup(password: string): Promise<AdminSession | null> {
+export type AdminAuthResult =
+    | { ok: true; session: AdminSession }
+    | { ok: false; reason: 'wrong' | 'tooShort' | 'exists' | 'locked' | 'unavailable'; retryAfter?: number };
+
+/** First run: set the password. 409 = somebody already did — then log in. */
+export async function adminSetup(password: string): Promise<AdminAuthResult> {
     const { status, json } = await request('POST', 'admin/setup', { body: { password } });
-    return status === 200 && json?.token ? session(json) : null;
+    if (status === 200 && json?.token) return { ok: true, session: session(json) };
+    if (status === 409) return { ok: false, reason: 'exists' };
+    if (status === 400) return { ok: false, reason: 'tooShort' };
+    return { ok: false, reason: 'unavailable' };
 }
 
-export async function adminLogin(password: string): Promise<AdminSession | null> {
+export async function adminLogin(password: string): Promise<AdminAuthResult> {
     const { status, json } = await request('POST', 'admin/login', { body: { password } });
-    return status === 200 && json?.token ? session(json) : null;
+    if (status === 200 && json?.token) return { ok: true, session: session(json) };
+    if (status === 401) return { ok: false, reason: 'wrong' };
+    // The server backs off after five wrong tries; „wrong PIN“ for a lockout sent
+    // people typing the right code in circles.
+    if (status === 429) return { ok: false, reason: 'locked', retryAfter: Number(json?.retryAfter) || undefined };
+    return { ok: false, reason: 'unavailable' };
 }
 
 /**

@@ -71,6 +71,7 @@
     "test:pin-lock-ui": "node tools/tests/pin-lock-ui.mjs",
     "test:pin-editor-ui": "node tools/tests/pin-editor-ui.mjs",
         "test:admin-pin-change": "node tools/tests/admin-pin-change.mjs",
+        "test:admin-login": "node tools/tests/admin-login-reasons.mjs",
     "test:security-core": "node tools/tests/security-core.mjs",
     "test:security-api": "node tools/tests/security-api.mjs",
     "test:modal-clamp": "node tools/tests/modal-viewport-clamp.mjs",

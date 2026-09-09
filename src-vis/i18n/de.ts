@@ -583,6 +583,12 @@ export const de = {
     'login.mismatch': 'PINs stimmen nicht überein',
     'login.wrong': 'Falscher PIN',
     'login.expired': 'Sitzung abgelaufen – bitte neu anmelden',
+    'login.exists': 'Es ist schon ein Admin-PIN gesetzt – bitte damit anmelden',
+    'login.locked': 'Zu viele Versuche – bitte kurz warten',
+    'login.lockedFor': 'Zu viele Versuche – bitte {seconds} s warten',
+    'login.unavailable':
+        'Adapter nicht erreichbar – die Aura-Instanz muss laufen und diese Seite von ihr ausgeliefert werden',
+    'login.retry': 'Erneut versuchen',
 
     // ── Theme ─────────────────────────────────────────────────────────────────────
     'theme.title': 'Theme & CSS',

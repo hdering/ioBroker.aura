@@ -6,6 +6,7 @@ import {
     adminLogin,
     adminChange,
     adminSession,
+    type AdminAuthResult,
     type AdminChangeResult,
     type AdminSession,
 } from '../utils/pinApi';
@@ -97,30 +98,36 @@ export async function loadAdminStatus(): Promise<void> {
     useAuthStore.getState().setStatus(configured);
 }
 
+const DEV_SESSION = { ok: true, session: { token: 'dev-local', exp: null } } as const satisfies AdminAuthResult;
+
 /** First-run: set the admin password on the server and start a session. */
-export async function setupAdmin(password: string): Promise<boolean> {
+export async function setupAdmin(password: string): Promise<AdminAuthResult> {
     if (DEV && !useAuthStore.getState().apiAvailable) {
-        useAuthStore.getState().setSession({ token: 'dev-local', exp: null });
+        useAuthStore.getState().setSession(DEV_SESSION.session);
         useAuthStore.getState().setStatus(true);
-        return true;
+        return DEV_SESSION;
     }
     const res = await adminSetup(password);
-    if (!res) return false;
-    useAuthStore.getState().setSession(res);
-    useAuthStore.getState().setStatus(true);
-    return true;
+    if (res.ok) {
+        useAuthStore.getState().setSession(res.session);
+        useAuthStore.getState().setStatus(true);
+        return res;
+    }
+    // A password is already set — the page was offering a first-run setup that
+    // could never succeed. Turn it into the login form it should have been.
+    if (res.reason === 'exists') useAuthStore.getState().setStatus(true);
+    return res;
 }
 
 /** Verify the password server-side; on success keep the returned session token. */
-export async function loginWithPin(password: string): Promise<boolean> {
+export async function loginWithPin(password: string): Promise<AdminAuthResult> {
     if (DEV && !useAuthStore.getState().apiAvailable) {
-        useAuthStore.getState().setSession({ token: 'dev-local', exp: null });
-        return true;
+        useAuthStore.getState().setSession(DEV_SESSION.session);
+        return DEV_SESSION;
     }
     const res = await adminLogin(password);
-    if (!res) return false;
-    useAuthStore.getState().setSession(res);
-    return true;
+    if (res.ok) useAuthStore.getState().setSession(res.session);
+    return res;
 }
 
 /** Change the admin password (requires an active session). */

@@ -4,9 +4,18 @@ import { Lock, Eye, EyeOff } from 'lucide-react';
 import { loginWithPin, setupAdmin, loadAdminStatus, useAuthStore } from '../../store/authStore';
 import { useT } from '../../i18n';
 
+/** Why a login or first-run setup failed → what the user is told. */
+const LOGIN_FAIL_KEY = {
+    wrong: 'login.wrong',
+    tooShort: 'login.tooShort',
+    exists: 'login.exists',
+    locked: 'login.locked',
+    unavailable: 'login.unavailable',
+} as const;
+
 export function AdminLogin() {
     const t = useT();
-    const { configured, statusLoaded, sessionExpired } = useAuthStore();
+    const { configured, statusLoaded, sessionExpired, apiAvailable } = useAuthStore();
     const isFirstTime = !configured;
     const [pin, setPin] = useState('');
     const [confirm, setConfirm] = useState('');
@@ -28,27 +37,60 @@ export function AdminLogin() {
         }
 
         setLoading(true);
-        if (isFirstTime) {
-            if (pin !== confirm) {
-                setError(t('login.mismatch'));
-                setLoading(false);
-                return;
-            }
-            const ok = await setupAdmin(pin);
-            if (ok) navigate('/admin');
-            else {
-                setError(t('login.wrong'));
-                setLoading(false);
-            }
-        } else {
-            const ok = await loginWithPin(pin);
-            if (ok) navigate('/admin');
-            else {
-                setError(t('login.wrong'));
-                setLoading(false);
-            }
+        if (isFirstTime && pin !== confirm) {
+            setError(t('login.mismatch'));
+            setLoading(false);
+            return;
         }
+        const res = isFirstTime ? await setupAdmin(pin) : await loginWithPin(pin);
+        if (res.ok) {
+            navigate('/admin');
+            return;
+        }
+        // Only a refused password is a wrong PIN. A lockout, an already configured
+        // vault or an unreachable API all used to print the same lie (#632).
+        setError(
+            res.reason === 'locked' && res.retryAfter
+                ? t('login.lockedFor', { seconds: Math.ceil(res.retryAfter) })
+                : t(LOGIN_FAIL_KEY[res.reason]),
+        );
+        setLoading(false);
     };
+
+    // No security API behind this origin (wrong port, adapter down, Aura opened
+    // through another adapter): offering a first-run setup here is a dead end —
+    // it 404s and the page used to call that „wrong PIN“. Not in dev: the vite
+    // server has no adapter behind it by design and degrades to a local editor.
+    if (statusLoaded && !apiAvailable && !import.meta.env.DEV) {
+        return (
+            <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'var(--app-bg)' }}>
+                <div
+                    className="w-full max-w-sm rounded-2xl p-8 shadow-2xl text-center"
+                    style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+                >
+                    <div
+                        className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 mx-auto"
+                        style={{ background: 'var(--accent-red)22' }}
+                    >
+                        <Lock size={28} style={{ color: 'var(--accent-red)' }} />
+                    </div>
+                    <h1 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                        {t('login.title')}
+                    </h1>
+                    <p className="text-sm mt-2" style={{ color: 'var(--text-secondary)' }}>
+                        {t('login.unavailable')}
+                    </p>
+                    <button
+                        onClick={() => loadAdminStatus()}
+                        className="mt-5 px-4 py-2 rounded-lg text-sm font-medium text-white hover:opacity-80"
+                        style={{ background: 'var(--accent)' }}
+                    >
+                        {t('login.retry')}
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     if (!statusLoaded) {
         return (
