@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { managedStorage } from './persistManager';
-import type { TabBarSettings, LayoutMenuItem } from './dashboardStore';
+import type { TabBarSettings, LayoutMenuItem, HeaderItem } from './dashboardStore';
 
 export interface FrontendSettings {
     customCSS: string;
@@ -25,6 +25,12 @@ export interface FrontendSettings {
     // Header datapoint
     headerDatapoint: string;
     headerDatapointTemplate: string;
+    /**
+     * Extra header elements (clock / datapoint / text / widget). Undefined on
+     * configs written before this existed — deriveHeaderItems() then projects the
+     * two legacy slots above onto this list, so nothing disappears on upgrade.
+     */
+    headerItems?: HeaderItem[];
     gridRowHeight: number;
     gridSnapX: number;
     gridGap: number;

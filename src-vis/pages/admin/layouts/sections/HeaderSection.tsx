@@ -1,8 +1,12 @@
+import { Plus } from 'lucide-react';
 import { useT } from '../../../../i18n';
-import { ToggleRow, SubGroup, AutoGrowTextarea } from '../shared/SettingControls';
+import { ToggleRow, SubGroup } from '../shared/SettingControls';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
-import type { LayoutSettings } from '../../../../store/dashboardStore';
+import { MenuItemRow, menuItemTypeLabelKey } from '../shared/MenuItemFields';
+import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
+import { deriveHeaderItems, makeMenuItem } from '../../../../utils/menuItems';
+import type { HeaderItem, LayoutSettings } from '../../../../store/dashboardStore';
 
 const HEADER_KEYS: (keyof LayoutSettings)[] = [
     'showHeader',
@@ -17,6 +21,7 @@ const HEADER_KEYS: (keyof LayoutSettings)[] = [
     'headerClockCustomFormat',
     'headerDatapoint',
     'headerDatapointTemplate',
+    'headerItems',
 ];
 
 // Frontend header configuration (title, connection badge, admin link, header
@@ -31,6 +36,7 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
     const [showConnectionBadge] = eff('showConnectionBadge');
     const [showAdminLink] = eff('showAdminLink');
     const [showMessageBell] = eff('showMessageBell');
+    const [headerItemsRaw] = eff('headerItems');
     const [headerClockEnabled] = eff('headerClockEnabled');
     const [headerClockDisplay] = eff('headerClockDisplay');
     const [headerClockShowSeconds] = eff('headerClockShowSeconds');
@@ -38,6 +44,24 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
     const [headerClockCustomFormat] = eff('headerClockCustomFormat');
     const [headerDatapoint] = eff('headerDatapoint');
     const [headerDatapointTemplate] = eff('headerDatapointTemplate');
+
+    // Configs written before #634 have no list — the two legacy single slots are
+    // shown as list entries instead, and the first edit writes the whole derived
+    // list back, after which the legacy fields are inert.
+    const items = deriveHeaderItems({
+        headerItems: headerItemsRaw,
+        headerClockEnabled,
+        headerClockDisplay,
+        headerClockShowSeconds,
+        headerClockDateLength,
+        headerClockCustomFormat,
+        headerDatapoint,
+        headerDatapointTemplate,
+    });
+    const isLegacy = headerItemsRaw === undefined && items.length > 0;
+    const writeItems = (next: HeaderItem[]) => set('headerItems', next);
+    const updateItem = (id: string, patch: Partial<HeaderItem>) =>
+        writeItems(items.map((it) => (it.id === id ? { ...it, ...patch } : it)));
 
     return (
         <div
@@ -96,132 +120,57 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                         onChange={(v) => set('showMessageBell', v)}
                     />
 
-                    <ToggleRow
-                        label={t('settings.frontend.headerClock')}
-                        value={headerClockEnabled ?? false}
-                        onChange={(v) => set('headerClockEnabled', v)}
-                    />
-                    {headerClockEnabled && (
-                        <div className="space-y-2 pl-1 pb-1">
-                            <div>
-                                <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('settings.frontend.headerClockDisplay')}
-                                </p>
-                                <div className="flex gap-1.5 flex-wrap">
-                                    {(['time', 'date', 'datetime'] as const).map((v) => {
-                                        const labels = {
-                                            time: t('wf.clock.timeOnly'),
-                                            date: t('wf.clock.dateOnly'),
-                                            datetime: t('wf.clock.datetime'),
-                                        };
-                                        const active = (headerClockDisplay ?? 'time') === v;
-                                        return (
-                                            <button
-                                                key={v}
-                                                onClick={() => set('headerClockDisplay', v)}
-                                                className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
-                                                style={{
-                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                }}
-                                            >
-                                                {labels[v]}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                            {headerClockDisplay !== 'date' && (
-                                <ToggleRow
-                                    label={t('settings.frontend.headerClockSeconds')}
-                                    value={headerClockShowSeconds ?? false}
-                                    onChange={(v) => set('headerClockShowSeconds', v)}
+                    <div className="pt-2">
+                        <div className="flex items-center justify-between mb-1">
+                            <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
+                                {t('settings.header.items')}
+                            </p>
+                        </div>
+                        <p className="text-[11px] mb-2" style={{ color: 'var(--text-secondary)' }}>
+                            {t('settings.header.itemsHint')}
+                        </p>
+                        {isLegacy && (
+                            <p className="text-[10px] mb-2" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                {t('settings.header.legacyHint')}
+                            </p>
+                        )}
+                        <div className="space-y-1.5">
+                            {items.map((item) => (
+                                <MenuItemRow
+                                    key={item.id}
+                                    item={item}
+                                    positions={[
+                                        { key: 'left', label: t('settings.header.posLeft') },
+                                        { key: 'right', label: t('settings.header.posRight') },
+                                    ]}
+                                    onUpdate={(patch) => updateItem(item.id, patch)}
+                                    onRemove={() => writeItems(items.filter((it) => it.id !== item.id))}
+                                    onMove={(dir) => writeItems(moveMenuItem(items, item.id, dir))}
+                                    canMoveUp={canMoveMenuItem(items, item.id, -1)}
+                                    canMoveDown={canMoveMenuItem(items, item.id, 1)}
+                                    variant="bar"
                                 />
-                            )}
-                            {headerClockDisplay !== 'time' && (
-                                <div>
-                                    <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('settings.frontend.headerClockDateLen')}
-                                    </p>
-                                    <div className="flex gap-1.5">
-                                        {(['short', 'long'] as const).map((v) => {
-                                            const labels = { short: t('wf.clock.short'), long: t('wf.clock.long') };
-                                            const active = (headerClockDateLength ?? 'short') === v;
-                                            return (
-                                                <button
-                                                    key={v}
-                                                    onClick={() => set('headerClockDateLength', v)}
-                                                    className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
-                                                    style={{
-                                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                    }}
-                                                >
-                                                    {labels[v]}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                            <div>
-                                <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('settings.frontend.headerClockCustom')}
-                                </p>
-                                <input
-                                    value={headerClockCustomFormat ?? ''}
-                                    onChange={(e) => set('headerClockCustomFormat', e.target.value)}
-                                    placeholder="HH:mm · EE dd.MM."
-                                    className="w-full rounded-lg px-3 py-2 text-xs font-mono focus:outline-none"
+                            ))}
+                        </div>
+                        <div className="flex gap-1.5 mt-2 flex-wrap">
+                            {(['clock', 'datapoint', 'text', 'widget'] as const).map((type) => (
+                                <button
+                                    key={type}
+                                    onClick={() =>
+                                        writeItems([...items, makeMenuItem<HeaderItem>(type, { position: 'right' })])
+                                    }
+                                    className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
                                     style={{
                                         background: 'var(--app-bg)',
-                                        color: 'var(--text-primary)',
+                                        color: 'var(--text-secondary)',
                                         border: '1px solid var(--app-border)',
                                     }}
-                                />
-                            </div>
+                                >
+                                    <Plus size={11} /> {t(menuItemTypeLabelKey(type))}
+                                </button>
+                            ))}
                         </div>
-                    )}
-
-                    <div className="pt-1">
-                        <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
-                            {t('settings.frontend.headerDatapoint')}
-                        </p>
-                        <input
-                            value={headerDatapoint ?? ''}
-                            onChange={(e) => set('headerDatapoint', e.target.value)}
-                            placeholder={t('settings.frontend.headerDatapointPh')}
-                            className="w-full rounded-lg px-3 py-2 text-xs font-mono focus:outline-none"
-                            style={{
-                                background: 'var(--app-bg)',
-                                color: 'var(--text-primary)',
-                                border: '1px solid var(--app-border)',
-                            }}
-                        />
                     </div>
-                    {headerDatapoint && (
-                        <div>
-                            <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                {t('settings.frontend.headerDatapointTemplate')}
-                            </p>
-                            <AutoGrowTextarea
-                                value={headerDatapointTemplate ?? ''}
-                                onChange={(v) => set('headerDatapointTemplate', v)}
-                                placeholder={t('settings.frontend.headerDatapointTemplatePh')}
-                                className="w-full rounded-lg px-3 py-2 text-xs font-mono focus:outline-none"
-                                style={{
-                                    background: 'var(--app-bg)',
-                                    color: 'var(--text-primary)',
-                                    border: '1px solid var(--app-border)',
-                                }}
-                            />
-                            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                                {t('settings.frontend.headerDatapointTemplateHint')}
-                            </p>
-                        </div>
-                    )}
                 </SubGroup>
             )}
         </div>

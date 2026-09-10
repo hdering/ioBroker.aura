@@ -30,6 +30,7 @@ import {
     type HistoryEntry,
 } from '../hooks/useIoBroker';
 import { useDashboardStore, type DashboardLayout } from '../store/dashboardStore';
+import { useConfigStore, type FrontendSettings } from '../store/configStore';
 import { useMcpReleaseStore } from '../store/mcpReleaseStore';
 import { useGroupDefsStore } from '../store/groupDefsStore';
 import {
@@ -216,6 +217,14 @@ function installScreenshotApi(): void {
                     editMode: opts.editMode ?? false,
                 });
             });
+        },
+
+        /** Patch the global frontend settings. The three navigation chromes — header,
+         *  tab bar and section menu — read their extras from here (`headerItems`,
+         *  `tabBar.items`, `layoutDrawerItems`), so this is how a menu test arranges
+         *  what the bars show. */
+        setFrontend(patch: Partial<FrontendSettings>): void {
+            withSuppressedDirty(() => useConfigStore.getState().updateFrontend(patch));
         },
 
         /** A widget's current options, straight out of the store. The options panel writes

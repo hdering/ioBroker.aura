@@ -214,7 +214,6 @@ export const de = {
     'menuItem.widget.configure': 'Widget einrichten',
     'menuItem.widget.width': 'Breite (px)',
     'menuItem.widget.height': 'Höhe (px)',
-    'menuItem.widget.heightAuto': 'Leiste',
     'menuItem.widget.card': 'Mit Karte (Hintergrund/Rahmen)',
     'menuItem.widget.editTitle': 'Widget im Menü einrichten',
     'menuItem.widget.editHint':

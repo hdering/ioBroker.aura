@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Settings, X, GripVertical, ChevronDown, ChevronRight, Download, Upload, Lock } from 'lucide-react';
@@ -16,8 +15,6 @@ import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { useT } from '../../i18n';
-import { subscribeDpValue } from '../../hooks/useIoBroker';
-import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
 import { tabBarShowsOnOwn } from '../../utils/tabBarVisible';
 import { hasPin, tabPinKey } from '../../utils/pinLock';
 import { usePinStore } from '../../store/pinStore';
@@ -26,6 +23,7 @@ import { useBadges, useTabBadgeAggregate } from '../../hooks/useBadges';
 import { ConditionEditor } from '../config/ConditionEditor';
 import { BadgeEditor } from '../config/BadgeEditor';
 import { ScrollRow } from './ScrollRow';
+import { MenuItemView } from './MenuItemView';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import type { BadgeCorner, BadgeSize } from '../../types';
 import type { ResolvedBadge } from '../../hooks/useBadges';
@@ -57,87 +55,16 @@ function resolveTabBarFontSize(fs: TabBarSettings['fontSize']): string {
     return FONT_SIZE_MAP[fs ?? 'md'];
 }
 
-// ── Item renderers ─────────────────────────────────────────────────────────────
+// ── Item renderers ────────────────────────────────────────────
 
-function TabBarClockItem({ item }: { item: TabBarItem }) {
-    const t = useT();
-    const [now, setNow] = useState(() => new Date());
-    useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 1000);
-        return () => clearInterval(id);
-    }, []);
-
-    if (item.clockCustomFormat) {
-        return (
-            <span className="text-sm font-medium tabular-nums shrink-0" style={{ color: 'var(--text-primary)' }}>
-                {applyCustomFormat(now, item.clockCustomFormat, t)}
-            </span>
-        );
-    }
-
-    const timeStr = fmtTime(now, item.clockShowSeconds ?? false);
-    const dateStr = fmtDate(now, item.clockDateLength ?? 'short', t);
-
-    if (item.clockDisplay === 'datetime') {
-        return (
-            <div className="flex flex-col items-end leading-tight shrink-0">
-                <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                    {timeStr}
-                </span>
-                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {dateStr}
-                </span>
-            </div>
-        );
-    }
-
-    const text = item.clockDisplay === 'date' ? dateStr : timeStr;
-    return (
-        <span className="text-sm font-medium tabular-nums shrink-0" style={{ color: 'var(--text-primary)' }}>
-            {text}
-        </span>
-    );
-}
-
-function TabBarDatapointItem({ item }: { item: TabBarItem }) {
-    const [val, setVal] = useState<string>('…');
-    useEffect(() => {
-        if (!item.datapointId) return;
-        const unsub = subscribeDpValue(item.datapointId, (value) => {
-            setVal(value != null ? String(value) : '–');
-        });
-        return unsub;
-    }, [item.datapointId]);
-
-    if (item.datapointTemplate) {
-        return (
-            <span
-                className="text-sm font-medium shrink-0"
-                style={{ color: 'var(--text-primary)' }}
-                dangerouslySetInnerHTML={{ __html: resolveHtmlAssets(item.datapointTemplate.replace(/\{dp\}/g, val)) }}
-            />
-        );
-    }
-
-    return (
-        <span className="text-sm font-medium tabular-nums shrink-0" style={{ color: 'var(--text-primary)' }}>
-            {val}
-        </span>
-    );
-}
-
-function TabBarTextItem({ item }: { item: TabBarItem }) {
-    return (
-        <span className="text-sm font-medium shrink-0" style={{ color: 'var(--text-primary)' }}>
-            {item.text ?? ''}
-        </span>
-    );
-}
-
+// Clock / datapoint / text / widget all render through the shared MenuItemView,
+// which the header and the section menu use too.
 function renderTabBarItem(item: TabBarItem) {
-    if (item.type === 'clock') return <TabBarClockItem key={item.id} item={item} />;
-    if (item.type === 'datapoint') return <TabBarDatapointItem key={item.id} item={item} />;
-    return <TabBarTextItem key={item.id} item={item} />;
+    return (
+        <div key={item.id} className="shrink-0 flex items-center">
+            <MenuItemView item={item} variant="bar" />
+        </div>
+    );
 }
 
 // ── Computed tab styles based on indicatorStyle ────────────────────────────────

@@ -8,12 +8,16 @@ import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate } from '..
 import { KEEP_PIN, type PinRelock } from '../utils/pinLock';
 import type { AllVars } from '../themes';
 
-// ── Tab bar items (clock / datapoint / static text) ───────────────────────────
+// ── Menu extras (clock / datapoint / static text / widget) ────────────────────
+// The three navigation chromes — header, tab bar and section menu — all host the
+// same kind of extra element. Only the position axis differs, so the content
+// fields live in one shared base and each host adds its own `position`.
 
-export interface TabBarItem {
+export type MenuItemType = 'clock' | 'datapoint' | 'text' | 'widget';
+
+export interface MenuItemContent {
     id: string;
-    type: 'clock' | 'datapoint' | 'text';
-    position: 'left' | 'center' | 'right';
+    type: MenuItemType;
     // clock
     clockDisplay?: 'time' | 'date' | 'datetime';
     clockShowSeconds?: boolean;
@@ -24,29 +28,45 @@ export interface TabBarItem {
     datapointTemplate?: string;
     // static text
     text?: string;
+    // widget — either a reference to a widget that lives on some dashboard tab
+    // (`widgetId`, kept in sync with it) or an instance owned by this item
+    // (`widget`, edited in the admin). `widget` wins when both are set.
+    widgetId?: string;
+    widget?: WidgetConfig;
+    /** Slot width in px. Undefined = the host's default (bar: 120, block: full width). */
+    widgetWidth?: number;
+    /** Slot height in px. Undefined = the host's default (bar: fills the bar, block: 120). */
+    widgetHeight?: number;
+    /** Draw the widget's card (background/border/padding). Default: bare. */
+    widgetCard?: boolean;
+}
+
+/** Extra element in the tab bar, placed left / centre / right of the tabs. */
+export interface TabBarItem extends MenuItemContent {
+    position: 'left' | 'center' | 'right';
 }
 
 // Extra element rendered in the layout menu (LayoutDrawer). Same content shapes as
 // TabBarItem, but positioned above (top) or below (bottom) the layout list instead
 // of left/center/right.
-export interface LayoutMenuItem {
-    id: string;
-    type: 'clock' | 'datapoint' | 'text';
+export interface LayoutMenuItem extends MenuItemContent {
     position: 'top' | 'bottom';
     /** Extra space in px above this element. */
     marginTop?: number;
     /** Extra space in px below this element. */
     marginBottom?: number;
-    // clock
-    clockDisplay?: 'time' | 'date' | 'datetime';
-    clockShowSeconds?: boolean;
-    clockDateLength?: 'short' | 'long';
-    clockCustomFormat?: string;
-    // datapoint
-    datapointId?: string;
-    datapointTemplate?: string;
-    // static text
-    text?: string;
+}
+
+/**
+ * Extra element in the frontend header. `left` sits next to the dashboard title,
+ * `right` in front of the connection badge / bell / admin / theme buttons.
+ *
+ * Before this existed the header had exactly one hard-wired clock and one
+ * hard-wired datapoint slot; `deriveHeaderItems` (utils/menuItems) keeps those
+ * old configs rendering by projecting them onto this list.
+ */
+export interface HeaderItem extends MenuItemContent {
+    position: 'left' | 'right';
 }
 
 export interface TabBarSettings {
@@ -174,6 +194,12 @@ export interface LayoutSettings {
     headerClockCustomFormat?: string;
     headerDatapoint?: string;
     headerDatapointTemplate?: string;
+    /**
+     * Extra header elements. Undefined = derive from the legacy single-clock /
+     * single-datapoint fields above (see utils/menuItems#deriveHeaderItems); an
+     * empty array means "no extras", not "fall back".
+     */
+    headerItems?: HeaderItem[];
     // Navigation (idle-return)
     idleReturnEnabled?: boolean;
     idleReturnDelay?: number;

@@ -214,7 +214,6 @@ export const en: Record<TranslationKey, string> = {
     'menuItem.widget.configure': 'Configure widget',
     'menuItem.widget.width': 'Width (px)',
     'menuItem.widget.height': 'Height (px)',
-    'menuItem.widget.heightAuto': 'Bar',
     'menuItem.widget.card': 'With card (background/border)',
     'menuItem.widget.editTitle': 'Configure the menu widget',
     'menuItem.widget.editHint':

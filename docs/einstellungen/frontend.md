@@ -14,5 +14,5 @@ Anzeige-Verhalten des Frontends (gilt für alle Layouts).
 | Dashboard-Titel | Text in der Kopfzeile |
 | Verbindungsstatus | ioBroker-Verbindung im Header anzeigen |
 | Admin-Link im Header anzeigen | Direktlink zum Adminbereich |
-| Uhrzeit/Datum im Header | Zeitanzeige in der Kopfzeile |
-| Datenpunkt im Header | Optionaler DP-Wert in der Kopfzeile |
+| Meldungs-Glocke im Header | Ungelesene Meldungen in der Kopfzeile |
+| Elemente im Header | Beliebig viele Uhrzeiten, Datenpunkte, Texte oder Widgets — siehe [Menü-Elemente](./layouts#menü-elemente) |

@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { resolveHtmlAssets } from './utils/assetUrl';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Sun, Moon, Settings } from 'lucide-react';
 import {
@@ -7,7 +6,6 @@ import {
     setStateDirect,
     getStateDirect,
     subscribeStateDirect,
-    subscribeDpValue,
     prefetchStates,
     setOptimisticEcho,
     getObjectViewDirect,
@@ -36,13 +34,13 @@ import { RenderProbe } from './components/layout/RenderProbe';
 import { FocusedWidgetContext } from './contexts/FocusedWidgetContext';
 import { TabBar } from './components/layout/TabBar';
 import { LayoutDrawer } from './components/layout/LayoutDrawer';
+import { MenuItemView } from './components/layout/MenuItemView';
 import { useIframeStore } from './store/iframeStore';
 import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
-import { applyCustomFormat, fmtTime, fmtDate } from './utils/clockUtils';
 import { tabBarShowsOnOwn } from './utils/tabBarVisible';
+import { deriveHeaderItems } from './utils/menuItems';
 import type { Tab } from './store/dashboardStore';
-import type { FrontendSettings } from './store/configStore';
 
 import { discardPending, isScreenshotMode } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
@@ -87,77 +85,6 @@ const STORE_REHYDRATORS: Record<string, () => void> = {
         if (v) applyRaw('aura-widget-presets', v);
     },
 };
-
-// ── HeaderClock ────────────────────────────────────────────────────────────
-
-function HeaderClock({ f }: { f: FrontendSettings }) {
-    const t = useT();
-    const [now, setNow] = useState(() => new Date());
-    useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 1000);
-        return () => clearInterval(id);
-    }, []);
-
-    if (f.headerClockCustomFormat) {
-        return (
-            <span className="text-sm font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                {applyCustomFormat(now, f.headerClockCustomFormat, t)}
-            </span>
-        );
-    }
-
-    const timeStr = fmtTime(now, f.headerClockShowSeconds);
-    const dateStr = fmtDate(now, f.headerClockDateLength, t);
-
-    if (f.headerClockDisplay === 'datetime') {
-        return (
-            <div className="flex flex-col items-end leading-tight">
-                <span className="text-sm font-bold tabular-nums" style={{ color: 'var(--text-primary)' }}>
-                    {timeStr}
-                </span>
-                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    {dateStr}
-                </span>
-            </div>
-        );
-    }
-
-    const text = f.headerClockDisplay === 'date' ? dateStr : timeStr;
-    return (
-        <span className="text-sm font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
-            {text}
-        </span>
-    );
-}
-
-// ── HeaderDatapoint ────────────────────────────────────────────────────────
-
-function HeaderDatapoint({ id, template }: { id: string; template?: string }) {
-    const [val, setVal] = useState<string>('…');
-    useEffect(() => {
-        if (!id) return;
-        const unsub = subscribeDpValue(id, (value) => {
-            setVal(value != null ? String(value) : '–');
-        });
-        return unsub;
-    }, [id]);
-
-    if (template) {
-        return (
-            <span
-                className="text-sm font-medium"
-                style={{ color: 'var(--text-primary)' }}
-                dangerouslySetInnerHTML={{ __html: resolveHtmlAssets(template.replace(/\{dp\}/g, val)) }}
-            />
-        );
-    }
-
-    return (
-        <span className="text-sm font-medium tabular-nums" style={{ color: 'var(--text-primary)' }}>
-            {val}
-        </span>
-    );
-}
 
 // ── ConnectionBadge ────────────────────────────────────────────────────────
 
@@ -1190,6 +1117,12 @@ export default function App() {
     const drawerIconSize = effectiveSettings.layoutDrawerIconSize ?? 16;
     const drawerItems = effectiveSettings.layoutDrawerItems ?? [];
 
+    // Header extras. Configs written before #634 carry no headerItems — the two
+    // legacy slots (one clock, one datapoint) are projected onto the list there.
+    const headerItems = deriveHeaderItems(effectiveSettings);
+    const headerLeftItems = headerItems.filter((it) => it.position === 'left');
+    const headerRightItems = headerItems.filter((it) => it.position !== 'left');
+
     // Tab bar can be placed above the dashboard (default) or as a footer below it.
     const tabBarAtBottom = tabBarResolved.position === 'bottom';
 
@@ -1326,15 +1259,18 @@ export default function App() {
                                 <h1 className="aura-titel text-xl font-bold tracking-tight truncate">
                                     {effectiveSettings.headerTitle || 'Aura'}
                                 </h1>
+                                {headerLeftItems.map((it) => (
+                                    <div key={it.id} className="shrink-0 flex items-center self-stretch">
+                                        <MenuItemView item={it} variant="bar" />
+                                    </div>
+                                ))}
                             </div>
                             <div className="flex items-center gap-3">
-                                {effectiveSettings.headerDatapoint && (
-                                    <HeaderDatapoint
-                                        id={effectiveSettings.headerDatapoint}
-                                        template={effectiveSettings.headerDatapointTemplate || undefined}
-                                    />
-                                )}
-                                {effectiveSettings.headerClockEnabled && <HeaderClock f={effectiveSettings} />}
+                                {headerRightItems.map((it) => (
+                                    <div key={it.id} className="shrink-0 flex items-center self-stretch">
+                                        <MenuItemView item={it} variant="bar" />
+                                    </div>
+                                ))}
                                 {showBadge && <ConnectionBadge />}
                                 {effectiveSettings.showMessageBell && <MessageBell />}
                                 {effectiveSettings.showAdminLink && (

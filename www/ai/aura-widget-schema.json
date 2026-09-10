@@ -8085,6 +8085,11 @@
           "default": 1,
           "description": "Skaliert die gesamte Darstellung (1 = Normalgröße)."
         },
+        "sourceAdapter": {
+          "type": "string",
+          "default": "",
+          "description": "Instanz, aus der die Datenpunkte automatisch zugeordnet wurden (z.B. sma.0)."
+        },
         "tariffScale": {
           "type": "number",
           "default": 1,

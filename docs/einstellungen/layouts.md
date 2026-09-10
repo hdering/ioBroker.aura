@@ -53,6 +53,29 @@ Rote gestrichelte Linien im Editor zur Orientierung an einer Zielgröße (Breite
 
 Darstellung der Tab-Leiste im Frontend.
 
+## Menü-Elemente
+
+Header, Tab-Leiste und Bereichs-Menü tragen dieselbe Elementliste. Der Header wird unter [Frontend](./frontend) gepflegt, die beiden anderen in ihrem eigenen Abschnitt.
+
+| Typ         |                                                                    |
+| ----------- | ------------------------------------------------------------------ |
+| Uhrzeit     | Zeit, Datum oder beides; eigenes Format möglich                    |
+| Datenpunkt  | DP-Wert, optional durch ein HTML-Template (`{dp}`) formatiert      |
+| Text        | Fester Text                                                        |
+| Widget      | Beliebiges Widget — als Verweis auf ein vorhandenes Dashboard-Widget oder als eigene Instanz im Element |
+
+| Option beim Typ *Widget* |                                                                  |
+| ------------------------ | ---------------------------------------------------------------- |
+| Quelle                   | `Vorhandenes Widget` (Verweis, ändert sich mit dem Original) oder `Eigenes Widget` (Instanz im Element) |
+| Widget-Typ               | Vorausgewählt sind die Typen, die in eine Leiste passen; `Alle Typen anzeigen` hebt das auf |
+| Widget einrichten        | Öffnet den normalen Widget-Editor in der Box, die das Element bekommt |
+| Breite / Höhe           | Slot-Größe in px; leer = 120×32 in einer Leiste, volle Breite × 120 im Menü |
+| Mit Karte                | Hintergrund und Rahmen zeichnen; ohne das sitzt das Widget blank in der Leiste |
+
+Bedingungen, Badges, Klick-Aktionen und Popups eines Widgets gelten im Menü genauso wie auf dem Dashboard. Gruppen und Panels lassen sich nur als Verweis einbinden, nicht als eigene Instanz.
+
+Position: Header `Links`/`Rechts`, Tab-Leiste `L`/`M`/`R`, Bereichs-Menü `Oben`/`Unten`.
+
 ## Werte & Formatierung
 
 Nur im Geltungsbereich **Global** — gilt für alle Layouts und Widgets.

@@ -68,6 +68,7 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'headerClockCustomFormat',
     'headerDatapoint',
     'headerDatapointTemplate',
+    'headerItems',
     // Navigation (idle-return)
     'idleReturnEnabled',
     'idleReturnDelay',

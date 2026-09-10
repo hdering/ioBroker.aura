@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Plus, X, Search, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, X, ArrowUp, ArrowDown } from 'lucide-react';
 import type { LayoutMenuItem, LayoutSettings } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 import { ToggleRow, SubGroup } from '../shared/SettingControls';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
-import { DatapointPicker } from '../../../../components/config/DatapointPicker';
 import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
+import { makeMenuItem } from '../../../../utils/menuItems';
+import { MenuItemFields, menuItemTypeLabelKey } from '../shared/MenuItemFields';
 
 // layoutDrawer* keys reset together by the per-scope "reset" button.
 const DRAWER_KEYS: (keyof LayoutSettings)[] = [
@@ -55,17 +56,11 @@ function LayoutMenuItemRow({
     t: ReturnType<typeof useT>;
 }) {
     const [expanded, setExpanded] = useState(false);
-    const [pickerOpen, setPickerOpen] = useState(false);
     const posLabels: Record<'top' | 'bottom', string> = {
         top: t('settings.frontend.layoutDrawerItemPosTop'),
         bottom: t('settings.frontend.layoutDrawerItemPosBottom'),
     };
-    const typeLabel =
-        item.type === 'clock'
-            ? t('settings.tabBar.itemTypeClock')
-            : item.type === 'datapoint'
-              ? t('settings.tabBar.itemTypeDatapoint')
-              : t('settings.tabBar.itemTypeText');
+    const typeLabel = t(menuItemTypeLabelKey(item.type));
 
     const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
 
@@ -159,170 +154,7 @@ function LayoutMenuItemRow({
                             />
                         </div>
                     </div>
-                    {item.type === 'clock' && (
-                        <>
-                            <div>
-                                <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('settings.tabBar.clockDisplay')}
-                                </p>
-                                <div className="flex gap-1 flex-wrap">
-                                    {(['time', 'date', 'datetime'] as const).map((v) => {
-                                        const labels = {
-                                            time: t('wf.clock.timeOnly'),
-                                            date: t('wf.clock.dateOnly'),
-                                            datetime: t('wf.clock.datetime'),
-                                        };
-                                        const active = (item.clockDisplay ?? 'time') === v;
-                                        return (
-                                            <button
-                                                key={v}
-                                                onClick={() => onUpdate({ clockDisplay: v })}
-                                                className="px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80"
-                                                style={{
-                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                    color: active ? '#fff' : 'var(--text-secondary)',
-                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                }}
-                                            >
-                                                {labels[v]}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                            {(item.clockDisplay ?? 'time') !== 'date' && (
-                                <div className="flex items-center justify-between">
-                                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('settings.tabBar.clockSeconds')}
-                                    </span>
-                                    <button
-                                        onClick={() => onUpdate({ clockShowSeconds: !item.clockShowSeconds })}
-                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                        style={{
-                                            background: item.clockShowSeconds ? 'var(--accent)' : 'var(--app-border)',
-                                        }}
-                                    >
-                                        <span
-                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                            style={{ left: item.clockShowSeconds ? '18px' : '2px' }}
-                                        />
-                                    </button>
-                                </div>
-                            )}
-                            {(item.clockDisplay ?? 'time') !== 'time' && (
-                                <div>
-                                    <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                        {t('settings.tabBar.clockDateLen')}
-                                    </p>
-                                    <div className="flex gap-1">
-                                        {(['short', 'long'] as const).map((v) => {
-                                            const labels = { short: t('wf.clock.short'), long: t('wf.clock.long') };
-                                            const active = (item.clockDateLength ?? 'short') === v;
-                                            return (
-                                                <button
-                                                    key={v}
-                                                    onClick={() => onUpdate({ clockDateLength: v })}
-                                                    className="px-2 py-1 rounded-lg text-xs font-medium hover:opacity-80"
-                                                    style={{
-                                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                    }}
-                                                >
-                                                    {labels[v]}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-                            <div>
-                                <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('settings.tabBar.clockCustom')}
-                                </p>
-                                <input
-                                    type="text"
-                                    value={item.clockCustomFormat ?? ''}
-                                    onChange={(e) => onUpdate({ clockCustomFormat: e.target.value || undefined })}
-                                    placeholder="HH:mm:ss"
-                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
-                                    style={iSty}
-                                />
-                            </div>
-                        </>
-                    )}
-                    {item.type === 'datapoint' && (
-                        <>
-                            <div>
-                                <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('settings.tabBar.datapointId')}
-                                </p>
-                                <div className="flex items-center gap-1.5">
-                                    <input
-                                        type="text"
-                                        value={item.datapointId ?? ''}
-                                        onChange={(e) => onUpdate({ datapointId: e.target.value || undefined })}
-                                        placeholder="hm-rpc.0.ABC.1.TEMPERATURE"
-                                        className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono"
-                                        style={iSty}
-                                    />
-                                    <button
-                                        onClick={() => setPickerOpen(true)}
-                                        title={t('dp.picker.title')}
-                                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg hover:opacity-80"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-secondary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        <Search size={13} />
-                                    </button>
-                                </div>
-                                {pickerOpen && (
-                                    <DatapointPicker
-                                        currentValue={item.datapointId ?? ''}
-                                        onSelect={(id) => onUpdate({ datapointId: id || undefined })}
-                                        onClose={() => setPickerOpen(false)}
-                                    />
-                                )}
-                            </div>
-                            <div>
-                                <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                    {t('settings.tabBar.datapointTemplate')}
-                                </p>
-                                <textarea
-                                    rows={2}
-                                    value={item.datapointTemplate ?? ''}
-                                    onChange={(e) => onUpdate({ datapointTemplate: e.target.value || undefined })}
-                                    placeholder="<b>{dp}</b> °C"
-                                    className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none font-mono resize-y"
-                                    style={iSty}
-                                />
-                                <p
-                                    className="text-[10px] mt-1"
-                                    style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                >
-                                    {t('settings.tabBar.datapointTemplateHint')}
-                                </p>
-                            </div>
-                        </>
-                    )}
-                    {item.type === 'text' && (
-                        <div>
-                            <p className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
-                                {t('settings.tabBar.staticText')}
-                            </p>
-                            <input
-                                type="text"
-                                value={item.text ?? ''}
-                                onChange={(e) => onUpdate({ text: e.target.value || undefined })}
-                                placeholder="Mein Dashboard"
-                                className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                                style={iSty}
-                            />
-                        </div>
-                    )}
+                    <MenuItemFields item={item} onUpdate={onUpdate} variant="block" />
                 </div>
             )}
         </div>
@@ -375,12 +207,9 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         updateFrontend({ layoutDrawerItems: moveMenuItem(items, id, dir) });
     };
     const addItem = (type: LayoutMenuItem['type']) => {
-        const newItem: LayoutMenuItem = {
-            id: `lmi-${Date.now()}`,
-            type,
-            position: 'top',
-            ...(type === 'clock' ? { clockDisplay: 'datetime' as const } : {}),
-        };
+        const newItem = makeMenuItem<LayoutMenuItem>(type, { position: 'top' });
+        // The drawer's block layout has room for the big two-line clock.
+        if (type === 'clock') newItem.clockDisplay = 'datetime';
         updateFrontend({ layoutDrawerItems: [...items, newItem] });
     };
 
@@ -946,13 +775,8 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                             ))}
                         </div>
                         <div className="flex gap-1.5 mt-2 flex-wrap">
-                            {(['clock', 'datapoint', 'text'] as const).map((type) => {
-                                const label =
-                                    type === 'clock'
-                                        ? t('settings.tabBar.itemTypeClock')
-                                        : type === 'datapoint'
-                                          ? t('settings.tabBar.itemTypeDatapoint')
-                                          : t('settings.tabBar.itemTypeText');
+                            {(['clock', 'datapoint', 'text', 'widget'] as const).map((type) => {
+                                const label = t(menuItemTypeLabelKey(type));
                                 return (
                                     <button
                                         key={type}

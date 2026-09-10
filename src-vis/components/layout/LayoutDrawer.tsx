@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, LayoutDashboard, Lock } from 'lucide-react';
@@ -8,11 +7,10 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import type { Section, LayoutMenuItem } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
 import { ScrollRow } from './ScrollRow';
+import { MenuItemView } from './MenuItemView';
 import { useT } from '../../i18n';
 import { hasPin, sectionPinKey } from '../../utils/pinLock';
 import { usePinStore } from '../../store/pinStore';
-import { subscribeDpValue } from '../../hooks/useIoBroker';
-import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
 import { useBadges, useTabBadgeAggregate, type ResolvedBadge } from '../../hooks/useBadges';
 import { Badge } from '../common/Badge';
 import type { BadgeSize } from '../../types';
@@ -131,93 +129,6 @@ function barEntryActiveStyle(
     }
 }
 
-// ── Layout-menu extra items (clock / datapoint / text) ────────────────────────
-// Same content shapes as the tab-bar items, but rendered block-style (stacked)
-// above or below the layout list.
-
-function LayoutMenuClock({
-    item,
-    t,
-    compact = false,
-}: {
-    item: LayoutMenuItem;
-    t: ReturnType<typeof useT>;
-    compact?: boolean;
-}) {
-    const [now, setNow] = useState(() => new Date());
-    useEffect(() => {
-        const id = setInterval(() => setNow(new Date()), 1000);
-        return () => clearInterval(id);
-    }, []);
-
-    if (item.clockCustomFormat) {
-        return (
-            <div
-                className={`${compact ? 'text-sm' : 'text-2xl'} font-bold tabular-nums`}
-                style={{ color: 'var(--text-primary)' }}
-            >
-                {applyCustomFormat(now, item.clockCustomFormat, t)}
-            </div>
-        );
-    }
-
-    const timeStr = fmtTime(now, item.clockShowSeconds ?? false);
-    const dateStr = fmtDate(now, item.clockDateLength ?? 'short', t);
-
-    if (item.clockDisplay === 'datetime') {
-        return (
-            <div className={compact ? 'flex flex-col items-end leading-tight' : undefined}>
-                <div
-                    className={`${compact ? 'text-sm' : 'text-3xl'} font-bold tabular-nums leading-none`}
-                    style={{ color: 'var(--text-primary)' }}
-                >
-                    {timeStr}
-                </div>
-                <div className={compact ? 'text-xs' : 'text-sm mt-1'} style={{ color: 'var(--text-secondary)' }}>
-                    {dateStr}
-                </div>
-            </div>
-        );
-    }
-
-    const text = item.clockDisplay === 'date' ? dateStr : timeStr;
-    return (
-        <div
-            className={`${compact ? 'text-sm' : 'text-2xl'} font-bold tabular-nums`}
-            style={{ color: 'var(--text-primary)' }}
-        >
-            {text}
-        </div>
-    );
-}
-
-function LayoutMenuDatapoint({ item }: { item: LayoutMenuItem }) {
-    const [val, setVal] = useState<string>('…');
-    useEffect(() => {
-        if (!item.datapointId) return;
-        const unsub = subscribeDpValue(item.datapointId, (value) => {
-            setVal(value != null ? String(value) : '–');
-        });
-        return unsub;
-    }, [item.datapointId]);
-
-    if (item.datapointTemplate) {
-        return (
-            <div
-                className="text-sm"
-                style={{ color: 'var(--text-secondary)' }}
-                dangerouslySetInnerHTML={{ __html: resolveHtmlAssets(item.datapointTemplate.replace(/\{dp\}/g, val)) }}
-            />
-        );
-    }
-
-    return (
-        <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            {val}
-        </div>
-    );
-}
-
 // Own badges + optional aggregate count (widgets with a visible badge across all
 // of the section's tabs) shown inline at the trailing edge of a menu entry.
 function SectionBadges({ section }: { section: Section }) {
@@ -250,22 +161,8 @@ function SectionBadges({ section }: { section: Section }) {
     );
 }
 
-function LayoutMenuItemView({
-    item,
-    t,
-    compact = false,
-}: {
-    item: LayoutMenuItem;
-    t: ReturnType<typeof useT>;
-    compact?: boolean;
-}) {
-    if (item.type === 'clock') return <LayoutMenuClock item={item} t={t} compact={compact} />;
-    if (item.type === 'datapoint') return <LayoutMenuDatapoint item={item} />;
-    return (
-        <div className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            {item.text ?? ''}
-        </div>
-    );
+function LayoutMenuItemView({ item, compact = false }: { item: LayoutMenuItem; compact?: boolean }) {
+    return <MenuItemView item={item} variant={compact ? 'bar' : 'block'} />;
 }
 
 // Sizing scale for the trigger button. Icon + container scale together.
@@ -484,7 +381,7 @@ export function LayoutDrawer({
                         key={it.id}
                         style={{ marginTop: it.marginTop || undefined, marginBottom: it.marginBottom || undefined }}
                     >
-                        <LayoutMenuItemView item={it} t={t} />
+                        <LayoutMenuItemView item={it} />
                     </div>
                 ))}
             </div>
@@ -508,7 +405,7 @@ export function LayoutDrawer({
         const renderBarItems = (group: LayoutMenuItem[]) =>
             group.map((it) => (
                 <div key={it.id} className="shrink-0 flex items-center">
-                    <LayoutMenuItemView item={it} t={t} compact />
+                    <LayoutMenuItemView item={it} compact />
                 </div>
             ));
         const sectionButtons = visibleSections.map((section) => {
