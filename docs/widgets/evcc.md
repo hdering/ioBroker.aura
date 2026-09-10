@@ -4,22 +4,30 @@ PV-Erzeugung, Hausverbrauch, Netz und Hausbatterie als Energiefluss-Grafik. Die 
 
 ## Datenquelle
 
-Kein Haupt-Datenpunkt. Zwei Wege, kombinierbar:
+Kein Haupt-Datenpunkt. Das Feld **Quelle** listet die erkannten Energie-Instanzen (evcc, SMA, Fronius, E3/DC, Kostal, SENEC, sonnen, Victron, Shelly …):
 
-**evcc-Instanz** — das Auswahlfeld listet die gefundenen evcc-Instanzen; ist keine installiert, wird das Präfix von Hand eingetragen. Gelesen wird unter dem Präfix (`status.*`, `loadpoint.N.status.*`), Steuerbefehle gehen nach `loadpoint.N.control.*`.
+| Auswahl | Wirkung |
+| --- | --- |
+| eine **evcc**-Instanz | liest alles unter dem Präfix, inklusive Ladepunkte und Tarif |
+| eine **andere** Instanz | sucht deren Datenpunkte und trägt sie unten ein |
+| `evcc-Präfix von Hand` | für eine umbenannte Instanz oder eine auf einem anderen Host |
+| `Manuell` | Datenpunkte selbst wählen |
 
-**Eigene Datenpunkte** — überschreiben je Wert die Instanz. Sind alle fünf gesetzt, wird keine evcc-Instanz gebraucht: das Präfix bleibt einfach leer.
+Bei einer Nicht-evcc-Instanz wird einmalig durchsucht, was sie veröffentlicht, und der beste Treffer je Wert in die fünf Felder geschrieben. Das Panel meldet, wie viele Werte zugeordnet wurden und welche fehlen — die Felder bleiben editierbar, ein Fehlgriff ist also sichtbar und in einem Klick korrigiert. `Erneut suchen` wiederholt die Suche, etwa nach einem Adapter-Update.
 
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
 | `evccPrefix` | nein | — | evcc-Instanz, Standard `evcc.0`; leer = nur eigene Datenpunkte |
-| `pvPowerDatapoint` | nein | `number` | PV-Erzeugung in Watt |
-| `homePowerDatapoint` | nein | `number` | Hausverbrauch in Watt |
-| `gridPowerDatapoint` | nein | `number` | Netzleistung in Watt (positiv = Bezug, negativ = Einspeisung) |
+| `sourceAdapter` | nein | — | Instanz, aus der die Datenpunkte zugeordnet wurden |
+| `pvPowerDatapoint` | nein | `number` | PV-Erzeugung |
+| `homePowerDatapoint` | nein | `number` | Hausverbrauch |
+| `gridPowerDatapoint` | nein | `number` | Netzleistung (positiv = Bezug, negativ = Einspeisung) |
 | `batterySocDatapoint` | nein | — | Batterie-Ladestand (Prozent oder JSON `{soc,power}`) |
-| `batteryPowerDatapoint` | nein | `number` | Batterie-Leistung in Watt (negativ = laden) |
+| `batteryPowerDatapoint` | nein | `number` | Batterie-Leistung (negativ = laden) |
 
-Ohne eigenen Datenpunkt wird die Netzleistung automatisch aus der ersten passenden Quelle gelesen: `status.gridPower` · `status.grid` (JSON) · `status.Grid.power` (evcc-Adapter ≤ 0.2.8) · `status.Grid.Power` (evcc-Adapter ≥ 0.2.9).
+Die Einheit der Leistungs-Datenpunkte wird aus `common.unit` gelesen: `W`, `kW` und `mW` werden umgerechnet, alles andere unverändert übernommen. Ein Wechselrichter, der in kW meldet, braucht also keine Einstellung.
+
+Ohne eigenen Datenpunkt wird die Netzleistung automatisch aus der ersten passenden evcc-Quelle gelesen: `status.gridPower` · `status.grid` (JSON) · `status.Grid.power` (evcc-Adapter ≤ 0.2.8) · `status.Grid.Power` (evcc-Adapter ≥ 0.2.9).
 
 Die Ladepunkte gibt es nur mit evcc — sie liegen unter `loadpoint.N.*`, Pfade, die kein anderer Adapter hat.
 

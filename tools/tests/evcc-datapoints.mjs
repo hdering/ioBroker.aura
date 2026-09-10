@@ -124,6 +124,32 @@ check('… consumption too', txt.includes('0.80 kW') || txt.includes('0.8 kW'), 
 check('… grid too', txt.includes('4.2 kW'), txt);
 check('… and the battery', txt.includes('71%'), txt);
 
+// ── a kW datapoint is normalised to watts ────────────────────────────────────
+// Everything downstream is in watts, including the 10 W "is anything flowing"
+// threshold. Without the conversion an inverter reporting 4.2 kW renders as
+// "0.00 kW" with a dead flow line — indistinguishable from a wrong datapoint.
+//
+// Own datapoint ids for this block: the unit is read once per id, so reusing the
+// ids of the watt scenarios above would neither re-read nor be realistic.
+const KW = { pv: 'demo.kw.pv', grid: 'demo.kw.grid' };
+await page.evaluate((kw) => {
+    const obj = (id, name) => ({
+        _id: id,
+        type: 'state',
+        common: { name, type: 'number', unit: 'kW', role: 'value.power' },
+    });
+    window.__auraShot.mockObject({ [kw.pv]: obj(kw.pv, 'PV'), [kw.grid]: obj(kw.grid, 'Netz') });
+}, KW);
+await show(
+    { pvPowerDatapoint: KW.pv, gridPowerDatapoint: KW.grid, homePowerDatapoint: DP.home, evccPrefix: '' },
+    { [KW.pv]: 4.2, [KW.grid]: -3.3, [DP.home]: 900 },
+);
+txt = await text();
+check('a kW production value is read as kW, not W', txt.includes('4.2 kW'), txt);
+check('a kW grid value too', txt.includes('3.3 kW'), txt);
+check('… and it still reads as feed-in, so the sign survived', txt.includes('Einspsg.'), txt);
+check('a datapoint in watts next to it is unaffected', txt.includes('0.90 kW') || txt.includes('0.9 kW'), txt);
+
 // ── the config panel offers the two new fields ───────────────────────────────
 await page.evaluate(() => {
     window.__auraShot.mockObjectView({ instance: [] });

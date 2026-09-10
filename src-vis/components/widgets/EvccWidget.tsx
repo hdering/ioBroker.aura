@@ -2,11 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame } from 'lucide-react';
 import { useThemeEpoch } from '../../store/themeEpoch';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
+import { useIoBroker, getObjectViewDirect, getObjectDirect } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
 import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
+import {
+    ENERGY_ADAPTERS,
+    ENERGY_SLOTS,
+    SLOT_OPTION,
+    instanceLabel,
+    isEvccInstance,
+    mapEnergyDatapoints,
+    powerUnitFactor,
+    type CandidateState,
+    type EnergySlot,
+} from '../../utils/energySources';
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -72,43 +83,58 @@ function useContainerSize() {
     return [ref, size, node] as const;
 }
 
-// ── evcc instances present in this ioBroker ───────────────────────────────────
+// ── data sources present in this ioBroker ─────────────────────────────────────
+// The high sentinel getObjectView ranges end on, as `getObjectViewDirect` uses it.
+const KEY_END = '\u9999';
 
-interface EvccInstance {
-    /** Adapter prefix as the widget uses it, e.g. "evcc.0". */
-    prefix: string;
+export interface EnergyInstance {
+    /** Adapter instance as the widget addresses it, e.g. "sma.0". */
+    instance: string;
     enabled: boolean;
+    /** evcc is driveable by prefix alone; everything else needs its datapoints found. */
+    evcc: boolean;
 }
 
 /**
- * The evcc instances the config panel can offer.
+ * The instances the config panel can offer as a data source.
  *
  * `null` while the round-trip is still out — the panel then shows nothing rather
- * than flashing "none found" at every open. An empty array is a real answer:
- * this ioBroker has no evcc adapter, and the prefix has to be typed.
+ * than flashing "none found" at every open. An empty array is a real answer: this
+ * ioBroker runs no energy adapter we recognise, and the datapoints have to be
+ * picked by hand.
  *
- * Only evcc is listed on purpose. The widget reads `<prefix>.status.pvPower` and
- * `<prefix>.loadpoint.N.status.*`; those paths exist in the evcc adapter and
- * nowhere else, so offering sma/fronius/… here would hand the user a choice that
- * cannot work. Those belong to the free-datapoint mode (#629).
+ * One query for all instances, filtered here: a query per candidate adapter would
+ * be twenty round-trips for a list that is usually two entries long.
  */
-function useEvccInstances(): EvccInstance[] | null {
-    const [instances, setInstances] = useState<EvccInstance[] | null>(null);
+function useEnergyInstances(): EnergyInstance[] | null {
+    const [instances, setInstances] = useState<EnergyInstance[] | null>(null);
 
     useEffect(() => {
         let cancelled = false;
-        getObjectViewDirect('instance', 'system.adapter.evcc.', 'system.adapter.evcc.' + '\u9999')
+        const known = new Set(ENERGY_ADAPTERS.map((a) => a.name));
+        getObjectViewDirect('instance', 'system.adapter.', `system.adapter.${KEY_END}`)
             .then((res) => {
                 if (cancelled) return;
-                const found: EvccInstance[] = (res.rows ?? [])
-                    // The range is a server-side filter; the screenshot harness stubs
-                    // getObjectView wholesale, so re-check the shape here.
-                    .filter((row) => /^system\.adapter\.evcc\.\d+$/.test(row.id ?? ''))
+                const found: EnergyInstance[] = (res.rows ?? [])
+                    .filter((row) => /^system\.adapter\.[^.]+\.\d+$/.test(String(row.id ?? '')))
                     .map((row) => ({
-                        prefix: (row.id as string).slice('system.adapter.'.length),
+                        id: String(row.id).slice('system.adapter.'.length),
                         enabled: (row.value as { common?: { enabled?: boolean } })?.common?.enabled !== false,
                     }))
-                    .sort((a, b) => a.prefix.localeCompare(b.prefix, 'en', { numeric: true }));
+                    .filter(({ id }) => known.has(id.replace(/\.\d+$/, '')))
+                    .map(({ id, enabled }) => ({
+                        instance: id,
+                        // A stopped adapter publishes nothing, so it is worth saying out
+                        // loud before the user wonders why the diagram is empty.
+                        enabled,
+                        evcc: isEvccInstance(id),
+                    }))
+                    // evcc first (it can do the most), then alphabetical.
+                    .sort(
+                        (a, b) =>
+                            Number(b.evcc) - Number(a.evcc) ||
+                            a.instance.localeCompare(b.instance, 'en', { numeric: true }),
+                    );
                 setInstances(found);
             })
             .catch(() => {
@@ -120,6 +146,69 @@ function useEvccInstances(): EvccInstance[] | null {
     }, []);
 
     return instances;
+}
+
+/**
+ * Every numeric state an instance publishes, in the shape the scoring wants.
+ *
+ * One object-view range query over the instance. Adapters with thousands of states
+ * exist, so the result is filtered down to numbers here rather than carried around.
+ */
+async function readInstanceStates(instance: string): Promise<CandidateState[]> {
+    const res = await getObjectViewDirect('state', `${instance}.`, `${instance}.${KEY_END}`);
+    return (res.rows ?? [])
+        .filter((row) => String(row.id ?? '').startsWith(`${instance}.`))
+        .map((row) => {
+            const common = (row.value as { common?: Record<string, unknown> })?.common ?? {};
+            const name = common.name;
+            return {
+                id: String(row.id),
+                role: typeof common.role === 'string' ? common.role : undefined,
+                unit: typeof common.unit === 'string' ? common.unit : undefined,
+                type: typeof common.type === 'string' ? common.type : undefined,
+                name: typeof name === 'string' ? name : undefined,
+                read: typeof common.read === 'boolean' ? common.read : undefined,
+                min: typeof common.min === 'number' ? common.min : undefined,
+                max: typeof common.max === 'number' ? common.max : undefined,
+            };
+        })
+        .filter((c) => c.type === undefined || c.type === 'number');
+}
+
+// ── unit normalisation ────────────────────────────────────────────────────────
+
+/**
+ * What to multiply this datapoint's value by to get watts.
+ *
+ * Everything downstream — the formatting, and the 10 W "is anything flowing"
+ * threshold — is in watts, but adapters publish kW just as happily. Read from the
+ * object's own `common.unit`, so it is right for a hand-typed datapoint too and
+ * needs no extra setting. Objects are cached in the socket layer, so this is one
+ * round-trip per datapoint per session.
+ */
+function usePowerFactor(id: string): number {
+    const [factor, setFactor] = useState(1);
+
+    useEffect(() => {
+        if (!id) {
+            setFactor(1);
+            return;
+        }
+        let cancelled = false;
+        getObjectDirect(id)
+            .then((obj) => {
+                if (cancelled) return;
+                setFactor(powerUnitFactor(obj?.common?.unit));
+            })
+            .catch(() => {
+                if (!cancelled) setFactor(1);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [id]);
+
+    return factor;
 }
 
 // ── the global font scale, as a number ────────────────────────────────────────
@@ -147,8 +236,10 @@ function useCssFontScale(node: HTMLElement | null): number {
     return scale;
 }
 
-/** Sentinel for the "type it myself" entry of the instance dropdown. */
+/** Sentinel for the "type the evcc prefix myself" entry of the source dropdown. */
 const CUSTOM_PREFIX = '__custom__';
+/** Sentinel for "I pick the datapoints myself". */
+const MANUAL_SOURCE = '__manual__';
 
 const MODE_MAP: Record<string, number> = { off: 0, pv: 1, minpv: 2, now: 3 };
 const MODES: { key: string; label: string; activeColor: string }[] = [
@@ -1208,6 +1299,7 @@ export function EvccWidget({ config }: WidgetProps) {
 
     const { value: extSoc } = useDatapoint(effectiveBattDp);
     const { value: extPower } = useDatapoint(batteryPowerDp);
+    const battPowerFactor = usePowerFactor(batteryPowerDp);
 
     // Grid power fallback chain — the evcc adapter reshaped the grid states
     // several times:
@@ -1224,13 +1316,25 @@ export function EvccWidget({ config }: WidgetProps) {
     const homePowerDp = (o.homePowerDatapoint as string) ?? '';
     const { value: pvManual } = useDatapoint(pvPowerDp);
     const { value: homeManual } = useDatapoint(homePowerDp);
-    const pvPowerOverride = pvPowerDp ? parsePower(pvManual) : null;
-    const homePowerOverride = homePowerDp ? parsePower(homeManual) : null;
+    // Adapters publish W or kW as they please, so normalise by the datapoint's own
+    // unit — without it a 4.2 kW reading renders as "0.00 kW" and the flow line
+    // stays dead, which looks exactly like a wrong datapoint.
+    const pvFactor = usePowerFactor(pvPowerDp);
+    const homeFactor = usePowerFactor(homePowerDp);
+    const gridFactor = usePowerFactor(gridPowerDp);
+    const pvRaw = pvPowerDp ? parsePower(pvManual) : null;
+    const homeRaw = homePowerDp ? parsePower(homeManual) : null;
+    const pvPowerOverride = pvRaw != null ? pvRaw * pvFactor : null;
+    const homePowerOverride = homeRaw != null ? homeRaw * homeFactor : null;
     const { value: gridRaw } = useDatapoint(prefix ? `${prefix}.status.grid` : '');
     const { value: gridNodeUpper } = useDatapoint(prefix ? `${prefix}.status.Grid.Power` : '');
     const { value: gridNodeLower } = useDatapoint(prefix ? `${prefix}.status.Grid.power` : '');
+    const gridManualW = (() => {
+        const raw = gridPowerDp ? parsePower(gridManual) : null;
+        return raw != null ? raw * gridFactor : null;
+    })();
     const gridPowerOverride =
-        parsePower(gridManual) ?? parsePower(gridNodeUpper) ?? parsePower(gridNodeLower) ?? parsePower(gridRaw);
+        gridManualW ?? parsePower(gridNodeUpper) ?? parsePower(gridNodeLower) ?? parsePower(gridRaw);
 
     const { site: rawSite, loadpoints } = useEvccData(prefix, loadpointCount);
 
@@ -1257,7 +1361,9 @@ export function EvccWidget({ config }: WidgetProps) {
               }
             : {
                   ...(effectiveBattDp && extSoc != null ? { batterySoc: parseFloat(String(extSoc)) } : {}),
-                  ...(batteryPowerDp && extPower != null ? { batteryPower: parseFloat(String(extPower)) } : {}),
+                  ...(batteryPowerDp && extPower != null
+                      ? { batteryPower: parseFloat(String(extPower)) * battPowerFactor }
+                      : {}),
               }),
     };
 
@@ -1501,8 +1607,55 @@ export function EvccConfig({
     // Empty is a legitimate state here: the field is being retyped. `??` (not `||`)
     // so a cleared field stays cleared while the user types the new prefix.
     const prefix = (o.evccPrefix as string) ?? 'evcc.0';
-    const instances = useEvccInstances();
-    const onKnownInstance = !!instances?.some((i) => i.prefix === prefix);
+    const instances = useEnergyInstances();
+    // Which entry of the source dropdown is current. An evcc prefix wins; failing
+    // that the instance we auto-mapped from; failing that, hand-picked datapoints.
+    const sourceAdapter = (o.sourceAdapter as string) ?? '';
+    const selectedSource = prefix || sourceAdapter || MANUAL_SOURCE;
+    const onKnownInstance = !!instances?.some((i) => i.instance === selectedSource);
+    const [scanning, setScanning] = useState(false);
+    // An empty prefix means both "manual" and "about to type a prefix by hand", so
+    // the dropdown choice cannot be derived from the options alone.
+    const [typingPrefix, setTypingPrefix] = useState(false);
+    const [scanReport, setScanReport] = useState<{
+        instance: string;
+        found: EnergySlot[];
+        missing: EnergySlot[];
+    } | null>(null);
+
+    /**
+     * Point the widget at `instance`: for evcc that is just the prefix, for anything
+     * else we read what the instance publishes and fill the five datapoint fields
+     * with the best match. The result is a suggestion sitting in visible fields —
+     * the user sees exactly what was picked and can correct any of it.
+     */
+    const pickSource = async (value: string) => {
+        setScanReport(null);
+        setTypingPrefix(value === CUSTOM_PREFIX);
+        if (value === MANUAL_SOURCE || value === CUSTOM_PREFIX) {
+            set({ evccPrefix: '', sourceAdapter: undefined });
+            return;
+        }
+        if (isEvccInstance(value)) {
+            set({ evccPrefix: value, sourceAdapter: undefined });
+            return;
+        }
+        setScanning(true);
+        try {
+            const states = await readInstanceStates(value);
+            const found = mapEnergyDatapoints(states);
+            const patch: Record<string, unknown> = { evccPrefix: '', sourceAdapter: value };
+            for (const slot of ENERGY_SLOTS) patch[SLOT_OPTION[slot]] = found[slot]?.id;
+            set(patch);
+            setScanReport({
+                instance: value,
+                found: ENERGY_SLOTS.filter((slot) => found[slot]),
+                missing: ENERGY_SLOTS.filter((slot) => !found[slot]),
+            });
+        } finally {
+            setScanning(false);
+        }
+    };
     const lpCount = (o.loadpointCount as number) ?? 1;
     const showBattery = (o.showBattery as boolean) ?? true;
     const showLoadpoints = (o.showLoadpoints as boolean) ?? true;
@@ -1561,28 +1714,31 @@ export function EvccConfig({
                     {t('evcc.sourceSection')}
                 </div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.prefix')}
+                    {t('evcc.sourceLabel')}
                 </label>
-                {instances !== null && instances.length > 0 && (
+                {instances !== null && (
                     <select
-                        value={onKnownInstance ? prefix : CUSTOM_PREFIX}
-                        onChange={(e) => set({ evccPrefix: e.target.value === CUSTOM_PREFIX ? '' : e.target.value })}
+                        value={
+                            onKnownInstance ? selectedSource : prefix || typingPrefix ? CUSTOM_PREFIX : MANUAL_SOURCE
+                        }
+                        onChange={(e) => void pickSource(e.target.value)}
                         className={`aura-evcc-instance ${inputCls} mb-1`}
                         style={inputSty}
                     >
                         {instances.map((inst) => (
-                            <option key={inst.prefix} value={inst.prefix}>
-                                {inst.prefix}
+                            <option key={inst.instance} value={inst.instance}>
+                                {instanceLabel(inst.instance)}
                                 {inst.enabled ? '' : ` ${t('evcc.instanceDisabled')}`}
                             </option>
                         ))}
+                        {/* An evcc instance that was renamed, or one on another host. */}
                         <option value={CUSTOM_PREFIX}>{t('evcc.instanceCustom')}</option>
+                        <option value={MANUAL_SOURCE}>{t('evcc.sourceManual')}</option>
                     </select>
                 )}
-                {/* Kept next to the dropdown, not behind it: a renamed or remote
-                    instance is still reachable, and it is the only field there is
-                    when no instance was found. */}
-                {(instances === null || instances.length === 0 || !onKnownInstance) && (
+                {/* The prefix field appears only for the evcc-by-hand case; picking
+                    datapoints yourself is the "manual" entry, which needs no prefix. */}
+                {(instances === null || (!onKnownInstance && (prefix !== '' || typingPrefix))) && (
                     <input
                         type="text"
                         value={prefix}
@@ -1590,7 +1746,14 @@ export function EvccConfig({
                         // it was cleared, and the next keystrokes landed BEHIND the old
                         // value ("evcc.0fronius.0"). The fallback belongs where the value
                         // is read, not where it is typed.
-                        onChange={(e) => set({ evccPrefix: e.target.value })}
+                        //
+                        // `setTypingPrefix` keeps the field on screen: an empty prefix
+                        // otherwise reads as "manual", and the field would unmount from
+                        // under the cursor at the moment it was cleared.
+                        onChange={(e) => {
+                            setTypingPrefix(true);
+                            set({ evccPrefix: e.target.value });
+                        }}
                         placeholder="evcc.0"
                         className={`aura-evcc-prefix ${inputCls} font-mono`}
                         style={inputSty}
@@ -1598,8 +1761,34 @@ export function EvccConfig({
                 )}
                 {instances !== null && instances.length === 0 && (
                     <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
-                        {t('evcc.instanceNone')}
+                        {t('evcc.sourceNone')}
                     </p>
+                )}
+                {scanning && (
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {t('evcc.scanning')}
+                    </p>
+                )}
+                {scanReport && !scanning && (
+                    <p className="aura-evcc-scan-report text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {t('evcc.scanFound', {
+                            n: String(scanReport.found.length),
+                            total: String(ENERGY_SLOTS.length),
+                        })}
+                        {scanReport.missing.length > 0 &&
+                            ` ${t('evcc.scanMissing', {
+                                slots: scanReport.missing.map((slot) => t(`evcc.slot.${slot}` as never)).join(', '),
+                            })}`}
+                    </p>
+                )}
+                {sourceAdapter && !scanning && (
+                    <button
+                        onClick={() => void pickSource(sourceAdapter)}
+                        className="aura-evcc-rescan text-[10px] mt-1 underline"
+                        style={{ color: 'var(--accent)' }}
+                    >
+                        {t('evcc.scanAgain')}
+                    </button>
                 )}
             </div>
 

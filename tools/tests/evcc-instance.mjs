@@ -1,5 +1,6 @@
-// The evcc instance picker in the widget's config panel, and the prefix field
-// underneath it.
+// The evcc side of the widget's data-source dropdown, and the prefix field
+// underneath it. The dropdown as a whole — detected adapters, auto-mapping — is
+// covered by tools/tests/evcc-source-picker.mjs.
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/evcc-instance.mjs
@@ -9,6 +10,10 @@
 // landed BEHIND it — typing a fresh prefix the natural way produced
 // "evcc.0fronius.0". And there was no way to see which evcc instances exist;
 // on an ioBroker without one the field just sat there claiming "evcc.0".
+//
+// Also pinned: choosing "evcc prefix by hand" must actually produce a field to
+// type into. An empty prefix means both that and "manual", so the panel cannot
+// tell them apart from the stored options alone.
 //
 // getObjectView is stubbed through the screenshot harness
 // (`__auraShot.mockObjectView`), so the test does not depend on an evcc adapter
@@ -75,10 +80,14 @@ await open([inst(0), inst(1, false), { id: 'system.adapter.sma.0', value: { comm
 
 check('the instances are offered as a dropdown', (await select.count()) > 0);
 const options = await select.locator('option').allTextContents();
-check('both evcc instances are listed', options.includes('evcc.0'), options.join(' | '));
+check(
+    'both evcc instances are listed',
+    options.some((o) => o.includes('evcc.0')) && options.some((o) => o.includes('evcc.1')),
+    options.join(' | '),
+);
 check('a disabled one says so', options.some((o) => o.includes('evcc.1') && o.includes('deaktiviert')), options.join(' | '));
 check('an unrelated adapter is NOT offered', !options.some((o) => o.startsWith('sma.')), options.join(' | '));
-check('and there is a way out to a hand-typed prefix', options.some((o) => o.includes('Anderer Präfix')));
+check('and there is a way out to a hand-typed prefix', options.some((o) => o.includes('von Hand')));
 eq('the configured instance is the selected one', await select.inputValue(), 'evcc.0');
 eq('with an instance picked the text field is out of the way', await field.count(), 0);
 
@@ -98,8 +107,11 @@ eq('what is typed there is what is stored', (await opts()).evccPrefix, 'meinevcc
 
 // ── an ioBroker WITHOUT evcc — the reported case ─────────────────────────────
 await open([]);
-eq('with no instance found there is no dropdown', await select.count(), 0);
-check('the panel says so instead of pretending', (await dlg.locator('text=Keine evcc-Instanz gefunden').count()) > 0);
+// The dropdown stays — it still carries "prefix by hand" and "manual" — but it
+// must not pretend an instance exists, and the prefix field has to be reachable.
+const emptyOptions = await select.locator('option').allTextContents();
+check('no instance is offered', !emptyOptions.some((o) => /\d/.test(o)), emptyOptions.join(' | '));
+check('the panel says so instead of pretending', (await dlg.locator('text=Keine Energie-Instanz erkannt').count()) > 0);
 eq('and the prefix field is there', await field.count(), 1);
 
 // ── the prefix field itself: clearing it must not snap back ──────────────────

@@ -11,3 +11,5 @@
 - Date/time fields - no more double picker icon: where a browser insists on drawing its own clock, Aura no longer puts a second one next to it (#633)
 - evcc - pick the evcc instance from a dropdown of the ones actually installed, and type a prefix by hand when none is; clearing the prefix field no longer snapped the old value back and appended what you typed next (#629)
 - evcc - production and house consumption can now come from datapoints of your own, like grid and battery already could; with all five set the widget draws any PV system without an evcc instance, and the settings are named accordingly (#629)
+- evcc - the data source is now a dropdown of the energy instances actually installed (evcc, SMA, Fronius, E3/DC, Kostal, SENEC, sonnen, Victron, Shelly and more), or "manual"; picking a non-evcc one searches what that instance publishes and fills in the five datapoints, reporting what it found and what it could not (#629)
+- evcc - power datapoints in kW are converted automatically, read from the datapoint's own unit, so an inverter reporting kW no longer draws an empty diagram (#629)

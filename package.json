@@ -101,6 +101,8 @@
     "test:evcc-scale": "node tools/tests/evcc-scale.mjs",
     "test:evcc-instance": "node tools/tests/evcc-instance.mjs",
     "test:evcc-dps": "node tools/tests/evcc-datapoints.mjs",
+    "test:evcc-source": "node tools/tests/evcc-source-picker.mjs",
+    "test:energy-sources": "node tools/tests/energy-sources.mjs",
     "test:boot-splash": "node tools/tests/boot-splash-offline.mjs",
     "test:overview": "node tools/tests/admin-overview-layout.mjs",
     "test:popup-prune": "node tools/tests/popup-builtin-prune.mjs",
