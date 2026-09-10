@@ -8035,13 +8035,19 @@
         "gridPowerDatapoint": {
           "type": "string",
           "default": "",
-          "description": "Datenpunkt der Netzleistung, wenn evcc sie nicht flach liefert.",
+          "description": "Datenpunkt der Netzleistung; ueberschreibt die Datenquelle (Watt, positiv = Bezug).",
           "datapoint": true
         },
         "headerScale": {
           "type": "number",
           "default": 1,
           "description": "Skaliert die Kopfzeile."
+        },
+        "homePowerDatapoint": {
+          "type": "string",
+          "default": "",
+          "description": "Datenpunkt des Hausverbrauchs; ueberschreibt die Datenquelle (Watt).",
+          "datapoint": true
         },
         "loadpointCount": {
           "type": "number",
@@ -8057,6 +8063,12 @@
           "type": "number",
           "default": 1,
           "description": "Skaliert den Hauptbereich."
+        },
+        "pvPowerDatapoint": {
+          "type": "string",
+          "default": "",
+          "description": "Datenpunkt der PV-Erzeugung; ueberschreibt die Datenquelle (Watt).",
+          "datapoint": true
         },
         "showBattery": {
           "type": "boolean",

@@ -1,19 +1,27 @@
 # Energiefluss (evcc)
 
-Bindet die Wallbox- und Energiefluss-Daten des [evcc](https://evcc.io)-Adapters ein: PV-Erzeugung, Haus, Netz, Hausbatterie und bis zu acht Ladepunkte. Pro Ladepunkt lassen sich Lademodus (`AUS` · `PV` · `MIN+PV` · `SOFORT`) und Ziel-SoC direkt umschalten.
+PV-Erzeugung, Hausverbrauch, Netz und Hausbatterie als Energiefluss-Grafik. Die Werte kommen aus einer [evcc](https://evcc.io)-Instanz oder aus frei gewählten Datenpunkten — damit ist das Widget auch ohne evcc für jede PV-Anlage nutzbar. Mit evcc zusätzlich bis zu acht Ladepunkte, pro Ladepunkt Lademodus (`AUS` · `PV` · `MIN+PV` · `SOFORT`) und Ziel-SoC direkt umschaltbar.
 
-## Datenpunkt
+## Datenquelle
 
-Kein Haupt-Datenpunkt. Das Widget liest alle Werte unter dem Adapter-Präfix (`status.*`, `loadpoint.N.status.*`) und schreibt Steuerbefehle nach `loadpoint.N.control.*`.
+Kein Haupt-Datenpunkt. Zwei Wege, kombinierbar:
+
+**evcc-Instanz** — das Auswahlfeld listet die gefundenen evcc-Instanzen; ist keine installiert, wird das Präfix von Hand eingetragen. Gelesen wird unter dem Präfix (`status.*`, `loadpoint.N.status.*`), Steuerbefehle gehen nach `loadpoint.N.control.*`.
+
+**Eigene Datenpunkte** — überschreiben je Wert die Instanz. Sind alle fünf gesetzt, wird keine evcc-Instanz gebraucht: das Präfix bleibt einfach leer.
 
 | Feld | Pflicht | Typ | |
 | --- | --- | --- | --- |
-| `evccPrefix` | ja | — | Adapter-Instanz, Standard `evcc.0` |
-| `batterySocDatapoint` | nein | — | eigener SoC-DP, falls evcc die Batterie nicht kennt (Prozent oder JSON `{soc,power}`) |
-| `batteryPowerDatapoint` | nein | `number` | eigener Batterie-Leistungs-DP in Watt (negativ = laden) |
-| `gridPowerDatapoint` | nein | `number` | eigener Netzleistungs-DP in Watt (negativ = Einspeisung) |
+| `evccPrefix` | nein | — | evcc-Instanz, Standard `evcc.0`; leer = nur eigene Datenpunkte |
+| `pvPowerDatapoint` | nein | `number` | PV-Erzeugung in Watt |
+| `homePowerDatapoint` | nein | `number` | Hausverbrauch in Watt |
+| `gridPowerDatapoint` | nein | `number` | Netzleistung in Watt (positiv = Bezug, negativ = Einspeisung) |
+| `batterySocDatapoint` | nein | — | Batterie-Ladestand (Prozent oder JSON `{soc,power}`) |
+| `batteryPowerDatapoint` | nein | `number` | Batterie-Leistung in Watt (negativ = laden) |
 
-Die Netzleistung wird automatisch aus der ersten passenden Quelle gelesen: `status.gridPower` · `status.grid` (JSON) · `status.Grid.power` (evcc-Adapter ≤ 0.2.8) · `status.Grid.Power` (evcc-Adapter ≥ 0.2.9). `gridPowerDatapoint` überschreibt alle.
+Ohne eigenen Datenpunkt wird die Netzleistung automatisch aus der ersten passenden Quelle gelesen: `status.gridPower` · `status.grid` (JSON) · `status.Grid.power` (evcc-Adapter ≤ 0.2.8) · `status.Grid.Power` (evcc-Adapter ≥ 0.2.9).
+
+Die Ladepunkte gibt es nur mit evcc — sie liegen unter `loadpoint.N.*`, Pfade, die kein anderer Adapter hat.
 
 ## Layouts
 

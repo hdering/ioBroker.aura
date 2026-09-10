@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Sun, Home, Zap, Battery, Car, Plug, PlugZap, Flame } from 'lucide-react';
 import { useThemeEpoch } from '../../store/themeEpoch';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { useIoBroker } from '../../hooks/useIoBroker';
+import { useIoBroker, getObjectViewDirect } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
 import { useT } from '../../i18n';
@@ -72,6 +72,56 @@ function useContainerSize() {
     return [ref, size, node] as const;
 }
 
+// ── evcc instances present in this ioBroker ───────────────────────────────────
+
+interface EvccInstance {
+    /** Adapter prefix as the widget uses it, e.g. "evcc.0". */
+    prefix: string;
+    enabled: boolean;
+}
+
+/**
+ * The evcc instances the config panel can offer.
+ *
+ * `null` while the round-trip is still out — the panel then shows nothing rather
+ * than flashing "none found" at every open. An empty array is a real answer:
+ * this ioBroker has no evcc adapter, and the prefix has to be typed.
+ *
+ * Only evcc is listed on purpose. The widget reads `<prefix>.status.pvPower` and
+ * `<prefix>.loadpoint.N.status.*`; those paths exist in the evcc adapter and
+ * nowhere else, so offering sma/fronius/… here would hand the user a choice that
+ * cannot work. Those belong to the free-datapoint mode (#629).
+ */
+function useEvccInstances(): EvccInstance[] | null {
+    const [instances, setInstances] = useState<EvccInstance[] | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+        getObjectViewDirect('instance', 'system.adapter.evcc.', 'system.adapter.evcc.' + '\u9999')
+            .then((res) => {
+                if (cancelled) return;
+                const found: EvccInstance[] = (res.rows ?? [])
+                    // The range is a server-side filter; the screenshot harness stubs
+                    // getObjectView wholesale, so re-check the shape here.
+                    .filter((row) => /^system\.adapter\.evcc\.\d+$/.test(row.id ?? ''))
+                    .map((row) => ({
+                        prefix: (row.id as string).slice('system.adapter.'.length),
+                        enabled: (row.value as { common?: { enabled?: boolean } })?.common?.enabled !== false,
+                    }))
+                    .sort((a, b) => a.prefix.localeCompare(b.prefix, 'en', { numeric: true }));
+                setInstances(found);
+            })
+            .catch(() => {
+                if (!cancelled) setInstances([]);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    return instances;
+}
+
 // ── the global font scale, as a number ────────────────────────────────────────
 
 /**
@@ -96,6 +146,9 @@ function useCssFontScale(node: HTMLElement | null): number {
 
     return scale;
 }
+
+/** Sentinel for the "type it myself" entry of the instance dropdown. */
+const CUSTOM_PREFIX = '__custom__';
 
 const MODE_MAP: Record<string, number> = { off: 0, pv: 1, minpv: 2, now: 3 };
 const MODES: { key: string; label: string; activeColor: string }[] = [
@@ -195,6 +248,11 @@ function useEvccData(prefix: string, loadpointCount: number) {
     useEffect(() => {
         setSite({ ...DEFAULT_SITE });
         setLoadpoints(Array.from({ length: loadpointCount }, () => ({ ...DEFAULT_LP })));
+
+        // No instance configured: the widget is running off free datapoints, so
+        // there is nothing to subscribe to here (and `.status.pvPower` without a
+        // prefix would be a bogus id).
+        if (!prefix) return;
 
         const cleanups: (() => void)[] = [];
 
@@ -1098,7 +1156,10 @@ export function EvccWidget({ config }: WidgetProps) {
     const t = useT();
     const { connected } = useIoBroker();
     const o = config.options ?? {};
-    const prefix = (o.evccPrefix as string) ?? 'evcc.0';
+    // `??`, not `||`: an EMPTY prefix is a deliberate state — the widget then runs
+    // purely off the datapoints configured below, with no evcc instance at all.
+    // Only an unset option falls back, which is what a freshly added widget has.
+    const prefix = ((o.evccPrefix as string) ?? 'evcc.0').trim();
     const loadpointCount = Math.max(1, Math.min(8, (o.loadpointCount as number) ?? 1));
     const showBattery = (o.showBattery as boolean) ?? true;
     const showLoadpoints = (o.showLoadpoints as boolean) ?? true;
@@ -1157,6 +1218,14 @@ export function EvccWidget({ config }: WidgetProps) {
     // First source with a finite number wins; a manual datapoint beats them all.
     const gridPowerDp = (o.gridPowerDatapoint as string) ?? '';
     const { value: gridManual } = useDatapoint(gridPowerDp);
+    // Production and house consumption, same override mechanism as grid and battery.
+    // With all five set the widget needs no evcc instance at all (#629).
+    const pvPowerDp = (o.pvPowerDatapoint as string) ?? '';
+    const homePowerDp = (o.homePowerDatapoint as string) ?? '';
+    const { value: pvManual } = useDatapoint(pvPowerDp);
+    const { value: homeManual } = useDatapoint(homePowerDp);
+    const pvPowerOverride = pvPowerDp ? parsePower(pvManual) : null;
+    const homePowerOverride = homePowerDp ? parsePower(homeManual) : null;
     const { value: gridRaw } = useDatapoint(prefix ? `${prefix}.status.grid` : '');
     const { value: gridNodeUpper } = useDatapoint(prefix ? `${prefix}.status.Grid.Power` : '');
     const { value: gridNodeLower } = useDatapoint(prefix ? `${prefix}.status.Grid.power` : '');
@@ -1178,6 +1247,8 @@ export function EvccWidget({ config }: WidgetProps) {
 
     const site: SiteState = {
         ...rawSite,
+        ...(pvPowerOverride != null ? { pvPower: pvPowerOverride } : {}),
+        ...(homePowerOverride != null ? { homePower: homePowerOverride } : {}),
         ...(gridPowerOverride != null ? { gridPower: gridPowerOverride } : {}),
         ...(batteryJson
             ? {
@@ -1372,6 +1443,50 @@ export function EvccWidget({ config }: WidgetProps) {
 
 // ── EvccConfig ────────────────────────────────────────────────────────────────
 
+/**
+ * One free datapoint that overrides whatever the data source delivers for that value.
+ *
+ * Deliberately a module-level component, not one built inside EvccConfig: an inline
+ * component gets a fresh identity on every render, so React tears the <input> down
+ * and rebuilds it on each keystroke — the field loses focus and only the first
+ * character ever arrives.
+ */
+function DpField({
+    label,
+    hint,
+    optionKey,
+    placeholder,
+    value,
+    onChange,
+    className,
+    style,
+}: {
+    label: string;
+    hint?: string;
+    optionKey: string;
+    placeholder: string;
+    value: string;
+    onChange: (v: string | undefined) => void;
+    className: string;
+    style: React.CSSProperties;
+}) {
+    return (
+        <div>
+            <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                {label} {hint && <span style={{ opacity: 0.6 }}>{hint}</span>}
+            </label>
+            <input
+                type="text"
+                value={value}
+                onChange={(e) => onChange(e.target.value || undefined)}
+                placeholder={placeholder}
+                className={`aura-evcc-dp-${optionKey} ${className} font-mono`}
+                style={style}
+            />
+        </div>
+    );
+}
+
 export function EvccConfig({
     config,
     onConfigChange,
@@ -1383,7 +1498,11 @@ export function EvccConfig({
     const o = config.options ?? {};
     const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
 
+    // Empty is a legitimate state here: the field is being retyped. `??` (not `||`)
+    // so a cleared field stays cleared while the user types the new prefix.
     const prefix = (o.evccPrefix as string) ?? 'evcc.0';
+    const instances = useEvccInstances();
+    const onKnownInstance = !!instances?.some((i) => i.prefix === prefix);
     const lpCount = (o.loadpointCount as number) ?? 1;
     const showBattery = (o.showBattery as boolean) ?? true;
     const showLoadpoints = (o.showLoadpoints as boolean) ?? true;
@@ -1438,22 +1557,148 @@ export function EvccConfig({
     return (
         <>
             <div>
+                <div className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                    {t('evcc.sourceSection')}
+                </div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                     {t('evcc.prefix')}
                 </label>
-                <input
-                    type="text"
-                    value={prefix}
-                    onChange={(e) => set({ evccPrefix: e.target.value || 'evcc.0' })}
-                    placeholder="evcc.0"
-                    className={`${inputCls} font-mono`}
-                    style={inputSty}
-                />
+                {instances !== null && instances.length > 0 && (
+                    <select
+                        value={onKnownInstance ? prefix : CUSTOM_PREFIX}
+                        onChange={(e) => set({ evccPrefix: e.target.value === CUSTOM_PREFIX ? '' : e.target.value })}
+                        className={`aura-evcc-instance ${inputCls} mb-1`}
+                        style={inputSty}
+                    >
+                        {instances.map((inst) => (
+                            <option key={inst.prefix} value={inst.prefix}>
+                                {inst.prefix}
+                                {inst.enabled ? '' : ` ${t('evcc.instanceDisabled')}`}
+                            </option>
+                        ))}
+                        <option value={CUSTOM_PREFIX}>{t('evcc.instanceCustom')}</option>
+                    </select>
+                )}
+                {/* Kept next to the dropdown, not behind it: a renamed or remote
+                    instance is still reachable, and it is the only field there is
+                    when no instance was found. */}
+                {(instances === null || instances.length === 0 || !onKnownInstance) && (
+                    <input
+                        type="text"
+                        value={prefix}
+                        // No `|| 'evcc.0'` here — that snapped the field back the moment
+                        // it was cleared, and the next keystrokes landed BEHIND the old
+                        // value ("evcc.0fronius.0"). The fallback belongs where the value
+                        // is read, not where it is typed.
+                        onChange={(e) => set({ evccPrefix: e.target.value })}
+                        placeholder="evcc.0"
+                        className={`aura-evcc-prefix ${inputCls} font-mono`}
+                        style={inputSty}
+                    />
+                )}
+                {instances !== null && instances.length === 0 && (
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)' }}>
+                        {t('evcc.instanceNone')}
+                    </p>
+                )}
             </div>
 
-            <div>
+            {/* Above the datapoint list on purpose: it gates the two battery rows in it. */}
+            <div className="flex items-center justify-between">
+                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                    {t('evcc.showBattery')}
+                </label>
+                <button
+                    onClick={() => set({ showBattery: !showBattery })}
+                    className="relative w-9 h-5 rounded-full transition-colors"
+                    style={{ background: showBattery ? 'var(--accent)' : 'var(--app-border)' }}
+                >
+                    <span
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: showBattery ? '18px' : '2px' }}
+                    />
+                </button>
+            </div>
+
+            {/* ── Free datapoints ──────────────────────────────────────────────
+                Every value the flow diagram draws can come from a datapoint of the
+                user's choosing instead of the instance above. Filled in completely,
+                the widget runs without evcc — that is what makes it a PV widget
+                rather than an evcc widget (#629). */}
+            <div className="pt-2 mt-1 border-t" style={{ borderColor: 'var(--app-border)' }}>
+                <div className="text-[11px] font-semibold mb-1" style={{ color: 'var(--text-primary)' }}>
+                    {t('evcc.dpSection')}
+                </div>
+                <p className="text-[10px] mb-2" style={{ color: 'var(--text-secondary)' }}>
+                    {t('evcc.dpSectionHint')}
+                </p>
+                <div className="space-y-2">
+                    <DpField
+                        label={t('evcc.pvPowerDp')}
+                        hint={t('evcc.unitWatt')}
+                        optionKey="pvPowerDatapoint"
+                        placeholder="z.B. sma.0.pv.power"
+                        value={(o.pvPowerDatapoint as string) ?? ''}
+                        onChange={(v) => set({ pvPowerDatapoint: v })}
+                        className={inputCls}
+                        style={inputSty}
+                    />
+                    <DpField
+                        label={t('evcc.homePowerDp')}
+                        hint={t('evcc.unitWatt')}
+                        optionKey="homePowerDatapoint"
+                        placeholder="z.B. shelly.0.em.power"
+                        value={(o.homePowerDatapoint as string) ?? ''}
+                        onChange={(v) => set({ homePowerDatapoint: v })}
+                        className={inputCls}
+                        style={inputSty}
+                    />
+                    <DpField
+                        label={t('evcc.gridPowerDp')}
+                        hint={t('evcc.gridPowerDpHint')}
+                        optionKey="gridPowerDatapoint"
+                        placeholder="z.B. sma.0.grid.power"
+                        value={(o.gridPowerDatapoint as string) ?? ''}
+                        onChange={(v) => set({ gridPowerDatapoint: v })}
+                        className={inputCls}
+                        style={inputSty}
+                    />
+                    {showBattery && (
+                        <>
+                            <DpField
+                                label={t('evcc.batterySocDp')}
+                                hint={t('evcc.batterySocDpHint')}
+                                optionKey="batterySocDatapoint"
+                                placeholder="z.B. sma.0.battery.soc"
+                                value={(o.batterySocDatapoint as string) ?? ''}
+                                onChange={(v) => set({ batterySocDatapoint: v })}
+                                className={inputCls}
+                                style={inputSty}
+                            />
+                            <DpField
+                                label={t('evcc.batteryPowerDp')}
+                                hint={t('evcc.batteryPowerDpHint')}
+                                optionKey="batteryPowerDatapoint"
+                                placeholder="z.B. sma.0.battery.power"
+                                value={(o.batteryPowerDatapoint as string) ?? ''}
+                                onChange={(v) => set({ batteryPowerDatapoint: v })}
+                                className={inputCls}
+                                style={inputSty}
+                            />
+                        </>
+                    )}
+                </div>
+            </div>
+
+            {/* Loadpoints are the one part that is genuinely evcc-only: they are read
+                from `<prefix>.loadpoint.N.status.*` and written back to `control.*`,
+                paths no other adapter has. The heading says so. */}
+            <div className="pt-2 mt-1 border-t" style={{ borderColor: 'var(--app-border)' }}>
+                <div className="text-[11px] font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                    {t('evcc.loadpointSection')}
+                </div>
                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.loadpoints')} (gesamt)
+                    {t('evcc.loadpointsTotal')}
                 </label>
                 <div className="flex gap-1">
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -1492,7 +1737,7 @@ export function EvccConfig({
             {showLoadpoints && lpCount > 1 && (
                 <div>
                     <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                        Angezeigte Ladepunkte
+                        {t('evcc.loadpointsShown')}
                     </label>
                     <div className="flex flex-wrap gap-1">
                         {all.map((idx) => {
@@ -1514,69 +1759,6 @@ export function EvccConfig({
                         })}
                     </div>
                 </div>
-            )}
-
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.gridPowerDp')} <span style={{ opacity: 0.6 }}>{t('evcc.gridPowerDpHint')}</span>
-                </label>
-                <input
-                    type="text"
-                    value={(o.gridPowerDatapoint as string) ?? ''}
-                    onChange={(e) => set({ gridPowerDatapoint: e.target.value || undefined })}
-                    placeholder="z.B. evcc.0.status.Grid.Power"
-                    className={`${inputCls} font-mono`}
-                    style={inputSty}
-                />
-            </div>
-
-            <div className="flex items-center justify-between">
-                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('evcc.showBattery')}
-                </label>
-                <button
-                    onClick={() => set({ showBattery: !showBattery })}
-                    className="relative w-9 h-5 rounded-full transition-colors"
-                    style={{ background: showBattery ? 'var(--accent)' : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                        style={{ left: showBattery ? '18px' : '2px' }}
-                    />
-                </button>
-            </div>
-
-            {showBattery && (
-                <>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            Batterie SoC – eigener Datenpunkt{' '}
-                            <span style={{ opacity: 0.6 }}>(optional, wenn EVCC Batterie nicht kennt)</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={(o.batterySocDatapoint as string) ?? ''}
-                            onChange={(e) => set({ batterySocDatapoint: e.target.value || undefined })}
-                            placeholder="z.B. evcc.0.status.battery oder sma.0.battery.soc"
-                            className={`${inputCls} font-mono`}
-                            style={inputSty}
-                        />
-                    </div>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            Batterie Leistung – eigener Datenpunkt{' '}
-                            <span style={{ opacity: 0.6 }}>(Watt, negativ = laden)</span>
-                        </label>
-                        <input
-                            type="text"
-                            value={(o.batteryPowerDatapoint as string) ?? ''}
-                            onChange={(e) => set({ batteryPowerDatapoint: e.target.value || undefined })}
-                            placeholder="z.B. sma.0.battery.power"
-                            className={`${inputCls} font-mono`}
-                            style={inputSty}
-                        />
-                    </div>
-                </>
             )}
 
             {/* ── Responsive / Größe ───────────────────────────────────────────── */}
