@@ -11,6 +11,9 @@ import { lazyWithReload, installChunkErrorRecovery } from './utils/lazyWithReloa
 import { setScreenshotMode, isScreenshotMode } from './store/persistManager';
 import { applyCachedThemeMode } from './utils/themeModeCache';
 import { publishScrollbarGutter } from './utils/scrollbarGutter';
+// Side-effect import: points @iconify/react at Aura's own /icons endpoint before
+// the first <Icon> can fire a request at the public (and widely blocked) hosts.
+import './utils/iconifyLoader';
 import { FEATURES } from './featureFlags';
 
 // Recharts' ResponsiveContainer logs a "width(-1) and height(-1) of chart should be

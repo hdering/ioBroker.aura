@@ -4,6 +4,15 @@ import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
 import https from 'node:https';
+import { createRequire } from 'node:module';
+
+// lib/iconCache.js is plain CommonJS shared with the adapter runtime, so it is
+// pulled in through require() instead of being duplicated as TypeScript.
+const { createIconCache } = createRequire(path.resolve('package.json'))('./lib/iconCache.js') as {
+  createIconCache: (o: { dir: string; log?: unknown; upstream?: boolean }) => {
+    handle: (req: unknown, res: unknown, url: URL) => boolean;
+  };
+};
 
 const DEFAULT_URL = 'http://192.168.188.168:8082';
 const URL_FILE = path.resolve('.iobroker-url');
@@ -45,6 +54,15 @@ function ioBrokerDevPlugin(): Plugin {
     },
 
     configureServer(server) {
+
+      // Same-origin Iconify API, identical to the one the adapter serves in
+      // production (lib/iconCache.js). Without it the dev server would still
+      // pull icons from api.iconify.design and the harness would test a path
+      // no real installation uses.
+      const iconCache = createIconCache({ dir: path.resolve('node_modules/.cache/aura'), log: console });
+      server.middlewares.use((req, res, next) => {
+        if (!iconCache.handle(req, res, new URL(req.url ?? '', 'http://localhost'))) next();
+      });
 
       // Server-side iframe proxy – strips X-Frame-Options so pages can be embedded
       server.middlewares.use('/proxy', (req, res) => {

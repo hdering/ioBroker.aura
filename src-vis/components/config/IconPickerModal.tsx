@@ -116,7 +116,9 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
 
     // Live Iconify search — fetches any icon from any set (mdi, material-symbols,
     // tabler, …) so users aren't limited to the curated category list. Debounced
-    // 300 ms; aborts on query change or unmount.
+    // 300 ms; aborts on query change or unmount. Relayed by the adapter (#636),
+    // because api.iconify.design is blocked by the tracker blockers in Samsung
+    // Internet and Opera and unreachable from a tablet without internet.
     useEffect(() => {
         const q = query.trim();
         if (q.length < 2) {
@@ -127,7 +129,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         const ctrl = new AbortController();
         setOnlineLoading(true);
         const timer = setTimeout(() => {
-            fetch(`https://api.iconify.design/search?query=${encodeURIComponent(q)}&limit=200`, { signal: ctrl.signal })
+            fetch(`/icons/search?query=${encodeURIComponent(q)}&limit=200`, { signal: ctrl.signal })
                 .then((r) => r.json())
                 .then((data) => {
                     const ids = Array.isArray(data?.icons) ? (data.icons as string[]) : [];

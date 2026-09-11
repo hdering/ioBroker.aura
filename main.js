@@ -22,6 +22,7 @@ const {
     VaultFile,
 } = require('./lib/security/dashboardVault');
 const { createSecurityApi } = require('./lib/security/apiHandler');
+const { createIconCache } = require('./lib/iconCache');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -955,7 +956,7 @@ class Aura extends utils.Adapter {
      * migrate any plaintext PIN that is still sitting in config.dashboard into it.
      * Runs early in onReady so the HTTP endpoints always find a ready vault.
      */
-    async _initPinVault() {
+    _instanceDataDir() {
         let dir;
         try {
             dir = utils.getAbsoluteInstanceDataDir(this);
@@ -969,6 +970,11 @@ class Aura extends utils.Adapter {
         } catch {
             /* exists */
         }
+        return dir;
+    }
+
+    async _initPinVault() {
+        const dir = this._instanceDataDir();
         this.vault = new VaultFile(dir);
         const data = this.vault.load();
         if (!data.serverSecret) {
@@ -1113,6 +1119,11 @@ class Aura extends utils.Adapter {
             return abs;
         };
 
+        // Icons are served from our own origin (see lib/iconCache.js): the public
+        // Iconify hosts are blocked by mobile tracker blockers and unreachable
+        // from kiosk devices without internet, which left widgets iconless (#636).
+        const iconCache = createIconCache({ dir: this._instanceDataDir(), log: this.log });
+
         const handler = (req, res) => {
             let parsedUrl;
             try {
@@ -1132,6 +1143,10 @@ class Aura extends utils.Adapter {
             // connecting. A plain 404 is the honest answer: /mcp authenticates
             // with a static token, there is no authorization server to find. (#612)
             if (handleAuthDiscovery(pathname, res, req.method)) {
+                return;
+            }
+
+            if (iconCache.handle(req, res, parsedUrl)) {
                 return;
             }
 

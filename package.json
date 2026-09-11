@@ -44,7 +44,7 @@
     "lint": "eslint --cache src-vis main.js",
     "format": "prettier --write src-vis main.js",
     "format:check": "prettier --check src-vis main.js",
-    "test": "node test/adapter.test.js && node test/client-tree.test.js && node test/messages.test.js && node test/update-check.test.js && node test/widget-map.test.js && node test/widget-schema.test.js && node tools/tests/mcp.mjs && node tools/tests/security-core.mjs && node tools/tests/security-api.mjs",
+    "test": "node test/adapter.test.js && node test/client-tree.test.js && node test/messages.test.js && node test/update-check.test.js && node test/widget-map.test.js && node test/widget-schema.test.js && node tools/tests/mcp.mjs && node tools/tests/security-core.mjs && node tools/tests/security-api.mjs && node tools/tests/icon-cache.mjs",
     "test:client-tree": "node test/client-tree.test.js",
     "test:client-id": "node tools/tests/client-id-stability.mjs",
     "test:widget-map": "node test/widget-map.test.js",
@@ -204,7 +204,9 @@
     "test:throttle": "node tools/tests/throttle-commit.mjs",
     "test:over-threshold": "node tools/tests/over-threshold.mjs",
     "test:badge-label": "node tools/tests/badge-label-bindings.mjs",
-    "test:badge-overlap": "node tools/tests/badge-neighbour-overlap.mjs"
+    "test:badge-overlap": "node tools/tests/badge-neighbour-overlap.mjs",
+    "test:icon-cache": "node tools/tests/icon-cache.mjs",
+    "test:icon-source": "node tools/tests/icon-source.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.4.1",
