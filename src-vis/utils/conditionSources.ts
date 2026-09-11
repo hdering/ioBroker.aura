@@ -1,5 +1,6 @@
 import type { ConditionClause, WidgetConfig, ioBrokerState } from '../types';
 import { evaluateClause, OWN_DP_TOKEN } from './conditionEval';
+import { combineClauseHits, combineClauseSets } from './clauseLogic';
 import { computeListStats } from './listStats';
 import { isActiveVal } from './groupTargets';
 import type { TranslationKey } from '../i18n';
@@ -202,7 +203,7 @@ export function evaluateConditionWithSource(
 ): boolean {
     if (!cond.clauses.length) return false;
     const results = cond.clauses.map((c) => evaluateClauseWithSource(c, values, ctx, changed));
-    return (cond.logic ?? 'AND') === 'AND' ? results.every(Boolean) : results.some(Boolean);
+    return combineClauseHits(cond.clauses, results, cond.logic ?? 'AND');
 }
 
 /** True when at least one clause tests the list entry by entry (`{list:any}`). */
@@ -223,9 +224,11 @@ export function hasListAnyClause(cond: { clauses: ConditionClause[] }): boolean 
  * gate, which is what makes "ein Eintrag offen AND Nachtmodus" point at the open
  * entries rather than at all of them.
  *
- * AND intersects the per-clause hits, OR unions them. An empty result means no row
- * is identifiable (no list context, no `any` clause, or the match came from a global
- * clause under OR) — the caller then treats the match as list-wide.
+ * AND intersects the per-clause hits, OR unions them — per bracket and per
+ * connector since issue #635, which is why the fold lives in utils/clauseLogic
+ * rather than here. An empty result means no row is identifiable (no list context,
+ * no `any` clause, or the match came from a global clause under OR) — the caller
+ * then treats the match as list-wide.
  */
 export function matchingListRefs(
     cond: { logic?: 'AND' | 'OR'; clauses: ConditionClause[] },
@@ -236,23 +239,17 @@ export function matchingListRefs(
     const refs = ctx?.listRefs ?? [];
     if (!refs.length || !cond.clauses.length) return [];
 
-    const hitSets: string[][] = [];
-    for (const clause of cond.clauses) {
+    // null = this clause speaks about the list as a whole, not about one row; it
+    // stays a global gate and drops out of the row set.
+    const setFor = (i: number): string[] | null => {
+        const clause = cond.clauses[i];
         const p = parseSourceRef(clause.datapoint);
-        if (p.kind !== 'list' || p.agg !== 'any') continue;
+        if (p.kind !== 'list' || p.agg !== 'any') return null;
         // 'changed' asks about the transition: the rows that just delivered a value.
-        if (clause.operator === 'changed') {
-            hitSets.push(changed?.size ? refs.filter((ref) => changed.has(ref)) : []);
-            continue;
-        }
-        hitSets.push(refs.filter((ref) => evaluateClause(clause, values.get(ref) ?? null, values)));
-    }
-    if (!hitSets.length) return [];
-
-    if ((cond.logic ?? 'AND') === 'AND') {
-        return hitSets[0].filter((ref) => hitSets.every((set) => set.includes(ref)));
-    }
-    return refs.filter((ref) => hitSets.some((set) => set.includes(ref)));
+        if (clause.operator === 'changed') return changed?.size ? refs.filter((ref) => changed.has(ref)) : [];
+        return refs.filter((ref) => evaluateClause(clause, values.get(ref) ?? null, values));
+    };
+    return combineClauseSets(cond.clauses, setFor, refs, cond.logic ?? 'AND') ?? [];
 }
 
 /** True when the rule asks about a transition rather than a state. */

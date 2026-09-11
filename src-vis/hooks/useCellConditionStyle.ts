@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useIoBroker, getStateFromCache } from './useIoBroker';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
 import { evaluateClause } from '../utils/conditionEval';
+import { combineClauseHits } from '../utils/clauseLogic';
 import { OWN_DP_TOKEN } from '../utils/conditionSources';
 import type { CustomCell, CellConditionRule } from '../types';
 
@@ -76,7 +77,7 @@ function evalRules(
             const raw = isOwnRef(cl.datapoint, ownDp) ? ownValue : values.get(cl.datapoint);
             return evaluateClause(cl, raw, values);
         });
-        const matched = (rule.logic ?? 'AND') === 'OR' ? results.some(Boolean) : results.every(Boolean);
+        const matched = combineClauseHits(clauses, results, rule.logic ?? 'AND');
         if (!matched) continue;
         any = true;
         if (rule.color) merged.color = rule.color;

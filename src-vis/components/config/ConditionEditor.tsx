@@ -18,9 +18,17 @@ import {
     dropOwnDpToken,
     hasListAnyClause,
     normalizeSourceToken,
+    OWN_DP_TOKEN,
     type DpSourceCtx,
     type SourceOption,
 } from '../../utils/conditionSources';
+import {
+    cycleBracket,
+    describeClauseLogic,
+    groupEdges,
+    materializeJoins,
+    type ClauseLogic,
+} from '../../utils/clauseLogic';
 import { useT, t } from '../../i18n';
 import { ColorPicker } from '../common/ColorPicker';
 import { ConfigModal } from './ConfigModal';
@@ -180,8 +188,11 @@ export function DpSourceSelect({
 export function ClauseRow({
     clause: rawClause,
     isFirst,
-    logic,
-    onLogicToggle,
+    join,
+    onJoinToggle,
+    bracketBar,
+    onBracketCycle,
+    bracketTitle,
     onChange,
     onDelete,
     ownToken,
@@ -190,8 +201,15 @@ export function ClauseRow({
 }: {
     clause: ConditionClause;
     isFirst: boolean;
-    logic: 'AND' | 'OR';
-    onLogicToggle: () => void;
+    /** Connector to the row above. Per clause since issue #635 — not per rule. */
+    join?: ClauseLogic;
+    onJoinToggle?: () => void;
+    /** Set while this row sits inside a bracket; the flags draw the bar's ends. */
+    bracketBar?: { first: boolean; last: boolean };
+    /** Omitted where a rule holds a single clause (popup triggers) — no bracket there. */
+    onBracketCycle?: () => void;
+    /** Tooltip for the bracket button — the cycle's next step, so it reads honestly. */
+    bracketTitle?: string;
     onChange: (c: ConditionClause) => void;
     onDelete: () => void;
     /** When set (e.g. '{dp}'), a pill lets the clause reference the cell's own DP instead of typing it. */
@@ -225,7 +243,9 @@ export function ClauseRow({
 
     return (
         <div className="flex items-center gap-1.5">
-            {/* AND/OR toggle or "WENN" label */}
+            {/* Connector to the row above, or "WENN" on the first row. Every chip used
+                to write the same rule-wide field, so one row could never say AND while
+                the next said OR (issue #635). */}
             {isFirst ? (
                 <span
                     className="text-[10px] font-semibold w-8 shrink-0 text-center"
@@ -235,15 +255,41 @@ export function ClauseRow({
                 </span>
             ) : (
                 <button
-                    onClick={onLogicToggle}
+                    onClick={onJoinToggle}
+                    data-aura-clause-join={join === 'OR' ? 'OR' : 'AND'}
                     className="text-[10px] font-bold w-8 h-6 rounded shrink-0 hover:opacity-80"
                     style={{
                         background: 'var(--accent)22',
                         color: 'var(--accent)',
                         border: '1px solid var(--accent)44',
                     }}
+                    title={t('cond.joinToggle')}
                 >
-                    {logic}
+                    {join === 'OR' ? t('cond.or') : t('cond.and')}
+                </button>
+            )}
+
+            {/* Bracket column. A bar with rounded ends spans the grouped rows; on an
+                ungrouped row the same 14 px hold a faint "(" as the click target. */}
+            {onBracketCycle && (
+                <button
+                    onClick={onBracketCycle}
+                    className="aura-clause-bracket shrink-0 self-stretch w-3.5 flex items-center justify-center text-[11px] leading-none hover:opacity-80"
+                    data-bracket={bracketBar ? (bracketBar.first ? 'open' : 'in') : 'none'}
+                    style={
+                        bracketBar
+                            ? {
+                                  borderLeft: '2px solid var(--accent)',
+                                  borderTop: bracketBar.first ? '2px solid var(--accent)' : undefined,
+                                  borderBottom: bracketBar.last ? '2px solid var(--accent)' : undefined,
+                                  borderTopLeftRadius: bracketBar.first ? 5 : 0,
+                                  borderBottomLeftRadius: bracketBar.last ? 5 : 0,
+                              }
+                            : { color: 'var(--text-secondary)', opacity: 0.4 }
+                    }
+                    title={bracketTitle}
+                >
+                    {bracketBar ? '' : '('}
                 </button>
             )}
 
@@ -409,6 +455,158 @@ export function ClauseRow({
                 />
             )}
         </div>
+    );
+}
+
+// ── Clause list ───────────────────────────────────────────────────────────────
+
+/**
+ * A clause short enough for the expression preview — `Fenster = 1`, `Alarm ✓`.
+ *
+ * Both halves are deliberately cut down, because the preview exists to show the
+ * SHAPE of the rule: a full `0_userdata.0.Haus.EG.Fenster.STATE` per clause, or
+ * `✓ Ist wahr (> 0 / wahr / nicht leer)` as an operator, would push the brackets
+ * off the line. Every operator label starts with its symbol, so that symbol is the
+ * label — see OPERATORS.
+ */
+function clauseSummary(clause: ConditionClause, index: number, ownToken?: string): string {
+    const dp = clause.datapoint?.trim() ?? '';
+    const isOwn = !dp || dp === OWN_DP_TOKEN || (!!ownToken && dp === ownToken);
+    const base = dp.split('?')[0];
+    const name = isOwn ? t('cond.value') : base.split('.').pop() || base;
+    const op = OPERATORS.find((o) => o.value === clause.operator);
+    if (!op) return `${index + 1}`;
+    const [head, ...rest] = op.label().split(' ');
+    // A symbol-only head is the compact form; a label that starts with a word (none
+    // does today, but a translation might) keeps its first word instead.
+    const sym = /^[\p{L}\p{N}]/u.test(head) ? head : head || rest[0];
+    return op.noValue ? `${name} ${sym}` : `${name} ${sym} ${clause.value || '?'}`.trim();
+}
+
+/**
+ * The clause rows of one rule, plus everything that decides how they combine.
+ *
+ * Shared by the widget conditions, the element/row rules and the badge visibility
+ * so the three cannot drift apart — before issue #635 each of them re-implemented
+ * the same "toggle the rule-wide logic" handler, which is exactly why fixing the
+ * connector in one place fixes it everywhere.
+ */
+export function ClauseList({
+    clauses,
+    logic,
+    onChange,
+    ownToken,
+    sourceCtx,
+    allowChanged,
+    addLabel,
+    makeClause = newClause,
+}: {
+    clauses: ConditionClause[];
+    /** The rule-wide fallback: what a clause without its own `join` still means. */
+    logic: ClauseLogic;
+    onChange: (next: ConditionClause[]) => void;
+    ownToken?: string;
+    sourceCtx?: DpSourceCtx;
+    allowChanged?: boolean;
+    addLabel?: string;
+    /** Element rules seed a new clause with the own-DP token; everyone else takes a blank one. */
+    makeClause?: () => ConditionClause;
+}) {
+    const tt = useT();
+
+    // Every connector change first writes the fallback onto the rows that still
+    // rely on it. Without that, switching row 3 to OR would leave rows 1 and 2
+    // reading a `logic` nobody is looking at any more, and the rule would quietly
+    // mean something other than what the chips say.
+    const withJoins = () => materializeJoins(clauses, logic);
+
+    const setClause = (i: number, c: ConditionClause) => onChange(clauses.map((cl, j) => (j === i ? c : cl)));
+
+    const toggleJoin = (i: number) =>
+        onChange(
+            withJoins().map((cl, j) =>
+                j === i ? { ...cl, join: (cl.join ?? logic) === 'AND' ? ('OR' as const) : ('AND' as const) } : cl,
+            ),
+        );
+
+    // Bracketing shifts which row is "first at its level", so the joins are
+    // materialised here too — otherwise the visible chips would change meaning
+    // without anyone touching them.
+    const bracketStep = (i: number) => onChange(cycleBracket(withJoins(), i));
+
+    // The button walks none → in/open → open → none, so the tooltip has to name the
+    // step that is actually next rather than a fixed "add bracket".
+    const bracketHint = (edges: ReturnType<typeof groupEdges>) =>
+        !edges.inGroup ? tt('cond.bracketOn') : edges.first ? tt('cond.bracketOff') : tt('cond.bracketSplit');
+
+    const deleteClause = (i: number) => onChange(clauses.filter((_, j) => j !== i));
+
+    // A new row inherits the connector above it: building a chain of ORs should not
+    // need a second click per row. It lands outside any bracket — one click adds it.
+    const addClause = () => {
+        const prev = clauses[clauses.length - 1];
+        onChange([...clauses, { ...makeClause(), ...(prev ? { join: prev.join ?? logic } : null) }]);
+    };
+
+    // Only worth printing once the rule is no longer a flat chain of one operator —
+    // "A UND B" says nothing the chips do not already say.
+    const mixed =
+        clauses.length > 1 &&
+        (clauses.some((cl) => !!cl.bracket) || new Set(clauses.slice(1).map((cl) => cl.join ?? logic)).size > 1);
+    const preview = mixed
+        ? describeClauseLogic(
+              clauses,
+              (i) => clauseSummary(clauses[i], i, ownToken),
+              { and: tt('cond.and'), or: tt('cond.or') },
+              logic,
+          )
+        : '';
+
+    return (
+        <>
+            <div className="space-y-1.5">
+                {clauses.map((clause, i) => {
+                    const edges = groupEdges(clauses, i);
+                    return (
+                        <ClauseRow
+                            key={i}
+                            clause={clause}
+                            isFirst={i === 0}
+                            join={clause.join ?? logic}
+                            onJoinToggle={() => toggleJoin(i)}
+                            bracketBar={edges.inGroup ? { first: edges.first, last: edges.last } : undefined}
+                            onBracketCycle={() => bracketStep(i)}
+                            bracketTitle={bracketHint(edges)}
+                            onChange={(c) => setClause(i, c)}
+                            onDelete={() => deleteClause(i)}
+                            ownToken={ownToken}
+                            sourceCtx={sourceCtx}
+                            allowChanged={allowChanged}
+                        />
+                    );
+                })}
+            </div>
+            {preview && (
+                <div className="space-y-0.5">
+                    <p
+                        className="aura-clause-preview text-[9px] leading-relaxed"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        <span className="font-semibold">{tt('cond.logicPreview')}:</span> {preview}
+                    </p>
+                    <p className="text-[9px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                        {tt('cond.logicHint')}
+                    </p>
+                </div>
+            )}
+            <button
+                onClick={addClause}
+                className="flex items-center gap-1 text-[10px] hover:opacity-80"
+                style={{ color: 'var(--accent)' }}
+            >
+                <Plus size={11} /> {addLabel ?? tt('cond.addClause')}
+            </button>
+        </>
     );
 }
 
@@ -898,16 +1096,6 @@ function ConditionRule({
         onChange({ ...condition, elements: Object.keys(els).length ? els : undefined });
     };
 
-    const updateClause = (i: number, c: ConditionClause) =>
-        onChange({ ...condition, clauses: condition.clauses.map((cl, j) => (j === i ? c : cl)) });
-
-    const deleteClause = (i: number) =>
-        onChange({ ...condition, clauses: condition.clauses.filter((_, j) => j !== i) });
-
-    const addClause = () => onChange({ ...condition, clauses: [...condition.clauses, newClause()] });
-
-    const toggleLogic = () => onChange({ ...condition, logic: condition.logic === 'AND' ? 'OR' : 'AND' });
-
     const hasActiveStyle = Object.values(condition.style).some(Boolean);
     // Drives the hint under the reload toggle: a 'changed' rule reloads on every
     // value, everything else only when the rule flips to true.
@@ -972,28 +1160,13 @@ function ConditionRule({
             {open && (
                 <div className="p-3 space-y-3" style={{ background: 'var(--app-bg)' }}>
                     {/* Clauses */}
-                    <div className="space-y-1.5">
-                        {condition.clauses.map((clause, i) => (
-                            <ClauseRow
-                                key={i}
-                                clause={clause}
-                                isFirst={i === 0}
-                                logic={condition.logic}
-                                onLogicToggle={toggleLogic}
-                                onChange={(c) => updateClause(i, c)}
-                                onDelete={() => deleteClause(i)}
-                                sourceCtx={sourceCtx}
-                                allowChanged={context === 'widget'}
-                            />
-                        ))}
-                    </div>
-                    <button
-                        onClick={addClause}
-                        className="flex items-center gap-1 text-[10px] hover:opacity-80"
-                        style={{ color: 'var(--accent)' }}
-                    >
-                        <Plus size={11} /> {t('cond.addClause')}
-                    </button>
+                    <ClauseList
+                        clauses={condition.clauses}
+                        logic={condition.logic ?? 'AND'}
+                        onChange={(clauses) => onChange({ ...condition, clauses })}
+                        sourceCtx={sourceCtx}
+                        allowChanged={context === 'widget'}
+                    />
 
                     {/* Separator */}
                     <div className="h-px" style={{ background: 'var(--app-border)' }} />

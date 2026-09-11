@@ -1226,8 +1226,6 @@ function TriggerEditModal({ trigger, onClose }: { trigger: PopupTrigger; onClose
                     <ClauseRow
                         clause={trigger.clause}
                         isFirst
-                        logic="AND"
-                        onLogicToggle={() => {}}
                         onChange={(clause) => patch({ clause })}
                         onDelete={() => patch({ clause: newClause() })}
                     />

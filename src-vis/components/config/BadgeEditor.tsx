@@ -4,7 +4,7 @@ import { Icon } from '@iconify/react';
 import { DatapointPicker } from './DatapointPicker';
 import { JsonPathButton } from './JsonPathButton';
 import { IconPickerModal } from './IconPickerModal';
-import { ClauseRow, ColorField, DpSourceSelect, newClause } from './ConditionEditor';
+import { ClauseList, ColorField, DpSourceSelect } from './ConditionEditor';
 import { Badge, badgeDotPx, badgeTextPx } from '../common/Badge';
 import {
     dropOwnDpToken,
@@ -12,7 +12,7 @@ import {
     valueSourceOptions,
     type DpSourceCtx,
 } from '../../utils/conditionSources';
-import type { BadgeDef, BadgeStyle, BadgeCorner, ConditionClause } from '../../types';
+import type { BadgeDef, BadgeStyle, BadgeCorner } from '../../types';
 import { useT } from '../../i18n';
 
 const inputStyle: React.CSSProperties = {
@@ -84,11 +84,6 @@ function BadgeRule({
     const update = (patch: Partial<BadgeDef>) => onChange({ ...badge, ...patch });
 
     const clauses = badge.clauses ?? [];
-    const updateClause = (i: number, c: ConditionClause) =>
-        update({ clauses: clauses.map((cl, j) => (j === i ? c : cl)) });
-    const deleteClause = (i: number) => update({ clauses: clauses.filter((_, j) => j !== i) });
-    const addClause = () => update({ clauses: [...clauses, newClause()] });
-    const toggleLogic = () => update({ logic: (badge.logic ?? 'AND') === 'AND' ? 'OR' : 'AND' });
 
     const condVisible = badge.visibility === 'condition';
     // Only the 'count' style needs a datapoint of its own (the number it shows).
@@ -337,25 +332,12 @@ function BadgeRule({
                             <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
                                 {sourceCtx?.ownDp ? t('badge.visConditionHint') : t('badge.visConditionHintNoMain')}
                             </p>
-                            {clauses.map((clause, i) => (
-                                <ClauseRow
-                                    key={i}
-                                    clause={clause}
-                                    isFirst={i === 0}
-                                    logic={badge.logic ?? 'AND'}
-                                    onLogicToggle={toggleLogic}
-                                    onChange={(c) => updateClause(i, c)}
-                                    onDelete={() => deleteClause(i)}
-                                    sourceCtx={sourceCtx}
-                                />
-                            ))}
-                            <button
-                                onClick={addClause}
-                                className="flex items-center gap-1 text-[10px] hover:opacity-80"
-                                style={{ color: 'var(--accent)' }}
-                            >
-                                <Plus size={11} /> {t('cond.addClause')}
-                            </button>
+                            <ClauseList
+                                clauses={clauses}
+                                logic={badge.logic ?? 'AND'}
+                                onChange={(next) => update({ clauses: next })}
+                                sourceCtx={sourceCtx}
+                            />
                         </div>
                     )}
                 </div>

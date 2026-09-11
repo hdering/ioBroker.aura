@@ -625,6 +625,29 @@ export interface ConditionClause {
     operator: ConditionOperator;
     value: string; // always string; parsed numerically where needed
     valueType?: 'static' | 'datapoint'; // when 'datapoint', `value` is the second DP ID
+    /**
+     * How this clause hangs off the one before it (issue #635). Undefined falls back
+     * to the rule-wide `logic`, which is what every config written before this
+     * existed relies on -- so a stored rule keeps meaning exactly what it meant.
+     * Ignored on the first clause of its level. AND binds tighter than OR.
+     */
+    join?: 'AND' | 'OR';
+    /**
+     * Bracket marker. Absent = top level; 'open' starts a bracket, 'in' continues
+     * the one the row above opened. A bracket hangs off the outer level with the
+     * `join` of its 'open' row -- so `A AND (B OR C)` is
+     * [A], [B join AND bracket open], [C join OR bracket in].
+     *
+     * 'open' rather than a plain depth flag, because a depth flag cannot put a
+     * boundary between two ADJACENT brackets: `(A OR B) AND (C OR D)` needs the
+     * third row to say "a new bracket starts here", not just "I am inside one".
+     *
+     * Deliberately a marker on a FLAT list instead of a nested tree: every consumer
+     * of `clauses` (foreign-ref collection, template resolution, export
+     * anonymisation, the schema extractor) keeps working unchanged, and one nesting
+     * level covers what a dashboard rule actually needs.
+     */
+    bracket?: 'open' | 'in';
 }
 
 export interface ConditionStyle {

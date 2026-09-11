@@ -1,6 +1,7 @@
 import { subAll } from './popupPlaceholders';
 import { subDpTokenMap, isResolvedDpId } from './subDpTemplate';
 import { evaluateClause, OWN_DP_TOKEN } from './conditionEval';
+import { combineClauseHits } from './clauseLogic';
 import type { ElementConditionRule, ElementConditionTarget } from '../types';
 
 /**
@@ -132,7 +133,7 @@ export function ruleMatches(
                 : cl;
         return evaluateClause(clause, raw, values);
     });
-    return (rule.logic ?? 'AND') === 'OR' ? hits.some(Boolean) : hits.every(Boolean);
+    return combineClauseHits(clauses, hits, rule.logic ?? 'AND');
 }
 
 /**

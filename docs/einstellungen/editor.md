@@ -66,6 +66,20 @@ Listen-Quellen stehen bei `Liste` und `Dynamische Liste` zur Verfügung. Das Que
 
 `Hat sich geändert` beschreibt den Moment des Wechsels, nicht einen Zustand: Die Klausel ist nur für die eine Auswertung direkt nach dem neuen Wert erfüllt. Sie steht in Widget-Bedingungen zur Verfügung und ist für `Widget neu laden` gedacht — nicht für Marker, Zellenregeln oder Tab-Bedingungen.
 
+## Bedingungen: Klauseln verknüpfen
+
+Die Schaltfläche links an jeder Klausel ab der zweiten schaltet deren Verknüpfung zur Zeile darüber — jede Zeile für sich, `UND` und `ODER` dürfen gemischt werden. Die erste Zeile trägt `WENN`.
+
+| | |
+| --- | --- |
+| `UND` / `ODER` | Verknüpfung dieser Zeile mit der darüber |
+| `(` | Klammer: fasst diese Zeile mit den benachbarten geklammerten zusammen. Zweiter Klick auf eine Zeile innerhalb der Klammer beginnt dort eine neue, dritter hebt sie auf |
+| Ergibt … | Vorschau des ganzen Ausdrucks, erscheint sobald gemischt oder geklammert wird |
+
+`UND` bindet stärker als `ODER`: `A UND B ODER C` heißt `(A UND B) ODER C`. Für eine andere Reihenfolge die Klammer nutzen. Eine Klammerebene, Klammern können nicht verschachtelt werden.
+
+Gilt für Widget- und Tab-Bedingungen, Zellen- und Zeilenregeln sowie Marker. Bedingungen, die vor dieser Version gespeichert wurden, behalten ihre Bedeutung — sie hatten eine gemeinsame Verknüpfung für alle Zeilen.
+
 ## Bedingungen: Effekte
 
 Alles unterhalb der Klauseln greift, wenn die Regel zutrifft.

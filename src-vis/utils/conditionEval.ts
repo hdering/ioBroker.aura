@@ -1,4 +1,5 @@
 import { isActiveVal } from './groupTargets';
+import { combineClauseHits } from './clauseLogic';
 import type { WidgetCondition, ConditionClause } from '../types';
 
 // Shared condition-evaluation logic. Used by useConditionStyle (widgets),
@@ -59,7 +60,7 @@ export function evaluateClause(clause: ConditionClause, raw: unknown, values: Ma
 export function evaluateCondition(cond: WidgetCondition, values: Map<string, unknown>): boolean {
     if (!cond.clauses.length) return false;
     const results = cond.clauses.map((c) => evaluateClause(c, values.get(c.datapoint) ?? null, values));
-    return cond.logic === 'AND' ? results.every(Boolean) : results.some(Boolean);
+    return combineClauseHits(cond.clauses, results, cond.logic ?? 'AND');
 }
 
 // Whether a condition's visibility control currently wants the widget/tab hidden.

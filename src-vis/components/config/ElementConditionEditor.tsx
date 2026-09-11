@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type React from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, HelpCircle } from 'lucide-react';
-import { ClauseRow, ColorField, newClause } from './ConditionEditor';
+import { ClauseList, ColorField, newClause } from './ConditionEditor';
 import { ConfigModal } from './ConfigModal';
 import { IconPickerModal } from './IconPickerModal';
 import { MessageBuilder, emptyDraft } from './MessageBuilder';
@@ -20,7 +20,7 @@ import type { ElementConditionRule, ElementConditionTarget } from '../../types';
 // Conditional formatting of a single element — a custom-grid cell, a list row, or a
 // datapoint of a row's second line.
 //
-// Reuses ClauseRow / ColorField / newClause from ConditionEditor so the operator
+// Reuses ClauseList / ColorField / newClause from ConditionEditor so the operator
 // dropdown, datapoint picker, JSON path and AND/OR logic behave exactly like the
 // widget-wide conditions. Only the *effects* differ: an element is painted, not a
 // whole card, and a list row has four paintable parts instead of one.
@@ -128,11 +128,6 @@ function RuleEditor({
     const [showIcon, setShowIcon] = useState(false);
     const [editingNotify, setEditingNotify] = useState(false);
     const update = (patch: Partial<ElementConditionRule>) => onChange({ ...rule, ...patch });
-    const updateClause = (i: number, c: ElementConditionRule['clauses'][number]) =>
-        update({ clauses: rule.clauses.map((cl, j) => (j === i ? c : cl)) });
-    const deleteClause = (i: number) => update({ clauses: rule.clauses.filter((_, j) => j !== i) });
-    const addClause = () => update({ clauses: [...rule.clauses, newOwnClause()] });
-    const toggleLogic = () => update({ logic: rule.logic === 'OR' ? 'AND' : 'OR' });
 
     // Same three-way switch as the widget rules. It is derived rather than stored:
     // a rule that overrides text or icon *is* adjusting the element, and "anpassen"
@@ -215,27 +210,14 @@ function RuleEditor({
             {open && (
                 <div className="p-3 space-y-3 aura-rule-body" style={{ background: 'var(--app-bg)' }}>
                     {/* Clauses */}
-                    <div className="space-y-1.5">
-                        {rule.clauses.map((clause, i) => (
-                            <ClauseRow
-                                key={i}
-                                clause={clause}
-                                isFirst={i === 0}
-                                logic={rule.logic ?? 'AND'}
-                                onLogicToggle={toggleLogic}
-                                onChange={(c) => updateClause(i, c)}
-                                onDelete={() => deleteClause(i)}
-                                ownToken={OWN_DP_TOKEN}
-                            />
-                        ))}
-                    </div>
-                    <button
-                        onClick={addClause}
-                        className="flex items-center gap-1 text-[10px] hover:opacity-80"
-                        style={{ color: 'var(--accent)' }}
-                    >
-                        <Plus size={11} /> Bedingung hinzufügen
-                    </button>
+                    <ClauseList
+                        clauses={rule.clauses}
+                        logic={rule.logic ?? 'AND'}
+                        onChange={(clauses) => update({ clauses })}
+                        ownToken={OWN_DP_TOKEN}
+                        makeClause={newOwnClause}
+                        addLabel="Bedingung hinzufügen"
+                    />
                     <p className="text-[9px] leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                         {ownHint}
                     </p>
