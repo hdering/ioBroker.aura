@@ -109,6 +109,30 @@ function defaultClientName(cId) {
     return /^[0-9a-f]{16}$/.test(cId) ? cId.slice(0, 8) : cId;
 }
 
+/**
+ * Idle-return control (issue #638).
+ *
+ * `snoozeMinutes` pauses the frontend's auto-return for that many minutes and is
+ * counted down by the adapter, so a pause always ends on its own — a wall tablet
+ * that was "just paused for a moment" can never be stuck off its default tab for
+ * days. `delay` overrides the dashboard setting for one device: -1 keeps the
+ * configured behaviour, 0 switches auto-return off, anything above is seconds.
+ */
+const IDLE_SNOOZE_MAX_MIN = 1440;
+const IDLE_DELAY_MAX_SEC = 86400;
+
+function clampIdleSnooze(val) {
+    const n = Math.round(Number(val));
+    if (!Number.isFinite(n) || n <= 0) return 0;
+    return Math.min(IDLE_SNOOZE_MAX_MIN, n);
+}
+
+function clampIdleDelay(val) {
+    const n = Math.round(Number(val));
+    if (!Number.isFinite(n) || n < 0) return -1;
+    return Math.min(IDLE_DELAY_MAX_SEC, n);
+}
+
 const MESSAGE_SEVERITIES = ['info', 'success', 'warning', 'error'];
 
 const MESSAGE_POSITIONS = [
@@ -784,6 +808,20 @@ class Aura extends utils.Adapter {
         if (/\.clients\.[^.]+\.info\.name$/.test(id) && state && state.val) {
             const cId = id.split('.')[3];
             if (cId) await this._setClientChannelName(cId, String(state.val));
+            return;
+        }
+
+        // Idle-return control (issue #638): the frontend and any script write these
+        // ack=false; normalise the value and ack it so the DP shows what actually
+        // took effect. `snoozeMinutes` counts itself down in _idleReturnTick.
+        if (id.endsWith('.idleReturn.snoozeMinutes') && state && !state.ack) {
+            const minutes = clampIdleSnooze(state.val);
+            await this.setForeignStateAsync(id, { val: minutes, ack: true });
+            return;
+        }
+        if (id.endsWith('.idleReturn.delay') && state && !state.ack) {
+            const delay = clampIdleDelay(state.val);
+            await this.setForeignStateAsync(id, { val: delay, ack: true });
             return;
         }
 
@@ -1777,6 +1815,7 @@ class Aura extends utils.Adapter {
             native: {},
         });
         await this._ensureClientMessageDps(cId);
+        await this._ensureIdleReturnDps(cId);
         this.log.info(`[clients] completed object tree for ${cId}`);
         return true;
     }
@@ -1860,6 +1899,8 @@ class Aura extends utils.Adapter {
                     // navigate.url, so a client from before the messages channel
                     // existed would never be reached from there (#429).
                     await this._ensureClientMessageDps(cId);
+                    // Same story for the idle-return controls (#638).
+                    await this._ensureIdleReturnDps(cId);
                     await this._setTargetStates(`clients.${cId}.navigate.target`, states);
                 } catch {
                     /* ignore a client object that vanished mid-sync */
@@ -2344,6 +2385,76 @@ class Aura extends utils.Adapter {
             },
             native: {},
         });
+    }
+
+    /**
+     * The per-client idle-return controls (issue #638). Split out of
+     * _ensureClientTree for the same reason as the message datapoint: that
+     * function short-circuits on its navigate.url sentinel, so anything added
+     * after the tree was invented needs its own backfill.
+     */
+    async _ensureIdleReturnDps(cId) {
+        const base = `clients.${cId}`;
+        await this.setObjectNotExistsAsync(`${base}.idleReturn`, {
+            type: 'channel',
+            common: { name: 'Auto-return to the default tab' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.idleReturn.snoozeMinutes`, {
+            type: 'state',
+            common: {
+                name: 'Pause auto-return for N minutes (counts down to 0)',
+                type: 'number',
+                role: 'value',
+                unit: 'min',
+                min: 0,
+                max: IDLE_SNOOZE_MAX_MIN,
+                read: true,
+                write: true,
+                def: 0,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync(`${base}.idleReturn.delay`, {
+            type: 'state',
+            common: {
+                name: 'Auto-return delay for this client (-1 = use dashboard setting, 0 = off)',
+                type: 'number',
+                role: 'value',
+                unit: 's',
+                min: -1,
+                max: IDLE_DELAY_MAX_SEC,
+                read: true,
+                write: true,
+                def: -1,
+            },
+            native: {},
+        });
+    }
+
+    /**
+     * One minute of every running idle-return snooze. Counting down in the state
+     * itself (instead of holding an end timestamp in memory) keeps the remaining
+     * minutes visible in the object tree and survives an adapter restart.
+     */
+    async _idleReturnTick() {
+        const ids = [`${this.namespace}.idleReturn.snoozeMinutes`];
+        try {
+            const perClient = await this.getStatesAsync(`${this.namespace}.clients.*.idleReturn.snoozeMinutes`);
+            ids.push(...Object.keys(perClient || {}));
+        } catch {
+            /* no client has the datapoint yet */
+        }
+        for (const fullId of ids) {
+            try {
+                const st = await this.getForeignStateAsync(fullId);
+                const left = clampIdleSnooze(st && st.val);
+                if (left <= 0) continue;
+                await this.setForeignStateAsync(fullId, { val: left - 1, ack: true });
+            } catch {
+                /* datapoint vanished mid-tick */
+            }
+        }
     }
 
     /**
@@ -3071,11 +3182,58 @@ class Aura extends utils.Adapter {
             native: {},
         });
 
+        await this.setObjectNotExistsAsync('idleReturn', {
+            type: 'channel',
+            common: { name: 'Auto-return to the default tab (all clients)' },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('idleReturn.snoozeMinutes', {
+            type: 'state',
+            common: {
+                name: 'Pause auto-return on all clients for N minutes (counts down to 0)',
+                type: 'number',
+                role: 'value',
+                unit: 'min',
+                min: 0,
+                max: IDLE_SNOOZE_MAX_MIN,
+                read: true,
+                write: true,
+                def: 0,
+            },
+            native: {},
+        });
+        await this.setObjectNotExistsAsync('idleReturn.delay', {
+            type: 'state',
+            common: {
+                name: 'Auto-return delay for all clients (-1 = use dashboard setting, 0 = off)',
+                type: 'number',
+                role: 'value',
+                unit: 's',
+                min: -1,
+                max: IDLE_DELAY_MAX_SEC,
+                read: true,
+                write: true,
+                def: -1,
+            },
+            native: {},
+        });
+
         this.subscribeStates('calendar.request');
         this.subscribeStates('calendar.clientError');
         this.subscribeStates('clients.deleteRequest');
         this.subscribeStates('clients.register');
         this.subscribeStates('clients.resolution');
+
+        // ── Idle-return control (issue #638) ──────────────────────────────────
+        // Writes are normalised + acked in onStateChange; the snooze counts itself
+        // down here so a pause always expires, even if the device that started it
+        // never comes back.
+        this.subscribeStates('idleReturn.*');
+        this.subscribeStates('clients.*.idleReturn.*');
+        this._idleReturnInterval = this.setInterval(
+            () => this._idleReturnTick().catch((e) => this.log.warn(`[idleReturn] tick error: ${e.message}`)),
+            60000,
+        );
 
         // Navigate selector: relay target selections and keep dropdowns in sync
         // with the dashboard config (views/tabs added, renamed or removed).
@@ -4114,6 +4272,10 @@ class Aura extends utils.Adapter {
             if (this._timerInterval) {
                 this.clearInterval(this._timerInterval);
                 this._timerInterval = null;
+            }
+            if (this._idleReturnInterval) {
+                this.clearInterval(this._idleReturnInterval);
+                this._idleReturnInterval = null;
             }
             if (this._perfPersistTimer) {
                 this.clearTimeout(this._perfPersistTimer);

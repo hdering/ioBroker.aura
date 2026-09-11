@@ -16,14 +16,14 @@ export type SubTab = 'theme' | 'typo' | 'grid' | 'guidelines' | 'tabbar' | 'head
 
 // Frame tabs (whole-layout chrome) come first and are visually set apart from the
 // per-scope content tabs that follow.
-const FRAME_IDS: SubTab[] = ['header', 'menu', 'nav'];
+const FRAME_IDS: SubTab[] = ['header', 'menu'];
 const isFrame = (id: SubTab) => FRAME_IDS.includes(id);
 
 const ALL_TABS: { id: SubTab; labelKey: string; icon: React.ElementType }[] = [
     { id: 'header', labelKey: 'layouts.subtab.header', icon: PanelTop },
     { id: 'menu', labelKey: 'layouts.subtab.menu', icon: Menu },
-    { id: 'nav', labelKey: 'layouts.subtab.nav', icon: Compass },
     { id: 'tabbar', labelKey: 'layouts.subtab.tabbar', icon: AlignJustify },
+    { id: 'nav', labelKey: 'layouts.subtab.nav', icon: Compass },
     { id: 'theme', labelKey: 'layouts.subtab.theme', icon: Palette },
     { id: 'typo', labelKey: 'layouts.subtab.typo', icon: Type },
     { id: 'grid', labelKey: 'layouts.subtab.grid', icon: LayoutGrid },

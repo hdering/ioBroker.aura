@@ -63,6 +63,7 @@ Header, Tab-Leiste und Bereichs-Menü tragen dieselbe Elementliste. Der Header w
 | Datenpunkt  | DP-Wert, optional durch ein HTML-Template (`{dp}`) formatiert      |
 | Text        | Fester Text                                                        |
 | Widget      | Beliebiges Widget — als Verweis auf ein vorhandenes Dashboard-Widget oder als eigene Instanz im Element |
+| Rückkehr-Pause | Setzt die automatische Rückkehr für eine einstellbare Zeit aus; zeigt die Restzeit, zweites Tippen beendet die Pause |
 
 | Option beim Typ *Widget* |                                                                  |
 | ------------------------ | ---------------------------------------------------------------- |
@@ -76,6 +77,26 @@ Header, Tab-Leiste und Bereichs-Menü tragen dieselbe Elementliste. Der Header w
 Bedingungen, Badges, Klick-Aktionen und Popups eines Widgets gelten im Menü genauso wie auf dem Dashboard. Gruppen und Panels lassen sich nur als Verweis einbinden, nicht als eigene Instanz.
 
 Position: Header `Links`/`Rechts`, Tab-Leiste `L`/`M`/`R`, Bereichs-Menü `Oben`/`Unten`.
+
+## Navigation
+
+Automatische Rückkehr zum Standard-Tab nach Inaktivität. Global, pro Layout oder pro Bereich einstellbar (Geltungsbereich links).
+
+| Option | |
+| --- | --- |
+| Automatisch zum Standard-Tab zurückkehren | Schaltet die Rückkehr ein |
+| Verzögerung | Inaktivität in Sekunden (5–3600) |
+
+Ziel ist der Standard-Bereich des Layouts und dessen Standard-Tab. Als Aktivität zählen
+Mausbewegung, Tastendruck, Klick, Tippen, Scrollen und Mausrad. Nicht zurückgekehrt wird,
+solange ein Widget im Vollbild läuft.
+
+| Ausnahme | |
+| --- | --- |
+| Einzelner Tab | Editor → Tab-Einstellungen → **Nie automatisch verlassen** |
+| Ganzer Bereich | Geltungsbereich auf den Bereich stellen, Rückkehr dort ausschalten |
+| Vorübergehend am Gerät | Element **Rückkehr-Pause** in Header, Tab-Leiste oder Bereichs-Menü |
+| Per Datenpunkt | Siehe [Einstellungen → Rückkehr steuern](./settings#rückkehr-steuern) |
 
 ## Werte & Formatierung
 

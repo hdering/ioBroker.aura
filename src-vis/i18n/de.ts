@@ -151,7 +151,7 @@ export const de = {
     'settings.frontend.idleReturn': 'Automatisch zum Standard-Tab zurückkehren',
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':
-        'Wechselt nach der angegebenen Inaktivitätszeit zum Standard-Bereich des Layouts und dessen Standard-Tab.',
+        'Wechselt nach der angegebenen Inaktivitätszeit zum Standard-Bereich des Layouts und dessen Standard-Tab. Pro Gerät steuerbar über {ns}.clients.<id>.idleReturn.snoozeMinutes und .delay.',
     'settings.frontend.optimisticUpdates': 'Sofortige Rückmeldung beim Schalten',
     'settings.frontend.optimisticUpdatesHint':
         'Zeigt geschriebene Werte direkt an, ohne auf die Bestätigung von ioBroker zu warten. Behebt hängende Anzeigen bei Datenpunkten ohne Rückmeldung (z. B. reine 0_userdata-Variablen).',
@@ -193,6 +193,16 @@ export const de = {
     'settings.tabBar.itemTypeDatapoint': 'Datenpunkt',
     'settings.tabBar.itemTypeText': 'Text',
     'settings.tabBar.itemTypeWidget': 'Widget',
+    'settings.tabBar.itemTypeIdleReturn': 'Rückkehr-Pause',
+
+    'menuItem.idleReturn.pause': 'Pause',
+    'menuItem.idleReturn.left': 'noch {n} min',
+    'menuItem.idleReturn.pauseHint': 'Automatische Rückkehr zum Standard-Tab vorübergehend aussetzen',
+    'menuItem.idleReturn.resumeHint': 'Automatische Rückkehr sofort wieder aktivieren',
+    'menuItem.idleReturn.minutes': 'Pausendauer (Minuten)',
+    'menuItem.idleReturn.minutesHint':
+        'Ein Tipp auf das Element setzt die automatische Rückkehr für diese Zeit aus, ein weiterer Tipp beendet die Pause sofort.',
+    'editor.tabMgmt.idleReturnExempt': 'Nie automatisch verlassen',
 
     'settings.header.items': 'Elemente im Header',
     'settings.header.itemsHint': 'Uhrzeit, Datenpunkte, Text oder ein beliebiges Widget — beliebig viele.',

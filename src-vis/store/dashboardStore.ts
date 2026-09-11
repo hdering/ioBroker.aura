@@ -13,7 +13,7 @@ import type { AllVars } from '../themes';
 // same kind of extra element. Only the position axis differs, so the content
 // fields live in one shared base and each host adds its own `position`.
 
-export type MenuItemType = 'clock' | 'datapoint' | 'text' | 'widget';
+export type MenuItemType = 'clock' | 'datapoint' | 'text' | 'widget' | 'idleReturn';
 
 export interface MenuItemContent {
     id: string;
@@ -28,6 +28,12 @@ export interface MenuItemContent {
     datapointTemplate?: string;
     // static text
     text?: string;
+    /**
+     * idleReturn — minutes the auto-return is paused for when this chip is
+     * tapped. A pause with an end, not a switch: an "off" nobody remembers to
+     * undo leaves a wall tablet parked on a secondary tab for days (#638).
+     */
+    idleReturnMinutes?: number;
     // widget — either a reference to a widget that lives on some dashboard tab
     // (`widgetId`, kept in sync with it) or an instance owned by this item
     // (`widget`, edited in the admin). `widget` wins when both are set.
@@ -229,6 +235,7 @@ export interface Tab {
     pinProtected?: boolean; // adapter marker on a redacted stub — content lives server-side
     pinLength?: number; // digit count of the PIN (keypad hint), never the PIN itself
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
+    idleReturnExempt?: boolean; // never left automatically by the idle-return timer (#638)
 }
 
 /**
@@ -475,6 +482,7 @@ interface DashboardState {
                 | 'hideLabel'
                 | 'disabled'
                 | 'hidden'
+                | 'idleReturnExempt'
                 | 'conditions'
                 | 'pin'
                 | 'pinRelock'

@@ -21,9 +21,9 @@ import { NavigationSection } from './layouts/sections/NavigationSection';
 import { ValueFormatSection } from './layouts/sections/ValueFormatSection';
 
 // Content (3-level) tabs are available at every scope; frame (2-level) tabs
-// only at global & layout scope — a section never overrides header/menu/nav.
-const APPEARANCE_TABS: SubTab[] = ['theme', 'typo', 'grid', 'guidelines', 'tabbar'];
-const FRAME_TABS: SubTab[] = ['header', 'menu', 'nav'];
+// only at global & layout scope — a section never overrides the header or menu.
+const APPEARANCE_TABS: SubTab[] = ['theme', 'typo', 'grid', 'guidelines', 'tabbar', 'nav'];
+const FRAME_TABS: SubTab[] = ['header', 'menu'];
 // Global only — these settings live in the globalSettingsStore and have no
 // layout/section override.
 const GLOBAL_TABS: SubTab[] = ['values'];

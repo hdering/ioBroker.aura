@@ -24,6 +24,7 @@ import {
 } from '../../../../utils/menuItems';
 import { getLayoutOptions } from '../../../../utils/widgetLayouts';
 import { MenuWidgetSlot } from '../../../../components/layout/MenuWidgetSlot';
+import { IDLE_RETURN_DEFAULT_MINUTES } from '../../../../components/layout/MenuItemView';
 import { ActiveLayoutContext } from '../../../../contexts/ActiveLayoutContext';
 import { WIDGET_BY_TYPE, WIDGET_REGISTRY } from '../../../../widgetRegistry';
 import type { WidgetLayout, WidgetType } from '../../../../types';
@@ -462,6 +463,30 @@ export function MenuItemFields({
         return <WidgetFields item={item} onUpdate={onUpdate} variant={variant} />;
     }
 
+    if (item.type === 'idleReturn') {
+        return (
+            <div>
+                <FieldLabel>{t('menuItem.idleReturn.minutes')}</FieldLabel>
+                <input
+                    type="number"
+                    min={1}
+                    max={1440}
+                    value={item.idleReturnMinutes ?? IDLE_RETURN_DEFAULT_MINUTES}
+                    onChange={(e) =>
+                        onUpdate({
+                            idleReturnMinutes: Math.max(1, Math.min(1440, Number(e.target.value) || 1)),
+                        })
+                    }
+                    className="w-24 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                    style={iSty}
+                />
+                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                    {t('menuItem.idleReturn.minutesHint')}
+                </p>
+            </div>
+        );
+    }
+
     return (
         <div>
             <FieldLabel>{t('settings.tabBar.staticText')}</FieldLabel>
@@ -485,7 +510,9 @@ export function menuItemTypeLabelKey(type: MenuItemContent['type']) {
           ? ('settings.tabBar.itemTypeDatapoint' as const)
           : type === 'widget'
             ? ('settings.tabBar.itemTypeWidget' as const)
-            : ('settings.tabBar.itemTypeText' as const);
+            : type === 'idleReturn'
+              ? ('settings.tabBar.itemTypeIdleReturn' as const)
+              : ('settings.tabBar.itemTypeText' as const);
 }
 
 // ── Collapsible editor row ───────────────────────────────────────────────────

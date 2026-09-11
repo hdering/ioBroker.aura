@@ -653,7 +653,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         ))}
                     </div>
                     <div className="flex gap-1.5 mt-2 flex-wrap">
-                        {(['clock', 'datapoint', 'text', 'widget'] as const).map((type) => {
+                        {(['clock', 'datapoint', 'text', 'widget', 'idleReturn'] as const).map((type) => {
                             const label = t(menuItemTypeLabelKey(type));
                             return (
                                 <button

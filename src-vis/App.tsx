@@ -36,6 +36,13 @@ import { TabBar } from './components/layout/TabBar';
 import { LayoutDrawer } from './components/layout/LayoutDrawer';
 import { MenuItemView } from './components/layout/MenuItemView';
 import { useIframeStore } from './store/iframeStore';
+import { resolveIdleReturn } from './utils/idleReturn';
+import {
+    effectiveDelayOverride,
+    effectiveSnooze,
+    syncIdleReturnDps,
+    useIdleReturnStore,
+} from './store/idleReturnStore';
 import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
 import { tabBarShowsOnOwn } from './utils/tabBarVisible';
@@ -471,9 +478,21 @@ export default function App() {
         setOptimisticEcho(frontend.optimisticUpdates !== false);
     }, [frontend.optimisticUpdates]);
 
-    // Idle-return: switch to the layout default after configured inactivity period
-    const idleReturnEnabled = effectiveSettings.idleReturnEnabled;
-    const idleReturnDelay = effectiveSettings.idleReturnDelay ?? 30;
+    // Idle-return: switch to the layout default after configured inactivity period.
+    // The configuration is only the baseline — a datapoint may override the delay
+    // or pause the whole thing for a while, and a tab may opt out entirely (#638).
+    const idleSnooze = useIdleReturnStore(effectiveSnooze);
+    const idleDelayOverride = useIdleReturnStore(effectiveDelayOverride);
+    const idleTabExempt = tabs.find((t) => t.id === activeTabId)?.idleReturnExempt ?? false;
+    const iframeFullscreen = useIframeStore((s) => s.fullscreen);
+    const { armed: idleReturnEnabled, delaySec: idleReturnDelay } = resolveIdleReturn({
+        configEnabled: !!effectiveSettings.idleReturnEnabled,
+        configDelay: effectiveSettings.idleReturnDelay ?? 30,
+        delayOverride: idleDelayOverride,
+        snoozeMinutes: idleSnooze,
+        tabExempt: idleTabExempt,
+        fullscreen: !!iframeFullscreen,
+    });
     // Jump back to the layout default via the URL (not setActiveTabId directly).
     // The default is layout-scoped: the layout's default section and, within it,
     // that section's default tab — regardless of which section/tab the viewer
@@ -499,6 +518,12 @@ export default function App() {
             layout.sections.length > 1 ? `/view/${layout.slug}/s/${targetSection.slug}` : `/view/${layout.slug}`;
         navigate(`${base}/tab/${tabSlugPart}`);
     };
+    // Publish the armed state for the pause chip (it cannot resolve the scoped
+    // settings itself, and "paused" must be distinguishable from "never armed").
+    const setIdleReturnState = useIdleReturnStore((s) => s.set);
+    useEffect(() => {
+        setIdleReturnState({ armed: idleReturnEnabled || idleSnooze > 0 });
+    }, [idleReturnEnabled, idleSnooze, setIdleReturnState]);
     useEffect(() => {
         if (!idleReturnEnabled) return;
         let timer: ReturnType<typeof setTimeout>;
@@ -506,12 +531,17 @@ export default function App() {
             clearTimeout(timer);
             timer = setTimeout(() => idleReturnNavRef.current(), idleReturnDelay * 1000);
         };
-        const events = ['pointermove', 'keydown', 'touchstart', 'click'] as const;
+        // `scroll` needs the capture phase: the dashboard scrolls inside its own
+        // container and a scroll event does not bubble to the window. Without it,
+        // reading a long page counted as inactivity (#638).
+        const events = ['pointermove', 'keydown', 'touchstart', 'click', 'wheel'] as const;
         events.forEach((e) => window.addEventListener(e, reset, { passive: true }));
+        window.addEventListener('scroll', reset, { passive: true, capture: true });
         reset();
         return () => {
             clearTimeout(timer);
             events.forEach((e) => window.removeEventListener(e, reset));
+            window.removeEventListener('scroll', reset, { capture: true });
         };
     }, [idleReturnEnabled, idleReturnDelay]);
 
@@ -888,6 +918,10 @@ export default function App() {
             window.removeEventListener('orientationchange', onResize);
         };
     }, [connected, clientId]);
+
+    // Mirror the idle-return control datapoints (global + this client) into the
+    // store the timer and the header chip read (#638).
+    useEffect(() => syncIdleReturnDps(clientId), [clientId]);
 
     // Subscribe to per-client navigate datapoint
     useEffect(() => {

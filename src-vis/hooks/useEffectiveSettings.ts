@@ -29,6 +29,10 @@ const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = 
     // layoutDrawerEnabled stays 3-level: the per-section "hide menu here" toggle
     // writes it onto section.settings, so a section must be able to override it.
     'layoutDrawerEnabled',
+    // Auto-return: a section like "Cameras" must be able to switch it off on its
+    // own, without a layout of its own (#638).
+    'idleReturnEnabled',
+    'idleReturnDelay',
 ];
 
 // ── 2-level keys: frame settings that belong to a whole layout ───────────────
@@ -69,9 +73,6 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'headerDatapoint',
     'headerDatapointTemplate',
     'headerItems',
-    // Navigation (idle-return)
-    'idleReturnEnabled',
-    'idleReturnDelay',
 ];
 
 // Narrow selectors: stable settings-object references so these only re-render

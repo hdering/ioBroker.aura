@@ -152,7 +152,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.idleReturn': 'Auto-return to default tab',
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':
-        "Switches to the layout's default section and its default tab after the specified idle time.",
+        "Switches to the layout's default section and its default tab after the specified idle time. Per device controllable via {ns}.clients.<id>.idleReturn.snoozeMinutes and .delay.",
     'settings.frontend.optimisticUpdates': 'Instant feedback on control',
     'settings.frontend.optimisticUpdatesHint':
         'Reflect written values immediately without waiting for ioBroker to confirm. Fixes stale UI for datapoints that never echo a write back (e.g. plain 0_userdata variables).',
@@ -194,6 +194,16 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.itemTypeDatapoint': 'Datapoint',
     'settings.tabBar.itemTypeText': 'Text',
     'settings.tabBar.itemTypeWidget': 'Widget',
+    'settings.tabBar.itemTypeIdleReturn': 'Auto-return pause',
+
+    'menuItem.idleReturn.pause': 'Pause',
+    'menuItem.idleReturn.left': '{n} min left',
+    'menuItem.idleReturn.pauseHint': 'Suspend the automatic return to the default tab for a while',
+    'menuItem.idleReturn.resumeHint': 'Re-arm the automatic return right away',
+    'menuItem.idleReturn.minutes': 'Pause length (minutes)',
+    'menuItem.idleReturn.minutesHint':
+        'One tap suspends the automatic return for this long, another tap ends the pause right away.',
+    'editor.tabMgmt.idleReturnExempt': 'Never leave automatically',
 
     'settings.header.items': 'Header elements',
     'settings.header.itemsHint': 'Clock, datapoints, text or any widget — as many as you like.',

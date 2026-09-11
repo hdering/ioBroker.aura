@@ -8,7 +8,7 @@ Anzeige-Verhalten des Frontends (gilt für alle Layouts).
 | --- | --- |
 | Theme folgt Browser | Hell/Dunkel automatisch nach System-Einstellung |
 | Layout-Menü (Hamburger) | Layout-Wechsel über Menü statt Leiste (nur sichtbar ab 2 definierten Layouts) |
-| Automatisch zum Standard-Tab zurückkehren | Nach Inaktivität zum Standard-Tab springen |
+| Automatisch zum Standard-Tab zurückkehren | Nach Inaktivität zum Standard-Tab springen — pro Bereich, Tab und Gerät steuerbar, siehe [Navigation](./layouts#navigation) |
 | Sofortige Rückmeldung beim Schalten | Geschalteten Wert sofort anzeigen, ohne ioBroker-Echo abzuwarten |
 | Header anzeigen | Kopfzeile ein-/ausblenden |
 | Dashboard-Titel | Text in der Kopfzeile |

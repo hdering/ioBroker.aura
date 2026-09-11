@@ -1745,6 +1745,29 @@ const TabBar = memo(function TabBar() {
                             </div>
                             <div className="flex items-center justify-between">
                                 <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('editor.tabMgmt.idleReturnExempt')}
+                                </label>
+                                <button
+                                    onClick={() =>
+                                        updateTab(settingsTabId, {
+                                            idleReturnExempt: !settingsTab.idleReturnExempt,
+                                        })
+                                    }
+                                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                    style={{
+                                        background: settingsTab.idleReturnExempt
+                                            ? 'var(--accent)'
+                                            : 'var(--app-border)',
+                                    }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: settingsTab.idleReturnExempt ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                     {t('editor.tabMgmt.disabled')}
                                 </label>
                                 <button

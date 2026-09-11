@@ -11,7 +11,9 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Pause, Play } from 'lucide-react';
 import { resolveHtmlAssets } from '../../utils/assetUrl';
+import { effectiveSnooze, resumeIdleReturn, snoozeIdleReturn, useIdleReturnStore } from '../../store/idleReturnStore';
 import type { MenuItemContent } from '../../store/dashboardStore';
 import { subscribeDpValue } from '../../hooks/useIoBroker';
 import { applyCustomFormat, fmtTime, fmtDate } from '../../utils/clockUtils';
@@ -103,6 +105,49 @@ function MenuDatapoint({ item, variant }: { item: MenuItemContent; variant: Menu
     );
 }
 
+/** Default pause length of a fresh chip, in minutes. */
+export const IDLE_RETURN_DEFAULT_MINUTES = 15;
+
+/**
+ * Pause chip for the auto-return (issue #638): one tap keeps this device on the
+ * page it is showing, a second tap hands it back to the timer.
+ *
+ * Deliberately a pause with a countdown rather than an on/off switch — the
+ * report that asked for this is a wall tablet, and an "off" nobody remembers to
+ * undo is how such a tablet ends up parked on the camera page for days. The
+ * remaining minutes come from the datapoint, which the adapter counts down.
+ */
+function MenuIdleReturn({ item, variant }: { item: MenuItemContent; variant: MenuItemVariant }) {
+    const t = useT();
+    const left = useIdleReturnStore(effectiveSnooze);
+    const armed = useIdleReturnStore((s) => s.armed);
+    const minutes = Math.max(1, Math.round(item.idleReturnMinutes ?? IDLE_RETURN_DEFAULT_MINUTES));
+    const paused = left > 0;
+    const bar = variant === 'bar';
+    const size = bar ? 14 : 18;
+
+    return (
+        <button
+            onClick={() => (paused ? resumeIdleReturn() : snoozeIdleReturn(minutes))}
+            title={paused ? t('menuItem.idleReturn.resumeHint') : t('menuItem.idleReturn.pauseHint')}
+            className={`flex items-center gap-1.5 rounded-lg px-2 ${bar ? 'py-1 text-xs' : 'py-1.5 text-sm'} font-medium shrink-0 hover:opacity-80 transition-opacity`}
+            style={{
+                background: paused ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'transparent',
+                color: paused ? 'var(--accent)' : 'var(--text-secondary)',
+                border: `1px solid ${paused ? 'var(--accent)' : 'var(--app-border)'}`,
+                // Nothing to pause here — still visible (it sits in a configured
+                // slot) but unmistakably inactive.
+                opacity: armed || paused ? 1 : 0.45,
+            }}
+        >
+            {paused ? <Play size={size} /> : <Pause size={size} />}
+            <span className="tabular-nums">
+                {paused ? t('menuItem.idleReturn.left').replace('{n}', String(left)) : t('menuItem.idleReturn.pause')}
+            </span>
+        </button>
+    );
+}
+
 function MenuText({ item, variant }: { item: MenuItemContent; variant: MenuItemVariant }) {
     return (
         <div
@@ -126,5 +171,6 @@ export function MenuItemView({
     if (item.type === 'clock') return <MenuClock item={item} variant={variant} />;
     if (item.type === 'datapoint') return <MenuDatapoint item={item} variant={variant} />;
     if (item.type === 'widget') return <MenuWidgetSlot item={item} variant={variant} onWidgetChange={onWidgetChange} />;
+    if (item.type === 'idleReturn') return <MenuIdleReturn item={item} variant={variant} />;
     return <MenuText item={item} variant={variant} />;
 }

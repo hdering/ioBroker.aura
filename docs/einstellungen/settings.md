@@ -18,7 +18,8 @@ Allgemeine Einstellungen: Frontend, Grid, Sicherheit und Backup.
 ## Client-ID
 
 Jedes Gerät bekommt eine ID; darüber wird es einzeln angesprochen:
-`aura.0.clients.<ID>.navigate.url`, `.navigate.target`, `.popup.open`, `.messages.send`.
+`aura.0.clients.<ID>.navigate.url`, `.navigate.target`, `.popup.open`, `.messages.send`,
+`.idleReturn.snoozeMinutes`, `.idleReturn.delay`.
 
 Die ID wird beim ersten Kontakt vergeben und dann im Browser gespeichert. Sie bleibt
 danach unverändert — Browser-Updates, Auflösungs- oder Skalierungswechsel ändern sie nicht.
@@ -60,3 +61,30 @@ erst Browser/Kiosk schließen, dann löschen.
 | `deleteRequest` | Client-ID — löscht diesen Client |
 
 Alle drei leeren sich nach der Ausführung selbst.
+
+## Rückkehr steuern
+
+Die [automatische Rückkehr zum Standard-Tab](./layouts#navigation) lässt sich zur Laufzeit
+aussetzen oder umstellen — für ein Gerät oder für alle.
+
+| Datenpunkt | |
+| --- | --- |
+| `aura.0.clients.<ID>.idleReturn.snoozeMinutes` | Minuten pausieren; zählt selbst auf 0 herunter |
+| `aura.0.clients.<ID>.idleReturn.delay` | Verzögerung für dieses Gerät: `-1` = Einstellung des Dashboards, `0` = aus, sonst Sekunden |
+| `aura.0.idleReturn.snoozeMinutes` | Dasselbe für alle Geräte |
+| `aura.0.idleReturn.delay` | Dasselbe für alle Geräte |
+
+```js
+// 30 Minuten am Wandtablet stehenbleiben
+setState('aura.0.clients.wohnzimmer-tablet.idleReturn.snoozeMinutes', 30);
+// sofort wieder aktivieren
+setState('aura.0.clients.wohnzimmer-tablet.idleReturn.snoozeMinutes', 0);
+```
+
+Die Pause läuft immer ab — der Adapter zählt sie minütlich herunter, auch über einen
+Neustart hinweg. `delay` gilt dagegen dauerhaft und überstimmt die Dashboard-Einstellung
+in beide Richtungen: ein Wert über 0 schaltet die Rückkehr auch dort ein, wo sie im
+Dashboard aus ist.
+
+Dasselbe ohne Skript: das Element **Rückkehr-Pause** in Header, Tab-Leiste oder
+Bereichs-Menü, oder ein Schalter-Widget auf einen der Datenpunkte.
