@@ -10,6 +10,36 @@
  */
 import type { WidgetConfig } from '../types';
 
+/**
+ * The datapoint variables of one id — the token table every `{{key}}` layer shares.
+ *
+ * `{{dp}}` is the id itself, `{{name}}` its last segment, `{{parent}}` the id without
+ * that segment. Each further level is numbered: `{{parent2}}` climbs one more, and so
+ * on — HomeMatic keeps a device's maintenance datapoints in a sibling channel, so the
+ * thermostat's `…000A.1.ACTUAL_TEMPERATURE` reaches its battery only via
+ * `{{parent2}}.0.OPERATING_VOLTAGE`.
+ *
+ * The climb stops at `adapter.instance`: above that there is no addressable strang
+ * left. Numbers rather than `{{parent.parent}}`, because a dot inside double braces
+ * belongs to the binding layer (see docs/widgets/bindings.md) — and because `\w+` is
+ * what every consumer's token regex already matches.
+ */
+export function dpVarMap(dpId: string): Record<string, string> {
+    if (!dpId) return {};
+    const map: Record<string, string> = { dp: dpId };
+    const lastDot = dpId.lastIndexOf('.');
+    if (lastDot <= 0) return map;
+    map.name = dpId.slice(lastDot + 1); // last segment, e.g. ACTUAL_TEMPERATURE
+    let strang = dpId.slice(0, lastDot); // parent strang, e.g. hm-rpc.2.000A.1
+    map.parent = strang;
+    for (let level = 2; strang.includes('.'); level++) {
+        strang = strang.slice(0, strang.lastIndexOf('.'));
+        if (!strang.includes('.')) break; // one segment left — below adapter.instance
+        map[`parent${level}`] = strang;
+    }
+    return map;
+}
+
 /** Replaces every `{{key}}` known to `map`; unknown keys are left untouched. */
 export function subAll(value: string, map: Record<string, string>): string {
     if (!value) return value;
@@ -77,13 +107,5 @@ export function buildPopupSubMap(triggerWidget: WidgetConfig | undefined, mainDp
     const map: Record<string, string> = Object.fromEntries(
         Object.entries(triggerWidget?.options ?? {}).filter((e): e is [string, string] => typeof e[1] === 'string'),
     );
-    if (mainDp) {
-        map.dp = mainDp;
-        const lastDot = mainDp.lastIndexOf('.');
-        if (lastDot > 0) {
-            map.parent = mainDp.slice(0, lastDot); // parent strang, e.g. 0_userdata.0
-            map.name = mainDp.slice(lastDot + 1); // last segment, e.g. Anzeige
-        }
-    }
-    return map;
+    return Object.assign(map, dpVarMap(mainDp));
 }

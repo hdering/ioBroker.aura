@@ -12,8 +12,9 @@
  * a bare icon, the section read as "this device's datapoints only".
  *
  * `templateMode` reuses the very same editor for the dynamic list's list-wide
- * template: picked siblings are stored as `{{parent}}.BATTERY` so one configuration
- * applies to every discovered row (see utils/subDpTemplate).
+ * template: a picked datapoint of the sample device is stored as a pattern —
+ * `{{parent}}.BATTERY`, or `{{parent2}}.0.OPERATING_VOLTAGE` across channels — so one
+ * configuration applies to every discovered row (see utils/subDpTemplate).
  */
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, Database, Plus, Trash2, X } from 'lucide-react';
@@ -28,8 +29,8 @@ import { ElementConditionEditor } from '../ElementConditionEditor';
 import { StateMapFields } from './StateMapFields';
 import { ensureDatapointCache, lookupDatapointEntry, type DatapointEntry } from '../../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
-import { subAll } from '../../../utils/popupPlaceholders';
-import { subDpTokenMap, toSubDpTemplateId } from '../../../utils/subDpTemplate';
+import { dpVarMap, subAll } from '../../../utils/popupPlaceholders';
+import { toSubDpTemplateId } from '../../../utils/subDpTemplate';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -63,8 +64,8 @@ export function SubDpFields({
     mainDpId: string;
     /** The list carries a conversion of its own, so "Keine" must mean "off here". */
     listHasTransform: boolean;
-    /** Store picked siblings as `{{parent}}.<segment>` and preview what they resolve
-     *  to for `mainDpId`. Used by the dynamic list's list-wide template. */
+    /** Store picked datapoints of the sample device as a `{{parent}}` pattern and preview
+     *  what they resolve to for `mainDpId`. Used by the dynamic list's list-wide template. */
     templateMode?: boolean;
     onChange: (next: EntrySubDp[] | undefined) => void;
 }) {
@@ -85,7 +86,7 @@ export function SubDpFields({
 
     // In template mode the stored ids carry tokens, so both the duplicate check and
     // the sibling list have to compare against what they resolve to for the sample.
-    const resolveId = (id: string) => (templateMode && mainDpId ? subAll(id, subDpTokenMap(mainDpId)) : id);
+    const resolveId = (id: string) => (templateMode && mainDpId ? subAll(id, dpVarMap(mainDpId)) : id);
     const usedIds = subDps.map((s) => resolveId(s.id));
     const siblings = useMemo(() => {
         if (!cache || !mainDpId) return [];
@@ -457,7 +458,7 @@ export function SubDpFields({
             </div>
             <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>
                 {templateMode
-                    ? 'Die zweite Zeile ist nicht auf das Gerät beschränkt: über „Beliebiger DP“ lässt sich jeder Datenpunkt wählen. Eine absolute ID zeigt in jeder Zeile denselben Wert, ein Muster mit {{parent}} den passenden DP je Zeile.'
+                    ? 'Die zweite Zeile ist nicht auf das Gerät beschränkt: über „Beliebiger DP“ lässt sich jeder Datenpunkt wählen. Ein DP desselben Geräts wird automatisch zum Muster ({{parent}}.BATTERY, über Kanäle hinweg {{parent2}}.0.OPERATING_VOLTAGE) und zeigt je Zeile deren eigenen Wert; ein DP eines anderen Geräts bleibt absolut und damit in jeder Zeile gleich.'
                     : 'Die zweite Zeile ist nicht auf das Gerät beschränkt: über „Beliebiger DP“ lässt sich jeder Datenpunkt aus ioBroker wählen — auch von einem anderen Gerät oder Adapter. Die ID lässt sich außerdem direkt ins Feld tippen.'}
             </p>
 

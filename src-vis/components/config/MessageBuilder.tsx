@@ -326,7 +326,8 @@ function RowVarsHint({ rowDp, perRow }: { rowDp: string; perRow?: boolean }) {
             <b style={{ color: 'var(--text-primary)' }}>{perRow ? 'Auslösende Zeile' : 'Datenpunkt des Widgets'}</b>
             {perRow ? ' — je auslösender Zeile wird eine eigene Meldung gesendet. ' : ' — '}
             In Titel, Text und den übrigen Feldern stehen <code>{'{{dp}}'}</code> (ganze ID),{' '}
-            <code>{'{{parent}}'}</code> (Strang) und <code>{'{{name}}'}</code> (letztes Segment).
+            <code>{'{{parent}}'}</code> (Strang), <code>{'{{parent2}}'}</code> (eine Ebene höher) und{' '}
+            <code>{'{{name}}'}</code> (letztes Segment).
             <br />
             Beispiel: <code>{'[[{{parent}}.NAME]]'}</code> → <code>{example}</code> — die doppelten Klammern zeigen den
             Live-Wert dieses Datenpunkts.

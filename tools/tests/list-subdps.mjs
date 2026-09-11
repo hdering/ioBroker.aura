@@ -13,9 +13,10 @@
 // label/icon/unit/decimals/font size are applied, the value conversion works per
 // datapoint and inherits the list-wide default, and a row click still opens.
 // For the dynamic list additionally: per-entry datapoints render the same way, the
-// template resolves {{parent}} per row, an entry's own list replaces the template,
-// rows whose resolved datapoint has no value are dropped (and shown as a dash once
-// subDpTemplateHideMissing is off), and absolute template ids apply to every row.
+// template resolves {{parent}} per row and {{parent2}} across channels, an entry's
+// own list replaces the template, rows whose resolved datapoint has no value are
+// dropped (and shown as a dash once subDpTemplateHideMissing is off), and absolute
+// template ids apply to every row.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -325,6 +326,29 @@ await showAuto('default', {
     const lines = await allSubLines();
     check('absolute template id reaches every row', lines.length === 2, JSON.stringify(lines));
     check('both rows show the same value', lines[0] === 'RSSI -62' && lines[1] === 'RSSI -62', JSON.stringify(lines));
+}
+
+// ── 14. {{parent2}} reaches another channel of the same device (issue #637) ──
+// HomeMatic keeps the reading in channel 1 and the battery in the maintenance
+// channel 0, so {{parent}} alone can never address it.
+const HM_VALUES = {
+    'hm-rpc.2.000A.1.ACTUAL_TEMPERATURE': 21.5,
+    'hm-rpc.2.000A.0.OPERATING_VOLTAGE': 2.9,
+    'hm-rpc.2.000B.1.ACTUAL_TEMPERATURE': 19,
+    'hm-rpc.2.000B.0.OPERATING_VOLTAGE': 2.4,
+};
+await showAuto('default', {
+    entries: [
+        { id: 'hm-rpc.2.000A.1.ACTUAL_TEMPERATURE', label: 'Wohnzimmer', unit: '°C', decimals: 1 },
+        { id: 'hm-rpc.2.000B.1.ACTUAL_TEMPERATURE', label: 'Bad', unit: '°C', decimals: 1 },
+    ],
+    options: { subDpTemplate: [{ id: '{{parent2}}.0.OPERATING_VOLTAGE', label: 'Batt', unit: 'V', decimals: 1 }] },
+    values: HM_VALUES,
+});
+{
+    const lines = await allSubLines();
+    check('{{parent2}} climbs out of the channel', lines[0] === 'Batt 2.9 V', JSON.stringify(lines));
+    check('… and does so per row', lines[1] === 'Batt 2.4 V', JSON.stringify(lines));
 }
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));

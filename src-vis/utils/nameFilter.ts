@@ -9,7 +9,7 @@
  * Framework-free on purpose: the widget and the config preview import the same
  * formatItemName, so what the editor previews is exactly what the widget renders.
  */
-import { subDpTokenMap } from './subDpTemplate';
+import { dpVarMap } from './popupPlaceholders';
 import { hasDpToken } from './dpTokens';
 
 /** Which token a rule operates on. 'Ergebnis' runs on the finished label, after substitution. */
@@ -195,7 +195,7 @@ export function nameTokens(item: NameSource): Record<Exclude<NameFilterField, 'E
 
 /**
  * The `{{dp}}` / `{{parent}}` / `{{name}}` variables of one item, using the very token
- * table the second-line template and popup views resolve (subDpTokenMap) — there is no
+ * table the second-line template and popup views resolve (dpVarMap) — there is no
  * second placeholder concept to learn.
  *
  * Per row instead of per popup is the point: it lets ONE name pattern reach a *sibling*
@@ -209,7 +209,7 @@ export function nameTokens(item: NameSource): Record<Exclude<NameFilterField, 'E
  */
 export function substituteItemVars(text: string, id: string): string {
     if (!text.includes('{{')) return text;
-    const map = subDpTokenMap(id);
+    const map = dpVarMap(id);
     return text.replace(/\{\{(\w+)\}\}/g, (whole, key: string) => map[key.toLowerCase()] ?? whole);
 }
 

@@ -137,6 +137,7 @@
     "test:list-enums": "node tools/tests/list-enum-filter.mjs",
     "test:camera-actions": "node tools/tests/camera-actions.mjs",
     "test:condition-refresh": "node tools/tests/condition-refresh.mjs",
+    "test:dp-vars": "node tools/tests/dp-vars.mjs",
     "test:name-pattern": "node tools/tests/name-pattern.mjs",
     "test:list-dividers": "node tools/tests/list-dividers.mjs",
     "test:list-stepper-color": "node tools/tests/list-stepper-color.mjs",

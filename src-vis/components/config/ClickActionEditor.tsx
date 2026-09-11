@@ -823,7 +823,8 @@ export function ClickActionEditor({ config, onConfigChange, popupOnly, hidePopup
                         style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                     >
                         Wird im Popup als <span className="font-mono">{'{{dp}}'}</span> übergeben; daraus abgeleitet{' '}
-                        <span className="font-mono">{'{{parent}}'}</span> (Strang) und{' '}
+                        <span className="font-mono">{'{{parent}}'}</span> (Strang),{' '}
+                        <span className="font-mono">{'{{parent2}}'}</span> (eine Ebene höher) und{' '}
                         <span className="font-mono">{'{{name}}'}</span>. Für Universal-Widgets ohne Datenpunkt hier den
                         DP setzen.
                     </p>

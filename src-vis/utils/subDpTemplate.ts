@@ -5,25 +5,13 @@
  * The static list configures its second line per entry — for a list whose rows come
  * from a filter that does not work: nobody hand-picks the battery datapoint of 40
  * discovered thermostats. The template closes that gap with the SAME tokens popup
- * views already use (`{{dp}}`, `{{parent}}`, `{{name}}`, see utils/popupPlaceholders),
+ * views already use (`{{dp}}`, `{{parent}}`, `{{parent2}}`, `{{name}}`, see utils/popupPlaceholders),
  * so there is no second placeholder concept to learn.
  *
  * A per-entry `subDps` list always wins over the template — see AutoListWidget.
  */
-import { subAll } from './popupPlaceholders';
+import { dpVarMap, subAll } from './popupPlaceholders';
 import type { EntrySubDp } from '../components/widgets/EntrySubLine';
-
-/** Token table for one list row — the same keys buildPopupSubMap derives for a popup. */
-export function subDpTokenMap(dpId: string): Record<string, string> {
-    if (!dpId) return {};
-    const map: Record<string, string> = { dp: dpId };
-    const lastDot = dpId.lastIndexOf('.');
-    if (lastDot > 0) {
-        map.parent = dpId.slice(0, lastDot); // parent strang, e.g. hm-rpc.0.Thermostat
-        map.name = dpId.slice(lastDot + 1); // last segment, e.g. ACTUAL_TEMPERATURE
-    }
-    return map;
-}
 
 /** true once every `{{token}}` in `id` has been substituted. */
 export function isResolvedDpId(id: string): boolean {
@@ -41,7 +29,7 @@ export function isResolvedDpId(id: string): boolean {
  */
 export function resolveSubDpTemplate(template: EntrySubDp[] | undefined, dpId: string): EntrySubDp[] {
     if (!template?.length || !dpId) return [];
-    const map = subDpTokenMap(dpId);
+    const map = dpVarMap(dpId);
     const out: EntrySubDp[] = [];
     for (const s of template) {
         if (!s?.id) continue;
@@ -56,17 +44,30 @@ export function resolveSubDpTemplate(template: EntrySubDp[] | undefined, dpId: s
  * Rewrites a concrete datapoint id into a template id, so picking "BATTERY" of the
  * sample device yields `{{parent}}.BATTERY` and applies to every other row too.
  *
- * Only DIRECT siblings are tokenised. Anything else (another channel of the same
- * device, an unrelated datapoint) stays absolute on purpose: `{{parent}}` is defined
- * as "id without its last segment", so a deeper path could not be reconstructed for
- * other rows — and an absolute id is exactly what a shared datapoint needs.
+ * Picking across channels works the same way: the sample's ancestors are tried from
+ * the deepest one down, so the HomeMatic thermostat's maintenance channel comes back
+ * as `{{parent2}}.0.OPERATING_VOLTAGE` — the deepest match keeps the relative part as
+ * short and as specific as it can be.
+ *
+ * The walk stops BELOW `adapter.instance`, which is the difference between "another
+ * channel of this device" and "a different device entirely". `hm-rpc.2` matches every
+ * device of that instance, so tokenising against it would turn a deliberately chosen
+ * neighbour datapoint into a wrong one for every other row; those ids stay absolute,
+ * which is exactly what a shared datapoint (outdoor temperature, a price) needs.
  */
 export function toSubDpTemplateId(id: string, sampleDpId: string): string {
     if (!id || !sampleDpId) return id;
-    const lastDot = sampleDpId.lastIndexOf('.');
-    if (lastDot <= 0) return id;
-    const parent = sampleDpId.slice(0, lastDot);
-    if (!id.startsWith(`${parent}.`)) return id;
-    const rest = id.slice(parent.length + 1);
-    return rest && !rest.includes('.') ? `{{parent}}.${rest}` : id;
+    const vars = dpVarMap(sampleDpId);
+    for (let level = 1; ; level++) {
+        const token = level === 1 ? 'parent' : `parent${level}`;
+        const strang = vars[token];
+        // The direct parent is always fair game — it is the row's own strang, however
+        // shallow the tree is. Climbing further is only safe while the strang stays
+        // below `adapter.instance`, which has two segments.
+        if (!strang || (level > 1 && strang.split('.').length < 3)) return id;
+        if (id.startsWith(`${strang}.`)) {
+            const rest = id.slice(strang.length + 1);
+            return rest ? `{{${token}}}.${rest}` : id;
+        }
+    }
 }

@@ -1,5 +1,5 @@
-import { subAll } from './popupPlaceholders';
-import { subDpTokenMap, isResolvedDpId } from './subDpTemplate';
+import { dpVarMap, subAll } from './popupPlaceholders';
+import { isResolvedDpId } from './subDpTemplate';
 import { evaluateClause, OWN_DP_TOKEN } from './conditionEval';
 import { combineClauseHits } from './clauseLogic';
 import type { ElementConditionRule, ElementConditionTarget } from '../types';
@@ -62,7 +62,7 @@ export function isOwnRef(ref: string | undefined, ownDp: string): boolean {
  */
 export function resolveRuleRefs(rules: ElementConditionRule[] | undefined, rowDpId: string): ElementConditionRule[] {
     if (!rules?.length) return [];
-    const map = subDpTokenMap(rowDpId);
+    const map = dpVarMap(rowDpId);
     const out: ElementConditionRule[] = [];
     for (const rule of rules) {
         const clauses = rule.clauses ?? [];

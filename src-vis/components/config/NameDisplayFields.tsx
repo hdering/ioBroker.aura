@@ -61,7 +61,8 @@ export function NameDisplayFields({
             </p>
             <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                 Steht der Name in einem eigenen Datenpunkt: {'[[…]]'} liest dessen Wert live, {'{{parent}}'} /{' '}
-                {'{{dp}}'} / {'{{name}}'} setzen die ID der Zeile ein. Beispiel: {'„[[{{parent}}.DeviceName]]“'}.
+                {'{{parent2}}'} (eine Ebene höher) / {'{{dp}}'} / {'{{name}}'} setzen die ID der Zeile ein. Beispiel:{' '}
+                {'„[[{{parent}}.DeviceName]]“'}.
             </p>
             {inline ? (
                 <div className="mt-3">

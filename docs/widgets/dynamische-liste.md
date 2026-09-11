@@ -109,10 +109,13 @@ In der Vorlage darf die Datenpunkt-ID Platzhalter enthalten, aufgelöst gegen de
 | Platzhalter | |
 | --- | --- |
 | `{{parent}}` | ID ohne letztes Segment, z. B. `{{parent}}.BATTERY` |
+| `{{parent2}}`, `{{parent3}}`, … | je eine Ebene höher, z. B. `{{parent2}}.0.OPERATING_VOLTAGE` |
 | `{{dp}}` | vollständige ID der Zeile |
 | `{{name}}` | letztes Segment der ID |
 
-Ohne Platzhalter gilt derselbe Datenpunkt für jede Zeile (Außentemperatur, Strompreis). Ein Beispiel-Eintrag im Tab liefert die Auswahl der Geschwister-Datenpunkte und die Vorschau der aufgelösten IDs.
+`{{parent2}}` ist der Weg zu einem **anderen Kanal desselben Geräts**: bei HomeMatic liegt der Messwert in `….000A….1.ACTUAL_TEMPERATURE`, Batterie und `UNREACH` dagegen im Wartungskanal `….000A….0.*`. Oberhalb von `adapter.instanz` gibt es keine Ebene mehr.
+
+Ohne Platzhalter gilt derselbe Datenpunkt für jede Zeile (Außentemperatur, Strompreis). Ein Beispiel-Eintrag im Tab liefert die Auswahl der Geschwister-Datenpunkte und die Vorschau der aufgelösten IDs. Über **Beliebiger DP** gewählte Datenpunkte desselben Geräts werden automatisch zum Muster — ein Klick auf die Batterie im Wartungskanal speichert `{{parent2}}.0.OPERATING_VOLTAGE`. Datenpunkte eines anderen Geräts bleiben absolut.
 
 Zusätzlich pro Datenpunkt der zweiten Zeile:
 

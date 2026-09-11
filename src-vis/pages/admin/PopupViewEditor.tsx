@@ -30,6 +30,11 @@ const EXAMPLE_MAIN_DP = 'alias.0.Heizung.Bad.TSOLL';
 const PLACEHOLDER_DOCS: { token: string; example: string; desc: string }[] = [
     { token: '{{dp}}', example: 'alias.0.Heizung.Bad.TSOLL', desc: 'Haupt-Datenpunkt (voll)' },
     { token: '{{parent}}', example: 'alias.0.Heizung.Bad', desc: 'Eltern-Strang (ohne letztes Segment)' },
+    {
+        token: '{{parent2}}',
+        example: 'alias.0.Heizung',
+        desc: 'Eine Ebene höher ({{parent3}} usw. — z. B. für den Wartungskanal eines HomeMatic-Geräts)',
+    },
     { token: '{{name}}', example: 'TSOLL', desc: 'Letztes Segment' },
     {
         token: '[[dp]]',

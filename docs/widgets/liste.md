@@ -450,7 +450,7 @@ Dialog **Datenpunkte verwalten** → Tab **Namen**. Ein Muster für alle Zeilen;
 | `<DPName>`                           | letztes Segment der ID                                                                                      |
 | `<Name>`                             | vollständiger Name                                                                                          |
 | `<ID>`                               | vollständige Datenpunkt-ID                                                                                  |
-| `{{parent}}` · `{{dp}}` · `{{name}}` | ID-Bausteine der Zeile, wie in der [zweiten Zeile](./dynamische-liste#zweite-zeile-zusatzliche-datenpunkte) |
+| `{{parent}}` · `{{parent2}}` · `{{dp}}` · `{{name}}` | ID-Bausteine der Zeile, wie in der [zweiten Zeile](./dynamische-liste#zweite-zeile-zusatzliche-datenpunkte) |
 | `[[id]]`                             | **Wert** dieses Datenpunkts, live                                                                           |
 
 Steht der Anzeigename in einem eigenen Datenpunkt, kombiniert man beides:

@@ -74,10 +74,13 @@ export function SubDpTemplatePanel({
             <p className="text-[11px]" style={{ ...label, opacity: 0.85 }}>
                 Zusätzliche Datenpunkte in einer zweiten Zeile — für <strong>alle</strong> Einträge der Liste. Die
                 Datenpunkt-ID darf die Platzhalter <span className="font-mono">{'{{parent}}'}</span> (Strang ohne
-                letztes Segment), <span className="font-mono">{'{{dp}}'}</span> (ganze ID) und{' '}
-                <span className="font-mono">{'{{name}}'}</span> (letztes Segment) enthalten; sie werden pro Zeile gegen
-                deren eigenen Datenpunkt aufgelöst. Beispiel: <span className="font-mono">{'{{parent}}.BATTERY'}</span>.
-                Ohne Platzhalter gilt derselbe Datenpunkt für jede Zeile. Nicht im Badges-Layout.
+                letztes Segment), <span className="font-mono">{'{{parent2}}'}</span> (eine Ebene höher,{' '}
+                <span className="font-mono">{'{{parent3}}'}</span> usw.), <span className="font-mono">{'{{dp}}'}</span>{' '}
+                (ganze ID) und <span className="font-mono">{'{{name}}'}</span> (letztes Segment) enthalten; sie werden
+                pro Zeile gegen deren eigenen Datenpunkt aufgelöst. Beispiel:{' '}
+                <span className="font-mono">{'{{parent}}.BATTERY'}</span>, für den Wartungskanal eines HomeMatic-Geräts{' '}
+                <span className="font-mono">{'{{parent2}}.0.OPERATING_VOLTAGE'}</span>. Ohne Platzhalter gilt derselbe
+                Datenpunkt für jede Zeile. Nicht im Badges-Layout.
             </p>
 
             {entries.length === 0 ? (

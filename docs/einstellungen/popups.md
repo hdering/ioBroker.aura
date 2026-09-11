@@ -74,6 +74,7 @@ Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
 | --- | --- | --- |
 | `{{dp}}` | `alias.0.Heizung.Bad.TSOLL` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `{{parent}}` | `alias.0.Heizung.Bad` | jedem Feld der Popup-Widgets · Popup-Titel |
+| `{{parent2}}`, `{{parent3}}`, … | `alias.0.Heizung`, `alias.0` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `{{name}}` | `TSOLL` | jedem Feld der Popup-Widgets · Popup-Titel |
 | `[[<dp>]]` | Wert des Datenpunkts | Popup-Titel · Widget-Name (jedes Widget) |
 
@@ -84,6 +85,12 @@ Haupt-Datenpunkt im Beispiel: `alias.0.Heizung.Bad.TSOLL`
 | `{{parent}}.TIST` | Datenpunkt eines Widgets | `alias.0.Heizung.Bad.TIST` |
 | `[[{{parent}}.TIST]] °C` | Widget-Name | `21.5 °C`, live |
 | `{{name}} · [[{{parent}}.TIST]] °C` | Popup-Titel | `TSOLL · 21.5 °C`, live |
+| `{{parent2}}.0.OPERATING_VOLTAGE` | Datenpunkt eines Widgets | Wartungskanal eines HomeMatic-Geräts, siehe unten |
+
+Jede Zahl steht für eine Ebene weiter oben. Nötig, wenn der gesuchte Datenpunkt in einem
+**anderen Kanal desselben Geräts** liegt — bei HomeMatic z. B. `hm-rpc.2.000A….1.ACTUAL_TEMPERATURE`
+(Messwert) und `hm-rpc.2.000A….0.OPERATING_VOLTAGE` (Batterie): `{{parent}}` endet im Kanal `.1`,
+`{{parent2}}` trifft das Gerät. Oberhalb von `adapter.instanz` gibt es keine Ebene mehr.
 
 Beim Klick auf eine Listenzeile ist der Haupt-Datenpunkt die geklickte Zeile — ein Popup-Titel mit Platzhaltern gilt damit für alle Zeilen.
 

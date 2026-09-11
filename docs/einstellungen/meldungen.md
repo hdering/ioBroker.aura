@@ -291,6 +291,7 @@ In allen Textfeldern der Meldung stehen dafür die Datenpunkt-Platzhalter der Ze
 | --- | --- |
 | `{{dp}}` | `hm-rpc.0.Melder1.MOTION` |
 | `{{parent}}` | `hm-rpc.0.Melder1` |
+| `{{parent2}}`, `{{parent3}}`, … | je eine Ebene höher — für einen anderen Kanal desselben Geräts |
 | `{{name}}` | `MOTION` |
 
 ```

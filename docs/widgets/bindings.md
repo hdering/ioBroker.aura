@@ -446,10 +446,10 @@ Sie sehen ähnlich aus, machen aber Verschiedenes:
 | Ebene | Syntax | Wo | Wann |
 | --- | --- | --- | --- |
 | Widget-Titel | `[[0_userdata.0.Temp]]` | Titelfeld jedes Widgets | live, bei jeder Wertänderung |
-| Popup-Views | `{{parent}}` `{{dp}}` `{{name}}` | alle Felder eines Popup-Widgets | einmal beim Öffnen, ersetzt **IDs**, keine Werte |
+| Popup-Views | `{{parent}}` `{{parent2}}` `{{dp}}` `{{name}}` | alle Felder eines Popup-Widgets | einmal beim Öffnen, ersetzt **IDs**, keine Werte |
 | Bindings | `{…}` · `{{ … }}` | HTML-Widget, HTML-Template, Marker-Label, Untertitel des Abschnittstitels | live, bei jeder Wertänderung |
 
-Die Popup-Ebene benutzt ebenfalls doppelte Klammern, kollidiert aber nicht: `{{parent}}` ist ein einzelnes Wort ohne Leerzeichen und bleibt der Popup-Ebene vorbehalten. Alles mit Leerzeichen, Punkt oder Operator ist ein Ausdruck. Wer in einem Popup den **Wert** des Haupt-Datenpunkts will, schreibt `{dp}` mit einfachen Klammern.
+Die Popup-Ebene benutzt ebenfalls doppelte Klammern, kollidiert aber nicht: `{{parent}}` ist ein einzelnes Wort ohne Leerzeichen und bleibt der Popup-Ebene vorbehalten. Höhere Ebenen werden deshalb durchnummeriert (`{{parent2}}`, `{{parent3}}`, …) und nicht als `{{parent.parent}}` geschrieben. Alles mit Leerzeichen, Punkt oder Operator ist ein Ausdruck. Wer in einem Popup den **Wert** des Haupt-Datenpunkts will, schreibt `{dp}` mit einfachen Klammern.
 
 ## Unterschiede zu ioBroker.vis
 

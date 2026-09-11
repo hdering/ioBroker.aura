@@ -145,7 +145,8 @@ export function RowClickEntryField({
                         style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
                     >
                         <span className="font-mono">{'{{name}}'}</span> /{' '}
-                        <span className="font-mono">{'{{parent}}'}</span> der geklickten Zeile;{' '}
+                        <span className="font-mono">{'{{parent}}'}</span> /{' '}
+                        <span className="font-mono">{'{{parent2}}'}</span> der geklickten Zeile;{' '}
                         <span className="font-mono">[[dp.id]]</span> zeigt einen Wert.
                     </p>
                 </div>

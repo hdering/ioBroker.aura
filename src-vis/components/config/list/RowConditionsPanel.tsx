@@ -1,6 +1,5 @@
 import { ElementConditionEditor, ROW_TARGETS } from '../ElementConditionEditor';
-import { subDpTokenMap } from '../../../utils/subDpTemplate';
-import { subAll } from '../../../utils/popupPlaceholders';
+import { dpVarMap, subAll } from '../../../utils/popupPlaceholders';
 import { OWN_DP_TOKEN } from '../../../utils/conditionEval';
 import type { ElementConditionRule } from '../../../types';
 
@@ -22,7 +21,7 @@ export function RowConditionsPanel({
     sampleDp?: string;
     onChange: (next: ElementConditionRule[]) => void;
 }) {
-    const map = sampleDp ? subDpTokenMap(sampleDp) : {};
+    const map = sampleDp ? dpVarMap(sampleDp) : {};
     const example = sampleDp ? subAll('{{parent}}.UNREACH', map) : '';
 
     return (
@@ -36,7 +35,8 @@ export function RowConditionsPanel({
                     gewinnen je Eigenschaft.
                 </p>
                 <p>
-                    Im Datenpunkt einer Bedingung stehen <code>{'{{parent}}'}</code>, <code>{'{{dp}}'}</code> und{' '}
+                    Im Datenpunkt einer Bedingung stehen <code>{'{{parent}}'}</code>, <code>{'{{parent2}}'}</code> (eine
+                    Ebene höher, <code>{'{{parent3}}'}</code> usw.), <code>{'{{dp}}'}</code> und{' '}
                     <code>{'{{name}}'}</code> zur Verfügung — sie werden je Zeile aufgelöst. Zeilen, deren Datenpunkt
                     einen Platzhalter nicht beantworten kann, überspringen die Regel.
                 </p>
