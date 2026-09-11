@@ -218,7 +218,7 @@ export const en: Record<TranslationKey, string> = {
     'menuItem.widget.card': 'With card (background/border)',
     'menuItem.widget.preview': 'Preview',
     'menuItem.widget.previewHintOwn':
-        "Exactly the box the element gets in the menu. The arrow on the widget opens its own settings.",
+        'Exactly the box the element gets in the menu. The arrow on the widget opens its own settings.',
     'menuItem.widget.previewHintRef':
         'Exactly the box the element gets in the menu. Content and options are edited on the original in the dashboard editor.',
     'settings.tabBar.posLeft': 'Left',
