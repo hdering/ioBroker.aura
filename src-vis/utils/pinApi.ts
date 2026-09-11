@@ -131,7 +131,14 @@ export interface VaultSectionMeta {
     pinRelock: 'leave' | 'session';
     /** Released for the MCP server to read and write this view's content. */
     mcpWrite?: boolean;
-    content: any;
+    /**
+     * The redacted view itself — a section's tabs, a tab's widgets. Opaque on
+     * purpose: this layer only carries the payload from the adapter to
+     * dashboardStore.mergeProtectedContent, which is where the shape is known and
+     * narrowed per `scope`. Typing it here would duplicate that knowledge in the
+     * transport, and `any` would let a wrong shape through both.
+     */
+    content: unknown;
 }
 
 export async function vaultRead(token: string): Promise<Record<string, VaultSectionMeta> | null> {
