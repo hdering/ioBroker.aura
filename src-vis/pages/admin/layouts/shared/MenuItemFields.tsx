@@ -8,11 +8,10 @@
  */
 
 import { useState } from 'react';
-import { Search, Pencil, Plus, X, ArrowUp, ArrowDown } from 'lucide-react';
+import { Search, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { useT } from '../../../../i18n';
 import { AutoGrowTextarea } from './SettingControls';
 import { DatapointPicker } from '../../../../components/config/DatapointPicker';
-import { MenuWidgetEditDialog } from '../../../../components/config/MenuWidgetEditDialog';
 import { useDashboardStore } from '../../../../store/dashboardStore';
 import type { MenuItemContent } from '../../../../store/dashboardStore';
 import {
@@ -20,10 +19,14 @@ import {
     MENU_WIDGET_DEFAULT_H,
     MENU_WIDGET_DEFAULT_W,
     makeMenuWidget,
+    preferredMenuLayout,
     resolveMenuWidget,
 } from '../../../../utils/menuItems';
+import { getLayoutOptions } from '../../../../utils/widgetLayouts';
+import { MenuWidgetSlot } from '../../../../components/layout/MenuWidgetSlot';
+import { ActiveLayoutContext } from '../../../../contexts/ActiveLayoutContext';
 import { WIDGET_BY_TYPE, WIDGET_REGISTRY } from '../../../../widgetRegistry';
-import type { WidgetType } from '../../../../types';
+import type { WidgetLayout, WidgetType } from '../../../../types';
 
 const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
 
@@ -89,10 +92,12 @@ function WidgetFields({
     const layouts = useDashboardStore((s) => s.layouts);
     const [search, setSearch] = useState('');
     const [showAllTypes, setShowAllTypes] = useState(false);
-    const [editOpen, setEditOpen] = useState(false);
 
     const mode: 'own' | 'ref' = item.widget ? 'own' : 'ref';
     const resolved = resolveMenuWidget(item, layouts);
+    // Layouts are per widget type, so the picker needs the type actually on
+    // screen — the referenced widget's, or the item's own instance's.
+    const shownType = resolved?.widget.type;
 
     const allWidgets = layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((tab) => tab.widgets)));
     const filtered = allWidgets
@@ -108,9 +113,13 @@ function WidgetFields({
             );
         });
 
+    // Alphabetical by the label on the button, in both lists — the registry order
+    // is a maintenance order, and MENU_FRIENDLY_TYPES groups by what fits a bar;
+    // neither is an order anybody can scan for a name.
     const typeList = (showAllTypes ? WIDGET_REGISTRY.filter((m) => !m.hidden).map((m) => m.type) : MENU_FRIENDLY_TYPES)
         .filter((ty) => !NO_OWN_INSTANCE.has(ty))
-        .filter((ty) => WIDGET_BY_TYPE[ty]);
+        .filter((ty) => WIDGET_BY_TYPE[ty])
+        .sort((a, b) => WIDGET_BY_TYPE[a].shortLabel.localeCompare(WIDGET_BY_TYPE[b].shortLabel, 'de'));
 
     return (
         <>
@@ -152,7 +161,9 @@ function WidgetFields({
                             return (
                                 <div
                                     key={w.id}
-                                    onClick={() => onUpdate({ widgetId: w.id })}
+                                    onClick={() =>
+                                        onUpdate({ widgetId: w.id, widgetLayout: preferredMenuLayout(w.type) })
+                                    }
                                     className="grid gap-x-2 px-2 py-0.5 rounded text-xs cursor-pointer"
                                     style={{
                                         gridTemplateColumns: '1fr 80px',
@@ -210,27 +221,36 @@ function WidgetFields({
                         />
                         {t('menuItem.widget.showAll')}
                     </label>
-                    <button
-                        onClick={() => setEditOpen(true)}
-                        disabled={!item.widget}
-                        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 disabled:opacity-40"
-                        style={{
-                            background: 'var(--app-bg)',
-                            color: 'var(--text-primary)',
-                            border: '1px solid var(--app-border)',
-                        }}
-                    >
-                        {item.widget ? <Pencil size={12} /> : <Plus size={12} />}
-                        {t('menuItem.widget.configure')}
-                    </button>
-                    {editOpen && item.widget && (
-                        <MenuWidgetEditDialog
-                            item={item}
-                            variant={variant}
-                            onSave={(patch) => onUpdate(patch)}
-                            onClose={() => setEditOpen(false)}
-                        />
-                    )}
+                </div>
+            )}
+
+            {shownType && (
+                <div>
+                    <FieldLabel>{t('menuItem.widget.layout')}</FieldLabel>
+                    <div className="flex gap-1 flex-wrap">
+                        {[
+                            { key: '', label: t('menuItem.widget.layoutOwn') },
+                            ...getLayoutOptions(shownType, t).map((o) => ({ key: o.value, label: o.label })),
+                        ].map((o) => {
+                            const active = (item.widgetLayout ?? '') === o.key;
+                            return (
+                                <button
+                                    key={o.key || '__own'}
+                                    onClick={() =>
+                                        onUpdate({ widgetLayout: (o.key || undefined) as WidgetLayout | undefined })
+                                    }
+                                    className="px-2 py-1 rounded-lg text-[11px] font-medium hover:opacity-80"
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                    }}
+                                >
+                                    {o.label}
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             )}
 
@@ -281,6 +301,32 @@ function WidgetFields({
                 />
                 {t('menuItem.widget.card')}
             </label>
+
+            {resolved && (
+                <div>
+                    <FieldLabel>{t('menuItem.widget.preview')}</FieldLabel>
+                    <div
+                        className="rounded-lg p-4 flex items-center justify-center"
+                        style={{ background: 'var(--app-bg)', border: '1px dashed var(--app-border)' }}
+                    >
+                        {/* The element's own slot, at the size it gets in the bar —
+                            not a lookalike, so the admin and the bar can never
+                            drift apart. In `own` mode it carries the widget's edit
+                            chrome, so its options panel opens right here. */}
+                        <ActiveLayoutContext.Provider value="">
+                            <MenuWidgetSlot
+                                item={item}
+                                variant={variant}
+                                editMode={mode === 'own'}
+                                onWidgetChange={(w) => onUpdate({ widget: w })}
+                            />
+                        </ActiveLayoutContext.Provider>
+                    </div>
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        {t(mode === 'own' ? 'menuItem.widget.previewHintOwn' : 'menuItem.widget.previewHintRef')}
+                    </p>
+                </div>
+            )}
         </>
     );
 }

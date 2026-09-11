@@ -6,8 +6,9 @@
 
 import type { DashboardLayout, HeaderItem, MenuItemContent, MenuItemType } from '../store/dashboardStore';
 import type { FrontendSettings } from '../store/configStore';
-import type { WidgetConfig, WidgetType } from '../types';
+import type { WidgetConfig, WidgetLayout, WidgetType } from '../types';
 import { WIDGET_BY_TYPE } from '../widgetRegistry';
+import { getAvailableLayouts } from './widgetLayouts';
 
 /** Fresh element of the given type, with the defaults its editor expects. */
 export function makeMenuItem<T extends MenuItemContent>(type: MenuItemType, rest: Omit<T, keyof MenuItemContent>): T {
@@ -81,13 +82,27 @@ export function resolveMenuWidget(
     return undefined;
 }
 
+/**
+ * The layout a menu slot should start on for this widget type.
+ *
+ * A menu is not a dashboard. The switch that reads well as a card is far too
+ * tall for a 32px bar, so a fresh slot prefers the densest layout the type
+ * offers — `minimal` before `compact` — and falls back to the type's own default
+ * when it has neither. The element editor overrides it either way.
+ */
+export function preferredMenuLayout(type: WidgetType | undefined): WidgetLayout | undefined {
+    if (!type) return undefined;
+    const available = getAvailableLayouts(type);
+    return (['minimal', 'compact'] as const).find((l) => available.includes(l));
+}
+
 /** Minimal config for a brand-new item-owned widget instance. */
 export function makeMenuWidget(type: WidgetType): WidgetConfig {
     const meta = WIDGET_BY_TYPE[type];
     return {
         id: `mw-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`,
         type,
-        layout: type === 'universal' ? 'custom' : 'default',
+        layout: preferredMenuLayout(type) ?? (type === 'universal' ? 'custom' : 'default'),
         title: '',
         datapoint: '',
         gridPos: { x: 0, y: 0, w: meta?.defaultW ?? 4, h: meta?.defaultH ?? 3 },

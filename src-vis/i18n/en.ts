@@ -209,15 +209,18 @@ export const en: Record<TranslationKey, string> = {
     'menuItem.widget.searchPh': 'Search by name, type or ID…',
     'menuItem.widget.noWidgets': 'No widgets yet',
     'menuItem.widget.missing': 'Target widget no longer exists',
+    'menuItem.widget.layout': 'Layout',
+    'menuItem.widget.layoutOwn': 'As in the widget',
     'menuItem.widget.type': 'Widget type',
     'menuItem.widget.showAll': 'Show all types (including unsuitable ones)',
-    'menuItem.widget.configure': 'Configure widget',
     'menuItem.widget.width': 'Width (px)',
     'menuItem.widget.height': 'Height (px)',
     'menuItem.widget.card': 'With card (background/border)',
-    'menuItem.widget.editTitle': 'Configure the menu widget',
-    'menuItem.widget.editHint':
-        'The box is exactly the size the widget gets in the menu. Conditions, badges and click actions work as on the dashboard.',
+    'menuItem.widget.preview': 'Preview',
+    'menuItem.widget.previewHintOwn':
+        "Exactly the box the element gets in the menu. The arrow on the widget opens its own settings.",
+    'menuItem.widget.previewHintRef':
+        'Exactly the box the element gets in the menu. Content and options are edited on the original in the dashboard editor.',
     'settings.tabBar.posLeft': 'Left',
     'settings.tabBar.posCenter': 'Center',
     'settings.tabBar.posRight': 'Right',
@@ -493,7 +496,7 @@ export const en: Record<TranslationKey, string> = {
     'design.subtitle': 'Theme, typography, grid, tab bar and value formatting — global or per layout.',
     'design.frameGroup': 'Global frame',
     'design.header.hint':
-        'Frontend header bar: title, clock, status badge and an optional datapoint. Configurable globally or per layout.',
+        'Frontend header bar: title, status badge and as many elements of your own as you like. Configurable globally or per layout.',
     'design.menu.hint':
         'Left-hand navigation menu for switching between the sections of a layout (hamburger button or docked sidebar). Configurable globally or per layout.',
     'design.nav.hint':

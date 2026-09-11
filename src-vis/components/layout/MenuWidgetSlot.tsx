@@ -26,11 +26,18 @@ interface Props {
      * `block` = stacked list (section menu drawer): full width, fixed height.
      */
     variant: 'bar' | 'block';
+    /**
+     * Admin preview: render the widget's edit chrome, so its own options panel is
+     * reachable straight from the element row. The element editor uses this very
+     * component instead of a preview of its own, so what the admin shows and what
+     * the bar draws can never drift apart.
+     */
+    editMode?: boolean;
     /** Item-owned widget edits are persisted by the host (admin preview only). */
     onWidgetChange?: (next: MenuItemContent['widget']) => void;
 }
 
-export function MenuWidgetSlot({ item, variant, onWidgetChange }: Props) {
+export function MenuWidgetSlot({ item, variant, editMode = false, onWidgetChange }: Props) {
     const layouts = useDashboardStore((s) => s.layouts);
     const updateWidget = useDashboardStore((s) => s.updateWidget);
     const resolved = resolveMenuWidget(item, layouts);
@@ -42,9 +49,10 @@ export function MenuWidgetSlot({ item, variant, onWidgetChange }: Props) {
     const config = useMemo(() => {
         if (!resolved) return undefined;
         const w = resolved.widget;
-        if (item.widgetCard) return w;
-        return { ...w, options: { ...w.options, transparent: true, transparency: 100 } };
-    }, [resolved, item.widgetCard]);
+        const withLayout = item.widgetLayout ? { ...w, layout: item.widgetLayout } : w;
+        if (item.widgetCard) return withLayout;
+        return { ...withLayout, options: { ...withLayout.options, transparent: true, transparency: 100 } };
+    }, [resolved, item.widgetCard, item.widgetLayout]);
 
     if (!resolved || !config) {
         return (
@@ -83,7 +91,7 @@ export function MenuWidgetSlot({ item, variant, onWidgetChange }: Props) {
             <div style={{ height: '100%' }}>
                 <WidgetFrame
                     config={config}
-                    editMode={false}
+                    editMode={editMode}
                     onRemove={() => {}}
                     onConfigChange={(next) => {
                         // Widgets persist their own interactive state (timer events,
@@ -99,8 +107,13 @@ export function MenuWidgetSlot({ item, variant, onWidgetChange }: Props) {
                                 else delete options[k];
                             }
                         }
-                        if (resolved.owned) onWidgetChange?.({ ...resolved.widget, options });
-                        else updateWidget(resolved.widget.id, { options });
+                        // In the admin the whole widget is editable, not just its
+                        // options — the element owns it. Keep the slot's layout
+                        // override out of what gets stored.
+                        if (resolved.owned) {
+                            const layout = item.widgetLayout ? resolved.widget.layout : next.layout;
+                            onWidgetChange?.({ ...next, layout, options });
+                        } else updateWidget(resolved.widget.id, { options });
                     }}
                 />
             </div>

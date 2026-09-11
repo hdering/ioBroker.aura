@@ -209,15 +209,18 @@ export const de = {
     'menuItem.widget.searchPh': 'Suchen nach Name, Typ oder ID…',
     'menuItem.widget.noWidgets': 'Keine Widgets vorhanden',
     'menuItem.widget.missing': 'Ziel-Widget existiert nicht mehr',
+    'menuItem.widget.layout': 'Darstellung',
+    'menuItem.widget.layoutOwn': 'Wie im Widget',
     'menuItem.widget.type': 'Widget-Typ',
     'menuItem.widget.showAll': 'Alle Typen anzeigen (auch ungeeignete)',
-    'menuItem.widget.configure': 'Widget einrichten',
     'menuItem.widget.width': 'Breite (px)',
     'menuItem.widget.height': 'Höhe (px)',
     'menuItem.widget.card': 'Mit Karte (Hintergrund/Rahmen)',
-    'menuItem.widget.editTitle': 'Widget im Menü einrichten',
-    'menuItem.widget.editHint':
-        'Die Box zeigt genau die Größe, die das Widget im Menü bekommt. Bedingungen, Badges und Klick-Aktionen gelten wie auf dem Dashboard.',
+    'menuItem.widget.preview': 'Vorschau',
+    'menuItem.widget.previewHintOwn':
+        'Genau die Box, die das Element im Menü bekommt. Der Pfeil am Widget öffnet dessen eigene Einstellungen.',
+    'menuItem.widget.previewHintRef':
+        'Genau die Box, die das Element im Menü bekommt. Inhalt und Optionen werden am Original im Dashboard-Editor gepflegt.',
     'settings.tabBar.posLeft': 'Links',
     'settings.tabBar.posCenter': 'Mitte',
     'settings.tabBar.posRight': 'Rechts',
@@ -495,7 +498,7 @@ export const de = {
     'design.subtitle': 'Theme, Typografie, Grid, Tab-Leiste und Werte-Formatierung — global oder pro Layout.',
     'design.frameGroup': 'Globaler Rahmen',
     'design.header.hint':
-        'Kopfleiste des Frontends: Titel, Uhr, Status-Badge und ein optionaler Datenpunkt. Global oder pro Layout konfigurierbar.',
+        'Kopfleiste des Frontends: Titel, Status-Badge und beliebig viele eigene Elemente. Global oder pro Layout konfigurierbar.',
     'design.menu.hint':
         'Linkes Navigations-Menü zum Wechseln zwischen den Bereichen eines Layouts (Hamburger-Button oder angedockte Sidebar). Global oder pro Layout konfigurierbar.',
     'design.nav.hint':
