@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useT } from '../../../../i18n';
 import { ToggleRow, SubGroup } from '../shared/SettingControls';
@@ -30,6 +31,9 @@ const HEADER_KEYS: (keyof LayoutSettings)[] = [
 export function HeaderSection({ contextId }: { contextId: string | null }) {
     const t = useT();
     const { eff, set, resetKeys, isDirty, level } = useLayoutSetting(contextId);
+    // The element just added opens itself: a collapsed row shows nothing but its
+    // type, and adding one is always the start of configuring it.
+    const [addedId, setAddedId] = useState<string>();
 
     const [showHeader] = eff('showHeader');
     const [headerTitle] = eff('headerTitle');
@@ -149,6 +153,7 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                                     canMoveUp={canMoveMenuItem(items, item.id, -1)}
                                     canMoveDown={canMoveMenuItem(items, item.id, 1)}
                                     variant="bar"
+                                    defaultExpanded={item.id === addedId}
                                 />
                             ))}
                         </div>
@@ -156,9 +161,11 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                             {(['clock', 'datapoint', 'text', 'widget', 'idleReturn'] as const).map((type) => (
                                 <button
                                     key={type}
-                                    onClick={() =>
-                                        writeItems([...items, makeMenuItem<HeaderItem>(type, { position: 'right' })])
-                                    }
+                                    onClick={() => {
+                                        const fresh = makeMenuItem<HeaderItem>(type, { position: 'right' });
+                                        setAddedId(fresh.id);
+                                        writeItems([...items, fresh]);
+                                    }}
                                     className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
                                     style={{
                                         background: 'var(--app-bg)',

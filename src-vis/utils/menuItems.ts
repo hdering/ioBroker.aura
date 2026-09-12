@@ -47,18 +47,58 @@ export const MENU_FRIENDLY_TYPES: WidgetType[] = [
 ];
 
 /**
- * Default slot size in px, by host layout.
+ * Fallback slot size in px for items that carry no size of their own — configs
+ * written before a fresh slot started at the widget's own size, see
+ * `menuWidgetDefaultSize`.
  *
  * The bar height is a fixed number rather than "stretch to the bar" on purpose:
  * a widget's natural height is a dashboard height (a value widget wants ~90px),
  * so as an ordinary flex item it would push the header or the tab bar open to
  * that. Stretching instead needs a sibling in the same flex zone to supply the
  * height, and a bar zone that holds nothing but extras has none — the slot then
- * collapses to nothing. A definite height is predictable in both cases, and the
- * element editor exposes it.
+ * collapses to nothing. A definite height is predictable in both cases.
  */
 export const MENU_WIDGET_DEFAULT_W = { bar: 120, block: 240 } as const;
 export const MENU_WIDGET_DEFAULT_H = { bar: 32, block: 120 } as const;
+
+/** Limits of a menu slot — the drag handle and any stored value stay inside. */
+export const MENU_WIDGET_MIN_PX = 24;
+export const MENU_WIDGET_MAX_W = 1200;
+export const MENU_WIDGET_MAX_H = 800;
+
+/** Grid metrics a widget is sized in on a dashboard (see Dashboard.tsx). */
+export interface MenuGridMetrics {
+    gridRowHeight?: number;
+    gridSnapX?: number;
+    gridGap?: number;
+}
+
+/**
+ * The px box a widget type occupies on a dashboard — the size a freshly picked
+ * menu slot starts at (#634).
+ *
+ * Before this, a new slot fell back to the bar default (120×32) and the widget
+ * showed up as a sliver nobody recognised as the thing they had just added. A
+ * dashboard sizes in grid cells and a menu has no grid, so the type's default
+ * cell box is converted with the same metrics the editor grid uses: n cells plus
+ * the n-1 gaps between them. `block` leaves the width open because a section
+ * menu entry is full width by design.
+ */
+export function menuWidgetDefaultSize(
+    type: WidgetType | undefined,
+    variant: 'bar' | 'block',
+    grid?: MenuGridMetrics,
+): { widgetWidth: number | undefined; widgetHeight: number } {
+    const meta = type ? WIDGET_BY_TYPE[type] : undefined;
+    const cell = grid?.gridRowHeight ?? 20;
+    const snapX = grid?.gridSnapX ?? cell;
+    const gap = grid?.gridGap ?? 10;
+    const span = (cells: number, size: number) => Math.max(MENU_WIDGET_MIN_PX, cells * size + (cells - 1) * gap);
+    return {
+        widgetWidth: variant === 'bar' ? Math.min(MENU_WIDGET_MAX_W, span(meta?.defaultW ?? 8, snapX)) : undefined,
+        widgetHeight: Math.min(MENU_WIDGET_MAX_H, span(meta?.defaultH ?? 4, cell)),
+    };
+}
 
 /**
  * The widget an item shows: its own instance if it has one, otherwise the

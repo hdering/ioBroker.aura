@@ -4,7 +4,7 @@ import { managedStorage, flushKey, withSuppressedDirty } from './persistManager'
 import { useGroupDefsStore, newGroupDefId } from './groupDefsStore';
 import { cloneWidget, finishClone, makeIdDeduper, newCloneScope, remapWidgetRefs } from '../utils/widgetCopy';
 import { slugify } from '../utils/slugify';
-import type { WidgetConfig, WidgetCondition, WidgetLayout, BadgeDef, BadgeAggregate } from '../types';
+import type { WidgetConfig, WidgetCondition, BadgeDef, BadgeAggregate } from '../types';
 import { KEEP_PIN, type PinRelock } from '../utils/pinLock';
 import type { AllVars } from '../themes';
 
@@ -40,16 +40,12 @@ export interface MenuItemContent {
     widgetId?: string;
     widget?: WidgetConfig;
     /**
-     * Which of the widget type's layouts the slot draws — `default`, `compact`,
-     * `minimal` … Undefined keeps the widget's own layout. A menu is not a
-     * dashboard: the switch that reads well as a card is far too tall for a 32px
-     * bar, so the slot may pick a denser layout without touching the widget it
-     * points at.
+     * Slot size in px — dragged on the preview in the element editor. A fresh
+     * slot starts at the box the widget type has on a dashboard; undefined is
+     * only left by configs written before that (bar: 120×32, block: full
+     * width × 120).
      */
-    widgetLayout?: WidgetLayout;
-    /** Slot width in px. Undefined = the host's default (bar: 120, block: full width). */
     widgetWidth?: number;
-    /** Slot height in px. Undefined = the host's default (bar: fills the bar, block: 120). */
     widgetHeight?: number;
     /** Draw the widget's card (background/border/padding). Default: bare. */
     widgetCard?: boolean;

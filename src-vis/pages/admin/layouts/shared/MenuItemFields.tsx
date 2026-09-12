@@ -7,27 +7,31 @@
  * header had no element list at all.
  */
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Search, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { useT } from '../../../../i18n';
 import { AutoGrowTextarea } from './SettingControls';
 import { DatapointPicker } from '../../../../components/config/DatapointPicker';
 import { useDashboardStore } from '../../../../store/dashboardStore';
 import type { MenuItemContent } from '../../../../store/dashboardStore';
+import { useConfigStore } from '../../../../store/configStore';
+import { createThrottle } from '../../../../utils/throttleCommit';
 import {
     MENU_FRIENDLY_TYPES,
     MENU_WIDGET_DEFAULT_H,
     MENU_WIDGET_DEFAULT_W,
+    MENU_WIDGET_MAX_H,
+    MENU_WIDGET_MAX_W,
+    MENU_WIDGET_MIN_PX,
     makeMenuWidget,
-    preferredMenuLayout,
+    menuWidgetDefaultSize,
     resolveMenuWidget,
 } from '../../../../utils/menuItems';
-import { getLayoutOptions } from '../../../../utils/widgetLayouts';
 import { MenuWidgetSlot } from '../../../../components/layout/MenuWidgetSlot';
 import { IDLE_RETURN_DEFAULT_MINUTES } from '../../../../components/layout/MenuItemView';
 import { ActiveLayoutContext } from '../../../../contexts/ActiveLayoutContext';
 import { WIDGET_BY_TYPE, WIDGET_REGISTRY } from '../../../../widgetRegistry';
-import type { WidgetLayout, WidgetType } from '../../../../types';
+import type { WidgetType } from '../../../../types';
 
 const iSty = { background: 'var(--app-bg)', color: 'var(--text-primary)', border: '1px solid var(--app-border)' };
 
@@ -78,6 +82,154 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
     );
 }
 
+/**
+ * The element's slot at exactly the size it gets in the menu — and the size
+ * control itself (#634).
+ *
+ * The box is dragged by its bottom-right corner, the way a widget is resized on
+ * the dashboard grid; here the box is px rather than cells, so it is
+ * pixel-precise. This replaced the width/height number fields: two numbers to
+ * guess at for a box that is right there on screen.
+ *
+ * While dragging, the size lives in local state and only the throttled copy goes
+ * into the config — a pointer move fires ~60×/s and every one of them would
+ * serialize the whole dashboard (see utils/throttleCommit).
+ */
+function WidgetSizeBox({
+    item,
+    type,
+    variant,
+    editMode,
+    onUpdate,
+}: {
+    item: MenuItemContent;
+    /** Type of the widget on screen — the reset goes back to its default box. */
+    type: WidgetType | undefined;
+    variant: 'bar' | 'block';
+    editMode: boolean;
+    onUpdate: (patch: Partial<MenuItemContent>) => void;
+}) {
+    const t = useT();
+    const grid = useConfigStore((s) => s.frontend);
+    const boxRef = useRef<HTMLDivElement>(null);
+    const [drag, setDrag] = useState<{ w: number; h: number } | null>(null);
+    // The throttle outlives the render that made it, so it must not close over
+    // that render's onUpdate.
+    const latest = useRef(onUpdate);
+    latest.current = onUpdate;
+    const commit = useRef(createThrottle<Partial<MenuItemContent>>((p) => latest.current(p), 60)).current;
+
+    const clamp = (v: number, max: number) => Math.max(MENU_WIDGET_MIN_PX, Math.min(max, Math.round(v)));
+
+    const startDrag = (e: React.PointerEvent<HTMLDivElement>) => {
+        const box = boxRef.current;
+        if (!box) return;
+        e.preventDefault();
+        e.stopPropagation();
+        // Measure instead of reading the item: a block slot has no stored width
+        // and is as wide as its host, and dragging has to start from what the
+        // user sees.
+        const rect = box.getBoundingClientRect();
+        const start = { x: e.clientX, y: e.clientY, w: rect.width, h: rect.height };
+        const handle = e.currentTarget;
+        handle.setPointerCapture(e.pointerId);
+
+        const move = (ev: PointerEvent) => {
+            const next = {
+                w: clamp(start.w + ev.clientX - start.x, MENU_WIDGET_MAX_W),
+                h: clamp(start.h + ev.clientY - start.y, MENU_WIDGET_MAX_H),
+            };
+            setDrag(next);
+            commit.push({ widgetWidth: next.w, widgetHeight: next.h });
+        };
+        const end = () => {
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', end);
+            handle.removeEventListener('pointercancel', end);
+            commit.flush();
+            setDrag(null);
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', end);
+        handle.addEventListener('pointercancel', end);
+    };
+
+    // Live size wins over the stored one so the box follows the pointer even
+    // though the config only sees every 60ms.
+    const shown = drag ? { ...item, widgetWidth: drag.w, widgetHeight: drag.h } : item;
+    const readW = drag?.w ?? item.widgetWidth ?? (variant === 'bar' ? MENU_WIDGET_DEFAULT_W.bar : undefined);
+    const readH = drag?.h ?? item.widgetHeight ?? MENU_WIDGET_DEFAULT_H[variant];
+
+    return (
+        <div>
+            <FieldLabel>{t('menuItem.widget.preview')}</FieldLabel>
+            <div
+                className="rounded-lg p-4 flex items-start"
+                style={{ background: 'var(--app-bg)', border: '1px dashed var(--app-border)', overflow: 'auto' }}
+            >
+                <div
+                    ref={boxRef}
+                    style={{
+                        position: 'relative',
+                        display: variant === 'bar' ? 'inline-block' : 'block',
+                        width: variant === 'bar' ? undefined : '100%',
+                        flexShrink: 0,
+                    }}
+                >
+                    {/* The element's own slot, not a lookalike, so the admin and
+                        the bar can never drift apart. In `own` mode it carries the
+                        widget's edit chrome, so its options panel opens right
+                        here. */}
+                    <ActiveLayoutContext.Provider value="">
+                        <MenuWidgetSlot
+                            item={shown}
+                            variant={variant}
+                            editMode={editMode}
+                            onWidgetChange={(w) => onUpdate({ widget: w })}
+                        />
+                    </ActiveLayoutContext.Provider>
+                    <div
+                        onPointerDown={startDrag}
+                        title={t('menuItem.widget.sizeDrag')}
+                        className="aura-menu-size-handle"
+                        data-aura-menu-size-handle=""
+                        style={{
+                            position: 'absolute',
+                            right: -5,
+                            bottom: -5,
+                            width: 14,
+                            height: 14,
+                            borderRadius: 4,
+                            background: 'var(--accent)',
+                            border: '2px solid var(--app-bg)',
+                            cursor: 'nwse-resize',
+                            touchAction: 'none',
+                            zIndex: 2,
+                        }}
+                    />
+                </div>
+            </div>
+            <div className="flex items-center justify-between gap-2 mt-1">
+                <span className="text-[10px] font-mono" style={{ color: 'var(--text-secondary)' }}>
+                    {readW ?? t('menuItem.widget.sizeAuto')} × {readH} px
+                </span>
+                {(item.widgetWidth !== undefined || item.widgetHeight !== undefined) && (
+                    <button
+                        onClick={() => onUpdate(menuWidgetDefaultSize(type, variant, grid))}
+                        className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-80"
+                        style={{ color: 'var(--text-secondary)', border: '1px solid var(--app-border)' }}
+                    >
+                        {t('menuItem.widget.sizeReset')}
+                    </button>
+                )}
+            </div>
+            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                {t(editMode ? 'menuItem.widget.previewHintOwn' : 'menuItem.widget.previewHintRef')}
+            </p>
+        </div>
+    );
+}
+
 // ── Widget fields ────────────────────────────────────────────────────────────
 
 function WidgetFields({
@@ -91,6 +243,7 @@ function WidgetFields({
 }) {
     const t = useT();
     const layouts = useDashboardStore((s) => s.layouts);
+    const grid = useConfigStore((s) => s.frontend);
     const [search, setSearch] = useState('');
     const [showAllTypes, setShowAllTypes] = useState(false);
 
@@ -134,7 +287,11 @@ function WidgetFields({
                     ]}
                     onChange={(v) =>
                         v === 'own'
-                            ? onUpdate({ widget: makeMenuWidget('value'), widgetId: undefined })
+                            ? onUpdate({
+                                  widget: makeMenuWidget('value'),
+                                  widgetId: undefined,
+                                  ...menuWidgetDefaultSize('value', variant, grid),
+                              })
                             : onUpdate({ widget: undefined })
                     }
                 />
@@ -163,7 +320,10 @@ function WidgetFields({
                                 <div
                                     key={w.id}
                                     onClick={() =>
-                                        onUpdate({ widgetId: w.id, widgetLayout: preferredMenuLayout(w.type) })
+                                        // A picked widget starts at the box it has
+                                        // on the dashboard (#634); its layout is the
+                                        // one it carries there.
+                                        onUpdate({ widgetId: w.id, ...menuWidgetDefaultSize(w.type, variant, grid) })
                                     }
                                     className="grid gap-x-2 px-2 py-0.5 rounded text-xs cursor-pointer"
                                     style={{
@@ -198,7 +358,12 @@ function WidgetFields({
                             return (
                                 <button
                                     key={ty}
-                                    onClick={() => onUpdate({ widget: makeMenuWidget(ty) })}
+                                    onClick={() =>
+                                        onUpdate({
+                                            widget: makeMenuWidget(ty),
+                                            ...menuWidgetDefaultSize(ty, variant, grid),
+                                        })
+                                    }
                                     className="px-2 py-1 rounded-lg text-[11px] font-medium hover:opacity-80"
                                     style={{
                                         background: active ? 'var(--accent)' : 'var(--app-bg)',
@@ -225,72 +390,10 @@ function WidgetFields({
                 </div>
             )}
 
-            {shownType && (
-                <div>
-                    <FieldLabel>{t('menuItem.widget.layout')}</FieldLabel>
-                    <div className="flex gap-1 flex-wrap">
-                        {[
-                            { key: '', label: t('menuItem.widget.layoutOwn') },
-                            ...getLayoutOptions(shownType, t).map((o) => ({ key: o.value, label: o.label })),
-                        ].map((o) => {
-                            const active = (item.widgetLayout ?? '') === o.key;
-                            return (
-                                <button
-                                    key={o.key || '__own'}
-                                    onClick={() =>
-                                        onUpdate({ widgetLayout: (o.key || undefined) as WidgetLayout | undefined })
-                                    }
-                                    className="px-2 py-1 rounded-lg text-[11px] font-medium hover:opacity-80"
-                                    style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
-                                        color: active ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                    }}
-                                >
-                                    {o.label}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </div>
-            )}
+            {/* No layout picker here: the layout belongs to the widget and is set
+                in its own options — on the original for a reference, through the
+                preview's edit chrome for an own instance. */}
 
-            <div className="grid grid-cols-2 gap-2">
-                <div>
-                    <FieldLabel>{t('menuItem.widget.width')}</FieldLabel>
-                    <input
-                        type="number"
-                        min={0}
-                        max={1200}
-                        value={item.widgetWidth ?? ''}
-                        placeholder={variant === 'bar' ? String(MENU_WIDGET_DEFAULT_W.bar) : '100%'}
-                        onChange={(e) =>
-                            onUpdate({
-                                widgetWidth: e.target.value ? Math.min(1200, Number(e.target.value)) : undefined,
-                            })
-                        }
-                        className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                        style={iSty}
-                    />
-                </div>
-                <div>
-                    <FieldLabel>{t('menuItem.widget.height')}</FieldLabel>
-                    <input
-                        type="number"
-                        min={0}
-                        max={800}
-                        value={item.widgetHeight ?? ''}
-                        placeholder={String(MENU_WIDGET_DEFAULT_H[variant])}
-                        onChange={(e) =>
-                            onUpdate({
-                                widgetHeight: e.target.value ? Math.min(800, Number(e.target.value)) : undefined,
-                            })
-                        }
-                        className="w-full text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                        style={iSty}
-                    />
-                </div>
-            </div>
             <label
                 className="flex items-center gap-1.5 text-[11px] cursor-pointer"
                 style={{ color: 'var(--text-secondary)' }}
@@ -304,29 +407,13 @@ function WidgetFields({
             </label>
 
             {resolved && (
-                <div>
-                    <FieldLabel>{t('menuItem.widget.preview')}</FieldLabel>
-                    <div
-                        className="rounded-lg p-4 flex items-center justify-center"
-                        style={{ background: 'var(--app-bg)', border: '1px dashed var(--app-border)' }}
-                    >
-                        {/* The element's own slot, at the size it gets in the bar —
-                            not a lookalike, so the admin and the bar can never
-                            drift apart. In `own` mode it carries the widget's edit
-                            chrome, so its options panel opens right here. */}
-                        <ActiveLayoutContext.Provider value="">
-                            <MenuWidgetSlot
-                                item={item}
-                                variant={variant}
-                                editMode={mode === 'own'}
-                                onWidgetChange={(w) => onUpdate({ widget: w })}
-                            />
-                        </ActiveLayoutContext.Provider>
-                    </div>
-                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                        {t(mode === 'own' ? 'menuItem.widget.previewHintOwn' : 'menuItem.widget.previewHintRef')}
-                    </p>
-                </div>
+                <WidgetSizeBox
+                    item={item}
+                    type={shownType}
+                    variant={variant}
+                    editMode={mode === 'own'}
+                    onUpdate={onUpdate}
+                />
             )}
         </>
     );
@@ -532,6 +619,7 @@ export function MenuItemRow<T extends MenuItemContent & { position: string }>({
     canMoveUp,
     canMoveDown,
     variant = 'bar',
+    defaultExpanded = false,
 }: {
     item: T;
     positions: { key: T['position']; label: string }[];
@@ -541,14 +629,24 @@ export function MenuItemRow<T extends MenuItemContent & { position: string }>({
     canMoveUp: boolean;
     canMoveDown: boolean;
     variant?: 'bar' | 'block';
+    /** A just-added element opens itself — nothing to configure while closed. */
+    defaultExpanded?: boolean;
 }) {
     const t = useT();
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(defaultExpanded);
 
     return (
         <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-            <div className="flex items-center gap-2 px-2 py-1.5" style={{ background: 'var(--app-bg)' }}>
-                <div className="flex gap-0.5 shrink-0">
+            {/* The whole strip toggles, not just the caret — the caret is a 12px
+                target for what the entire row is about. The controls on it stop
+                the click so they keep doing their own job. */}
+            <div
+                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer"
+                style={{ background: 'var(--app-bg)' }}
+                onClick={() => setExpanded((e) => !e)}
+                data-aura-menu-row-head={item.type}
+            >
+                <div className="flex gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                     {positions.map((pos) => {
                         const active = item.position === pos.key;
                         return (
@@ -571,7 +669,10 @@ export function MenuItemRow<T extends MenuItemContent & { position: string }>({
                     {t(menuItemTypeLabelKey(item.type))}
                 </span>
                 <button
-                    onClick={() => onMove(-1)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(-1);
+                    }}
                     disabled={!canMoveUp}
                     title={t('common.moveUp')}
                     className="shrink-0 disabled:opacity-25 hover:opacity-70"
@@ -580,7 +681,10 @@ export function MenuItemRow<T extends MenuItemContent & { position: string }>({
                     <ArrowUp size={12} />
                 </button>
                 <button
-                    onClick={() => onMove(1)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(1);
+                    }}
                     disabled={!canMoveDown}
                     title={t('common.moveDown')}
                     className="shrink-0 disabled:opacity-25 hover:opacity-70"
@@ -588,19 +692,26 @@ export function MenuItemRow<T extends MenuItemContent & { position: string }>({
                 >
                     <ArrowDown size={12} />
                 </button>
-                <button
-                    onClick={() => setExpanded((e) => !e)}
-                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
+                <span className="text-[10px] px-1.5 py-0.5 shrink-0" style={{ color: 'var(--text-secondary)' }}>
                     {expanded ? '▲' : '▼'}
-                </button>
-                <button onClick={onRemove} className="hover:opacity-70 shrink-0" style={{ color: 'var(--accent-red)' }}>
+                </span>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove();
+                    }}
+                    className="hover:opacity-70 shrink-0"
+                    style={{ color: 'var(--accent-red)' }}
+                >
                     <X size={13} />
                 </button>
             </div>
             {expanded && (
-                <div className="px-2 py-2 space-y-2 border-t" style={{ borderColor: 'var(--app-border)' }}>
+                <div
+                    className="px-2 py-2 space-y-2 border-t"
+                    style={{ borderColor: 'var(--app-border)' }}
+                    data-aura-menu-row-fields=""
+                >
                     <MenuItemFields
                         item={item}
                         onUpdate={onUpdate as (patch: Partial<MenuItemContent>) => void}

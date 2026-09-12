@@ -69,14 +69,15 @@ Header, Tab-Leiste und Bereichs-Menü tragen dieselbe Elementliste. Der Header w
 | ------------------------ | ---------------------------------------------------------------- |
 | Quelle                   | `Vorhandenes Widget` (Verweis, ändert sich mit dem Original) oder `Eigenes Widget` (Instanz im Element) |
 | Widget-Typ               | Vorausgewählt sind die Typen, die in eine Leiste passen; `Alle Typen anzeigen` hebt das auf |
-| Darstellung              | Layout des Widgets nur für dieses Element — `Wie im Widget` lässt es unverändert. Ein neu gewähltes Widget startet auf der dichtesten Darstellung (minimal vor kompakt), weil ein Karten-Layout für eine 32-px-Leiste zu hoch ist |
-| Breite / Höhe           | Slot-Größe in px; leer = 120×32 in einer Leiste, volle Breite × 120 im Menü |
+| Größe                    | Startet auf der Größe, die der Widget-Typ auf einem Dashboard hat; in der Vorschau an der Ecke unten rechts pixelgenau ziehen, `Standardgröße` setzt zurück |
 | Mit Karte                | Hintergrund und Rahmen zeichnen; ohne das sitzt das Widget blank in der Leiste |
 | Vorschau                 | Das Element in genau der Box, die es im Menü bekommt. Bei `Eigenes Widget` öffnet der Pfeil daran dessen eigene Einstellungen |
 
 Bedingungen, Badges, Klick-Aktionen und Popups eines Widgets gelten im Menü genauso wie auf dem Dashboard. Gruppen und Panels lassen sich nur als Verweis einbinden, nicht als eigene Instanz.
 
 Position: Header `Links`/`Rechts`, Tab-Leiste `L`/`M`/`R`, Bereichs-Menü `Oben`/`Unten`.
+
+Ein neu hinzugefügtes Element ist offen; ein Klick auf die Zeile klappt sie zu und wieder auf. Die Darstellung (Layout) eines Widgets wird am Widget selbst eingestellt, nicht am Element.
 
 ## Navigation
 

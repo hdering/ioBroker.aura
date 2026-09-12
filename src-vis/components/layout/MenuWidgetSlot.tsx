@@ -49,10 +49,9 @@ export function MenuWidgetSlot({ item, variant, editMode = false, onWidgetChange
     const config = useMemo(() => {
         if (!resolved) return undefined;
         const w = resolved.widget;
-        const withLayout = item.widgetLayout ? { ...w, layout: item.widgetLayout } : w;
-        if (item.widgetCard) return withLayout;
-        return { ...withLayout, options: { ...withLayout.options, transparent: true, transparency: 100 } };
-    }, [resolved, item.widgetCard, item.widgetLayout]);
+        if (item.widgetCard) return w;
+        return { ...w, options: { ...w.options, transparent: true, transparency: 100 } };
+    }, [resolved, item.widgetCard]);
 
     if (!resolved || !config) {
         return (
@@ -108,12 +107,9 @@ export function MenuWidgetSlot({ item, variant, editMode = false, onWidgetChange
                             }
                         }
                         // In the admin the whole widget is editable, not just its
-                        // options — the element owns it. Keep the slot's layout
-                        // override out of what gets stored.
-                        if (resolved.owned) {
-                            const layout = item.widgetLayout ? resolved.widget.layout : next.layout;
-                            onWidgetChange?.({ ...next, layout, options });
-                        } else updateWidget(resolved.widget.id, { options });
+                        // options — the element owns it.
+                        if (resolved.owned) onWidgetChange?.({ ...next, options });
+                        else updateWidget(resolved.widget.id, { options });
                     }}
                 />
             </div>

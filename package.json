@@ -194,6 +194,7 @@
     "test:universal-select": "node tools/tests/universal-select-cell.mjs",
     "test:menu-item-order": "node tools/tests/menu-item-order.mjs",
     "test:menu-items": "node tools/tests/menu-items.mjs",
+    "test:menu-widget-size": "node tools/tests/menu-widget-size.mjs",
     "test:image-source": "node tools/tests/image-source.mjs",
     "test:media-detect": "node tools/tests/media-role-detect.mjs",
     "test:autolist-icon": "node tools/tests/autolist-icon.mjs",

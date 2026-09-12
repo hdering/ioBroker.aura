@@ -93,6 +93,7 @@ function TabBarItemRow({
     onMove,
     canMoveUp,
     canMoveDown,
+    defaultExpanded = false,
     t,
 }: {
     item: TabBarItem;
@@ -101,9 +102,11 @@ function TabBarItemRow({
     onMove: (dir: -1 | 1) => void;
     canMoveUp: boolean;
     canMoveDown: boolean;
+    /** A just-added element opens itself — nothing to configure while closed. */
+    defaultExpanded?: boolean;
     t: ReturnType<typeof useT>;
 }) {
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(defaultExpanded);
     const posLabels: Record<string, string> = {
         left: t('settings.tabBar.posLeft'),
         center: t('settings.tabBar.posCenter'),
@@ -113,8 +116,14 @@ function TabBarItemRow({
 
     return (
         <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-            <div className="flex items-center gap-2 px-2 py-1.5" style={{ background: 'var(--app-bg)' }}>
-                <div className="flex gap-0.5 shrink-0">
+            {/* The whole strip toggles, not just the caret; the controls on it
+                stop the click so they keep doing their own job. */}
+            <div
+                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer"
+                style={{ background: 'var(--app-bg)' }}
+                onClick={() => setExpanded((e) => !e)}
+            >
+                <div className="flex gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                     {(['left', 'center', 'right'] as const).map((pos) => (
                         <button
                             key={pos}
@@ -135,7 +144,10 @@ function TabBarItemRow({
                     {typeLabel}
                 </span>
                 <button
-                    onClick={() => onMove(-1)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(-1);
+                    }}
                     disabled={!canMoveUp}
                     title={t('common.moveUp')}
                     className="shrink-0 disabled:opacity-25 hover:opacity-70"
@@ -144,7 +156,10 @@ function TabBarItemRow({
                     <ArrowUp size={12} />
                 </button>
                 <button
-                    onClick={() => onMove(1)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(1);
+                    }}
                     disabled={!canMoveDown}
                     title={t('common.moveDown')}
                     className="shrink-0 disabled:opacity-25 hover:opacity-70"
@@ -152,14 +167,17 @@ function TabBarItemRow({
                 >
                     <ArrowDown size={12} />
                 </button>
-                <button
-                    onClick={() => setExpanded((e) => !e)}
-                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
+                <span className="text-[10px] px-1.5 py-0.5 shrink-0" style={{ color: 'var(--text-secondary)' }}>
                     {expanded ? '▲' : '▼'}
-                </button>
-                <button onClick={onRemove} className="hover:opacity-70 shrink-0" style={{ color: 'var(--accent-red)' }}>
+                </span>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove();
+                    }}
+                    className="hover:opacity-70 shrink-0"
+                    style={{ color: 'var(--accent-red)' }}
+                >
                     <X size={13} />
                 </button>
             </div>
@@ -181,6 +199,9 @@ interface TabBarSectionProps {
 
 export function TabBarSection({ contextId }: TabBarSectionProps) {
     const t = useT();
+    // The element just added opens itself — a collapsed row shows nothing but its
+    // type, and adding one is always the start of configuring it.
+    const [addedId, setAddedId] = useState<string>();
     const layouts = useDashboardStore((s) => s.layouts);
     const updateLayoutSettings = useDashboardStore((s) => s.updateLayoutSettings);
     const clearLayoutSettings = useDashboardStore((s) => s.clearLayoutSettings);
@@ -240,7 +261,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         update({ items: moveMenuItem(tbs.items ?? [], id, dir) });
     };
     const addItem = (type: TabBarItem['type']) => {
-        update({ items: [...(tbs.items ?? []), makeMenuItem<TabBarItem>(type, { position: 'right' })] });
+        const fresh = makeMenuItem<TabBarItem>(type, { position: 'right' });
+        setAddedId(fresh.id);
+        update({ items: [...(tbs.items ?? []), fresh] });
     };
     const clearAll = () => {
         if (isGlobal) updateFrontend({ tabBar: {} });
@@ -648,6 +671,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                                 onMove={(dir) => moveItem(item.id, dir)}
                                 canMoveUp={canMoveMenuItem(tbs.items ?? [], item.id, -1)}
                                 canMoveDown={canMoveMenuItem(tbs.items ?? [], item.id, 1)}
+                                defaultExpanded={item.id === addedId}
                                 t={t}
                             />
                         ))}

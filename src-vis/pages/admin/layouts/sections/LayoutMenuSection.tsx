@@ -45,6 +45,7 @@ function LayoutMenuItemRow({
     onMove,
     canMoveUp,
     canMoveDown,
+    defaultExpanded = false,
     t,
 }: {
     item: LayoutMenuItem;
@@ -53,9 +54,11 @@ function LayoutMenuItemRow({
     onMove: (dir: -1 | 1) => void;
     canMoveUp: boolean;
     canMoveDown: boolean;
+    /** A just-added element opens itself — nothing to configure while closed. */
+    defaultExpanded?: boolean;
     t: ReturnType<typeof useT>;
 }) {
-    const [expanded, setExpanded] = useState(false);
+    const [expanded, setExpanded] = useState(defaultExpanded);
     const posLabels: Record<'top' | 'bottom', string> = {
         top: t('settings.frontend.layoutDrawerItemPosTop'),
         bottom: t('settings.frontend.layoutDrawerItemPosBottom'),
@@ -66,8 +69,14 @@ function LayoutMenuItemRow({
 
     return (
         <div className="rounded-lg overflow-hidden" style={{ border: '1px solid var(--app-border)' }}>
-            <div className="flex items-center gap-2 px-2 py-1.5" style={{ background: 'var(--app-bg)' }}>
-                <div className="flex gap-0.5 shrink-0">
+            {/* The whole strip toggles, not just the caret; the controls on it
+                stop the click so they keep doing their own job. */}
+            <div
+                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer"
+                style={{ background: 'var(--app-bg)' }}
+                onClick={() => setExpanded((e) => !e)}
+            >
+                <div className="flex gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                     {(['top', 'bottom'] as const).map((pos) => (
                         <button
                             key={pos}
@@ -87,7 +96,10 @@ function LayoutMenuItemRow({
                     {typeLabel}
                 </span>
                 <button
-                    onClick={() => onMove(-1)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(-1);
+                    }}
                     disabled={!canMoveUp}
                     title={t('common.moveUp')}
                     className="shrink-0 disabled:opacity-25 hover:opacity-70"
@@ -96,7 +108,10 @@ function LayoutMenuItemRow({
                     <ArrowUp size={12} />
                 </button>
                 <button
-                    onClick={() => onMove(1)}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onMove(1);
+                    }}
                     disabled={!canMoveDown}
                     title={t('common.moveDown')}
                     className="shrink-0 disabled:opacity-25 hover:opacity-70"
@@ -104,14 +119,17 @@ function LayoutMenuItemRow({
                 >
                     <ArrowDown size={12} />
                 </button>
-                <button
-                    onClick={() => setExpanded((e) => !e)}
-                    className="text-[10px] px-1.5 py-0.5 rounded hover:opacity-70"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
+                <span className="text-[10px] px-1.5 py-0.5 shrink-0" style={{ color: 'var(--text-secondary)' }}>
                     {expanded ? '▲' : '▼'}
-                </button>
-                <button onClick={onRemove} className="hover:opacity-70 shrink-0" style={{ color: 'var(--accent-red)' }}>
+                </span>
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onRemove();
+                    }}
+                    className="hover:opacity-70 shrink-0"
+                    style={{ color: 'var(--accent-red)' }}
+                >
                     <X size={13} />
                 </button>
             </div>
@@ -167,6 +185,9 @@ function LayoutMenuItemRow({
 export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
     const t = useT();
     const { eff, setPatch, resetKeys, isDirty, level } = useLayoutSetting(contextId);
+    // The element just added opens itself — a collapsed row shows nothing but its
+    // type, and adding one is always the start of configuring it.
+    const [addedId, setAddedId] = useState<string>();
 
     // Effective view + patch-writer so the existing markup keeps working while
     // reads/writes route to the active scope (global or per layout).
@@ -210,6 +231,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         const newItem = makeMenuItem<LayoutMenuItem>(type, { position: 'top' });
         // The drawer's block layout has room for the big two-line clock.
         if (type === 'clock') newItem.clockDisplay = 'datetime';
+        setAddedId(newItem.id);
         updateFrontend({ layoutDrawerItems: [...items, newItem] });
     };
 
@@ -770,6 +792,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                     onMove={(dir) => moveItem(item.id, dir)}
                                     canMoveUp={canMoveMenuItem(items, item.id, -1)}
                                     canMoveDown={canMoveMenuItem(items, item.id, 1)}
+                                    defaultExpanded={item.id === addedId}
                                     t={t}
                                 />
                             ))}

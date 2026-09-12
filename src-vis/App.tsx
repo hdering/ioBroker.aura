@@ -645,7 +645,13 @@ export default function App() {
             .map(([k, v]) => `  ${k}: ${v};`)
             .join('\n');
         const fontScaleDecl = scopedFontScale !== undefined ? `\n  --font-scale: ${scopedFontScale};` : '';
-        layoutThemeRef.current.textContent = `[data-aura-app="frontend"] {\n${declarations}${fontScaleDecl}\n}`;
+        // Native chrome follows `color-scheme`, not our variables: ThemeProvider
+        // sets it from the GLOBAL theme, so a layout that overrides a dark global
+        // with a light design kept dark scrollbars, selects and date pickers —
+        // most visible as a dark scrollbar in a widget whose content outgrows its
+        // box. `color-scheme` inherits, so scoping it here is enough.
+        const schemeDecl = `\n  color-scheme: ${currentTheme.dark ? 'dark' : 'light'};`;
+        layoutThemeRef.current.textContent = `[data-aura-app="frontend"] {\n${declarations}${fontScaleDecl}${schemeDecl}\n}`;
         // Same as in ThemeProvider: the scoped variables are applied, so whoever
         // has to resolve one in JavaScript (the chart canvas) may do it now.
         bumpThemeEpoch();

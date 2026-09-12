@@ -97,6 +97,9 @@ async function render({ themeId = 'dark', mode = null, layout, section, browserD
     await page.waitForTimeout(SETTLE_MS);
     const out = await page.evaluate(() => ({
         bg: getComputedStyle(document.querySelector('[data-aura-app="frontend"]')).backgroundColor,
+        // Native chrome (scrollbars, selects, date pickers) follows color-scheme,
+        // not our variables — a scoped design has to carry it too.
+        scheme: getComputedStyle(document.querySelector('[data-aura-app="frontend"]')).colorScheme,
         // The saved design must survive a mode switch — it used to be overwritten.
         savedThemeId: JSON.parse(localStorage.getItem('aura-theme') || '{}').state?.themeId,
     }));
@@ -120,6 +123,13 @@ check('section beats layout', sectionWins.bg === BG['catppuccin-mocha'], section
 
 const sectionScope = await render({ themeId: 'dark', section: { themeId: 'light' } });
 check('section-scope design paints', sectionScope.bg === BG.light, sectionScope.bg);
+
+// ── Native chrome follows the scoped design ──────────────────────────────────
+// ThemeProvider sets color-scheme from the GLOBAL design, so a light layout on a
+// dark global kept dark scrollbars inside its widgets.
+check('global design sets color-scheme', global.scheme === 'dark', global.scheme);
+check('layout-scope design sets color-scheme', layoutScope.scheme === 'light', layoutScope.scheme);
+check('section-scope design sets color-scheme', sectionScope.scheme === 'light', sectionScope.scheme);
 
 // ── Dark/light mode datapoint ────────────────────────────────────────────────
 const darkModeKeepsDark = await render({ themeId: 'catppuccin-mocha', mode: 'dark' });
