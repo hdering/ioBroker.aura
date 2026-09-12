@@ -10,3 +10,4 @@
 - Auto-return - new "Pause" element for the header, tab bar and section menu: one tap keeps the device on the page you are looking at, and the pause ends by itself (#638)
 - Auto-return - controllable per device through `aura.0.clients.<id>.idleReturn.snoozeMinutes` and `.delay` (and for all devices through `aura.0.idleReturn.*`) (#638)
 - Auto-return - can now be switched off per section and per tab; scrolling counts as activity and a fullscreen widget suspends it (#638)
+- Icons - every icon a device has already shown is kept on that device, so a reload paints them right away and asks for nothing: icons no longer stay invisible on Android browsers until you touch the screen (#636)

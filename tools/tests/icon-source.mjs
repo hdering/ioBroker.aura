@@ -39,39 +39,41 @@ await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
 
 /** Universal widget with a title icon and a cell whose icon changes with the DP. */
-await page.evaluate(() => {
-    window.__auraShot.mock({ 'demo.plug.STATE': true });
-    window.__auraShot.mockServerState({ 'demo.plug.STATE': true });
-    window.__auraShot.showWidgets([
-        {
-            id: 'w-icon',
-            type: 'universal',
-            title: 'Universal',
-            datapoint: '',
-            gridPos: { x: 0, y: 0, w: 12, h: 6 },
-            options: {
-                showTitle: true,
-                showIcon: true,
-                icon: 'mdi:garage',
-                customGrid: {
-                    cols: 2,
-                    rows: 1,
-                    cells: [
-                        // state-icon: the very cell type the reporter used for an
-                        // on/off button with two different icons.
-                        {
-                            type: 'state-icon',
-                            dpId: 'demo.plug.STATE',
-                            trueIcon: 'lucide:lightbulb',
-                            falseIcon: 'lucide:lightbulb-off',
-                        },
-                        { type: 'icon', iconName: 'mdi:car-electric' },
-                    ],
-                },
+const WIDGETS = [
+    {
+        id: 'w-icon',
+        type: 'universal',
+        title: 'Universal',
+        datapoint: '',
+        gridPos: { x: 0, y: 0, w: 12, h: 6 },
+        options: {
+            showTitle: true,
+            showIcon: true,
+            icon: 'mdi:garage',
+            customGrid: {
+                cols: 2,
+                rows: 1,
+                cells: [
+                    // state-icon: the very cell type the reporter used for an
+                    // on/off button with two different icons.
+                    {
+                        type: 'state-icon',
+                        dpId: 'demo.plug.STATE',
+                        trueIcon: 'lucide:lightbulb',
+                        falseIcon: 'lucide:lightbulb-off',
+                    },
+                    { type: 'icon', iconName: 'mdi:car-electric' },
+                ],
             },
         },
-    ]);
-});
+    },
+];
+
+await page.evaluate((widgets) => {
+    window.__auraShot.mock({ 'demo.plug.STATE': true });
+    window.__auraShot.mockServerState({ 'demo.plug.STATE': true });
+    window.__auraShot.showWidgets(widgets);
+}, WIDGETS);
 
 // Icon data arrives over the network, so give the batch a moment to land.
 await page.waitForFunction(
@@ -107,6 +109,60 @@ const mdi = await page.evaluate(async () => {
 check('mdi is served locally too', mdi.status === 200 && mdi.body > 0, JSON.stringify(mdi));
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
+
+// ── the same device, loaded a second time ────────────────────────────────────
+// @iconify/react 6 dropped the localStorage cache earlier versions kept, so
+// every single load fetched every visible icon again and the data landed AFTER
+// the first paint. Desktop Chrome repaints, Android (Samsung Internet, and the
+// WebViews behind Fully Kiosk / Native Alpha) does not reliably — which is why
+// the reporter saw correctly sized, correctly coloured, invisible icons that
+// flashed up on a touch. Aura now keeps them itself and puts them back before
+// createRoot. Proven by cutting /icons/ off completely on the second load: what
+// still draws came from this device, in the first render.
+{
+    // The save runs on an interval and on pagehide; a reload fires pagehide, but
+    // make it explicit so the check does not depend on timing.
+    await page.evaluate(() => window.dispatchEvent(new Event('pagehide')));
+    const stored = await page.evaluate(() => (localStorage.getItem('aura-icons-v1') || '').length);
+    check('loaded icons are kept on the device', stored > 0, `${stored} chars`);
+
+    const blockedUrls = [];
+    await page.route('**/icons/**', (route) => {
+        blockedUrls.push(route.request().url());
+        return route.abort();
+    });
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    await page.evaluate((widgets) => {
+        window.__auraShot.mock({ 'demo.plug.STATE': true });
+        window.__auraShot.mockServerState({ 'demo.plug.STATE': true });
+        window.__auraShot.showWidgets(widgets);
+    }, WIDGETS);
+    await page.waitForTimeout(1500);
+    const warm = await page.evaluate(() =>
+        [...document.querySelectorAll('.aura-widget-w-icon svg')].map((svg) => svg.innerHTML.length),
+    );
+    check(
+        'a second load draws every icon without the network',
+        warm.length >= 3 && warm.every((n) => n > 0),
+        JSON.stringify(warm),
+    );
+    // What the widget showed before is never asked for again. (A state-icon also
+    // has an off-icon, and the mock arrives a beat after the first render, so a
+    // second-state icon this device has never drawn may still be fetched — that
+    // is a cold icon, not a cache miss.)
+    const askedAgain = [];
+    for (const url of blockedUrls) {
+        const parsed = new URL(url);
+        const prefix = /\/icons\/([^/]+)\.json/.exec(parsed.pathname)?.[1];
+        for (const name of (parsed.searchParams.get('icons') || '').split(',').filter(Boolean)) {
+            const id = `${prefix}:${name}`;
+            if (['mdi:garage', 'mdi:car-electric', 'lucide:lightbulb'].includes(id)) askedAgain.push(id);
+        }
+    }
+    check('a second load re-fetches nothing it already had', askedAgain.length === 0, askedAgain.join(' '));
+    await page.unroute('**/icons/**');
+}
 
 // ── the adapter itself has no internet and an empty cache ────────────────────
 // It answers 503. The public API is still configured behind it for the mirror

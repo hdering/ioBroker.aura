@@ -115,7 +115,11 @@ try {
         const url = '/icons/lucide.json?icons=definitely-not-an-icon';
         const first = await call(cache, url);
         check('missing: reported as not_found', first.json?.not_found?.includes('definitely-not-an-icon'));
-        check('missing: answer not cached by the browser', /no-cache/.test(first.res.headers['Cache-Control'] || ''));
+        check(
+            'missing: answer expires after a minute',
+            /max-age=60/.test(first.res.headers['Cache-Control'] || ''),
+            first.res.headers['Cache-Control'],
+        );
         const second = await call(cache, url);
         check('missing: still reported', second.json?.not_found?.includes('definitely-not-an-icon'));
         check('missing: upstream asked only once', calls.length === 1, `got ${calls.length}`);
