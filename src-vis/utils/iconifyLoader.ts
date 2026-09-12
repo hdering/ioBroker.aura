@@ -157,11 +157,77 @@ function saveIconCache(): void {
     }
 }
 
+/* ── Repainting icons that arrive late ────────────────────────────────────────
+ *
+ * The cache above only helps from the second load on; the very first visit
+ * still inserts every icon after the page has painted. The video attached to
+ * #636 shows what Android makes of that: the icon is in the DOM, correctly
+ * sized and coloured, and the tile it belongs to is never re-rastered — until a
+ * touch forces one, which is when the icons flash up and then disappear again.
+ *
+ * So when icons do arrive late, invalidate them explicitly: hide every icon,
+ * force ONE reflow, show them again. Two forced layouts for the whole batch,
+ * nothing painted in between (it all happens inside one frame), and it only
+ * runs while icons are actually still coming in. */
+const NUDGE_DELAY_MS = 250;
+/** How long after boot new icons are watched for closely. Everything a page
+ *  shows is requested in the first seconds; later arrivals (a tab switched to
+ *  for the first time) are caught by the save tick below. */
+const STARTUP_WATCH_MS = 20_000;
+const STARTUP_TICK_MS = 500;
+
+let nudgeTimer: ReturnType<typeof setTimeout> | null = null;
+/** Icon count the repaint watcher last saw — growth means something arrived. */
+let watchedCount = 0;
+
+function repaintIcons(): void {
+    if (document.visibilityState !== 'visible') return;
+    const nodes = document.querySelectorAll<SVGElement>('svg.iconify');
+    if (!nodes.length) return;
+    const display: string[] = [];
+    nodes.forEach((el, i) => {
+        display[i] = el.style.display;
+        el.style.display = 'none';
+    });
+    void document.body.offsetHeight; // one forced reflow for the whole batch
+    nodes.forEach((el, i) => {
+        el.style.display = display[i];
+    });
+}
+
+/** Collapse a burst of arrivals — Iconify answers a whole batch at once. */
+function scheduleRepaint(): void {
+    if (nudgeTimer) clearTimeout(nudgeTimer);
+    nudgeTimer = setTimeout(() => {
+        nudgeTimer = null;
+        repaintIcons();
+    }, NUDGE_DELAY_MS);
+}
+
 if (typeof window !== 'undefined' && typeof localStorage !== 'undefined') {
     restoreIconCache();
+    watchedCount = lastSavedCount > 0 ? lastSavedCount : 0;
+    // Watch the first seconds closely: that is when a cold device fetches the
+    // icons the page is showing right now, and exactly those need the nudge.
+    const startedAt = Date.now();
+    const watch = setInterval(() => {
+        const count = listIcons('').length;
+        if (count !== watchedCount) {
+            watchedCount = count;
+            scheduleRepaint();
+        }
+        if (Date.now() - startedAt > STARTUP_WATCH_MS) clearInterval(watch);
+    }, STARTUP_TICK_MS);
     // A tab switch or a popup can pull in icons minutes after boot, so re-check
     // periodically; the count guard makes every later tick a no-op.
-    setInterval(saveIconCache, 30_000);
+    setInterval(() => {
+        const count = listIcons('').length;
+        if (count !== watchedCount) {
+            watchedCount = count;
+            scheduleRepaint();
+        }
+        saveIconCache();
+    }, 30_000);
     // A kiosk page is never closed, a phone is backgrounded constantly — catch
     // both so the very first visit already leaves a usable cache behind.
     document.addEventListener('visibilitychange', () => {
