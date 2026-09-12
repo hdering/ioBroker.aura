@@ -115,6 +115,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.58.1 (2026-09-12)
+- 🌟 **New feature:** Auto-return - new "Pause" element for the header, tab bar and section menu: one tap keeps the device on the page you are looking at, and the pause ends by itself ([#638](https://github.com/hdering/ioBroker.aura/issues/638))
+- 🌟 **New feature:** Auto-return - controllable per device through `aura.0.clients.<id>.idleReturn.snoozeMinutes` and `.delay` (and for all devices through `aura.0.idleReturn.*`) ([#638](https://github.com/hdering/ioBroker.aura/issues/638))
+- 🌟 **New feature:** Auto-return - can now be switched off per section and per tab; scrolling counts as activity and a fullscreen widget suspends it ([#638](https://github.com/hdering/ioBroker.aura/issues/638))
+- Icons - every icon a device has already shown is kept on that device, so a reload paints them right away and asks for nothing: icons no longer stay invisible on Android browsers until you touch the screen ([#636](https://github.com/hdering/ioBroker.aura/issues/636))
+
+
 ### 0.58.0 (2026-09-11)
 - 🌟 **New feature:** Lists, popups and messages - {{parent2}}, {{parent3}} ... address datapoints further up the tree, so a row can reach another channel of the same device (e.g. a HomeMatic maintenance channel); picking such a datapoint in the second-line template stores the pattern automatically ([#637](https://github.com/hdering/ioBroker.aura/issues/637))
 
@@ -237,15 +244,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - MCP server - aura_validate and aura_measure answer more accurately: aura_validate takes every payload shape the write tools take, a bare widget array included, and no longer reports a write on a read-only row (a state or contact display writes nothing, and a row with writable false is taken at its word); aura_measure charges the second line under a list entry only to the rows that have one (a list of twelve with four second lines was reported 123 px too big) and counts a separator as the shorter row it is
 
 
-### 0.53.1 (2026-09-02)
-- Editor - the "+ Tab" wizard button is gone; tabs are built with the MCP server or from single widgets
-- Import dialog - the AI prompt generator is gone; the MCP server produces better widget JSON
-- List - editing a list with two rows on the same datapoint no longer leaves stale rows behind
-- MCP server - aura_measure sizes a list row by its display, so a list of window contacts is no longer reported as fitting while it scrolls
-- MCP server - aura_validate warns about row settings the chosen display never reads (on/off labels on a value row, a state mapping without displayType "states")
-- MCP server - the widget schema now spells out inline option shapes, so a contact row can be relabelled through contactAppearance (e.g. "heizt"/"zu" for a heating valve) instead of falling back to a state mapping
-
-
 ## License
 
 MIT License
@@ -257,6 +255,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 

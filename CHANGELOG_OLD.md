@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.53.1 (2026-09-02)
+- Editor - the "+ Tab" wizard button is gone; tabs are built with the MCP server or from single widgets
+- Import dialog - the AI prompt generator is gone; the MCP server produces better widget JSON
+- List - editing a list with two rows on the same datapoint no longer leaves stale rows behind
+- MCP server - aura_measure sizes a list row by its display, so a list of window contacts is no longer reported as fitting while it scrolls
+- MCP server - aura_validate warns about row settings the chosen display never reads (on/off labels on a value row, a state mapping without displayType "states")
+- MCP server - the widget schema now spells out inline option shapes, so a contact row can be relabelled through contactAppearance (e.g. "heizt"/"zu" for a heating valve) instead of falling back to a state mapping
+
 ## 0.53.0 (2026-09-02)
 - General - widget titles keep their descenders (g, p, y) when the font scale is above 100 %
 - AI assistant (MCP) - now reads the editor guidelines as the target screen and builds tabs that fit it, instead of guessing the width from existing widgets
