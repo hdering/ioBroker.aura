@@ -115,6 +115,11 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.58.3 (2026-09-13)
+- Diagnostics - add `?diag=1` to the dashboard URL to get an on-device report (icons, which bundle is running, what is on the wire, which background tabs still stream) for bug reports ([#636](https://github.com/hdering/ioBroker.aura/issues/636))
+- Tab bar - hidden and disabled tabs no longer count towards the bar: a section left with a single visible tab shows no tab bar
+
+
 ### 0.58.2 (2026-09-12)
 - Icons - icons that still have to be fetched on a cold device are now forced to repaint, so they no longer stay invisible on Android until you touch the screen ([#636](https://github.com/hdering/ioBroker.aura/issues/636))
 - Menu elements - a widget added to the header, tab bar or section menu now starts at the size it would have on a dashboard and is resized by dragging the corner of its preview, pixel by pixel; the width/height fields and the per-element layout picker are gone, a new element opens itself and the whole row toggles it ([#634](https://github.com/hdering/ioBroker.aura/issues/634))
@@ -238,11 +243,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Settings - the MCP section now offers two ready-made client blocks side by side: the short HTTP one for Claude Code, and one that runs the same server through mcp-remote for Claude Desktop, which cannot speak HTTP itself ([#612](https://github.com/hdering/ioBroker.aura/issues/612))
 
 
-### 0.53.3 (2026-09-03)
-- MCP server - aura_measure counts the last-change line under a list row (+13.7 px): per affected row for the static list, for every row where the dynamic list switches it on list-wide
-- MCP server - the widget schema no longer advertises 45 options a widget never reads: the option reader followed an import into another widget and attributed its options to the wrong type (the static list alone carried 25 of them, among them maxRows, entryDisplay and groupByRoom — all measured as ineffective)
-
-
 ## License
 
 MIT License
@@ -254,6 +254,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
