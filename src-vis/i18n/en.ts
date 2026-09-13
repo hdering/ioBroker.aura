@@ -673,6 +673,9 @@ export const en: Record<TranslationKey, string> = {
         'An own theme is a built-in preset plus the variables you changed. Saved themes can be picked anywhere: in the preset grid, as the light or dark half of “theme follows browser” and in every layout or section override.',
     'theme.user.empty': 'No own themes yet. Adjust the variables below and save the result.',
     'theme.user.saveCurrent': 'Save current look',
+    'theme.user.savesDark': 'Saving captures the dark half ({theme}) — the light/dark choice above and below picks it.',
+    'theme.user.savesLight':
+        'Saving captures the light half ({theme}) — the light/dark choice above and below picks it.',
     'theme.user.import': 'Import',
     'theme.user.export': 'Export',
     'theme.user.exportAll': 'Export all',

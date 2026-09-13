@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { useThemeStore } from '../../../../store/themeStore';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { BrightnessTabs, useHasTwoBrightnesses } from '../shared/BrightnessTabs';
+import { useEditBrightness } from '../shared/editBrightness';
 import { getTheme, ELEMENT_VAR_FALLBACKS, type ThemeVars, type AllVars } from '../../../../themes';
 import { hasVars, VAR_SET_KEYS, type VarScope, type VarSets } from '../../../../utils/themeVars';
 import { useT } from '../../../../i18n';
@@ -150,9 +150,12 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
 
     // Which half is being edited (#640). Only offered while two brightnesses are
     // actually in play - with a single fixed design there is nothing to choose
-    // and the shared set is the only sensible target.
+    // and the shared set is the only sensible target. The choice is shared with
+    // the preset grid and with "save the current look", so the whole page works
+    // on the same half.
     const twoBrightnesses = useHasTwoBrightnesses();
-    const [scope, setScope] = useState<VarScope>('base');
+    const scope = useEditBrightness((s) => s.scope);
+    const setScope = useEditBrightness((s) => s.setScope);
     const activeScope: VarScope = twoBrightnesses ? scope : 'base';
 
     const effectiveThemeId = ls?.themeId ?? themeId;

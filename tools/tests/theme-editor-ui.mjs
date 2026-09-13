@@ -145,23 +145,40 @@ await page.waitForTimeout(200);
 const inherited = await varsCard.locator('[data-aura-theme-var="--accent-red"]').getAttribute('placeholder');
 check('a half shows the shared value as its starting point', inherited === '#990000', String(inherited));
 
+// ── Beide Hell/Dunkel-Schalter meinen dieselbe Hälfte ────────────────────────
+// Oben (Presets) und unten (Variablen) standen unabhängig voneinander — wer oben
+// umschaltete, bearbeitete unten weiter die andere Hälfte.
+await presets.locator('[data-aura-brightness="light"]').click();
+await page.waitForTimeout(250);
+check(
+    'the preset tab moves the variable editor with it',
+    (await accent.inputValue()) === '#ff6600',
+    await accent.inputValue(),
+);
+await varsCard.locator('[data-aura-brightness="dark"]').click();
+await page.waitForTimeout(250);
+check(
+    'and the variable tab moves the preset grid with it',
+    (await presets.locator('[data-aura-theme-preset="light"]').count()) === 0,
+);
+
 // ── Own themes ───────────────────────────────────────────────────────────────
+// Gespeichert wird die Hälfte, die bearbeitet wird — NICHT die, die der Admin-
+// Browser gerade zeigt (dieser Kontext ist hell, bearbeitet wird dunkel).
 const mine = page.locator('[data-aura-my-themes]');
+check(
+    'the card says which half it would save',
+    ((await mine.locator('[data-aura-save-target]').textContent()) ?? '').includes('AMOLED'),
+    (await mine.locator('[data-aura-save-target]').textContent()) ?? '',
+);
 await mine.locator('[data-aura-save-theme]').click();
 await page.waitForTimeout(400);
 s = await stored();
 check('saving the current look creates an own theme', (s.userThemes ?? []).length === 1, JSON.stringify(s.userThemes));
 const own = (s.userThemes ?? [])[0] ?? {};
-check(
-    'it carries the variables that were on screen',
-    own.vars?.['--accent'] === '#88ccff' || own.vars?.['--accent'] === '#ff6600',
-    JSON.stringify(own.vars),
-);
-check(
-    'and remembers the preset it is built on',
-    own.baseId === 'amoled' || own.baseId === 'catppuccin-latte',
-    String(own.baseId),
-);
+check('saving takes the edited half, not the admin browser', own.dark === true, JSON.stringify(own));
+check('it carries the variables that were on screen', own.vars?.['--accent'] === '#88ccff', JSON.stringify(own.vars));
+check('and remembers the preset it is built on', own.baseId === 'amoled', String(own.baseId));
 
 // The point of the issue: the own theme can now be picked as one of the halves.
 await presets.locator(`[data-aura-brightness="${own.dark ? 'dark' : 'light'}"]`).click();

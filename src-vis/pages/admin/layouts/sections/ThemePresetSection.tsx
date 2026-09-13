@@ -5,6 +5,7 @@ import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { InactiveNotice } from '../shared/InactiveNotice';
 import { BrightnessTabs } from '../shared/BrightnessTabs';
+import { browserBrightness, useEditBrightness } from '../shared/editBrightness';
 import { useThemeModeDp } from '../../../../hooks/useThemeModeDp';
 import { useAllThemes } from '../../../../hooks/useAllThemes';
 import { BROWSER_SYNC_ANCHOR } from './BrowserThemeSyncSection';
@@ -33,9 +34,15 @@ export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
     // half this tab shows (#640); before, it was greyed out and the pair could
     // only be changed through two dropdowns that offered built-ins only.
     const pairMode = followBrowser && contextId === null;
-    const [pairScope, setPairScope] = useState<'light' | 'dark'>(() =>
-        window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-    );
+    // The half is shared with the variable editor and with "save the current look"
+    // below, so the page never works on two halves at once. Until something is
+    // picked the scope is the shared set, which is no half at all - the grid then
+    // starts on the one this browser would show.
+    const scope = useEditBrightness((s) => s.scope);
+    const setScope = useEditBrightness((s) => s.setScope);
+    const [fallbackScope] = useState<'light' | 'dark'>(browserBrightness);
+    const pairScope: 'light' | 'dark' = scope === 'base' ? fallbackScope : scope;
+    const setPairScope = (s: 'light' | 'dark') => setScope(s);
 
     const effectiveThemeId = pairMode
         ? pairScope === 'dark'

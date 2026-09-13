@@ -677,6 +677,10 @@ export const de = {
         'Ein eigenes Theme ist ein eingebautes Preset plus deine angepassten Variablen. Gespeicherte Themes stehen überall zur Auswahl: im Preset-Raster, bei „Theme folgt Browser“ für Hell und Dunkel und in jeder Layout- oder Bereichs-Überschreibung.',
     'theme.user.empty': 'Noch keine eigenen Themes. Passe die Variablen unten an und speichere den Stand.',
     'theme.user.saveCurrent': 'Aktuellen Stand speichern',
+    'theme.user.savesDark':
+        'Gespeichert wird die dunkle Hälfte ({theme}) — die Auswahl Hell/Dunkel oben und unten bestimmt sie.',
+    'theme.user.savesLight':
+        'Gespeichert wird die helle Hälfte ({theme}) — die Auswahl Hell/Dunkel oben und unten bestimmt sie.',
     'theme.user.import': 'Importieren',
     'theme.user.export': 'Exportieren',
     'theme.user.exportAll': 'Alle exportieren',

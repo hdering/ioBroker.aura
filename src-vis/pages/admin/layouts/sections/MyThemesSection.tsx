@@ -5,6 +5,8 @@ import { resolveThemeModeId, useThemeModeStore } from '../../../../utils/themeMo
 import { resolveThemeVars } from '../../../../utils/themeVars';
 import { parseThemeFile, serializeThemes, uniqueThemeName } from '../../../../utils/themeIo';
 import { getTheme, type UserTheme } from '../../../../themes';
+import { browserBrightness, useEditBrightness } from '../shared/editBrightness';
+import { useHasTwoBrightnesses } from '../shared/BrightnessTabs';
 import { useT } from '../../../../i18n';
 
 /**
@@ -30,31 +32,45 @@ export function MyThemesSection() {
     const setBrowserLightThemeId = useThemeStore((s) => s.setBrowserLightThemeId);
     const setBrowserDarkThemeId = useThemeStore((s) => s.setBrowserDarkThemeId);
     const mode = useThemeModeStore((s) => s.mode);
+    // Which half the page is working on — the same choice the preset grid and the
+    // variable editor show (#640).
+    const twoBrightnesses = useHasTwoBrightnesses();
+    const scope = useEditBrightness((s) => s.scope);
 
     const [confirmId, setConfirmId] = useState<string | null>(null);
     const [note, setNote] = useState<string | null>(null);
     const fileRef = useRef<HTMLInputElement | null>(null);
 
-    /** What the frontend shows right now, as the starting point for a new theme. */
+    /**
+     * Which design "save the current look" captures.
+     *
+     * This used to read the ADMIN browser's prefers-color-scheme, so working on
+     * the dark half on a light desktop saved a LIGHT theme carrying the light
+     * overrides — the dark edits were not in it (#640). The half picked on the
+     * page decides now; only with no half chosen (the shared set, or a single
+     * design) does the rendered theme still have the say.
+     */
+    const picked = twoBrightnesses && scope !== 'base' ? scope : null;
+    const saveTargetId = picked
+        ? picked === 'dark'
+            ? browserDarkThemeId
+            : browserLightThemeId
+        : resolveThemeModeId(
+              followBrowser ? (browserBrightness() === 'dark' ? browserDarkThemeId : browserLightThemeId) : themeId,
+              mode,
+              browserDarkThemeId,
+              browserLightThemeId,
+          );
+    const saveTarget = getTheme(saveTargetId);
+
     function saveCurrent() {
         const state = useThemeStore.getState();
-        const activeId = resolveThemeModeId(
-            followBrowser
-                ? window.matchMedia?.('(prefers-color-scheme: dark)').matches
-                    ? browserDarkThemeId
-                    : browserLightThemeId
-                : themeId,
-            mode,
-            browserDarkThemeId,
-            browserLightThemeId,
-        );
-        const theme = getTheme(activeId);
-        const vars = resolveThemeVars(theme.dark, globalVarSets(state));
+        const vars = resolveThemeVars(saveTarget.dark, globalVarSets(state));
         const name = uniqueThemeName(
-            t('theme.user.newName', { theme: theme.name }),
+            t('theme.user.newName', { theme: saveTarget.name }),
             userThemes.map((th) => th.name),
         );
-        const id = addUserTheme(snapshotUserTheme(activeId, vars, name));
+        const id = addUserTheme(snapshotUserTheme(saveTargetId, vars, name));
         setNote(t('theme.user.saved', { name }));
         return id;
     }
@@ -180,6 +196,16 @@ export function MyThemesSection() {
             </div>
             <p className="text-xs mb-4 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                 {t('theme.user.desc')}
+                {twoBrightnesses && (
+                    <>
+                        {' '}
+                        <span data-aura-save-target style={{ color: 'var(--text-primary)' }}>
+                            {t(saveTarget.dark ? 'theme.user.savesDark' : 'theme.user.savesLight', {
+                                theme: saveTarget.name,
+                            })}
+                        </span>
+                    </>
+                )}
             </p>
             {note && (
                 <p className="text-xs mb-3" style={{ color: 'var(--accent)' }}>
