@@ -14,6 +14,7 @@ import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../config/IconPickerModal';
+import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import { useT } from '../../i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
 import { hasPin, tabPinKey } from '../../utils/pinLock';
@@ -72,8 +73,8 @@ function renderTabBarItem(item: TabBarItem) {
 
 function tabStyle(isActive: boolean, settings: TabBarSettings | undefined): React.CSSProperties {
     const style = settings?.indicatorStyle ?? 'underline';
-    const activeClr = settings?.activeColor ?? 'var(--nav-active, var(--accent))';
-    const inactiveClr = settings?.inactiveColor ?? 'var(--text-secondary)';
+    const activeClr = settings?.activeColor ?? NAV_ACTIVE;
+    const inactiveClr = settings?.inactiveColor ?? navText();
 
     if (style === 'pills') {
         return {
@@ -415,12 +416,14 @@ export function TabBar({
 
                             {tab.icon && (
                                 <span
+                                    data-aura-nav-icon="tab"
                                     style={{
                                         width: tabIconSize,
                                         height: tabIconSize,
                                         flexShrink: 0,
                                         display: 'inline-flex',
                                         alignItems: 'center',
+                                        color: navIcon(isActive),
                                     }}
                                 >
                                     <Icon

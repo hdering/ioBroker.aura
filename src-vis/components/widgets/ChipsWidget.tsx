@@ -116,6 +116,11 @@ export function ChipsWidget({ config }: WidgetProps) {
                   };
 
     const chipActive = 'var(--chip-active, var(--accent))';
+    // Tints of the active colour. `${chipActive}22` looked like an 8-digit hex but
+    // is invalid once var() is substituted (two tokens), so the tint and the border
+    // silently dropped out and --chip-active only ever reached the label (#640).
+    const chipTint = `color-mix(in srgb, ${chipActive} 13%, transparent)`;
+    const chipTintBorder = `color-mix(in srgb, ${chipActive} 27%, transparent)`;
     const chipBg = (chip: ChipItem, active: boolean) => {
         // Colour precedence for the inactive/base state: per-chip → global →
         // theme default. The active highlight still takes over so the check-DP
@@ -130,10 +135,10 @@ export function ChipsWidget({ config }: WidgetProps) {
                 : 'var(--chip-bg, var(--app-bg))'
             : chipStyle === 'ghost'
               ? active
-                  ? `${chipActive}22`
+                  ? chipTint
                   : 'transparent'
               : active
-                ? `${chipActive}22`
+                ? chipTint
                 : 'var(--chip-bg, var(--app-bg))';
     };
 
@@ -149,7 +154,7 @@ export function ChipsWidget({ config }: WidgetProps) {
     const chipBorder = (active: boolean) =>
         chipStyle === 'ghost'
             ? 'none'
-            : `1px solid ${active ? `${chipActive}44` : 'var(--chip-border, var(--app-border))'}`;
+            : `1px solid ${active ? chipTintBorder : 'var(--chip-border, var(--app-border))'}`;
 
     return (
         <div className="aura-widget-row relative w-full h-full flex flex-col gap-1.5">

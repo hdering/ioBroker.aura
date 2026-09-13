@@ -499,32 +499,40 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
     const justify = align === 'end' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start';
     const valignJustify = valign === 'top' ? 'flex-start' : valign === 'bottom' ? 'flex-end' : 'center';
 
+    // Same theme vars as the chips widget — the carousel renders chips, so the
+    // theme editor's "Chips" group has to reach it too; it used to hard-code the
+    // accent, which made --chip-active look overridden (#640). The tints go
+    // through color-mix: `var(--x)22` is invalid after substitution.
+    const chipActive = 'var(--chip-active, var(--accent))';
+    const chipTint = `color-mix(in srgb, ${chipActive} 13%, transparent)`;
+    const chipTintBorder = `color-mix(in srgb, ${chipActive} 27%, transparent)`;
+
     const defaultBg = (active: boolean) => {
         // Inactive/base state: global background colour wins over the theme default
         // (per-item override is applied earlier, before this fallback is reached).
         if (!active && chipBgColor) return chipBgColor;
         return chipStyle === 'filled'
             ? active
-                ? 'var(--accent)'
-                : 'var(--app-bg)'
+                ? chipActive
+                : 'var(--chip-bg, var(--app-bg))'
             : chipStyle === 'ghost'
               ? active
-                  ? 'var(--accent)22'
+                  ? chipTint
                   : 'transparent'
               : active
-                ? 'var(--accent)22'
-                : 'var(--app-bg)';
+                ? chipTint
+                : 'var(--chip-bg, var(--app-bg))';
     };
 
     const defaultColor = (active: boolean) => {
         if (!active && chipTextColor) return chipTextColor;
-        return active ? (chipStyle === 'filled' ? '#fff' : 'var(--accent)') : 'var(--text-primary)';
+        return active ? (chipStyle === 'filled' ? '#fff' : chipActive) : 'var(--text-primary)';
     };
 
     const chipBorder = (active: boolean, customBg: string | undefined) =>
         chipStyle === 'ghost'
             ? 'none'
-            : `1px solid ${active ? 'var(--accent)44' : customBg ? 'transparent' : 'var(--app-border)'}`;
+            : `1px solid ${active ? chipTintBorder : customBg ? 'transparent' : 'var(--chip-border, var(--app-border))'}`;
 
     const stripClass = ['nodrag', hideScrollbar ? 'aura-no-scrollbar' : '', shaking ? 'aura-carousel-shake' : '']
         .filter(Boolean)

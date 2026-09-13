@@ -47,7 +47,9 @@ Element-Tokens verfeinern einzelne Bauteile. Sie sind **nicht** pro Theme gesetz
 | `--badge-ok` / `--badge-warn` / `--badge-crit` | `--accent-green` / `--accent-yellow` / `--accent-red` | Status-Badges |
 | `--light-on` / `--light-off` | `--accent-yellow` / `--text-secondary` | Lampen-Power-Button |
 | `--header-text` / `--header-accent` | `--text-primary` / `--accent` | Abschnittstitel |
-| `--nav-bg` / `--nav-active` | `--app-surface` / `--accent` | Tab-Leiste |
+| `--nav-bg` / `--nav-active` | `--app-surface` / `--accent` | Tab-Leiste, Bereichsleiste/-menü, Menü-Widget |
+| `--nav-text` | `--text-secondary` | Beschriftung eines inaktiven Eintrags |
+| `--nav-icon` / `--nav-active-icon` | Beschriftungsfarbe | Icons der Navigation (inaktiv / aktiv) |
 | `--popup-bg` / `--popup-border` | `--app-surface` / `--app-border` | Popup-Fläche und -Rand |
 
 ## Eigene Themes

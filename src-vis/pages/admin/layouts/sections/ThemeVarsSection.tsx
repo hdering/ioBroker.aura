@@ -47,7 +47,10 @@ const VAR_GROUPS: { labelKey: string; keys: (keyof AllVars)[] }[] = [
     { labelKey: 'theme.vars.elChip', keys: ['--chip-bg', '--chip-border', '--chip-active'] },
     { labelKey: 'theme.vars.elBadge', keys: ['--badge-ok', '--badge-warn', '--badge-crit'] },
     { labelKey: 'theme.vars.elLight', keys: ['--light-on', '--light-off'] },
-    { labelKey: 'theme.vars.elNav', keys: ['--nav-bg', '--nav-active'] },
+    {
+        labelKey: 'theme.vars.elNav',
+        keys: ['--nav-bg', '--nav-text', '--nav-icon', '--nav-active', '--nav-active-icon'],
+    },
     { labelKey: 'theme.vars.elPopup', keys: ['--popup-bg', '--popup-border'] },
 ];
 
@@ -107,7 +110,10 @@ const VAR_LABEL_KEYS: Partial<Record<keyof AllVars, string>> = {
     '--light-on': 'theme.vars.elOn',
     '--light-off': 'theme.vars.elOff',
     '--nav-bg': 'theme.vars.bg',
+    '--nav-text': 'theme.vars.elText',
+    '--nav-icon': 'theme.vars.elIcon',
     '--nav-active': 'theme.vars.elActive',
+    '--nav-active-icon': 'theme.vars.elActiveIcon',
     '--popup-bg': 'theme.vars.bg',
     '--popup-border': 'theme.vars.border',
 };

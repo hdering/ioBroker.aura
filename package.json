@@ -175,6 +175,7 @@
     "test:theme-scope": "node tools/tests/theme-scope.mjs",
     "test:theme-vars": "node tools/tests/theme-vars.mjs",
     "test:theme-editor": "node tools/tests/theme-editor-ui.mjs",
+    "test:nav-chip-theme": "node tools/tests/nav-chip-theme.mjs",
     "test:calendar-auto-height": "node tools/tests/calendar-auto-height.mjs",
     "test:calendar-custom-editor": "node tools/tests/calendar-custom-editor.mjs",
     "test:calendar-custom-fields": "node tools/tests/calendar-custom-fields.mjs",

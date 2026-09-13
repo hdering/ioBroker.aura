@@ -12,6 +12,7 @@ import {
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useActiveSectionId } from '../../contexts/ActiveSectionContext';
 import { useT } from '../../i18n';
+import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import type { WidgetProps } from '../../types';
 
 type MenuMode = 'section' | 'tab';
@@ -28,8 +29,8 @@ interface MenuItem {
 // Mirrors TabBar.tabStyle (TabBar.tsx:143-182). Kept local so this widget stays
 // purely additive — no export/refactor of the tab-bar internals required.
 function menuItemStyle(isActive: boolean, style: IndicatorStyle): React.CSSProperties {
-    const activeClr = 'var(--nav-active, var(--accent))';
-    const inactiveClr = 'var(--text-secondary)';
+    const activeClr = NAV_ACTIVE;
+    const inactiveClr = navText();
 
     if (style === 'pills') {
         return {
@@ -166,14 +167,26 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
     // Pills variant forces the pill indicator; every other variant honours the choice.
     const effIndicator: IndicatorStyle = variant === 'pills' ? 'pills' : indicatorStyle;
 
-    const renderIcon = (item: MenuItem) => {
+    const renderIcon = (item: MenuItem, isActive: boolean) => {
         if (!showIcons) return null;
-        if (item.icon) {
-            return <Icon icon={item.icon} width={iconSize} height={iconSize} style={{ color: 'currentColor' }} />;
-        }
         // Sections fall back to a generic icon (like the section menu); tabs show
         // no icon when none is set (matching the tab bar).
-        return menuMode === 'section' ? <LayoutDashboard size={iconSize} /> : null;
+        const glyph = item.icon ? (
+            <Icon icon={item.icon} width={iconSize} height={iconSize} style={{ color: 'currentColor' }} />
+        ) : menuMode === 'section' ? (
+            <LayoutDashboard size={iconSize} />
+        ) : null;
+        if (!glyph) return null;
+        // The icon follows the entry's text colour unless the theme overrides it.
+        return (
+            <span
+                data-aura-nav-icon="menu"
+                className="shrink-0 inline-flex items-center"
+                style={{ color: navIcon(isActive) }}
+            >
+                {glyph}
+            </span>
+        );
     };
 
     return (
@@ -208,7 +221,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                                         cursor: inert ? 'default' : item.disabled ? 'not-allowed' : 'pointer',
                                     }}
                                 >
-                                    {renderIcon(item)}
+                                    {renderIcon(item, isActive)}
                                     {showLabels && <span className="truncate">{item.name}</span>}
                                 </button>
                             );

@@ -14,6 +14,7 @@ import { usePinStore } from '../../store/pinStore';
 import { useBadges, useTabBadgeAggregate, type ResolvedBadge } from '../../hooks/useBadges';
 import { Badge } from '../common/Badge';
 import type { BadgeSize } from '../../types';
+import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 
 export type LayoutDrawerSize = 'sm' | 'md' | 'lg';
 
@@ -72,15 +73,15 @@ function entryActiveStyle(
     isActive: boolean,
     style: NonNullable<LayoutDrawerProps['indicatorStyle']>,
 ): React.CSSProperties {
-    if (!isActive) return { color: 'var(--text-primary)', borderLeft: '3px solid transparent' };
+    if (!isActive) return { color: navText('var(--text-primary)'), borderLeft: '3px solid transparent' };
     switch (style) {
         case 'text':
-            return { color: 'var(--accent)', borderLeft: '3px solid transparent' };
+            return { color: NAV_ACTIVE, borderLeft: '3px solid transparent' };
         case 'underline':
-            return { color: 'var(--accent)', borderLeft: '3px solid var(--accent)' };
+            return { color: NAV_ACTIVE, borderLeft: `3px solid ${NAV_ACTIVE}` };
         case 'pills':
             return {
-                background: 'var(--accent)',
+                background: NAV_ACTIVE,
                 color: '#fff',
                 borderRadius: '0.5rem',
                 borderLeft: '3px solid transparent',
@@ -105,15 +106,15 @@ function barEntryActiveStyle(
     isActive: boolean,
     style: NonNullable<LayoutDrawerProps['indicatorStyle']>,
 ): React.CSSProperties {
-    if (!isActive) return { color: 'var(--text-secondary)', borderBottom: '2px solid transparent' };
+    if (!isActive) return { color: navText(), borderBottom: '2px solid transparent' };
     switch (style) {
         case 'text':
-            return { color: 'var(--accent)', borderBottom: '2px solid transparent' };
+            return { color: NAV_ACTIVE, borderBottom: '2px solid transparent' };
         case 'underline':
-            return { color: 'var(--accent)', borderBottom: '2px solid var(--accent)' };
+            return { color: NAV_ACTIVE, borderBottom: `2px solid ${NAV_ACTIVE}` };
         case 'pills':
             return {
-                background: 'var(--accent)',
+                background: NAV_ACTIVE,
                 color: '#fff',
                 borderRadius: '9999px',
                 borderBottom: '2px solid transparent',
@@ -327,19 +328,22 @@ export function LayoutDrawer({
                                     background: isActive
                                         ? indicatorStyle === 'pills'
                                             ? 'currentColor'
-                                            : 'var(--accent)'
-                                        : 'var(--text-secondary)',
+                                            : NAV_ACTIVE
+                                        : navText(),
                                 }}
                             />
                         )}
                         {showIcon && (
                             <span
+                                data-aura-nav-icon="section"
                                 className="rounded-lg flex items-center justify-center shrink-0"
                                 style={{
                                     width: iconBox,
                                     height: iconBox,
-                                    background: isActive ? 'var(--accent)22' : 'var(--app-bg)',
-                                    color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                                    background: isActive
+                                        ? `color-mix(in srgb, ${NAV_ACTIVE} 13%, transparent)`
+                                        : 'var(--app-bg)',
+                                    color: navIcon(isActive, isActive ? NAV_ACTIVE : navText()),
                                 }}
                             >
                                 {section.icon ? (
@@ -430,13 +434,17 @@ export function LayoutDrawer({
                                 background: isActive
                                     ? indicatorStyle === 'pills'
                                         ? 'currentColor'
-                                        : 'var(--accent)'
-                                    : 'var(--text-secondary)',
+                                        : NAV_ACTIVE
+                                    : navText(),
                             }}
                         />
                     )}
                     {showIcon && (
-                        <span className="shrink-0 inline-flex items-center justify-center">
+                        <span
+                            data-aura-nav-icon="section"
+                            className="shrink-0 inline-flex items-center justify-center"
+                            style={{ color: navIcon(isActive) }}
+                        >
                             {section.icon ? (
                                 <Icon icon={section.icon} width={iconSize} height={iconSize} />
                             ) : (

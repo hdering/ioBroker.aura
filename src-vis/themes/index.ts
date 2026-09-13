@@ -82,7 +82,10 @@ export interface ElementVars {
     '--light-off': string;
     // Navigation / tab bar
     '--nav-bg': string;
+    '--nav-text': string; // label of an inactive entry
+    '--nav-icon': string; // icon of an inactive entry (unset = follows the label)
     '--nav-active': string;
+    '--nav-active-icon': string; // icon of the active entry (unset = follows the label)
     // Popup dialog (issue #611) — set these to lift a popup off the widgets
     '--popup-bg': string;
     '--popup-border': string;
@@ -135,7 +138,10 @@ export const ELEMENT_VAR_FALLBACKS: Record<keyof ElementVars, keyof ThemeVars | 
     '--light-on': '--accent-yellow',
     '--light-off': '--text-secondary',
     '--nav-bg': '--app-surface',
+    '--nav-text': '--text-secondary',
+    '--nav-icon': '--text-secondary',
     '--nav-active': '--accent',
+    '--nav-active-icon': '--accent',
     '--popup-bg': '--app-surface',
     '--popup-border': '--app-border',
 };

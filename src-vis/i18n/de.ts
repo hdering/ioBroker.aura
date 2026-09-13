@@ -747,6 +747,8 @@ export const de = {
     'theme.vars.elHeat': 'Heizen',
     'theme.vars.elCool': 'Kühlen',
     'theme.vars.elActive': 'Aktiv',
+    'theme.vars.elIcon': 'Icon',
+    'theme.vars.elActiveIcon': 'Icon aktiv',
     'theme.vars.elOn': 'An',
     'theme.vars.elOff': 'Aus',
 

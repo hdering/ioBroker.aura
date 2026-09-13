@@ -280,9 +280,27 @@
       "group": "Navigation / tab bar"
     },
     {
+      "name": "--nav-text",
+      "inherits": "--text-secondary",
+      "group": "Navigation / tab bar",
+      "description": "label of an inactive entry"
+    },
+    {
+      "name": "--nav-icon",
+      "inherits": "--text-secondary",
+      "group": "Navigation / tab bar",
+      "description": "icon of an inactive entry (unset = follows the label)"
+    },
+    {
       "name": "--nav-active",
       "inherits": "--accent",
       "group": "Navigation / tab bar"
+    },
+    {
+      "name": "--nav-active-icon",
+      "inherits": "--accent",
+      "group": "Navigation / tab bar",
+      "description": "icon of the active entry (unset = follows the label)"
     },
     {
       "name": "--popup-bg",
