@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.53.5 (2026-09-04)
+- AI access (MCP) - below the delete permission, a write that leaves existing widgets out is now refused instead of removing them ([#614](https://github.com/hdering/ioBroker.aura/issues/614))
+
 ## 0.53.4 (2026-09-04)
 - 🌟 **New feature:** Popups - the background colour can now be set globally, per popup view and per click action; new theme tokens `--popup-bg` / `--popup-border` colour every popup of a layout ([#611](https://github.com/hdering/ioBroker.aura/issues/611))
 - AI (MCP) - aura_measure now computes heights for the dashboard's own font scale and widget padding instead of the default ones, and counts a section separator with a heading as the taller row it is; list heights used to come out too small from about four rows on

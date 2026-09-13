@@ -115,6 +115,10 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.59.1 (2026-09-13)
+- Auto-return pause element - choose icon only, label only or both, with or without background
+
+
 ### 0.59.0 (2026-09-13)
 - 🌟 **New feature:** Markers - the aggregate count of a tab or section can now count only conditional markers or sum the numbers of count markers, and a single marker can be excluded from it
 - 🌟 **New feature:** Settings - with "theme follows browser" the light and the dark theme can now be picked and fine-tuned separately: the preset grid stays usable and CSS variables have a shared, a light and a dark tab ([#640](https://github.com/hdering/ioBroker.aura/issues/640))
@@ -235,10 +239,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Fill level - new "Balken" layout: a flat bar with rounded ends for a limit that is not a tank ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
 
 
-### 0.53.5 (2026-09-04)
-- AI access (MCP) - below the delete permission, a write that leaves existing widgets out is now refused instead of removing them ([#614](https://github.com/hdering/ioBroker.aura/issues/614))
-
-
 ## License
 
 MIT License
@@ -250,6 +250,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
