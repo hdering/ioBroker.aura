@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.54.1 (2026-09-05)
+- List - the icon size of a row can be set for every display type again, and an icon switch now has a size of its own ([#616](https://github.com/hdering/ioBroker.aura/issues/616))
+
 ## 0.54.0 (2026-09-05)
 - Mediaplayer - a stop datapoint now works: a stop button appears next to play/pause when one is configured
 - Mediaplayer - players found by device detection (Alexa, Sonos, Spotify, Kodi) can be edited through AI access again; their next/previous/shuffle/repeat datapoints were declared as switches and every write was refused
