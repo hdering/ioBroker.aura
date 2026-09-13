@@ -1215,6 +1215,42 @@ allem: gemessen mit Zeilen **einer** Kategorie (im Layout „default“ bringt j
 weitere Kategorie eine Überschriftszeile mit), und die Layouts „card“/„minimal“
 ordnen nach Breite.
 
+## Eine Option, die in einer Mindesthöhe fehlte
+
+Eine Mindesthöhe ist **eine** Messung des Typs in seiner Standardkonfiguration.
+Für einen Typ mit `counted`-Zeilen gibt es `modifiers`, für einen Typ ohne gab es
+gar nichts: der Schieberegler mit `showScale` zeichnet eine zweite Zeile unter
+die Spur, und `aura_measure` antwortete jedem Regler mit den 64 px des nackten.
+
+Dafür gibt es jetzt `minimum.<type>.modifiers` — dieselbe Idee wie bei den
+gezählten Typen, nur ohne Zeilenanteil:
+
+```json
+"slider": {
+  "minPx": 64,
+  "modifiers": [
+    { "key": "showScale", "label": "Skala unter der Spur (showScale)",
+      "when": { "path": "showScale", "equals": true }, "basePx": 16 }
+  ]
+}
+```
+
+Gemessen wird als **Delta**, nicht als zweite absolute Zahl — so addiert es sich
+sowohl auf die Zahl des Typs als auch auf eine Layout-Variante
+(`minimum.<type>.variants.<layout>`, der gerahmte Header). `usablePx` wächst
+mit, wo es eine gibt: die Zeile wird in beiden Fällen gezeichnet. Trägt die
+Option eine eigene Steigung über die Schriftskalierung, steht sie als
+`fontScalePx.basePx` daneben; unter 1 px über die gemessene Spanne ist sie
+Messrauschen und fällt weg (beim Schieberegler der Fall).
+
+Neue Option dieser Art: Eintrag in `MIN_MODIFIERS` in
+`tools/schema/measure-widget-metrics.mjs` (`when` für `aura_measure`, `options`
+für die Probe), dann `node tools/schema/measure-widget-metrics.mjs --only <typ>
+--write`. `minimumFor()` in `lib/mcp/measure.js` wertet das `when` aus und nennt
+den Zuschlag in der Begründung — sonst sähe die größere Zahl aus wie die
+Standardmessung. Der Satz „Die Mindesthöhen gelten für die Standardkonfiguration
+des Typs" entfällt für Widgets, bei denen ein Modifier gegriffen hat.
+
 ## Mehrere Widgets, ein Schreibvorgang
 
 Aus der Praxis gemeldet: ~45 Einzelschreibvorgänge für einen Umbau, jeder mit

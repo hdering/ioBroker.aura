@@ -782,6 +782,34 @@ const MIN_VARIANTS = {
 };
 
 /**
+ * An OPTION that changes a minimum, measured as a delta against the type's own
+ * number — the counterpart of MIN_VARIANTS for something that is not a layout.
+ *
+ * A minimum is measured once, in the default configuration, and that used to be
+ * the end of it: an option that adds a row was simply not in the number. The
+ * slider's scale is exactly that case — it draws a second row under the track,
+ * and aura_measure answered every slider with the 64 px of a bare one.
+ *
+ * A delta rather than a second absolute number, so it composes: it adds to the
+ * type's minimum and to a layout variant alike, the way the counted modifiers
+ * do. `when` is evaluated by aura_measure against the widget's options; `options`
+ * is what the probe here renders with.
+ */
+const MIN_MODIFIERS = {
+    slider: [
+        {
+            key: 'showScale',
+            label: 'Skala unter der Spur (showScale)',
+            // The condition aura_measure evaluates against the widget's options,
+            // in the same language the counted modifiers use.
+            when: { path: 'showScale', equals: true },
+            // What the probe is rendered with to measure the delta.
+            options: { showScale: true },
+        },
+    ],
+};
+
+/**
  * Types that cannot be sized this way, with the reason kept in the output so the
  * next person does not go looking for the number again.
  */
@@ -1499,6 +1527,39 @@ for (const type of Object.keys(schema.widgets)) {
                 `${slope ? `, +${slope} px je Schriftskalierung` : ''}`,
         );
     }
+
+    // Options that add to the minimum (MIN_MODIFIERS), each measured on its own
+    // against the two walks above. Stored as the DELTA, so aura_measure can add
+    // it to the type's number or to a layout variant alike.
+    for (const mod of MIN_MODIFIERS[type] ?? []) {
+        const opts = { ...(OPTIONS_FOR[type] ?? {}), ...mod.options };
+        const on = await requiredPx(type, { cols, options: opts });
+        const onHigh = await requiredPx(type, { cols, options: opts, fontScale: SCALE_HIGH });
+        if (on.error || onHigh.error) {
+            console.warn(`  ${type}/${mod.key}: ${on.error || onHigh.error}`);
+            continue;
+        }
+        const addPx = on.px - r.px;
+        // The extra row grows with the font scale too — its own slope, on top of
+        // the type's. Denoised the same way: below a pixel over the measured span
+        // it is fit noise, not a factor to plan with.
+        const addSlope = denoiseSlope((onHigh.px - on.px) / SCALE_SPAN - fontScalePx);
+        results[type].modifiers = [
+            ...(results[type].modifiers || []),
+            {
+                key: mod.key,
+                label: mod.label,
+                when: mod.when,
+                basePx: addPx,
+                ...(addSlope ? { fontScalePx: { basePx: addSlope } } : {}),
+            },
+        ];
+        console.log(
+            `  Option "${mod.key}"`.padEnd(18) +
+                ` ${addPx >= 0 ? '+' : ''}${addPx} px (${on.px} px mit der Option)` +
+                `${addSlope ? `, ${addSlope > 0 ? '+' : ''}${addSlope} px je Schriftskalierung` : ''}`,
+        );
+    }
 }
 
 await browser.close();
@@ -1526,6 +1587,7 @@ const metrics = {
         caveats: [
             'Height only. A too-narrow widget truncates its labels instead of spilling and is not covered.',
             'A minimum is measured with default options and one line of title. A filter row, a statistics line or a second title line add to it.',
+            'minimum.<type>.modifiers are the options of a MINIMUM type that were measured anyway, as a delta on minPx (and on usablePx where there is one): the slider scale draws a row under the track that the default measurement does not have. Each carries the `when` that decides whether it applies to a widget, in the same language as the counted modifiers.',
             'Counted types carry the shapes that do change the height: counted.<type>.variants per layout, counted.<type>.modifiers as deltas per option, counted.<type>.rowTypes as the surcharge per row display, counted.<type>.notIncluded for what is still left out.',
             'A row display (rowTypes) is a delta on ONE row, measured per layout: a contact or a state chip is taller than the measured value row, and a list that mixes displays is summed row by row.',
             'Modifiers are measured one at a time. Several at once are added up, which is an approximation, not a measurement of that combination.',

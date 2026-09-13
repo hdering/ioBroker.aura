@@ -107,8 +107,11 @@ Vor dem Commit, wenn `src-vis/` angefasst wurde:
    - Kontrolle: `npm run test:schema` nennt die Quote beschriebener Optionen.
 4. **Höhe geändert?** (neue Zeile, neues Bedienelement, anderer Innenabstand) → der Typ muss
    neu vermessen werden: `npm run metrics` bzw. `node tools/schema/measure-widget-metrics.mjs
-   --only <typ> --write` gegen einen laufenden Dev-Server. Geht das nicht, gehört der Hinweis
-   in die Options-Beschreibung ("steht nicht in den gemessenen Mindesthöhen").
+   --only <typ> --write` gegen einen laufenden Dev-Server (eigener Port, Ziel
+   `AURA_IOBROKER_URL=http://127.0.0.1:9`, danach Server wieder beenden).
+   Hängt die Höhe an einer **Option**, gehört sie in `MIN_MODIFIERS` (Typ ohne Zeilenrechnung,
+   z. B. die Skala des Schiebereglers) bzw. in die `modifiers` des gezählten Typs — dann
+   rechnet `aura_measure` sie mit, statt sie nur zu erwähnen.
 5. Neue Bedienmuster, die ein Modell von allein nicht findet → `lib/mcp/recipes.js`.
    Neue Strukturen/Fähigkeiten (nicht nur Optionen) → Werkzeugbeschreibung in
    `lib/mcp/tools.js` und `docs-internal/ai-mcp-server.md`.

@@ -11002,7 +11002,7 @@
         "showScale": {
           "type": "boolean",
           "default": false,
-          "description": "Skala mit den Schrittwerten entlang der Reglerspur. Ersetzt die Min/Max-Beschriftung. Die Skala sitzt unter der Spur und steht NICHT in den gemessenen Mindesthöhen (aura_measure) — eine Zeile mehr einplanen oder mit aura_rendered nachsehen."
+          "description": "Skala mit den Schrittwerten entlang der Reglerspur. Ersetzt die Min/Max-Beschriftung. Sitzt als eigene Zeile unter der Spur (gemessen: +16 px, in aura_measure eingerechnet)."
         },
         "showUnit": {
           "type": "boolean",

@@ -1053,6 +1053,45 @@ check('a type measured only as a minimum is compared against that', () => {
     assert.equal(m.verdict, 'zu klein');
 });
 
+// An option of a minimum type that was measured on its own (minimum.<type>.
+// modifiers). Without it every slider was answered with the height of a bare
+// one, scale or no scale — the row under the track simply was not in the number.
+const sliderWidget = (options) => ({
+    id: 's',
+    type: 'slider',
+    title: 'S',
+    datapoint: 'demo.dimmer',
+    gridPos: { x: 0, y: 0, w: 8, h: 3 },
+    options,
+});
+
+check('an option measured on top of a minimum is added and named', () => {
+    const mod = (METRICS.minimum.slider.modifiers || []).find((m) => m.key === 'showScale');
+    assert.ok(mod && mod.basePx > 0, 'the slider scale is not measured');
+    const bare = measureWidget(sliderWidget({}), { metrics: METRICS, grid: GRID });
+    const scaled = measureWidget(sliderWidget({ showScale: true }), { metrics: METRICS, grid: GRID });
+    assert.equal(bare.requiredPx, METRICS.minimum.slider.minPx);
+    assert.equal(scaled.requiredPx, METRICS.minimum.slider.minPx + mod.basePx);
+    // Named, or the bigger number looks like the default measurement.
+    assert.match(scaled.basis, /showScale/);
+    assert.ok(!bare.applied, 'a widget without the option must not claim one');
+});
+
+check('the measured option keeps growing with the font scale', () => {
+    const pres = { fontScale: 1.3, widgetPadding: 16 };
+    const one = measureWidget(sliderWidget({ showScale: true }), { metrics: METRICS, grid: GRID });
+    const big = measureWidget(sliderWidget({ showScale: true }), { metrics: METRICS, grid: GRID, presentation: pres });
+    assert.ok(big.requiredPx > one.requiredPx, 'the type slope has to survive the modifier');
+});
+
+check('the default-configuration caveat is dropped where the option was measured', () => {
+    const text = renderMeasure([measureWidget(sliderWidget({ showScale: true }), { metrics: METRICS, grid: GRID })], {
+        metrics: METRICS,
+        grid: GRID,
+    });
+    assert.doesNotMatch(text, /Standardkonfiguration des Typs/);
+});
+
 // ── Height class: which of the three "no number" situations this is ─────────
 // Reported from the field: aura_measure said „nicht gemessen“ for a player that
 // would have taken any height, for a list that has to be computed to the row and
