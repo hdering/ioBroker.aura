@@ -314,6 +314,7 @@ export interface CustomCell {
     // 'select' type — dropdown that maps DP values to labels (mini enum widget per cell)
     // Everything the standalone Auswahlfeld widget can do, including the JSON
     // source and the rich render modes (issue #615).
+    /** 'select' cell: selectable value/label pairs (entriesSource 'manual'). */
     entries?: {
         value: string;
         label: string;
@@ -322,14 +323,14 @@ export interface CustomCell {
         image?: string; // image URL or aura-file: path (render === 'image')
         render?: 'text' | 'image' | 'html' | 'icon'; // default: text (html when the label is markup)
         size?: number; // px size for image/icon entries
-    }[]; // 'select' cell: selectable value/label pairs
+    }[]; // 'select' cell: selectable value/label pairs (entriesSource 'manual')
     entriesSource?: 'manual' | 'json'; // 'select' cell: where the entries come from (default 'manual')
     entriesDp?: string; // 'select' cell: datapoint holding the JSON list (entriesSource 'json'), may carry a ?path
     entriesValueKey?: string; // 'select' cell: field name overrides for the JSON rows (empty = auto-detect)
-    entriesLabelKey?: string;
-    entriesColorKey?: string;
-    entriesIconKey?: string;
-    entriesImageKey?: string;
+    entriesLabelKey?: string; // 'select' cell: JSON field holding the label (empty = auto-detect)
+    entriesColorKey?: string; // 'select' cell: JSON field holding the colour (empty = auto-detect)
+    entriesIconKey?: string; // 'select' cell: JSON field holding the icon ID (empty = auto-detect)
+    entriesImageKey?: string; // 'select' cell: JSON field holding the image URL (empty = auto-detect)
     showSelectedLabel?: boolean; // 'select' cell: render current label next to dropdown
     hideSelect?: boolean; // 'select' cell: hide dropdown and render entries as a button group
     entryDisplay?: 'icon' | 'icon-text' | 'text'; // 'select' cell: how the current entry is shown (default 'text')

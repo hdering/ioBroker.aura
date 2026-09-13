@@ -84,6 +84,38 @@ Whenever you make a decision, identify a task, note a next step, fact, or blocke
 - `files` lists the files this decision/task relates to (can be empty)
 - Log immediately when the item arises  - not at session end
 
+## MCP-Wissen mitziehen (PFLICHT bei jeder Widget-Änderung)
+
+Das MCP ist die einzige Sicht, die ein Modell auf die Widgets hat. Was dort nicht steht,
+existiert für die KI nicht. **Jede Änderung an Widgets, Optionen, Layouts, Themes oder
+Rezepten muss im selben Commit im MCP landen** — nicht "später nachziehen".
+
+Vor dem Commit, wenn `src-vis/` angefasst wurde:
+
+1. `npm run ai:sync` — erzeugt `public/ai/aura-widget-schema.json`, `aura-recipes.json`,
+   `aura-theme-tokens.json` neu. Ergebnis **mitcommitten** (die Dateien werden ausgeliefert,
+   `lib/mcp/httpEndpoint.js` liest sie).
+2. `npm run ai:check` läuft als erster Schritt in `npm test` — schlägt der an, ist Schritt 1
+   vergessen worden.
+3. **Neue Option = neue Beschreibung.** Der Generator liest Typ und Default aus dem Code,
+   die Bedeutung nicht:
+   - Widget-Optionen → `tools/schema/widget-schema-overlay.mjs`
+     (`KEY_DESCRIPTIONS` für einen Schlüssel überall, `WIDGET_OPTION_NOTES` pro Widget).
+   - Felder geteilter Typen (`CustomCell`, `FillLimit`, `BadgeDef`, `ConditionClause` …) →
+     Kommentar direkt am Feld in `src-vis/types/index.ts` (einzeilig hinter dem Feld,
+     bei Objekt-/Array-Feldern als `/** … */` darüber).
+   - Kontrolle: `npm run test:schema` nennt die Quote beschriebener Optionen.
+4. **Höhe geändert?** (neue Zeile, neues Bedienelement, anderer Innenabstand) → der Typ muss
+   neu vermessen werden: `npm run metrics` bzw. `node tools/schema/measure-widget-metrics.mjs
+   --only <typ> --write` gegen einen laufenden Dev-Server. Geht das nicht, gehört der Hinweis
+   in die Options-Beschreibung ("steht nicht in den gemessenen Mindesthöhen").
+5. Neue Bedienmuster, die ein Modell von allein nicht findet → `lib/mcp/recipes.js`.
+   Neue Strukturen/Fähigkeiten (nicht nur Optionen) → Werkzeugbeschreibung in
+   `lib/mcp/tools.js` und `docs-internal/ai-mcp-server.md`.
+
+Was das MCP bewusst NICHT kennt: Menü-Elemente (Header/Tab-Leiste/Bereichs-Menü) und deren
+Widgets. Kommt das dazu, ist es eine eigene Aufgabe, kein Nebeneffekt.
+
 ## Release Notes (Changelog Highlights)
 
 When the user requests a **user-facing change** (a feature, fix, or visible behavior change), append one short **English** bullet describing it to `RELEASE_NOTES.md` in the project root — in addition to the code commit. `release.ps1` turns these bullets into the ioBroker changelog (admin news + README) at release time and resets the file after the next stable release. If `RELEASE_NOTES.md` holds only `#`-comment lines, the release falls back to filtered feat/fix commit subjects. English only (the release linter rejects German). Skip purely internal changes (refactors, build/CI, dep bumps). Beim Release übersetzt `tools/release/translate-news.mjs` den neuen Eintrag in die zehn weiteren Admin-Sprachen (W1144) — die Bullets selbst bleiben englisch.

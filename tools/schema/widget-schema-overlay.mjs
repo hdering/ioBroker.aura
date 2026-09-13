@@ -56,7 +56,10 @@ export const KEY_DESCRIPTIONS = {
     showSlider: 'Schieberegler anzeigen.',
     showLegend: 'Legende anzeigen.',
     showMinMax: 'Skalenanfang und -ende beschriften.',
-    showScale: 'Skala mit den Schrittwerten entlang der Reglerspur. Ersetzt die Min/Max-Beschriftung.',
+    showScale:
+        'Skala mit den Schrittwerten entlang der Reglerspur. Ersetzt die Min/Max-Beschriftung. ' +
+        'Die Skala sitzt unter der Spur und steht NICHT in den gemessenen Mindesthöhen (aura_measure) — ' +
+        'eine Zeile mehr einplanen oder mit aura_rendered nachsehen.',
     scaleLabelEvery: 'Skala: nur jeden n-ten Schritt beschriften. Leer = so viele, wie die Breite hergibt.',
     scaleTicks: 'Skala: Striche zeichnen. Aus lässt nur die Zahlen stehen.',
     showDate: 'Datum anzeigen.',

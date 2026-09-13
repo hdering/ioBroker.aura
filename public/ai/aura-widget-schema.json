@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.59.1",
+    "auraVersion": "0.59.2",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1387,7 +1387,8 @@
                 "type": "number"
               }
             }
-          }
+          },
+          "description": "'select' cell: selectable value/label pairs (entriesSource 'manual')."
         },
         "entriesSource": {
           "type": "string",
@@ -1407,16 +1408,20 @@
           "description": "'select' cell: field name overrides for the JSON rows (empty = auto-detect)"
         },
         "entriesLabelKey": {
-          "type": "string"
+          "type": "string",
+          "description": "'select' cell: JSON field holding the label (empty = auto-detect)"
         },
         "entriesColorKey": {
-          "type": "string"
+          "type": "string",
+          "description": "'select' cell: JSON field holding the colour (empty = auto-detect)"
         },
         "entriesIconKey": {
-          "type": "string"
+          "type": "string",
+          "description": "'select' cell: JSON field holding the icon ID (empty = auto-detect)"
         },
         "entriesImageKey": {
-          "type": "string"
+          "type": "string",
+          "description": "'select' cell: JSON field holding the image URL (empty = auto-detect)"
         },
         "showSelectedLabel": {
           "type": "boolean",
@@ -2832,7 +2837,17 @@
         },
         "id": {
           "type": "string",
-          "required": true
+          "required": true,
+          "description": "Datapoint to read. Empty together with a timestamp `source` means the entry's own datapoint — the common case, and one fewer id to type per row."
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "value",
+            "lastChange",
+            "lastUpdate"
+          ],
+          "description": "What this slot prints: the value (default), or when the datapoint last changed / was last written. See utils/subDpStamp — the timestamp goes through the same `valueTimeFormat` presets, defaulting to the relative text."
         },
         "align": {
           "type": "string",
@@ -10987,7 +11002,7 @@
         "showScale": {
           "type": "boolean",
           "default": false,
-          "description": "Skala mit den Schrittwerten entlang der Reglerspur. Ersetzt die Min/Max-Beschriftung."
+          "description": "Skala mit den Schrittwerten entlang der Reglerspur. Ersetzt die Min/Max-Beschriftung. Die Skala sitzt unter der Spur und steht NICHT in den gemessenen Mindesthöhen (aura_measure) — eine Zeile mehr einplanen oder mit aura_rendered nachsehen."
         },
         "showUnit": {
           "type": "boolean",
