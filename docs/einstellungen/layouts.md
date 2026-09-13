@@ -53,6 +53,8 @@ Rote gestrichelte Linien im Editor zur Orientierung an einer Zielgröße (Breite
 
 Darstellung der Tab-Leiste im Frontend.
 
+Die Leiste erscheint erst ab zwei sichtbaren Tabs. Ausgeblendete und deaktivierte Tabs zählen nicht mit — ein Bereich mit zwei Tabs, von denen einer ausgeblendet ist, zeigt keine Leiste. Ausnahmen: **Leiste schon ab einem Tab anzeigen** oder ein Menü-Element in der Leiste.
+
 ## Menü-Elemente
 
 Header, Tab-Leiste und Bereichs-Menü tragen dieselbe Elementliste. Der Header wird unter [Frontend](./frontend) gepflegt, die beiden anderen in ihrem eigenen Abschnitt.

@@ -1,4 +1,4 @@
-import type { TabBarSettings } from '../store/dashboardStore';
+import type { Tab, TabBarSettings } from '../store/dashboardStore';
 
 /**
  * Does the frontend tab bar render on its own merits — i.e. ignoring an injected
@@ -11,4 +11,14 @@ import type { TabBarSettings } from '../store/dashboardStore';
  */
 export function tabBarShowsOnOwn(tabCount: number, tbs?: TabBarSettings): boolean {
     return tabCount > 1 || (tbs?.showSingle ?? false) || (tbs?.items?.length ?? 0) > 0;
+}
+
+/**
+ * How many tabs the frontend bar actually puts on screen. Disabled and hidden
+ * tabs are dropped from the bar (they stay reachable through their slug URL), so
+ * they must not keep a bar alive that has nothing left to show: a section with
+ * two tabs, one of them hidden, looks exactly like a single-tab section.
+ */
+export function visibleTabCount(tabs: Pick<Tab, 'hidden' | 'disabled'>[]): number {
+    return tabs.filter((t) => !t.hidden && !t.disabled).length;
 }

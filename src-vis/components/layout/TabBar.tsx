@@ -15,7 +15,7 @@ import { useConfigStore } from '../../store/configStore';
 import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { useT } from '../../i18n';
-import { tabBarShowsOnOwn } from '../../utils/tabBarVisible';
+import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
 import { hasPin, tabPinKey } from '../../utils/pinLock';
 import { usePinStore } from '../../store/pinStore';
 import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
@@ -291,7 +291,7 @@ export function TabBar({
     // no extra items. Tab-bar items (clock / datapoint / text) — global, layout or
     // section scope — must render even when the section has just one tab, and so
     // must an injected headerSlot (the section-menu hamburger placed in the bar).
-    if (readonly && !headerSlot && !tabBarShowsOnOwn(tabs.length, tbSettings)) return null;
+    if (readonly && !headerSlot && !tabBarShowsOnOwn(visibleTabCount(tabs), tbSettings)) return null;
 
     const settingsTab = tabs.find((t) => t.id === settingsTabId);
 

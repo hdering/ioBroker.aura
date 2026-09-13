@@ -45,7 +45,7 @@ import {
 } from './store/idleReturnStore';
 import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
 import { useT } from './i18n';
-import { tabBarShowsOnOwn } from './utils/tabBarVisible';
+import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
 import { deriveHeaderItems } from './utils/menuItems';
 import type { Tab } from './store/dashboardStore';
 
@@ -1119,7 +1119,7 @@ export default function App() {
     const mobilePlacement = effectiveSettings.layoutDrawerMobilePlacement ?? 'auto';
     const autoMobilePlacement =
         desktopPlacement === 'sidebar'
-            ? tabBarShowsOnOwn(tabs.length, tabBarResolved)
+            ? tabBarShowsOnOwn(visibleTabCount(tabs), tabBarResolved)
                 ? 'tabbar'
                 : 'floating'
             : desktopPlacement;
