@@ -12,7 +12,8 @@
  */
 
 import type { TranslationKey } from '../i18n';
-import { parseTimeValue } from './parseTimeValue';
+import { formatRelative, parseTimeValue } from './parseTimeValue';
+import { formatLastChange } from './formatLastChange';
 
 type TFn = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
@@ -77,6 +78,7 @@ export interface TimeDisplayPreset {
 /** Selectable output shapes; `none` (the default) leaves the value untouched. */
 export const TIME_DISPLAY_PRESETS: TimeDisplayPreset[] = [
     { id: 'none', label: 'Keine' },
+    { id: 'relative', label: 'Relativ (vor 5 Min)' },
     { id: 'time', label: 'Uhrzeit (14:32)' },
     { id: 'time-sec', label: 'Uhrzeit mit Sekunden (14:32:07)' },
     { id: 'date', label: 'Datum (01.08.2026)' },
@@ -113,9 +115,21 @@ export function formatTimeDisplay(
     now?: Date,
 ): string | null {
     if (!hasTimeDisplay(format)) return null;
-    const d = parseTimeValue(value, now ?? new Date());
+    const ref = now ?? new Date();
+    const d = parseTimeValue(value, ref);
     if (!d) return null;
     switch (format) {
+        case 'relative':
+            // Past and future read differently: a last change is "vor 5 Min" (the
+            // wording every other last-change line in Aura uses), a due date is
+            // "in 3 Std". One preset, because a datapoint can hold either.
+            return d.getTime() > ref.getTime() + 1_000
+                ? formatRelative(d, ref, t)
+                : formatLastChange(
+                      t as unknown as (key: string, vars?: Record<string, string | number>) => string,
+                      d.getTime(),
+                      ref.getTime(),
+                  );
         case 'time':
             return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
         case 'time-sec':

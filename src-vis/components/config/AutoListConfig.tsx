@@ -21,6 +21,7 @@ import { DatapointManagerField } from './list/DatapointManagerField';
 import { ListFilterSection } from './list/ListFilterSection';
 import type { EditorFilterRow } from './list/ListFilterEditor';
 import { resolveSubDpTemplate } from '../../utils/subDpTemplate';
+import { isStampSub } from '../../utils/subDpStamp';
 import { useDpDiscovery } from '../../hooks/useDpDiscovery';
 import { RowClickSection } from './RowClickSection';
 import { NS } from '../../utils/namespace';
@@ -97,12 +98,14 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
     const filterRows = useMemo<EditorFilterRow[]>(
         () =>
             nameEntries.map((e) => {
-                const own = (e.subDps ?? []).filter((s) => !!s?.id);
+                // Same "own" rule as ownSubDps in the widget: a timestamp slot counts
+                // even without an id. Filters still only see real datapoints.
+                const own = (e.subDps ?? []).filter((s) => !!s?.id || isStampSub(s));
                 const subs = own.length ? own : resolveSubDpTemplate(opts.subDpTemplate, e.id);
                 return {
                     id: e.id,
                     label: e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id,
-                    subs: subs.map((s) => ({ id: s.id, label: s.label })),
+                    subs: subs.filter((s) => !!s.id).map((s) => ({ id: s.id, label: s.label })),
                 };
             }),
         // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -49,7 +49,7 @@ Der Button neben dem Datenpunkt-Feld öffnet beide Anzeige-Optionen — der Date
 | Feld | |
 | --- | --- |
 | `valueFactor` / `valueOffset` | Anzeige = Wert × Faktor + Offset (auch bei `progress`) |
-| `valueTimeFormat` | Zeitwert als Uhrzeit und/oder Datum: `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom` |
+| `valueTimeFormat` | Zeitwert als Uhrzeit und/oder Datum: `relative` (vor 5 Min) · `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom` |
 | `valueTimePattern` | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm` |
 
 Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und `HH:mm` werden automatisch erkannt; nicht lesbare

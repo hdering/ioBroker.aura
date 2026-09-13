@@ -65,8 +65,9 @@ import {
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { ConfirmOverlay } from './ConfirmOverlay';
-import { EntrySubLine, subCondKey, type EntrySubDp } from './EntrySubLine';
-import { useTemplateValues } from '../../hooks/useTemplateValues';
+import { EntrySubLine, subCondKey, useRelativeTick, type EntrySubDp } from './EntrySubLine';
+import { useTemplateStates } from '../../hooks/useTemplateValues';
+import { isStampSub, subDpsNeedTick } from '../../utils/subDpStamp';
 import { ListFilterChip } from './ListFilterChip';
 import {
     buildFilterChoices,
@@ -744,7 +745,15 @@ export function ListWidget({ config, editMode }: WidgetProps) {
         () => [...new Set(entries.flatMap((e) => (e.subDps ?? []).map((s) => s?.id).filter(Boolean) as string[]))],
         [entries],
     );
-    const subValues = useTemplateValues(subDpRefs);
+    // The timestamps ride along with the values on the very same subscription, so a
+    // second line showing "vor 5 Min" costs nothing extra (hooks/useTemplateValues).
+    const subStates = useTemplateStates(subDpRefs);
+    const subValues = useMemo(
+        () => Object.fromEntries(Object.entries(subStates).map(([ref, s]) => [ref, s.val])),
+        [subStates],
+    );
+    // One timer for the whole list, and only while a relative timestamp is on screen.
+    useRelativeTick(useMemo(() => entries.some((e) => subDpsNeedTick(e.subDps)), [entries]));
     const [states, setStates] = useState<Record<string, ioBrokerState | null>>({});
 
     // ── Conditional formatting (issue #572) ──────────────────────────────────
@@ -781,10 +790,12 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     const conds = useElementConditionStyles(condItems);
 
     const subLineFor = (entry: StaticListEntry) =>
-        entry.subDps?.some((s) => !!s?.id) ? (
+        entry.subDps?.some((s) => !!s?.id || isStampSub(s)) ? (
             <EntrySubLine
                 subDps={entry.subDps}
                 values={subValues}
+                stamps={subStates}
+                mainStamp={states[entry.id]}
                 listTransform={opts}
                 decimals={defaultDecimals}
                 numFmt={globalNumFmt}

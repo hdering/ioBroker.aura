@@ -17,7 +17,7 @@
  * configuration applies to every discovered row (see utils/subDpTemplate).
  */
 import { useEffect, useMemo, useState } from 'react';
-import { ChevronRight, Database, Plus, Trash2, X } from 'lucide-react';
+import { ChevronRight, Clock, Database, Plus, Trash2, X } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import type { EntrySubDp } from '../../widgets/EntrySubLine';
 import { DatapointPicker } from '../DatapointPicker';
@@ -25,6 +25,8 @@ import { IconPickerModal } from '../IconPickerModal';
 import { ValueFormatRow } from '../ValueFormatRow';
 import { ValueTransformButton } from '../ValueTransformButton';
 import { ColorField } from './listFieldUi';
+import { isStampSub } from '../../../utils/subDpStamp';
+import { TIME_DISPLAY_PRESETS } from '../../../utils/timeDisplay';
 import { ElementConditionEditor } from '../ElementConditionEditor';
 import { StateMapFields } from './StateMapFields';
 import { ensureDatapointCache, lookupDatapointEntry, type DatapointEntry } from '../../../hooks/useDatapointList';
@@ -43,6 +45,18 @@ const ALIGNS = [
 ] as const;
 
 const ALIGN_LABEL: Record<string, string> = { left: 'Links', center: 'Mitte', right: 'Rechts' };
+
+/** What a slot prints — the value, or one of the datapoint's two timestamps. */
+const SOURCES = [
+    ['value', 'Wert'],
+    ['lastChange', 'Letzte Änderung'],
+    ['lastUpdate', 'Letztes Update'],
+] as const;
+
+const SOURCE_LABEL: Record<string, string> = {
+    lastChange: 'Letzte Änderung',
+    lastUpdate: 'Letztes Update',
+};
 
 const iSty: React.CSSProperties = {
     background: 'var(--app-bg)',
@@ -139,7 +153,12 @@ export function SubDpFields({
         <>
             {subDps.map((sub, i) => {
                 const open = openIdx === i;
-                const name = sub.label || sub.id.split('.').pop() || `Datenpunkt ${i + 1}`;
+                const stampMode = isStampSub(sub);
+                const name =
+                    sub.label ||
+                    sub.id.split('.').pop() ||
+                    (stampMode ? SOURCE_LABEL[sub.source as string] : '') ||
+                    `Datenpunkt ${i + 1}`;
                 return (
                     <div
                         key={i}
@@ -211,26 +230,36 @@ export function SubDpFields({
                                             value={sub.id}
                                             onChange={(e) => patch(i, { id: e.target.value })}
                                             title={sub.id}
-                                            placeholder={templateMode ? '{{parent}}.BATTERY' : 'Datenpunkt-ID'}
+                                            placeholder={
+                                                stampMode
+                                                    ? 'leer = Datenpunkt der Zeile'
+                                                    : templateMode
+                                                      ? '{{parent}}.BATTERY'
+                                                      : 'Datenpunkt-ID'
+                                            }
                                             className="flex-1 min-w-0 text-[10px] rounded px-2 py-1 font-mono focus:outline-none"
                                             style={iSty}
                                         />
-                                        <ValueTransformButton
-                                            factor={sub.valueFactor}
-                                            offset={sub.valueOffset}
-                                            presetId={sub.valueTransform}
-                                            timeFormat={sub.valueTimeFormat}
-                                            timePattern={sub.valueTimePattern}
-                                            allowTimeFormat
-                                            explicitNone={listHasTransform}
-                                            dpId={resolveId(sub.id)}
-                                            size={12}
-                                            onPatch={(p) => patch(i, p)}
-                                        />
+                                        {/* A factor on a unix epoch is nonsense, and a timestamp slot
+                                            carries its own Format field below. */}
+                                        {!stampMode && (
+                                            <ValueTransformButton
+                                                factor={sub.valueFactor}
+                                                offset={sub.valueOffset}
+                                                presetId={sub.valueTransform}
+                                                timeFormat={sub.valueTimeFormat}
+                                                timePattern={sub.valueTimePattern}
+                                                allowTimeFormat
+                                                explicitNone={listHasTransform}
+                                                dpId={resolveId(sub.id)}
+                                                size={12}
+                                                onPatch={(p) => patch(i, p)}
+                                            />
+                                        )}
                                     </div>
                                     {/* What the tokens resolve to for the sample entry — a typo in the
                                         pattern is otherwise invisible until the list renders. */}
-                                    {templateMode && !!mainDpId && (
+                                    {templateMode && !!mainDpId && !!sub.id && (
                                         <p
                                             className="text-[9px] mt-0.5 font-mono truncate"
                                             style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
@@ -243,6 +272,73 @@ export function SubDpFields({
                                         </p>
                                     )}
                                 </div>
+
+                                {/* Anzeigen: Wert oder Zeitstempel. Der Zeitstempel ERSETZT den Wert in
+                                    dieser Zeile; die zusaetzliche Zeile unter dem Wert schaltet dagegen
+                                    der Schalter "Letzte Aenderung" am Eintrag selbst. */}
+                                <div>
+                                    <label
+                                        className="text-[9px] block mb-0.5"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Anzeigen
+                                    </label>
+                                    <div
+                                        className="flex rounded overflow-hidden"
+                                        style={{ border: '1px solid var(--app-border)' }}
+                                    >
+                                        {SOURCES.map(([v, lbl]) => {
+                                            const active = (sub.source ?? 'value') === v;
+                                            return (
+                                                <button
+                                                    key={v}
+                                                    onClick={() => patch(i, { source: v === 'value' ? undefined : v })}
+                                                    title={
+                                                        v === 'lastChange'
+                                                            ? 'Wann sich der Wert zuletzt geaendert hat (lc)'
+                                                            : v === 'lastUpdate'
+                                                              ? 'Wann der Adapter zuletzt geschrieben hat (ts) - auch ohne Aenderung'
+                                                              : 'Den Wert des Datenpunkts anzeigen'
+                                                    }
+                                                    className="flex-1 text-[9px] py-1 transition-colors truncate"
+                                                    style={{
+                                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                                        borderRight:
+                                                            v !== 'lastUpdate'
+                                                                ? '1px solid var(--app-border)'
+                                                                : undefined,
+                                                    }}
+                                                >
+                                                    {lbl}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+
+                                {stampMode && (
+                                    <div>
+                                        <label
+                                            className="text-[9px] block mb-0.5"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        >
+                                            Format
+                                        </label>
+                                        <select
+                                            className="w-full text-[10px] rounded px-2 py-0.5 focus:outline-none"
+                                            style={iSty}
+                                            value={sub.valueTimeFormat ?? 'relative'}
+                                            onChange={(e) => patch(i, { valueTimeFormat: e.target.value })}
+                                        >
+                                            {TIME_DISPLAY_PRESETS.filter((pr) => pr.id !== 'none').map((pr) => (
+                                                <option key={pr.id} value={pr.id}>
+                                                    {pr.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
 
                                 {/* Icon + Bezeichnung */}
                                 <div className="flex items-end gap-1.5">
@@ -304,18 +400,21 @@ export function SubDpFields({
                                     </div>
                                 </div>
 
-                                {/* Einheit + Dezimalstellen + Zahlenformat */}
-                                <ValueFormatRow
-                                    unit={sub.unit}
-                                    unitPlaceholder="°C"
-                                    onUnitChange={(v) => patch(i, { unit: v })}
-                                    decimals={sub.decimals}
-                                    numberFormat={sub.numberFormat}
-                                    onChange={(p) => patch(i, p)}
-                                    inputClassName={iCls}
-                                    inputStyle={iSty}
-                                    compact
-                                />
+                                {/* Einheit + Dezimalstellen + Zahlenformat - ein Zeitstempel hat
+                                    weder Einheit noch Nachkommastellen. */}
+                                {!stampMode && (
+                                    <ValueFormatRow
+                                        unit={sub.unit}
+                                        unitPlaceholder="°C"
+                                        onUnitChange={(v) => patch(i, { unit: v })}
+                                        decimals={sub.decimals}
+                                        numberFormat={sub.numberFormat}
+                                        onChange={(p) => patch(i, p)}
+                                        inputClassName={iCls}
+                                        inputStyle={iSty}
+                                        compact
+                                    />
+                                )}
 
                                 {/* Position */}
                                 <div>
@@ -387,7 +486,12 @@ export function SubDpFields({
                                     The table runs through the same display pipeline as the main
                                     value, so "true → ONLINE" is configured once and reads the same
                                     in both lines. */}
-                                <StateMapFields states={sub.states} onChange={(next) => patch(i, { states: next })} />
+                                {!stampMode && (
+                                    <StateMapFields
+                                        states={sub.states}
+                                        onChange={(next) => patch(i, { states: next })}
+                                    />
+                                )}
                                 <details className="mt-1.5">
                                     <summary
                                         className="text-[10px] cursor-pointer select-none"
@@ -413,7 +517,7 @@ export function SubDpFields({
                 Beide Wege stehen als gleichwertige, beschriftete Schaltflächen nebeneinander —
                 als reines Icon war der Objektbaum-Weg praktisch unsichtbar und der Eindruck
                 entstand, die zweite Zeile könne nur Datenpunkte desselben Geräts zeigen. */}
-            <div className="flex gap-1">
+            <div className="flex gap-1 flex-wrap">
                 <select
                     value=""
                     disabled={siblings.length === 0}
@@ -454,6 +558,20 @@ export function SubDpFields({
                     style={{ ...iSty, color: 'var(--text-secondary)' }}
                 >
                     <Database size={11} /> + Beliebiger DP …
+                </button>
+                {/* Ohne eigene ID: die letzte Änderung des Datenpunkts dieser Zeile —
+                    der häufigste Fall und ohne diesen Knopf nicht erreichbar, weil die
+                    beiden anderen Wege immer einen Datenpunkt auswählen. */}
+                <button
+                    onClick={() => {
+                        commit([...subDps, { id: '', source: 'lastChange' }]);
+                        setOpenIdx(subDps.length);
+                    }}
+                    title="Zeigt, wann sich der Datenpunkt dieser Zeile zuletzt geändert hat"
+                    className="px-2 py-1 rounded hover:opacity-80 shrink-0 flex items-center justify-center gap-1 text-[10px] whitespace-nowrap"
+                    style={{ ...iSty, color: 'var(--text-secondary)' }}
+                >
+                    <Clock size={11} /> + Letzte Änderung
                 </button>
             </div>
             <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.65 }}>

@@ -1,7 +1,7 @@
 type TFunc = (key: string, vars?: Record<string, string | number>) => string;
 
-export function formatLastChange(t: TFunc, ts: number): string {
-    const diffSec = Math.round((Date.now() - ts) / 1000);
+export function formatLastChange(t: TFunc, ts: number, now: number = Date.now()): string {
+    const diffSec = Math.round((now - ts) / 1000);
 
     if (diffSec < 10) return t('lc.lessThan10s');
     if (diffSec < 20) return t('lc.lessThan20s');

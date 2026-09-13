@@ -19,6 +19,7 @@ import { useT } from '../../../i18n';
 import type { EntrySubDp } from '../../widgets/EntrySubLine';
 import type { EntryControlConfig } from '../../widgets/entryControls';
 import { applyListDisplay } from '../../../utils/listDisplayDefaults';
+import { isStampSub } from '../../../utils/subDpStamp';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -73,8 +74,10 @@ export function AutoEntryDetail({
     const shownIcon = entry.icon ?? listIcon;
     // Second line: this entry's own datapoints replace the list-wide template, so the
     // section says which of the two is in effect here.
-    const subDpCount = (entry.subDps ?? []).filter((s) => !!s?.id).length;
-    const templateCount = ((listOpts.subDpTemplate as EntrySubDp[] | undefined) ?? []).filter((s) => !!s?.id).length;
+    const subDpCount = (entry.subDps ?? []).filter((s) => !!s?.id || isStampSub(s)).length;
+    const templateCount = ((listOpts.subDpTemplate as EntrySubDp[] | undefined) ?? []).filter(
+        (s) => !!s?.id || isStampSub(s),
+    ).length;
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',

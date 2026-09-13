@@ -16,6 +16,7 @@ import { SubDpFields } from './SubDpFields';
 import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import { EntryThresholdsFields } from './EntryThresholdsFields';
+import { isStampSub } from '../../../utils/subDpStamp';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -78,7 +79,7 @@ export function StaticEntryDetail({
         listOpts.valueTimeFormat !== undefined;
     // The on/off label pair is only ever read for boolean-ish entries.
     const showOnOffLabels = usesOnOffLabels(entry, lookupDatapointEntry(entry.id)?.type);
-    const subDpCount = (entry.subDps ?? []).filter((s) => !!s?.id).length;
+    const subDpCount = (entry.subDps ?? []).filter((s) => !!s?.id || isStampSub(s)).length;
     const iSty = {
         background: 'var(--app-bg)',
         color: 'var(--text-primary)',

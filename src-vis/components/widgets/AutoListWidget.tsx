@@ -41,8 +41,9 @@ import {
     type GroupActionConfigOpts,
 } from '../../utils/groupTargets';
 import { GroupActionControl } from './GroupActionControl';
-import { EntrySubLine, subCondKey, type EntrySubDp } from './EntrySubLine';
-import { useTemplateValues } from '../../hooks/useTemplateValues';
+import { EntrySubLine, subCondKey, useRelativeTick, type EntrySubDp } from './EntrySubLine';
+import { useTemplateStates } from '../../hooks/useTemplateValues';
+import { isStampSub, subDpsNeedTick } from '../../utils/subDpStamp';
 import { resolveSubDpTemplate } from '../../utils/subDpTemplate';
 import { ListFilterChip } from './ListFilterChip';
 import {
@@ -318,9 +319,10 @@ function isNumericRole(role?: string) {
 
 /** The entry's own second-line datapoints, empty ids dropped. Empty = the list-wide
  *  template applies — "own" must mean the same thing everywhere or an entry can end up
- *  counted as configured while rendering the template. */
+ *  counted as configured while rendering the template. A timestamp slot survives
+ *  without an id: there it means the row's own datapoint (utils/subDpStamp). */
 function ownSubDps(entry: AutoListEntry): EntrySubDp[] {
-    return (entry.subDps ?? []).filter((s) => !!s?.id);
+    return (entry.subDps ?? []).filter((s) => !!s?.id || isStampSub(s));
 }
 
 export function resolveName(name: string | Record<string, string> | undefined, fallback: string): string {
@@ -1162,8 +1164,26 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // sorting or the statistics line, so they get their own read-only subscription
     // (the same hook the value widget uses for its template datapoints). Filter
     // presets and the free-text search DO read them - see utils/listFilter.
-    const subDpRefs = useMemo(() => [...new Set([...entrySubDps.values()].flat().map((s) => s.id))], [entrySubDps]);
-    const subValues = useTemplateValues(subDpRefs);
+    const subDpRefs = useMemo(
+        () => [
+            ...new Set(
+                [...entrySubDps.values()]
+                    .flat()
+                    .map((s) => s.id)
+                    .filter(Boolean),
+            ),
+        ],
+        [entrySubDps],
+    );
+    // The timestamps ride along with the values on the very same subscription, so a
+    // second line showing "vor 5 Min" costs nothing extra (hooks/useTemplateValues).
+    const subStates = useTemplateStates(subDpRefs);
+    const subValues = useMemo(
+        () => Object.fromEntries(Object.entries(subStates).map(([ref, s]) => [ref, s.val])),
+        [subStates],
+    );
+    // One timer for the whole list, and only while a relative timestamp is on screen.
+    useRelativeTick(useMemo(() => [...entrySubDps.values()].some(subDpsNeedTick), [entrySubDps]));
     // Metadata of the datapoints a TEMPLATE resolved to. Two jobs: it tells apart
     // "datapoint exists" from "device does not have it" (so a thermostat without
     // BATTERY does not add a dash to its row), and it supplies the unit the template
@@ -1252,13 +1272,17 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
         const usable =
             own || !hideMissingSubDps
                 ? list
-                : list.filter((s) => templateMeta[s.id] !== undefined || subValues[s.id] != null);
+                : list.filter(
+                      (s) => (!s.id && isStampSub(s)) || templateMeta[s.id] !== undefined || subValues[s.id] != null,
+                  );
         if (!usable.length) return null;
         const resolved = own ? usable : usable.map((s) => (s.unit ? s : { ...s, unit: templateMeta[s.id]?.unit }));
         return (
             <EntrySubLine
                 subDps={resolved}
                 values={subValues}
+                stamps={subStates}
+                mainStamp={states[entry.id]}
                 listTransform={opts}
                 decimals={decimals}
                 numFmt={numFmt}

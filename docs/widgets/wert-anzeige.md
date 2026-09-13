@@ -75,7 +75,7 @@ zeigen `–`. Wird nach Faktor/Offset angewendet und gilt auch für `{dp}` im HT
 
 | Option             | Standard |                                                                                                                                    |
 | ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `valueTimeFormat`  | —        | `time` (14:32) · `time-sec` · `date` (01.08.2026) · `date-long` (Samstag, 1. August 2026) · `datetime` · `datetime-sec` · `custom` |
+| `valueTimeFormat`  | —        | `relative` (vor 5 Min) · `time` (14:32) · `time-sec` · `date` (01.08.2026) · `date-long` (Samstag, 1. August 2026) · `datetime` · `datetime-sec` · `custom` |
 | `valueTimePattern` | —        | Token-Muster, nur bei `custom`                                                                                                     |
 
 Tokens für `valueTimePattern`: `HH` `mm` `ss` · `hh` · `dd` `MM` `yyyy` `yy` · `EEEE` (Wochentag) · `EE` ·

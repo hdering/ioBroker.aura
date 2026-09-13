@@ -113,6 +113,9 @@ In der Vorlage darf die Datenpunkt-ID Platzhalter enthalten, aufgelöst gegen de
 | `{{dp}}` | vollständige ID der Zeile |
 | `{{name}}` | letztes Segment der ID |
 
+Ein Platz mit **leerer** ID und `source: lastChange` zeigt, wann sich der Datenpunkt **dieser** Zeile
+zuletzt geändert hat — siehe [Zeitstempel statt Wert](./liste#zeitstempel-statt-wert).
+
 `{{parent2}}` ist der Weg zu einem **anderen Kanal desselben Geräts**: bei HomeMatic liegt der Messwert in `….000A….1.ACTUAL_TEMPERATURE`, Batterie und `UNREACH` dagegen im Wartungskanal `….000A….0.*`. Oberhalb von `adapter.instanz` gibt es keine Ebene mehr.
 
 Ohne Platzhalter gilt derselbe Datenpunkt für jede Zeile (Außentemperatur, Strompreis). Ein Beispiel-Eintrag im Tab liefert die Auswahl der Geschwister-Datenpunkte und die Vorschau der aufgelösten IDs. Über **Beliebiger DP** gewählte Datenpunkte desselben Geräts werden automatisch zum Muster — ein Klick auf die Batterie im Wartungskanal speichert `{{parent2}}.0.OPERATING_VOLTAGE`. Datenpunkte eines anderen Geräts bleiben absolut.

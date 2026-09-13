@@ -11,6 +11,7 @@
  * A per-entry `subDps` list always wins over the template — see AutoListWidget.
  */
 import { dpVarMap, subAll } from './popupPlaceholders';
+import { isStampSub } from './subDpStamp';
 import type { EntrySubDp } from '../components/widgets/EntrySubLine';
 
 /** true once every `{{token}}` in `id` has been substituted. */
@@ -32,7 +33,13 @@ export function resolveSubDpTemplate(template: EntrySubDp[] | undefined, dpId: s
     const map = dpVarMap(dpId);
     const out: EntrySubDp[] = [];
     for (const s of template) {
-        if (!s?.id) continue;
+        if (!s?.id) {
+            // A timestamp slot without an id means "this row's own datapoint" and is
+            // the one template row that needs no token at all — it is passed through
+            // with the empty id, which EntrySubLine answers from the row's state.
+            if (isStampSub(s)) out.push(s);
+            continue;
+        }
         const id = subAll(s.id, map);
         if (!isResolvedDpId(id)) continue;
         out.push(id === s.id ? s : { ...s, id });

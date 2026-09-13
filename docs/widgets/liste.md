@@ -185,7 +185,7 @@ Ein schreibgeschützter Datenpunkt ist immer schreibgeschützt, unabhängig von 
 
 | Feld          | Standard |                                                                                                                                    |
 | ------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `timeFormat`  | `time`   | `time` (14:32) · `time-sec` · `date` (01.08.2026) · `date-long` (Samstag, 1. August 2026) · `datetime` · `datetime-sec` · `custom` |
+| `timeFormat`  | `time`   | `relative` (vor 5 Min) · `time` (14:32) · `time-sec` · `date` (01.08.2026) · `date-long` (Samstag, 1. August 2026) · `datetime` · `datetime-sec` · `custom` |
 | `timePattern` | —        | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm`                                                                              |
 
 Tokens: `HH` `mm` `ss` · `hh` · `dd` `MM` `yyyy` `yy` · `EEEE` (Wochentag) · `EE` · `MMMM` (Monat) · `ww` (KW)
@@ -233,6 +233,7 @@ Die ID lässt sich außerdem direkt ins Feld tippen.
 | Feld                                                                                      | Standard           |                                                                       |
 | ----------------------------------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------- |
 | `id`                                                                                      | —                  | Datenpunkt-ID                                                         |
+| `source`                                                                                  | `value`            | `value` · `lastChange` · `lastUpdate` — Zeitstempel statt Wert     |
 | `align`                                                                                   | `left`             | `left` · `center` · `right`                                           |
 | `label`                                                                                   | —                  | Text vor dem Wert; leer = nur Wert                                    |
 | `icon`                                                                                    | —                  | [Lucide-Icon](https://lucide.dev) / Iconify-ID vor dem Text           |
@@ -251,6 +252,20 @@ Zusätzlich pro Datenpunkt der zweiten Zeile:
 
 Die Werte-Zuordnung ist dieselbe Tabelle wie beim Darstellungstyp `Zustände` und wirkt an beiden Stellen
 gleich.
+
+#### Zeitstempel statt Wert
+
+Schaltfläche **+ Letzte Änderung**, oder am vorhandenen Datenpunkt **Anzeigen** umstellen. Der Zeitstempel
+**ersetzt** den Wert an diesem Platz — die zusätzliche Zeile unter dem Wert schaltet dagegen
+[Letzte Änderung](#verhalten) am Eintrag.
+
+| Option              |                                                                                             |
+| ------------------- | ------------------------------------------------------------------------------------------- |
+| `source`            | `lastChange` = letzte Wertänderung (`lc`) · `lastUpdate` = letzter Schreibvorgang (`ts`)   |
+| `id` leer           | Datenpunkt der Zeile — kein zweiter DP nötig                                              |
+| `valueTimeFormat`   | Standard `relative` (vor 5 Min); sonst `time` · `date` · `datetime` · `custom` …        |
+
+Einheit, Dezimalstellen und Werte-Zuordnung entfallen. Der Tooltip zeigt den genauen Zeitpunkt.
 
 Layouts `default` · `card` · `compact` zeigen die zweite Zeile. Das Badges-Layout (`minimal`) nicht —
 dort ist eine Zeile eine Pille. Die [dynamische Liste](./dynamische-liste#zweite-zeile-zusatzliche-datenpunkte)
@@ -319,7 +334,7 @@ Wert nur für die Anzeige um und/oder formatiert ihn als Uhrzeit/Datum — wie b
 | ----------------------------- | --------- | --------------------------------------------------------------------------------------- |
 | `valueTransform`              | —         | Preset-Id, `custom` oder `none` (schaltet die globale Umrechnung für diesen Eintrag ab) |
 | `valueFactor` / `valueOffset` | `1` / `0` | Anzeige = Wert × Faktor + Offset                                                        |
-| `valueTimeFormat`             | —         | `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom`     |
+| `valueTimeFormat`             | —         | `relative` · `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom`     |
 | `valueTimePattern`            | —         | Token-Muster bei `custom`, z. B. `EEEE, dd.MM. HH:mm`                                   |
 
 Presets: Sekunden → Minuten/Stunden · ms → s · Wh → kWh · W → kW · Bytes → KB/MB/GB · 0..1 → % · °C → °F.

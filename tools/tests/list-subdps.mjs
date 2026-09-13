@@ -351,6 +351,91 @@ await showAuto('default', {
     check('… and does so per row', lines[1] === 'Batt 2.4 V', JSON.stringify(lines));
 }
 
+// ── 15. Timestamp mode: the slot prints when the datapoint changed (#646) ────
+// A sensor that keeps reporting the same reading has a fresh ts and a stale lc -
+// which is exactly the pair the two sources have to tell apart.
+const NOW = Date.now();
+const MIN = 60_000;
+const STAMP_VALUES = {
+    'demo.temp': { val: 21.5, ts: NOW - 5 * MIN, lc: NOW - 5 * MIN },
+    'demo.batt': { val: 87, ts: NOW - 2 * MIN, lc: NOW - 3 * 60 * MIN },
+};
+
+await show('default', {
+    entries: mainEntry([
+        { id: '', source: 'lastChange', label: 'Zuletzt' },
+        { id: 'demo.batt', source: 'lastChange', label: 'Batt', unit: '%', align: 'right' },
+    ]),
+    values: STAMP_VALUES,
+});
+{
+    const slots = await slotTexts();
+    const line = (slots ?? []).join(' | ');
+    check('an empty id reads the row own datapoint', line.includes('Zuletzt vor etwa 5 Minuten'), line);
+    check('a named datapoint reads its own lc', line.includes('Batt vor etwa 3 Stunden'), line);
+    // A timestamp is not a measurement - appending "%" to it would be nonsense.
+    check('the unit is not appended to a timestamp', !line.includes('%'), line);
+}
+
+await show('default', {
+    entries: mainEntry([{ id: 'demo.batt', source: 'lastUpdate', label: 'Gesehen' }]),
+    values: STAMP_VALUES,
+});
+{
+    const line = (await slotTexts()).join(' | ');
+    check('lastUpdate reads ts, not lc', line.includes('Gesehen vor etwa 2 Minuten'), line);
+}
+
+await show('default', {
+    entries: mainEntry([{ id: 'demo.batt', source: 'lastChange', label: 'Um', valueTimeFormat: 'time' }]),
+    values: STAMP_VALUES,
+});
+{
+    const line = (await slotTexts()).join(' | ');
+    const want = new Date(NOW - 3 * 60 * MIN);
+    const hhmm = `${String(want.getHours()).padStart(2, '0')}:${String(want.getMinutes()).padStart(2, '0')}`;
+    check('a picked format prints the clock time', line.includes(`Um ${hhmm}`), `${line} (want ${hhmm})`);
+}
+
+// A slot whose datapoint has not answered yet prints the dash, not "vor 56 Jahren".
+await show('default', {
+    entries: mainEntry([{ id: 'demo.nothing', source: 'lastChange', label: 'Nie' }]),
+    values: { 'demo.temp': STAMP_VALUES['demo.temp'] },
+});
+{
+    const line = (await slotTexts()).join(' | ');
+    check('a datapoint without a state prints the dash', line.includes('Nie \u2013'), line);
+}
+
+// The value mode must be untouched by all of this.
+await show('default', {
+    entries: mainEntry([{ id: 'demo.batt', label: 'Batt', unit: '%', decimals: 0 }]),
+    values: STAMP_VALUES,
+});
+{
+    const line = (await slotTexts()).join(' | ');
+    check('a value slot still prints the value', line.includes('Batt 87 %'), line);
+}
+
+// ── 16. Dynamic list: one id-less timestamp slot serves every row ───────────
+await showAuto('default', {
+    entries: autoEntries(),
+    options: { subDpTemplate: [{ id: '', source: 'lastChange', label: 'Zuletzt' }] },
+    values: {
+        'demo.temp': { val: 21.5, ts: NOW - 5 * MIN, lc: NOW - 5 * MIN },
+        'other.temp': { val: 19, ts: NOW - 2 * 60 * MIN, lc: NOW - 2 * 60 * MIN },
+    },
+});
+{
+    const lines = await allSubLines();
+    check(
+        'the template needs no token for the row own timestamp',
+        lines[0] === 'Zuletzt vor etwa 5 Minuten',
+        JSON.stringify(lines),
+    );
+    check('… and every row gets its own', lines[1] === 'Zuletzt vor etwa 2 Stunden', JSON.stringify(lines));
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
 
 await browser.close();

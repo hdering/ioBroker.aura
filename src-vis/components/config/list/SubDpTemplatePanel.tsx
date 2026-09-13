@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { AutoListOptions } from '../../widgets/AutoListWidget';
 import { SubDpFields } from './SubDpFields';
 import { resolveSubDpTemplate } from '../../../utils/subDpTemplate';
+import { isStampSub } from '../../../utils/subDpStamp';
 import { ensureDatapointCache } from '../../../hooks/useDatapointList';
 
 const PREVIEW_ROWS = 6;
@@ -49,13 +50,13 @@ export function SubDpTemplatePanel({
             });
     }, []);
 
-    const templateKey = JSON.stringify(template.map((s) => s.id));
+    const templateKey = JSON.stringify(template.map((s) => [s.id, s.source]));
     const preview = useMemo(
         () =>
             entries.slice(0, PREVIEW_ROWS).map((e) => ({
                 id: e.id,
                 name: e.label || resolvedNames[e.id] || e.id.split('.').pop() || e.id,
-                own: (e.subDps ?? []).filter((s) => !!s?.id).length,
+                own: (e.subDps ?? []).filter((s) => !!s?.id || isStampSub(s)).length,
                 resolved: resolveSubDpTemplate(template, e.id).map((s) => s.id),
             })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
