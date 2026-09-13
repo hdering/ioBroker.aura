@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useDashboardStore } from '../store/dashboardStore';
 import { useConfigStore } from '../store/configStore';
 import { useThemeStore } from '../store/themeStore';
@@ -5,6 +6,7 @@ import type { FrontendSettings } from '../store/configStore';
 import type { LayoutSettings } from '../store/dashboardStore';
 import type { ThemeVars } from '../themes';
 import { resolveThemeModeId, useThemeModeStore } from '../utils/themeModeCache';
+import { resolveThemeVars, type VarSets } from '../utils/themeVars';
 
 // ── 3-level keys: overridable per layout AND per section (section wins) ──────
 const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
@@ -142,10 +144,44 @@ export function useEffectiveThemeId(layoutId?: string, sectionId?: string): stri
     return resolveThemeModeId(base, mode, darkId, lightId);
 }
 
-/** Effective custom theme vars: global → layout → section. */
-export function useEffectiveCustomVars(layoutId?: string, sectionId?: string): Partial<ThemeVars> {
-    const globalVars = useThemeStore((s) => s.customVars);
+/** True when a scope carries own theme variables of any brightness. */
+function ownVarSets(s: LayoutSettings | undefined): VarSets | undefined {
+    if (!s) return undefined;
+    if (s.customVars === undefined && s.customVarsLight === undefined && s.customVarsDark === undefined) {
+        return undefined;
+    }
+    return { base: s.customVars, light: s.customVarsLight, dark: s.customVarsDark };
+}
+
+/**
+ * The var sets of the nearest scope that defines any: global → layout → section.
+ *
+ * A scope owns its variables as a whole (that is how it always worked — a
+ * layout's set replaces the global one, it does not merge into it), so the
+ * light/dark split is resolved WITHIN the winning scope.
+ */
+export function useEffectiveVarSets(layoutId?: string, sectionId?: string): VarSets {
+    const base = useThemeStore((s) => s.customVars);
+    const light = useThemeStore((s) => s.customVarsLight);
+    const dark = useThemeStore((s) => s.customVarsDark);
     const ls = useLayoutSettingsObj(layoutId);
     const ss = useSectionSettingsObj(layoutId, sectionId);
-    return ss?.customVars ?? ls?.customVars ?? globalVars;
+    return ownVarSets(ss) ?? ownVarSets(ls) ?? { base, light, dark };
+}
+
+/**
+ * Effective custom theme vars for the brightness being rendered (#640).
+ *
+ * `dark` is the polarity of the theme that actually paints — not the
+ * followBrowser flag: the mode datapoint and the header sun/moon button switch
+ * brightness as well.
+ */
+export function useEffectiveCustomVars(layoutId: string | undefined, sectionId: string | undefined, dark: boolean) {
+    // Destructured so the memo depends on the three stable set references rather
+    // than on the wrapper object, which is rebuilt on every render.
+    const { base, light, dark: darkSet } = useEffectiveVarSets(layoutId, sectionId);
+    return useMemo(
+        () => resolveThemeVars(dark, { base, light, dark: darkSet }),
+        [dark, base, light, darkSet],
+    ) as Partial<ThemeVars>;
 }

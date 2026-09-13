@@ -2530,6 +2530,81 @@ check('following the browser is said out loud, not averaged away', () => {
     assert.match(out, /var\(--text-primary\) = #111827 \/ #ffffff/);
 });
 
+// ── Own themes and per-brightness overrides (#640) ───────────────────────────
+// The user can give the light and the dark half different colours, and can save
+// themes that exist on their installation only. Both live in config.theme, so
+// the generated token file cannot know about them — reporting the shared accent
+// for both halves would send the model back to guessing hex values.
+check('each half of a browser-synced pair reports its own colour', () => {
+    const out = renderTheme(
+        THEME_TOKENS,
+        {
+            followBrowser: true,
+            browserLightThemeId: 'light',
+            browserDarkThemeId: 'dark',
+            customVars: {},
+            customVarsLight: { '--accent': '#ff6600' },
+            customVarsDark: { '--accent': '#88ccff' },
+        },
+        { elements: false },
+    );
+    assert.match(out, /var\(--accent\) = #ff6600 \/ #88ccff/);
+    assert.match(out, /getrennt anpassen/, 'and says the two halves are configured separately');
+});
+
+check('the shared set still applies to both halves', () => {
+    const values = themeValues(THEME_TOKENS, {
+        followBrowser: true,
+        browserLightThemeId: 'light',
+        browserDarkThemeId: 'dark',
+        customVars: { '--accent-red': '#990000' },
+        customVarsDark: { '--accent': '#88ccff' },
+    });
+    // One value: the shared override reaches the light AND the dark theme.
+    assert.equal(values.get('--accent-red'), '#990000');
+    // The dark half only — the light theme keeps the theme's own accent.
+    assert.equal(values.get('--accent'), '#3b82f6 / #88ccff');
+});
+
+check('a theme the user made themselves is reported like any other', () => {
+    const choice = {
+        themeId: 'user-1',
+        customVars: {},
+        userThemes: [{ id: 'user-1', name: 'Wohnzimmer', dark: true, baseId: 'dark', vars: { '--accent': '#ff6600' } }],
+    };
+    assert.deepEqual(
+        activeThemes(THEME_TOKENS, choice).map((t) => t.id),
+        ['user-1'],
+    );
+    const out = renderTheme(THEME_TOKENS, choice, { elements: false });
+    assert.match(out, /Wohnzimmer \(user-1\)/);
+    // Its own accent, and every var it did not touch from the base preset.
+    assert.match(out, /var\(--accent\) = #ff6600/);
+    assert.match(out, /var\(--app-bg\) = #111827/);
+});
+
+check('an own theme can be one half of the browser pair', () => {
+    const values = themeValues(THEME_TOKENS, {
+        followBrowser: true,
+        browserLightThemeId: 'light',
+        browserDarkThemeId: 'user-9',
+        userThemes: [
+            { id: 'user-9', name: 'Nacht', dark: true, baseId: 'amoled', vars: { '--text-primary': '#dddddd' } },
+        ],
+    });
+    assert.equal(values.get('--text-primary'), '#111827 / #dddddd');
+    assert.equal(values.get('--app-bg'), '#f9fafb / #000000');
+});
+
+check('a deleted own theme does not leave the answer empty', () => {
+    // themeId points at a theme that is gone — the default steps in rather than
+    // an answer with no palette at all.
+    assert.deepEqual(
+        activeThemes(THEME_TOKENS, { themeId: 'user-404', userThemes: [] }).map((t) => t.id),
+        [THEME_TOKENS.defaultThemeId],
+    );
+});
+
 check('without the generated palette the answer says so instead of inventing one', () => {
     assert.match(renderTheme(null, {}), /nicht mitgeliefert/);
     assert.equal(renderPalette(null, {}), '');

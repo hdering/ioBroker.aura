@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useThemeStore } from '../../store/themeStore';
-import { THEMES, getTheme, type ThemeVars } from '../../themes';
+import { getTheme, type ThemeVars } from '../../themes';
+import { useAllThemes } from '../../hooks/useAllThemes';
 import { ColorPicker } from '../common/ColorPicker';
 
 const VAR_LABELS: Partial<Record<keyof ThemeVars, string>> = {
@@ -26,6 +27,7 @@ function isColor(v: string) {
 
 export function ThemeSelector() {
     const { themeId, customVars, applyThemePreset, setCustomVar, resetCustom } = useThemeStore();
+    const themes = useAllThemes();
     const [open, setOpen] = useState(false);
     const [tab, setTab] = useState<'presets' | 'custom'>('presets');
 
@@ -67,7 +69,7 @@ export function ThemeSelector() {
 
                     {tab === 'presets' && (
                         <div className="aura-scroll p-3 space-y-2 max-h-80 overflow-y-auto">
-                            {THEMES.map((theme) => (
+                            {themes.map((theme) => (
                                 <button
                                     key={theme.id}
                                     onClick={() => applyThemePreset(theme.id)}
@@ -149,7 +151,7 @@ export function ThemeSelector() {
                                 );
                             })}
                             <button
-                                onClick={resetCustom}
+                                onClick={() => resetCustom()}
                                 className="w-full mt-2 py-1.5 text-xs rounded"
                                 style={{
                                     background: 'var(--app-bg)',

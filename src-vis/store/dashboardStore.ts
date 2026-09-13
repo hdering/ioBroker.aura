@@ -137,6 +137,10 @@ export interface LayoutSettings {
     // Theme
     themeId?: string;
     customVars?: Partial<AllVars>;
+    // Brightness-specific halves of the same override set (#640) — laid on top
+    // of customVars when a light / dark theme is the one being rendered.
+    customVarsLight?: Partial<AllVars>;
+    customVarsDark?: Partial<AllVars>;
     // CSS
     customCSS?: string;
     customCSSEnabled?: boolean;

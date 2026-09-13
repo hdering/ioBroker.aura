@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.56.4",
+    "auraVersion": "0.58.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -376,6 +376,22 @@
             "datapoint"
           ],
           "description": "when 'datapoint', `value` is the second DP ID"
+        },
+        "join": {
+          "type": "string",
+          "enum": [
+            "AND",
+            "OR"
+          ],
+          "description": "How this clause hangs off the one before it (issue #635). Undefined falls back to the rule-wide `logic`, which is what every config written before this existed relies on -- so a stored rule keeps meaning exactly what it meant. Ignored on the first clause of its level. AND binds tighter than OR."
+        },
+        "bracket": {
+          "type": "string",
+          "enum": [
+            "open",
+            "in"
+          ],
+          "description": "Bracket marker. Absent = top level; 'open' starts a bracket, 'in' continues the one the row above opened. A bracket hangs off the outer level with the `join` of its 'open' row -- so `A AND (B OR C)` is [A], [B join AND bracket open], [C join OR bracket in]. 'open' rather than a plain depth flag, because a depth flag cannot put a boundary between two ADJACENT brackets: `(A OR B) AND (C OR D)` needs the third row to say \"a new bracket starts here\", not just \"I am inside one\". Deliberately a marker on a FLAT list instead of a nested tree: every consumer of `clauses` (foreign-ref collection, template resolution, export anonymisation, the schema extractor) keeps working unchanged, and one nesting level covers what a dashboard rule actually needs."
         }
       }
     },
@@ -710,6 +726,10 @@
             "ref": "ConditionClause"
           },
           "description": "visibility clauses (reuses the condition shape)"
+        },
+        "countInAggregate": {
+          "type": "boolean",
+          "description": "Opt out of a tab's/section's aggregate badge. Default true — a stored marker counts exactly as it did before the option existed."
         }
       }
     },

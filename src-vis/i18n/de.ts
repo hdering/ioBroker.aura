@@ -661,7 +661,8 @@ export const de = {
     'theme.scope.base': 'Gemeinsam',
     'theme.scope.light': 'Hell',
     'theme.scope.dark': 'Dunkel',
-    'theme.scope.baseHint': 'Gilt für beide Helligkeiten. Wird von den Werten auf den Reitern „Hell“ und „Dunkel“ überschrieben.',
+    'theme.scope.baseHint':
+        'Gilt für beide Helligkeiten. Wird von den Werten auf den Reitern „Hell“ und „Dunkel“ überschrieben.',
     'theme.scope.lightHint': 'Gilt nur, solange ein helles Theme angezeigt wird („{theme}“).',
     'theme.scope.darkHint': 'Gilt nur, solange ein dunkles Theme angezeigt wird („{theme}“).',
 
@@ -679,7 +680,8 @@ export const de = {
     'theme.user.use': 'Verwenden',
     'theme.user.badge': 'Eigen',
     'theme.user.basedOn': 'Basis: {theme}',
-    'theme.user.togglePolarity': 'Zwischen hell und dunkel umschalten — bestimmt, für welche Hälfte der Browser-Sync das Theme anbietet',
+    'theme.user.togglePolarity':
+        'Zwischen hell und dunkel umschalten — bestimmt, für welche Hälfte der Browser-Sync das Theme anbietet',
     'theme.user.newName': '{theme} (eigen)',
     'theme.user.saved': '„{name}“ gespeichert.',
     'theme.user.imported': '{count} Theme(s) importiert.',

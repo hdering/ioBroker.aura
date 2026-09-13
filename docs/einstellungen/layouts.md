@@ -25,6 +25,31 @@ Welches Design das Frontend zeigt, entscheidet diese Reihenfolge:
 | 2       | Theme folgt Browser                | Überschreibt alle Presets, global wie pro Layout und Bereich                                                                                                                                     |
 | 3       | Bereich → Layout → Global          | Geltungsbereich links; der engste gesetzte Wert gewinnt                                                                                                                                          |
 
+### Hell und Dunkel getrennt einstellen
+
+Sobald „Theme folgt Browser" aktiv ist (oder `themeMode.frontend` einen Modus setzt), zeigt dieselbe Installation zwei Designs. Preset-Raster und Variablen-Editor bekommen dann oben rechts einen Umschalter.
+
+| Reiter    |                                                                          |
+| --------- | ------------------------------------------------------------------------ |
+| Gemeinsam | Gilt für beide Helligkeiten (die bisherigen Anpassungen liegen hier)      |
+| Hell      | Gilt nur, solange ein helles Theme angezeigt wird                         |
+| Dunkel    | Gilt nur, solange ein dunkles Theme angezeigt wird                        |
+
+Im Preset-Raster bestimmt der Reiter, welche Hälfte des Paares das angeklickte Design wird. Im Variablen-Editor überschreiben die Werte auf „Hell"/„Dunkel" den gemeinsamen Wert; das Feld zeigt den geerbten Wert als Platzhalter. Ein Punkt am Reiter markiert Hälften, die etwas enthalten.
+
+### Meine Themes
+
+Eigene Themes sind ein eingebautes Preset plus die angepassten Variablen. Gespeicherte Themes stehen überall zur Auswahl: im Preset-Raster, als Hell- oder Dunkel-Hälfte von „Theme folgt Browser" und in jeder Layout- oder Bereichs-Überschreibung.
+
+| Aktion                   |                                                                                     |
+| ------------------------ | ----------------------------------------------------------------------------------- |
+| Aktuellen Stand speichern | Legt aus dem gerade angezeigten Design + Variablen ein eigenes Theme an              |
+| Hell/Dunkel              | Legt fest, für welche Hälfte des Browser-Syncs das Theme angeboten wird              |
+| Verwenden                | Setzt das Theme global bzw. als passende Hälfte                                      |
+| Duplizieren              | Kopie zum Weiterbauen                                                                |
+| Exportieren / Importieren | JSON-Datei, auch zwischen zwei Installationen                                        |
+| Löschen                  | Verwendungen fallen auf ein mitgeliefertes Design zurück                             |
+
 ## Typografie & Spacing
 
 ![](./assets/layouts-typo.png)

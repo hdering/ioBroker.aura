@@ -350,9 +350,11 @@ export default function App() {
 
     // Effective settings cascade: global → layout → section (per-section overrides).
     const effectiveThemeId = useEffectiveThemeId(layout?.id, section?.id);
-    const effectiveCustomVars = useEffectiveCustomVars(layout?.id, section?.id);
     const effectiveSettings = useEffectiveSettings(layout?.id, section?.id);
     const currentTheme = getTheme(effectiveThemeId);
+    // Own variables for the brightness that actually paints here (#640) — the
+    // scope cascade picks the set, the theme's polarity picks the half.
+    const effectiveCustomVars = useEffectiveCustomVars(layout?.id, section?.id, currentTheme.dark);
 
     // URL base for the current layout+section context. The section segment is only
     // added when the layout has more than one section (single-section layouts keep
@@ -624,8 +626,12 @@ export default function App() {
         const overridden =
             sectionSettings?.themeId !== undefined ||
             sectionSettings?.customVars !== undefined ||
+            sectionSettings?.customVarsLight !== undefined ||
+            sectionSettings?.customVarsDark !== undefined ||
             layoutSettings?.themeId !== undefined ||
             layoutSettings?.customVars !== undefined ||
+            layoutSettings?.customVarsLight !== undefined ||
+            layoutSettings?.customVarsDark !== undefined ||
             scopedFontScale !== undefined;
         if (!overridden) {
             if (layoutThemeRef.current) {

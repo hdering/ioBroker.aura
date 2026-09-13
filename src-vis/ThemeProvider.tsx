@@ -1,17 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useThemeStore } from './store/themeStore';
 import { useConfigStore } from './store/configStore';
 import { useGlobalThemeId } from './hooks/useEffectiveSettings';
 import { getTheme } from './themes';
 import { BOOT_COLORS_KEY } from './utils/themeModeCache';
 import { bumpThemeEpoch } from './store/themeEpoch';
+import { resolveThemeVars } from './utils/themeVars';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const customVars = useThemeStore((s) => s.customVars);
+    // Three separate selectors on purpose: building the VarSets object inside a
+    // selector would hand zustand a new reference on every store change.
+    const baseVars = useThemeStore((s) => s.customVars);
+    const lightVars = useThemeStore((s) => s.customVarsLight);
+    const darkVars = useThemeStore((s) => s.customVarsDark);
     const fontScale = useConfigStore((s) => s.frontend.fontScale ?? 1);
     // Global theme with the dark/light-mode datapoint applied — the saved
     // themeId itself is never rewritten by the mode (#573).
     const theme = getTheme(useGlobalThemeId());
+    // Own overrides for THIS brightness: the shared set plus the light/dark half
+    // that matches the theme actually being rendered (#640).
+    const customVars = useMemo(
+        () => resolveThemeVars(theme.dark, { base: baseVars, light: lightVars, dark: darkVars }),
+        [theme.dark, baseVars, lightVars, darkVars],
+    );
 
     useEffect(() => {
         const root = document.documentElement;

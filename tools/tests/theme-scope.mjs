@@ -62,8 +62,27 @@ const dashboard = (layoutSettings, sectionSettings) =>
 const browser = await chromium.launch();
 
 /** Render the frontend with a seeded store and report what it actually paints. */
-async function render({ themeId = 'dark', mode = null, layout, section, browserDark, browserLight, follow }) {
-    const ctx = await browser.newContext({ viewport: { width: 900, height: 600 }, ignoreHTTPSErrors: true });
+async function render({
+    themeId = 'dark',
+    mode = null,
+    layout,
+    section,
+    browserDark,
+    browserLight,
+    follow,
+    vars,
+    varsLight,
+    varsDark,
+    userThemes,
+    prefersDark = false,
+}) {
+    const ctx = await browser.newContext({
+        viewport: { width: 900, height: 600 },
+        ignoreHTTPSErrors: true,
+        // The browser sync reads prefers-color-scheme, so a test of the pair has
+        // to be able to say which half the device asks for.
+        colorScheme: prefersDark ? 'dark' : 'light',
+    });
     // No backend: only same-origin dev-server assets are allowed through.
     await ctx.route('**/*', (route) => {
         const url = route.request().url();
@@ -83,7 +102,10 @@ async function render({ themeId = 'dark', mode = null, layout, section, browserD
             JSON.stringify({
                 state: {
                     themeId,
-                    customVars: {},
+                    customVars: vars ?? {},
+                    customVarsLight: varsLight ?? {},
+                    customVarsDark: varsDark ?? {},
+                    userThemes: userThemes ?? [],
                     followBrowser: !!follow,
                     browserDarkThemeId: browserDark ?? 'dark',
                     browserLightThemeId: browserLight ?? 'light',
@@ -97,6 +119,14 @@ async function render({ themeId = 'dark', mode = null, layout, section, browserD
     await page.waitForTimeout(SETTLE_MS);
     const out = await page.evaluate(() => ({
         bg: getComputedStyle(document.querySelector('[data-aura-app="frontend"]')).backgroundColor,
+        // The accent is the token the issue is about: with the browser sync on,
+        // it could only be right in one of the two themes.
+        accent: getComputedStyle(document.querySelector('[data-aura-app="frontend"]'))
+            .getPropertyValue('--accent')
+            .trim(),
+        text: getComputedStyle(document.querySelector('[data-aura-app="frontend"]'))
+            .getPropertyValue('--text-primary')
+            .trim(),
         // Native chrome (scrollbars, selects, date pickers) follows color-scheme,
         // not our variables — a scoped design has to carry it too.
         scheme: getComputedStyle(document.querySelector('[data-aura-app="frontend"]')).colorScheme,
@@ -157,6 +187,80 @@ const modeMatchesLayout = await render({
     mode: 'dark',
 });
 check('mode keeps a matching layout override', modeMatchesLayout.bg === BG['catppuccin-mocha'], modeMatchesLayout.bg);
+
+// ── Own variables per brightness (#640) ──────────────────────────────────────
+// The whole point of the issue: "theme follows browser" made both halves share
+// ONE set of overrides, so the accent could not differ between light and dark.
+const PAIR = { follow: true, browserLight: 'light', browserDark: 'dark' };
+const SPLIT = {
+    vars: { '--text-primary': '#abcdef' },
+    varsLight: { '--accent': '#ff6600' },
+    varsDark: { '--accent': '#88ccff' },
+};
+
+const lightHalf = await render({ ...PAIR, ...SPLIT, prefersDark: false });
+check('the light half paints its own accent', lightHalf.accent === '#ff6600', lightHalf.accent);
+check('and is the light design', lightHalf.bg === BG.light, lightHalf.bg);
+
+const darkHalf = await render({ ...PAIR, ...SPLIT, prefersDark: true });
+check('the dark half paints its own accent', darkHalf.accent === '#88ccff', darkHalf.accent);
+check('and is the dark design', darkHalf.bg === BG.dark, darkHalf.bg);
+
+check(
+    'the shared set still reaches both halves',
+    lightHalf.text === '#abcdef' && darkHalf.text === '#abcdef',
+    `${lightHalf.text} / ${darkHalf.text}`,
+);
+
+// Everything saved before the split lives in customVars alone and has to keep
+// applying to whatever design is on screen.
+const legacyVars = await render({ themeId: 'light', vars: { '--accent': '#123456' } });
+check('a set stored before the split still applies', legacyVars.accent === '#123456', legacyVars.accent);
+
+// The mode datapoint switches brightness as well — the halves must follow it,
+// not the followBrowser flag.
+const modeHalf = await render({ themeId: 'catppuccin-latte', mode: 'dark', ...SPLIT });
+check('the dark/light-mode datapoint picks the half too', modeHalf.accent === '#88ccff', modeHalf.accent);
+
+// ── Own themes (#640) ────────────────────────────────────────────────────────
+const OWN = [
+    { id: 'user-1', name: 'Nacht', dark: true, baseId: 'amoled', vars: { '--accent': '#ff00ff' } },
+    { id: 'user-2', name: 'Tag', dark: false, baseId: 'catppuccin-latte', vars: { '--accent': '#00aa00' } },
+];
+
+const ownGlobal = await render({ themeId: 'user-1', userThemes: OWN });
+check('an own theme paints its base background', ownGlobal.bg === BG.amoled, ownGlobal.bg);
+check('and its own accent', ownGlobal.accent === '#ff00ff', ownGlobal.accent);
+
+// The request from the issue, end to end: a fully own design for each half.
+const ownPairLight = await render({
+    follow: true,
+    browserLight: 'user-2',
+    browserDark: 'user-1',
+    userThemes: OWN,
+    prefersDark: false,
+});
+check('an own theme can be the light half', ownPairLight.bg === BG['catppuccin-latte'], ownPairLight.bg);
+check('with its own accent', ownPairLight.accent === '#00aa00', ownPairLight.accent);
+
+const ownPairDark = await render({
+    follow: true,
+    browserLight: 'user-2',
+    browserDark: 'user-1',
+    userThemes: OWN,
+    prefersDark: true,
+});
+check('and another own theme the dark half', ownPairDark.bg === BG.amoled, ownPairDark.bg);
+check('with its own accent', ownPairDark.accent === '#ff00ff', ownPairDark.accent);
+check('native chrome follows an own theme', ownPairDark.scheme === 'dark', ownPairDark.scheme);
+
+// A layout may pick an own theme like any other.
+const ownScoped = await render({ themeId: 'dark', layout: { themeId: 'user-2' }, userThemes: OWN });
+check('a layout can override with an own theme', ownScoped.bg === BG['catppuccin-latte'], ownScoped.bg);
+
+// A theme that was deleted must not leave the frontend blank.
+const ownGone = await render({ themeId: 'user-404', userThemes: [] });
+check('a deleted own theme falls back to a shipped one', ownGone.bg === BG.dark, ownGone.bg);
 
 await browser.close();
 

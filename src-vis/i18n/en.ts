@@ -676,7 +676,8 @@ export const en: Record<TranslationKey, string> = {
     'theme.user.use': 'Use',
     'theme.user.badge': 'Own',
     'theme.user.basedOn': 'Base: {theme}',
-    'theme.user.togglePolarity': 'Switch between light and dark — decides which half of the browser sync can use this theme',
+    'theme.user.togglePolarity':
+        'Switch between light and dark — decides which half of the browser sync can use this theme',
     'theme.user.newName': '{theme} (own)',
     'theme.user.saved': '“{name}” saved.',
     'theme.user.imported': 'Imported {count} theme(s).',

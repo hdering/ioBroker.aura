@@ -1,7 +1,10 @@
+import { useState } from 'react';
 import { useThemeStore } from '../../../../store/themeStore';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
+import { BrightnessTabs, useHasTwoBrightnesses } from '../shared/BrightnessTabs';
 import { getTheme, ELEMENT_VAR_FALLBACKS, type ThemeVars, type AllVars } from '../../../../themes';
+import { hasVars, VAR_SET_KEYS, type VarScope, type VarSets } from '../../../../utils/themeVars';
 import { useT } from '../../../../i18n';
 import { ColorPicker } from '../../../../components/common/ColorPicker';
 
@@ -133,35 +136,57 @@ interface ThemeVarsSectionProps {
 
 export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
     const t = useT();
-    const { themeId, customVars, setCustomVar, resetCustom } = useThemeStore();
+    const { themeId, customVars, customVarsLight, customVarsDark, setCustomVar, clearCustomVar, resetCustom } =
+        useThemeStore();
+    const browserLightThemeId = useThemeStore((s) => s.browserLightThemeId);
+    const browserDarkThemeId = useThemeStore((s) => s.browserDarkThemeId);
     const { ls, setPatch } = useLayoutSetting(contextId);
 
+    // Which half is being edited (#640). Only offered while two brightnesses are
+    // actually in play - with a single fixed design there is nothing to choose
+    // and the shared set is the only sensible target.
+    const twoBrightnesses = useHasTwoBrightnesses();
+    const [scope, setScope] = useState<VarScope>('base');
+    const activeScope: VarScope = twoBrightnesses ? scope : 'base';
+
     const effectiveThemeId = ls?.themeId ?? themeId;
-    const effectiveVars = ls?.customVars ?? customVars;
-    const activeTheme = getTheme(effectiveThemeId);
+    // A scope that has no set of its own starts from the inherited one - same as
+    // before, now once per half.
+    const sets: VarSets = {
+        base: ls?.customVars ?? customVars,
+        light: ls?.customVarsLight ?? customVarsLight,
+        dark: ls?.customVarsDark ?? customVarsDark,
+    };
+    const effectiveVars = sets[activeScope] ?? {};
+    // The values shown behind the fields belong to the theme this half applies
+    // to: editing the dark half against the light theme's palette would show
+    // placeholders the user never gets to see.
+    const activeTheme = getTheme(
+        activeScope === 'light' ? browserLightThemeId : activeScope === 'dark' ? browserDarkThemeId : effectiveThemeId,
+    );
 
-    const hasCustomVars = contextId ? Object.keys(ls?.customVars ?? {}).length > 0 : Object.keys(customVars).length > 0;
+    const ownSets: VarSets = contextId
+        ? { base: ls?.customVars, light: ls?.customVarsLight, dark: ls?.customVarsDark }
+        : { base: customVars, light: customVarsLight, dark: customVarsDark };
+    const hasCustomVars = hasVars(ownSets);
+    const filledScopes = (['base', 'light', 'dark'] as VarScope[]).filter(
+        (sc) => Object.keys(ownSets[sc] ?? {}).length > 0,
+    );
 
-    const isThemeOv = (key: keyof typeof customVars) => contextId !== null && ls?.customVars?.[key] !== undefined;
+    const isThemeOv = (key: keyof AllVars) => contextId !== null && ownSets[activeScope]?.[key] !== undefined;
 
     function setThemeVar(key: keyof AllVars, value: string) {
-        if (!contextId) setCustomVar(key, value);
-        else {
-            const next = { ...effectiveVars, [key]: value };
-            setPatch({ customVars: next });
-        }
+        if (!contextId) setCustomVar(key, value, activeScope);
+        else setPatch({ [VAR_SET_KEYS[activeScope]]: { ...effectiveVars, [key]: value } });
     }
 
     function clearThemeVar(key: keyof AllVars) {
         if (!contextId) {
-            const next = { ...customVars };
-            delete next[key];
-            resetCustom();
-            Object.entries(next).forEach(([k, v]) => setCustomVar(k as keyof AllVars, v!));
+            clearCustomVar(key, activeScope);
         } else {
             const next = { ...effectiveVars };
             delete next[key];
-            setPatch({ customVars: Object.keys(next).length ? next : undefined });
+            setPatch({ [VAR_SET_KEYS[activeScope]]: Object.keys(next).length ? next : undefined });
         }
     }
 
@@ -170,11 +195,12 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
             resetCustom();
             return;
         }
-        setPatch({ customVars: undefined });
+        setPatch({ customVars: undefined, customVarsLight: undefined, customVarsDark: undefined });
     }
 
     return (
         <div
+            data-aura-theme-vars
             className="rounded-xl p-6"
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         >
@@ -183,9 +209,22 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                     {t('theme.vars.title')}
                 </h2>
                 <div className="flex items-center gap-3 flex-wrap">
+                    {twoBrightnesses && <BrightnessTabs value={scope} onChange={setScope} filled={filledScopes} />}
                     <ResetDefaultsButton onReset={resetAllVars} disabled={!hasCustomVars} scoped={contextId !== null} />
                 </div>
             </div>
+            {twoBrightnesses && (
+                <p className="text-xs mb-4 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                    {t(
+                        activeScope === 'base'
+                            ? 'theme.scope.baseHint'
+                            : activeScope === 'light'
+                              ? 'theme.scope.lightHint'
+                              : 'theme.scope.darkHint',
+                        { theme: activeTheme.name },
+                    )}
+                </p>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-x-6 gap-y-5">
                 {VAR_GROUPS.map(({ labelKey, keys }) => (
                     <div key={labelKey}>
@@ -197,7 +236,11 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                         </p>
                         <div className="space-y-3">
                             {keys.map((key) => {
-                                const base = resolveBase(key, activeTheme.vars);
+                                // A half inherits from the shared set first and only then
+                                // from the theme - that is the value it really shows.
+                                const base =
+                                    (activeScope !== 'base' ? sets.base?.[key] : undefined) ??
+                                    resolveBase(key, activeTheme.vars);
                                 const custom = effectiveVars[key];
                                 const current = custom ?? base;
                                 const varLabelKey = VAR_LABEL_KEYS[key];
@@ -236,6 +279,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                                             )}
                                             <input
                                                 type="text"
+                                                data-aura-theme-var={key}
                                                 value={custom ?? ''}
                                                 placeholder={base}
                                                 onChange={(e) => {

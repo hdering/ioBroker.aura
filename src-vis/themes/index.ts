@@ -480,8 +480,68 @@ export const THEMES: Theme[] = [
 
 export const DEFAULT_THEME_ID = 'dark';
 
+// ── User themes (#640) ───────────────────────────────────────────────────────
+// Own themes are a preset plus the vars the user changed on top of it — the same
+// shape the var editor already produces, so "save the current look as a theme"
+// is a copy, not a conversion. Stored in themeStore (persisted as `aura-theme`,
+// so they are synced and land in every backup), mirrored into the registry
+// below because `getTheme()` is called from plain functions too (canvas colours,
+// the boot path) where no React store is available.
+
+/** A theme the user made: a built-in base plus their own variables. */
+export interface UserTheme {
+    id: string;
+    name: string;
+    dark: boolean;
+    /** Built-in preset the theme started from — supplies every var not overridden. */
+    baseId: string;
+    vars: Partial<AllVars>;
+}
+
+/** Own theme ids carry this prefix so nothing can collide with a built-in. */
+export const USER_THEME_PREFIX = 'user-';
+
+export function isUserThemeId(id: string): boolean {
+    return id.startsWith(USER_THEME_PREFIX);
+}
+
+/**
+ * A user theme as a complete Theme.
+ *
+ * The base is always resolved against the BUILT-IN list, never against the
+ * registry: a theme duplicated from another own theme carries the base id along,
+ * and resolving through the registry would make the palette depend on a second
+ * user theme that can be renamed or deleted underneath it.
+ */
+export function materializeUserTheme(ut: UserTheme): Theme {
+    const base = THEMES.find((t) => t.id === ut.baseId) ?? THEMES[0];
+    return {
+        id: ut.id,
+        name: ut.name,
+        dark: ut.dark,
+        vars: { ...base.vars, ...ut.vars } as ThemeVars,
+    };
+}
+
+let userThemeRegistry: Theme[] = [];
+
+/** Mirror the store's own themes into the module registry (themeStore does this). */
+export function setUserThemes(list: UserTheme[]): void {
+    userThemeRegistry = (list ?? []).map(materializeUserTheme);
+}
+
+/** Built-in presets first, the user's own themes after them. */
+export function allThemes(): Theme[] {
+    return userThemeRegistry.length ? [...THEMES, ...userThemeRegistry] : THEMES;
+}
+
 export function getTheme(id: string): Theme {
-    return THEMES.find((t) => t.id === id) ?? THEMES[0];
+    return allThemes().find((t) => t.id === id) ?? THEMES[0];
+}
+
+/** True when the id belongs to a theme that actually exists right now. */
+export function themeExists(id: string): boolean {
+    return allThemes().some((t) => t.id === id);
 }
 
 /**

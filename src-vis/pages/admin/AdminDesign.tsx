@@ -10,6 +10,7 @@ import { SubTabsNav, type SubTab } from './layouts/sections/SubTabsNav';
 import { ThemePresetSection } from './layouts/sections/ThemePresetSection';
 import { ThemeVarsSection } from './layouts/sections/ThemeVarsSection';
 import { BrowserThemeSyncSection } from './layouts/sections/BrowserThemeSyncSection';
+import { MyThemesSection } from './layouts/sections/MyThemesSection';
 import { TypographySpacingSection } from './layouts/sections/TypographySpacingSection';
 import { GridSection } from './layouts/sections/GridSection';
 import { WizardMaxDpsSection } from './layouts/sections/WizardMaxDpsSection';
@@ -37,6 +38,7 @@ function ActiveSection({ subTab, contextId }: { subTab: SubTab; contextId: strin
                 <div className="space-y-6">
                     {contextId === null && <BrowserThemeSyncSection />}
                     <ThemePresetSection contextId={contextId} />
+                    {contextId === null && <MyThemesSection />}
                     <ThemeVarsSection contextId={contextId} />
                 </div>
             );

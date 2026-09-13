@@ -1,5 +1,5 @@
 import { useThemeStore } from '../../../../store/themeStore';
-import { THEMES } from '../../../../themes';
+import { useAllThemes } from '../../../../hooks/useAllThemes';
 import { useT } from '../../../../i18n';
 
 /** Anchor id so other cards can point the user at this switch. */
@@ -7,6 +7,7 @@ export const BROWSER_SYNC_ANCHOR = 'browser-theme-sync';
 
 export function BrowserThemeSyncSection() {
     const t = useT();
+    const themes = useAllThemes();
     const {
         followBrowser,
         browserDarkThemeId,
@@ -34,10 +35,10 @@ export function BrowserThemeSyncSection() {
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
-                        Theme folgt Browser
+                        {t('theme.browserSync.title')}
                     </p>
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                        Wechselt automatisch je nach System-Einstellung (Hell/Dunkel)
+                        {t('theme.browserSync.subtitle')}
                     </p>
                 </div>
                 <button
@@ -60,7 +61,7 @@ export function BrowserThemeSyncSection() {
                 <div className="flex gap-3 flex-wrap">
                     <div className="flex-1 min-w-0">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            Dunkel-Theme
+                            {t('theme.browserSync.darkTheme')}
                         </label>
                         <select
                             value={browserDarkThemeId}
@@ -68,16 +69,18 @@ export function BrowserThemeSyncSection() {
                             className="w-full focus:outline-none"
                             onChange={(e) => setBrowserDarkThemeId(e.target.value)}
                         >
-                            {THEMES.filter((t) => t.dark).map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
-                                </option>
-                            ))}
+                            {themes
+                                .filter((th) => th.dark)
+                                .map((th) => (
+                                    <option key={th.id} value={th.id}>
+                                        {th.name}
+                                    </option>
+                                ))}
                         </select>
                     </div>
                     <div className="flex-1 min-w-0">
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                            Hell-Theme
+                            {t('theme.browserSync.lightTheme')}
                         </label>
                         <select
                             value={browserLightThemeId}
@@ -85,11 +88,13 @@ export function BrowserThemeSyncSection() {
                             className="w-full focus:outline-none"
                             onChange={(e) => setBrowserLightThemeId(e.target.value)}
                         >
-                            {THEMES.filter((t) => !t.dark).map((t) => (
-                                <option key={t.id} value={t.id}>
-                                    {t.name}
-                                </option>
-                            ))}
+                            {themes
+                                .filter((th) => !th.dark)
+                                .map((th) => (
+                                    <option key={th.id} value={th.id}>
+                                        {th.name}
+                                    </option>
+                                ))}
                         </select>
                     </div>
                 </div>

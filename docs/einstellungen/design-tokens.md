@@ -50,6 +50,10 @@ Element-Tokens verfeinern einzelne Bauteile. Sie sind **nicht** pro Theme gesetz
 | `--nav-bg` / `--nav-active` | `--app-surface` / `--accent` | Tab-Leiste |
 | `--popup-bg` / `--popup-border` | `--app-surface` / `--app-border` | Popup-Fläche und -Rand |
 
+## Eigene Themes
+
+Nutzer können eigene Themes anlegen (Admin → Design → Meine Themes): ein mitgeliefertes Preset als Basis plus überschriebene Tokens. Sie tragen die id `user-<n>` und erscheinen überall dort, wo ein Theme gewählt wird. Ebenso lassen sich Tokens getrennt für helle und dunkle Designs setzen — ein Token kann auf derselben Installation also zwei Werte haben. Feste Farbwerte in Widget-Konfigurationen sind deshalb noch weniger haltbar als zuvor; immer `var(--token)` schreiben.
+
 ## Raster
 
 Widgets liegen auf einem feinen Grid. Die Zellgröße ist pro Layout konfigurierbar (`gridRowHeight`, `gridSnapX`, `gridGap`); in den Doku-Screenshots gilt `gridRowHeight = 20`, `gridGap = 10`. Widget-Größen (`gridPos.w`/`gridPos.h`) sind Vielfache dieser Zelleinheiten.
