@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.54.0 (2026-09-05)
+- Mediaplayer - a stop datapoint now works: a stop button appears next to play/pause when one is configured
+- Mediaplayer - players found by device detection (Alexa, Sonos, Spotify, Kodi) can be edited through AI access again; their next/previous/shuffle/repeat datapoints were declared as switches and every write was refused
+- AI access - widgets can be edited far more reliably: a leftover option no longer blocks every change, a position can be changed one value at a time, every write is read back and reported honestly, the new tool aura_compact clears editor-only overlaps, and height measurement now uses real content (charts, chips, media players, energy balances, carousels) with a row factor measured per list layout
+- 🌟 **New feature:** Fill level - adjustable limits: any number of lines on the scale, each from its own datapoint, draggable in the dashboard and written straight back - charge ceiling, discharge floor, priority thresholds ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
+- 🌟 **New feature:** Fill level - the sections between two limits carry their own colour and their own icon, and the fill can switch colour as soon as a limit is reached ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
+- 🌟 **New feature:** Fill level - new "Balken" layout: a flat bar with rounded ends for a limit that is not a tank ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
+
 ## 0.53.5 (2026-09-04)
 - AI access (MCP) - below the delete permission, a write that leaves existing widgets out is now refused instead of removing them ([#614](https://github.com/hdering/ioBroker.aura/issues/614))
 

@@ -115,6 +115,12 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.59.2 (2026-09-13)
+- 🌟 **New feature:** Slider - optional scale showing the step values, min and max along the track; available in the Slider widget, list rows and the universal widget's slider cell ([#643](https://github.com/hdering/ioBroker.aura/issues/643))
+- iFrame and HTML widgets - on phones the frame keeps its dashboard aspect ratio instead of the full row height, so the embedded page no longer sits in a tall empty box ([#645](https://github.com/hdering/ioBroker.aura/issues/645))
+- 🌟 **New feature:** Static and dynamic list - a datapoint in the second line can show when it last changed (or was last written) instead of its value; relative by default, with time and date formats available, and an empty datapoint id means the row own datapoint ([#646](https://github.com/hdering/ioBroker.aura/issues/646))
+
+
 ### 0.59.1 (2026-09-13)
 - Auto-return pause element - choose icon only, label only or both, with or without background
 
@@ -230,15 +236,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - List - the icon size of a row can be set for every display type again, and an icon switch now has a size of its own ([#616](https://github.com/hdering/ioBroker.aura/issues/616))
 
 
-### 0.54.0 (2026-09-05)
-- Mediaplayer - a stop datapoint now works: a stop button appears next to play/pause when one is configured
-- Mediaplayer - players found by device detection (Alexa, Sonos, Spotify, Kodi) can be edited through AI access again; their next/previous/shuffle/repeat datapoints were declared as switches and every write was refused
-- AI access - widgets can be edited far more reliably: a leftover option no longer blocks every change, a position can be changed one value at a time, every write is read back and reported honestly, the new tool aura_compact clears editor-only overlaps, and height measurement now uses real content (charts, chips, media players, energy balances, carousels) with a row factor measured per list layout
-- 🌟 **New feature:** Fill level - adjustable limits: any number of lines on the scale, each from its own datapoint, draggable in the dashboard and written straight back - charge ceiling, discharge floor, priority thresholds ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
-- 🌟 **New feature:** Fill level - the sections between two limits carry their own colour and their own icon, and the fill can switch colour as soon as a limit is reached ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
-- 🌟 **New feature:** Fill level - new "Balken" layout: a flat bar with rounded ends for a limit that is not a tank ([#613](https://github.com/hdering/ioBroker.aura/issues/613))
-
-
 ## License
 
 MIT License
@@ -250,6 +247,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
