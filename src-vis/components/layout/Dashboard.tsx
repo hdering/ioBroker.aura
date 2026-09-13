@@ -31,6 +31,16 @@ import { measureRenderedWidgets, reportSignature, sendRenderReport } from '../..
 const DEFAULT_MARGIN = 10;
 
 /**
+ * Widgets whose whole body is an embedded foreign document: the page inside scales
+ * with the frame's width, so on the narrow mobile column the stored row count leaves
+ * a tall empty band above and below the content (issue #645). They keep their desktop
+ * aspect ratio on mobile instead — see the mobile branch.
+ */
+const EMBED_TYPES = new Set(['iframe', 'html']);
+/** Floor for that shrink, so a wide-and-flat frame doesn't collapse to a few pixels. */
+const EMBED_MOBILE_MIN_H = 120;
+
+/**
  * Widgets with the "Höhe automatisch an Inhalt anpassen" option: they publish their
  * rendered content height to autoHeightStore and the grid item is sized to it instead
  * of the stored gridPos.h. The calendar's custom layout is excluded — CustomGridView is
@@ -539,6 +549,18 @@ export function Dashboard({
                                                             const growToContent = ew.type === 'header';
                                                             const boxHeight =
                                                                 w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN;
+                                                            // An embedded page fills the frame's width and keeps its own
+                                                            // proportions, so a frame drawn wide on the desktop grid but
+                                                            // stacked into the narrow mobile column showed the content
+                                                            // small and centred in a tall empty box (issue #645). Hand the
+                                                            // box the desktop aspect ratio instead of the raw row count:
+                                                            // maxHeight keeps it from ever growing past the stored height,
+                                                            // minHeight catches the wide-and-flat case.
+                                                            const keepsAspect = EMBED_TYPES.has(ew.type);
+                                                            const desktopWidth = Math.max(
+                                                                1,
+                                                                w.gridPos.w * snapX + (w.gridPos.w - 1) * MARGIN,
+                                                            );
                                                             return (
                                                                 <div
                                                                     key={w.id}
@@ -553,15 +575,24 @@ export function Dashboard({
                                                                                     height: boxHeight,
                                                                                     minHeight: 'fit-content',
                                                                                 }
-                                                                              : {
-                                                                                    // 'panels' is a fixed-viewport carousel: its
-                                                                                    // slide track is absolutely positioned, so with
-                                                                                    // auto height the flex-1 viewport collapses to 0
-                                                                                    // (only title + dots show). It needs a definite
-                                                                                    // height like a normal widget — unlike group/
-                                                                                    // mediaplayer which size to their stacked content.
-                                                                                    height: boxHeight,
-                                                                                }
+                                                                              : keepsAspect
+                                                                                ? {
+                                                                                      aspectRatio: `${desktopWidth} / ${boxHeight}`,
+                                                                                      maxHeight: boxHeight,
+                                                                                      minHeight: Math.min(
+                                                                                          boxHeight,
+                                                                                          EMBED_MOBILE_MIN_H,
+                                                                                      ),
+                                                                                  }
+                                                                                : {
+                                                                                      // 'panels' is a fixed-viewport carousel: its
+                                                                                      // slide track is absolutely positioned, so with
+                                                                                      // auto height the flex-1 viewport collapses to 0
+                                                                                      // (only title + dots show). It needs a definite
+                                                                                      // height like a normal widget — unlike group/
+                                                                                      // mediaplayer which size to their stacked content.
+                                                                                      height: boxHeight,
+                                                                                  }
                                                                     }
                                                                 >
                                                                     <WidgetFrame

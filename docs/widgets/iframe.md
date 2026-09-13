@@ -69,6 +69,13 @@ den anderen Widgets mit eingebettetem Dokument (HTML, eCharts-Preset, Kamera mit
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 
+#### Höhe auf dem Handy
+
+In der Einspaltenansicht übernimmt das Widget das Seitenverhältnis aus dem Raster statt
+der gespeicherten Zeilenzahl — die eingebettete Seite skaliert mit der Breite und stünde
+sonst klein und mittig in einer sehr hohen Box. Die Box wird dabei nie höher als im
+Raster und nicht flacher als 120 px. Gilt ebenso für das [HTML-Widget](./html.md).
+
 ### Sandbox
 
 Schränkt die Berechtigungen des eingebetteten Inhalts ein.
