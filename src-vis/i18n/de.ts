@@ -202,6 +202,12 @@ export const de = {
     'menuItem.idleReturn.minutes': 'Pausendauer (Minuten)',
     'menuItem.idleReturn.minutesHint':
         'Ein Tipp auf das Element setzt die automatische Rückkehr für diese Zeit aus, ein weiterer Tipp beendet die Pause sofort.',
+    'menuItem.idleReturn.show': 'Darstellung',
+    'menuItem.idleReturn.showBoth': 'Symbol und Text',
+    'menuItem.idleReturn.showIcon': 'Nur Symbol',
+    'menuItem.idleReturn.showText': 'Nur Text',
+    'menuItem.idleReturn.showIconHint': 'Die Restzeit steht dann nur noch im Tooltip.',
+    'menuItem.idleReturn.background': 'Mit Hintergrund',
     'editor.tabMgmt.idleReturnExempt': 'Nie automatisch verlassen',
 
     'settings.header.items': 'Elemente im Header',

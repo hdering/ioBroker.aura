@@ -193,6 +193,56 @@ async function parkOnCams({ exempt = false, dps = {}, delay = DELAY } = {}) {
     );
 }
 
+// ── 7. Icon / label / background are configurable ───────────────────────────
+{
+    /** Re-seed the header with one pause chip and report what it actually drew. */
+    const chipShape = async (patch) => {
+        await page.evaluate(
+            ([patch]) => {
+                window.__auraShot.mock({ 'aura.0.idleReturn.snoozeMinutes': 0 });
+                window.__auraShot.setFrontend({
+                    showHeader: true,
+                    idleReturnEnabled: true,
+                    idleReturnDelay: 600,
+                    headerItems: [{ id: 'ir', type: 'idleReturn', position: 'right', ...patch }],
+                });
+            },
+            [patch],
+        );
+        await page.waitForTimeout(400);
+        return page.evaluate(() => {
+            const el = document.querySelector('header button[aria-label]');
+            if (!el) return null;
+            const cs = getComputedStyle(el);
+            return {
+                icons: el.querySelectorAll('svg').length,
+                text: (el.textContent ?? '').trim(),
+                border: cs.borderTopWidth,
+                padding: cs.paddingLeft,
+            };
+        });
+    };
+
+    const both = await chipShape({});
+    check('default chip shows icon and label', both?.icons === 1 && /Pause/.test(both.text), JSON.stringify(both));
+
+    const iconOnly = await chipShape({ idleReturnShow: 'icon' });
+    check('icon only drops the label', iconOnly?.icons === 1 && iconOnly.text === '', JSON.stringify(iconOnly));
+
+    const textOnly = await chipShape({ idleReturnShow: 'text' });
+    check('label only drops the icon', textOnly?.icons === 0 && /Pause/.test(textOnly.text), JSON.stringify(textOnly));
+
+    const bare = await chipShape({ idleReturnBackground: false });
+    check(
+        'without background the chip loses frame and padding',
+        bare?.border === '0px' && bare.padding === '0px',
+        JSON.stringify(bare),
+    );
+
+    const framed = await chipShape({ idleReturnBackground: true });
+    check('with background the frame is back', framed?.border === '1px', JSON.stringify(framed));
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 
 await browser.close();

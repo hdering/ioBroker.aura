@@ -102,6 +102,12 @@ Header, Tab-Leiste und Bereichs-Menü tragen dieselbe Elementliste. Der Header w
 
 Bedingungen, Badges, Klick-Aktionen und Popups eines Widgets gelten im Menü genauso wie auf dem Dashboard. Gruppen und Panels lassen sich nur als Verweis einbinden, nicht als eigene Instanz.
 
+| Option beim Typ *Rückkehr-Pause* |                                                             |
+| -------------------------------- | ----------------------------------------------------------- |
+| Pausendauer                      | Minuten, die ein Tipp die Rückkehr aussetzt (1–1440)        |
+| Darstellung                      | `Symbol und Text`, `Nur Symbol` oder `Nur Text`; bei `Nur Symbol` steht die Restzeit im Tooltip |
+| Mit Hintergrund                  | Rahmen und Tönung zeichnen; ohne das bleibt nur Symbol bzw. Text |
+
 Position: Header `Links`/`Rechts`, Tab-Leiste `L`/`M`/`R`, Bereichs-Menü `Oben`/`Unten`.
 
 Ein neu hinzugefügtes Element ist offen; ein Klick auf die Zeile klappt sie zu und wieder auf. Die Darstellung (Layout) eines Widgets wird am Widget selbst eingestellt, nicht am Element.

@@ -125,25 +125,32 @@ function MenuIdleReturn({ item, variant }: { item: MenuItemContent; variant: Men
     const paused = left > 0;
     const bar = variant === 'bar';
     const size = bar ? 14 : 18;
+    const show = item.idleReturnShow ?? 'both';
+    const framed = item.idleReturnBackground ?? true;
+
+    const label = paused ? t('menuItem.idleReturn.left').replace('{n}', String(left)) : t('menuItem.idleReturn.pause');
+    const hint = paused ? t('menuItem.idleReturn.resumeHint') : t('menuItem.idleReturn.pauseHint');
 
     return (
         <button
             onClick={() => (paused ? resumeIdleReturn() : snoozeIdleReturn(minutes))}
-            title={paused ? t('menuItem.idleReturn.resumeHint') : t('menuItem.idleReturn.pauseHint')}
-            className={`flex items-center gap-1.5 rounded-lg px-2 ${bar ? 'py-1 text-xs' : 'py-1.5 text-sm'} font-medium shrink-0 hover:opacity-80 transition-opacity`}
+            // Without a label the remaining minutes have nowhere else to go, and
+            // that number is the whole point of the chip — so the icon-only chip
+            // puts them in front of the hint.
+            title={show === 'icon' ? `${label} — ${hint}` : hint}
+            aria-label={label}
+            className={`flex items-center gap-1.5 rounded-lg ${framed ? (bar ? 'px-2 py-1' : 'px-2 py-1.5') : ''} ${bar ? 'text-xs' : 'text-sm'} font-medium shrink-0 hover:opacity-80 transition-opacity`}
             style={{
-                background: paused ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'transparent',
+                background: framed && paused ? 'color-mix(in srgb, var(--accent) 18%, transparent)' : 'transparent',
                 color: paused ? 'var(--accent)' : 'var(--text-secondary)',
-                border: `1px solid ${paused ? 'var(--accent)' : 'var(--app-border)'}`,
+                border: framed ? `1px solid ${paused ? 'var(--accent)' : 'var(--app-border)'}` : 'none',
                 // Nothing to pause here — still visible (it sits in a configured
                 // slot) but unmistakably inactive.
                 opacity: armed || paused ? 1 : 0.45,
             }}
         >
-            {paused ? <Play size={size} /> : <Pause size={size} />}
-            <span className="tabular-nums">
-                {paused ? t('menuItem.idleReturn.left').replace('{n}', String(left)) : t('menuItem.idleReturn.pause')}
-            </span>
+            {show !== 'text' && (paused ? <Play size={size} /> : <Pause size={size} />)}
+            {show !== 'icon' && <span className="tabular-nums">{label}</span>}
         </button>
     );
 }

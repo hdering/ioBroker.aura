@@ -34,6 +34,10 @@ export interface MenuItemContent {
      * undo leaves a wall tablet parked on a secondary tab for days (#638).
      */
     idleReturnMinutes?: number;
+    /** idleReturn — icon and label, icon only or label only. Default: both. */
+    idleReturnShow?: 'both' | 'icon' | 'text';
+    /** idleReturn — draw the chip's frame (border, tint while paused). Default: yes. */
+    idleReturnBackground?: boolean;
     // widget — either a reference to a widget that lives on some dashboard tab
     // (`widgetId`, kept in sync with it) or an instance owned by this item
     // (`widget`, edited in the admin). `widget` wins when both are set.

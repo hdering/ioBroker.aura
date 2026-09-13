@@ -552,25 +552,61 @@ export function MenuItemFields({
 
     if (item.type === 'idleReturn') {
         return (
-            <div>
-                <FieldLabel>{t('menuItem.idleReturn.minutes')}</FieldLabel>
-                <input
-                    type="number"
-                    min={1}
-                    max={1440}
-                    value={item.idleReturnMinutes ?? IDLE_RETURN_DEFAULT_MINUTES}
-                    onChange={(e) =>
-                        onUpdate({
-                            idleReturnMinutes: Math.max(1, Math.min(1440, Number(e.target.value) || 1)),
-                        })
-                    }
-                    className="w-24 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
-                    style={iSty}
-                />
-                <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
-                    {t('menuItem.idleReturn.minutesHint')}
-                </p>
-            </div>
+            <>
+                <div>
+                    <FieldLabel>{t('menuItem.idleReturn.minutes')}</FieldLabel>
+                    <input
+                        type="number"
+                        min={1}
+                        max={1440}
+                        value={item.idleReturnMinutes ?? IDLE_RETURN_DEFAULT_MINUTES}
+                        onChange={(e) =>
+                            onUpdate({
+                                idleReturnMinutes: Math.max(1, Math.min(1440, Number(e.target.value) || 1)),
+                            })
+                        }
+                        className="w-24 text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                        style={iSty}
+                    />
+                    <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                        {t('menuItem.idleReturn.minutesHint')}
+                    </p>
+                </div>
+                <div>
+                    <FieldLabel>{t('menuItem.idleReturn.show')}</FieldLabel>
+                    <ChoiceRow
+                        value={item.idleReturnShow ?? 'both'}
+                        options={[
+                            { key: 'both', label: t('menuItem.idleReturn.showBoth') },
+                            { key: 'icon', label: t('menuItem.idleReturn.showIcon') },
+                            { key: 'text', label: t('menuItem.idleReturn.showText') },
+                        ]}
+                        onChange={(v) => onUpdate({ idleReturnShow: v })}
+                    />
+                    {(item.idleReturnShow ?? 'both') === 'icon' && (
+                        <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                            {t('menuItem.idleReturn.showIconHint')}
+                        </p>
+                    )}
+                </div>
+                <div className="flex items-center justify-between">
+                    <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        {t('menuItem.idleReturn.background')}
+                    </span>
+                    <button
+                        onClick={() => onUpdate({ idleReturnBackground: !(item.idleReturnBackground ?? true) })}
+                        className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                        style={{
+                            background: (item.idleReturnBackground ?? true) ? 'var(--accent)' : 'var(--app-border)',
+                        }}
+                    >
+                        <span
+                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                            style={{ left: (item.idleReturnBackground ?? true) ? '18px' : '2px' }}
+                        />
+                    </button>
+                </div>
+            </>
         );
     }
 

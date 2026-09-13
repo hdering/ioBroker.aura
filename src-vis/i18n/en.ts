@@ -203,6 +203,12 @@ export const en: Record<TranslationKey, string> = {
     'menuItem.idleReturn.minutes': 'Pause length (minutes)',
     'menuItem.idleReturn.minutesHint':
         'One tap suspends the automatic return for this long, another tap ends the pause right away.',
+    'menuItem.idleReturn.show': 'Appearance',
+    'menuItem.idleReturn.showBoth': 'Icon and label',
+    'menuItem.idleReturn.showIcon': 'Icon only',
+    'menuItem.idleReturn.showText': 'Label only',
+    'menuItem.idleReturn.showIconHint': 'The remaining time then only shows in the tooltip.',
+    'menuItem.idleReturn.background': 'With background',
     'editor.tabMgmt.idleReturnExempt': 'Never leave automatically',
 
     'settings.header.items': 'Header elements',
