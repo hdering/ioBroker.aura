@@ -21,7 +21,7 @@ import { usePinStore } from '../../store/pinStore';
 import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
 import { useBadges, useTabBadgeAggregate } from '../../hooks/useBadges';
 import { ConditionEditor } from '../config/ConditionEditor';
-import { BadgeEditor } from '../config/BadgeEditor';
+import { BadgeAggregateFields, BadgeEditor } from '../config/BadgeEditor';
 import { ScrollRow } from './ScrollRow';
 import { MenuItemView } from './MenuItemView';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
@@ -129,17 +129,19 @@ function TabConditionWrapper({
 function TabBadges({ tab }: { tab: Tab }) {
     const own = useBadges(tab.badges);
     const aggEnabled = tab.badgeAggregate?.enabled ?? false;
-    const aggCount = useTabBadgeAggregate(aggEnabled ? tab.widgets : undefined);
+    const agg = useTabBadgeAggregate(aggEnabled ? tab.widgets : undefined, tab.badgeAggregate?.mode);
 
     const badges: ResolvedBadge[] = [...own];
-    if (aggEnabled && aggCount > 0) {
+    // A sum may legitimately be negative (grid feed-in), so "nothing to say" is a
+    // zero, not "not positive".
+    if (aggEnabled && agg.value !== 0) {
         badges.push({
             id: `__agg_${tab.id}`,
             style: 'count',
             corner: (tab.badgeAggregate?.corner as BadgeCorner) ?? 'top-right',
             color: tab.badgeAggregate?.color,
             size: (tab.badgeAggregate?.size as BadgeSize) ?? 'md',
-            text: String(aggCount),
+            text: agg.text,
         });
     }
     return <BadgeOverlay badges={badges} />;
@@ -747,47 +749,13 @@ export function TabBar({
                                           onChange={(next) => updateTab(settingsTabId, { badges: next })}
                                           style={{ width: '100%', padding: 0 }}
                                       />
-                                      {/* Aggregate count of widgets with an active badge */}
-                                      <div
-                                          className="flex items-center justify-between pt-2 border-t"
-                                          style={{ borderColor: 'var(--app-border)' }}
-                                      >
-                                          <div>
-                                              <p
-                                                  className="text-[11px] font-medium"
-                                                  style={{ color: 'var(--text-primary)' }}
-                                              >
-                                                  {t('badge.tabAggregate')}
-                                              </p>
-                                              <p
-                                                  className="text-[9px] mt-0.5"
-                                                  style={{ color: 'var(--text-secondary)' }}
-                                              >
-                                                  {t('badge.tabAggregateHint')}
-                                              </p>
-                                          </div>
-                                          <button
-                                              onClick={() =>
-                                                  updateTab(settingsTabId, {
-                                                      badgeAggregate: {
-                                                          ...settingsTab.badgeAggregate,
-                                                          enabled: !(settingsTab.badgeAggregate?.enabled ?? false),
-                                                      },
-                                                  })
-                                              }
-                                              className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                              style={{
-                                                  background: settingsTab.badgeAggregate?.enabled
-                                                      ? 'var(--accent)'
-                                                      : 'var(--app-border)',
-                                              }}
-                                          >
-                                              <span
-                                                  className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                  style={{ left: settingsTab.badgeAggregate?.enabled ? '18px' : '2px' }}
-                                              />
-                                          </button>
-                                      </div>
+                                      {/* Aggregate badge over the widgets of this tab */}
+                                      <BadgeAggregateFields
+                                          value={settingsTab.badgeAggregate}
+                                          onChange={(next) => updateTab(settingsTabId, { badgeAggregate: next })}
+                                          labelKey="badge.tabAggregate"
+                                          hintKey="badge.tabAggregateHint"
+                                      />
                                   </div>
                               )}
                           </div>

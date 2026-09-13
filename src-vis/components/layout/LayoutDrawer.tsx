@@ -138,17 +138,18 @@ function SectionBadges({ section }: { section: Section }) {
         () => (aggEnabled ? section.tabs.flatMap((tab) => tab.widgets) : undefined),
         [aggEnabled, section.tabs],
     );
-    const aggCount = useTabBadgeAggregate(allWidgets);
+    const agg = useTabBadgeAggregate(allWidgets, section.badgeAggregate?.mode);
 
     const badges: ResolvedBadge[] = [...own];
-    if (aggEnabled && aggCount > 0) {
+    // A sum may legitimately be negative — see TabBadges.
+    if (aggEnabled && agg.value !== 0) {
         badges.push({
             id: `__agg_${section.id}`,
             style: 'count',
             corner: 'top-right',
             color: section.badgeAggregate?.color,
             size: (section.badgeAggregate?.size as BadgeSize) ?? 'md',
-            text: String(aggCount),
+            text: agg.text,
         });
     }
     if (!badges.length) return null;

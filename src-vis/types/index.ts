@@ -838,10 +838,23 @@ export interface BadgeDef {
     visibility?: 'always' | 'nonzero' | 'condition';
     logic?: 'AND' | 'OR'; // combine clauses when visibility === 'condition'
     clauses?: ConditionClause[]; // visibility clauses (reuses the condition shape)
+    /** Opt out of a tab's/section's aggregate badge. Default true — a stored marker
+     *  counts exactly as it did before the option existed. */
+    countInAggregate?: boolean;
 }
+
+/**
+ * What the aggregate badge of a tab / section counts:
+ *   'widgets'     — widgets that show at least one marker (default, legacy)
+ *   'conditional' — the same, but only markers that are gated by a condition, so a
+ *                   permanently visible free-text marker does not inflate the number
+ *   'sum'         — the sum of the numeric values of all visible 'count' markers
+ */
+export type BadgeAggregateMode = 'widgets' | 'conditional' | 'sum';
 
 export interface BadgeAggregate {
     enabled: boolean;
+    mode?: BadgeAggregateMode; // default 'widgets'
     corner?: BadgeCorner;
     color?: string;
     size?: BadgeSize;

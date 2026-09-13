@@ -210,6 +210,8 @@
     "test:over-threshold": "node tools/tests/over-threshold.mjs",
     "test:badge-label": "node tools/tests/badge-label-bindings.mjs",
     "test:badge-overlap": "node tools/tests/badge-neighbour-overlap.mjs",
+    "test:badge-aggregate": "node tools/tests/badge-aggregate.mjs",
+    "test:badge-aggregate-ui": "node tools/tests/badge-aggregate-ui.mjs",
     "test:icon-cache": "node tools/tests/icon-cache.mjs",
     "test:icon-source": "node tools/tests/icon-source.mjs"
   },

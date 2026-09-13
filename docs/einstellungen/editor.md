@@ -214,3 +214,22 @@ Der Datenbank-Knopf neben dem Textfeld hängt einen gewählten Datenpunkt als `{
 | `{dp}` bei Bereich/Tab | bleibt stehen — dort gibt es keinen Haupt-Datenpunkt |
 
 Zahlen nutzen die global eingestellten Dezimalstellen als **Obergrenze**: `12` bleibt `12`, `21.456` wird `21.46`. Feste Breite bei Bedarf per `{id;formatValue(2)}`.
+
+## Marker: Aggregat-Anzahl (Tab/Bereich)
+
+Schalter in den Marker-Einstellungen eines Tabs bzw. Bereichs. Das Feld `Zählt` bestimmt, was die Zahl zusammenfasst.
+
+| Modus | Zahl |
+| --- | --- |
+| Widgets mit Marker | Jedes Widget mit mindestens einem sichtbaren Marker zählt 1 |
+| Nur Marker mit Bedingung | Wie oben, aber dauerhaft sichtbare Marker (z. B. reiner Freitext) zählen nicht mit |
+| Summe der Zahlen | Summe der Werte aller sichtbaren Marker vom Stil `Anzahl (Datenpunkt)` |
+
+| Fall | Verhalten |
+| --- | --- |
+| Marker-Option `In Aggregat-Anzahl zählen` aus | Marker wird in jedem Modus übersprungen |
+| Ergebnis `0` | Aggregat-Marker wird nicht angezeigt |
+| Nicht-numerischer Wert bei `Summe der Zahlen` | wird übersprungen; `true`/`false` zählen als `1`/`0` |
+| Label-Marker bei `Summe der Zahlen` | zählt nicht mit, auch mit Zahl im Text |
+
+Dezimalstellen wie bei Marker-Texten: global eingestellte Stellen als Obergrenze.

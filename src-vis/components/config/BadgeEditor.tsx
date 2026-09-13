@@ -12,7 +12,7 @@ import {
     valueSourceOptions,
     type DpSourceCtx,
 } from '../../utils/conditionSources';
-import type { BadgeDef, BadgeStyle, BadgeCorner } from '../../types';
+import type { BadgeAggregate, BadgeAggregateMode, BadgeDef, BadgeStyle, BadgeCorner } from '../../types';
 import { useT } from '../../i18n';
 
 const inputStyle: React.CSSProperties = {
@@ -340,6 +340,28 @@ function BadgeRule({
                             />
                         </div>
                     )}
+
+                    {/* Take part in the aggregate badge of the tab / section. Only a
+                        widget marker can be counted there — tab and section markers
+                        are the ones doing the counting. */}
+                    {sourceCtx && (
+                        <label className="flex items-start gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={badge.countInAggregate !== false}
+                                onChange={(e) => update({ countInAggregate: e.target.checked ? undefined : false })}
+                                className="mt-0.5 shrink-0"
+                            />
+                            <span>
+                                <span className="text-[10px] block" style={{ color: 'var(--text-primary)' }}>
+                                    {t('badge.countInAggregate')}
+                                </span>
+                                <span className="text-[9px] block" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('badge.countInAggregateHint')}
+                                </span>
+                            </span>
+                        </label>
+                    )}
                 </div>
             )}
 
@@ -421,6 +443,85 @@ export function BadgeEditor({ badges, onChange, sourceCtx, style }: BadgeEditorP
             >
                 <Plus size={13} /> {t('badge.newRule')}
             </button>
+        </div>
+    );
+}
+
+// ── Aggregate badge of a tab / section ────────────────────────────────────────
+// The switch plus what it counts. Shared by the tab settings in the frontend
+// (TabBar) and both panels in the admin editor, so the modes cannot drift apart.
+
+const AGG_MODES: { value: BadgeAggregateMode; labelKey: string; hintKey: string }[] = [
+    { value: 'widgets', labelKey: 'badge.aggModeWidgets', hintKey: 'badge.aggModeWidgetsHint' },
+    { value: 'conditional', labelKey: 'badge.aggModeConditional', hintKey: 'badge.aggModeConditionalHint' },
+    { value: 'sum', labelKey: 'badge.aggModeSum', hintKey: 'badge.aggModeSumHint' },
+];
+
+export function BadgeAggregateFields({
+    value,
+    onChange,
+    labelKey,
+    hintKey,
+}: {
+    value?: BadgeAggregate;
+    onChange: (next: BadgeAggregate) => void;
+    labelKey: string;
+    hintKey: string;
+}) {
+    const t = useT();
+    const tk = (k: string) => t(k as Parameters<typeof t>[0]);
+    const enabled = value?.enabled ?? false;
+    const mode = value?.mode ?? 'widgets';
+
+    return (
+        <div className="pt-2 border-t space-y-2" style={{ borderColor: 'var(--app-border)' }}>
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-[11px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                        {tk(labelKey)}
+                    </p>
+                    <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        {tk(hintKey)}
+                    </p>
+                </div>
+                <button
+                    onClick={() => onChange({ ...value, enabled: !enabled })}
+                    className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                    style={{ background: enabled ? 'var(--accent)' : 'var(--app-border)' }}
+                >
+                    <span
+                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                        style={{ left: enabled ? '18px' : '2px' }}
+                    />
+                </button>
+            </div>
+
+            {enabled && (
+                <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                        <label className="text-[10px] w-16 shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                            {t('badge.aggMode')}
+                        </label>
+                        <select
+                            value={mode}
+                            onChange={(e) =>
+                                onChange({ ...value, enabled, mode: e.target.value as BadgeAggregateMode })
+                            }
+                            className={`${cls} flex-1`}
+                            style={inputStyle}
+                        >
+                            {AGG_MODES.map((m) => (
+                                <option key={m.value} value={m.value}>
+                                    {tk(m.labelKey)}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                        {tk(AGG_MODES.find((m) => m.value === mode)?.hintKey ?? 'badge.aggModeWidgetsHint')}
+                    </p>
+                </div>
+            )}
         </div>
     );
 }

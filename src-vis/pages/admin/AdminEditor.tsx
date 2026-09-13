@@ -36,7 +36,7 @@ import { useMcpReleaseStore } from '../../store/mcpReleaseStore';
 import { vaultSetMcp, vaultRemove } from '../../utils/pinApi';
 import { adminToken } from '../../store/authStore';
 import { ConditionEditor } from '../../components/config/ConditionEditor';
-import { BadgeEditor } from '../../components/config/BadgeEditor';
+import { BadgeAggregateFields, BadgeEditor } from '../../components/config/BadgeEditor';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { Dashboard } from '../../components/layout/Dashboard';
 import { LayoutDrawer } from '../../components/layout/LayoutDrawer';
@@ -1177,48 +1177,12 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                             onChange={(next) => updateSection(openSection.id, { badges: next })}
                                             style={{ width: '100%', padding: 0 }}
                                         />
-                                        <div
-                                            className="flex items-center justify-between pt-2 border-t"
-                                            style={{ borderColor: 'var(--app-border)' }}
-                                        >
-                                            <div>
-                                                <p
-                                                    className="text-[11px] font-medium"
-                                                    style={{ color: 'var(--text-primary)' }}
-                                                >
-                                                    {t('badge.sectionAggregate')}
-                                                </p>
-                                                <p
-                                                    className="text-[9px] mt-0.5"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('badge.sectionAggregateHint')}
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() =>
-                                                    updateSection(openSection.id, {
-                                                        badgeAggregate: {
-                                                            ...openSection.badgeAggregate,
-                                                            enabled: !(openSection.badgeAggregate?.enabled ?? false),
-                                                        },
-                                                    })
-                                                }
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{
-                                                    background: openSection.badgeAggregate?.enabled
-                                                        ? 'var(--accent)'
-                                                        : 'var(--app-border)',
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{
-                                                        left: openSection.badgeAggregate?.enabled ? '18px' : '2px',
-                                                    }}
-                                                />
-                                            </button>
-                                        </div>
+                                        <BadgeAggregateFields
+                                            value={openSection.badgeAggregate}
+                                            onChange={(next) => updateSection(openSection.id, { badgeAggregate: next })}
+                                            labelKey="badge.sectionAggregate"
+                                            hintKey="badge.sectionAggregateHint"
+                                        />
                                     </div>
                                 )}
                             </div>
@@ -2035,48 +1999,12 @@ const TabBar = memo(function TabBar() {
                                             onChange={(next) => updateTab(settingsTabId, { badges: next })}
                                             style={{ width: '100%', padding: 0 }}
                                         />
-                                        <div
-                                            className="flex items-center justify-between pt-2 border-t"
-                                            style={{ borderColor: 'var(--app-border)' }}
-                                        >
-                                            <div>
-                                                <p
-                                                    className="text-[11px] font-medium"
-                                                    style={{ color: 'var(--text-primary)' }}
-                                                >
-                                                    {t('badge.tabAggregate')}
-                                                </p>
-                                                <p
-                                                    className="text-[9px] mt-0.5"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('badge.tabAggregateHint')}
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() =>
-                                                    updateTab(settingsTabId, {
-                                                        badgeAggregate: {
-                                                            ...settingsTab.badgeAggregate,
-                                                            enabled: !(settingsTab.badgeAggregate?.enabled ?? false),
-                                                        },
-                                                    })
-                                                }
-                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                                style={{
-                                                    background: settingsTab.badgeAggregate?.enabled
-                                                        ? 'var(--accent)'
-                                                        : 'var(--app-border)',
-                                                }}
-                                            >
-                                                <span
-                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                    style={{
-                                                        left: settingsTab.badgeAggregate?.enabled ? '18px' : '2px',
-                                                    }}
-                                                />
-                                            </button>
-                                        </div>
+                                        <BadgeAggregateFields
+                                            value={settingsTab.badgeAggregate}
+                                            onChange={(next) => updateTab(settingsTabId, { badgeAggregate: next })}
+                                            labelKey="badge.tabAggregate"
+                                            hintKey="badge.tabAggregateHint"
+                                        />
                                     </div>
                                 )}
                             </div>

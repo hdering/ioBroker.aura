@@ -9,15 +9,14 @@ import { useT } from '../i18n';
 import {
     applySourceValues,
     clauseSourceRefs,
-    evaluateConditionWithSource,
     resolveRefValue,
     sourceCtxKey,
     sourceRefs,
     widgetSourceCtx,
     type DpSourceCtx,
 } from '../utils/conditionSources';
-import { isActiveVal } from '../utils/groupTargets';
-import type { BadgeDef, BadgeStyle, BadgeCorner, BadgeSize, WidgetConfig } from '../types';
+import { aggregateBadgeValue, badgeInAggregate, badgeVisible } from '../utils/badgeAggregate';
+import type { BadgeAggregateMode, BadgeDef, BadgeStyle, BadgeCorner, BadgeSize, WidgetConfig } from '../types';
 
 export interface ResolvedBadge {
     id: string;
@@ -62,23 +61,6 @@ function seedFromCache(refs: string[], values: Map<string, unknown>): void {
         const cached = getStateFromCache(id);
         if (cached !== null) values.set(ref, resolveDpValue(cached.val, path));
     }
-}
-
-function badgeVisible(b: BadgeDef, values: Map<string, unknown>, ctx?: DpSourceCtx): boolean {
-    if (b.visibility === 'nonzero') {
-        // Legacy mode, kept for stored configs — see BadgeDef.visibility.
-        // An empty datapoint falls back to the widget's main DP; without one
-        // (and without a list token) there is nothing to test → stay hidden.
-        const val = resolveRefValue(b.dp, values, ctx);
-        if (val === undefined) return false;
-        return isActiveVal(val as never);
-    }
-    if (b.visibility === 'condition') {
-        const clauses = b.clauses ?? [];
-        if (!clauses.length) return true;
-        return evaluateConditionWithSource({ logic: b.logic ?? 'AND', clauses }, values, ctx);
-    }
-    return true; // 'always' (default)
 }
 
 function formatValue(v: unknown): string {
@@ -240,12 +222,24 @@ function useLabelBindings(badges: ResolvedBadge[], ownDp?: string): ResolvedBadg
     }, [badges, textKey, states, ownDp, defaultDecimals, numberFormat, t]);
 }
 
+/** Value + ready-to-print text of a tab's / section's aggregate badge. */
+export interface TabBadgeAggregate {
+    value: number;
+    text: string;
+}
+
 /**
- * Count how many widgets on a tab currently show at least one visible badge.
- * Drives the optional per-tab aggregate badge.
+ * The number behind the optional per-tab / per-section aggregate badge: how many
+ * widgets currently show a marker ('widgets' / 'conditional') or the sum of the
+ * values their count markers display ('sum'). See utils/badgeAggregate for what
+ * each mode lets through.
  */
-export function useTabBadgeAggregate(widgets: WidgetConfig[] | undefined): number {
+export function useTabBadgeAggregate(
+    widgets: WidgetConfig[] | undefined,
+    mode: BadgeAggregateMode = 'widgets',
+): TabBadgeAggregate {
     const { subscribe, getState } = useIoBroker();
+    const { defaultDecimals, numberFormat } = useGlobalSettingsStore();
     const valuesRef = useRef<Map<string, unknown>>(new Map());
     const [count, setCount] = useState(0);
 
@@ -253,7 +247,10 @@ export function useTabBadgeAggregate(widgets: WidgetConfig[] | undefined): numbe
         const perWidget = (widgets ?? [])
             .map((w) => ({
                 id: w.id,
-                badges: (w.options?.badges as BadgeDef[] | undefined) ?? [],
+                // Markers the mode excludes are dropped here, so they are not even
+                // subscribed to — the aggregate must not keep a datapoint alive that
+                // it will never look at.
+                badges: ((w.options?.badges as BadgeDef[] | undefined) ?? []).filter((b) => badgeInAggregate(b, mode)),
                 ctx: widgetSourceCtx(w),
             }))
             .filter((x) => x.badges.length > 0);
@@ -264,13 +261,7 @@ export function useTabBadgeAggregate(widgets: WidgetConfig[] | undefined): numbe
         }
 
         const recompute = () => {
-            let n = 0;
-            for (const w of perWidget) {
-                // Token values are widget-specific — refresh them before each
-                // widget's badges are tested against the shared value map.
-                applySourceValues(valuesRef.current, w.ctx);
-                if (w.badges.some((b) => badgeVisible(b, valuesRef.current, w.ctx))) n++;
-            }
+            const n = aggregateBadgeValue(perWidget, valuesRef.current, mode);
             setCount((prev) => (prev === n ? prev : n));
         };
 
@@ -297,7 +288,14 @@ export function useTabBadgeAggregate(widgets: WidgetConfig[] | undefined): numbe
             cancelled = true;
             unsubscribers.forEach((fn) => fn());
         };
-    }, [widgets, subscribe, getState]);
+    }, [widgets, subscribe, getState, mode]);
 
-    return count;
+    return useMemo(() => {
+        // A marker is a few pixels wide: the global decimals are a maximum, not a
+        // fixed width (same rule as the label bindings above). Counts are integers
+        // and pass through untouched.
+        const rounded = Number(count.toFixed(Math.max(0, defaultDecimals)));
+        const decimals = (String(rounded).split('.')[1] ?? '').length;
+        return { value: rounded, text: formatNum(rounded, decimals, numberFormat) };
+    }, [count, defaultDecimals, numberFormat]);
 }
