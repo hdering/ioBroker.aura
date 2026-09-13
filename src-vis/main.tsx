@@ -15,6 +15,7 @@ import { publishScrollbarGutter } from './utils/scrollbarGutter';
 // the first <Icon> can fire a request at the public (and widely blocked) hosts.
 import './utils/iconifyLoader';
 import { FEATURES } from './featureFlags';
+import DiagnosticsOverlay from './components/DiagnosticsOverlay';
 
 // Recharts' ResponsiveContainer logs a "width(-1) and height(-1) of chart should be
 // greater than 0" warning when a chart briefly renders inside a hidden tab (container
@@ -137,6 +138,7 @@ createRoot(document.getElementById('root')!).render(
     <StrictMode>
         <ThemeProvider>
             <RouterProvider router={router} />
+            <DiagnosticsOverlay />
         </ThemeProvider>
     </StrictMode>,
 );
