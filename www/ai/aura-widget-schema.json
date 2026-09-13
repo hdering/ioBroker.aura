@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.58.3",
+    "auraVersion": "0.59.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1156,6 +1156,18 @@
           ],
           "description": "'slider' cell: where to render the current DP value (default 'none')"
         },
+        "showScale": {
+          "type": "boolean",
+          "description": "'slider' cell: step scale with numbers along the track"
+        },
+        "scaleLabelEvery": {
+          "type": "number",
+          "description": "'slider' cell: label every n-th step (unset = as many as fit)"
+        },
+        "scaleTicks": {
+          "type": "boolean",
+          "description": "'slider' cell: draw the scale's marks (default true)"
+        },
         "sendValue": {
           "type": "string",
           "description": "payload sent to dpId on click (parsed as bool/number/string)"
@@ -2264,6 +2276,18 @@
           "type": "boolean",
           "description": "Print the scale ends left and right of the slider. Default false."
         },
+        "sliderShowScale": {
+          "type": "boolean",
+          "description": "Draw the step scale under the slider. Replaces the min/max labels."
+        },
+        "sliderScaleLabelEvery": {
+          "type": "number",
+          "description": "Label every n-th step of that scale. Unset = as many as the width fits."
+        },
+        "sliderScaleTicks": {
+          "type": "boolean",
+          "description": "Draw the scale's marks. Default true; off leaves the bare numbers."
+        },
         "sliderWidth": {
           "type": "number",
           "description": "Row layouts: fixed control width in px. Unset = a compact default (80)."
@@ -3289,6 +3313,18 @@
           "type": "boolean",
           "description": "Print the scale ends left and right of the slider. Default false."
         },
+        "sliderShowScale": {
+          "type": "boolean",
+          "description": "Draw the step scale under the slider. Replaces the min/max labels."
+        },
+        "sliderScaleLabelEvery": {
+          "type": "number",
+          "description": "Label every n-th step of that scale. Unset = as many as the width fits."
+        },
+        "sliderScaleTicks": {
+          "type": "boolean",
+          "description": "Draw the scale's marks. Default true; off leaves the bare numbers."
+        },
         "sliderWidth": {
           "type": "number",
           "description": "Row layouts: fixed control width in px. Unset = a compact default (80)."
@@ -3931,6 +3967,18 @@
         "sliderShowMinMax": {
           "type": "boolean",
           "description": "Print the scale ends left and right of the slider. Default false."
+        },
+        "sliderShowScale": {
+          "type": "boolean",
+          "description": "Draw the step scale under the slider. Replaces the min/max labels."
+        },
+        "sliderScaleLabelEvery": {
+          "type": "number",
+          "description": "Label every n-th step of that scale. Unset = as many as the width fits."
+        },
+        "sliderScaleTicks": {
+          "type": "boolean",
+          "description": "Draw the scale's marks. Default true; off leaves the bare numbers."
         },
         "sliderWidth": {
           "type": "number",
@@ -10922,10 +10970,24 @@
           "default": false,
           "description": "Nur anzeigen, nicht bedienbar."
         },
+        "scaleLabelEvery": {
+          "type": "number",
+          "description": "Skala: nur jeden n-ten Schritt beschriften. Leer = so viele, wie die Breite hergibt."
+        },
+        "scaleTicks": {
+          "type": "boolean",
+          "default": true,
+          "description": "Skala: Striche zeichnen. Aus lässt nur die Zahlen stehen."
+        },
         "showMinMax": {
           "type": "boolean",
           "default": false,
           "description": "Skalenanfang und -ende beschriften."
+        },
+        "showScale": {
+          "type": "boolean",
+          "default": false,
+          "description": "Skala mit den Schrittwerten entlang der Reglerspur. Ersetzt die Min/Max-Beschriftung."
         },
         "showUnit": {
           "type": "boolean",

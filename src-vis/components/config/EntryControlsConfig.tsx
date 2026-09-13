@@ -798,6 +798,42 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                         onChange={(v) => onUpdate({ sliderShowMinMax: v || undefined })}
                     />
                     <ToggleRow
+                        label="Skala (Schritte)"
+                        checked={!!entry.sliderShowScale}
+                        onChange={(v) => onUpdate({ sliderShowScale: v || undefined })}
+                    />
+                    {entry.sliderShowScale && (
+                        <>
+                            <div>
+                                <Label>Beschriftung: jeden n-ten Schritt (leer = automatisch)</Label>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    className={iCls}
+                                    style={iSty}
+                                    placeholder="auto"
+                                    value={entry.sliderScaleLabelEvery ?? ''}
+                                    onChange={(e) => {
+                                        const n = parseInt(e.target.value, 10);
+                                        onUpdate({ sliderScaleLabelEvery: isFinite(n) && n > 0 ? n : undefined });
+                                    }}
+                                />
+                            </div>
+                            <ToggleRow
+                                label="Skalenstriche zeichnen"
+                                checked={entry.sliderScaleTicks !== false}
+                                onChange={(v) => onUpdate({ sliderScaleTicks: v ? undefined : false })}
+                            />
+                            <p
+                                className="text-[9px] leading-tight"
+                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                            >
+                                In der Zeile ist der Regler standardmäßig 80 px breit — dort bleiben meist nur Min und
+                                Max stehen. Mehr Zahlen brauchen mehr Breite oder ein Card-Layout.
+                            </p>
+                        </>
+                    )}
+                    <ToggleRow
                         label="Erst beim Loslassen schreiben"
                         checked={!!entry.sliderCommitOnRelease}
                         onChange={(v) => onUpdate({ sliderCommitOnRelease: v || undefined })}

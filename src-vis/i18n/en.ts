@@ -1997,6 +1997,11 @@ export const en: Record<TranslationKey, string> = {
     'mp.volumeRange': 'Volume Range',
 
     // ── Slider Widget ─────────────────────────────────────────────────────────────
+    'sl.fields.title': 'Visible fields',
+    'sl.fields.value': 'Value',
+    'sl.fields.unit': 'Unit',
+    'sl.fields.minMax': 'Min/max labels',
+    'sl.fields.scale': 'Scale (steps)',
     'sl.range.min': 'Min',
     'sl.range.max': 'Max',
     'sl.range.step': 'Step',
@@ -2010,6 +2015,8 @@ export const en: Record<TranslationKey, string> = {
     'sl.style.color': 'Slider color',
     'sl.style.commitOnRelease': 'Write value only on release',
     'sl.style.readOnly': 'Read-only (progress bar)',
+    'sl.style.scaleLabelEvery': 'Scale: label every n-th step',
+    'sl.style.scaleTicks': 'Draw scale marks',
     'sl.actions.title': 'Action buttons',
     'sl.actions.add': '+ Add button',
     'sl.actions.icon': 'Icon',

@@ -50,6 +50,8 @@ import { useT } from '../../i18n';
 import { formatTimeDisplay, TIME_DASH } from '../../utils/timeDisplay';
 import { applyValueTransform, resolveValueTransform, type ValueTransformSettings } from '../../utils/valueTransform';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { SliderScale } from './SliderScale';
+import { stepDecimals } from '../../utils/sliderScale';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { useDateValueFields, dateValueText, type DateValueSettings } from '../common/DateValueFields';
 import type { DateOutputFormat } from '../../utils/dateValue';
@@ -275,6 +277,12 @@ export interface EntryControlConfig extends ValueTransformSettings, SwitchEntryC
     sliderShowUnit?: boolean;
     /** Print the scale ends left and right of the slider. Default false. */
     sliderShowMinMax?: boolean;
+    /** Draw the step scale under the slider. Replaces the min/max labels. */
+    sliderShowScale?: boolean;
+    /** Label every n-th step of that scale. Unset = as many as the width fits. */
+    sliderScaleLabelEvery?: number;
+    /** Draw the scale's marks. Default true; off leaves the bare numbers. */
+    sliderScaleTicks?: boolean;
     /** Row layouts: fixed control width in px. Unset = a compact default (80). */
     sliderWidth?: number;
     // ── buttons (value presets) ────────────────────────────────────────────────
@@ -999,12 +1007,6 @@ export function StepperControl({
 const BAR_BASE_ROW = 16;
 const BAR_BASE_CARD = 26;
 
-/** Decimals implied by the step, so a step of 0.5 prints "21.5" and 1 prints "22". */
-function stepDecimals(step: number): number {
-    if (!Number.isFinite(step) || Math.floor(step) === step) return 0;
-    return Math.min(4, (String(step).split('.')[1] ?? '').length);
-}
-
 export function SliderControl({
     entry,
     val,
@@ -1154,6 +1156,21 @@ export function SliderControl({
         </span>
     );
 
+    // The scale already ends on min and max, so the labels beside the track step
+    // aside for it. `inset` is half the native thumb (16 px in index.css); the
+    // bar look runs edge to edge.
+    const scaleEl = entry.sliderShowScale ? (
+        <SliderScale
+            min={min}
+            max={max}
+            step={step}
+            labelEvery={entry.sliderScaleLabelEvery || undefined}
+            ticks={entry.sliderScaleTicks !== false}
+            inset={barStyle ? 0 : 8}
+        />
+    ) : null;
+    const showEdges = entry.sliderShowMinMax && !scaleEl;
+
     if (card)
         return (
             <div className="w-full flex flex-col items-center gap-1">
@@ -1178,20 +1195,24 @@ export function SliderControl({
                     </span>
                 )}
                 <div className="w-full flex items-center gap-1.5">
-                    {entry.sliderShowMinMax && edge(min)}
-                    <div className="flex-1 min-w-0 flex items-center">{control}</div>
-                    {entry.sliderShowMinMax && edge(max)}
+                    {showEdges && edge(min)}
+                    <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="flex items-center">{control}</div>
+                        {scaleEl}
+                    </div>
+                    {showEdges && edge(max)}
                 </div>
             </div>
         );
 
     return (
         <div className="shrink-0 flex items-center gap-1.5">
-            {entry.sliderShowMinMax && edge(min)}
-            <div className="flex items-center" style={{ width: entry.sliderWidth ?? 80 }}>
-                {control}
+            {showEdges && edge(min)}
+            <div className="flex flex-col justify-center" style={{ width: entry.sliderWidth ?? 80 }}>
+                <div className="flex items-center">{control}</div>
+                {scaleEl}
             </div>
-            {entry.sliderShowMinMax && edge(max)}
+            {showEdges && edge(max)}
             {showValue && (
                 <span
                     className="text-[10px] text-right tabular-nums shrink-0"

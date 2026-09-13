@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+Slider - optional scale showing the step values, min and max along the track; available in the Slider widget, list rows and the universal widget's slider cell (#643)

@@ -261,6 +261,9 @@ export interface CustomCell {
     barSize?: number;
     orientation?: 'horizontal' | 'vertical';
     valuePosition?: 'none' | 'left' | 'right' | 'top' | 'bottom'; // 'slider' cell: where to render the current DP value (default 'none')
+    showScale?: boolean; // 'slider' cell: step scale with numbers along the track
+    scaleLabelEvery?: number; // 'slider' cell: label every n-th step (unset = as many as fit)
+    scaleTicks?: boolean; // 'slider' cell: draw the scale's marks (default true)
     // 'button' type
     sendValue?: string; // payload sent to dpId on click (parsed as bool/number/string)
     // 'icon' / 'state-icon' type

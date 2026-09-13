@@ -2008,6 +2008,11 @@ export const de = {
     'mp.volumeRange': 'Lautstärke-Bereich',
 
     // ── Slider Widget ─────────────────────────────────────────────────────────────
+    'sl.fields.title': 'Sichtbare Felder',
+    'sl.fields.value': 'Wert',
+    'sl.fields.unit': 'Einheit',
+    'sl.fields.minMax': 'Min/Max-Beschriftung',
+    'sl.fields.scale': 'Skala (Schritte)',
     'sl.range.min': 'Min',
     'sl.range.max': 'Max',
     'sl.range.step': 'Schritt',
@@ -2021,6 +2026,8 @@ export const de = {
     'sl.style.color': 'Slider-Farbe',
     'sl.style.commitOnRelease': 'Wert erst beim Loslassen schreiben',
     'sl.style.readOnly': 'Nur Anzeige (Fortschrittsbalken)',
+    'sl.style.scaleLabelEvery': 'Skala: jeden n-ten Schritt',
+    'sl.style.scaleTicks': 'Skalenstriche zeichnen',
     'sl.actions.title': 'Aktions-Buttons',
     'sl.actions.add': '+ Button hinzufügen',
     'sl.actions.icon': 'Icon',

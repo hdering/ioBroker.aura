@@ -175,7 +175,9 @@ const NO_BADGES: BadgeDef[] = [];
 // Single source of truth for "which widget gets which visible-field toggle in
 // the Darstellung block". Adding a new widget type only needs an entry here
 // (or nothing — empty = just showTitle/showIcon).
-const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: string }[]>> = {
+// `def` is the widget's own default for an option it reads as off-by-default —
+// without it the toggle shows ON for a field nothing is drawing yet.
+const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: string; def?: boolean }[]>> = {
     // shutter: Position %/Steuerknöpfe/Schieberegler live in the shutter settings
     // block (Sichtbare Felder), right below the size sliders they belong to —
     // kept out of the generic Darstellung block.
@@ -185,11 +187,9 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
         { key: 'showSlider', label: 'Schieberegler' },
         { key: 'showToggle', label: 'An/Aus-Schalter' },
     ],
-    slider: [
-        { key: 'showValue', label: 'Wert' },
-        { key: 'showUnit', label: 'Einheit' },
-        { key: 'showMinMax', label: 'Min/Max-Beschriftung' },
-    ],
+    // slider: Wert/Einheit/Min-Max/Skala live in the Schieberegler block
+    // (Sichtbare Felder), next to the scale's own settings - kept out of the
+    // generic Darstellung block.
     // thermostat: visibility toggles live in the thermostat settings block
     // (Soll/Ist/Tasten/Schnellwahl) — kept out of the generic Darstellung block.
     value: [
@@ -217,7 +217,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     light: [{ key: 'showPalette', label: 'Farbpalette (Presets)' }],
     knob: [
         { key: 'showValue', label: 'Wert' },
-        { key: 'showMinMax', label: 'Min/Max-Beschriftung' },
+        { key: 'showMinMax', label: 'Min/Max-Beschriftung', def: false },
     ],
     mediaplayer: [
         { key: 'showCover', label: 'Cover' },
@@ -3450,6 +3450,90 @@ function SliderEditPanel({
                             style={sInputStyle}
                         />
                     </div>
+                </div>
+            </details>
+
+            {/* Sichtbare Felder - die Anzeigen des Reglers selbst. Bewusst hier statt
+                im generischen Darstellung-Block: die Skala bringt eigene Einstellungen
+                mit, und die gehören neben ihren Schalter. */}
+            <details className="group" open>
+                <summary className="flex items-center justify-between cursor-pointer list-none select-none mb-1">
+                    <span className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                        {t('sl.fields.title' as never)}
+                    </span>
+                    <ChevronDown
+                        size={12}
+                        className="transition-transform group-open:rotate-180"
+                        style={{ color: 'var(--text-secondary)' }}
+                    />
+                </summary>
+                <div className="space-y-2">
+                    {(
+                        [
+                            ['showValue', 'sl.fields.value', true],
+                            ['showUnit', 'sl.fields.unit', true],
+                            ['showMinMax', 'sl.fields.minMax', false],
+                            ['showScale', 'sl.fields.scale', false],
+                        ] as const
+                    ).map(([key, label, def]) => {
+                        // `def` is what the widget itself assumes - without it a field
+                        // that draws nothing yet would still show a ticked box.
+                        const on = o[key] === undefined ? def : o[key] !== false;
+                        return (
+                            <label key={key} className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={on}
+                                    onChange={(e) =>
+                                        setO({
+                                            [key]: def
+                                                ? e.target.checked
+                                                    ? undefined
+                                                    : false
+                                                : e.target.checked || undefined,
+                                        })
+                                    }
+                                    className="rounded"
+                                />
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    {t(label as never)}
+                                </span>
+                            </label>
+                        );
+                    })}
+                    {!!o.showScale && (
+                        <>
+                            <div className="flex items-center gap-1">
+                                <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('sl.style.scaleLabelEvery' as never)}
+                                </span>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={(o.scaleLabelEvery as number) ?? ''}
+                                    onChange={(e) =>
+                                        setO({
+                                            scaleLabelEvery: e.target.value === '' ? undefined : Number(e.target.value),
+                                        })
+                                    }
+                                    placeholder="auto"
+                                    className="text-xs rounded-lg px-2 py-1.5 focus:outline-none"
+                                    style={numInputStyle}
+                                />
+                            </div>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={o.scaleTicks !== false}
+                                    onChange={(e) => setO({ scaleTicks: e.target.checked ? undefined : false })}
+                                    className="rounded"
+                                />
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('sl.style.scaleTicks' as never)}
+                                </span>
+                            </label>
+                        </>
+                    )}
                 </div>
             </details>
 
@@ -8043,8 +8127,8 @@ export function WidgetFrame({
                                                 </div>
                                             );
                                         })()}
-                                    {(VIS_FIELDS_PER_TYPE[config.type] ?? []).map(({ key, label }) => {
-                                        const val = o[key] !== false;
+                                    {(VIS_FIELDS_PER_TYPE[config.type] ?? []).map(({ key, label, def }) => {
+                                        const val = o[key] === undefined ? (def ?? true) : o[key] !== false;
                                         return (
                                             <div key={key} className="flex items-center justify-between">
                                                 <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>

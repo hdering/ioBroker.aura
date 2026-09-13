@@ -47,11 +47,17 @@ Die Gruppen-Aktion (Master-Schalter) verwendet dieselben Werte.
 | `sliderShowValue`       | `true`            | Wert neben dem Regler anzeigen                                              |
 | `sliderShowUnit`        | `true`            | Einheit an den Wert hängen (Einheit des Eintrags, ohne Angabe `%`)          |
 | `sliderShowMinMax`      | `false`           | Skalenenden links und rechts vom Regler                                     |
+| `sliderShowScale`       | `false`           | Skala mit den Schrittwerten unter dem Regler; ersetzt `sliderShowMinMax`    |
+| `sliderScaleLabelEvery` | —               | nur jeden n-ten Schritt beschriften; leer = so viele, wie die Breite hergibt |
+| `sliderScaleTicks`      | `true`            | Skalenstriche zeichnen                                                      |
 | `sliderCommitOnRelease` | `false`           | Erst beim Loslassen schreiben statt bei jeder Bewegung                      |
 | `sliderReadOnly`        | `false`           | Fortschrittsanzeige — Regler wird gezeichnet, ist aber nicht bedienbar      |
 
 Geschrieben wird auf die Schrittweite gerundet und auf die Skala begrenzt. Ein Datenpunkt ohne
 Schreibrecht zeigt nur den Wert; `sliderReadOnly` behält dagegen bewusst die Reglergrafik.
+
+`sliderShowScale` beschriftet immer Min und Max. In der Zeile ist der Regler standardmäßig 80 px breit —
+dort bleiben meist nur diese beiden stehen; mehr Zahlen brauchen `sliderWidth` oder ein Card-Layout.
 
 Nicht übernommen: die senkrechte Ausrichtung des Widgets (eine Listenzeile ist ein waagerechter
 Streifen) sowie Aktions-Buttons und Status-Badges — die gehören zum Widget-Rahmen, nicht zum Wert.

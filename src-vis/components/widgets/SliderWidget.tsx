@@ -5,6 +5,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import type { WidgetProps, CustomGrid } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
+import { SliderScale } from './SliderScale';
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 
@@ -44,7 +45,12 @@ export function SliderWidget({ config }: WidgetProps) {
     const showTitle = o.showTitle !== false;
     const showValue = o.showValue !== false;
     const showUnit = o.showUnit !== false;
-    const showMinMax = !!o.showMinMax;
+    const showScale = !!o.showScale;
+    const scaleLabelEvery = (o.scaleLabelEvery as number) || undefined;
+    const scaleTicks = o.scaleTicks !== false;
+    // The scale already ends on min and max — printing them beside the track as
+    // well would only say the same thing twice.
+    const showMinMax = !!o.showMinMax && !showScale;
     const showIcon = o.showIcon !== false;
     const iconSize = (o.iconSize as number) || 20;
     const actions = (o.actions as SliderAction[] | undefined) ?? [];
@@ -220,6 +226,37 @@ export function SliderWidget({ config }: WidgetProps) {
 
     const valueStr = `${displayVal}${showUnit && unit ? unit : ''}`;
 
+    // The scale shares the track's inset: the native control keeps half a thumb
+    // (16 px in index.css) free at both ends, the bar look runs edge to edge.
+    const scaleEl = showScale ? (
+        <SliderScale
+            min={min}
+            max={max}
+            step={step}
+            labelEvery={scaleLabelEvery}
+            ticks={scaleTicks}
+            vertical={isVertical}
+            inset={barStyle ? 0 : 8}
+        />
+    ) : null;
+
+    // Control plus scale as one block. The track keeps a definite height from the
+    // flex row above it, so a bar's percentage height still has something to
+    // resolve against once the scale sits underneath.
+    const controlBlock = scaleEl ? (
+        isVertical ? (
+            <div className="w-full h-full flex items-stretch justify-center gap-1">
+                <div className="flex-1 min-w-0 flex items-center justify-center">{barStyle ? barTrack : sliderEl}</div>
+                {scaleEl}
+            </div>
+        ) : (
+            <div className="w-full h-full flex flex-col min-w-0">
+                <div className="flex-1 min-h-0 flex items-center">{barStyle ? barTrack : sliderEl}</div>
+                {scaleEl}
+            </div>
+        )
+    ) : null;
+
     if (layout === 'custom') {
         const customGrid = (o.customGrid as CustomGrid | undefined) ?? DEFAULT_SLIDER_GRID;
         return (
@@ -229,7 +266,7 @@ export function SliderWidget({ config }: WidgetProps) {
                 rawValue={displayVal}
                 extraFields={{ value: String(displayVal), unit, min: String(min), max: String(max), battery, reach }}
                 extraComponents={{
-                    slider: barStyle ? barTrack : sliderEl,
+                    slider: controlBlock ?? (barStyle ? barTrack : sliderEl),
                     actions: actionsEl,
                     'battery-icon': batteryIcon,
                     'reach-icon': reachIcon,
@@ -255,9 +292,13 @@ export function SliderWidget({ config }: WidgetProps) {
                         {max}
                     </span>
                 )}
-                <div className={`flex-1 flex items-center justify-center min-h-0${barStyle ? ' w-full' : ''}`}>
-                    {barStyle ? barTrack : sliderEl}
-                </div>
+                {controlBlock ? (
+                    <div className="flex-1 min-h-0 w-full flex">{controlBlock}</div>
+                ) : (
+                    <div className={`flex-1 flex items-center justify-center min-h-0${barStyle ? ' w-full' : ''}`}>
+                        {barStyle ? barTrack : sliderEl}
+                    </div>
+                )}
                 {showMinMax && (
                     <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>
                         {min}
@@ -309,7 +350,9 @@ export function SliderWidget({ config }: WidgetProps) {
                         {min}
                     </span>
                 )}
-                {barStyle ? (
+                {controlBlock ? (
+                    <div className="flex-1 self-stretch min-w-0">{controlBlock}</div>
+                ) : barStyle ? (
                     <div className="flex-1 self-stretch flex items-center">{barTrack}</div>
                 ) : (
                     <div className="flex-1">{sliderEl}</div>

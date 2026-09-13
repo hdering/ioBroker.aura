@@ -10,6 +10,8 @@ import type { WidgetConfig, CustomCell, CustomGrid, CustomGridDef } from '../../
 import { resolveImageSource } from '../../utils/assetUrl';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { SliderScale } from './SliderScale';
+import { stepDecimals } from '../../utils/sliderScale';
 import { applyValueTransform } from '../../utils/valueTransform';
 import { formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 import { useT } from '../../i18n';
@@ -768,7 +770,40 @@ function SliderCellView({
         />
     );
 
-    const controlEl = barStyle ? barEl : nativeEl;
+    // Scale under (horizontal) or beside (vertical) the track. It shares the
+    // track's inset — half a thumb for the native control (index.css), none for
+    // the bar, which runs edge to edge. The numbers follow the step, not the
+    // cell's `decimals`: a scale reads better tight than padded with zeroes.
+    const scaleEl = cell.showScale ? (
+        <SliderScale
+            min={min}
+            max={max}
+            step={step}
+            labelEvery={cell.scaleLabelEvery || undefined}
+            ticks={cell.scaleTicks !== false}
+            vertical={isVertical}
+            inset={barStyle ? 0 : 8}
+            format={(v) => formatNum(v, stepDecimals(step), numFmt)}
+        />
+    ) : null;
+    const bareControl = barStyle ? barEl : nativeEl;
+    const controlEl = scaleEl ? (
+        isVertical ? (
+            <div style={{ height: '100%', display: 'flex', alignItems: 'stretch', gap: 2 }}>
+                <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    {bareControl}
+                </div>
+                {scaleEl}
+            </div>
+        ) : (
+            <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ flex: 1, minHeight: 0, display: 'flex', alignItems: 'center' }}>{bareControl}</div>
+                {scaleEl}
+            </div>
+        )
+    ) : (
+        bareControl
+    );
     const wrapBase = barStyle
         ? { ...cellWrapStyle(cell, index, cols, rows), padding: '4px' }
         : { ...cellWrapStyle(cell, index, cols, rows), padding: '4px 8px' };

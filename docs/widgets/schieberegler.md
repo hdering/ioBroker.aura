@@ -37,6 +37,9 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showValue` | `true` | Wert anzeigen |
 | `showUnit` | `true` | Einheit am Wert anzeigen |
 | `showMinMax` | `false` | Min/Max neben dem Regler anzeigen |
+| `showScale` | `false` | Skala mit den Schrittwerten unter dem Regler; ersetzt `showMinMax` |
+| `scaleLabelEvery` | — | nur jeden n-ten Schritt beschriften; leer = so viele, wie die Breite hergibt |
+| `scaleTicks` | `true` | Skalenstriche zeichnen |
 | `icon` | `SlidersHorizontal` | [Lucide-Icon](https://lucide.dev) |
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |

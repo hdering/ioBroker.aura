@@ -117,6 +117,22 @@ in `stat.POWER`:
 Dasselbe `stateMode`-Feld gibt es bei `state-text` und `state-icon`, damit dort ebenfalls `ON`/`OFF` oder
 Zahlenwerte den Text bzw. das Icon bestimmen.
 
+### Schieberegler (`slider`)
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `min` / `max` / `step` | `0` / `100` / `1` | Wertebereich und Schrittweite |
+| `barStyle` | `false` | gefüllter Balken statt nativem Regler |
+| `barSize` | `100` | Balkengröße in % (nur bei `barStyle`) |
+| `orientation` | `horizontal` | `horizontal` · `vertical` |
+| `valuePosition` | `none` | `none` · `left` · `right` · `top` · `bottom` |
+| `showScale` | `false` | Skala mit den Schrittwerten entlang der Spur |
+| `scaleLabelEvery` | — | nur jeden n-ten Schritt beschriften; leer = so viele, wie die Breite hergibt |
+| `scaleTicks` | `true` | Skalenstriche zeichnen |
+
+Die Skala beschriftet immer Min und Max; zu feine Skalen (z. B. `0`–`255`) werden auf ein rundes Raster
+ausgedünnt. Die Zahlen folgen der Schrittweite, nicht `decimals`.
+
 ## Zellen verschieben & kopieren
 
 ### Mit der Maus
