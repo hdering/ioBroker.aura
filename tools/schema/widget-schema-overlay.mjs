@@ -508,22 +508,37 @@ export const WIDGET_OPTION_NOTES = {
         refreshMinutes: { description: 'Abstand der Aktualisierung in Minuten.' },
     },
     aircontrol: {
-        deviceType: { description: 'Geräteart, bestimmt die angebotenen Betriebsarten.' },
+        deviceType: {
+            description:
+                'Herstellerprofil: "mitsubishi-local-control", "daikin-cloud" oder "custom" für frei gewaehlte Datenpunkte.',
+        },
+        deviceName: { description: 'Name des erkannten Geraets, dient als Titel solange kein eigener gesetzt ist.' },
         powerDp: { description: 'Datenpunkt für Ein/Aus.' },
         currentTempDp: { description: 'Datenpunkt der Ist-Temperatur.' },
-        targetTempDp: { description: 'Datenpunkt der Soll-Temperatur.' },
-        tempMin: { description: 'Untere Grenze der Soll-Temperatur.' },
-        tempMax: { description: 'Obere Grenze der Soll-Temperatur.' },
-        tempStep: { description: 'Schrittweite der Soll-Temperatur.' },
-        modeDp: { description: 'Datenpunkt der Betriebsart.' },
-        fanSpeedDp: { description: 'Datenpunkt der Lüfterstufe.' },
-        vaneVDp: { description: 'Datenpunkt der senkrechten Luftklappe.' },
-        vaneHDp: { description: 'Datenpunkt der waagerechten Luftklappe.' },
+        targetTempDp: {
+            description:
+                'Datenpunkt der Soll-Temperatur. Enthält der Pfad "{mode}", wird der Platzhalter durch den Namen der laufenden Betriebsart ersetzt (Daikin hat je Betriebsart einen eigenen Sollwert); Betriebsarten ohne diesen Datenpunkt zeigen keine Soll-Temperatur.',
+        },
+        tempMin: { description: 'Untere Grenze der Soll-Temperatur. Leer = Grenze aus dem Datenpunkt.' },
+        tempMax: { description: 'Obere Grenze der Soll-Temperatur. Leer = Grenze aus dem Datenpunkt.' },
+        tempStep: { description: 'Schrittweite der Soll-Temperatur. Leer = Schrittweite aus dem Datenpunkt.' },
+        modeDp: { description: 'Datenpunkt der Betriebsart. Seine common.states liefern die Auswahlknöpfe.' },
+        fanSpeedDp: { description: 'Datenpunkt der Lüfterstufe. Darf wie targetTempDp "{mode}" enthalten.' },
+        fanSpeedFixedDp: {
+            description:
+                'Datenpunkt der festen Lüfterstufe (z. B. 1..5). Wird nur angeboten, solange die Lüfterstufe auf "fixed" steht. Darf "{mode}" enthalten.',
+        },
+        vaneVDp: { description: 'Datenpunkt der senkrechten Luftklappe. Darf "{mode}" enthalten.' },
+        vaneHDp: { description: 'Datenpunkt der waagerechten Luftklappe. Darf "{mode}" enthalten.' },
         ecoDp: { description: 'Datenpunkt des Sparbetriebs.' },
+        boostDp: { description: 'Datenpunkt der Schnellstufe (Daikin: powerfulMode).' },
         onlineDp: { description: 'Datenpunkt der Erreichbarkeit.' },
         errorDp: { description: 'Datenpunkt der Störungsmeldung.' },
         consumptionDp: { description: 'Datenpunkt des Verbrauchs.' },
+        humidityDp: { description: 'Datenpunkt der Raumluftfeuchte.' },
         outsideTempDp: { description: 'Datenpunkt der Außentemperatur.' },
+        showBoost: { description: 'Taste für die Schnellstufe anzeigen.' },
+        showHumidity: { description: 'Raumluftfeuchte in der Fußzeile anzeigen.' },
     },
     echart: {
         echartMode: {

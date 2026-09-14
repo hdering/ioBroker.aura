@@ -167,6 +167,15 @@ function noteWrite(id: string, val: boolean | number | string): void {
     devWriteLog?.push({ id, val });
 }
 
+// DEV-only: record writes instead of sending them. A harness test that clicks a
+// control otherwise writes onto whatever ioBroker the dev server proxies —
+// including datapoints the test invented, which the states database happily
+// keeps. The local echo still runs, so the widget behaves as it would live.
+let devBlockWrites = false;
+export function __devSetBlockWrites(on: boolean): void {
+    devBlockWrites = on;
+}
+
 // Optimistic writes: when enabled, setState reflects the written value locally
 // (cache + subscribers) immediately, instead of waiting for ioBroker to echo a
 // stateChange back. Synced from the frontend setting via setOptimisticEcho().
@@ -858,6 +867,7 @@ export async function readValueDirect(id: string): Promise<unknown> {
 /** Set a state value without a React hook. */
 export function setStateDirect(id: string, val: boolean | number | string, ack = false): void {
     noteWrite(id, val);
+    if (devBlockWrites) return;
     getSocket().emit('setState', id, { val, ack });
 }
 
@@ -891,6 +901,8 @@ export function setStateEchoed(id: string, val: boolean | number | string, ack =
  * Use when the next step (e.g. a page reload) would otherwise race the buffered
  * websocket frame before it flushes. */
 export function setStateDirectAsync(id: string, val: boolean | number | string, ack = false): Promise<void> {
+    noteWrite(id, val);
+    if (devBlockWrites) return Promise.resolve();
     return new Promise((resolve) => {
         getSocket().emit('setState', id, { val, ack }, () => resolve());
     });

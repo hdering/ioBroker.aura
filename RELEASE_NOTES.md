@@ -10,3 +10,6 @@
 - Add widget - a search box filters the list as you type, and non-matching entries are hidden (#652)
 - Add widget - picking a type no longer adds it right away, so its hint stays readable and another type can be chosen (#652)
 - Custom CSS - the tab bar carries .aura-tabs-top / .aura-tabs-bottom, so a rule can pad the footer bar only
+- AC control - Daikin air conditioners (daikin-cloud) can be picked as a manufacturer, filling every datapoint from one device (#650)
+- AC control - setpoint, fan speed and vanes follow the operation mode where a device keeps one datapoint per mode, and take their limits from it (#650)
+- AC control - vane positions are selectable, with a Powerful button and room humidity alongside them (#650)

@@ -14,6 +14,7 @@ import {
     Plus,
     Minus,
     Zap,
+    Rocket,
     Thermometer,
     MoveVertical,
     MoveHorizontal,
@@ -27,7 +28,13 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import type { WidgetProps, WidgetConfig } from '../../types';
-import { getProfile, type ClimateEnumEntry } from '../../utils/climateProfiles';
+import {
+    getProfile,
+    applyModeSlug,
+    modeSlugFor,
+    stateLabelKey,
+    type ClimateEnumEntry,
+} from '../../utils/climateProfiles';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -35,6 +42,21 @@ interface EnumOption {
     value: number;
     label: string;
 }
+
+/** Everything the widget needs from a datapoint's object, fetched once per id. */
+interface DpMeta {
+    states: Record<string, string> | null;
+    min: number | null;
+    max: number | null;
+    step: number | null;
+    /** false while nothing has been fetched yet or the id does not exist. */
+    exists: boolean;
+}
+
+const NO_META: DpMeta = { states: null, min: null, max: null, step: null, exists: false };
+
+/** Stable empty fallback so the option memos keep their identity. */
+const NO_ENUM: ClimateEnumEntry[] = [];
 
 /** Parses ioBroker `common.states` (object | legacy "0:a;1:b" string) into a map. */
 function parseStates(raw: unknown): Record<string, string> | null {
@@ -50,40 +72,76 @@ function parseStates(raw: unknown): Record<string, string> | null {
     return null;
 }
 
+function finiteOrNull(v: unknown): number | null {
+    return typeof v === 'number' && Number.isFinite(v) ? v : null;
+}
+
 /**
- * Resolves selector options for a multi-state DP: prefers the device's live
- * `common.states`, falls back to the profile enum (translated via i18n).
+ * Reads `common` of a datapoint. The id changes whenever the operation mode
+ * changes on adapters with per-mode datapoints, so this re-fetches by design.
  */
-function useEnumOptions(
-    dpId: string,
-    fallback: ClimateEnumEntry[],
-    t: (key: string) => string,
-    kind: 'mode' | 'fan',
-): EnumOption[] {
-    const [states, setStates] = useState<Record<string, string> | null>(null);
+function useDpMeta(dpId: string): DpMeta {
+    const [meta, setMeta] = useState<DpMeta>(NO_META);
     useEffect(() => {
         let alive = true;
         if (!dpId) {
-            setStates(null);
+            setMeta(NO_META);
             return;
         }
         getObjectDirect(dpId)
             .then((obj) => {
-                if (alive) setStates(parseStates((obj?.common as { states?: unknown } | undefined)?.states));
+                if (!alive) return;
+                const c = (obj?.common ?? {}) as {
+                    states?: unknown;
+                    min?: unknown;
+                    max?: unknown;
+                    step?: unknown;
+                };
+                setMeta(
+                    obj
+                        ? {
+                              states: parseStates(c.states),
+                              min: finiteOrNull(c.min),
+                              max: finiteOrNull(c.max),
+                              step: finiteOrNull(c.step),
+                              exists: true,
+                          }
+                        : NO_META,
+                );
             })
-            .catch(() => {});
+            .catch(() => {
+                if (alive) setMeta(NO_META);
+            });
         return () => {
             alive = false;
         };
     }, [dpId]);
+    return meta;
+}
+
+/**
+ * Selector options for a multi-state DP: prefers the device's live
+ * `common.states`, falls back to the profile enum. Raw protocol names the
+ * project has a translation for ("cooling", "windNice") are localised.
+ */
+function useEnumOptions(
+    meta: DpMeta,
+    fallback: ClimateEnumEntry[],
+    t: (key: string) => string,
+    kind: 'mode' | 'fan' | 'vane',
+): EnumOption[] {
     return useMemo(() => {
-        if (states) {
-            return Object.entries(states)
-                .map(([k, v]) => ({ value: Number(k), label: String(v) }))
+        if (meta.states) {
+            return Object.entries(meta.states)
+                .map(([k, v]) => {
+                    const raw = String(v);
+                    const key = stateLabelKey(kind, raw);
+                    return { value: Number(k), label: key ? t(key) : raw };
+                })
                 .filter((o) => Number.isFinite(o.value));
         }
         return fallback.map((e) => ({ value: e.value, label: t(`aircontrol.${kind}.${e.labelKey}`) }));
-    }, [states, fallback, t, kind]);
+    }, [meta, fallback, t, kind]);
 }
 
 function modeIcon(label: string): LucideIcon | null {
@@ -99,8 +157,9 @@ function clamp(v: number, min: number, max: number, step: number) {
     return Math.max(min, Math.min(max, Math.round(v / step) * step));
 }
 
-function resolveTitle(config: WidgetConfig, primaryDp: string): string {
+function resolveTitle(config: WidgetConfig, deviceName: string, primaryDp: string): string {
     if (config.title?.trim()) return config.title;
+    if (deviceName.trim()) return deviceName;
     if (primaryDp) return lookupDatapointName(primaryDp) ?? primaryDp.split('.').slice(0, -2).slice(-1).join(' ');
     return 'Klimasteuerung';
 }
@@ -151,32 +210,50 @@ export function AirControlWidget({ config }: WidgetProps) {
 
     const profile = getProfile(o.deviceType as string | undefined);
 
-    // Datapoint ids from options.
+    // Datapoint ids from options. Ids of per-mode fields still carry `{mode}`.
     const powerDp = (o.powerDp as string) || '';
     const currentTempDp = (o.currentTempDp as string) || '';
-    const targetTempDp = (o.targetTempDp as string) || '';
+    const targetTempTpl = (o.targetTempDp as string) || '';
     const modeDp = (o.modeDp as string) || '';
-    const fanSpeedDp = (o.fanSpeedDp as string) || '';
-    const vaneVDp = (o.vaneVDp as string) || '';
-    const vaneHDp = (o.vaneHDp as string) || '';
+    const fanSpeedTpl = (o.fanSpeedDp as string) || '';
+    const fanSpeedFixedTpl = (o.fanSpeedFixedDp as string) || '';
+    const vaneVTpl = (o.vaneVDp as string) || '';
+    const vaneHTpl = (o.vaneHDp as string) || '';
     const ecoDp = (o.ecoDp as string) || '';
+    const boostDp = (o.boostDp as string) || '';
     const onlineDp = (o.onlineDp as string) || '';
     const errorDp = (o.errorDp as string) || '';
     const consumptionDp = (o.consumptionDp as string) || '';
+    const humidityDp = (o.humidityDp as string) || '';
     const outsideTempDp = (o.outsideTempDp as string) || '';
+
+    // The operation mode decides which per-mode datapoints exist, so it is read
+    // (and its state names fetched) before everything that depends on it.
+    const { value: modeRaw } = useDatapoint(modeDp);
+    const mode = typeof modeRaw === 'number' ? modeRaw : null;
+    const modeMeta = useDpMeta(modeDp);
+    const modeSlug = modeSlugFor(mode, modeMeta.states, profile);
+
+    const targetTempDp = applyModeSlug(targetTempTpl, modeSlug);
+    const fanSpeedDp = applyModeSlug(fanSpeedTpl, modeSlug);
+    const fanSpeedFixedDp = applyModeSlug(fanSpeedFixedTpl, modeSlug);
+    const vaneVDp = applyModeSlug(vaneVTpl, modeSlug);
+    const vaneHDp = applyModeSlug(vaneHTpl, modeSlug);
 
     // Live values.
     const { value: powerRaw } = useDatapoint(powerDp);
     const { value: currentRaw } = useDatapoint(currentTempDp);
     const { value: targetRaw } = useDatapoint(targetTempDp);
-    const { value: modeRaw } = useDatapoint(modeDp);
     const { value: fanRaw } = useDatapoint(fanSpeedDp);
+    const { value: fanFixedRaw } = useDatapoint(fanSpeedFixedDp);
     const { value: vaneVRaw } = useDatapoint(vaneVDp);
     const { value: vaneHRaw } = useDatapoint(vaneHDp);
     const { value: ecoRaw } = useDatapoint(ecoDp);
+    const { value: boostRaw } = useDatapoint(boostDp);
     const { value: onlineRaw } = useDatapoint(onlineDp);
     const { value: errorRaw } = useDatapoint(errorDp);
     const { value: consumptionRaw } = useDatapoint(consumptionDp);
+    const { value: humidityRaw } = useDatapoint(humidityDp);
     const { value: outsideRaw } = useDatapoint(outsideTempDp);
 
     // Display options.
@@ -184,7 +261,9 @@ export function AirControlWidget({ config }: WidgetProps) {
     const showIcon = o.showIcon !== false;
     const showVanes = o.showVanes !== false;
     const showEco = o.showEco !== false;
+    const showBoost = o.showBoost !== false;
     const showConsumption = o.showConsumption !== false;
+    const showHumidity = o.showHumidity !== false;
     const showOutside = o.showOutside !== false;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const Icon = getWidgetIcon(o.icon as string | undefined, AirVent);
@@ -193,29 +272,52 @@ export function AirControlWidget({ config }: WidgetProps) {
     const decimals = (o.decimals as number) ?? defaultDecimals;
     const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
 
-    const minTemp = (o.tempMin as number) ?? profile?.tempRange.min ?? 16;
-    const maxTemp = (o.tempMax as number) ?? profile?.tempRange.max ?? 31;
-    const step = (o.tempStep as number) ?? profile?.tempRange.step ?? 1;
+    const targetMeta = useDpMeta(targetTempDp);
+    const fanMeta = useDpMeta(fanSpeedDp);
+    const fanFixedMeta = useDpMeta(fanSpeedFixedDp);
+    const vaneVMeta = useDpMeta(vaneVDp);
+    const vaneHMeta = useDpMeta(vaneHDp);
+
+    // Explicit widget options win; otherwise the setpoint datapoint knows its own
+    // limits (Daikin: 10…30 heating, 18…32 cooling) before the profile default.
+    const minTemp = (o.tempMin as number) ?? targetMeta.min ?? profile?.tempRange.min ?? 16;
+    const maxTemp = (o.tempMax as number) ?? targetMeta.max ?? profile?.tempRange.max ?? 31;
+    const step = (o.tempStep as number) ?? targetMeta.step ?? profile?.tempRange.step ?? 1;
 
     const tStr = t as (key: string) => string;
-    const modeOptions = useEnumOptions(modeDp, profile?.modes ?? [], tStr, 'mode');
-    const fanOptions = useEnumOptions(fanSpeedDp, profile?.fanSpeeds ?? [], tStr, 'fan');
+    const modeOptions = useEnumOptions(modeMeta, profile?.modes ?? NO_ENUM, tStr, 'mode');
+    const fanOptions = useEnumOptions(fanMeta, profile?.fanSpeeds ?? NO_ENUM, tStr, 'fan');
+    const vaneVOptions = useEnumOptions(vaneVMeta, NO_ENUM, tStr, 'vane');
+    const vaneHOptions = useEnumOptions(vaneHMeta, NO_ENUM, tStr, 'vane');
 
     // Coerced values.
     const isOn = powerRaw === true || powerRaw === 1 || powerRaw === 'true';
     const current = typeof currentRaw === 'number' ? currentRaw : null;
     const target = typeof targetRaw === 'number' ? targetRaw : null;
-    const mode = typeof modeRaw === 'number' ? modeRaw : null;
     const fan = typeof fanRaw === 'number' ? fanRaw : null;
+    const fanFixed = typeof fanFixedRaw === 'number' ? fanFixedRaw : null;
     const vaneV = typeof vaneVRaw === 'number' ? vaneVRaw : null;
     const vaneH = typeof vaneHRaw === 'number' ? vaneHRaw : null;
     const isEco = ecoRaw === true || ecoRaw === 1;
+    const isBoost = boostRaw === true || boostRaw === 1;
     const isOnline = onlineDp ? onlineRaw === true || onlineRaw === 1 : null;
     const hasError = errorRaw === true || errorRaw === 1;
     const consumption = typeof consumptionRaw === 'number' ? consumptionRaw : null;
+    const humidity = typeof humidityRaw === 'number' ? humidityRaw : null;
     const outside = typeof outsideRaw === 'number' ? outsideRaw : null;
 
-    const displayTitle = resolveTitle(config, powerDp || currentTempDp || targetTempDp);
+    // The fan level 1…5 only applies while the fan runs in its "fixed" mode —
+    // the raw state name decides, the shown label may be translated.
+    const fanIsFixed = fan !== null && String(fanMeta.states?.[String(fan)] ?? '').toLowerCase() === 'fixed';
+    const fanLevels = useMemo(() => {
+        const lo = fanFixedMeta.min ?? 1;
+        const hi = fanFixedMeta.max ?? 0;
+        if (!fanFixedMeta.exists || hi < lo || hi - lo > 12) return [];
+        return Array.from({ length: hi - lo + 1 }, (_, i) => ({ value: lo + i, label: String(lo + i) }));
+    }, [fanFixedMeta]);
+    const showFanLevels = fanIsFixed && fanLevels.length > 0;
+
+    const displayTitle = resolveTitle(config, (o.deviceName as string) ?? '', powerDp || currentTempDp || targetTempDp);
     const setTarget = (v: number) => targetTempDp && setState(targetTempDp, clamp(v, minTemp, maxTemp, step));
 
     // Accent reflects the active mode label.
@@ -336,13 +438,26 @@ export function AirControlWidget({ config }: WidgetProps) {
                         <Fan size={11} /> {t('aircontrol.fanSpeed')}
                     </span>
                     <SelectorRow options={fanOptions} current={fan} onPick={(v) => setState(fanSpeedDp, v)} />
+                    {showFanLevels && (
+                        <SelectorRow
+                            options={fanLevels}
+                            current={fanFixed}
+                            onPick={(v) => setState(fanSpeedFixedDp, v)}
+                        />
+                    )}
                 </div>
             )}
 
-            {/* Vanes */}
+            {/* Vanes — selectable where the datapoint publishes its positions */}
             {showVanes && (vaneVDp || vaneHDp) && (
                 <div className="flex flex-wrap gap-x-4 gap-y-1">
-                    {vaneVDp && vaneV !== null && (
+                    {vaneVDp && vaneV !== null && vaneVOptions.length > 0 && (
+                        <div className="flex items-center gap-1 min-w-0">
+                            <MoveVertical size={11} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            <SelectorRow options={vaneVOptions} current={vaneV} onPick={(v) => setState(vaneVDp, v)} />
+                        </div>
+                    )}
+                    {vaneVDp && vaneV !== null && vaneVOptions.length === 0 && (
                         <span
                             className="text-[11px] flex items-center gap-1"
                             style={{ color: 'var(--text-secondary)' }}
@@ -350,7 +465,13 @@ export function AirControlWidget({ config }: WidgetProps) {
                             <MoveVertical size={11} /> {t('aircontrol.vaneV')}: {vaneV}
                         </span>
                     )}
-                    {vaneHDp && vaneH !== null && (
+                    {vaneHDp && vaneH !== null && vaneHOptions.length > 0 && (
+                        <div className="flex items-center gap-1 min-w-0">
+                            <MoveHorizontal size={11} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            <SelectorRow options={vaneHOptions} current={vaneH} onPick={(v) => setState(vaneHDp, v)} />
+                        </div>
+                    )}
+                    {vaneHDp && vaneH !== null && vaneHOptions.length === 0 && (
                         <span
                             className="text-[11px] flex items-center gap-1"
                             style={{ color: 'var(--text-secondary)' }}
@@ -361,7 +482,7 @@ export function AirControlWidget({ config }: WidgetProps) {
                 </div>
             )}
 
-            {/* Footer: eco toggle + info */}
+            {/* Footer: eco / boost toggles + info */}
             <div className="mt-auto flex items-center justify-between gap-2 flex-wrap">
                 <div className="flex items-center gap-2">
                     {showEco && ecoDp && (
@@ -379,11 +500,31 @@ export function AirControlWidget({ config }: WidgetProps) {
                             <Leaf size={13} /> {t('aircontrol.eco')}
                         </button>
                     )}
+                    {showBoost && boostDp && (
+                        <button
+                            className="aura-widget-action nodrag flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium active:scale-95 transition-all"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setState(boostDp, !isBoost);
+                            }}
+                            style={{
+                                background: isBoost ? 'var(--accent)' : 'var(--app-border)',
+                                color: isBoost ? '#fff' : 'var(--text-secondary)',
+                            }}
+                        >
+                            <Rocket size={13} /> {t('aircontrol.boost')}
+                        </button>
+                    )}
                 </div>
                 <div className="flex items-center gap-3 text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                     {showConsumption && consumption !== null && (
                         <span className="flex items-center gap-1">
                             <Zap size={11} /> {formatNum(consumption, 0)} W
+                        </span>
+                    )}
+                    {showHumidity && humidity !== null && (
+                        <span className="flex items-center gap-1">
+                            <Droplets size={11} /> {formatNum(humidity, 0, numFmt)} %
                         </span>
                     )}
                     {showOutside && outside !== null && (

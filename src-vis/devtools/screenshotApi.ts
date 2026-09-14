@@ -22,6 +22,7 @@ import {
     __devSetSendTo,
     __devSetGetState,
     __devSetWriteLog,
+    __devSetBlockWrites,
     __devWrites,
     type DevWrite,
     getStateFromCache,
@@ -387,6 +388,15 @@ function installScreenshotApi(): void {
                 return [];
             }
             return __devWrites();
+        },
+
+        /** Arm the write log AND keep the writes off the socket, so a test that
+         *  clicks a control does not deposit its invented datapoints in the
+         *  ioBroker the dev server proxies. The local echo still runs. Pass false
+         *  to let writes through again. */
+        captureWrites(on = true): void {
+            __devSetBlockWrites(on);
+            __devSetWriteLog(on);
         },
 
         /** The most recent datapoint write, or null while the log is not armed. */

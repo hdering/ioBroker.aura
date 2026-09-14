@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useIoBroker, getStateFromCache, isStateFresh } from './useIoBroker';
 import type { ioBrokerState } from '../types';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
@@ -16,10 +16,27 @@ export function useDatapoint(ref: string) {
     // Split once: the base ID drives the socket, the path drives value extraction.
     const { id, path } = useMemo(() => splitDpRef(ref), [ref]);
     // Initialize from prefetch cache so widgets render with real values immediately (no null-flash).
-    const [state, setDatapointState] = useState<ioBrokerState | null>(() => (id ? getStateFromCache(id) : null));
+    // The id is carried along: a widget may point the SAME hook at another datapoint
+    // (the aircontrol widget swaps setpoint and fan speed when the operation mode
+    // changes), and the previous datapoint's value must not be shown under the new
+    // id — it would read as live and, where the new id does not exist at all, would
+    // never be corrected. Everything below therefore stamps the id it belongs to,
+    // and a value stamped with a foreign id counts as "nothing yet".
+    const [entry, setEntry] = useState<{ id: string; state: ioBrokerState | null }>(() => ({
+        id,
+        state: id ? getStateFromCache(id) : null,
+    }));
+    const state = entry.id === id ? entry.state : null;
+    // The id this hook currently stands for, readable from an async callback.
+    const liveId = useRef(id);
+    liveId.current = id;
 
     useEffect(() => {
-        if (!id || !connected) return;
+        if (!id) {
+            setEntry((prev) => (prev.id === id ? prev : { id, state: null }));
+            return;
+        }
+        if (!connected) return;
 
         // Adopt whatever the cache holds now: it may have been filled AFTER this
         // component mounted (the load-time prefetch resolves independently), in which
@@ -27,7 +44,10 @@ export function useDatapoint(ref: string) {
         // redundant — leaving the widget on its placeholder with a perfectly good
         // value sitting in the cache. Keep an existing local value, it is never older.
         const cached = getStateFromCache(id);
-        if (cached) setDatapointState((prev) => prev ?? cached);
+        setEntry((prev) => {
+            if (prev.id !== id) return { id, state: cached };
+            return cached && !prev.state ? { id, state: cached } : prev;
+        });
 
         // Skip the socket round-trip only when the cached value is backed by a live
         // subscription (another mounted consumer of the same DP). A cached value with
@@ -37,16 +57,18 @@ export function useDatapoint(ref: string) {
         // subscribing is what marks the ID as maintained.
         if (!isStateFresh(id)) {
             getState(id).then((initialState) => {
-                if (initialState) setDatapointState(initialState);
+                // A late answer for a datapoint this hook has already moved away from
+                // must not overwrite the current one. Keyed on the id rather than on
+                // the effect's lifetime: under StrictMode the first effect is torn down
+                // immediately, and its answer is still the right one for this id.
+                if (initialState && liveId.current === id) setEntry({ id, state: initialState });
             });
         }
 
         // Live-Updates abonnieren
-        const unsubscribe = subscribe(id, (newState) => {
-            setDatapointState(newState);
+        return subscribe(id, (newState) => {
+            setEntry({ id, state: newState });
         });
-
-        return unsubscribe;
     }, [id, connected, subscribe, getState]);
 
     const setValue = (val: boolean | number | string) => {

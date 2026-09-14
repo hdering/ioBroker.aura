@@ -9,7 +9,9 @@ import {
     CLIMATE_PROFILES,
     CUSTOM_PROFILE_ID,
     buildDpMap,
+    deviceRootRegex,
     getProfile,
+    requiredStateIds,
     type ClimateFieldKey,
 } from '../../utils/climateProfiles';
 
@@ -33,10 +35,6 @@ interface Props {
 interface DiscoveredDevice {
     root: string;
     name: string;
-}
-
-function escapeRe(s: string): string {
-    return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 function resolveName(name: unknown, fallback: string): string {
@@ -73,18 +71,15 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
         try {
             const res = await getObjectViewDirect('state', `${profile.adapter}.`, `${profile.adapter}.香`);
             const ids = new Set(res.rows.map((r) => r.id));
-            const rootRe = new RegExp(`^(${escapeRe(profile.adapter)}\\.\\d+\\.devices\\.[^.]+)\\.`);
+            const rootRe = deviceRootRegex(profile);
             const roots = new Set<string>();
             for (const r of res.rows) {
                 const m = r.id.match(rootRe);
                 if (m) roots.add(m[1]);
             }
-            const valid = [...roots].filter((root) =>
-                profile.requiredFields.every((f) => {
-                    const rel = profile.relPaths[f];
-                    return rel ? ids.has(`${root}.${rel}`) : true;
-                }),
-            );
+            // Mode-dependent datapoints carry `{mode}` and cannot be probed here,
+            // so requiredStateIds() leaves them out of the existence check.
+            const valid = [...roots].filter((root) => requiredStateIds(profile, root).every((id) => ids.has(id)));
             const withNames = await Promise.all(
                 valid.map(async (root) => {
                     const obj = await getObjectDirect(root).catch(() => null);
@@ -111,10 +106,14 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
         const prof = getProfile(id);
         setO({
             deviceType: id,
-            // Pre-fill temperature range from the profile (still editable below).
-            ...(prof
+            deviceRoot: undefined,
+            deviceName: undefined,
+            // Pre-fill the temperature range from the profile (still editable below).
+            // Skipped where the limits belong to the setpoint datapoint and differ
+            // per operation mode — freezing them here would flatten all modes to one.
+            ...(prof && !prof.tempRangeFromDatapoint
                 ? { tempMin: prof.tempRange.min, tempMax: prof.tempRange.max, tempStep: prof.tempRange.step }
-                : {}),
+                : { tempMin: undefined, tempMax: undefined, tempStep: undefined }),
         });
     };
 
@@ -122,7 +121,13 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
         if (!profile || !root) return;
         onConfigChange({
             ...config,
-            options: { ...o, deviceType, deviceRoot: root, ...buildDpMap(profile, root) },
+            options: {
+                ...o,
+                deviceType,
+                deviceRoot: root,
+                deviceName: devices.find((d) => d.root === root)?.name,
+                ...buildDpMap(profile, root),
+            },
         });
     };
 
@@ -159,6 +164,15 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
 
     const controlFields = CLIMATE_FIELDS.filter((f) => f.group === 'control').map((f) => f.key);
     const infoFields = CLIMATE_FIELDS.filter((f) => f.group === 'info').map((f) => f.key);
+
+    // Where the limits live on the setpoint datapoint (and differ per operation
+    // mode), an empty field means "ask the datapoint" rather than "use 16".
+    const tempInput = (key: 'tempMin' | 'tempMax' | 'tempStep', profileDefault: number): number | string => {
+        const set = o[key];
+        if (typeof set === 'number') return set;
+        return profile?.tempRangeFromDatapoint ? '' : profileDefault;
+    };
+    const numOrUndef = (raw: string): number | undefined => (raw.trim() === '' ? undefined : Number(raw));
 
     const toggle = (key: string, label: string) => {
         const checked = o[key] !== false;
@@ -252,7 +266,9 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
             <div className="grid grid-cols-2 gap-1.5">
                 {toggle('showVanes', t('aircontrol.showVanes'))}
                 {toggle('showEco', t('aircontrol.showEco'))}
+                {toggle('showBoost', t('aircontrol.showBoost'))}
                 {toggle('showConsumption', t('aircontrol.showConsumption'))}
+                {toggle('showHumidity', t('aircontrol.showHumidity'))}
                 {toggle('showOutside', t('aircontrol.showOutside'))}
             </div>
             <div className="grid grid-cols-3 gap-1.5 mt-1">
@@ -262,8 +278,9 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
                     </label>
                     <input
                         type="number"
-                        value={(o.tempMin as number) ?? profile?.tempRange.min ?? 16}
-                        onChange={(e) => setO({ tempMin: Number(e.target.value) })}
+                        value={tempInput('tempMin', profile?.tempRange.min ?? 16)}
+                        placeholder={t('aircontrol.fromDatapoint')}
+                        onChange={(e) => setO({ tempMin: numOrUndef(e.target.value) })}
                         className={inputCls}
                         style={inputStyle}
                     />
@@ -274,8 +291,9 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
                     </label>
                     <input
                         type="number"
-                        value={(o.tempMax as number) ?? profile?.tempRange.max ?? 31}
-                        onChange={(e) => setO({ tempMax: Number(e.target.value) })}
+                        value={tempInput('tempMax', profile?.tempRange.max ?? 31)}
+                        placeholder={t('aircontrol.fromDatapoint')}
+                        onChange={(e) => setO({ tempMax: numOrUndef(e.target.value) })}
                         className={inputCls}
                         style={inputStyle}
                     />
@@ -287,8 +305,9 @@ export function AirControlConfig({ config, onConfigChange }: Props) {
                     <input
                         type="number"
                         step="0.5"
-                        value={(o.tempStep as number) ?? profile?.tempRange.step ?? 1}
-                        onChange={(e) => setO({ tempStep: Number(e.target.value) })}
+                        value={tempInput('tempStep', profile?.tempRange.step ?? 1)}
+                        placeholder={t('aircontrol.fromDatapoint')}
+                        onChange={(e) => setO({ tempStep: numOrUndef(e.target.value) })}
                         className={inputCls}
                         style={inputStyle}
                     />

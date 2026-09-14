@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.59.3",
+    "auraVersion": "0.59.4",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -5442,6 +5442,12 @@
         "transparent"
       ],
       "options": {
+        "boostDp": {
+          "type": "string",
+          "default": "",
+          "description": "Datenpunkt der Schnellstufe (Daikin: powerfulMode).",
+          "datapoint": true
+        },
         "consumptionDp": {
           "type": "string",
           "default": "",
@@ -5454,9 +5460,14 @@
           "description": "Datenpunkt der Ist-Temperatur.",
           "datapoint": true
         },
+        "deviceName": {
+          "type": "string",
+          "default": "",
+          "description": "Name des erkannten Geraets, dient als Titel solange kein eigener gesetzt ist."
+        },
         "deviceType": {
           "type": "string",
-          "description": "Geräteart, bestimmt die angebotenen Betriebsarten."
+          "description": "Herstellerprofil: \"mitsubishi-local-control\", \"daikin-cloud\" oder \"custom\" für frei gewaehlte Datenpunkte."
         },
         "ecoDp": {
           "type": "string",
@@ -5473,13 +5484,25 @@
         "fanSpeedDp": {
           "type": "string",
           "default": "",
-          "description": "Datenpunkt der Lüfterstufe.",
+          "description": "Datenpunkt der Lüfterstufe. Darf wie targetTempDp \"{mode}\" enthalten.",
+          "datapoint": true
+        },
+        "fanSpeedFixedDp": {
+          "type": "string",
+          "default": "",
+          "description": "Datenpunkt der festen Lüfterstufe (z. B. 1..5). Wird nur angeboten, solange die Lüfterstufe auf \"fixed\" steht. Darf \"{mode}\" enthalten.",
+          "datapoint": true
+        },
+        "humidityDp": {
+          "type": "string",
+          "default": "",
+          "description": "Datenpunkt der Raumluftfeuchte.",
           "datapoint": true
         },
         "modeDp": {
           "type": "string",
           "default": "",
-          "description": "Datenpunkt der Betriebsart.",
+          "description": "Datenpunkt der Betriebsart. Seine common.states liefern die Auswahlknöpfe.",
           "datapoint": true
         },
         "onlineDp": {
@@ -5500,6 +5523,11 @@
           "description": "Datenpunkt für Ein/Aus.",
           "datapoint": true
         },
+        "showBoost": {
+          "type": "boolean",
+          "default": true,
+          "description": "Taste für die Schnellstufe anzeigen."
+        },
         "showConsumption": {
           "type": "boolean",
           "default": true
@@ -5507,6 +5535,11 @@
         "showEco": {
           "type": "boolean",
           "default": true
+        },
+        "showHumidity": {
+          "type": "boolean",
+          "default": true,
+          "description": "Raumluftfeuchte in der Fußzeile anzeigen."
         },
         "showOutside": {
           "type": "boolean",
@@ -5519,31 +5552,31 @@
         "targetTempDp": {
           "type": "string",
           "default": "",
-          "description": "Datenpunkt der Soll-Temperatur.",
+          "description": "Datenpunkt der Soll-Temperatur. Enthält der Pfad \"{mode}\", wird der Platzhalter durch den Namen der laufenden Betriebsart ersetzt (Daikin hat je Betriebsart einen eigenen Sollwert); Betriebsarten ohne diesen Datenpunkt zeigen keine Soll-Temperatur.",
           "datapoint": true
         },
         "tempMax": {
           "type": "number",
-          "description": "Obere Grenze der Soll-Temperatur."
+          "description": "Obere Grenze der Soll-Temperatur. Leer = Grenze aus dem Datenpunkt."
         },
         "tempMin": {
           "type": "number",
-          "description": "Untere Grenze der Soll-Temperatur."
+          "description": "Untere Grenze der Soll-Temperatur. Leer = Grenze aus dem Datenpunkt."
         },
         "tempStep": {
           "type": "number",
-          "description": "Schrittweite der Soll-Temperatur."
+          "description": "Schrittweite der Soll-Temperatur. Leer = Schrittweite aus dem Datenpunkt."
         },
         "vaneHDp": {
           "type": "string",
           "default": "",
-          "description": "Datenpunkt der waagerechten Luftklappe.",
+          "description": "Datenpunkt der waagerechten Luftklappe. Darf \"{mode}\" enthalten.",
           "datapoint": true
         },
         "vaneVDp": {
           "type": "string",
           "default": "",
-          "description": "Datenpunkt der senkrechten Luftklappe.",
+          "description": "Datenpunkt der senkrechten Luftklappe. Darf \"{mode}\" enthalten.",
           "datapoint": true
         }
       }
