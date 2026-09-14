@@ -302,6 +302,10 @@ export function TabBar({
     const barHeight = tbSettings?.height;
     const barBg = tbSettings?.background ?? 'var(--nav-bg, var(--app-surface))';
     const tabIconSize = tbSettings?.iconSize ?? 14;
+    // Stable CSS hook for custom CSS: `.aura-tabs-bottom` / `.aura-tabs-top` say where
+    // the bar sits, so a rule can give the footer bar extra room off the screen edge
+    // without also padding the header variant.
+    const barPosClass = tbSettings?.position === 'bottom' ? 'aura-tabs-bottom' : 'aura-tabs-top';
     const containerStyle: React.CSSProperties = {
         background: barBg,
         // Divider faces the dashboard: below the bar when it sits at the top, above the
@@ -834,7 +838,7 @@ export function TabBar({
         return (
             <>
                 <div
-                    className="aura-tabs shrink-0"
+                    className={`aura-tabs ${barPosClass} shrink-0`}
                     style={{
                         ...containerStyle,
                         display: 'grid',
@@ -911,7 +915,7 @@ export function TabBar({
     // Simple layout: alignment=left, no center/right items
     return (
         <>
-            <div className="aura-tabs shrink-0 flex" style={containerStyle}>
+            <div className={`aura-tabs ${barPosClass} shrink-0 flex`} style={containerStyle}>
                 <ScrollRow
                     isMobile={isMobile}
                     hideIndicator={hideMobileScrollbar}

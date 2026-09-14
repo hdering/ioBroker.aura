@@ -9,3 +9,4 @@
 - Keyboard shortcuts on Mac, iPad and iPhone now accept Cmd (and Option for copy-drag) and hint the matching key symbols (#651)
 - Add widget - a search box filters the list as you type, and non-matching entries are hidden (#652)
 - Add widget - picking a type no longer adds it right away, so its hint stays readable and another type can be chosen (#652)
+- Custom CSS - the tab bar carries .aura-tabs-top / .aura-tabs-bottom, so a rule can pad the footer bar only

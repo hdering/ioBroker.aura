@@ -8,6 +8,18 @@ Eigenes CSS und JavaScript global oder pro Layout einbinden (Geltungsbereich obe
 
 Überschreibt Theme-Variablen und Widget-Styles per CSS.
 
+| Selektor | trifft |
+| --- | --- |
+| `.aura-tabs` | Tab-Leiste, oben wie unten |
+| `.aura-tabs-top` | Tab-Leiste über dem Dashboard |
+| `.aura-tabs-bottom` | Tab-Leiste als Fußzeile |
+
+```css
+.aura-tabs-bottom {
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+```
+
 ## Custom JS
 
 ![](./assets/css-js-js.png)
