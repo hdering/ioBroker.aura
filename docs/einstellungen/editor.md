@@ -12,7 +12,21 @@ WYSIWYG-Editor für die Tabs und Widgets des gewählten Layouts. Widgets werden 
 | Neues Widget | Widget-Assistent öffnen |
 | + Tab | Neuen Tab anlegen (Assistent) |
 | Importieren | Widget aus JSON-Export einfügen |
+| Mobile-Reihenfolge | Reihenfolge der Widgets in der Einspaltenansicht |
+| Schloss | Bedienelemente der Widgets sperren (Standard) oder freigeben |
+| Hilfslinien | Rote Ziellinien ein-/ausblenden |
 | Strg+Alt halten (Mac: ⌘+⌥) | Vorschau ohne Bearbeiten-Buttons |
+
+## Bedienelemente sperren
+
+Mit dem Schloss in der Toolbar sind die Widgets im Editor taub: ein Klick auf einen Schalter verschiebt die Kachel, statt die Lampe zu schalten. Standard ist gesperrt; die Einstellung merkt sich der Browser.
+
+| Schloss | |
+| --- | --- |
+| Geschlossen (Standard) | Widgets lösen im Editor nichts aus — weder Datenpunkt-Schreibvorgänge noch Aktionen über den Adapter |
+| Offen (rot) | Widgets verhalten sich wie im Frontend, Klicks schalten echte Geräte |
+
+Gruppen und Panel-Stapel bleiben bedienbar, damit ihre Kinder auswählbar und verschiebbar sind — die Kinder selbst sind einzeln gesperrt.
 
 ## Neues Widget
 

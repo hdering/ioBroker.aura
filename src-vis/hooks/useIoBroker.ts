@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useWidgetWriteLock } from './widgetWriteLock';
 import type { ioBrokerState, ObjectViewResult } from '../types';
 import { version as appVersion } from '../../package.json';
 import { splitDpRef, resolveDpValue } from '../utils/dpRef';
@@ -635,7 +636,18 @@ export function useIoBroker() {
         };
     }, []);
 
-    const setState = useCallback((id: string, val: boolean | number | string) => setStateEchoed(id, val), []);
+    // Writes from inside a locked widget body go nowhere: the admin editor is a
+    // design surface, and a stray click (or an effect that syncs a datapoint on
+    // mount) must not switch a real lamp. Outside a widget the context is false,
+    // so the editor's own controls are untouched. (issue #655)
+    const writeLocked = useWidgetWriteLock();
+    const setState = useCallback(
+        (id: string, val: boolean | number | string) => {
+            if (writeLocked) return;
+            setStateEchoed(id, val);
+        },
+        [writeLocked],
+    );
 
     // Delegates to getStateDirect: identical behaviour (fetch, then cache the result
     // so a remount sees it synchronously — see issue #281), and this way the dev

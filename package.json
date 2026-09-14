@@ -233,6 +233,8 @@
     "test:icon-cache": "node tools/tests/icon-cache.mjs",
     "test:icon-source": "node tools/tests/icon-source.mjs",
     "test:html-bridge": "node tools/tests/html-bridge.mjs",
+    "test:editor-lock": "node tools/tests/editor-widget-lock.mjs",
+    "test:editor-lock-sweep": "node tools/tests/editor-widget-lock-sweep.mjs",
     "test:html-api": "node tools/tests/html-api.mjs"
   },
   "dependencies": {

@@ -8,6 +8,7 @@ import {
     invalidateObjectCache,
     useIoBroker,
 } from '../../hooks/useIoBroker';
+import { useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import type { WidgetProps, ioBrokerState, ioBrokerObject } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { NS } from '../../utils/namespace';
@@ -204,6 +205,7 @@ function ScriptRow({
 // ── Main widget ─────────────────────────────────────────────────────────────
 
 export function ScriptStatusWidget({ config }: WidgetProps) {
+    const writeLocked = useWidgetWriteLock();
     const o = config.options ?? {};
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
@@ -315,6 +317,9 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
     };
 
     const toggleScript = async (s: ScriptInstance, next: boolean) => {
+        // Starting or stopping a script is a real action on the host — never from
+        // a locked editor, where the click was meant for the layout. (issue #655)
+        if (writeLocked) return;
         setActionError(null);
         const result = await sendToDirect(auraInstance, 'setScriptEnabled', { id: s.id, enabled: next });
         if (handleResult(`${next ? 'Start' : 'Stopp'} ${s.shortId}`, result)) {

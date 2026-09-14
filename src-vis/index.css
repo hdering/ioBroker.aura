@@ -609,6 +609,21 @@ input[type='range']::-moz-range-thumb {
     pointer-events: auto;
 }
 
+/* Editor control lock (issue #655). While designing, a widget body must not
+   answer to the pointer at all: clicking a switch in the editor used to flip the
+   real lamp, and a mis-aimed drag used to press whatever sat under it. The
+   wrapper is `display: contents`, so this changes nothing about the layout — it
+   only turns the whole subtree deaf. `!important` on the descendants because a
+   handful of widgets (map overlays, fill limits) set pointer-events inline, and
+   an inline rule would otherwise punch a hole straight back through the lock.
+   Events now land on the frame itself, which is exactly what the grid needs to
+   select and drag the widget. The lock is off for group and panel stacks (their
+   children must stay reachable) and can be lifted from the editor toolbar. */
+.aura-widget-inert,
+.aura-widget-inert * {
+    pointer-events: none !important;
+}
+
 /* Fullscreen button (issue #644). Permanently visible by default: a wall tablet
    or phone has no hover, and a button nobody can reveal is a button nobody has.
    Where a real pointer exists it only appears over the widget, so it does not sit

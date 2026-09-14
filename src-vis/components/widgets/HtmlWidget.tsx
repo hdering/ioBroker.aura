@@ -10,6 +10,7 @@ import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
 import { injectBridge, sandboxAllowsScripts } from '../../utils/htmlBridge';
 import { useHtmlBridge } from '../../hooks/useHtmlBridge';
+import { useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import { extractJsonPath } from '../../utils/dpRef';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -80,7 +81,11 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     }, [rawHtml, tokenStates, mainValue, mainDp, decimals, numFmt, specials, apiEnabled, t]);
 
     const frameRef = useRef<HTMLIFrameElement>(null);
-    useHtmlBridge(frameRef, apiEnabled);
+    // The frame's own script can write datapoints through `window.aura`. In a
+    // locked editor it must not — the bridge stays closed, so a page that writes
+    // on load leaves the house alone while the dashboard is being built. (#655)
+    const writeLocked = useWidgetWriteLock();
+    useHtmlBridge(frameRef, apiEnabled && !writeLocked);
 
     // The sandboxed srcDoc frame is its own document, so clicks in the rendered
     // HTML never reach the frame's click action — ask for the action button.

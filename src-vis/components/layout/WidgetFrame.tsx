@@ -45,6 +45,8 @@ import { setDragBridge } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
+import { useAdminPrefsStore } from '../../store/adminPrefsStore';
+import { WidgetWriteLockContext } from '../../hooks/widgetWriteLock';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { SavePresetDialog } from '../config/SavePresetDialog';
@@ -6164,6 +6166,12 @@ function CarouselEditPanel({
     );
 }
 
+/** Widget types whose body keeps its clicks while the editor control lock is on:
+ *  both hold child widgets that must stay selectable, draggable and reachable
+ *  (a panel stack also needs its slide arrows to switch between them). Their
+ *  children are locked individually, and the write lock still covers them. */
+const LOCK_PASSTHROUGH_TYPES = new Set(['group', 'panels']);
+
 export function WidgetFrame({
     config,
     editMode,
@@ -6178,6 +6186,14 @@ export function WidgetFrame({
     const focusedWidgetId = useFocusedWidgetId();
     const isFocused = focusedWidgetId === config.id;
     const focusRef = useRef<HTMLDivElement>(null);
+    // Editor control lock (issue #655). Two independent barriers, because one
+    // alone leaks: the pointer lock swallows every click before it reaches a
+    // control, the write lock stops the writes no click was needed for (an
+    // effect syncing a datapoint on mount) and the ones inside the two widget
+    // types that must stay clickable while designing — a group and a panel
+    // stack hold child widgets that have to remain selectable and draggable.
+    const editorLock = useAdminPrefsStore((s) => s.lockWidgets) && editMode;
+    const pointerLocked = editorLock && !LOCK_PASSTHROUGH_TYPES.has(config.type);
     useEffect(() => {
         if (!isFocused) return;
         queueMicrotask(() => focusRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }));
@@ -7202,24 +7218,37 @@ export function WidgetFrame({
             )}
 
             {Widget ? (
-                <Suspense
-                    fallback={<div className="h-full w-full" style={{ background: 'var(--app-bg)', opacity: 0.3 }} />}
+                // `display: contents` — the wrapper carries the lock class and the
+                // write-lock context without adding a box, so the widget keeps the
+                // frame as its layout parent exactly as before. (issue #655)
+                <div
+                    className={pointerLocked ? 'aura-widget-inert' : undefined}
+                    style={{ display: 'contents' }}
+                    data-aura-locked={pointerLocked ? '' : undefined}
                 >
-                    <ProfiledWidget
-                        widgetKey={config.id}
-                        label={config.title ? `${config.type} · ${config.title}` : config.type}
-                        enabled={!editMode && isWidgetTrackingEnabled()}
+                    <Suspense
+                        fallback={
+                            <div className="h-full w-full" style={{ background: 'var(--app-bg)', opacity: 0.3 }} />
+                        }
                     >
-                        <Widget
-                            key={`r${refreshNonce}`}
-                            config={renderConfig}
-                            editMode={editMode}
-                            onConfigChange={onBodyConfigChange}
-                            onLastChange={setLastChangedTs}
-                            onNeedsActionButton={requestActionButton}
-                        />
-                    </ProfiledWidget>
-                </Suspense>
+                        <WidgetWriteLockContext.Provider value={editorLock}>
+                            <ProfiledWidget
+                                widgetKey={config.id}
+                                label={config.title ? `${config.type} · ${config.title}` : config.type}
+                                enabled={!editMode && isWidgetTrackingEnabled()}
+                            >
+                                <Widget
+                                    key={`r${refreshNonce}`}
+                                    config={renderConfig}
+                                    editMode={editMode}
+                                    onConfigChange={onBodyConfigChange}
+                                    onLastChange={setLastChangedTs}
+                                    onNeedsActionButton={requestActionButton}
+                                />
+                            </ProfiledWidget>
+                        </WidgetWriteLockContext.Provider>
+                    </Suspense>
+                </div>
             ) : (
                 <div
                     className="flex flex-col items-center justify-center h-full gap-1 text-center px-2"

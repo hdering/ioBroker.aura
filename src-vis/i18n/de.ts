@@ -867,6 +867,8 @@ export const de = {
     'editor.layouts.agenda': 'Agenda',
     'editor.layouts.custom': 'Custom',
 
+    'editor.lock.on': 'Bedienelemente gesperrt — klicken zum Entsperren (Widgets lösen im Editor keine Aktionen aus)',
+    'editor.lock.off': 'Bedienelemente entsperrt — Klicks schalten echte Geräte. Klicken zum Sperren.',
     'editor.mobile.title': 'Mobile-Reihenfolge',
     'editor.peekHint': '{mod}+{alt} halten = Vorschau ohne Bearbeiten-Buttons',
     'editor.mobile.top': 'Oben',

@@ -7,6 +7,7 @@ import {
     sendToDirect,
     useIoBroker,
 } from '../../hooks/useIoBroker';
+import { useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import type { WidgetProps, ioBrokerState, ioBrokerObject } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { NS } from '../../utils/namespace';
@@ -275,6 +276,7 @@ function InstanceRow({
 // ── Main widget ─────────────────────────────────────────────────────────────
 
 export function AdapterStatusWidget({ config }: WidgetProps) {
+    const writeLocked = useWidgetWriteLock();
     const o = config.options ?? {};
     const showTitle = o.showTitle !== false;
     const showIcon = o.showIcon !== false;
@@ -401,12 +403,16 @@ export function AdapterStatusWidget({ config }: WidgetProps) {
     };
 
     const restartInstance = async (inst: AdapterInstance) => {
+        // Restarting an instance or installing an update reaches far past this
+        // dashboard — never from a locked editor. (issue #655)
+        if (writeLocked) return;
         setActionError(null);
         const result = await sendToDirect(auraInstance, 'restartAdapter', { id: inst.id });
         handleResult(`Neustart ${inst.id}`, result);
     };
 
     const installUpdate = async (inst: AdapterInstance) => {
+        if (writeLocked) return;
         setActionError(null);
         // Upgrades take longer than the default 30s — npm install can run 1-3 minutes.
         const result = await sendToDirect(auraInstance, 'upgradeAdapter', { name: inst.adapter }, 5 * 60 * 1000);

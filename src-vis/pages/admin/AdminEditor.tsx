@@ -15,6 +15,8 @@ import {
     Settings,
     X,
     Ruler,
+    Lock,
+    LockOpen,
     ChevronDown,
     ChevronRight,
     Download,
@@ -61,6 +63,7 @@ import { useCustomJs } from '../../hooks/useCustomJs';
 import { useCustomCss } from '../../hooks/useCustomCss';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { useT } from '../../i18n';
+import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
 import {
     DP_TEMPLATES,
@@ -2319,6 +2322,12 @@ function McpReleaseToggle({ vaultKey }: { vaultKey: string }) {
 
 export function AdminEditor() {
     const t = useT();
+    // Editor control lock (issue #655): widgets are inert while designing, so a
+    // click meant for the layout can never switch a real device. Persisted per
+    // browser, on by default, lifted from the toolbar when something has to be
+    // tried out in place.
+    const lockWidgets = useAdminPrefsStore((s) => s.lockWidgets);
+    const setLockWidgets = useAdminPrefsStore((s) => s.setLockWidgets);
 
     // Narrow subscriptions — none of these change on tab switch, so AdminEditor
     // itself does NOT re-render when the user clicks a different tab.
@@ -2515,6 +2524,20 @@ export function AdminEditor() {
                     title={t('editor.mobile.title')}
                 >
                     <Smartphone size={15} />
+                </button>
+                <button
+                    onClick={() => setLockWidgets(!lockWidgets)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"
+                    style={{
+                        background: lockWidgets ? 'var(--app-bg)' : 'rgba(239,68,68,0.12)',
+                        color: lockWidgets ? 'var(--text-secondary)' : 'rgb(239,68,68)',
+                        border: `1px solid ${lockWidgets ? 'var(--app-border)' : 'rgb(239,68,68)'}`,
+                    }}
+                    title={lockWidgets ? t('editor.lock.on') : t('editor.lock.off')}
+                    aria-pressed={lockWidgets}
+                    data-widget-lock={lockWidgets ? 'on' : 'off'}
+                >
+                    {lockWidgets ? <Lock size={15} /> : <LockOpen size={15} />}
                 </button>
                 <button
                     onClick={() => updateFrontend({ guidelinesEnabled: !guidelinesEnabled })}

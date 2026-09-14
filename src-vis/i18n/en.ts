@@ -862,6 +862,8 @@ export const en: Record<TranslationKey, string> = {
     'editor.layouts.agenda': 'Agenda',
     'editor.layouts.custom': 'Custom',
 
+    'editor.lock.on': 'Controls locked — click to unlock (widgets trigger nothing in the editor)',
+    'editor.lock.off': 'Controls unlocked — clicks switch real devices. Click to lock.',
     'editor.mobile.title': 'Mobile Order',
     'editor.peekHint': 'Hold {mod}+{alt} = preview without edit buttons',
     'editor.mobile.top': 'Top',
