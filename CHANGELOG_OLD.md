@@ -1,5 +1,13 @@
 # Changelog (older entries)
 
+## 0.54.2 (2026-09-05)
+- Fill - dragging an adjustable limit no longer triggers the click action of the surrounding group ([#619](https://github.com/hdering/ioBroker.aura/issues/619))
+- AI access (MCP) - the dashboard now reports the heights it really renders; aura_rendered shows what scrolls and where the estimate is off
+- AI access (MCP) - aura_update_widgets changes several widgets in one validated write, so rearranging a column no longer fails on intermediate overlaps
+- AI access (MCP) - aura_measure says how each widget type reacts to height, and aura_dashboard says on which row every tab ends
+- AI access (MCP) - tab paths and popup names are accepted exactly as the error messages print them
+- AI access (MCP) - new multiroom recipe, and an option a widget only reads on another layout is now reported instead of silently ignored
+
 ## 0.54.1 (2026-09-05)
 - List - the icon size of a row can be set for every display type again, and an icon switch now has a size of its own ([#616](https://github.com/hdering/ioBroker.aura/issues/616))
 
