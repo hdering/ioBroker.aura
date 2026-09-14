@@ -845,6 +845,10 @@ export const en: Record<TranslationKey, string> = {
     'editor.manual.add': 'Add',
     'editor.manual.cancel': 'Cancel',
     'editor.manual.recentlyUsed': 'Recently used',
+    'editor.manual.searchPlaceholder': 'Search widgets …',
+    'editor.manual.searchHint': 'Tip: just start typing – the list filters as you go.',
+    'editor.manual.searchHits': '{n} matches – Enter picks the first one.',
+    'editor.manual.searchNoHits': 'No widget matches "{q}".',
 
     'editor.tab.addDevice': '+ Devices',
     'editor.tab.addManual': '+ Manual',

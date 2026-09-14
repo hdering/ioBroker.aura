@@ -25,6 +25,7 @@ import {
     FolderInput,
     Copy,
     ShieldOff,
+    Search,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
@@ -48,6 +49,13 @@ import { useWidgetPresetsStore } from '../../store/widgetPresetsStore';
 import { PresetInsertDialog } from '../../components/config/PresetInsertDialog';
 import { FEATURES } from '../../featureFlags';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import {
+    buildHaystack,
+    matchesQuery,
+    normalizeQuery,
+    templateHaystack,
+    widgetHaystack,
+} from '../../utils/widgetSearch';
 import { useConfigStore } from '../../store/configStore';
 import { useCustomJs } from '../../hooks/useCustomJs';
 import { useCustomCss } from '../../hooks/useCustomCss';
@@ -104,6 +112,10 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
     const [recentTemplates, setRecentTemplates] = useState<RecentTemplate[]>(() => getRecentTemplates());
     const presets = useWidgetPresetsStore((s) => s.presets);
     const [insertPreset, setInsertPreset] = useState<WidgetPreset | null>(null);
+    const [query, setQuery] = useState('');
+    const searchRef = useRef<HTMLInputElement>(null);
+    const q = normalizeQuery(query);
+    const searching = q.length > 0;
 
     // Auto-detect type / template / title / unit when the datapoint ID changes
     useEffect(() => {
@@ -149,6 +161,30 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [datapoint, typePicked]);
 
+    // The caret starts in the search box, and typing anywhere else in the dialog
+    // lands there too - focusing during keydown still lets the character through.
+    useEffect(() => {
+        searchRef.current?.focus();
+    }, []);
+    useEffect(() => {
+        const onKey = (e: KeyboardEvent) => {
+            if (showPicker || insertPreset) return; // a dialog on top owns the keyboard
+            if (e.key === 'Escape') {
+                if (query) setQuery('');
+                else onClose();
+                searchRef.current?.focus();
+                return;
+            }
+            const el = e.target as HTMLElement | null;
+            const tag = el?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || el?.isContentEditable) return;
+            if (e.ctrlKey || e.metaKey || e.altKey || e.key.length !== 1) return;
+            searchRef.current?.focus();
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [showPicker, insertPreset, query, onClose]);
+
     // Widget types from WIDGET_REGISTRY not covered by any DP_TEMPLATE
     const coveredWidgetTypes = useMemo(() => new Set(DP_TEMPLATES.map((t) => t.widgetType)), []);
     const furtherWidgets = useMemo(
@@ -161,8 +197,70 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
         [coveredWidgetTypes],
     );
 
+    // Searchable text per entry - see utils/widgetSearch for what goes in.
+    const templateHaystacks = useMemo(() => {
+        const catLabels = new Map(DP_TEMPLATE_CATEGORIES.map((c) => [c.id, c.label]));
+        const map = new Map<string, string>();
+        for (const tpl of DP_TEMPLATES) {
+            map.set(tpl.id, templateHaystack(tpl, WIDGET_BY_TYPE[tpl.widgetType], catLabels.get(tpl.category)));
+        }
+        return map;
+    }, []);
+    const widgetHaystacks = useMemo(() => {
+        const map = new Map<string, string>();
+        for (const w of WIDGET_REGISTRY) map.set(w.type, widgetHaystack(w));
+        return map;
+    }, []);
+
+    // Hits in the order the grid draws them: category by category, each sorted by
+    // label, "Weitere Widgets" last. A search looks through every category, so the
+    // category filter is only honoured while the search box is empty.
+    const activeCategory = searching ? 'all' : categoryFilter;
+    const hitsByCategory = useMemo(
+        () =>
+            DP_TEMPLATE_CATEGORIES.map((cat) => ({
+                cat,
+                tpls: DP_TEMPLATES.filter(
+                    (tpl) =>
+                        tpl.category === cat.id && (!searching || matchesQuery(templateHaystacks.get(tpl.id) ?? '', q)),
+                ).sort((a, b) => a.label.localeCompare(b.label)),
+            })),
+        [q, searching, templateHaystacks],
+    );
+    const furtherHits = useMemo(
+        () => furtherWidgets.filter((w) => !searching || matchesQuery(widgetHaystacks.get(w.type) ?? '', q)),
+        [furtherWidgets, q, searching, widgetHaystacks],
+    );
+    const recentHits = useMemo(() => {
+        if (!searching) return recentTemplates;
+        return recentTemplates.filter((r) =>
+            matchesQuery(
+                `${templateHaystacks.get(r.templateId) ?? widgetHaystacks.get(r.widgetType) ?? ''} ${buildHaystack([r.label])}`,
+                q,
+            ),
+        );
+    }, [recentTemplates, q, searching, templateHaystacks, widgetHaystacks]);
+    const presetHits = useMemo(
+        () => (searching ? presets.filter((p) => matchesQuery(buildHaystack([p.name]), q)) : presets),
+        [presets, q, searching],
+    );
+    const hitCount = hitsByCategory.reduce((n, g) => n + g.tpls.length, 0) + furtherHits.length;
+    const firstHit = (() => {
+        const group = hitsByCategory.find((g) => g.tpls.length);
+        if (group) return { tplId: group.tpls[0].id, widgetType: group.tpls[0].widgetType };
+        const w = furtherHits[0];
+        return w ? { tplId: w.type, widgetType: w.type } : null;
+    })();
+
     const selectedTemplate = DP_TEMPLATES.find((tpl) => tpl.id === templateId);
     const selectedFurther = furtherWidgets.find((w) => w.type === type && templateId === w.type);
+
+    // Picking a category ends the search - otherwise the two filters would fight
+    // and an empty grid would look like a broken category.
+    const pickCategory = (id: string) => {
+        setQuery('');
+        setCategoryFilter(id);
+    };
 
     const selectTemplate = (tplId: string, widgetType: WidgetType) => {
         setType(widgetType);
@@ -363,6 +461,50 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                     </button>
                 </div>
 
+                {/* Search - the caret sits here when the dialog opens */}
+                <div className="px-6 pt-4 pb-1">
+                    <div
+                        className="flex items-center gap-2 rounded-xl px-3"
+                        style={{
+                            background: 'var(--app-bg)',
+                            border: `1px solid ${searching ? 'var(--accent)' : 'var(--app-border)'}`,
+                        }}
+                    >
+                        <Search size={15} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                        <input
+                            ref={searchRef}
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            onKeyDown={(e) => {
+                                // Enter only picks the top hit - adding stays on the
+                                // button, so the hint below gets read first.
+                                if (e.key !== 'Enter' || !firstHit) return;
+                                e.preventDefault();
+                                selectTemplate(firstHit.tplId, firstHit.widgetType);
+                            }}
+                            placeholder={t('editor.manual.searchPlaceholder')}
+                            className="flex-1 min-w-0 bg-transparent py-2.5 text-sm focus:outline-none"
+                            style={{ color: 'var(--text-primary)' }}
+                        />
+                        {query && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setQuery('');
+                                    searchRef.current?.focus();
+                                }}
+                                className="shrink-0 hover:opacity-60"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
+                    </div>
+                    <p className="mt-1.5 text-xs" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                        {searching ? t('editor.manual.searchHits', { n: hitCount }) : t('editor.manual.searchHint')}
+                    </p>
+                </div>
+
                 {/* DP field */}
                 <div className="px-6 pt-4 pb-2">
                     <label className="text-xs font-medium block mb-1.5" style={{ color: 'var(--text-secondary)' }}>
@@ -403,7 +545,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                 </div>
 
                 {/* Recently used */}
-                {recentTemplates.length > 0 && (
+                {recentHits.length > 0 && (
                     <div className="px-6 pt-3 pb-1">
                         <p
                             className="text-[10px] font-semibold uppercase tracking-wider mb-2"
@@ -412,7 +554,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                             {t('editor.manual.recentlyUsed')}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
-                            {recentTemplates.map((recent) => {
+                            {recentHits.map((recent) => {
                                 const meta = WIDGET_REGISTRY.find((w) => w.type === recent.widgetType);
                                 if (!meta) return null;
                                 const isActive = templateId === recent.templateId;
@@ -421,10 +563,6 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                         key={recent.templateId}
                                         type="button"
                                         onClick={() => selectRecent(recent)}
-                                        onDoubleClick={() => {
-                                            selectRecent(recent);
-                                            void handleAdd(recent.widgetType, recent.templateId);
-                                        }}
                                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
                                         style={{
                                             background: isActive ? `${meta.color}22` : 'var(--app-bg)',
@@ -446,7 +584,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                 )}
 
                 {/* My presets (Widget-Designer) */}
-                {FEATURES.widgetDesigner && presets.length > 0 && (
+                {FEATURES.widgetDesigner && presetHits.length > 0 && (
                     <div className="px-6 pt-3 pb-1">
                         <p
                             className="text-[10px] font-semibold uppercase tracking-wider mb-2"
@@ -455,7 +593,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                             {t('preset.mine')}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
-                            {presets.map((preset) => (
+                            {presetHits.map((preset) => (
                                 <button
                                     key={preset.id}
                                     type="button"
@@ -484,26 +622,28 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                     <div className="flex flex-wrap gap-1.5">
                         <button
                             type="button"
-                            onClick={() => setCategoryFilter('all')}
+                            onClick={() => pickCategory('all')}
                             className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
                             style={{
-                                background: categoryFilter === 'all' ? 'var(--accent)' : 'var(--app-bg)',
-                                color: categoryFilter === 'all' ? 'white' : 'var(--text-secondary)',
+                                background: activeCategory === 'all' ? 'var(--accent)' : 'var(--app-bg)',
+                                color: activeCategory === 'all' ? 'white' : 'var(--text-secondary)',
                                 border: '1px solid var(--app-border)',
                             }}
                         >
                             {t('common.all')}
                         </button>
-                        {DP_TEMPLATE_CATEGORIES.map((cat) => (
+                        {hitsByCategory.map(({ cat, tpls }) => (
                             <button
                                 key={cat.id}
                                 type="button"
-                                onClick={() => setCategoryFilter(cat.id)}
+                                onClick={() => pickCategory(cat.id)}
                                 className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
                                 style={{
-                                    background: categoryFilter === cat.id ? 'var(--accent)' : 'var(--app-bg)',
-                                    color: categoryFilter === cat.id ? 'white' : 'var(--text-secondary)',
+                                    background: activeCategory === cat.id ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: activeCategory === cat.id ? 'white' : 'var(--text-secondary)',
                                     border: '1px solid var(--app-border)',
+                                    // Categories without a hit stay visible but step back.
+                                    opacity: searching && !tpls.length ? 0.35 : 1,
                                 }}
                             >
                                 {cat.label}
@@ -511,12 +651,13 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                         ))}
                         <button
                             type="button"
-                            onClick={() => setCategoryFilter('further')}
+                            onClick={() => pickCategory('further')}
                             className="px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
                             style={{
-                                background: categoryFilter === 'further' ? 'var(--accent)' : 'var(--app-bg)',
-                                color: categoryFilter === 'further' ? 'white' : 'var(--text-secondary)',
+                                background: activeCategory === 'further' ? 'var(--accent)' : 'var(--app-bg)',
+                                color: activeCategory === 'further' ? 'white' : 'var(--text-secondary)',
                                 border: '1px solid var(--app-border)',
+                                opacity: searching && !furtherHits.length ? 0.35 : 1,
                             }}
                         >
                             Weitere
@@ -528,12 +669,9 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                 <div className="px-6 pb-2 overflow-y-auto flex-1">
                     <div className="py-2 space-y-3">
                         {/* "Alle"-Ansicht: Kategorien nebeneinander, je eine Spalte mit vertikaler Template-Liste */}
-                        {categoryFilter === 'all' && (
+                        {activeCategory === 'all' && (
                             <div className="grid grid-cols-4 gap-x-4 gap-y-4">
-                                {DP_TEMPLATE_CATEGORIES.map((cat) => {
-                                    const catTpls = DP_TEMPLATES.filter((tpl) => tpl.category === cat.id).sort((a, b) =>
-                                        a.label.localeCompare(b.label),
-                                    );
+                                {hitsByCategory.map(({ cat, tpls: catTpls }) => {
                                     if (!catTpls.length) return null;
                                     return (
                                         <div key={cat.id} className="flex flex-col gap-1">
@@ -550,10 +688,6 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                                         key={tpl.id}
                                                         type="button"
                                                         onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
-                                                        onDoubleClick={() => {
-                                                            selectTemplate(tpl.id, tpl.widgetType);
-                                                            void handleAdd(tpl.widgetType, tpl.id);
-                                                        }}
                                                         className="flex items-center gap-2 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left w-full"
                                                         style={{
                                                             padding: '7px 10px',
@@ -586,49 +720,43 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                         )}
 
                         {/* Einzelne Kategorie gefiltert */}
-                        {categoryFilter !== 'all' && categoryFilter !== 'further' && (
+                        {activeCategory !== 'all' && activeCategory !== 'further' && (
                             <div className="grid grid-cols-3 gap-2">
-                                {DP_TEMPLATES.filter((tpl) => tpl.category === categoryFilter)
-                                    .sort((a, b) => a.label.localeCompare(b.label))
-                                    .map((tpl) => {
-                                        const active = templateId === tpl.id;
-                                        return (
-                                            <button
-                                                key={tpl.id}
-                                                type="button"
-                                                onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
-                                                onDoubleClick={() => {
-                                                    selectTemplate(tpl.id, tpl.widgetType);
-                                                    void handleAdd(tpl.widgetType, tpl.id);
-                                                }}
-                                                className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
+                                {(hitsByCategory.find((g) => g.cat.id === activeCategory)?.tpls ?? []).map((tpl) => {
+                                    const active = templateId === tpl.id;
+                                    return (
+                                        <button
+                                            key={tpl.id}
+                                            type="button"
+                                            onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
+                                            className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
+                                            style={{
+                                                padding: '8px 12px',
+                                                background: active ? 'var(--accent)1a' : 'var(--app-bg)',
+                                                border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                                            }}
+                                        >
+                                            <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>
+                                                {tpl.icon}
+                                            </span>
+                                            <span
+                                                className="leading-tight font-medium truncate"
                                                 style={{
-                                                    padding: '8px 12px',
-                                                    background: active ? 'var(--accent)1a' : 'var(--app-bg)',
-                                                    border: `1.5px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                    boxShadow: active ? '0 0 0 3px var(--accent)22' : 'none',
+                                                    fontSize: 12,
+                                                    color: active ? 'var(--accent)' : 'var(--text-secondary)',
                                                 }}
                                             >
-                                                <span style={{ fontSize: 20, lineHeight: 1, flexShrink: 0 }}>
-                                                    {tpl.icon}
-                                                </span>
-                                                <span
-                                                    className="leading-tight font-medium truncate"
-                                                    style={{
-                                                        fontSize: 12,
-                                                        color: active ? 'var(--accent)' : 'var(--text-secondary)',
-                                                    }}
-                                                >
-                                                    {tpl.label}
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
+                                                {tpl.label}
+                                            </span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
 
                         {/* Weitere Widgets */}
-                        {(categoryFilter === 'all' || categoryFilter === 'further') && (
+                        {(activeCategory === 'all' || activeCategory === 'further') && furtherHits.length > 0 && (
                             <div>
                                 <p
                                     className="text-[10px] font-semibold uppercase tracking-wider mb-1.5"
@@ -637,7 +765,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                     Weitere Widgets
                                 </p>
                                 <div className="grid grid-cols-4 gap-2">
-                                    {furtherWidgets.map((w) => {
+                                    {furtherHits.map((w) => {
                                         const active = templateId === w.type;
                                         return (
                                             <button
@@ -645,10 +773,6 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                                 type="button"
                                                 title={w.hint}
                                                 onClick={() => selectTemplate(w.type, w.type)}
-                                                onDoubleClick={() => {
-                                                    selectTemplate(w.type, w.type);
-                                                    void handleAdd(w.type, w.type);
-                                                }}
                                                 className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
                                                 style={{
                                                     padding: '8px 12px',
@@ -676,6 +800,11 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                     })}
                                 </div>
                             </div>
+                        )}
+                        {searching && hitCount === 0 && (
+                            <p className="py-8 text-center text-sm" style={{ color: 'var(--text-secondary)' }}>
+                                {t('editor.manual.searchNoHits', { q: query })}
+                            </p>
                         )}
                     </div>
                 </div>

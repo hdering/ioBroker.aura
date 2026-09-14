@@ -7,3 +7,5 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Keyboard shortcuts on Mac, iPad and iPhone now accept Cmd (and Option for copy-drag) and hint the matching key symbols (#651)
+- Add widget - a search box filters the list as you type, and non-matching entries are hidden (#652)
+- Add widget - picking a type no longer adds it right away, so its hint stays readable and another type can be chosen (#652)

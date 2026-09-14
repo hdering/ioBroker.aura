@@ -850,6 +850,10 @@ export const de = {
     'editor.manual.add': 'Hinzufügen',
     'editor.manual.cancel': 'Abbruch',
     'editor.manual.recentlyUsed': 'Zuletzt verwendet',
+    'editor.manual.searchPlaceholder': 'Widget suchen …',
+    'editor.manual.searchHint': 'Tipp: einfach lostippen – die Liste filtert sich sofort.',
+    'editor.manual.searchHits': '{n} Treffer – Enter wählt den ersten aus.',
+    'editor.manual.searchNoHits': 'Kein Widget passt zu „{q}“.',
 
     'editor.tab.addDevice': '+ Geräte',
     'editor.tab.addManual': '+ Manuell',
