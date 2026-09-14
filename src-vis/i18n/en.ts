@@ -1,6 +1,11 @@
 import type { TranslationKey } from './de';
 
 export const en: Record<TranslationKey, string> = {
+    // ── Shortcut key names (auto-injected as {mod}/{alt}/{del}; Apple gets ⌘⌥⌫) ──
+    'keys.mod': 'Ctrl',
+    'keys.alt': 'Alt',
+    'keys.del': 'Del',
+
     // ── Common ──────────────────────────────────────────────────────────────────
     'common.save': 'Save',
     'common.cancel': 'Cancel',
@@ -64,7 +69,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.editor.title': 'Editor',
     'settings.editor.autoSave': 'Auto-save',
     'settings.editor.delay': 'Delay',
-    'settings.editor.ctrlS': 'Ctrl+S saves immediately',
+    'settings.editor.ctrlS': '{mod}+S saves immediately',
 
     // ── Settings ──────────────────────────────────────────────────────────────────
     'settings.title': 'Settings',
@@ -854,7 +859,7 @@ export const en: Record<TranslationKey, string> = {
     'editor.layouts.custom': 'Custom',
 
     'editor.mobile.title': 'Mobile Order',
-    'editor.peekHint': 'Hold Ctrl+Alt = preview without edit buttons',
+    'editor.peekHint': 'Hold {mod}+{alt} = preview without edit buttons',
     'editor.mobile.top': 'Top',
     'editor.mobile.bottom': 'Bottom',
     'editor.mobile.hidden': 'Hidden',

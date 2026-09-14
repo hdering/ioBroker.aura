@@ -11,7 +11,8 @@ import React, {
 import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '../../utils/perfBreakdown';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
-import { useT, t } from '../../i18n';
+import { useT, t, keyLabel } from '../../i18n';
+import { isCopyDragModifier } from '../../utils/platformKeys';
 import {
     X,
     Pencil,
@@ -6501,7 +6502,7 @@ export function WidgetFrame({
         writeCustomGrid({ ...g, cells: g.cells.map((c, i) => (i === idx ? { type: 'empty' as const } : c)) });
     };
 
-    // Ctrl+C / Ctrl+X / Ctrl+V / Delete on the selected custom cell
+    // Ctrl/Cmd+C / +X / +V and Delete on the selected custom cell
     useEffect(() => {
         if (selectedCustomCell === null) return;
         const handler = (e: KeyboardEvent) => {
@@ -17355,7 +17356,7 @@ export function WidgetFrame({
                                                 </div>
                                             )}
 
-                                            {/* Cell picker — dynamic grid (drag&drop move, Ctrl+drag copy, right-click menu) */}
+                                            {/* Cell picker — dynamic grid (drag&drop move, Ctrl/Option+drag copy, right-click menu) */}
                                             <div
                                                 style={{
                                                     display: 'grid',
@@ -17422,8 +17423,9 @@ export function WidgetFrame({
                                                                 )
                                                                     return;
                                                                 e.preventDefault();
-                                                                e.dataTransfer.dropEffect =
-                                                                    e.ctrlKey || e.metaKey ? 'copy' : 'move';
+                                                                e.dataTransfer.dropEffect = isCopyDragModifier(e)
+                                                                    ? 'copy'
+                                                                    : 'move';
                                                                 if (customCellDragOver !== i) setCustomCellDragOver(i);
                                                             }}
                                                             onDragLeave={() => {
@@ -17436,8 +17438,9 @@ export function WidgetFrame({
                                                                 setCustomCellDragIdx(null);
                                                                 setCustomCellDragOver(null);
                                                                 if (from === null || from === i) return;
-                                                                const mode: 'move' | 'copy' =
-                                                                    e.ctrlKey || e.metaKey ? 'copy' : 'move';
+                                                                const mode: 'move' | 'copy' = isCopyDragModifier(e)
+                                                                    ? 'copy'
+                                                                    : 'move';
                                                                 const targetCell = cells[i];
                                                                 if (targetCell && targetCell.type !== 'empty') {
                                                                     setCustomCellOverwrite({
@@ -18849,7 +18852,7 @@ export function WidgetFrame({
                                 }}
                             >
                                 <span>Kopieren</span>
-                                <span style={{ opacity: 0.55, fontSize: 10 }}>Strg+C</span>
+                                <span style={{ opacity: 0.55, fontSize: 10 }}>{keyLabel('mod')}+C</span>
                             </button>
                             <button
                                 style={hasContent ? itemBase : itemDisabled}
@@ -18862,7 +18865,7 @@ export function WidgetFrame({
                                 }}
                             >
                                 <span>Ausschneiden</span>
-                                <span style={{ opacity: 0.55, fontSize: 10 }}>Strg+X</span>
+                                <span style={{ opacity: 0.55, fontSize: 10 }}>{keyLabel('mod')}+X</span>
                             </button>
                             <button
                                 style={hasClip ? itemBase : itemDisabled}
@@ -18875,7 +18878,7 @@ export function WidgetFrame({
                                 }}
                             >
                                 <span>Einfügen</span>
-                                <span style={{ opacity: 0.55, fontSize: 10 }}>Strg+V</span>
+                                <span style={{ opacity: 0.55, fontSize: 10 }}>{keyLabel('mod')}+V</span>
                             </button>
                             <div style={{ height: 1, background: 'var(--app-border)', margin: '4px 6px' }} />
                             <button
@@ -18889,7 +18892,7 @@ export function WidgetFrame({
                                 }}
                             >
                                 <span>Leeren</span>
-                                <span style={{ opacity: 0.55, fontSize: 10 }}>Entf</span>
+                                <span style={{ opacity: 0.55, fontSize: 10 }}>{keyLabel('del')}</span>
                             </button>
                         </div>,
                         widgetFramePortalTarget,

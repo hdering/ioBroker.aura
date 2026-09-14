@@ -140,18 +140,19 @@ ausgedünnt. Die Zahlen folgen der Schrittweite, nicht `decimals`.
 | Geste | Aktion |
 | --- | --- |
 | Drag & Drop | Zelle verschieben |
-| Strg + Drag & Drop | Zelle kopieren |
+| Strg + Drag & Drop (Mac: ⌥) | Zelle kopieren |
 | Rechtsklick | Kontextmenü (Kopieren · Ausschneiden · Einfügen · Leeren) |
 
 ### Mit der Tastatur
 
-Wirkt auf die aktuell ausgewählte Zelle.
+Wirkt auf die aktuell ausgewählte Zelle. Auf Apple-Geräten steht ⌘ statt Strg und ⌫ statt Entf.
 
 | Shortcut | Aktion |
 | --- | --- |
 | Strg + C | Kopieren |
 | Strg + X | Ausschneiden |
 | Strg + V | Einfügen |
+| Entf | Leeren |
 
 ### Überschreiben
 

@@ -1,4 +1,9 @@
 export const de = {
+    // ── Shortcut key names (auto-injected as {mod}/{alt}/{del}; Apple gets ⌘⌥⌫) ──
+    'keys.mod': 'Strg',
+    'keys.alt': 'Alt',
+    'keys.del': 'Entf',
+
     // ── Common ──────────────────────────────────────────────────────────────────
     'common.save': 'Speichern',
     'common.cancel': 'Abbruch',
@@ -62,7 +67,7 @@ export const de = {
     'settings.editor.title': 'Editor',
     'settings.editor.autoSave': 'Automatisch speichern',
     'settings.editor.delay': 'Verzögerung',
-    'settings.editor.ctrlS': 'Strg+S speichert sofort',
+    'settings.editor.ctrlS': '{mod}+S speichert sofort',
 
     // ── Settings ──────────────────────────────────────────────────────────────────
     'settings.title': 'Einstellungen',
@@ -859,7 +864,7 @@ export const de = {
     'editor.layouts.custom': 'Custom',
 
     'editor.mobile.title': 'Mobile-Reihenfolge',
-    'editor.peekHint': 'Strg+Alt halten = Vorschau ohne Bearbeiten-Buttons',
+    'editor.peekHint': '{mod}+{alt} halten = Vorschau ohne Bearbeiten-Buttons',
     'editor.mobile.top': 'Oben',
     'editor.mobile.bottom': 'Unten',
     'editor.mobile.hidden': 'Versteckt',

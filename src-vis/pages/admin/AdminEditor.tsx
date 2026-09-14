@@ -2293,12 +2293,13 @@ export function AdminEditor() {
     const [showImport, setShowImport] = useState(false);
     const [showMobileOrder, setShowMobileOrder] = useState(false);
 
-    // "Peek" mode: while Ctrl+Alt are held, hide all edit-only chrome (via the
-    // `aura-peek` body class + CSS) so the editor shows the clean frontend look.
+    // "Peek" mode: while Ctrl+Alt (Cmd+Option on Apple, #651) are held, hide all
+    // edit-only chrome (via the `aura-peek` body class + CSS) so the editor shows
+    // the clean frontend look.
     const [peek, setPeek] = useState(false);
     useEffect(() => {
         const sync = (e: KeyboardEvent) => {
-            const on = e.ctrlKey && e.altKey;
+            const on = (e.ctrlKey || e.metaKey) && e.altKey;
             setPeek(on);
             document.body.classList.toggle('aura-peek', on);
         };

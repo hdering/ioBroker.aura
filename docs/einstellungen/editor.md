@@ -12,7 +12,7 @@ WYSIWYG-Editor für die Tabs und Widgets des gewählten Layouts. Widgets werden 
 | Neues Widget | Widget-Assistent öffnen |
 | + Tab | Neuen Tab anlegen (Assistent) |
 | Importieren | Widget aus JSON-Export einfügen |
-| Strg+Alt halten | Vorschau ohne Bearbeiten-Buttons |
+| Strg+Alt halten (Mac: ⌘+⌥) | Vorschau ohne Bearbeiten-Buttons |
 
 ## Neues Widget
 

@@ -83,6 +83,7 @@
     "test:security-api": "node tools/tests/security-api.mjs",
     "test:modal-clamp": "node tools/tests/modal-viewport-clamp.mjs",
     "test:cell-state": "node tools/tests/cell-state.mjs",
+    "test:apple-keys": "node tools/tests/apple-shortcut-keys.mjs",
     "test:cell-bar-color": "node tools/tests/cell-bar-color.mjs",
     "test:carousel-label": "node tools/tests/carousel-state-label.mjs",
     "test:list-max-rows": "node tools/tests/list-max-rows.mjs",
