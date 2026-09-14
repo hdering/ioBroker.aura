@@ -9,6 +9,8 @@ import { useIsProbe } from '../../utils/probeContext';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useGroupCollapseStore } from '../../store/groupCollapseStore';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
+import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
+import { WidgetFullscreenOverlay } from './WidgetFullscreenOverlay';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { WidgetFrame } from './WidgetFrame';
 import { TouchScrollbar } from './TouchScrollbar';
@@ -321,6 +323,19 @@ export function Dashboard({
         : null;
     const showIframeOverlay = iframeFullscreen !== null && fullscreenTabId === activeTabId;
 
+    // ── Widget fullscreen overlay (issue #644) ─────────────────────────────
+    // Same synchronous active-tab check as above. A group child does not appear in
+    // tabs[].widgets (its config lives in useGroupDefsStore), so "owner tab not
+    // found" means "shown anyway" — the trigger can only have been on screen, and
+    // App.tsx clears the overlay on every tab change regardless.
+    const widgetFullscreen = useWidgetFullscreenStore((s) => s.target);
+    const setWidgetFullscreen = useWidgetFullscreenStore((s) => s.setTarget);
+    const widgetFullscreenTabId = widgetFullscreen
+        ? (tabs.find((t) => (t.widgets ?? []).some((w) => w.id === widgetFullscreen.widgetId))?.id ?? null)
+        : null;
+    const showWidgetFullscreen =
+        widgetFullscreen !== null && (widgetFullscreenTabId === null || widgetFullscreenTabId === activeTabId);
+
     // ── container width measurement ────────────────────────────────────────
     // Use a callback ref instead of useRef + useEffect so that the ResizeObserver
     // is correctly connected to whichever DOM element is currently mounted.
@@ -617,6 +632,12 @@ export function Dashboard({
                             )}
                             {showIframeOverlay && (
                                 <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
+                            )}
+                            {showWidgetFullscreen && (
+                                <WidgetFullscreenOverlay
+                                    target={widgetFullscreen!}
+                                    onClose={() => setWidgetFullscreen(null)}
+                                />
                             )}
                             {resolutionOverlay}
                         </div>
@@ -1013,6 +1034,9 @@ export function Dashboard({
                     )}
                     {showIframeOverlay && (
                         <IframeOverlay data={iframeFullscreen!} onClose={() => setIframeFullscreen(null)} />
+                    )}
+                    {showWidgetFullscreen && (
+                        <WidgetFullscreenOverlay target={widgetFullscreen!} onClose={() => setWidgetFullscreen(null)} />
                     )}
                 </div>
             </ActiveSectionContext.Provider>

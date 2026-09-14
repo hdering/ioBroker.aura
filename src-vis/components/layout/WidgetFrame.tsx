@@ -27,6 +27,7 @@ import {
     Copy,
     Layers2,
     Minimize2,
+    Maximize2,
     Smartphone,
     GripVertical,
     MousePointerClick,
@@ -66,6 +67,15 @@ import { ColorPicker } from '../common/ColorPicker';
 import { useDashboardStore, useActiveSection, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
+import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
+import {
+    FULLSCREEN_POSITIONS,
+    actionButtonRight,
+    fullscreenButtonEnabled,
+    fullscreenButtonInset,
+    fullscreenPosition,
+    supportsFullscreenButton,
+} from '../../utils/fullscreenButton';
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
@@ -2027,6 +2037,11 @@ interface WidgetFrameProps {
     onCopy?: (widget: WidgetConfig) => void;
     /** True when rendered as a child of a GroupWidget — enables --widget-in-group-* vars. */
     inGroup?: boolean;
+    /**
+     * True inside the fullscreen overlay (issue #644). Only suppresses the frame's
+     * own fullscreen button, so an overlay can never stack on another overlay.
+     */
+    fullscreen?: boolean;
 }
 
 // Dropdown als Portal – rendert außerhalb des Grid-Containers
@@ -6153,6 +6168,7 @@ export function WidgetFrame({
     onDuplicate,
     onCopy,
     inGroup,
+    fullscreen,
 }: WidgetFrameProps) {
     const t = useT();
     const focusedWidgetId = useFocusedWidgetId();
@@ -6728,6 +6744,14 @@ export function WidgetFrame({
     })();
     const hasClickAction = clickAction.kind !== 'none';
 
+    // ── Fullscreen button (issue #644) ────────────────────────────────────────
+    // Hidden inside the overlay itself (no fullscreen in fullscreen), in the editor
+    // (the edit chrome owns the top-right corner) and in an off-screen probe.
+    const setWidgetFullscreen = useWidgetFullscreenStore((s) => s.setTarget);
+    const fsPos = fullscreenPosition(config.options);
+    const showFullscreenButton =
+        !fullscreen && !editMode && !isProbe && fullscreenButtonEnabled(config.type, config.options);
+
     // Shared by the frame click and the action button that iframe-bodied widgets
     // need (a click inside a foreign document never reaches us — issue #527).
     const runClickAction = () => {
@@ -7210,12 +7234,18 @@ export function WidgetFrame({
                     // The iframe widget's own fullscreen button sits top-right of the
                     // frame BODY, i.e. below the title row — no collision while that
                     // row exists. With title and icon both off there is no row, so the
-                    // two would stack: step aside in that case only.
-                    const shifted =
+                    // two would stack: step aside in that case only. The frame's own
+                    // fullscreen button (issue #644) shares this corner unconditionally
+                    // when it is placed there, so both occupants go through one ladder.
+                    const iframeOwnFullscreen =
                         config.type === 'iframe' &&
                         !!config.options?.fullscreenButton &&
                         config.options?.showTitle === false &&
                         config.options?.showIcon === false;
+                    const actionRight = actionButtonRight({
+                        iframeOwnFullscreen,
+                        fullscreenTopRight: showFullscreenButton && fsPos === 'tr',
+                    });
                     return (
                         <button
                             onClick={(e) => {
@@ -7224,7 +7254,7 @@ export function WidgetFrame({
                             }}
                             className="nodrag absolute top-1.5 w-7 h-7 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
                             style={{
-                                right: shifted ? 38 : 6,
+                                right: actionRight,
                                 zIndex: 4,
                                 background: 'rgba(0,0,0,0.55)',
                                 color: '#fff',
@@ -7238,6 +7268,38 @@ export function WidgetFrame({
                         </button>
                     );
                 })()}
+
+            {/* Open this widget across the whole screen (issue #644). Revealed on
+                hover where there is a pointer, permanently where there is none — a
+                wall tablet or phone has no hover, and that is exactly the case the
+                feature was asked for. The corner is configurable because ~26 widget
+                types draw their own value into the top-right of the title row. */}
+            {showFullscreenButton && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setWidgetFullscreen({
+                            widgetId: config.id,
+                            // renderConfig, not config: condition overrides (colour,
+                            // icon, title) must look the same in the overlay.
+                            snapshot: renderConfig,
+                        });
+                    }}
+                    className="nodrag aura-fullscreen-btn absolute w-7 h-7 flex items-center justify-center rounded-md transition-opacity"
+                    style={{
+                        ...fullscreenButtonInset(fsPos),
+                        zIndex: 4,
+                        background: 'rgba(0,0,0,0.55)',
+                        color: '#fff',
+                        backdropFilter: 'blur(4px)',
+                    }}
+                    title={t('wf.fullscreenOpen')}
+                    aria-label={t('wf.fullscreenOpen')}
+                    data-fullscreen-open=""
+                >
+                    <Maximize2 size={13} />
+                </button>
+            )}
 
             {/* Badge overlay — sits on the widget edge/corner */}
             <BadgeOverlay badges={resolvedBadges} clampWidth />
@@ -7989,6 +8051,7 @@ export function WidgetFrame({
                             onConfigChange({ ...config, options: { ...o, ...patch } });
                         const titleOn = o.showTitle !== false;
                         const iconOn = o.showIcon !== false;
+                        const fsOn = o.fullscreenWidget === true;
                         const currentIconName = o.icon as string | undefined;
                         const CurrentIcon = currentIconName
                             ? getWidgetIcon(currentIconName, (() => null) as unknown as LucideIcon)
@@ -8444,6 +8507,67 @@ export function WidgetFrame({
                                                     />
                                                 </div>
                                             )}
+                                        </>
+                                    )}
+                                    {/* Fullscreen button (issue #644). Excluded for the types that
+                                        already carry their own — see utils/fullscreenButton. */}
+                                    {supportsFullscreenButton(config.type) && (
+                                        <>
+                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                            <div className="flex items-center justify-between">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('wf.edit.fullscreenWidget')}
+                                                </label>
+                                                <button
+                                                    onClick={() => setO({ fullscreenWidget: !fsOn })}
+                                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                                    style={{ background: fsOn ? 'var(--accent)' : 'var(--app-border)' }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: fsOn ? '18px' : '2px' }}
+                                                    />
+                                                </button>
+                                            </div>
+                                            {fsOn && (
+                                                <div className="flex items-center gap-2">
+                                                    <label
+                                                        className="text-[11px] shrink-0"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.edit.position')}
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {FULLSCREEN_POSITIONS.map((pos) => {
+                                                            const active = fullscreenPosition(o) === pos;
+                                                            return (
+                                                                <button
+                                                                    key={pos}
+                                                                    onClick={() => setO({ fullscreenPosition: pos })}
+                                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                                    style={{
+                                                                        background: active
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                        color: active
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                    }}
+                                                                >
+                                                                    {t(`wf.edit.fsPos.${pos}` as never)}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                {t('wf.edit.fullscreenHint')}
+                                            </p>
                                         </>
                                     )}
                                 </div>

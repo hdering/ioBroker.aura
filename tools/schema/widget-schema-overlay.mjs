@@ -839,6 +839,21 @@ export const UNIVERSAL_OPTIONS = {
         ts: 'Record<string, string>',
         description: 'CSS-Variablen nur für dieses Widget, z. B. { "--accent": "#f00" }.',
     },
+    fullscreenWidget: {
+        ts: 'boolean',
+        description:
+            'Blendet einen Knopf in die Ecke der Karte ein, der das Widget bildschirmfüllend öffnet ' +
+            '(Esc oder das Kreuz schließt wieder). Auf Touch-Geräten dauerhaft sichtbar, mit Maus erst ' +
+            'beim Überfahren. Nicht bei "iframe", "camera" und "echartsPreset" — die bringen ihr eigenes ' +
+            'Vollbild mit (iframe über die Option fullscreenButton).',
+    },
+    fullscreenPosition: {
+        ts: "'tr' | 'tl' | 'br'",
+        description:
+            'Ecke des Vollbild-Knopfes: "tr" rechts oben (Standard), "tl" links oben, "br" rechts unten. ' +
+            'Umstellen, wenn das Widget dort selbst etwas zeichnet — viele Typen setzen ihren aktuellen ' +
+            'Wert rechts neben den Titel.',
+    },
 };
 
 /**

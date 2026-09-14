@@ -609,6 +609,32 @@ input[type='range']::-moz-range-thumb {
     pointer-events: auto;
 }
 
+/* Fullscreen button (issue #644). Permanently visible by default: a wall tablet
+   or phone has no hover, and a button nobody can reveal is a button nobody has.
+   Where a real pointer exists it only appears over the widget, so it does not sit
+   on top of the value that many widgets draw into that same corner. */
+.aura-fullscreen-btn {
+    opacity: 0.75;
+    transition: opacity 0.12s ease;
+}
+.aura-fullscreen-btn:hover {
+    opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+    .aura-fullscreen-btn {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .aura-widget:hover > .aura-fullscreen-btn,
+    .aura-widget:focus-within > .aura-fullscreen-btn {
+        opacity: 0.75;
+        pointer-events: auto;
+    }
+    .aura-widget:hover > .aura-fullscreen-btn:hover {
+        opacity: 1;
+    }
+}
+
 /* ── Message HTML (issue #429) ────────────────────────────────────
    Title and body of a message render sanitised HTML, so a notice can carry a
    table, a list or some emphasis. Tailwind's preflight strips the browser

@@ -36,6 +36,7 @@ import { TabBar } from './components/layout/TabBar';
 import { LayoutDrawer } from './components/layout/LayoutDrawer';
 import { MenuItemView } from './components/layout/MenuItemView';
 import { useIframeStore } from './store/iframeStore';
+import { useWidgetFullscreenStore } from './store/widgetFullscreenStore';
 import { resolveIdleReturn } from './utils/idleReturn';
 import {
     effectiveDelayOverride,
@@ -460,10 +461,12 @@ export default function App() {
         if (next) setActiveTabId(next.id);
     }, [tabs, activeTabId]);
 
-    // Clear iFrame fullscreen overlay whenever the active tab changes.
+    // Clear the iFrame and widget fullscreen overlays whenever the active tab changes.
     const setIframeFullscreen = useIframeStore((s) => s.setFullscreen);
+    const setWidgetFullscreen = useWidgetFullscreenStore((s) => s.setTarget);
     useEffect(() => {
         setIframeFullscreen(null);
+        setWidgetFullscreen(null);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTabId]);
 
@@ -487,13 +490,14 @@ export default function App() {
     const idleDelayOverride = useIdleReturnStore(effectiveDelayOverride);
     const idleTabExempt = tabs.find((t) => t.id === activeTabId)?.idleReturnExempt ?? false;
     const iframeFullscreen = useIframeStore((s) => s.fullscreen);
+    const widgetFullscreen = useWidgetFullscreenStore((s) => s.target);
     const { armed: idleReturnEnabled, delaySec: idleReturnDelay } = resolveIdleReturn({
         configEnabled: !!effectiveSettings.idleReturnEnabled,
         configDelay: effectiveSettings.idleReturnDelay ?? 30,
         delayOverride: idleDelayOverride,
         snoozeMinutes: idleSnooze,
         tabExempt: idleTabExempt,
-        fullscreen: !!iframeFullscreen,
+        fullscreen: !!iframeFullscreen || !!widgetFullscreen,
     });
     // Jump back to the layout default via the URL (not setActiveTabId directly).
     // The default is layout-scoped: the layout's default section and, within it,

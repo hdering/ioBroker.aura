@@ -22,6 +22,17 @@ Ein Schritt: Datenpunkt wählen (Widget-Typ wird automatisch erkannt) oder Typ a
 
 Jedes Widget bietet über sein Menü (Chevron) `Bearbeiten`, `Bedingungen`, `Klick-Aktion`, `Exportieren`, `Kopieren` und `Löschen`.
 
+## Vollbild
+
+`Bearbeiten` → **Darstellung** → `Vollbild-Knopf`. Blendet einen Knopf in die Ecke der Kachel ein, der das Widget bildschirmfüllend öffnet.
+
+| Option | |
+| --- | --- |
+| Vollbild-Knopf | Aus (Standard) / An |
+| Position | `rechts oben` (Standard), `links oben`, `rechts unten` — umstellen, wenn das Widget dort selbst einen Wert zeigt |
+
+Auf Touch-Geräten ist der Knopf dauerhaft sichtbar, mit Maus erst beim Überfahren der Kachel. `Esc` oder das Kreuz schließt. Nicht bei `iFrame`, `Kamera` und `eCharts` — die haben ein eigenes Vollbild.
+
 ## PIN-Schutz
 
 Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach Eingabe des Codes gerendert — egal ob über Menü, Tab-Leiste, Widget-Klickaktion oder direkte URL.
