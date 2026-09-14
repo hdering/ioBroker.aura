@@ -74,6 +74,8 @@ const EXTRA_STYLE_KEYS = new Set([
     'transparency',
     'styleOverride',
     'colorThresholds',
+    // The on/off twin of `fullscreenPosition`, which the suffix list already catches
+    'fullscreenWidget',
     // Density / flow
     'compact',
     'compactMode',
@@ -151,9 +153,45 @@ export function extractWidgetStyle(config: WidgetConfig): WidgetStyle {
     };
 }
 
-/** A style fits a widget of the same type only. */
-export function canApplyWidgetStyle(config: WidgetConfig, style: WidgetStyle | null): style is WidgetStyle {
-    return !!style && style.type === config.type;
+/**
+ * Which options every one of the 55 widget types understands, counted from the
+ * shipped schema: `transparent`, `transparency`, `styleOverride` and the
+ * fullscreen button are offered by all of them, the title/icon pair by all but a
+ * handful. They are what a style may carry across a type boundary — anything
+ * else would sit unread in the target's config, show up in its export and backup
+ * and be reported as an unknown option by the MCP validator.
+ *
+ * `layout` never crosses: which variants exist is decided per type ("agenda"
+ * only on the calendar), so a foreign one would simply be invalid.
+ */
+const FRAME_STYLE_KEYS = [
+    'transparent',
+    'transparency',
+    'styleOverride',
+    'fullscreenWidget',
+    'fullscreenPosition',
+    'showTitle',
+    'showIcon',
+    'iconSize',
+];
+
+/**
+ * How much of a stored style a widget can take:
+ *   'full'  — same type, everything including the layout variant
+ *   'frame' — different type, the card look only (FRAME_STYLE_KEYS)
+ *   'none'  — nothing copied yet
+ */
+export type StyleFit = 'full' | 'frame' | 'none';
+
+export function styleFit(config: WidgetConfig, style: WidgetStyle | null): StyleFit {
+    if (!style) return 'none';
+    return style.type === config.type ? 'full' : 'frame';
+}
+
+/** Keys a paste at this fit level is allowed to touch. */
+function fitsKey(key: string, fit: StyleFit): boolean {
+    if (!isStyleOptionKey(key)) return false;
+    return fit === 'full' ? true : FRAME_STYLE_KEYS.includes(key);
 }
 
 /**
@@ -163,30 +201,35 @@ export function canApplyWidgetStyle(config: WidgetConfig, style: WidgetStyle | n
  * Everything outside `isStyleOptionKey` (datapoints, entries, conditions,
  * badges, the custom grid, the title) is left untouched.
  */
-export function applyWidgetStyle(config: WidgetConfig, style: WidgetStyle): WidgetConfig {
+export function applyWidgetStyle(config: WidgetConfig, style: WidgetStyle, fit: StyleFit = 'full'): WidgetConfig {
+    if (fit === 'none') return config;
     const options: Record<string, unknown> = { ...(config.options ?? {}) };
     for (const key of Object.keys(options)) {
-        if (isStyleOptionKey(key)) delete options[key];
+        if (fitsKey(key, fit)) delete options[key];
     }
     for (const [key, value] of Object.entries(style.options)) {
-        options[key] = cloneValue(value);
+        if (fitsKey(key, fit)) options[key] = cloneValue(value);
     }
     const next: WidgetConfig = { ...config, options };
-    if (style.layout === undefined) delete next.layout;
-    else next.layout = style.layout;
+    // Across types the target keeps its own layout variant — see FRAME_STYLE_KEYS.
+    if (fit === 'full') {
+        if (style.layout === undefined) delete next.layout;
+        else next.layout = style.layout;
+    }
     return next;
 }
 
 /** How many settings a paste would actually change — shown as feedback, since the editor has no undo. */
-export function countStyleChanges(config: WidgetConfig, style: WidgetStyle): number {
+export function countStyleChanges(config: WidgetConfig, style: WidgetStyle, fit: StyleFit = 'full'): number {
+    if (fit === 'none') return 0;
     const before = config.options ?? {};
-    const after = applyWidgetStyle(config, style).options ?? {};
+    const after = applyWidgetStyle(config, style, fit).options ?? {};
     const keys = new Set([...Object.keys(before), ...Object.keys(after)]);
     let changed = 0;
     for (const key of keys) {
-        if (!isStyleOptionKey(key)) continue;
+        if (!fitsKey(key, fit)) continue;
         if (JSON.stringify(before[key] ?? null) !== JSON.stringify(after[key] ?? null)) changed++;
     }
-    if ((config.layout ?? null) !== (style.layout ?? null)) changed++;
+    if (fit === 'full' && (config.layout ?? null) !== (style.layout ?? null)) changed++;
     return changed;
 }

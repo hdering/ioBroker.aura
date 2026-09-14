@@ -54,7 +54,7 @@ import { panelActiveStateId } from '../../utils/publishPanelState';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
 import { useCopiedStyle, useStyleClipboardStore } from '../../store/styleClipboardStore';
-import { applyWidgetStyle, canApplyWidgetStyle, countStyleChanges } from '../../utils/widgetStyle';
+import { applyWidgetStyle, styleFit, countStyleChanges } from '../../utils/widgetStyle';
 import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
@@ -6195,7 +6195,8 @@ export function WidgetFrame({
     // "Stil kopieren / einfügen" (#654). The editor has no undo, so a paste says
     // how many settings it touched instead of changing the widget silently.
     const copiedStyle = useCopiedStyle();
-    const styleFits = canApplyWidgetStyle(config, copiedStyle);
+    // 'full' on the same type, 'frame' (card look only) on a different one.
+    const styleMode = styleFit(config, copiedStyle);
     const [styleToast, setStyleToast] = useState<{ key: number; count: number } | null>(null);
     useEffect(() => {
         if (!styleToast) return;
@@ -7572,26 +7573,26 @@ export function WidgetFrame({
                             {t('wf.menu.copyStyle')}
                         </button>
                         <button
-                            disabled={!styleFits}
+                            disabled={styleMode === 'none'}
                             title={
-                                styleFits
-                                    ? t('wf.menu.pasteStyleFrom', { name: copiedStyle?.sourceLabel ?? '' })
-                                    : copiedStyle
-                                      ? t('wf.menu.pasteStyleWrongType')
-                                      : t('wf.menu.pasteStyleEmpty')
+                                styleMode === 'none'
+                                    ? t('wf.menu.pasteStyleEmpty')
+                                    : styleMode === 'frame'
+                                      ? t('wf.menu.pasteFrameStyleFrom', { name: copiedStyle?.sourceLabel ?? '' })
+                                      : t('wf.menu.pasteStyleFrom', { name: copiedStyle?.sourceLabel ?? '' })
                             }
                             onClick={() => {
-                                if (!styleFits || !copiedStyle) return;
-                                const count = countStyleChanges(config, copiedStyle);
-                                if (count > 0) onConfigChange(applyWidgetStyle(config, copiedStyle));
+                                if (styleMode === 'none' || !copiedStyle) return;
+                                const count = countStyleChanges(config, copiedStyle, styleMode);
+                                if (count > 0) onConfigChange(applyWidgetStyle(config, copiedStyle, styleMode));
                                 setStyleToast({ key: Date.now(), count });
                                 openPanelFor(null);
                             }}
                             className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left transition-opacity disabled:cursor-not-allowed hover:opacity-80"
-                            style={{ color: 'var(--text-primary)', opacity: styleFits ? undefined : 0.4 }}
+                            style={{ color: 'var(--text-primary)', opacity: styleMode === 'none' ? 0.4 : undefined }}
                         >
                             <PaintBucket size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-                            {t('wf.menu.pasteStyle')}
+                            {t(styleMode === 'frame' ? 'wf.menu.pasteFrameStyle' : 'wf.menu.pasteStyle')}
                         </button>
 
                         {/* Kopieren */}

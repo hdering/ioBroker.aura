@@ -123,17 +123,29 @@ check(
 );
 await page.waitForTimeout(1900);
 
-// ── 4. Fremder Typ bleibt gesperrt ─────────────────────────────────────────────
+// ── 4. Fremder Typ bekommt nur den Rahmen ─────────────────────────────────────
 await show([
     widget('one', { options: { ...SOURCE_STYLE } }),
-    { ...widget('two', { gridPos: { x: 14, y: 0, w: 14, h: 8 } }), type: 'switch' },
+    {
+        ...widget('two', { gridPos: { x: 14, y: 0, w: 14, h: 8 } }),
+        type: 'switch',
+        layout: 'card',
+        options: { showValue: true },
+    },
 ]);
 await rightClick('one');
 await menuItem('Stil kopieren').click();
 await page.waitForTimeout(200);
 await rightClick('two');
-check('Ein Schalter nimmt den Stil einer Wertanzeige nicht an', await menuItem('Stil einfügen').isDisabled());
-await page.keyboard.press('Escape');
+check('Bei fremdem Typ heißt der Eintrag „Rahmen-Stil einfügen"', await menuItem('Rahmen-Stil einfügen').isVisible());
+await menuItem('Rahmen-Stil einfügen').click();
+await page.waitForTimeout(350);
+const frame = await options('two');
+check('Der Kartenrahmen kommt an', frame.transparent === true, JSON.stringify(frame));
+check('Die CSS-Variable kommt an', frame.styleOverride?.['--accent'] === '#00ff00');
+check('Die Titelzeile kommt an', frame.showTitle === false);
+check('Typfremde Optionen bleiben draußen', !('valueFontSize' in frame) && !('titleColor' in frame));
+check('Die eigene Option des Ziels bleibt', frame.showValue === true);
 
 // ── 5. In einer Gruppe gewinnt das Kind ────────────────────────────────────────
 await page.evaluate((style) => {

@@ -26,7 +26,7 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { isStyleOptionKey, extractWidgetStyle, applyWidgetStyle, canApplyWidgetStyle, countStyleChanges } = await import(
+const { isStyleOptionKey, extractWidgetStyle, applyWidgetStyle, styleFit, countStyleChanges } = await import(
     pathToFileURL(bundle).href
 );
 rmSync(bundle, { force: true });
@@ -68,7 +68,6 @@ for (const key of [
     'batteryDp',
     'defId', // group children — a shared defId would clone the whole group
     'targetWidgetId',
-    'fullscreenWidget',
     'presetId',
     'url',
     'iframeUrl',
@@ -97,6 +96,7 @@ for (const key of ['icon', 'baseIcon', 'binSize', 'listBinSize', 'bufferSize', '
     ok(`${key} is kept out although a pattern matches`, !isStyleOptionKey(key));
 }
 ok('iconSize stays style next to icon', isStyleOptionKey('iconSize'));
+ok('the fullscreen button is style, like its corner', isStyleOptionKey('fullscreenWidget'));
 ok('trueIcon stays style — it draws a state, not the device', isStyleOptionKey('trueIcon'));
 
 // ── 4. Copying ──
@@ -169,11 +169,47 @@ const plain = extractWidgetStyle({ ...source, layout: undefined });
 ok('no layout on the source clears the target layout', applyWidgetStyle(target, plain).layout === undefined);
 
 // ── 6. Guard rails and feedback ──
-ok('a style only fits the same type', canApplyWidgetStyle(target, style));
-ok('a foreign type is refused', !canApplyWidgetStyle({ ...target, type: 'switch' }, style));
-ok('an empty clipboard is refused', !canApplyWidgetStyle(target, null));
+eq('the same type takes everything', styleFit(target, style), 'full');
+eq('a foreign type takes the frame only', styleFit({ ...target, type: 'switch' }, style), 'frame');
+eq('an empty clipboard fits nowhere', styleFit(target, null), 'none');
 ok('the change count is non-zero for a real paste', countStyleChanges(target, style) > 0);
 eq('pasting a style onto its own source changes nothing', countStyleChanges(source, style), 0);
+
+// ── 6b. Across types only the card look travels ──
+const wide = extractWidgetStyle({
+    ...source,
+    options: {
+        ...source.options,
+        showTitle: false,
+        iconSize: 28,
+        fullscreenWidget: true,
+        dialThickness: 9, // type-specific — must not cross
+    },
+});
+const foreign = {
+    ...target,
+    type: 'switch',
+    layout: 'card',
+    options: { unit: '%', valueFontSize: 12, transparent: false },
+};
+const framed = applyWidgetStyle(foreign, wide, 'frame');
+eq('the card transparency crosses', framed.options.transparent, true);
+eq('the CSS variables cross', framed.options.styleOverride['--accent'], '#0f0');
+eq('the title switch crosses', framed.options.showTitle, false);
+eq('the icon size crosses', framed.options.iconSize, 28);
+eq('the fullscreen button crosses', framed.options.fullscreenWidget, true);
+ok('a type-specific option does not cross', !('dialThickness' in framed.options));
+ok('the target keeps its own type-specific styling', framed.options.valueFontSize === 12);
+eq('the target keeps its own layout variant', framed.layout, 'card');
+eq('the target keeps its own content options', framed.options.unit, '%');
+ok(
+    'the frame count only counts frame keys',
+    countStyleChanges(foreign, wide, 'frame') < countStyleChanges(target, wide, 'full'),
+);
+eq('a paste with no fit is a no-op', applyWidgetStyle(foreign, wide, 'none'), foreign);
+
+// Every frame key really is offered by (nearly) every type — that is what makes
+// the cross-type paste safe. Counted from the shipped schema further down.
 
 // ── 7. The shipped schema: every option ends up on one side of the split ──
 const schema = JSON.parse(readFileSync('public/ai/aura-widget-schema.json', 'utf8'));
@@ -189,6 +225,22 @@ const dpish = styleKeys.filter(
 eq('no datapoint key is classified as style', dpish, []);
 // Free-text/URL options are the expensive kind of false positive. `valueTimePattern`
 // is the one allowed hit: it is a date format string, registered on purpose.
+// The cross-type set must stay universal: each of these keys is listed as a
+// common option by (almost) every widget type, otherwise it would land unread.
+const typeCount = Object.keys(schema.widgets ?? {}).length;
+for (const key of ['transparent', 'transparency', 'styleOverride', 'fullscreenWidget', 'fullscreenPosition']) {
+    const have = Object.values(schema.widgets ?? {}).filter((w) => (w.commonOptions ?? []).includes(key)).length;
+    ok(`${key} is offered by every type (${have}/${typeCount})`, have === typeCount, `${have}/${typeCount}`);
+}
+for (const key of ['showTitle', 'showIcon', 'iconSize']) {
+    const have = Object.values(schema.widgets ?? {}).filter((w) => (w.commonOptions ?? []).includes(key)).length;
+    ok(
+        `${key} is offered by almost every type (${have}/${typeCount})`,
+        have >= typeCount * 0.8,
+        `${have}/${typeCount}`,
+    );
+}
+
 const texty = styleKeys.filter(
     (k) => !/show|hide/i.test(k) && k !== 'valueTimePattern' && /url|template|pattern|prefix/i.test(k),
 );

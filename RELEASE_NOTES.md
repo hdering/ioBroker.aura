@@ -14,4 +14,5 @@
 - AC control - setpoint, fan speed and vanes follow the operation mode where a device keeps one datapoint per mode, and take their limits from it (#650)
 - AC control - vane positions are selectable, with a Powerful button and room humidity alongside them (#650)
 - Widgets can show a fullscreen button, so a chart or list fills the screen on a phone (#644)
-- Editor - a right-click opens the widget menu, and it can copy a widget's look onto another widget of the same type (#654)
+- Editor - a right-click opens the widget menu, and it can copy a widget's look onto another one: the full style within the same widget type, the card look (transparency, own CSS variables, title and icon) across types (#654)
+- Editor - widget controls are locked while designing, so a click picks up the card instead of switching the real device; the toolbar padlock unlocks them (#655)
