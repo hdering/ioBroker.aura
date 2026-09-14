@@ -104,6 +104,13 @@ Platzhalter können auch rechnen (`{dp;round(0)}`, `{a:dp1;b:dp2;a + b}`,
 `{{ dp * 2 }}`) — Operationen, Funktionen und Rezepte stehen unter
 [Bindings & Berechnungen](./bindings).
 
+Platzhalter lesen nur. Geschrieben wird über `aura` — dieselben Aufrufe wie im
+[HTML-Widget](./html#datenpunkte-schreiben):
+
+```html
+<button onclick="aura.setState('0_userdata.0.Licht', true)">An</button>
+```
+
 ### Schwellwerte
 
 Färbt den angezeigten (transformierten) Wert abhängig von seiner Höhe.

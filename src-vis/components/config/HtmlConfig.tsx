@@ -1,5 +1,6 @@
 import { Database } from 'lucide-react';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
+import { HtmlApiExamples } from './HtmlApiExamples';
 
 interface Props {
     options: Record<string, unknown>;
@@ -115,6 +116,14 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                     style={{ ...iSty, resize: 'vertical', fontFamily: 'monospace', lineHeight: 1.5 }}
                 />
                 <PlaceholderHint />
+                <div className="mt-1.5">
+                    <HtmlApiExamples
+                        onInsert={(code) => {
+                            const cur = (o.htmlContent as string) ?? '';
+                            set({ htmlContent: cur ? `${cur.replace(/\s*$/, '')}\n${code}` : code });
+                        }}
+                    />
+                </div>
             </div>
 
             {/* Nachkommastellen für Zahlen aus Platzhaltern */}
@@ -129,7 +138,9 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                     value={(o.decimals as number | undefined) ?? ''}
                     onChange={(e) => set({ decimals: e.target.value === '' ? undefined : Number(e.target.value) })}
                     placeholder="global"
-                    className={`${iCls} w-20 shrink-0`}
+                    // iCls carries w-full, which beats a following w-20 in the
+                    // stylesheet — the number field ran 100 px past the row.
+                    className={`${iCls.replace('w-full ', '')} w-20 shrink-0`}
                     style={iSty}
                 />
             </div>
@@ -143,6 +154,24 @@ export function HtmlConfig({ options: o, onChange, onOpenPicker }: Props) {
                     value={(o.scrollable as boolean) ?? true}
                     onToggle={() => set({ scrollable: !((o.scrollable as boolean) ?? true) })}
                 />
+            </div>
+
+            {/* Datenpunkte schreiben (window.aura im iframe) */}
+            <div>
+                <div className="flex items-center justify-between">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Datenpunkte schreiben erlauben
+                    </label>
+                    <Toggle
+                        value={(o.htmlApi as boolean | undefined) ?? true}
+                        onToggle={() => set({ htmlApi: !((o.htmlApi as boolean | undefined) ?? true) })}
+                    />
+                </div>
+                <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                    Stellt im HTML{' '}
+                    <span className="font-mono">aura.setState / toggle / getState / subscribe / sendTo</span> bereit.
+                    Braucht eine Sandbox, die Skripte erlaubt.
+                </p>
             </div>
 
             {/* Sandbox */}

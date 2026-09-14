@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Code2 } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useT } from '../../i18n';
@@ -8,6 +8,8 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
 import { resolveHtmlAssets } from '../../utils/assetUrl';
 import { extractTemplateDpRefs, renderTemplate } from '../../utils/htmlTemplate';
+import { injectBridge, sandboxAllowsScripts } from '../../utils/htmlBridge';
+import { useHtmlBridge } from '../../hooks/useHtmlBridge';
 import { extractJsonPath } from '../../utils/dpRef';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -21,6 +23,9 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     const sandboxPreset = opts.sandboxPreset as SandboxPreset | undefined;
     const sandboxCustom = opts.sandboxCustom as string | undefined;
     const sandboxAttr = resolveSandboxAttr(sandboxPreset, sandboxCustom, 'standard');
+    // `window.aura` inside the frame — bindings read, this writes (issue #649).
+    // Pointless without scripts, so a sandbox that forbids them turns it off.
+    const apiEnabled = opts.htmlApi !== false && sandboxAllowsScripts(sandboxAttr);
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
@@ -69,9 +74,13 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
             rawVars: { dp: mainValue ?? null, ...specials },
             ops: { formatNum: (v, d) => formatNum(v, d, numFmt), decimals, t },
         });
-        return resolveHtmlAssets(filled);
+        const withAssets = resolveHtmlAssets(filled);
+        return apiEnabled ? injectBridge(withAssets) : withAssets;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rawHtml, tokenStates, mainValue, mainDp, decimals, numFmt, specials, t]);
+    }, [rawHtml, tokenStates, mainValue, mainDp, decimals, numFmt, specials, apiEnabled, t]);
+
+    const frameRef = useRef<HTMLIFrameElement>(null);
+    useHtmlBridge(frameRef, apiEnabled);
 
     // The sandboxed srcDoc frame is its own document, so clicks in the rendered
     // HTML never reach the frame's click action — ask for the action button.
@@ -140,6 +149,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                 </div>
             )}
             <iframe
+                ref={frameRef}
                 srcDoc={html}
                 sandbox={sandboxAttr}
                 title={config.title || 'HTML'}

@@ -360,7 +360,7 @@ Darstellungen der Listen ungenutzt im Schema lagen.
 `lib/mcp/recipes.js` hält deshalb fertige, gültige Widgets: Raumliste,
 gemischte Gerätliste, Wertkachel mit Schwellen und Bedingung, Verbrauchsbalken,
 Zwei-Achsen-Verlauf, Statusübersicht, Thermostat-Rundskala, Füllstand, Multiroom-
-Audio und ein kompletter Raum-Tab. Jedes Rezept sagt dazu, **wofür** es gedacht ist und
+Audio, bedienbares HTML und ein kompletter Raum-Tab. Jedes Rezept sagt dazu, **wofür** es gedacht ist und
 **welche billigere Bauweise** es ersetzt — das ist der Teil, der die Wahl
 verschiebt. `aura_recipes` ohne `id` listet sie, mit `id` kommt das vollständige
 JSON.

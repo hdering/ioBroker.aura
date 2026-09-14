@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import {
-    setStateDirect,
+    setStateEchoed,
     getStateDirect,
     subscribeStateDirect,
     getObjectDirect,
@@ -16,7 +16,7 @@ function installAuraApi() {
     if (auraInstalled) return;
     auraInstalled = true;
     (window as unknown as { aura?: unknown }).aura = {
-        setState: (id: string, val: boolean | number | string, ack = false) => setStateDirect(id, val, ack),
+        setState: (id: string, val: boolean | number | string, ack = false) => setStateEchoed(id, val, ack),
         getState: (id: string) => getStateDirect(id),
         subscribeState: (id: string, cb: (state: unknown) => void) => subscribeStateDirect(id, cb),
         getObject: (id: string, opts?: { skipCache?: boolean }) => getObjectDirect(id, opts),

@@ -11,6 +11,9 @@ Gültig in:
 | [Marker](../einstellungen/editor#marker-text-mit-datenpunkten) (Widget, Bereich, Tab) | `Text` beim Stil `Label` |
 | [Abschnittstitel](./abschnittstitel) | `subtitle` (Untertitel) |
 
+Bindings **lesen** nur. Um aus dem HTML heraus einen Datenpunkt zu **setzen**, gibt es `aura.setState` —
+siehe [HTML → Datenpunkte schreiben](./html#datenpunkte-schreiben).
+
 Die Syntax folgt [ioBroker.vis](https://github.com/ioBroker/ioBroker.vis-2#bindings-of-objects): Bindings aus einer bestehenden vis-Ansicht lassen sich übernehmen. Abweichungen stehen unter [Unterschiede zu ioBroker.vis](#unterschiede-zu-iobroker-vis).
 
 ## Die vier Schreibweisen
@@ -493,6 +496,9 @@ Der Ausdruck ist **kein JavaScript**, sondern eine eigene, geschlossene Sprache:
   In so einem Fall die Deklarations-Schreibweise nehmen: `{v:id;v + '}}'}`
 
 Das ist bewusst so: HTML darf aus einem Datenpunkt kommen, und Bindings werden ausgewertet, bevor der Inhalt in den Sandbox-iFrame geht. Mit echtem `eval` könnte ein Skript, das diesen Datenpunkt schreibt, beliebigen Code im aura-Frontend ausführen.
+
+Schreiben kann ein Ausdruck ebenfalls nicht — dafür gibt es die eigene API `aura.setState` im
+[HTML-Widget](./html#datenpunkte-schreiben), die in der Sandbox läuft und pro Widget abschaltbar ist.
 
 Zwei Dinge bleiben in der Verantwortung des Autors:
 

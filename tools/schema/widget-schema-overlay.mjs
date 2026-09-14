@@ -231,6 +231,13 @@ export const WIDGET_OPTION_NOTES = {
     html: {
         htmlContent: { description: 'Fester HTML-Inhalt.' },
         htmlDatapoint: { description: 'Datenpunkt, der den HTML-Inhalt liefert.' },
+        htmlApi: {
+            description:
+                'Stellt im HTML window.aura bereit: aura.setState(id, wert, ack?), aura.toggle(id), ' +
+                'aura.getState(id), aura.subscribe(id, cb), aura.sendTo(ziel, befehl, daten) - alle liefern ' +
+                'ein Promise. Damit schreibt ein Knopf im HTML einen Datenpunkt (Bindings lesen nur). ' +
+                'Braucht eine Sandbox, die Skripte erlaubt (Voreinstellung). true = an (Standard).',
+        },
     },
     button: {
         buttonLabel: { description: 'Beschriftung der Taste. Leer = Widget-Titel.' },

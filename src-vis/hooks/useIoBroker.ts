@@ -626,26 +626,7 @@ export function useIoBroker() {
         };
     }, []);
 
-    const setState = useCallback((id: string, val: boolean | number | string) => {
-        noteWrite(id, val);
-        getSocket().emit('setState', id, { val, ack: false });
-        if (optimisticEcho) {
-            const prev = stateCache.get(id);
-            const ts = Date.now();
-            const echo: ioBrokerState = {
-                val,
-                ack: false,
-                ts,
-                lc: prev && prev.val === val ? prev.lc : ts,
-                from: prev?.from,
-                q: prev?.q,
-            };
-            stateCache.set(id, echo);
-            // Notify in a microtask so the caller's click handler finishes first
-            // (keeps React batching predictable for the writing component).
-            queueMicrotask(() => subscribers.get(id)?.forEach((fn) => fn(echo)));
-        }
-    }, []);
+    const setState = useCallback((id: string, val: boolean | number | string) => setStateEchoed(id, val), []);
 
     // Delegates to getStateDirect: identical behaviour (fetch, then cache the result
     // so a remount sees it synchronously — see issue #281), and this way the dev
@@ -878,6 +859,32 @@ export async function readValueDirect(id: string): Promise<unknown> {
 export function setStateDirect(id: string, val: boolean | number | string, ack = false): void {
     noteWrite(id, val);
     getSocket().emit('setState', id, { val, ack });
+}
+
+/**
+ * Write and reflect the value locally in the same breath — the behaviour every
+ * control widget has through the hook below, lifted out so the other two writers on
+ * a user's behalf (custom JS, the HTML widget's `aura.setState`) share it. Without
+ * the echo a button that writes a plain 0_userdata datapoint leaves the binding
+ * next to it on the old value until something else ticks.
+ */
+export function setStateEchoed(id: string, val: boolean | number | string, ack = false): void {
+    setStateDirect(id, val, ack);
+    if (!optimisticEcho) return;
+    const prev = stateCache.get(id);
+    const ts = Date.now();
+    const echo: ioBrokerState = {
+        val,
+        ack,
+        ts,
+        lc: prev && prev.val === val ? prev.lc : ts,
+        from: prev?.from,
+        q: prev?.q,
+    };
+    stateCache.set(id, echo);
+    // Notify in a microtask so the caller's click handler finishes first
+    // (keeps React batching predictable for the writing component).
+    queueMicrotask(() => subscribers.get(id)?.forEach((fn) => fn(echo)));
 }
 
 /** Promise variant of setStateDirect: resolves once the server acks the write.

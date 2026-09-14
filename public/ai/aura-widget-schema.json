@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.59.2",
+    "auraVersion": "0.59.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -8717,6 +8717,11 @@
         "transparent"
       ],
       "options": {
+        "htmlApi": {
+          "type": "boolean",
+          "default": true,
+          "description": "Stellt im HTML window.aura bereit: aura.setState(id, wert, ack?), aura.toggle(id), aura.getState(id), aura.subscribe(id, cb), aura.sendTo(ziel, befehl, daten) - alle liefern ein Promise. Damit schreibt ein Knopf im HTML einen Datenpunkt (Bindings lesen nur). Braucht eine Sandbox, die Skripte erlaubt (Voreinstellung). true = an (Standard)."
+        },
         "htmlContent": {
           "type": "string",
           "default": "",

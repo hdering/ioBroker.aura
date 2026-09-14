@@ -22,4 +22,7 @@ JavaScript läuft mit den Frontend-Berechtigungen und kann ioBroker-Datenpunkte 
 | `getObject(id)` | Objektdefinition lesen |
 | `sendTo(target, command, payload, timeoutMs?)` | Adapter-Nachricht senden |
 
+Dieselben Funktionen stehen ohne Custom JS im [HTML-Widget](../widgets/html#datenpunkte-schreiben) und im
+`htmlTemplate` der [Wert-Anzeige](../widgets/wert-anzeige) bereit.
+
 Externe Skripte über `@import url('…');` am Anfang einbinden.
