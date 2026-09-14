@@ -1,5 +1,6 @@
 import type { WidgetConfig, CustomCell } from '../types';
 import { WIDGET_BY_TYPE } from '../widgetRegistry';
+import { isDpOptionKey } from './dpOptionKeys';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Datapoint slot collection for Widget-Designer presets.
@@ -71,10 +72,6 @@ export interface DpSlot {
     ownerKey: string;
     /** Write a new DP into the underlying (cloned) object. */
     apply: (newDpId: string) => void;
-}
-
-function isDpOptionKey(key: string): boolean {
-    return key === 'datapoint' || key.endsWith('Dp') || key.endsWith('Datapoint');
 }
 
 /** Last segment of a datapoint id (e.g. `…Bad.TEMPERATURE` → `TEMPERATURE`). */

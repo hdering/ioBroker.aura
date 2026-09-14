@@ -37,6 +37,8 @@ import {
     BadgeCheck,
     Shapes,
     CopyPlus,
+    Palette,
+    PaintBucket,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
@@ -51,6 +53,8 @@ import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
 import { panelActiveStateId } from '../../utils/publishPanelState';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
+import { useCopiedStyle, useStyleClipboardStore } from '../../store/styleClipboardStore';
+import { applyWidgetStyle, canApplyWidgetStyle, countStyleChanges } from '../../utils/widgetStyle';
 import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
@@ -6188,6 +6192,16 @@ export function WidgetFrame({
     const [showCopyMenu, setShowCopyMenu] = useState(false);
     const [showGroupTypePicker, setShowGroupTypePicker] = useState(false);
     const [showExportDialog, setShowExportDialog] = useState(false);
+    // "Stil kopieren / einfügen" (#654). The editor has no undo, so a paste says
+    // how many settings it touched instead of changing the widget silently.
+    const copiedStyle = useCopiedStyle();
+    const styleFits = canApplyWidgetStyle(config, copiedStyle);
+    const [styleToast, setStyleToast] = useState<{ key: number; count: number } | null>(null);
+    useEffect(() => {
+        if (!styleToast) return;
+        const id = setTimeout(() => setStyleToast(null), 1800);
+        return () => clearTimeout(id);
+    }, [styleToast]);
     const [showSavePresetDialog, setShowSavePresetDialog] = useState(false);
     const { addWidgetToLayoutTab, removeWidgetFromLayoutTab } = useDashboardStore();
     const activeLayoutId = useDashboardStore((s) => s.activeLayoutId);
@@ -6958,6 +6972,20 @@ export function WidgetFrame({
             ref={focusRef}
             className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${partClasses} ${isFocused ? 'aura-widget-focused' : ''}`}
             onClick={handleWidgetClick}
+            onContextMenu={
+                editMode
+                    ? (e) => {
+                          // The innermost widget wins — a group child must not open
+                          // its parent's menu as well. Without a menu button to
+                          // anchor the dropdown to, leave the browser menu alone.
+                          e.stopPropagation();
+                          if (!menuBtnRef.current) return;
+                          e.preventDefault();
+                          setConfirmDelete(false);
+                          openPanelFor('menu');
+                      }
+                    : undefined
+            }
             style={
                 isBareHeader || isTransparent
                     ? {
@@ -7012,6 +7040,23 @@ export function WidgetFrame({
           }
         `}</style>
             )}
+            {styleToast && (
+                <div
+                    key={styleToast.key}
+                    className="nodrag absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+                >
+                    <div
+                        className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium shadow-lg"
+                        style={{ background: 'var(--accent)', color: '#fff' }}
+                    >
+                        <PaintBucket size={11} />
+                        {styleToast.count > 0
+                            ? t('wf.menu.styleApplied', { count: styleToast.count })
+                            : t('wf.menu.styleUnchanged')}
+                    </div>
+                </div>
+            )}
+
             {editMode && conditionResult.hidden && (
                 <div className="nodrag absolute inset-0 z-20 rounded-[inherit] flex items-start justify-end pointer-events-none p-1.5">
                     <div
@@ -7513,6 +7558,41 @@ export function WidgetFrame({
                                 {t('wf.menu.saveAsPreset')}
                             </button>
                         )}
+
+                        {/* Stil kopieren / einfügen (#654) — nur zwischen Widgets desselben Typs */}
+                        <button
+                            onClick={() => {
+                                useStyleClipboardStore.getState().copy(config);
+                                openPanelFor(null);
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                            style={{ color: 'var(--text-primary)' }}
+                        >
+                            <Palette size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            {t('wf.menu.copyStyle')}
+                        </button>
+                        <button
+                            disabled={!styleFits}
+                            title={
+                                styleFits
+                                    ? t('wf.menu.pasteStyleFrom', { name: copiedStyle?.sourceLabel ?? '' })
+                                    : copiedStyle
+                                      ? t('wf.menu.pasteStyleWrongType')
+                                      : t('wf.menu.pasteStyleEmpty')
+                            }
+                            onClick={() => {
+                                if (!styleFits || !copiedStyle) return;
+                                const count = countStyleChanges(config, copiedStyle);
+                                if (count > 0) onConfigChange(applyWidgetStyle(config, copiedStyle));
+                                setStyleToast({ key: Date.now(), count });
+                                openPanelFor(null);
+                            }}
+                            className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left transition-opacity disabled:cursor-not-allowed hover:opacity-80"
+                            style={{ color: 'var(--text-primary)', opacity: styleFits ? undefined : 0.4 }}
+                        >
+                            <PaintBucket size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                            {t('wf.menu.pasteStyle')}
+                        </button>
 
                         {/* Kopieren */}
                         {onDuplicate ? (
