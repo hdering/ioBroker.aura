@@ -6,6 +6,7 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 
 import { SubTabsNav, type SubTab } from './layouts/sections/SubTabsNav';
+import { useStartBrightness } from './layouts/shared/BrightnessTabs';
 
 import { ThemePresetSection } from './layouts/sections/ThemePresetSection';
 import { ThemeVarsSection } from './layouts/sections/ThemeVarsSection';
@@ -114,6 +115,8 @@ function ScopeRow({ active, onClick, label, sub, iconNode }: ScopeRowProps) {
 
 export function AdminDesign() {
     const t = useT();
+    // Open on the brightness that is on screen, not on the shared set (#640).
+    useStartBrightness();
     const layouts = useDashboardStore((s) => s.layouts);
     const [searchParams, setSearchParams] = useSearchParams();
 

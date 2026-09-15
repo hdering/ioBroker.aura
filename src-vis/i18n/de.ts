@@ -680,8 +680,10 @@ export const de = {
     'theme.scope.dark': 'Dunkel',
     'theme.scope.baseHint':
         'Gilt für beide Helligkeiten. Wird von den Werten auf den Reitern „Hell“ und „Dunkel“ überschrieben.',
-    'theme.scope.lightHint': 'Gilt nur, solange ein helles Theme angezeigt wird („{theme}“).',
-    'theme.scope.darkHint': 'Gilt nur, solange ein dunkles Theme angezeigt wird („{theme}“).',
+    'theme.scope.lightHint':
+        'Gilt nur, solange ein helles Theme angezeigt wird („{theme}“). Für beide Helligkeiten „Gemeinsam“ wählen.',
+    'theme.scope.darkHint':
+        'Gilt nur, solange ein dunkles Theme angezeigt wird („{theme}“). Für beide Helligkeiten „Gemeinsam“ wählen.',
 
     'theme.user.title': 'Meine Themes',
     'theme.user.desc':

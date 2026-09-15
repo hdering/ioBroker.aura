@@ -1,7 +1,10 @@
+import { useEffect } from 'react';
 import { Sun, Moon, Circle } from 'lucide-react';
 import { useThemeStore } from '../../../../store/themeStore';
 import { useThemeModeStore } from '../../../../utils/themeModeCache';
+import { getTheme } from '../../../../themes';
 import type { VarScope } from '../../../../utils/themeVars';
+import { browserBrightness, useEditBrightness } from './editBrightness';
 import { useT } from '../../../../i18n';
 
 /**
@@ -16,6 +19,45 @@ export function useHasTwoBrightnesses(): boolean {
     const followBrowser = useThemeStore((s) => s.followBrowser);
     const mode = useThemeModeStore((s) => s.mode);
     return followBrowser || mode !== null;
+}
+
+/**
+ * The half that is on screen right now — same order of precedence the frontend
+ * uses: an explicit dark/light mode beats everything, then the browser sync,
+ * then the polarity of the design that is simply set.
+ *
+ * The admin runs outside <App/>, so neither the mode datapoint subscription nor
+ * the browser-sync effect is mounted here; both sources are read from what they
+ * left behind (the mode store is seeded from its cache in main.tsx).
+ */
+export function useShownBrightness(): 'light' | 'dark' {
+    const themeId = useThemeStore((s) => s.themeId);
+    const followBrowser = useThemeStore((s) => s.followBrowser);
+    const mode = useThemeModeStore((s) => s.mode);
+    if (mode) return mode;
+    if (followBrowser) return browserBrightness();
+    return getTheme(themeId).dark ? 'dark' : 'light';
+}
+
+/**
+ * Open the Design page on the half the user is looking at (#640).
+ *
+ * It used to start on "Gemeinsam" every time, which is the safe half (it feeds
+ * both) but not the visible one: whoever clicked "Hell" or "Dunkel" once and
+ * then set a colour on the wrong half saw nothing change and read it as the
+ * accent overriding their value. Only the opening choice is made here — the
+ * moment a tab is clicked the page stops deciding, and the Design page forgets
+ * the choice again when it unmounts, so the next visit re-reads the screen.
+ */
+export function useStartBrightness(): void {
+    const twoBrightnesses = useHasTwoBrightnesses();
+    const shown = useShownBrightness();
+    const startAt = useEditBrightness((s) => s.startAt);
+    const forget = useEditBrightness((s) => s.forget);
+    useEffect(() => {
+        startAt(twoBrightnesses ? shown : 'base');
+    }, [twoBrightnesses, shown, startAt]);
+    useEffect(() => forget, [forget]);
 }
 
 interface BrightnessTabsProps {
@@ -54,6 +96,7 @@ export function BrightnessTabs({
                 <button
                     key={s}
                     data-aura-brightness={s}
+                    aria-pressed={value === s}
                     onClick={() => onChange(s)}
                     className="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-colors"
                     style={{

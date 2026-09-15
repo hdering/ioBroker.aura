@@ -66,8 +66,30 @@ const varsCard = page.locator('[data-aura-theme-vars]');
 await varsCard.waitFor({ state: 'visible', timeout: 30000 });
 await page.waitForTimeout(500);
 
+// ── Die Seite öffnet auf der Hälfte, die man gerade sieht ────────────────────
+// Sie startete immer auf "Gemeinsam". Wer einmal "Hell" oder "Dunkel" gewählt
+// hatte und dann eine Farbe auf der falschen Hälfte setzte, sah nichts davon und
+// hielt den Akzent für den Gewinner (#640). Dieser Kontext ist hell.
+const activeBrightness = async (card) => {
+    for (const s of ['base', 'light', 'dark']) {
+        const tab = card.locator(`[data-aura-brightness="${s}"]`);
+        if ((await tab.count()) && (await tab.getAttribute('aria-pressed')) === 'true') return s;
+    }
+    return null;
+};
+check(
+    'der Variablen-Editor startet auf der angezeigten Hälfte',
+    (await activeBrightness(varsCard)) === 'light',
+    String(await activeBrightness(varsCard)),
+);
+
 // ── The preset grid stays usable while the browser sync is on ────────────────
 const presets = page.locator('[data-aura-theme-presets]');
+check(
+    'und die Preset-Auswahl steht auf derselben',
+    (await activeBrightness(presets)) === 'light',
+    String(await activeBrightness(presets)),
+);
 check(
     'the preset grid is not disabled any more',
     await presets.locator('[data-aura-theme-preset]').first().isEnabled(),
@@ -235,6 +257,61 @@ check(
 );
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
+
+// ── Dieselbe Startwahl aus den anderen beiden Quellen ────────────────────────
+// Die angezeigte Helligkeit kommt aus drei Ecken: dem Hell/Dunkel-Datenpunkt
+// (gecacht, weil der Admin außerhalb von <App/> läuft), der Browser-Kopplung und
+// sonst der Polarität des eingestellten Designs.
+async function startsOn({ colorScheme, follow, themeId, cachedMode }) {
+    const c = await browser.newContext({ viewport: { width: 1500, height: 1100 }, colorScheme });
+    await c.route('**/*', (route) => {
+        const url = route.request().url();
+        const backend = /socket\.io|[?&]sid=|\/proxy|\/api\//.test(url);
+        return url.startsWith(BASE) && !backend ? route.continue() : route.abort();
+    });
+    const p = await c.newPage();
+    await p.addInitScript(
+        ([follow, themeId, cachedMode]) => {
+            localStorage.setItem('aura-auth', JSON.stringify({ state: { sessionActive: true }, version: 0 }));
+            localStorage.setItem(
+                'aura-theme',
+                JSON.stringify({
+                    state: {
+                        themeId,
+                        customVars: {},
+                        customVarsLight: {},
+                        customVarsDark: {},
+                        userThemes: [],
+                        adminThemeId: 'light',
+                        followBrowser: follow,
+                        browserDarkThemeId: 'dark',
+                        browserLightThemeId: 'light',
+                    },
+                    version: 0,
+                }),
+            );
+            if (cachedMode) localStorage.setItem('aura-theme-mode', cachedMode);
+            else localStorage.removeItem('aura-theme-mode');
+        },
+        [follow, themeId, cachedMode ?? null],
+    );
+    await p.goto(`${BASE}/#/admin/design?ctx=global&tab=theme`, { waitUntil: 'domcontentloaded' });
+    const card = p.locator('[data-aura-theme-vars]');
+    await card.waitFor({ state: 'visible', timeout: 30000 });
+    await p.waitForTimeout(600);
+    const out = await activeBrightness(card);
+    await c.close();
+    return out;
+}
+
+const darkBrowser = await startsOn({ colorScheme: 'dark', follow: true, themeId: 'dark' });
+check('ein dunkler Browser öffnet auf der dunklen Hälfte', darkBrowser === 'dark', String(darkBrowser));
+
+const modeDp = await startsOn({ colorScheme: 'light', follow: false, themeId: 'light', cachedMode: 'dark' });
+check('der Hell/Dunkel-Datenpunkt schlägt den Browser', modeDp === 'dark', String(modeDp));
+
+const single = await startsOn({ colorScheme: 'dark', follow: false, themeId: 'light' });
+check('ohne zweite Helligkeit bleibt es beim gemeinsamen Satz', single === null, String(single));
 
 await browser.close();
 

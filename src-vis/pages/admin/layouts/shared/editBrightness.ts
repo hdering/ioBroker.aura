@@ -15,12 +15,21 @@ import type { VarScope } from '../../../../utils/themeVars';
  */
 interface EditBrightnessState {
     scope: VarScope;
+    /** True once the user picked a half — the page stops deciding for them then. */
+    picked: boolean;
     setScope: (scope: VarScope) => void;
+    /** Opening choice, ignored as soon as the user has picked one (useStartBrightness). */
+    startAt: (scope: VarScope) => void;
+    /** Back to "nothing chosen" — the Design page calls it when it goes away. */
+    forget: () => void;
 }
 
 export const useEditBrightness = create<EditBrightnessState>((set) => ({
     scope: 'base',
-    setScope: (scope) => set({ scope }),
+    picked: false,
+    setScope: (scope) => set({ scope, picked: true }),
+    startAt: (scope) => set((s) => (s.picked || s.scope === scope ? s : { ...s, scope })),
+    forget: () => set({ scope: 'base', picked: false }),
 }));
 
 /** The half this browser would show — the starting point where nothing is chosen. */

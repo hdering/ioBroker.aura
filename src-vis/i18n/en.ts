@@ -675,8 +675,10 @@ export const en: Record<TranslationKey, string> = {
     'theme.scope.light': 'Light',
     'theme.scope.dark': 'Dark',
     'theme.scope.baseHint': 'Applies to both brightnesses. Values on the “Light” and “Dark” tabs override it.',
-    'theme.scope.lightHint': 'Only applies while a light theme is shown (“{theme}”).',
-    'theme.scope.darkHint': 'Only applies while a dark theme is shown (“{theme}”).',
+    'theme.scope.lightHint':
+        'Only applies while a light theme is shown (“{theme}”). Pick “Shared” to set both brightnesses.',
+    'theme.scope.darkHint':
+        'Only applies while a dark theme is shown (“{theme}”). Pick “Shared” to set both brightnesses.',
 
     'theme.user.title': 'My themes',
     'theme.user.desc':
