@@ -21,3 +21,4 @@
 - Theme - switching light/dark in the header no longer keeps a colour from the other half, so the navigation background follows the design again (#640)
 - Theme - Navigation and Header moved to the top of the colour list, and the icon fields show the colour they really inherit instead of the accent (#640)
 - Theme - the Design page opens on the brightness that is on screen, so a colour set there is visible right away; pick "Shared" to set both (#640)
+- Theme - the header's light/dark button no longer switches the automatic one off: the next system switch, or a second press, hands the brightness back to it (#640)

@@ -150,6 +150,8 @@ const readout = (page) =>
         barBg: document.querySelector('.aura-tabs')
             ? getComputedStyle(document.querySelector('.aura-tabs')).backgroundColor
             : null,
+        // A forced brightness, as the header button leaves it behind on the device.
+        forcedMode: localStorage.getItem('aura-theme-mode'),
     }));
 
 /** Render the frontend with a seeded store and report what it actually paints. */
@@ -321,6 +323,64 @@ check('a deleted own theme falls back to a shipped one', ownGone.bg === BG.dark,
     await page.waitForTimeout(1500);
     const light = await readout(page);
     check('and switching back drops it again', light.navBg === '', light.navBg);
+    await ctx.close();
+}
+
+// ── A manual switch must not switch the automatic one off (#640) ─────────────
+// The header button writes a *mode* into a datapoint every device reads, and
+// that mode beat the browser sync — so one press pinned the brightness for good,
+// everywhere, until someone cleared the datapoint in the admin. It is a "show me
+// the other one now": the system's own switch takes it back, and so does a
+// second press once it would only reinstate what is shown anyway.
+{
+    const { ctx, page } = await openPage({ themeId: 'light', follow: true, prefersDark: false });
+    check('the browser sync starts light', (await readout(page)).bg === BG.light);
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.waitForTimeout(1200);
+    check('and follows the system', (await readout(page)).bg === BG.dark);
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.waitForTimeout(1200);
+
+    await page.locator('header button[title]').last().click();
+    await page.waitForTimeout(1200);
+    const forced = await readout(page);
+    check('a press forces the other brightness', forced.bg === BG.dark && forced.forcedMode === 'dark', forced.bg);
+
+    await page.emulateMedia({ colorScheme: 'dark' });
+    await page.waitForTimeout(1200);
+    check('the system switching releases the forced mode', (await readout(page)).forcedMode === null);
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.waitForTimeout(1200);
+    const back = await readout(page);
+    check('and the automatic switch works again', back.bg === BG.light, back.bg);
+
+    await page.locator('header button[title]').last().click();
+    await page.waitForTimeout(1200);
+    await page.locator('header button[title]').last().click();
+    await page.waitForTimeout(1200);
+    const released = await readout(page);
+    check(
+        'a second press hands the brightness back instead of pinning it',
+        released.bg === BG.light && released.forcedMode === null,
+        `${released.bg} / ${released.forcedMode}`,
+    );
+    await ctx.close();
+}
+
+// Without the browser sync the same rule holds against the configured design.
+{
+    const { ctx, page } = await openPage({ themeId: 'light', prefersDark: true });
+    await page.locator('header button[title]').last().click();
+    await page.waitForTimeout(1200);
+    check('a press forces dark onto a light design', (await readout(page)).forcedMode === 'dark');
+    await page.locator('header button[title]').last().click();
+    await page.waitForTimeout(1200);
+    const back = await readout(page);
+    check(
+        'and the second press leaves no forced mode behind',
+        back.bg === BG.light && back.forcedMode === null,
+        `${back.bg} / ${back.forcedMode}`,
+    );
     await ctx.close();
 }
 

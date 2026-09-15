@@ -94,6 +94,22 @@ const STORE_REHYDRATORS: Record<string, () => void> = {
     },
 };
 
+/** The datapoint that forces a brightness on every device. */
+const THEME_MODE_DP = `${NS}.config.themeMode.frontend`;
+
+/**
+ * Hand the brightness back to whatever decides it automatically (#640).
+ *
+ * Clearing it locally is not enough: the mode lives in a datapoint, so the next
+ * reload — and every other device — would read the forced value straight back.
+ * An empty datapoint is the documented "no mode forced".
+ */
+function releaseThemeMode(): void {
+    themeModeOverride.value = null;
+    writeCachedThemeMode(null);
+    setStateDirect(THEME_MODE_DP, '');
+}
+
 // ── ConnectionBadge ────────────────────────────────────────────────────────
 
 function ConnectionBadge() {
@@ -356,6 +372,20 @@ export default function App() {
     // Own variables for the brightness that actually paints here (#640) — the
     // scope cascade picks the set, the theme's polarity picks the half.
     const effectiveCustomVars = useEffectiveCustomVars(layout?.id, section?.id, currentTheme.dark);
+
+    /**
+     * The brightness this device would show with no mode forced — the browser's
+     * own preference while the sync is on, otherwise the polarity of the design
+     * that is configured here. The header button compares against it to decide
+     * whether a press forces a mode or hands the brightness back (#640).
+     */
+    const automaticBrightness = (): ThemeMode => {
+        const { followBrowser, themeId: savedThemeId } = useThemeStore.getState();
+        if (followBrowser) return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        return getTheme(section?.settings?.themeId ?? layout?.settings?.themeId ?? savedThemeId).dark
+            ? 'dark'
+            : 'light';
+    };
 
     // URL base for the current layout+section context. The section segment is only
     // added when the layout has more than one section (single-section layouts keep
@@ -715,14 +745,23 @@ export default function App() {
             const desired = mq.matches ? dark : light;
             if (themeId !== desired) setTheme(desired);
         };
+        // The system switching brightness releases a manual override. The header's
+        // sun/moon button means "show me the other one now", not "stop following
+        // the system for good" — and because the mode lives in a datapoint that
+        // every device reads, one press used to disable the automatic switch
+        // everywhere until someone cleared it in the admin (#640).
+        const onSystemChange = () => {
+            if (useThemeStore.getState().followBrowser && themeModeOverride.value) releaseThemeMode();
+            applyIfFollowing();
+        };
         applyIfFollowing();
-        mq.addEventListener('change', applyIfFollowing);
+        mq.addEventListener('change', onSystemChange);
         const unsub = useThemeStore.subscribe(applyIfFollowing);
         // Also react to the mode datapoint being cleared — browser sync takes
         // over again the moment the explicit override goes away.
         const unsubMode = useThemeModeStore.subscribe(applyIfFollowing);
         return () => {
-            mq.removeEventListener('change', applyIfFollowing);
+            mq.removeEventListener('change', onSystemChange);
             unsub();
             unsubMode();
         };
@@ -1342,9 +1381,17 @@ export default function App() {
                                         // Flip the mode only — the design stays whatever the
                                         // admin configured, so toggling back restores it (#573).
                                         const nextMode: ThemeMode = currentTheme.dark ? 'light' : 'dark';
+                                        // Toggling back to what would be shown anyway means "let go"
+                                        // rather than "force the same thing": the second press hands
+                                        // the brightness back to the automatic switch instead of
+                                        // pinning it for good on every device (#640).
+                                        if (nextMode === automaticBrightness()) {
+                                            releaseThemeMode();
+                                            return;
+                                        }
                                         themeModeOverride.value = nextMode;
                                         writeCachedThemeMode(nextMode);
-                                        setStateDirect(`${NS}.config.themeMode.frontend`, nextMode);
+                                        setStateDirect(THEME_MODE_DP, nextMode);
                                     }}
                                     className="w-8 h-8 flex items-center justify-center rounded-full hover:opacity-80 transition-opacity"
                                     style={{

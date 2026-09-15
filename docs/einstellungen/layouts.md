@@ -25,6 +25,10 @@ Welches Design das Frontend zeigt, entscheidet diese Reihenfolge:
 | 2       | Theme folgt Browser                | Überschreibt alle Presets, global wie pro Layout und Bereich                                                                                                                                     |
 | 3       | Bereich → Layout → Global          | Geltungsbereich links; der engste gesetzte Wert gewinnt                                                                                                                                          |
 
+Der Knopf im Header schreibt diesen Datenpunkt, er gilt also für alle Geräte. Gemeint ist „jetzt bitte das
+andere“, kein Dauerzustand: wechselt das System selbst die Helligkeit, oder drückt man den Knopf zurück auf
+das, was ohnehin angezeigt würde, wird der Datenpunkt geleert und die Automatik übernimmt wieder.
+
 ### Hell und Dunkel getrennt einstellen
 
 Sobald „Theme folgt Browser" aktiv ist (oder `themeMode.frontend` einen Modus setzt), zeigt dieselbe Installation zwei Designs. Preset-Raster und Variablen-Editor bekommen dann oben rechts einen Umschalter.
