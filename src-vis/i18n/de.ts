@@ -938,9 +938,9 @@ export const de = {
     'wf.menu.copyStyleHint':
         'Darstellung dieses Widgets merken — danach bei einem anderen Widget „Stil einfügen“ wählen',
     'wf.menu.pasteStyle': 'Stil einfügen',
-    'wf.menu.pasteStyleFrom': 'Stil von „{name}" übernehmen',
+    'wf.menu.pasteStyleFrom': 'Stil von „{name}“ übernehmen',
     'wf.menu.pasteFrameStyle': 'Rahmen-Stil einfügen',
-    'wf.menu.pasteFrameStyleFrom': 'Karten-Aussehen von „{name}" übernehmen (anderer Widget-Typ)',
+    'wf.menu.pasteFrameStyleFrom': 'Karten-Aussehen von „{name}“ übernehmen (anderer Widget-Typ)',
     'wf.menu.styleApplied': '{count} Einstellungen übernommen',
     'wf.menu.styleUnchanged': 'Stil war bereits identisch',
     'wf.menu.styleCopied': 'Stil kopiert',
