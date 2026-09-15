@@ -43,6 +43,7 @@ export default defineConfig({
             { text: 'Layouts & Theme', link: '/einstellungen/layouts' },
             { text: 'Frontend', link: '/einstellungen/frontend' },
             { text: 'CSS & JS', link: '/einstellungen/css-js' },
+            { text: 'CSS-Klassen', link: '/einstellungen/css-klassen' },
             { text: 'Design-Tokens', link: '/einstellungen/design-tokens' },
             { text: 'Einstellungen', link: '/einstellungen/settings' },
           ],

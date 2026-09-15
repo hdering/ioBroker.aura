@@ -12,6 +12,7 @@ Der Adminbereich liegt unter `/#/admin` und konfiguriert das gesamte Dashboard. 
 | [Layouts & Theme](./layouts) | Layouts, Theme, Typografie, Grid, Hilfslinien, Tab-Leiste, Werte & Formatierung |
 | [Frontend](./frontend) | Anzeige-Verhalten des Frontends |
 | [CSS & JS](./css-js) | Eigenes CSS/JavaScript einbinden |
+| [CSS-Klassen](./css-klassen) | Alle Selektoren, die Custom CSS treffen kann |
 | [Einstellungen](./settings) | Sprache, PIN, Backup, Geräte, Reset |
 
 Die Instanzkonfiguration im ioBroker-Admin ist getrennt davon: [KI-Zugriff (MCP)](./mcp) beschreibt, wie ein KI-Assistent das Dashboard bauen darf.

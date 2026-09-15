@@ -13,12 +13,16 @@ Eigenes CSS und JavaScript global oder pro Layout einbinden (Geltungsbereich obe
 | `.aura-tabs` | Tab-Leiste, oben wie unten |
 | `.aura-tabs-top` | Tab-Leiste über dem Dashboard |
 | `.aura-tabs-bottom` | Tab-Leiste als Fußzeile |
+| `.aura-widget-type-<typ>` | alle Widgets eines Typs |
+| `.aura-widget-title` · `.aura-widget-icon` · `.aura-widget-value` | Titel, Icon, Wert in jedem Widget |
 
 ```css
 .aura-tabs-bottom {
     padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
 ```
+
+Alle Selektoren: [CSS-Klassen](./css-klassen). Farben und Maße besser über [Design-Tokens](./design-tokens).
 
 ## Custom JS
 
