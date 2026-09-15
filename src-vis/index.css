@@ -82,6 +82,39 @@ iframe {
     display: none !important;
 }
 
+/*
+ * "Textumbruch" (#653). One rule for every widget type instead of a wrap option in
+ * each of the 55 widget files that cut text off: the option travels as a class on
+ * the frame root, the same trick the .aura-cond-* rules above use.
+ *
+ * Two selectors, because widgets truncate in two ways: the Tailwind class, and an
+ * inline `white-space: nowrap` — every widget's title `<p>` sets it that way. The
+ * inline one is why these need !important, exactly as the colour rules above do.
+ *
+ * `.aura-widget-value` is deliberately NOT listed: in a dozen widgets that marker
+ * sits on a flex container (ValueWidget, FillWidget, GaugeWidget …) that
+ * `display: -webkit-box` would take apart. A value that can get long carries
+ * `truncate` and is caught by the first selector.
+ *
+ * line-clamp, not a free wrap: the height stays capped at (n-1) extra lines, so a
+ * long text cannot spill out of a fixed-height card and the measured minimum
+ * heights (aura_measure) stay computable.
+ */
+.aura-textwrap .truncate,
+.aura-textwrap .aura-widget-title {
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--aura-wrap-lines, 2);
+    line-clamp: var(--aura-wrap-lines, 2);
+    overflow: hidden !important;
+    text-overflow: clip !important;
+    /* Tailwind's text-* ships an absolute line-height picked for a single line;
+       `normal` keeps the descenders of the last line inside the clamp. */
+    line-height: normal !important;
+}
+
 /* Condition effect on ONE element — a list row, a grid cell, a value in the second
    line. The widget-level equivalents are Tailwind's animate-pulse and `blink` above;
    these are applied as an inline animation, so they need a name of their own. */

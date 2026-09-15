@@ -85,6 +85,7 @@ const EXTRA_STYLE_KEYS = new Set([
     'multiline',
     'wrapText',
     'wrapCols',
+    'textLines',
     'scrollable',
     'autoShrink',
     'detailed',

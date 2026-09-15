@@ -827,6 +827,15 @@ export const UNIVERSAL_OPTIONS = {
             'Schreibt KEINEN Datenpunkt — dafür ein schreibendes Widget nehmen (chips, Listenzeile mit ' +
             'displayType "momentary"/"switch", enum, httpRequest). Die Varianten stehen unter ClickAction.',
     },
+    textLines: {
+        ts: 'number',
+        description:
+            'Zeilenumbruch fuer Titel und jeden abgeschnittenen Text: 1 (oder weggelassen) = abschneiden ' +
+            'wie bisher, 2..4 = umbrechen und nach so vielen Zeilen kappen. Gilt fuer jeden Widget-Typ. ' +
+            'Nicht in aura_measure enthalten, weil die Zusatzhoehe am Text haengt: erst wenn der Text ' +
+            'wirklich zu lang ist, kostet jede zusaetzliche Zeile eine Zeilenhoehe (~16 px bei fontScale 1) ' +
+            '— das dem gemessenen Mindestwert aufschlagen.',
+    },
     transparent: {
         ts: 'boolean',
         description: 'Kartenhintergrund und Rahmen weglassen; das Widget schwebt frei auf dem Dashboard.',

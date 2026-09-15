@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.59.4",
+    "auraVersion": "0.60.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -197,6 +197,10 @@
       "type": "object",
       "ref": "ClickAction",
       "description": "Was ein Klick auf das Widget auslöst: ein Popup öffnen oder springen (Tab, Widget, externe URL). Schreibt KEINEN Datenpunkt — dafür ein schreibendes Widget nehmen (chips, Listenzeile mit displayType \"momentary\"/\"switch\", enum, httpRequest). Die Varianten stehen unter ClickAction."
+    },
+    "textLines": {
+      "type": "number",
+      "description": "Zeilenumbruch fuer Titel und jeden abgeschnittenen Text: 1 (oder weggelassen) = abschneiden wie bisher, 2..4 = umbrechen und nach so vielen Zeilen kappen. Gilt fuer jeden Widget-Typ. Nicht in aura_measure enthalten, weil die Zusatzhoehe am Text haengt: erst wenn der Text wirklich zu lang ist, kostet jede zusaetzliche Zeile eine Zeilenhoehe (~16 px bei fontScale 1) — das dem gemessenen Mindestwert aufschlagen."
     },
     "transparent": {
       "type": "boolean",
@@ -5266,6 +5270,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -5359,6 +5364,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -5456,6 +5462,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -5626,6 +5633,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -5777,6 +5785,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -6314,6 +6323,7 @@
         "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -6373,6 +6383,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -6432,6 +6443,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -6620,6 +6632,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -6741,6 +6754,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -6884,6 +6898,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -7004,6 +7019,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -7124,6 +7140,7 @@
         "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -7294,6 +7311,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -7400,6 +7418,7 @@
         "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -7483,6 +7502,7 @@
         "showValue",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -7603,6 +7623,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -7829,6 +7850,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -7875,6 +7897,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -8074,6 +8097,7 @@
         "showValue",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -8161,6 +8185,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -8310,6 +8335,7 @@
         "showTitle",
         "showValue",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -8446,6 +8472,7 @@
         "showTitle",
         "showValue",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -8624,6 +8651,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -8739,6 +8767,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -8810,6 +8839,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -8881,6 +8911,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -8964,6 +8995,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -9054,6 +9086,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -9115,6 +9148,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -9231,6 +9265,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -9331,6 +9366,7 @@
         "showTitle",
         "showValue",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -9454,6 +9490,7 @@
         "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -9636,6 +9673,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -10035,6 +10073,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -10114,6 +10153,7 @@
         "fullscreenPosition",
         "fullscreenWidget",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -10241,6 +10281,7 @@
         "showStatusBadges",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent",
         "unreachDp"
@@ -10463,6 +10504,7 @@
         "fullscreenPosition",
         "fullscreenWidget",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -10549,6 +10591,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -10642,6 +10685,7 @@
         "fullscreenPosition",
         "fullscreenWidget",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -10679,6 +10723,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -10756,6 +10801,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -10887,6 +10933,7 @@
         "showValue",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -11073,6 +11120,7 @@
         "showValue",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -11206,6 +11254,7 @@
         "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -11324,6 +11373,7 @@
         "fullscreenPosition",
         "fullscreenWidget",
         "styleOverride",
+        "textLines",
         "transparency",
         "transparent"
       ],
@@ -11607,6 +11657,7 @@
         "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -11760,6 +11811,7 @@
         "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -11862,6 +11914,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -11964,6 +12017,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -12008,6 +12062,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -12110,6 +12165,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -12164,6 +12220,7 @@
         "showValue",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",
@@ -12232,6 +12289,7 @@
         "showIcon",
         "showTitle",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent"
@@ -12404,6 +12462,7 @@
         "showTitle",
         "statusBadgesAlertOnly",
         "styleOverride",
+        "textLines",
         "titleAlign",
         "transparency",
         "transparent",

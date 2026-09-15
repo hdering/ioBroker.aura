@@ -6984,11 +6984,16 @@ export function WidgetFrame({
     // index.css) — with a small "Innenabstand der Widgets" a fixed bleed would
     // push the rows and the scrollbar past the card border (#590).
     const padVar = { '--aura-widget-pad': `${isNoPad ? 0 : widgetPadding}px` } as React.CSSProperties;
+    // "Textumbruch": 1 (or unset) keeps every widget's own truncation. Above that the
+    // .aura-textwrap rule in index.css turns each truncated text into a clamped box of
+    // that many lines — see the comment there for why it rides on a class.
+    const textLines = Math.max(1, Math.min(6, Math.round(Number(config.options?.textLines) || 1)));
+    const wrapVar = (textLines > 1 ? { '--aura-wrap-lines': textLines } : {}) as React.CSSProperties;
 
     return (
         <div
             ref={focusRef}
-            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${partClasses} ${isFocused ? 'aura-widget-focused' : ''}`}
+            className={`aura-widget aura-widget-${config.id} aura-widget-type-${config.type} relative h-full transition-all overflow-visible ${isBareHeader ? 'px-2 py-0' : isNoPad ? 'p-0' : ''} ${editMode ? 'ring-2 ring-accent/40 rounded-xl' : ''} ${!editMode && conditionResult.effect === 'pulse' ? 'animate-pulse' : ''} ${!editMode && conditionResult.effect === 'blink' ? 'animate-[blink_1s_step-end_infinite]' : ''} ${!editMode && conditionResult.effect === 'border' ? 'aura-cond-ring' : ''} ${conditionResult.bold ? 'aura-cond-bold' : ''} ${conditionResult.italic ? 'aura-cond-italic' : ''} ${partClasses} ${textLines > 1 ? 'aura-textwrap' : ''} ${isFocused ? 'aura-widget-focused' : ''}`}
             onClick={handleWidgetClick}
             onContextMenu={
                 editMode
@@ -7008,6 +7013,7 @@ export function WidgetFrame({
                 isBareHeader || isTransparent
                     ? {
                           ...padVar,
+                          ...wrapVar,
                           background: isBareHeader ? 'var(--header-bg, transparent)' : transparentBg,
                           borderRadius:
                               isTransparent && (editMode || transparencyStrength < 100) ? 'var(--widget-radius)' : 0,
@@ -7027,6 +7033,7 @@ export function WidgetFrame({
                       }
                     : {
                           ...padVar,
+                          ...wrapVar,
                           background: cardBg,
                           borderRadius: 'var(--widget-radius)',
                           boxShadow: 'var(--widget-shadow)',
@@ -8468,6 +8475,45 @@ export function WidgetFrame({
                                             )}
                                         </>
                                     )}
+                                    {/* Textumbruch (#653) — one universal option instead of a
+                                        wrap toggle per widget type; the .aura-textwrap rule in
+                                        index.css does the work. */}
+                                    <div>
+                                        <div className="flex items-center justify-between mb-1">
+                                            <label
+                                                className="text-[11px] font-medium"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Textumbruch
+                                            </label>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {[1, 2, 3, 4].map((n) => {
+                                                const active = Math.max(1, Math.round(Number(o.textLines) || 1)) === n;
+                                                return (
+                                                    <button
+                                                        key={n}
+                                                        onClick={() => setO({ textLines: n === 1 ? undefined : n })}
+                                                        className="flex-1 text-[11px] rounded px-2 py-1 transition-colors"
+                                                        style={{
+                                                            background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                            color: active ? '#fff' : 'var(--text-secondary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    >
+                                                        {n === 1 ? 'aus' : `${n} Zeilen`}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                        <p
+                                            className="text-[10px] mt-1"
+                                            style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                        >
+                                            Zu langer Text wird umgebrochen statt abgeschnitten — bis zu so vielen
+                                            Zeilen. Das Widget braucht dafür die Höhe.
+                                        </p>
+                                    </div>
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <label
