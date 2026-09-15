@@ -22,14 +22,17 @@ Custom CSS wirkt im Frontend, im Editor nur mit der Option „CSS auch im Editor
 
 ## Tabs
 
-`.aura-tab` trägt **zwei** Elemente: den Knopf in der Leiste und den Inhaltsbereich des Tabs. Für den Knopf über `.aura-tabs` einsteigen, für den Inhalt über den Slug oder `[data-aura-tab-id]`.
+Knopf und Inhalt sind zwei verschiedene Elemente: `.aura-tab-btn` sitzt in der Leiste, `.aura-tab` um die Widgets des Tabs.
 
 | Selektor | trifft |
 | --- | --- |
-| `.aura-tabs .aura-tab` | Tab-Knopf in der Leiste |
-| `.aura-tabs .aura-tab-active` | aktiver Tab-Knopf |
-| `.aura-tab-<tab-slug>` | Inhaltsbereich eines Tabs |
+| `.aura-tab-btn` | Tab-Knopf in der Leiste |
+| `.aura-tab-active` | aktiver Tab-Knopf |
+| `.aura-tab` | Inhaltsbereich eines Tabs |
+| `.aura-tab-<tab-slug>` | Inhaltsbereich eines bestimmten Tabs |
 | `.aura-tab-scroll-ind` | Scroll-Anzeiger unter den Tabs (mobil) |
+
+Ein Tab mit dem Slug `active` bekäme über `.aura-tab-<slug>` ebenfalls `.aura-tab-active`. Wo das zählt, den Knopf über `.aura-tab-btn.aura-tab-active` ansprechen.
 
 ```css
 /* nur die untere Leiste */

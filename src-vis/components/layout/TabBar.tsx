@@ -360,9 +360,12 @@ export function TabBar({
 
                     const baseOpacity = isDraggingThis ? 0.4 : tab.disabled ? 0.45 : 1;
 
+                    // `aura-tab-btn`, not `aura-tab`: the tab's CONTENT container in Dashboard.tsx
+                    // has carried `aura-tab` since dc3841b0, so custom CSS written for the button
+                    // would have moved the dashboard along with it.
                     return (
                         <div
-                            className={`aura-tab${isActive ? ' aura-tab-active' : ''} group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? underlineCls : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''} ${!editMode && effect === 'border' ? 'aura-cond-ring' : ''}`}
+                            className={`aura-tab-btn${isActive ? ' aura-tab-active' : ''} group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? underlineCls : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''} ${!editMode && effect === 'border' ? 'aura-cond-ring' : ''}`}
                             style={{
                                 ...(cssVars as React.CSSProperties),
                                 ...ts,
