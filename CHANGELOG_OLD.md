@@ -1,5 +1,14 @@
 # Changelog (older entries)
 
+## 0.55.0 (2026-09-06)
+- 🌟 **New feature:** Universal Widget - the select cell can now take its entries from a JSON datapoint, and shows icons, images and HTML inside the dropdown, just like the standalone select widget ([#615](https://github.com/hdering/ioBroker.aura/issues/615))
+- MCP server - aura_rendered now lists every widget of the tab, including the ones that draw nothing, and prints the content height next to the rendered one; a card that is simply larger than it needs to be is no longer reported as a deviation
+- 🌟 **New feature:** Calendar - the calendar name, the event title, the date, the location and the coloured marker each carry their own CSS class now; the coloured dot/bar can be switched off, the calendar name aligned and the calendar icon resized in the editor ([#618](https://github.com/hdering/ioBroker.aura/issues/618))
+- 🌟 **New feature:** General - Aura now points out a newer adapter version: the admin sidebar shows it next to the version number, and an optional instance setting announces it in the frontend as a message ([#617](https://github.com/hdering/ioBroker.aura/issues/617))
+- 🌟 **New feature:** Dynamic list - a row can be given its own icon size even when the icon itself comes from the list-wide setting; the entry's icon button now shows that inherited icon faintly ([#616](https://github.com/hdering/ioBroker.aura/issues/616))
+- Settings - a device keeps its client ID: it is stored in the browser instead of being derived from the browser version, so a browser update no longer turns a named device into a new, nameless duplicate. A fixed, speaking ID can now be assigned per device, either in Connected Devices or by opening Aura with ?client=living-room-tablet ([#620](https://github.com/hdering/ioBroker.aura/issues/620))
+- 🌟 **New feature:** General - condition rules can be reordered afterwards: drag the new grip in the rule header or use the up/down arrows. Works everywhere rules are edited - widget and tab conditions, the list-wide and per-entry rules of the static and dynamic list, the datapoints of a second line, and the cells of the universal widget ([#623](https://github.com/hdering/ioBroker.aura/issues/623))
+
 ## 0.54.2 (2026-09-05)
 - Fill - dragging an adjustable limit no longer triggers the click action of the surrounding group ([#619](https://github.com/hdering/ioBroker.aura/issues/619))
 - AI access (MCP) - the dashboard now reports the heights it really renders; aura_rendered shows what scrolls and where the estimate is off
