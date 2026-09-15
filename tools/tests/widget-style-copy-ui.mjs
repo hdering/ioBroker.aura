@@ -5,9 +5,9 @@
 //
 // Geprüft wird, was nur im Browser sichtbar wird: dass der Rechtsklick auf ein
 // Widget im Editor dessen Menü öffnet (und beim Kind einer Gruppe nur das des
-// Kindes), dass „Stil einfügen" ohne Zwischenablage und bei fremdem Typ gesperrt
-// bleibt, und dass ein Einfügen wirklich nur die Darstellung des Ziels ersetzt
-// und dessen Datenpunkt/Titel stehen lässt.
+// Kindes), dass es für Kopieren und Einfügen genau EINEN Menüpunkt gibt, der je
+// nach Zwischenablage die Beschriftung wechselt, und dass ein Einfügen wirklich
+// nur die Darstellung des Ziels ersetzt und dessen Datenpunkt/Titel stehen lässt.
 //
 // Die reine Schlüssel-Einteilung steht in tools/tests/widget-style-copy.mjs.
 import { chromium } from 'playwright';
@@ -61,6 +61,9 @@ async function rightClick(id) {
 }
 
 const menuItem = (label) => page.locator(`button:has-text("${label}")`).last();
+/** Der eine Stil-Menüpunkt (#654) - data-style-entry traegt copy | paste | pasteFrame. */
+const styleEntry = page.locator('[data-style-entry]');
+const styleDiscard = page.locator('[data-style-discard]');
 const options = (id) => page.evaluate((w) => window.__auraShot.widgetOptions(w), id);
 
 // ── 1. Rechtsklick öffnet das Widget-Menü ──────────────────────────────────────
@@ -79,15 +82,28 @@ check(
     await page.evaluate(() => document.readyState === 'complete'),
 );
 
-// ── 2. Ohne Zwischenablage ist „Stil einfügen" gesperrt ────────────────────────
-check('„Stil einfügen" ist ohne Kopie gesperrt', await menuItem('Stil einfügen').isDisabled());
+// ── 2. Kopieren und Einfügen teilen sich EINEN Menüpunkt ───────────────────────
+check('Es gibt genau einen Stil-Menüpunkt', (await styleEntry.count()) === 1, `${await styleEntry.count()} Einträge`);
+check('Ohne Kopie heißt er „Stil kopieren"', (await styleEntry.getAttribute('data-style-entry')) === 'copy');
+check('Ohne Kopie gibt es nichts zu verwerfen', (await styleDiscard.count()) === 0);
 
 // ── 3. Kopieren, dann einfügen ─────────────────────────────────────────────────
-await menuItem('Stil kopieren').click();
-await page.waitForTimeout(200);
+await styleEntry.click();
+check('Das Kopieren meldet sich', await page.getByText('Stil kopiert').isVisible());
+await page.waitForTimeout(1900);
+await rightClick('src');
+check(
+    'Die Quelle selbst bietet weiter das Kopieren an',
+    (await styleEntry.getAttribute('data-style-entry')) === 'copy',
+);
+await page.keyboard.press('Escape');
 await rightClick('dst');
-const pasteBtn = menuItem('Stil einfügen');
-check('Nach dem Kopieren ist „Stil einfügen" frei', await pasteBtn.isEnabled());
+const pasteBtn = styleEntry;
+check(
+    'Beim zweiten Widget heißt derselbe Punkt „Stil einfügen"',
+    (await pasteBtn.getAttribute('data-style-entry')) === 'paste',
+);
+check('Immer noch nur ein Stil-Menüpunkt', (await styleEntry.count()) === 1);
 await pasteBtn.click();
 await page.waitForTimeout(350);
 
@@ -113,15 +129,25 @@ check(
 );
 
 // Die Rückmeldung nennt die Zahl der übernommenen Einstellungen.
-await rightClick('src');
-await menuItem('Stil kopieren').click();
 await rightClick('dst');
-await menuItem('Stil einfügen').click();
+await styleEntry.click();
 check(
     'Ein zweites Einfügen meldet „bereits identisch"',
     await page.getByText('Stil war bereits identisch').isVisible(),
 );
 await page.waitForTimeout(1900);
+
+// Das ✕ gibt die Ablage frei, damit auch das Ziel wieder Quelle werden kann.
+await rightClick('dst');
+check('Neben dem Einfügen steht ein Verwerfen', (await styleDiscard.count()) === 1);
+await styleDiscard.click();
+await page.waitForTimeout(150);
+check(
+    'Nach dem Verwerfen heißt der Punkt wieder „Stil kopieren"',
+    (await styleEntry.getAttribute('data-style-entry')) === 'copy',
+);
+check('Das Menü bleibt dabei offen', await styleEntry.isVisible());
+await page.keyboard.press('Escape');
 
 // ── 4. Fremder Typ bekommt nur den Rahmen ─────────────────────────────────────
 await show([
@@ -134,11 +160,15 @@ await show([
     },
 ]);
 await rightClick('one');
-await menuItem('Stil kopieren').click();
-await page.waitForTimeout(200);
+await styleEntry.click();
+await page.waitForTimeout(1900);
 await rightClick('two');
-check('Bei fremdem Typ heißt der Eintrag „Rahmen-Stil einfügen"', await menuItem('Rahmen-Stil einfügen').isVisible());
-await menuItem('Rahmen-Stil einfügen').click();
+check(
+    'Bei fremdem Typ heißt der Eintrag „Rahmen-Stil einfügen"',
+    (await styleEntry.getAttribute('data-style-entry')) === 'pasteFrame',
+);
+check('Auch dann bleibt es ein Menüpunkt', (await styleEntry.count()) === 1);
+await styleEntry.click();
 await page.waitForTimeout(350);
 const frame = await options('two');
 check('Der Kartenrahmen kommt an', frame.transparent === true, JSON.stringify(frame));
@@ -179,7 +209,7 @@ if (await kid.count()) {
     const box = await kid.boundingBox();
     await page.mouse.click(box.x + box.width / 2, box.y + box.height - 10, { button: 'right' });
     await page.waitForTimeout(250);
-    const menus = await page.locator('button:has-text("Stil kopieren")').count();
+    const menus = await styleEntry.count();
     check('Ein Gruppenkind öffnet genau ein Menü', menus === 1, `${menus} Menüs offen`);
     await page.keyboard.press('Escape');
 } else {

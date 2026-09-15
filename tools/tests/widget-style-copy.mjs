@@ -26,9 +26,8 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { isStyleOptionKey, extractWidgetStyle, applyWidgetStyle, styleFit, countStyleChanges } = await import(
-    pathToFileURL(bundle).href
-);
+const { isStyleOptionKey, extractWidgetStyle, applyWidgetStyle, styleFit, styleMenuAction, countStyleChanges } =
+    await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -133,6 +132,7 @@ eq(
     extractWidgetStyle({ ...source, title: '' }).sourceLabel,
     'value',
 );
+eq('the source id travels, so its own menu keeps offering a copy', style.sourceId, 'w1');
 
 // ── 5. Pasting ──
 const target = {
@@ -174,6 +174,17 @@ eq('a foreign type takes the frame only', styleFit({ ...target, type: 'switch' }
 eq('an empty clipboard fits nowhere', styleFit(target, null), 'none');
 ok('the change count is non-zero for a real paste', countStyleChanges(target, style) > 0);
 eq('pasting a style onto its own source changes nothing', countStyleChanges(source, style), 0);
+
+// ── 6a. The single menu entry (one row, not two) ──
+eq('nothing copied yet → the entry copies', styleMenuAction(target, null), 'copy');
+eq('the source widget keeps offering a copy', styleMenuAction(source, style), 'copy');
+eq('another widget of the same type pastes', styleMenuAction(target, style), 'paste');
+eq('a foreign type pastes the frame', styleMenuAction({ ...target, type: 'switch' }, style), 'pasteFrame');
+eq(
+    'a second widget that merely shares the title still pastes',
+    styleMenuAction({ ...target, title: 'Küche' }, style),
+    'paste',
+);
 
 // ── 6b. Across types only the card look travels ──
 const wide = extractWidgetStyle({

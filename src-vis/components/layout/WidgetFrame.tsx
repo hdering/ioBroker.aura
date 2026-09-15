@@ -56,7 +56,7 @@ import { panelActiveStateId } from '../../utils/publishPanelState';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
 import { useCopiedStyle, useStyleClipboardStore } from '../../store/styleClipboardStore';
-import { applyWidgetStyle, styleFit, countStyleChanges } from '../../utils/widgetStyle';
+import { applyWidgetStyle, styleFit, styleMenuAction, countStyleChanges } from '../../utils/widgetStyle';
 import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
@@ -6213,6 +6213,7 @@ export function WidgetFrame({
     const copiedStyle = useCopiedStyle();
     // 'full' on the same type, 'frame' (card look only) on a different one.
     const styleMode = styleFit(config, copiedStyle);
+    const styleAction = styleMenuAction(config, copiedStyle);
     const [styleToast, setStyleToast] = useState<{ key: number; count: number } | null>(null);
     useEffect(() => {
         if (!styleToast) return;
@@ -7066,10 +7067,14 @@ export function WidgetFrame({
                         className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[11px] font-medium shadow-lg"
                         style={{ background: 'var(--accent)', color: '#fff' }}
                     >
-                        <PaintBucket size={11} />
-                        {styleToast.count > 0
-                            ? t('wf.menu.styleApplied', { count: styleToast.count })
-                            : t('wf.menu.styleUnchanged')}
+                        {/* count < 0 = "Stil kopiert": mit einem einzigen Menupunkt sieht man
+                            sonst nicht, dass das Kopieren etwas bewirkt hat. */}
+                        {styleToast.count < 0 ? <Palette size={11} /> : <PaintBucket size={11} />}
+                        {styleToast.count < 0
+                            ? t('wf.menu.styleCopied')
+                            : styleToast.count > 0
+                              ? t('wf.menu.styleApplied', { count: styleToast.count })
+                              : t('wf.menu.styleUnchanged')}
                     </div>
                 </div>
             )}
@@ -7589,40 +7594,64 @@ export function WidgetFrame({
                             </button>
                         )}
 
-                        {/* Stil kopieren / einfügen (#654) — nur zwischen Widgets desselben Typs */}
-                        <button
-                            onClick={() => {
-                                useStyleClipboardStore.getState().copy(config);
-                                openPanelFor(null);
-                            }}
-                            className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
-                            style={{ color: 'var(--text-primary)' }}
-                        >
-                            <Palette size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-                            {t('wf.menu.copyStyle')}
-                        </button>
-                        <button
-                            disabled={styleMode === 'none'}
-                            title={
-                                styleMode === 'none'
-                                    ? t('wf.menu.pasteStyleEmpty')
-                                    : styleMode === 'frame'
-                                      ? t('wf.menu.pasteFrameStyleFrom', { name: copiedStyle?.sourceLabel ?? '' })
-                                      : t('wf.menu.pasteStyleFrom', { name: copiedStyle?.sourceLabel ?? '' })
-                            }
-                            onClick={() => {
-                                if (styleMode === 'none' || !copiedStyle) return;
-                                const count = countStyleChanges(config, copiedStyle, styleMode);
-                                if (count > 0) onConfigChange(applyWidgetStyle(config, copiedStyle, styleMode));
-                                setStyleToast({ key: Date.now(), count });
-                                openPanelFor(null);
-                            }}
-                            className="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left transition-opacity disabled:cursor-not-allowed hover:opacity-80"
-                            style={{ color: 'var(--text-primary)', opacity: styleMode === 'none' ? 0.4 : undefined }}
-                        >
-                            <PaintBucket size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-                            {t(styleMode === 'frame' ? 'wf.menu.pasteFrameStyle' : 'wf.menu.pasteStyle')}
-                        </button>
+                        {/* Stil kopieren / einfügen (#654) — EIN Menüpunkt, der sich nach der
+                            Zwischenablage richtet: leer (oder das eigene Widget) heißt kopieren,
+                            sonst einfügen. Das ✕ daneben gibt die Ablage wieder frei, damit auch
+                            ein drittes Widget noch zur Quelle werden kann. */}
+                        <div className="flex items-center">
+                            <button
+                                title={
+                                    styleAction === 'copy'
+                                        ? t('wf.menu.copyStyleHint')
+                                        : styleAction === 'pasteFrame'
+                                          ? t('wf.menu.pasteFrameStyleFrom', { name: copiedStyle?.sourceLabel ?? '' })
+                                          : t('wf.menu.pasteStyleFrom', { name: copiedStyle?.sourceLabel ?? '' })
+                                }
+                                onClick={() => {
+                                    if (styleAction === 'copy') {
+                                        useStyleClipboardStore.getState().copy(config);
+                                        setStyleToast({ key: Date.now(), count: -1 });
+                                        openPanelFor(null);
+                                        return;
+                                    }
+                                    if (!copiedStyle) return;
+                                    const count = countStyleChanges(config, copiedStyle, styleMode);
+                                    if (count > 0) onConfigChange(applyWidgetStyle(config, copiedStyle, styleMode));
+                                    setStyleToast({ key: Date.now(), count });
+                                    openPanelFor(null);
+                                }}
+                                className="flex-1 min-w-0 flex items-center gap-2.5 px-3 py-2 text-sm rounded-md text-left hover:opacity-80 transition-opacity"
+                                style={{ color: 'var(--text-primary)' }}
+                                data-style-entry={styleAction}
+                            >
+                                {styleAction === 'copy' ? (
+                                    <Palette size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                                ) : (
+                                    <PaintBucket size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                                )}
+                                <span className="truncate">
+                                    {t(
+                                        styleAction === 'copy'
+                                            ? 'wf.menu.copyStyle'
+                                            : styleAction === 'pasteFrame'
+                                              ? 'wf.menu.pasteFrameStyle'
+                                              : 'wf.menu.pasteStyle',
+                                    )}
+                                </span>
+                            </button>
+                            {styleAction !== 'copy' && (
+                                <button
+                                    onClick={() => useStyleClipboardStore.getState().clear()}
+                                    title={t('wf.menu.discardStyle')}
+                                    aria-label={t('wf.menu.discardStyle')}
+                                    className="mr-1 p-1.5 rounded-md hover:opacity-80 transition-opacity"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                    data-style-discard=""
+                                >
+                                    <X size={12} />
+                                </button>
+                            )}
+                        </div>
 
                         {/* Kopieren */}
                         {onDuplicate ? (

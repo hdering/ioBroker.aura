@@ -26,6 +26,8 @@ export interface WidgetStyle {
     type: WidgetType;
     /** Title of the source widget, for the menu label ("Stil von … einfügen"). */
     sourceLabel: string;
+    /** Id of the source widget — its own menu keeps offering "Stil kopieren". */
+    sourceId: string;
     /** Presentation variant (default / card / compact / …); undefined = default. */
     layout?: WidgetLayout;
     /** The style-carrying options, already filtered by `isStyleOptionKey`. */
@@ -148,6 +150,7 @@ export function extractWidgetStyle(config: WidgetConfig): WidgetStyle {
     return {
         type: config.type,
         sourceLabel: config.title?.trim() || config.type,
+        sourceId: config.id,
         layout: config.layout,
         options,
     };
@@ -186,6 +189,23 @@ export type StyleFit = 'full' | 'frame' | 'none';
 export function styleFit(config: WidgetConfig, style: WidgetStyle | null): StyleFit {
     if (!style) return 'none';
     return style.type === config.type ? 'full' : 'frame';
+}
+
+/**
+ * What the single style entry in the widget menu does right now (issue #654).
+ *
+ * One menu row, not two: with nothing copied it offers "Stil kopieren", and once
+ * a style is on the clipboard every OTHER widget offers to paste it. The source
+ * widget itself keeps offering "Stil kopieren", because pasting a widget's own
+ * style onto itself changes nothing — and because that is where a re-copy after
+ * a tweak belongs. To copy from a third widget while the clipboard is armed, the
+ * entry carries a discard button.
+ */
+export type StyleMenuAction = 'copy' | 'paste' | 'pasteFrame';
+
+export function styleMenuAction(config: WidgetConfig, style: WidgetStyle | null): StyleMenuAction {
+    if (!style || style.sourceId === config.id) return 'copy';
+    return styleFit(config, style) === 'frame' ? 'pasteFrame' : 'paste';
 }
 
 /** Keys a paste at this fit level is allowed to touch. */
