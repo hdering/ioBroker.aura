@@ -9,10 +9,11 @@
 - Keyboard shortcuts on Mac, iPad and iPhone now accept Cmd (and Option for copy-drag) and hint the matching key symbols (#651)
 - Add widget - a search box filters the list as you type, and non-matching entries are hidden (#652)
 - Add widget - picking a type no longer adds it right away, so its hint stays readable and another type can be chosen (#652)
-- Custom CSS - the tab bar carries .aura-tabs-top / .aura-tabs-bottom, so a rule can pad the footer bar only
+- Custom CSS - the tab bar carries .aura-tabs-top / .aura-tabs-bottom, so a rule can pad the footer bar only, and each tab carries .aura-tab / .aura-tab-active
 - AC control - Daikin air conditioners (daikin-cloud) can be picked as a manufacturer, filling every datapoint from one device (#650)
 - AC control - setpoint, fan speed and vanes follow the operation mode where a device keeps one datapoint per mode, and take their limits from it (#650)
 - AC control - vane positions are selectable, with a Powerful button and room humidity alongside them (#650)
 - Widgets can show a fullscreen button, so a chart or list fills the screen on a phone (#644)
 - Editor - a right-click opens the widget menu, where a single entry copies a widget's look and pastes it onto the next one: the full style within the same widget type, the card look (transparency, own CSS variables, title and icon) across types (#654)
 - Editor - widget controls are locked while designing, so a click picks up the card instead of switching the real device; the toolbar padlock unlocks them (#655)
+- Tab bar - a footer bar marks the active tab with a line above the icon; the marker side is configurable (#657)

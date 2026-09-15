@@ -184,6 +184,12 @@ export const de = {
     'settings.tabBar.styleUnderline': 'Unterstrich',
     'settings.tabBar.styleFilled': 'Gefüllt',
     'settings.tabBar.stylePills': 'Pill',
+    'settings.tabBar.indicatorSide': 'Strich-Position',
+    'settings.tabBar.sideAuto': 'Automatisch',
+    'settings.tabBar.sideTop': 'Oben',
+    'settings.tabBar.sideBottom': 'Unten',
+    'settings.tabBar.indicatorSideHint':
+        'Automatisch: bei der Leiste unten liegt der Strich über dem Tab, bei der Leiste oben darunter.',
     'settings.tabBar.fontSize': 'Schriftgröße',
     'settings.tabBar.iconSize': 'Icon-Größe',
     'settings.tabBar.fontSm': 'Klein',

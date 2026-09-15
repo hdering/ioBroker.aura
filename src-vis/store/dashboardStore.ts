@@ -89,6 +89,12 @@ export interface TabBarSettings {
     activeColor?: string; // active tab text + indicator
     inactiveColor?: string; // inactive tab text
     indicatorStyle?: 'text' | 'underline' | 'filled' | 'pills';
+    /**
+     * Which edge the `underline` indicator sits on. `auto` (default) follows the
+     * bar: a footer bar draws the line above the tab, a header bar below it, so
+     * the marker always faces the dashboard. `top`/`bottom` pin it regardless.
+     */
+    indicatorSide?: 'auto' | 'top' | 'bottom';
     fontSize?: number | 'sm' | 'md' | 'lg'; // px when number; legacy keyword sizes still resolved
     iconSize?: number; // tab icon size in px, default 14
     tabsAlignment?: 'left' | 'center' | 'right'; // navigation tabs position

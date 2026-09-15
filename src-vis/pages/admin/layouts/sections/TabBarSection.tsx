@@ -278,6 +278,11 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         { key: 'filled', label: t('settings.tabBar.styleFilled') },
         { key: 'pills', label: t('settings.tabBar.stylePills') },
     ];
+    const sideOptions: Array<{ key: NonNullable<TabBarSettings['indicatorSide']>; label: string }> = [
+        { key: 'auto', label: t('settings.tabBar.sideAuto') },
+        { key: 'top', label: t('settings.tabBar.sideTop') },
+        { key: 'bottom', label: t('settings.tabBar.sideBottom') },
+    ];
     // Resolve current font size to px; legacy keyword sizes map to their px equivalents.
     const fontPx = typeof tbs.fontSize === 'number' ? tbs.fontSize : { sm: 12, md: 14, lg: 16 }[tbs.fontSize ?? 'md'];
     const alignOptions: Array<{ key: TabBarSettings['tabsAlignment']; label: string }> = [
@@ -402,6 +407,41 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                             })}
                         </div>
                     </div>
+
+                    {/* Only the underline style has an edge to choose. */}
+                    {(tbs.indicatorStyle ?? 'underline') === 'underline' && (
+                        <div>
+                            <p
+                                className="text-sm mb-2 flex items-center gap-1.5"
+                                style={{ color: 'var(--text-primary)' }}
+                            >
+                                {t('settings.tabBar.indicatorSide')}
+                                <OverrideDot show={ov('indicatorSide')} title={ovTitle} />
+                            </p>
+                            <div className="flex gap-1.5">
+                                {sideOptions.map(({ key, label }) => {
+                                    const active = (tbs.indicatorSide ?? 'auto') === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            onClick={() => update({ indicatorSide: key })}
+                                            className="flex-1 py-1.5 rounded-lg text-xs font-medium hover:opacity-80"
+                                            style={{
+                                                background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                color: active ? '#fff' : 'var(--text-secondary)',
+                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                            }}
+                                        >
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-[11px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
+                                {t('settings.tabBar.indicatorSideHint')}
+                            </p>
+                        </div>
+                    )}
 
                     <div>
                         <div className="flex items-center justify-between mb-1">

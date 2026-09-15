@@ -71,6 +71,15 @@ function renderTabBarItem(item: TabBarItem) {
 // ── Computed tab styles based on indicatorStyle ────────────────────────────────
 // Uses var(--tab-*) with fallbacks so condition CSS vars can override per-tab.
 
+// Which edge the underline indicator sits on. `auto` follows the bar: a footer bar
+// marks the active tab above the icon (the line faces the dashboard), a header bar
+// below it — the classic look.
+function indicatorSide(settings: TabBarSettings | undefined): 'top' | 'bottom' {
+    const side = settings?.indicatorSide ?? 'auto';
+    if (side !== 'auto') return side;
+    return settings?.position === 'bottom' ? 'top' : 'bottom';
+}
+
 function tabStyle(isActive: boolean, settings: TabBarSettings | undefined): React.CSSProperties {
     const style = settings?.indicatorStyle ?? 'underline';
     const activeClr = settings?.activeColor ?? NAV_ACTIVE;
@@ -105,9 +114,11 @@ function tabStyle(isActive: boolean, settings: TabBarSettings | undefined): Reac
         };
     }
 
-    // underline (default)
+    // underline (default) — the border class picks the edge, this only colours it
     return {
-        borderBottomColor: isActive ? `var(--tab-accent, ${activeClr})` : 'transparent',
+        [indicatorSide(settings) === 'top' ? 'borderTopColor' : 'borderBottomColor']: isActive
+            ? `var(--tab-accent, ${activeClr})`
+            : 'transparent',
         color: isActive ? `var(--tab-accent, ${activeClr})` : `var(--tab-text, ${inactiveClr})`,
     };
 }
@@ -337,6 +348,10 @@ export function TabBar({
                     const isActive = tab.id === activeTabId;
                     const ts = tabStyle(isActive, tbSettings);
                     const indicatorStyle = tbSettings?.indicatorStyle ?? 'underline';
+                    // Only the marked edge carries a border, so the tab keeps the very
+                    // same height whichever side the stripe sits on.
+                    const underlineCls =
+                        indicatorSide(tbSettings) === 'top' ? 'py-2.5 border-t-2' : 'py-2.5 border-b-2';
                     const isDraggingThis = dragIdx === idx;
                     const isDragTarget = dragOverIdx === idx && dragIdx !== null && dragIdx !== idx;
 
@@ -344,7 +359,7 @@ export function TabBar({
 
                     return (
                         <div
-                            className={`group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? 'py-2.5 border-b-2' : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''} ${!editMode && effect === 'border' ? 'aura-cond-ring' : ''}`}
+                            className={`aura-tab${isActive ? ' aura-tab-active' : ''} group relative flex items-center gap-1.5 px-3 cursor-pointer transition-colors whitespace-nowrap select-none ${indicatorStyle === 'underline' ? underlineCls : 'py-1.5'} ${bold ? 'aura-cond-bold' : ''} ${italic ? 'aura-cond-italic' : ''} ${!editMode && effect === 'border' ? 'aura-cond-ring' : ''}`}
                             style={{
                                 ...(cssVars as React.CSSProperties),
                                 ...ts,
