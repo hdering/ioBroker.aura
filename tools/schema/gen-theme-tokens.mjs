@@ -66,7 +66,10 @@ function varComments(name) {
     const body = index.interfaceBody(name);
     const out = {};
     let group;
-    for (const line of ((body && body.body) || '').split('\n')) {
+    // A CRLF checkout leaves a carriage return on every line, and `.` does not
+    // match one — a field WITH a trailing comment would silently lose its
+    // description, so both line endings are split on.
+    for (const line of ((body && body.body) || '').split(/\r?\n/)) {
         const heading = line.match(/^\s*\/\/\s*(.+?)\s*$/);
         if (heading) {
             group = heading[1];

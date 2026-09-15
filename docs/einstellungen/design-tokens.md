@@ -49,7 +49,8 @@ Element-Tokens verfeinern einzelne Bauteile. Sie sind **nicht** pro Theme gesetz
 | `--header-text` / `--header-accent` | `--text-primary` / `--accent` | Abschnittstitel |
 | `--nav-bg` / `--nav-active` | `--app-surface` / `--accent` | Tab-Leiste, Bereichsleiste/-menü, Menü-Widget |
 | `--nav-text` | `--text-secondary` | Beschriftung eines inaktiven Eintrags |
-| `--nav-icon` / `--nav-active-icon` | Beschriftungsfarbe | Icons der Navigation (inaktiv / aktiv) |
+| `--nav-icon` / `--nav-active-icon` | `--nav-text` / `--nav-active` | Icons der Navigation (inaktiv / aktiv) |
+| `--nav-shadow` | `none` | Schatten unter Tab- und Bereichsleiste |
 | `--popup-bg` / `--popup-border` | `--app-surface` / `--app-border` | Popup-Fläche und -Rand |
 
 ## Eigene Themes

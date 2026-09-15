@@ -332,6 +332,9 @@ export function TabBar({
         // edit-mode guideline overlays at z-index 40+) to win the overlap.
         position: 'relative',
         zIndex: 20,
+        // Lets a design lift the bar off the dashboard — the border alone is flat
+        // against a surface of the same colour (#640).
+        boxShadow: 'var(--nav-shadow, none)',
         ...(barHeight ? { minHeight: `${barHeight}px` } : {}),
     };
 

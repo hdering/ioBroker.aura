@@ -145,6 +145,32 @@ await page.waitForTimeout(200);
 const inherited = await varsCard.locator('[data-aura-theme-var="--accent-red"]').getAttribute('placeholder');
 check('a half shows the shared value as its starting point', inherited === '#990000', String(inherited));
 
+// ── Ein Element erbt von seinem Element, nicht vom Akzent ────────────────────
+// Das Icon eines Navigationseintrags folgt der Farbe SEINES Eintrags; der
+// Platzhalter zeigte trotzdem den Akzent, also die Farbe zwei Stufen darunter —
+// wer "Aktiv" rot machte, las hinter "Icon aktiv" weiter Blau und hielt den
+// Akzent für den Gewinner (#640).
+await varsCard.locator('[data-aura-theme-var="--nav-active"]').fill('#ff0000');
+await page.waitForTimeout(300);
+const iconPlaceholder = await varsCard.locator('[data-aura-theme-var="--nav-active-icon"]').getAttribute('placeholder');
+check(
+    'das aktive Icon zeigt die aktive Navigationsfarbe als Vorgabe',
+    iconPlaceholder === '#ff0000',
+    String(iconPlaceholder),
+);
+await varsCard.locator('[data-aura-theme-var="--nav-active"]').fill('');
+await page.waitForTimeout(300);
+const iconFallback = await varsCard.locator('[data-aura-theme-var="--nav-active-icon"]').getAttribute('placeholder');
+check('ohne eigene Navigationsfarbe bleibt es beim Akzent', iconFallback === '#88ccff', String(iconFallback));
+
+// Die Navigation steht jetzt weit oben — vor den einzelnen Bedienelementen.
+const groupOrder = await varsCard.locator('.grid > div > p').allTextContents();
+check(
+    'die Navigation steht vor den Bedienelementen',
+    groupOrder.findIndex((g) => /Navigation/i.test(g)) < groupOrder.findIndex((g) => /Schalter|Switch/i.test(g)),
+    groupOrder.join(' | '),
+);
+
 // ── Beide Hell/Dunkel-Schalter meinen dieselbe Hälfte ────────────────────────
 // Oben (Presets) und unten (Variablen) standen unabhängig voneinander — wer oben
 // umschaltete, bearbeitete unten weiter die andere Hälfte.

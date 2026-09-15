@@ -475,6 +475,8 @@ export function LayoutDrawer({
             // badges overflowing the bar aren't hidden by opaque widgets below it.
             position: 'relative',
             zIndex: 20,
+            // Same token as the tab bar, so both bars lift together (#640).
+            boxShadow: 'var(--nav-shadow, none)',
             minHeight: entryHeight,
         };
         const ariaLabel = drawerTitle?.trim() || t('layoutDrawer.title');

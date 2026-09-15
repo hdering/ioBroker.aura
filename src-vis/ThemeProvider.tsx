@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useThemeStore } from './store/themeStore';
 import { useConfigStore } from './store/configStore';
 import { useGlobalThemeId } from './hooks/useEffectiveSettings';
@@ -24,12 +24,27 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         [theme.dark, baseVars, lightVars, darkVars],
     );
 
+    // Keys this effect put on <html> last time — see the removal below.
+    const appliedRef = useRef<Set<string>>(new Set());
+
     useEffect(() => {
         const root = document.documentElement;
         const vars = { ...theme.vars, ...customVars };
+        const applied = new Set<string>();
         Object.entries(vars).forEach(([k, v]) => {
-            if (v) root.style.setProperty(k, v);
+            if (!v) return;
+            root.style.setProperty(k, v);
+            applied.add(k);
         });
+        // Whatever the previous theme/half wrote and this one does not: take it
+        // off again. The base palette is complete in every theme and overwrites
+        // itself, but an element var only exists while someone sets it — so a
+        // `--nav-bg` from the light half stayed on <html> after the header's
+        // sun/moon button switched to dark, where no own value is set (#640).
+        appliedRef.current.forEach((k) => {
+            if (!applied.has(k)) root.style.removeProperty(k);
+        });
+        appliedRef.current = applied;
         root.style.setProperty('--font-scale', String(fontScale));
         root.classList.toggle('dark', theme.dark);
         // Match native form-control chrome to the theme (like AdminLayout does).

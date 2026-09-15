@@ -26,12 +26,14 @@ const NAV_ICON_ACTIVE = 'rgb(0, 255, 0)';
 const NAV_TEXT = 'rgb(0, 0, 255)';
 const NAV_ACTIVE = 'rgb(255, 0, 255)';
 const CHIP_ACTIVE = 'rgb(255, 128, 0)';
+const NAV_SHADOW = 'rgb(255, 0, 0) 0px 4px 12px 0px';
 const VARS = {
     '--nav-icon': NAV_ICON,
     '--nav-active-icon': NAV_ICON_ACTIVE,
     '--nav-text': NAV_TEXT,
     '--nav-active': NAV_ACTIVE,
     '--chip-active': CHIP_ACTIVE,
+    '--nav-shadow': '0 4px 12px rgb(255, 0, 0)',
 };
 
 const CHECK_DP = 'demo.mode';
@@ -199,6 +201,19 @@ const inactiveMenuIcon = await page
     .evaluate((el) => getComputedStyle(el).color);
 check('das Menü-Widget färbt das aktive Icon mit', activeMenuIcon === NAV_ICON_ACTIVE, activeMenuIcon);
 check('das Menü-Widget färbt das inaktive Icon mit', inactiveMenuIcon === NAV_ICON, inactiveMenuIcon);
+
+// Schatten der Navigation — es gab gar keinen, die Leisten trugen nur ihre
+// 1px-Linie und lagen damit flach auf einer gleichfarbigen Fläche (#640).
+const tabBarShadow = await page
+    .locator('.aura-tabs')
+    .first()
+    .evaluate((el) => getComputedStyle(el).boxShadow);
+const sectionBarShadow = await page
+    .locator('.aura-section-bar')
+    .first()
+    .evaluate((el) => getComputedStyle(el).boxShadow);
+check('die Tableiste nimmt --nav-shadow', tabBarShadow === NAV_SHADOW, tabBarShadow);
+check('die Bereichsleiste nimmt --nav-shadow', sectionBarShadow === NAV_SHADOW, sectionBarShadow);
 
 // Text der Navigation — vorher fest an --text-secondary / --accent
 const inactiveTabColor = await page

@@ -8,19 +8,33 @@ import { hasVars, VAR_SET_KEYS, type VarScope, type VarSets } from '../../../../
 import { useT } from '../../../../i18n';
 import { ColorPicker } from '../../../../components/common/ColorPicker';
 
+/**
+ * The editor's reading order (#640): first the palette everything else inherits
+ * from, then the chrome that frames every screen (navigation, header), then the
+ * card, and only after that the single control types. Before this, "Navigation"
+ * sat between "Licht" and "Popup", eleven groups down the page.
+ */
 const VAR_GROUPS: { labelKey: string; keys: (keyof AllVars)[] }[] = [
     { labelKey: 'theme.vars.app', keys: ['--app-bg', '--app-surface', '--app-border'] },
+    { labelKey: 'theme.vars.text', keys: ['--text-primary', '--text-secondary'] },
+    { labelKey: 'theme.vars.colors', keys: ['--accent', '--accent-green', '--accent-yellow', '--accent-red'] },
+    {
+        labelKey: 'theme.vars.elNav',
+        keys: ['--nav-bg', '--nav-text', '--nav-icon', '--nav-active', '--nav-active-icon', '--nav-shadow'],
+    },
+    { labelKey: 'theme.vars.elHeader', keys: ['--header-text', '--header-bg', '--header-accent'] },
     {
         labelKey: 'theme.vars.widget',
         keys: ['--widget-bg', '--widget-border', '--widget-border-width', '--widget-radius', '--widget-shadow'],
     },
-    { labelKey: 'theme.vars.text', keys: ['--text-primary', '--text-secondary'] },
-    { labelKey: 'theme.vars.colors', keys: ['--accent', '--accent-green', '--accent-yellow', '--accent-red'] },
-    // ── Element-specific overrides (Issue #313) ────────────────────────────────
+    { labelKey: 'theme.vars.elGroup', keys: ['--widget-in-group-bg', '--widget-in-group-border'] },
+    { labelKey: 'theme.vars.elPopup', keys: ['--popup-bg', '--popup-border'] },
     {
         labelKey: 'theme.vars.elSwitch',
         keys: ['--switch-bg', '--switch-off-bg', '--switch-thumb-color', '--switch-border'],
     },
+    { labelKey: 'theme.vars.elSlider', keys: ['--slider-track', '--slider-fill', '--slider-thumb'] },
+    { labelKey: 'theme.vars.elButton', keys: ['--button-bg', '--button-text', '--button-border'] },
     {
         labelKey: 'theme.vars.elBlind',
         keys: [
@@ -38,20 +52,11 @@ const VAR_GROUPS: { labelKey: string; keys: (keyof AllVars)[] }[] = [
             '--blind-down-border',
         ],
     },
-    { labelKey: 'theme.vars.elHeader', keys: ['--header-text', '--header-bg', '--header-accent'] },
-    { labelKey: 'theme.vars.elGroup', keys: ['--widget-in-group-bg', '--widget-in-group-border'] },
-    { labelKey: 'theme.vars.elSlider', keys: ['--slider-track', '--slider-fill', '--slider-thumb'] },
-    { labelKey: 'theme.vars.elButton', keys: ['--button-bg', '--button-text', '--button-border'] },
-    { labelKey: 'theme.vars.elGauge', keys: ['--gauge-arc', '--gauge-track'] },
     { labelKey: 'theme.vars.elClimate', keys: ['--climate-heat', '--climate-cool'] },
+    { labelKey: 'theme.vars.elLight', keys: ['--light-on', '--light-off'] },
     { labelKey: 'theme.vars.elChip', keys: ['--chip-bg', '--chip-border', '--chip-active'] },
     { labelKey: 'theme.vars.elBadge', keys: ['--badge-ok', '--badge-warn', '--badge-crit'] },
-    { labelKey: 'theme.vars.elLight', keys: ['--light-on', '--light-off'] },
-    {
-        labelKey: 'theme.vars.elNav',
-        keys: ['--nav-bg', '--nav-text', '--nav-icon', '--nav-active', '--nav-active-icon'],
-    },
-    { labelKey: 'theme.vars.elPopup', keys: ['--popup-bg', '--popup-border'] },
+    { labelKey: 'theme.vars.elGauge', keys: ['--gauge-arc', '--gauge-track'] },
 ];
 
 const VAR_LABEL_KEYS: Partial<Record<keyof AllVars, string>> = {
@@ -114,6 +119,7 @@ const VAR_LABEL_KEYS: Partial<Record<keyof AllVars, string>> = {
     '--nav-icon': 'theme.vars.elIcon',
     '--nav-active': 'theme.vars.elActive',
     '--nav-active-icon': 'theme.vars.elActiveIcon',
+    '--nav-shadow': 'theme.vars.shadow',
     '--popup-bg': 'theme.vars.bg',
     '--popup-border': 'theme.vars.border',
 };
@@ -127,13 +133,23 @@ function isColor(v: string) {
  * the theme; element vars fall back via ELEMENT_VAR_FALLBACKS (to another base
  * var or a literal like '#ffffff'/'transparent').
  */
-function resolveBase(key: keyof AllVars, themeVars: ThemeVars): string {
+function resolveBase(key: keyof AllVars, themeVars: ThemeVars, own: Partial<AllVars> = {}): string {
     if (key in themeVars) return themeVars[key as keyof ThemeVars];
-    const fb = ELEMENT_VAR_FALLBACKS[key as keyof typeof ELEMENT_VAR_FALLBACKS];
-    if (typeof fb === 'string' && fb.startsWith('--') && fb in themeVars) {
-        return themeVars[fb as keyof ThemeVars];
+    let fb: string | undefined = ELEMENT_VAR_FALLBACKS[key as keyof typeof ELEMENT_VAR_FALLBACKS];
+    // An element var may inherit from another element var — the icon of the active
+    // entry follows that entry's colour. Walk the chain and stop at the first hop
+    // the user has already set, because that is what the frontend paints: showing
+    // the accent behind "Icon aktiv" while the navigation's active colour is red
+    // read like the accent was winning (#640).
+    const seen = new Set<string>([key]);
+    while (typeof fb === 'string' && fb.startsWith('--') && !seen.has(fb)) {
+        seen.add(fb);
+        const set = own[fb as keyof AllVars];
+        if (set) return set;
+        if (fb in themeVars) return themeVars[fb as keyof ThemeVars];
+        fb = ELEMENT_VAR_FALLBACKS[fb as keyof typeof ELEMENT_VAR_FALLBACKS];
     }
-    return fb;
+    return fb ?? '';
 }
 
 interface ThemeVarsSectionProps {
@@ -167,6 +183,9 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
         dark: ls?.customVarsDark ?? customVarsDark,
     };
     const effectiveVars = sets[activeScope] ?? {};
+    // What this half really paints: the shared set with the half laid on top.
+    // resolveBase needs it to follow one element var to another (see there).
+    const inherited: Partial<AllVars> = activeScope === 'base' ? effectiveVars : { ...sets.base, ...effectiveVars };
     // The values shown behind the fields belong to the theme this half applies
     // to: editing the dark half against the light theme's palette would show
     // placeholders the user never gets to see.
@@ -249,7 +268,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                                 // from the theme - that is the value it really shows.
                                 const base =
                                     (activeScope !== 'base' ? sets.base?.[key] : undefined) ??
-                                    resolveBase(key, activeTheme.vars);
+                                    resolveBase(key, activeTheme.vars, inherited);
                                 const custom = effectiveVars[key];
                                 const current = custom ?? base;
                                 const varLabelKey = VAR_LABEL_KEYS[key];

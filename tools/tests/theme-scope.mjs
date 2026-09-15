@@ -46,7 +46,12 @@ const dashboard = (layoutSettings, sectionSettings) =>
                             name: 'Home',
                             slug: 'home',
                             ...(sectionSettings ? { settings: sectionSettings } : {}),
-                            tabs: [{ id: 'tab-1', name: 'Dashboard', slug: 'dashboard', widgets: [] }],
+                            // Two tabs: a single one draws no tab bar, and the bar is
+                            // what the navigation colours have to show up on.
+                            tabs: [
+                                { id: 'tab-1', name: 'Dashboard', slug: 'dashboard', widgets: [] },
+                                { id: 'tab-2', name: 'Zweites', slug: 'zweites', widgets: [] },
+                            ],
                             activeTabId: 'tab-1',
                         },
                     ],
@@ -61,8 +66,8 @@ const dashboard = (layoutSettings, sectionSettings) =>
 
 const browser = await chromium.launch();
 
-/** Render the frontend with a seeded store and report what it actually paints. */
-async function render({
+/** Open the frontend with a seeded store. The caller closes the context. */
+async function openPage({
     themeId = 'dark',
     mode = null,
     layout,
@@ -117,7 +122,12 @@ async function render({
     );
     await page.goto(`${BASE}/view/default`, { waitUntil: 'load' });
     await page.waitForTimeout(SETTLE_MS);
-    const out = await page.evaluate(() => ({
+    return { ctx, page };
+}
+
+/** What the frontend actually paints right now. */
+const readout = (page) =>
+    page.evaluate(() => ({
         bg: getComputedStyle(document.querySelector('[data-aura-app="frontend"]')).backgroundColor,
         // The accent is the token the issue is about: with the browser sync on,
         // it could only be right in one of the two themes.
@@ -132,7 +142,20 @@ async function render({
         scheme: getComputedStyle(document.querySelector('[data-aura-app="frontend"]')).colorScheme,
         // The saved design must survive a mode switch — it used to be overwritten.
         savedThemeId: JSON.parse(localStorage.getItem('aura-theme') || '{}').state?.themeId,
+        // Element tokens only exist while someone sets them — nothing in a theme
+        // overwrites a leftover from the other half.
+        navBg: getComputedStyle(document.querySelector('[data-aura-app="frontend"]'))
+            .getPropertyValue('--nav-bg')
+            .trim(),
+        barBg: document.querySelector('.aura-tabs')
+            ? getComputedStyle(document.querySelector('.aura-tabs')).backgroundColor
+            : null,
     }));
+
+/** Render the frontend with a seeded store and report what it actually paints. */
+async function render(opts) {
+    const { ctx, page } = await openPage(opts);
+    const out = await readout(page);
     await ctx.close();
     return out;
 }
@@ -261,6 +284,45 @@ check('a layout can override with an own theme', ownScoped.bg === BG['catppuccin
 // A theme that was deleted must not leave the frontend blank.
 const ownGone = await render({ themeId: 'user-404', userThemes: [] });
 check('a deleted own theme falls back to a shipped one', ownGone.bg === BG.dark, ownGone.bg);
+
+// ── Switching brightness while the page runs (#640) ──────────────────────────
+// The header's sun/moon button swaps the half without a reload. The base palette
+// rewrites itself, but an element token is only written while someone sets it —
+// so a `--nav-bg` from the light half stayed on <html> and the navigation kept
+// the other half's colour.
+{
+    const { ctx, page } = await openPage({
+        themeId: 'light',
+        varsLight: { '--nav-bg': '#ff0000' },
+        varsDark: {},
+    });
+    const before = await readout(page);
+    check('the light half colours the navigation', before.navBg === '#ff0000', before.navBg);
+    await page.locator('header button[title]').last().click();
+    await page.waitForTimeout(1500);
+    const after = await readout(page);
+    check('after the switch the light half is gone', after.navBg === '', after.navBg);
+    check('and the navigation follows the dark design', after.barBg === 'rgb(31, 41, 55)', String(after.barBg));
+    await ctx.close();
+}
+
+// The other direction: the dark half carries a value, the light one does not.
+{
+    const { ctx, page } = await openPage({
+        themeId: 'light',
+        varsLight: {},
+        varsDark: { '--nav-bg': '#00ff00' },
+    });
+    await page.locator('header button[title]').last().click();
+    await page.waitForTimeout(1500);
+    const dark = await readout(page);
+    check('the dark half takes over on the switch', dark.navBg === '#00ff00', dark.navBg);
+    await page.locator('header button[title]').last().click();
+    await page.waitForTimeout(1500);
+    const light = await readout(page);
+    check('and switching back drops it again', light.navBg === '', light.navBg);
+    await ctx.close();
+}
 
 await browser.close();
 

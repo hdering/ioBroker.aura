@@ -86,6 +86,7 @@ export interface ElementVars {
     '--nav-icon': string; // icon of an inactive entry (unset = follows the label)
     '--nav-active': string;
     '--nav-active-icon': string; // icon of the active entry (unset = follows the label)
+    '--nav-shadow': string; // shadow under the tab bar / section bar (unset = none)
     // Popup dialog (issue #611) — set these to lift a popup off the widgets
     '--popup-bg': string;
     '--popup-border': string;
@@ -139,9 +140,12 @@ export const ELEMENT_VAR_FALLBACKS: Record<keyof ElementVars, keyof ThemeVars | 
     '--light-off': '--text-secondary',
     '--nav-bg': '--app-surface',
     '--nav-text': '--text-secondary',
-    '--nav-icon': '--text-secondary',
+    // The icons follow their entry's label unless a colour of their own is set —
+    // the picker has to show that, not the accent two hops further down (#640).
+    '--nav-icon': '--nav-text',
     '--nav-active': '--accent',
-    '--nav-active-icon': '--accent',
+    '--nav-active-icon': '--nav-active',
+    '--nav-shadow': 'none',
     '--popup-bg': '--app-surface',
     '--popup-border': '--app-border',
 };

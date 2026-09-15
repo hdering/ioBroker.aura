@@ -17,3 +17,6 @@
 - Editor - a right-click opens the widget menu, where a single entry copies a widget's look and pastes it onto the next one: the full style within the same widget type, the card look (transparency, own CSS variables, title and icon) across types (#654)
 - Editor - widget controls are locked while designing, so a click picks up the card instead of switching the real device; the toolbar padlock unlocks them (#655)
 - Tab bar - a footer bar marks the active tab with a line above the icon; the marker side is configurable (#657)
+- Theme - the navigation can cast a shadow: Design -> Theme -> Navigation has its own shadow field (#640)
+- Theme - switching light/dark in the header no longer keeps a colour from the other half, so the navigation background follows the design again (#640)
+- Theme - Navigation and Header moved to the top of the colour list, and the icon fields show the colour they really inherit instead of the accent (#640)
