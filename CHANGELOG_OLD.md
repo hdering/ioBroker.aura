@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.55.1 (2026-09-07)
+- 🌟 **New feature:** Popups - the inner padding is now adjustable (globally, per popup view, per click action), and the scrollbar lane is only reserved while the popup really scrolls, so list rows in a popup get the full width ([#621](https://github.com/hdering/ioBroker.aura/issues/621))
+
 ## 0.55.0 (2026-09-06)
 - 🌟 **New feature:** Universal Widget - the select cell can now take its entries from a JSON datapoint, and shows icons, images and HTML inside the dropdown, just like the standalone select widget ([#615](https://github.com/hdering/ioBroker.aura/issues/615))
 - MCP server - aura_rendered now lists every widget of the tab, including the ones that draw nothing, and prints the content height next to the rendered one; a card that is simply larger than it needs to be is no longer reported as a deviation
