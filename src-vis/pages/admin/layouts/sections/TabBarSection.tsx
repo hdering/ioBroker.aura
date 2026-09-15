@@ -289,6 +289,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
         { key: 'left', label: t('settings.tabBar.alignLeft') },
         { key: 'center', label: t('settings.tabBar.alignCenter') },
         { key: 'right', label: t('settings.tabBar.alignRight') },
+        { key: 'stretch', label: t('settings.tabBar.alignStretch') },
     ];
 
     return (

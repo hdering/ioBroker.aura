@@ -749,3 +749,20 @@ input[type='range']::-moz-range-thumb {
     max-width: 100%;
     height: auto;
 }
+
+/* ── Navigation: evenly distributed entries (#661) ────────────────────────────
+   Tab bar / section bar with alignment "stretch": every entry gets the same share
+   of the row, so the active marker runs wider than the label. The row keeps its
+   gap, the entries only shrink — nothing scrolls in this mode. */
+.aura-nav-stretch > * {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+}
+/* Long names shorten with an ellipsis instead of spilling over the neighbour.
+   Only the label is clipped — badges overflow the entry on purpose. */
+.aura-nav-stretch .aura-tab-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}

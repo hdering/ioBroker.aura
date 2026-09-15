@@ -17,6 +17,7 @@ Custom CSS wirkt im Frontend, im Editor nur mit der Option „CSS auch im Editor
 | `.aura-tabs-top` | Tab-Leiste über dem Dashboard |
 | `.aura-tabs-bottom` | Tab-Leiste als Fußzeile |
 | `.aura-section-bar` | Bereichsleiste |
+| `.aura-nav-stretch` | Eintragsreihe einer Leiste mit Menü-Position `Gleichmäßig` |
 | `.aura-menu-widget` | Widget-Platz in einer Menüleiste |
 | `.aura-pin-prompt` | PIN-Abfrage vor einem gesperrten Tab |
 
@@ -30,6 +31,7 @@ Knopf und Inhalt sind zwei verschiedene Elemente: `.aura-tab-btn` sitzt in der L
 | `.aura-tab-active` | aktiver Tab-Knopf |
 | `.aura-tab` | Inhaltsbereich eines Tabs |
 | `.aura-tab-<tab-slug>` | Inhaltsbereich eines bestimmten Tabs |
+| `.aura-tab-label` | Beschriftung im Tab-Knopf |
 | `.aura-tab-scroll-ind` | Scroll-Anzeiger unter den Tabs (mobil) |
 
 Ein Tab mit dem Slug `active` bekäme über `.aura-tab-<slug>` ebenfalls `.aura-tab-active`. Wo das zählt, den Knopf über `.aura-tab-btn.aura-tab-active` ansprechen.

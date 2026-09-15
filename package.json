@@ -216,6 +216,7 @@
     "test:menu-widget-size": "node tools/tests/menu-widget-size.mjs",
     "test:tab-bar-hidden": "node tools/tests/tab-bar-hidden.mjs",
     "test:tab-bar-indicator": "node tools/tests/tab-bar-indicator.mjs",
+    "test:nav-stretch": "node tools/tests/nav-stretch.mjs",
     "test:image-source": "node tools/tests/image-source.mjs",
     "test:media-detect": "node tools/tests/media-role-detect.mjs",
     "test:autolist-icon": "node tools/tests/autolist-icon.mjs",

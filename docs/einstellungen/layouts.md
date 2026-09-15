@@ -85,6 +85,7 @@ Darstellung der Tab-Leiste im Frontend.
 | Option           |                                                                                                            |
 | ---------------- | ---------------------------------------------------------------------------------------------------------- |
 | Strich-Position  | Nur beim Tab-Stil `Unterstrich`: `Automatisch` legt den Strich bei der Leiste unten über den Tab, bei der Leiste oben darunter; `Oben`/`Unten` nageln ihn fest |
+| Menü-Position    | Wo die Tabs in der Leiste sitzen: `Links`, `Mitte`, `Rechts` oder `Gleichmäßig`. Bei `Gleichmäßig` sind alle Tabs gleich breit und füllen die Leiste; die Markierung wird damit breiter als die Beschriftung, Menü-Elemente behalten ihre Breite am Rand. Auf schmalen Geräten kürzen lange Namen mit …, statt zu scrollen. Die Bereichsleiste (Bereichs-Menü oben/unten) kennt dieselbe Einstellung |
 
 Die Leiste erscheint erst ab zwei sichtbaren Tabs. Ausgeblendete und deaktivierte Tabs zählen nicht mit — ein Bereich mit zwei Tabs, von denen einer ausgeblendet ist, zeigt keine Leiste. Ausnahmen: **Leiste schon ab einem Tab anzeigen** oder ein Menü-Element in der Leiste.
 

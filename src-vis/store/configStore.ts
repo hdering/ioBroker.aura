@@ -94,7 +94,7 @@ export interface FrontendSettings {
     /** Entry icon size in px. */
     layoutDrawerIconSize: number;
     /** Horizontal-bar placement (top/bottom): alignment of the section entries in the bar. */
-    layoutDrawerBarAlignment: 'left' | 'center' | 'right';
+    layoutDrawerBarAlignment: 'left' | 'center' | 'right' | 'stretch';
     /** Horizontal-bar placement (top/bottom): hide the custom scroll indicator on mobile. */
     layoutDrawerHideMobileScrollbar: boolean;
     /** Extra elements (clock/datapoint/text) rendered above/below the layout list. */

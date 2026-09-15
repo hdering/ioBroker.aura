@@ -263,6 +263,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.tabBar.alignLeft': 'Left',
     'settings.tabBar.alignCenter': 'Center',
     'settings.tabBar.alignRight': 'Right',
+    'settings.tabBar.alignStretch': 'Even',
     'settings.tabBar.hideMobileScrollbar': 'Hide scroll bar (mobile)',
     'settings.tabBar.showSingle': 'Show bar with a single tab',
     'settings.tabBar.position': 'Position',

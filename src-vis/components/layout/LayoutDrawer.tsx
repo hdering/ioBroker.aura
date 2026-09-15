@@ -48,7 +48,7 @@ interface LayoutDrawerProps {
     /** For variant='bar': whether the bar sits above ('top') or below ('bottom') the dashboard — decides which edge carries the divider. */
     barPosition?: 'top' | 'bottom';
     /** For variant='bar': horizontal alignment of the section entries (mirrors the tab bar). */
-    barAlignment?: 'left' | 'center' | 'right';
+    barAlignment?: 'left' | 'center' | 'right' | 'stretch';
     /** For variant='bar': hide the custom scroll indicator on mobile. */
     hideMobileScrollbar?: boolean;
     /** Width in px of the docked sidebar (variant='sidebar'). */
@@ -480,6 +480,28 @@ export function LayoutDrawer({
             minHeight: entryHeight,
         };
         const ariaLabel = drawerTitle?.trim() || t('layoutDrawer.title');
+
+        // Alignment 'stretch': the section entries share the whole bar width in equal parts
+        // (#661). Same shape as the tab bar — extra items keep their natural width at the
+        // edges, `.aura-nav-stretch` (index.css) spreads the entries in between. Nothing
+        // scrolls here, the entries shrink instead.
+        if (alignment === 'stretch') {
+            return (
+                <nav
+                    className="aura-section-bar shrink-0 flex items-center"
+                    style={containerStyle}
+                    aria-label={ariaLabel}
+                >
+                    {leadItems.length > 0 && (
+                        <div className="flex items-center gap-1 pl-2 shrink-0">{renderBarItems(leadItems)}</div>
+                    )}
+                    <div className="aura-nav-stretch flex items-center gap-1 flex-1 min-w-0 px-2">{sectionButtons}</div>
+                    {trailItems.length > 0 && (
+                        <div className="flex items-center gap-1 pr-2 shrink-0">{renderBarItems(trailItems)}</div>
+                    )}
+                </nav>
+            );
+        }
 
         if (needsGrid) {
             return (

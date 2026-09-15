@@ -264,6 +264,7 @@ export const de = {
     'settings.tabBar.alignLeft': 'Links',
     'settings.tabBar.alignCenter': 'Mitte',
     'settings.tabBar.alignRight': 'Rechts',
+    'settings.tabBar.alignStretch': 'Gleichmäßig',
     'settings.tabBar.hideMobileScrollbar': 'Laufleiste ausblenden (mobil)',
     'settings.tabBar.showSingle': 'Leiste schon ab einem Tab anzeigen',
     'settings.tabBar.position': 'Position',

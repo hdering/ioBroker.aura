@@ -97,7 +97,7 @@ export interface TabBarSettings {
     indicatorSide?: 'auto' | 'top' | 'bottom';
     fontSize?: number | 'sm' | 'md' | 'lg'; // px when number; legacy keyword sizes still resolved
     iconSize?: number; // tab icon size in px, default 14
-    tabsAlignment?: 'left' | 'center' | 'right'; // navigation tabs position
+    tabsAlignment?: 'left' | 'center' | 'right' | 'stretch'; // navigation tabs position ('stretch' spreads the tabs evenly over the full bar width)
     hideMobileScrollbar?: boolean; // hide the mobile scroll indicator ("Laufleiste") under the tabs
     showSingle?: boolean; // show the tab bar even when the section has only a single tab
     position?: 'top' | 'bottom'; // render the bar above the dashboard (default) or as a footer
@@ -202,7 +202,7 @@ export interface LayoutSettings {
     layoutDrawerIconSize?: number;
     // Horizontal-bar placement only (top/bottom): where the section entries sit and
     // whether the mobile scroll indicator is hidden — mirrors the tab bar.
-    layoutDrawerBarAlignment?: 'left' | 'center' | 'right';
+    layoutDrawerBarAlignment?: 'left' | 'center' | 'right' | 'stretch';
     layoutDrawerHideMobileScrollbar?: boolean;
     layoutDrawerItems?: LayoutMenuItem[];
     // Header

@@ -606,11 +606,12 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                     {t('settings.tabBar.tabsAlignment')}
                                 </p>
                                 <div className="flex gap-1.5">
-                                    {(['left', 'center', 'right'] as const).map((v) => {
+                                    {(['left', 'center', 'right', 'stretch'] as const).map((v) => {
                                         const labels = {
                                             left: t('settings.tabBar.alignLeft'),
                                             center: t('settings.tabBar.alignCenter'),
                                             right: t('settings.tabBar.alignRight'),
+                                            stretch: t('settings.tabBar.alignStretch'),
                                         };
                                         const active = (frontend.layoutDrawerBarAlignment ?? 'left') === v;
                                         return (

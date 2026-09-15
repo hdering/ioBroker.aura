@@ -9,3 +9,4 @@
 
 - Custom CSS - the tab button in the tab bar is now `.aura-tab-btn`; `.aura-tab` again matches only a tab's content area (#648)
 - Documentation - new reference page listing every CSS class, data attribute and variable custom CSS can target (#648)
+- Tab bar and section bar - new menu position "Even" spreads the entries over the full bar width, so the active marker runs wider than the label (#661)

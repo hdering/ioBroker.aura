@@ -481,6 +481,7 @@ export function TabBar({
                             ) : (
                                 (!readonly || !tab.hideLabel) && (
                                     <span
+                                        className="aura-tab-label"
                                         onDoubleClick={(e) => {
                                             if (!readonly) {
                                                 e.stopPropagation();
@@ -854,6 +855,37 @@ export function TabBar({
             </label>
         </>
     );
+
+    // Alignment 'stretch': the tabs share the whole bar width in equal parts (#661).
+    // Nothing scrolls here — the tabs shrink instead of overflowing — so this path uses a
+    // plain flex row: menu items keep their natural width at both edges, the tab row takes
+    // the rest. `.aura-nav-stretch` (index.css) does the equal-share maths for the children.
+    if (tabsAlignment === 'stretch') {
+        const leadingExtras = headerSlot || leftItems.length > 0;
+        const trailingExtras = centerItems.length > 0 || rightItems.length > 0 || Boolean(addTabBtn);
+        return (
+            <>
+                <div className={`aura-tabs ${barPosClass} shrink-0 flex items-center`} style={containerStyle}>
+                    {leadingExtras && (
+                        <div className="flex items-center gap-1 pl-2 shrink-0">
+                            {headerSlot}
+                            {leftItems.map(renderTabBarItem)}
+                        </div>
+                    )}
+                    <div className="aura-nav-stretch flex items-center gap-1 flex-1 min-w-0 px-2">{renderTabs()}</div>
+                    {trailingExtras && (
+                        <div className="flex items-center gap-1 pr-2 shrink-0">
+                            {centerItems.map(renderTabBarItem)}
+                            {rightItems.map(renderTabBarItem)}
+                            {addTabBtn}
+                        </div>
+                    )}
+                </div>
+                {settingsPanel}
+                {iconPickerModal}
+            </>
+        );
+    }
 
     if (needsGrid) {
         return (
