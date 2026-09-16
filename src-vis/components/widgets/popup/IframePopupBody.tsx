@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { MonitorDot, AlertTriangle } from 'lucide-react';
 import type { ClickAction } from '../../../types';
 import { resolveSandboxAttr } from '../../../utils/iframeSandbox';
+import { useIframeColorScheme } from '../../../hooks/useIframeColorScheme';
 
 interface Props {
     action: Extract<ClickAction, { kind: 'popup-iframe' }>;
@@ -9,6 +10,10 @@ interface Props {
 
 export function IframePopupBody({ action }: Props) {
     const [timedOut, setTimedOut] = useState(false);
+    const boxRef = useRef<HTMLDivElement | null>(null);
+    // The popup sits on Aura's surface, so the page inside follows Aura's
+    // brightness like an iframe widget does (#663).
+    const colorSchemeStyle = useIframeColorScheme(boxRef, undefined);
 
     if (!action.url) {
         return (
@@ -29,7 +34,7 @@ export function IframePopupBody({ action }: Props) {
     );
 
     return (
-        <div style={{ width: 'min(88vw, 860px)', height: 'min(80vh, 680px)', position: 'relative' }}>
+        <div ref={boxRef} style={{ width: 'min(88vw, 860px)', height: 'min(80vh, 680px)', position: 'relative' }}>
             {timedOut && (
                 <div
                     className="absolute inset-0 flex flex-col items-center justify-center gap-2 z-10"
@@ -50,6 +55,7 @@ export function IframePopupBody({ action }: Props) {
                     height: '100%',
                     border: 'none',
                     borderRadius: '0 0 var(--widget-radius) var(--widget-radius)',
+                    ...colorSchemeStyle,
                 }}
                 title="Popup"
             />

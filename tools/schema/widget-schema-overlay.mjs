@@ -738,6 +738,20 @@ export const WIDGET_OPTION_NOTES = {
  * separate store, so the component never reads them off `options`.
  */
 export const EXTRA_OPTIONS = {
+    iframe: {
+        // Read in hooks/useIframeColorScheme, not through the widget's own
+        // options binding.
+        iframeColorScheme: {
+            type: 'string',
+            enum: ['theme', 'device', 'neutral'],
+            default: 'theme',
+            description:
+                'Welche Helligkeit die eingebettete Seite bekommt: "theme" (Standard) gibt das Aura-Theme ' +
+                'weiter, "device" überlässt sie der Systemeinstellung des Geräts, "neutral" setzt gar keine - ' +
+                'dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst ' +
+                'bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht.',
+        },
+    },
     calendar: {
         // Read inside getMultiDayMode(options), i.e. through a parameter rather
         // than the component's own options binding.

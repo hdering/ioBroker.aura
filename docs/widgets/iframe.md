@@ -28,6 +28,7 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 | `refreshInterval` | `0` | automatisches Neuladen in Sekunden (`0` = aus; bei `keepAlive` ignoriert) |
 | `reloadOnWake` | `false` | nach Display-Standby neu laden (hebt `keepAlive` auf) |
 | `fullscreenButton` | `false` | Vollbild-Button beim Hover einblenden |
+| `iframeColorScheme` | `theme` | `theme` · `device` · `neutral` — siehe unten |
 
 `reloadOnWake` ist für eingebettete Videos/Streams gedacht: Der Browser bricht sie im
 Standby ab, und ohne Nutzer-Tipp startet der Player nicht wieder. Für Seiten mit
@@ -38,6 +39,25 @@ siehe [Editor](../einstellungen/editor.md#widget-neu-laden). Nötig, sobald sich
 Inhalt hinter einer gleichbleibenden URL ändert (z. B. Diagramm eines Skripts, das
 auf ein Auswahlfeld reagiert): Die Adresse ändert sich nicht, also lädt der iFrame
 von sich aus nicht neu.
+
+#### Farbschema der Seite
+
+Die eingebettete Seite entscheidet selbst, ob sie hell oder dunkel erscheint — meist
+anhand der Systemeinstellung des Geräts. Aura kann ihr stattdessen die eigene
+Helligkeit vorgeben; der Wechsel wirkt ohne Neuladen.
+
+| Wert | Die Seite folgt | Hintergrund |
+| --- | --- | --- |
+| `theme` | dem Aura-Theme | die Seite bringt ihren eigenen mit |
+| `device` | der Systemeinstellung des Geräts | die Seite bringt ihren eigenen mit |
+| `neutral` | bleibt hell | die Widget-Karte scheint durch |
+
+`neutral` ist für Seiten ohne eigenen Hintergrund: ohne diese Einstellung malt der
+Browser dahinter eine weiße Fläche.
+
+**Nur Safari und Firefox** geben die Helligkeit an eingebettete Seiten weiter. Chrome,
+Edge und die Android-WebView ignorieren sie — dort entscheidet immer das Gerät, in
+jedem der drei Werte.
 
 #### Interaktion vs. Klick-Aktion
 

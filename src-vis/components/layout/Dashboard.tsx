@@ -1310,7 +1310,14 @@ function IframeOverlay({ data, onClose }: { data: IframeFullscreenData; onClose:
                 sandbox={data.sandboxAttr}
                 allow="autoplay; fullscreen; picture-in-picture; web-share"
                 title={data.title}
-                style={{ width: '100%', flex: 1, border: 'none', display: 'block', height: '100%' }}
+                style={{
+                    width: '100%',
+                    flex: 1,
+                    border: 'none',
+                    display: 'block',
+                    height: '100%',
+                    colorScheme: data.colorScheme,
+                }}
             />
             <button
                 onClick={onClose}

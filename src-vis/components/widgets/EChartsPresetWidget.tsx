@@ -119,6 +119,7 @@ export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: W
                     <iframe
                         src={url}
                         title={config.title || 'eCharts'}
+                        className="aura-frame-neutral"
                         style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                         allow="fullscreen"
                     />
@@ -169,6 +170,7 @@ export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: W
                             <iframe
                                 src={url}
                                 title={config.title || 'eCharts'}
+                                className="aura-frame-neutral"
                                 style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
                                 allow="fullscreen"
                             />

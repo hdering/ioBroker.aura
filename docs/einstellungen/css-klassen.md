@@ -68,6 +68,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-widget-value` | Wertanzeige |
 | `.aura-widget-action` | Bedienelement-Gruppe (nicht ziehbar) |
 | `.aura-last-change` | Zeitstempel „zuletzt geändert" |
+| `.aura-frame-neutral` | eingebettetes Dokument ohne eigenes Farbschema (HTML-, eCharts- und Kamera-Widget) |
 
 ```css
 .aura-widget-type-thermostat .aura-widget-title {

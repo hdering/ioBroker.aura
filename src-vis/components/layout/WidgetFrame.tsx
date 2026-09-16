@@ -64,6 +64,7 @@ import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
 import { FillLimitsSection } from '../config/FillLimitsEditor';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
+import { IFRAME_COLOR_SCHEME_MODES, resolveIframeColorSchemeMode } from '../../utils/iframeColorScheme';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { baseDpId } from '../../utils/dpRef';
 import { defaultLayoutFor, getLayoutOptions, isUnknownLayout } from '../../utils/widgetLayouts';
@@ -12299,6 +12300,34 @@ export function WidgetFrame({
                                             sty={iSty}
                                             hasClickAction={hasClickAction}
                                         />
+                                        <div>
+                                            <label
+                                                className="text-[11px] mb-1 block"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                Farbschema der Seite
+                                            </label>
+                                            <select
+                                                value={resolveIframeColorSchemeMode(o)}
+                                                onChange={(e) => set({ iframeColorScheme: e.target.value })}
+                                                className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                style={iSty}
+                                            >
+                                                {IFRAME_COLOR_SCHEME_MODES.map((m) => (
+                                                    <option key={m.value} value={m.value}>
+                                                        {m.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <p
+                                                className="text-[10px] mt-1"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                            >
+                                                Safari und Firefox reichen die Helligkeit an die eingebettete Seite
+                                                weiter, Chrome folgt immer dem Gerät. {'„Neutral“'} lässt die
+                                                Widget-Karte durchscheinen, zeigt die Seite aber hell.
+                                            </p>
+                                        </div>
                                         {!(o.keepAlive ?? false) && (
                                             <div>
                                                 <label

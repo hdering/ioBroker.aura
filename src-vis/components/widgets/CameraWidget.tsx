@@ -530,6 +530,7 @@ function StreamView(p: StreamViewProps) {
                         key={`${p.streamUrl}#${p.wakeNonce}`}
                         src={p.streamUrl}
                         title={p.title || 'Kamera'}
+                        className="aura-frame-neutral"
                         allow="autoplay; fullscreen; picture-in-picture"
                         scrolling={iframeScrollingAttr(p.interactionMode)}
                         style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}

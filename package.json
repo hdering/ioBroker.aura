@@ -71,6 +71,7 @@
     "test:widget-fullscreen-logic": "node tools/tests/widget-fullscreen-logic.mjs",
     "test:widget-style": "node tools/tests/widget-style-copy.mjs",
     "test:text-wrap": "node tools/tests/widget-text-wrap.mjs",
+        "test:iframe-scheme": "node tools/tests/iframe-color-scheme.mjs",
     "test:widget-style-ui": "node tools/tests/widget-style-copy-ui.mjs",
     "test:slider-scale-ui": "node tools/tests/slider-scale-ui.mjs",
     "test:mirror-types": "node tools/tests/mirror-all-types.mjs",

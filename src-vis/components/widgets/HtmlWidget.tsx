@@ -158,7 +158,7 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                 srcDoc={html}
                 sandbox={sandboxAttr}
                 title={config.title || 'HTML'}
-                className="aura-widget-value flex-1 min-h-0 w-full block"
+                className="aura-widget-value aura-frame-neutral flex-1 min-h-0 w-full block"
                 style={{ border: 'none' }}
                 scrolling={scrollable ? 'auto' : 'no'}
             />

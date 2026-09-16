@@ -9006,6 +9006,16 @@
           "default": false,
           "description": "Taste für Vollbild anzeigen."
         },
+        "iframeColorScheme": {
+          "type": "string",
+          "enum": [
+            "theme",
+            "device",
+            "neutral"
+          ],
+          "default": "theme",
+          "description": "Welche Helligkeit die eingebettete Seite bekommt: \"theme\" (Standard) gibt das Aura-Theme weiter, \"device\" überlässt sie der Systemeinstellung des Geräts, \"neutral\" setzt gar keine - dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht."
+        },
         "iframeUrl": {
           "type": "string",
           "default": "",

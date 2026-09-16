@@ -6,6 +6,7 @@ import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
 import { iframeScrollingAttr, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
+import { useIframeColorScheme } from '../../hooks/useIframeColorScheme';
 import { useWakeReload } from '../../hooks/useWakeReload';
 
 const LOAD_TIMEOUT_MS = 8000;
@@ -41,12 +42,15 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const [timedOut, setTimedOut] = useState(false);
     const [hintDismissed, setHintDismissed] = useState(false);
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const frameBoxRef = useRef<HTMLDivElement | null>(null);
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const setFullscreen = useIframeStore((s) => s.setFullscreen);
     // An embedded player torn down while the display slept only restarts on a
     // fresh load (issue #526). Deliberately overrides keepAlive — a frame kept
     // alive across a standby is exactly the one that never recovers.
     const wakeNonce = useWakeReload(reloadOnWake && !!url);
+    // Brightness handed down to the embedded page (#663) — no-op in Blink.
+    const colorSchemeStyle = useIframeColorScheme(frameBoxRef, opts);
 
     // Reset load state whenever URL or tick changes
     useEffect(() => {
@@ -150,6 +154,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                 </div>
             )}
             <div
+                ref={frameBoxRef}
                 className="aura-widget-value relative flex-1 overflow-hidden group"
                 style={{ borderRadius: 'inherit' }}
             >
@@ -164,7 +169,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                         setLoaded(true);
                         if (timeoutRef.current) clearTimeout(timeoutRef.current);
                     }}
-                    style={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+                    style={{ width: '100%', height: '100%', border: 'none', display: 'block', ...colorSchemeStyle }}
                 />
                 {/* Interaction blocker — also the click path for the frame's action */}
                 {interactionMode === 'action' && (
@@ -180,6 +185,7 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                                 iframeKey: `fs-${iframeKey}`,
                                 title: config.title || 'iFrame',
                                 widgetId: config.id,
+                                colorScheme: colorSchemeStyle.colorScheme,
                             })
                         }
                         className="nodrag absolute top-1.5 right-1.5 z-[2] w-7 h-7 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
