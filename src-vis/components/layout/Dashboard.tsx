@@ -369,7 +369,28 @@ export function Dashboard({
         }
         setScrollEl(el);
         if (!el) return;
-        if (el.clientWidth > 0) setContainerWidth(el.clientWidth);
+        // ONE source for this width, and it is the observer (#636).
+        //
+        // This used to seed the width from `el.clientWidth` here and then let the
+        // observer correct it from `entry.contentRect.width`. Those are two
+        // different boxes of the same element: clientWidth includes the padding,
+        // contentRect does not, and the scroller carries `p-2`. Measured on a
+        // 360 px phone: 360 against 344.
+        //
+        // That 16 px gap straddles a breakpoint, and this width decides which
+        // layout renders. With `mobileBreakpoint` at 360 — the reporter's setting,
+        // exactly their screen width — the seed says 360 ("not mobile", render the
+        // grid) and the observer says 344 ("mobile", render the stack). Each branch
+        // mounts its own scroller, which runs this callback again, which seeds 360
+        // again. On a fast machine both updates land in one commit and it settles;
+        // on their phone they land in separate ones and the dashboard rebuilt
+        // itself 58 times a second, with the icons never surviving long enough to
+        // appear.
+        //
+        // ResizeObserver delivers the first entry right after observe(), so
+        // nothing is lost by waiting for it — and until then the initial state
+        // (window.innerWidth) stands, which is the right order of magnitude. The
+        // content box is also the better answer: the grid lives inside the padding.
         const ro = new ResizeObserver(([entry]) => {
             const w = Math.floor(entry.contentRect.width);
             if (w > 0) setContainerWidth(w);
