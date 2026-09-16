@@ -46,6 +46,13 @@ if (typeof performance !== 'undefined' && diagRequested()) {
  * and this module is evaluated from main.tsx before the socket is opened. */
 const sock = { opens: 0, closes: 0, errors: 0, msgs: 0, bytes: 0, sent: 0, sentBytes: 0 };
 
+/** The counters above only mean anything when the wrapper was in place before
+ *  the socket opened. The app is hash-routed, so adding `?diag=1` to the URL of
+ *  a page that is already running does NOT reload it: the report then shows a
+ *  perfectly healthy dashboard as "0 connections, 0 messages". The second device
+ *  report for #636 read exactly like that, and it cost an afternoon. */
+let sockArmed = false;
+
 function sizeOf(data: unknown): number {
     if (typeof data === 'string') return data.length;
     const d = data as { byteLength?: number; size?: number } | null;
@@ -79,6 +86,7 @@ if (typeof window !== 'undefined' && typeof window.WebSocket === 'function' && d
         CLOSED: Native.CLOSED,
     });
     window.WebSocket = Counting;
+    sockArmed = true;
 }
 
 function kb(bytes: number): string {
@@ -133,11 +141,51 @@ function collectIcons(): string[] {
     // cards and every other svg tells them apart in the same screenshot.
     const allSvg = document.querySelectorAll('svg').length;
     const lucide = document.querySelectorAll('svg.lucide').length;
-    const cards = document.querySelectorAll('[data-aura-widget]');
-    const blank = [...cards].filter((c) => !c.querySelector('svg')).length;
+    const cards = [...document.querySelectorAll('[data-aura-widget]')];
+    const blank = cards.filter((c) => !c.querySelector('svg'));
+    const typeOf = (c: Element): string => c.getAttribute('data-aura-widget-type') || '?';
     out.push(`svg total: ${allSvg}   of them lucide-react: ${lucide}`);
-    out.push(`widget cards: ${cards.length}, without any svg: ${blank}`);
+    out.push(`widget cards: ${cards.length}, without any svg: ${blank.length}`);
+    // "One widget on the layout" and "two cards in the DOM" was the second
+    // report's quietest surprise — name the types instead of counting them.
+    if (cards.length) out.push(`  types: ${cards.slice(0, 6).map(typeOf).join(', ')}`);
+    if (blank.length) out.push(`  blank: ${blank.slice(0, 6).map(typeOf).join(', ')}`);
     return out;
+}
+
+/** Name the element a DOM change belongs to.
+ *
+ * The first activity report for #636 came back with 469 DOM changes a second
+ * against 2/s on a healthy device — proof of a redraw loop, and nothing at all
+ * to look at. A widget card is the unit the user configures and the unit a fix
+ * lands in, so walk up to the nearest one; outside the grid the first `aura-`
+ * class on the way up is still a far better answer than "somewhere". */
+function blameFor(node: Node | null): string {
+    let el: Element | null =
+        node && node.nodeType === 1 ? (node as Element) : ((node?.parentElement as Element | null) ?? null);
+    let landmark = '';
+    for (let hops = 0; el && hops < 40; hops++, el = el.parentElement) {
+        const id = el.getAttribute?.('data-aura-widget');
+        if (id) return `${el.getAttribute('data-aura-widget-type') || 'widget'} #${id.slice(0, 8)}`;
+        if (el.getAttribute?.('data-aura-render-probe')) return 'off-screen render probe';
+        if (!landmark) {
+            const cls = (el.getAttribute?.('class') || '').split(/\s+/).find((c) => c.startsWith('aura-'));
+            if (cls) landmark = `.${cls}`;
+        }
+    }
+    return landmark || 'outside the grid';
+}
+
+function bump(m: Map<string, number>, key: string): void {
+    m.set(key, (m.get(key) ?? 0) + 1);
+}
+
+function top(m: Map<string, number>, n: number): string {
+    return [...m.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, n)
+        .map(([k, v]) => `${k} ${v}`)
+        .join(', ');
 }
 
 /** Watch the page for a moment instead of photographing it once.
@@ -155,9 +203,16 @@ async function collectActivity(ms: number): Promise<string[]> {
     let longTasks = 0;
     let longestMs = 0;
 
+    const blame = new Map<string, number>();
+    const attrNames = new Map<string, number>();
+    const kinds = { attributes: 0, childList: 0, characterData: 0 };
+
     const mo = new MutationObserver((records) => {
         mutations += records.length;
         for (const r of records) {
+            bump(blame, blameFor(r.target));
+            kinds[r.type]++;
+            if (r.type === 'attributes') bump(attrNames, r.attributeName || '?');
             r.addedNodes.forEach((n) => {
                 if (n.nodeName === 'svg') svgIn++;
             });
@@ -200,14 +255,36 @@ async function collectActivity(ms: number): Promise<string[]> {
         sent: sock.sent - before.sent,
         opens: sock.opens - before.opens,
     };
+    // Read the socket's own state rather than only the frames it moved: a report
+    // taken on an already-running page has no frame counts at all (see sockArmed).
+    let live = '';
+    try {
+        const { socketDiagnostics } = await import('../hooks/useIoBroker');
+        const sd = socketDiagnostics();
+        live =
+            `socket now: library ${sd.lib ? 'loaded' : 'MISSING (/socket.io/socket.io.js)'}` +
+            `, ${sd.connected ? 'connected' : 'OFFLINE'}${sd.stub ? ' (inert stub)' : ''}`;
+    } catch (e) {
+        live = `socket now: unreadable (${(e as Error).message})`;
+    }
+
     return [
         `over ${s} s at rest:`,
         `  frames: ${frames} (${Math.round(frames / s)}/s)   DOM changes: ${mutations} (${Math.round(mutations / s)}/s)`,
+        `  changed most: ${top(blame, 3) || '—'}`,
+        `  kinds: attr ${kinds.attributes}` +
+            `${attrNames.size ? ` (${top(attrNames, 3)})` : ''}` +
+            `, nodes ${kinds.childList}, text ${kinds.characterData}`,
         `  svg added: ${svgIn}   removed: ${svgOut}`,
         `  long tasks: ${longTasks}, longest ${Math.round(longestMs)} ms`,
         `  socket: ${d.msgs} msgs, ${kb(d.bytes)} in, ${d.sent} sent, ${d.opens} new connections`,
         `socket since load: ${sock.opens} connections (${sock.closes} closed, ${sock.errors} errors)`,
         `  ${sock.msgs} messages, ${kb(sock.bytes)} received, ${sock.sent} sent`,
+        sockArmed
+            ? live
+            : `  ^ NOT MEASURED: ?diag=1 was added to a page that was already running.\n` +
+              `    Reload with the flag in the URL for socket numbers.\n` +
+              live,
     ];
 }
 
@@ -298,7 +375,7 @@ function collectTabs(): string[] {
 }
 
 export default function DiagnosticsOverlay(): React.ReactElement | null {
-    const [enabled] = useState(diagRequested);
+    const [enabled, setEnabled] = useState(diagRequested);
     const [report, setReport] = useState<string>('collecting…');
     const [copied, setCopied] = useState(false);
 
@@ -318,6 +395,24 @@ export default function DiagnosticsOverlay(): React.ReactElement | null {
         lines.push('', '— tabs —', ...collectTabs());
         setReport(lines.join('\n'));
     }, []);
+
+    // The flag may also be appended to a page that is already running. That is
+    // worth supporting precisely because reloading is what a slow dashboard must
+    // NOT do to be measured: the complaint is about a page that has been open for
+    // hours, and a reload throws that state away before the report can see it.
+    // The app is hash-routed, so appending `?diag=1` to the hash never reloads —
+    // only this listener turns the overlay on. What a late start cannot recover
+    // are the socket counters; the report says so instead of printing zeros.
+    useEffect(() => {
+        if (enabled) return;
+        const check = (): void => setEnabled((on) => on || diagRequested());
+        window.addEventListener('hashchange', check);
+        window.addEventListener('popstate', check);
+        return () => {
+            window.removeEventListener('hashchange', check);
+            window.removeEventListener('popstate', check);
+        };
+    }, [enabled]);
 
     useEffect(() => {
         if (!enabled) return;

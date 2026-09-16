@@ -518,6 +518,24 @@ export function getSocket(): IoBrokerSocket {
     return socket;
 }
 
+/** Live socket state for the on-device report (#636).
+ *
+ * "0 messages received" means something completely different when the library
+ * never arrived than when the socket is connected and the dashboard is simply
+ * quiet — and the first device report could not tell the two apart. Reads the
+ * state directly instead of counting frames, so it stays true even when the
+ * report was opened on an already-running page. */
+export function socketDiagnostics(): { lib: boolean; connected: boolean; stub: boolean; url: string } {
+    const lib = !!getIo();
+    return {
+        lib,
+        connected: !!socket?.connected,
+        // createSocket() hands out an inert stub while the library is missing.
+        stub: !!socket && !lib,
+        url: currentUrl,
+    };
+}
+
 function bounceSocket(): void {
     if (socket) {
         socket.disconnect();
