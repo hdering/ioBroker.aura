@@ -9,6 +9,7 @@ import {
 } from '../hooks/useIoBroker';
 import { NS } from '../utils/namespace';
 import { MAX_BACKUP_COUNT } from './adminPrefsStore';
+import { recordChange, resyncHistoryKey, historyGroup } from './editHistory';
 
 // Each localStorage key maps to its own ioBroker state (no more single blob).
 // The {NS} prefix resolves to the running instance namespace (aura.0, aura.1…).
@@ -240,9 +241,20 @@ export function isScreenshotMode(): boolean {
  *  dropped their inbound sync for the rest of the session and made the admin's
  *  bootstrap save rewrite both keys — burning a backup slot — on every open. */
 export function markDirty(key: string): void {
-    if (suppressDirtyDepth > 0 || screenshotMode) return;
+    if (suppressDirtyDepth > 0) {
+        // Hydration / bookkeeping, not an edit — but the store did change, so
+        // the undo history takes the new state as its base.
+        resyncHistoryKey(key as SyncStoreKey);
+        return;
+    }
+    if (screenshotMode) {
+        // Never persisted; the DEV harness may still record to test the history.
+        recordChange(key as SyncStoreKey);
+        return;
+    }
     pending.set(key, '\x00'); // sentinel — replaced by externalReader at save time
     setDirtyFlag(key);
+    recordChange(key as SyncStoreKey);
     notify();
 }
 
@@ -353,6 +365,13 @@ export function discardPendingKey(key: string): void {
 }
 
 export function revertAll(rehydrateFns: Array<() => void>): void {
+    // One history entry for the whole revert — "discard everything" is itself
+    // undoable. The rehydrate below writes localStorage's value back unchanged,
+    // so managedStorage cannot see the change; the group compares the stores.
+    historyGroup(() => revertAllInner(rehydrateFns));
+}
+
+function revertAllInner(rehydrateFns: Array<() => void>): void {
     // External keys restore themselves — their value never went through
     // localStorage, so the loop below cannot reach it.
     externalKeys.forEach((handlers, key) => {
@@ -944,6 +963,9 @@ export const managedStorage: StateStorage = {
                 originals.delete(name);
                 clearDirtyFlag(name);
             }
+            // The store may still have changed (a rehydrate writes the string
+            // it just read straight back) — keep the history's base current.
+            resyncHistoryKey(name as SyncStoreKey);
             notify();
             return;
         }
@@ -953,16 +975,34 @@ export const managedStorage: StateStorage = {
         // would see _dirty=1 on every store and refuse to load remote config.
         const isInit = current === null;
         const suppress = suppressDirtyDepth > 0 || screenshotMode;
+        // Landing exactly on the last saved value again (undo back to where the
+        // session started, or a toggle flipped twice) leaves the key clean — not
+        // "unsaved" with nothing to write.
+        const backToSaved = !isInit && !suppress && originals.get(name) === value;
         try {
             localStorage.setItem(name, value);
-            if (!isInit && !suppress) setDirtyFlag(name);
+            if (!isInit && !suppress && !backToSaved) setDirtyFlag(name);
         } catch {
             console.warn('[persistManager] localStorage quota exceeded for key:', name);
         }
         if (!isInit && !suppress) {
-            if (!pending.has(name)) originals.set(name, current);
-            pending.set(name, value);
+            if (backToSaved) {
+                pending.delete(name);
+                originals.delete(name);
+                clearDirtyFlag(name);
+            } else {
+                if (!pending.has(name)) originals.set(name, current);
+                pending.set(name, value);
+            }
         }
+        // A user edit feeds the undo history; navigation and hydration only move
+        // its base. Not gated on isInit: zustand no longer writes defaults when the
+        // key is absent, so the first edit of a never-persisted key also arrives
+        // with current === null — the history tells the two apart by comparing
+        // against the state it accepted last. Screenshot mode never persists, but
+        // the DEV harness may record to test the history.
+        if (suppressDirtyDepth === 0) recordChange(name as SyncStoreKey);
+        else resyncHistoryKey(name as SyncStoreKey);
         notify();
     },
     removeItem: (name) => {

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { registerExternalReader, markDirty, registerPreSaveHook, withSuppressedDirty } from './persistManager';
+import { historyAttached } from './editHistory';
 import { useDashboardStore } from './dashboardStore';
 import { usePopupConfigStore } from './popupConfigStore';
 import type { WidgetConfig } from '../types';
@@ -109,6 +110,12 @@ function collectDefIds(widgets: WidgetConfig[], defs: Record<string, WidgetConfi
  *  Registered as a pre-save hook so orphaned defs left behind by deleted group
  *  widgets don't accumulate in the persisted aura-group-defs blob. */
 export function gcGroupDefs(): void {
+    // A consequence of earlier widget removals, not a step of its own: folded into
+    // the previous history entry so undoing that removal brings the children back.
+    historyAttached(gcGroupDefsInner);
+}
+
+function gcGroupDefsInner(): void {
     const { defs, removeDef } = useGroupDefsStore.getState();
     if (Object.keys(defs).length === 0) return;
 

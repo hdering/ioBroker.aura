@@ -11,6 +11,7 @@ import {
     PenSquare,
     Save,
     Undo2,
+    Redo2,
     Layers,
     Layers2,
     Palette,
@@ -42,6 +43,8 @@ import {
     groupDefsReadyForSave,
 } from '../../store/persistManager';
 import { useDashboardStore } from '../../store/dashboardStore';
+import { useEditHistoryStore, undo, redo, resetEditHistory, clearHistoryNotice } from '../../store/editHistory';
+import { useEditHistoryLifecycle, useUndoRedoShortcuts } from '../../store/editHistorySetup';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
@@ -205,6 +208,15 @@ export function AdminLayout() {
     const { sessionActive } = useAuthStore();
     useSessionWatch(sessionActive);
     const { dirty, save, revert, saveError } = useSaveState();
+    // Step-wise undo/redo — recorded only while the editor is mounted.
+    useEditHistoryLifecycle();
+    useUndoRedoShortcuts();
+    const { undoCount, redoCount, notice: historyNotice } = useEditHistoryStore();
+    useEffect(() => {
+        if (!historyNotice) return;
+        const id = setTimeout(clearHistoryNotice, 6000);
+        return () => clearTimeout(id);
+    }, [historyNotice]);
     // Keep a stable ref to the latest save() so the Ctrl+S / auto-save effects
     // (which don't depend on `save`) always invoke the current closure — and so
     // both paths surface the same save-blocked hint instead of failing silently.
@@ -291,6 +303,8 @@ export function AdminLayout() {
             adminConfigLoadedRef.current = true;
             markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
             markWidgetPresetsHydrated();
+            // The loaded config is the base — nothing before it can be undone.
+            resetEditHistory();
             const localHasData = [
                 'aura-dashboard',
                 'aura-theme',
@@ -611,18 +625,55 @@ export function AdminLayout() {
                                     {saveError}
                                 </span>
                             )}
+                            {historyNotice === 'remote' && (
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('admin.save.historyRemote')}
+                                </span>
+                            )}
+                            <div className="flex items-center gap-1 ml-auto" data-edit-history>
+                                <button
+                                    onClick={() => undo()}
+                                    disabled={undoCount === 0}
+                                    title={t('admin.save.undoStep')}
+                                    aria-label={t('admin.save.undoStep')}
+                                    data-history-undo
+                                    className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity disabled:opacity-30 disabled:hover:opacity-30"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    <Undo2 size={13} />
+                                </button>
+                                <button
+                                    onClick={() => redo()}
+                                    disabled={redoCount === 0}
+                                    title={t('admin.save.redoStep')}
+                                    aria-label={t('admin.save.redoStep')}
+                                    data-history-redo
+                                    className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity disabled:opacity-30 disabled:hover:opacity-30"
+                                    style={{
+                                        background: 'var(--app-bg)',
+                                        color: 'var(--text-secondary)',
+                                        border: '1px solid var(--app-border)',
+                                    }}
+                                >
+                                    <Redo2 size={13} />
+                                </button>
+                            </div>
                             {dirty ? (
                                 <>
                                     <button
                                         onClick={revert}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity ml-auto"
+                                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity"
                                         style={{
                                             background: 'var(--app-bg)',
                                             color: 'var(--text-secondary)',
                                             border: '1px solid var(--app-border)',
                                         }}
                                     >
-                                        <Undo2 size={13} /> {t('admin.save.undo')}
+                                        <X size={13} /> {t('admin.save.discard')}
                                     </button>
                                     <button
                                         onClick={save}
@@ -633,7 +684,7 @@ export function AdminLayout() {
                                     </button>
                                 </>
                             ) : (
-                                <span className="text-xs ml-auto" style={{ color: 'var(--text-secondary)' }}>
+                                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                                     {t('admin.save.saved')}
                                 </span>
                             )}

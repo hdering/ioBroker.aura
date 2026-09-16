@@ -64,6 +64,8 @@ import {
     type StackPoint,
 } from '../utils/stackedSeries';
 import { withSuppressedDirty, setScreenshotMode } from '../store/persistManager';
+import { startEditHistory, stopEditHistory, undo, redo, historyEntries } from '../store/editHistory';
+import { installUndoRedoShortcuts } from '../store/editHistorySetup';
 import { NS } from '../utils/namespace';
 import type { AuraMessage, MessageSeverity, WidgetConfig, ioBrokerState, ObjectViewResult } from '../types';
 
@@ -158,6 +160,8 @@ function aggregateRaw(
     }
     return out.sort((a, b) => a.ts - b.ts);
 }
+
+let uninstallShortcuts: (() => void) | null = null;
 
 function installScreenshotApi(): void {
     setScreenshotMode(true);
@@ -646,6 +650,31 @@ function installScreenshotApi(): void {
                 .getDisplayList(true)
                 .map((d) => d.style?.text)
                 .filter((t): t is string => typeof t === 'string' && t.trim() !== '');
+        },
+
+        /** Record the editor's undo history (off in screenshot mode, on in the admin)
+         *  and install its Ctrl+Z / Ctrl+Y handler, so a test can drive the real
+         *  store → persist → history chain. `false` stops and forgets everything. */
+        editHistory(on = true): void {
+            uninstallShortcuts?.();
+            uninstallShortcuts = null;
+            if (on) {
+                startEditHistory();
+                uninstallShortcuts = installUndoRedoShortcuts();
+            } else {
+                stopEditHistory();
+            }
+        },
+        undo(): boolean {
+            return undo();
+        },
+        redo(): boolean {
+            return redo();
+        },
+        /** Stack depths plus, per undo entry (newest first), the store keys it touches. */
+        history(): { undo: number; redo: number; keys: string[][] } {
+            const e = historyEntries();
+            return { undo: e.undo.length, redo: e.redo.length, keys: e.undo.map((x) => x.changes.map((c) => c.key)) };
         },
     };
 

@@ -8,6 +8,7 @@ Allgemeine Einstellungen: Frontend, Grid, Sicherheit und Backup.
 | --- | --- |
 | Sprache | Deutsch / Englisch |
 | Editor | Automatisch speichern + Intervall (`Strg+S`, auf Apple-Geräten `⌘+S`, speichert sofort) |
+| Rückgängig / Wiederholen | `Strg+Z` / `Strg+Y` (Apple: `⌘+Z` / `⌘+Y`) oder die Pfeile in der Speicherleiste; jeder Schritt einzeln, auch nach dem Speichern, bis die Seite neu geladen wird. **Verwerfen** setzt alles Ungespeicherte zurück und ist selbst rückgängig. In Textfeldern gilt das Rückgängig des Browsers |
 | Admin-PIN | Passwort für den Adminbereich (min. 4 Zeichen). Wird serverseitig im Adapter geprüft (scrypt); nach dem Update auf diese Version einmalig neu setzen. Die Anmeldung gilt 8 Stunden — danach führt der Editor zurück zur Anmeldung. PIN vergessen: im Instanz-Datenverzeichnis in `security.json` den Eintrag `admin` löschen und die Instanz neu starten (geschützte Bereiche bleiben erhalten) |
 | Super-Admin-Schlüssel | Schützt Standard-Views vor Löschen; aktiviert über `/admin/popups?key=…` |
 | Admin-Basis-URL | Relative Bildpfade in JSON-Tabellen-Widgets auflösen |

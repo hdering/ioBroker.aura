@@ -59,7 +59,10 @@ export const en: Record<TranslationKey, string> = {
 
     // ── Admin Save Bar ────────────────────────────────────────────────────────────
     'admin.save.unsaved': 'Unsaved Changes',
-    'admin.save.undo': 'Undo',
+    'admin.save.discard': 'Discard',
+    'admin.save.undoStep': 'Undo ({mod}+Z)',
+    'admin.save.redoStep': 'Redo ({mod}+Y)',
+    'admin.save.historyRemote': 'History trimmed: a change from another device was applied',
     'admin.save.save': 'Save',
     'admin.save.saved': 'All changes saved',
     'admin.save.autoIn': 'Auto-saving in {s}s…',

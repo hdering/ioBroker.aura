@@ -12,6 +12,7 @@ import {
     type SyncStoreKey,
 } from '../store/persistManager';
 import { applyRaw, rehydrateAll } from '../utils/configLoader';
+import { invalidateHistoryKey } from '../store/editHistory';
 
 /** Apply one state value received from ioBroker to localStorage + stores. */
 function applyOneState(key: SyncStoreKey, raw: string): boolean {
@@ -102,6 +103,9 @@ export function useConfigSync(
                     // it only takes effect after a reload.
                     rehydrateAll(true);
                     discardPendingKey(key);
+                    // Someone else's save — undo entries for this key no longer
+                    // have a base to stand on.
+                    invalidateHistoryKey(key);
                 }
             }),
         );
@@ -136,6 +140,7 @@ export function useConfigSync(
                 // include global settings — see subscribe path above.
                 rehydrateAll(true);
                 appliedKeys.forEach((k) => discardPendingKey(k));
+                appliedKeys.forEach((k) => invalidateHistoryKey(k));
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps

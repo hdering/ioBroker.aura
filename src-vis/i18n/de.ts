@@ -57,7 +57,10 @@ export const de = {
 
     // ── Admin Save Bar ────────────────────────────────────────────────────────────
     'admin.save.unsaved': 'Ungespeicherte Änderungen',
-    'admin.save.undo': 'Rückgängig',
+    'admin.save.discard': 'Verwerfen',
+    'admin.save.undoStep': 'Rückgängig ({mod}+Z)',
+    'admin.save.redoStep': 'Wiederholen ({mod}+Y)',
+    'admin.save.historyRemote': 'Verlauf gekürzt: Änderung von anderem Gerät übernommen',
     'admin.save.save': 'Speichern',
     'admin.save.saved': 'Alle Änderungen gespeichert',
     'admin.save.autoIn': 'Automatisch in {s}s…',
