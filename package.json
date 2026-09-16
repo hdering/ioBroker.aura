@@ -69,6 +69,7 @@
     "test:widget-fullscreen": "node tools/tests/widget-fullscreen.mjs",
     "test:safe-area": "node tools/tests/safe-area.mjs",
     "test:diagnostics": "node tools/tests/diagnostics-report.mjs",
+    "test:zero-width": "node tools/tests/dashboard-zero-width.mjs",
     "test:widget-fullscreen-logic": "node tools/tests/widget-fullscreen-logic.mjs",
     "test:widget-style": "node tools/tests/widget-style-copy.mjs",
     "test:text-wrap": "node tools/tests/widget-text-wrap.mjs",

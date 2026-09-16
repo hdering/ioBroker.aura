@@ -225,7 +225,7 @@ function top(m: Map<string, number>, n: number): string {
  * churn, blocked main thread, and what the socket is doing meanwhile. */
 async function collectActivity(
     ms: number,
-): Promise<{ lines: string[]; top: string; share: number; perSecond: number }> {
+): Promise<{ lines: string[]; ranked: [string, number][]; total: number; perSecond: number }> {
     const before = { ...sock };
     let frames = 0;
     let mutations = 0;
@@ -347,8 +347,8 @@ async function collectActivity(
     ];
     return {
         lines,
-        top: ranked[0]?.[0] ?? '',
-        share: mutations ? (ranked[0]?.[1] ?? 0) / mutations : 0,
+        ranked,
+        total: mutations,
         perSecond: mutations / s,
     };
 }
@@ -364,9 +364,15 @@ async function collectActivity(
  * Only printed when there IS a loop and one widget owns it, so a healthy page
  * never dumps a configuration nobody asked for.
  */
-async function collectLoopSuspect(topBlame: string, share: number, perSecond: number): Promise<string[]> {
-    if (perSecond < 20 || share < 0.25) return [];
-    const id = /#(\S+)$/.exec(topBlame)?.[1];
+async function collectLoopSuspect(ranked: [string, number][], total: number, perSecond: number): Promise<string[]> {
+    if (perSecond < 20 || !total) return [];
+    // The loudest entry is often a landmark rather than a card — the reported
+    // device had `.aura-page 412` ahead of `universal #w-… 270`, and gating on
+    // the top entry alone printed nothing at all. Take the busiest entry that is
+    // a widget, and judge its share on its own count.
+    const hit = ranked.find(([key]) => /#\S+$/.test(key));
+    if (!hit || hit[1] / total < 0.25) return [];
+    const id = /#(\S+)$/.exec(hit[0])?.[1];
     if (!id) return [];
     try {
         const { useDashboardStore } = await import('../store/dashboardStore');
@@ -385,7 +391,7 @@ async function collectLoopSuspect(topBlame: string, share: number, perSecond: nu
                 }
             }
         }
-        return ['', '— loop suspect —', `${topBlame} is not in this device's stored layout`];
+        return ['', '— loop suspect —', `${hit[0]} is not in this device's stored layout`];
     } catch (e) {
         return ['', '— loop suspect —', `config unreadable (${(e as Error).message})`];
     }
@@ -571,7 +577,7 @@ export default function DiagnosticsOverlay(): React.ReactElement | null {
         lines.push('', '— media —', ...collectMedia());
         lines.push('', '— storage —', ...collectStorage());
         lines.push('', '— tabs —', ...collectTabs());
-        lines.push(...(await collectLoopSuspect(activity.top, activity.share, activity.perSecond)));
+        lines.push(...(await collectLoopSuspect(activity.ranked, activity.total, activity.perSecond)));
         setReport(lines.join('\n'));
     }, []);
 

@@ -342,6 +342,20 @@ export function Dashboard({
     // A plain useEffect with [] deps could keep watching a detached element,
     // causing some browsers (Chrome) to fire with width=0, setting containerWidth=0
     // and making the tab appear blank ({rglWidth > 0 && ...} renders nothing).
+    //
+    // A zero is never believed, for the same reason and a worse one (#636). This
+    // width decides which of the two layouts renders — below `mobileBreakpoint`
+    // the single-column stack, otherwise the grid — and the element it is
+    // measured on only exists INSIDE the chosen branch. A zero therefore does not
+    // just blank the tab: it switches the branch, which mounts a different
+    // scroller, which is measured, which switches it back. Reported from a phone
+    // where that ran at 27 rebuilds a second — 342 DOM changes/s against 2/s on a
+    // healthy device, at 14 fps, with the icons never surviving long enough to
+    // finish loading. Delivering repeated zeros to this callback reproduces it
+    // exactly (tools/tests/dashboard-zero-width.mjs). Keeping the last good width
+    // costs nothing: a container that really has no width has nothing to lay out
+    // anyway, and a hidden tab (display:none, measures 0) keeps the width it will
+    // have when it is shown again instead of flashing blank on the way back.
     const roRef = useRef<ResizeObserver | null>(null);
     const [containerWidth, setContainerWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0));
     // The live scroll element, exposed so TouchScrollbar can mirror its scroll
@@ -355,9 +369,10 @@ export function Dashboard({
         }
         setScrollEl(el);
         if (!el) return;
-        setContainerWidth(el.clientWidth);
+        if (el.clientWidth > 0) setContainerWidth(el.clientWidth);
         const ro = new ResizeObserver(([entry]) => {
-            setContainerWidth(Math.floor(entry.contentRect.width));
+            const w = Math.floor(entry.contentRect.width);
+            if (w > 0) setContainerWidth(w);
         });
         ro.observe(el);
         roRef.current = ro;
