@@ -9,106 +9,17 @@ body,
     height: 100%;
 }
 
-/* ── Safe area of the screen (notch, Dynamic Island, gesture bar) ─────────────
- * index.html asks for `viewport-fit=cover`, so the page really does reach the
- * physical edges — and the app has to keep its content out of them again.
- *
- * It does that by letting the chrome that TOUCHES an edge grow into the inset:
- * the tab bar, the header or the section bar simply becomes that much taller,
- * so the edge of the screen is the same surface as the bar. A strip painted in
- * front of the bar does the same job but reads as a second, empty row above it
- * — which is what the first attempt looked like on a phone. Only where no
- * chrome sits at all does the page pad itself and paint the strip.
- *
- * App.tsx says who owns each edge in `data-aura-safe-top` / `-bottom`
- * ('header' | 'section' | 'tabs' | 'page').
- *
- * Why any of this: an installed web app on iOS 26/27 gets a blurred glass band
- * drawn over its top edge by the system, which smeared the tab icons sitting
- * there (#662). The band is not ours to switch off — but blurring one flat
- * colour is invisible, so moving the icons out from under it is the cure.
- *
- * Measured on an iPhone: iOS reports `safe-area-inset-bottom` but withholds the
- * top one unless the page is declared a web app, so there the reserve has to be
- * set by hand. Everything is overridable from the custom CSS field:
- *   .aura-page { --aura-safe-top: 47px; }       → reserve iOS does not report
- *   .aura-page { --aura-safe-top: 0px; }        → ignore the inset entirely
- *   .aura-page { --aura-safe-top-bg: #123456; } → strip colour, 'page' edge only
- */
-.aura-page {
-    padding-left: var(--aura-safe-left, env(safe-area-inset-left, 0px));
-    padding-right: var(--aura-safe-right, env(safe-area-inset-right, 0px));
-}
-
-/* The bar at the edge owns the inset and grows into it. The tab bar and the
-   section bar carry no padding of their own, so the inset is the whole value;
-   the header has Tailwind's `py-4` (see App.tsx) and keeps it. */
-[data-aura-safe-top='section'] .aura-section-bar,
-[data-aura-safe-top='tabs'] .aura-tabs-top {
-    padding-top: var(--aura-safe-top, env(safe-area-inset-top, 0px));
-}
-
-[data-aura-safe-top='header'] .aura-header {
-    padding-top: calc(1rem + var(--aura-safe-top, env(safe-area-inset-top, 0px)));
-}
-
-[data-aura-safe-bottom='section'] .aura-section-bar,
-[data-aura-safe-bottom='tabs'] .aura-tabs-bottom {
-    padding-bottom: var(--aura-safe-bottom, env(safe-area-inset-bottom, 0px));
-}
-
-/* Nothing at that edge: the page holds the content off and paints the gap. */
-.aura-page[data-aura-safe-top='page'] {
-    padding-top: var(--aura-safe-top, env(safe-area-inset-top, 0px));
-}
-
-.aura-page[data-aura-safe-bottom='page'] {
-    padding-bottom: var(--aura-safe-bottom, env(safe-area-inset-bottom, 0px));
-}
-
-.aura-page[data-aura-safe-top='page']::before,
-.aura-page[data-aura-safe-bottom='page']::after {
-    content: '';
-    position: fixed;
-    left: 0;
-    right: 0;
-    /* Above every dashboard layer (tab bar is 20) but below drawers, modals and
-       the boot splash — the strip is decoration, never a lid over the UI. */
-    z-index: 900;
-    pointer-events: none;
-}
-
-.aura-page[data-aura-safe-top='page']::before {
-    top: 0;
-    height: var(--aura-safe-top, env(safe-area-inset-top, 0px));
-    background: var(--aura-safe-top-bg, var(--app-bg));
-}
-
-.aura-page[data-aura-safe-bottom='page']::after {
-    bottom: 0;
-    height: var(--aura-safe-bottom, env(safe-area-inset-bottom, 0px));
-    background: var(--aura-safe-bottom-bg, var(--app-bg));
-}
-
 /*
  * ThemeProvider sets `color-scheme: dark` on <html> so native form controls
  * (range inputs, scrollbars, selects) render dark. `color-scheme` is inherited,
- * so an <iframe> inherits `dark` too. When an embedded document does not itself
- * declare `dark`, the browser treats this as a color-scheme mismatch and paints an
- * OPAQUE WHITE canvas behind the frame — giving the frame a white background in
- * dark mode. `normal` opts the frame out, so it composites transparently over the
- * (dark) widget card again (f229a2fe).
- *
- * This used to be a blanket `iframe` rule, which cost more than it bought: WebKit
- * hands the embedder's scheme down to the embedded document, and reads `normal` as
- * light — so every embedded page was forced light on a dark iPhone, EVCC and Kanban
- * included (#663). Blink ignores the whole mechanism, which is why it took an iOS
- * update to surface. Now only frames that really need a transparent backdrop opt
- * out: Aura's own pages (eCharts preset, HTML widget) and camera streams, which
- * paint an image with no background of their own. Everything that embeds a foreign
- * page passes Aura's brightness on — see utils/iframeColorScheme.ts.
+ * so every <iframe> would otherwise inherit `dark`. When an embedded document
+ * (external page, /echarts preset page) does not itself declare `dark`, the
+ * browser treats this as a color-scheme mismatch and paints an OPAQUE WHITE
+ * canvas behind the frame — giving iframe/eCharts widgets a white background in
+ * dark mode. Reset iframes to `normal` so they no longer inherit the forced
+ * dark scheme and composite transparently over the (dark) widget card again.
  */
-iframe.aura-frame-neutral {
+iframe {
     color-scheme: normal;
 }
 

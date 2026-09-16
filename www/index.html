@@ -3,29 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <!-- `viewport-fit=cover` lets the page reach the physical screen edges. Without it
-         every `env(safe-area-inset-*)` resolves to 0px, so neither Aura nor a user's
-         custom CSS could react to a notch, a Dynamic Island or a gesture bar. The bar
-         at each edge then grows into the inset (index.css) — see #662. -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <!-- Measured on iOS 27: with `viewport-fit=cover` alone the web app reports
-         `safe-area-inset-bottom: 34px` but `top: 0px`. That is the documented effect of
-         the status bar style `default` — iOS lays the web view out BELOW the status bar,
-         so the page never learns that the strip exists and cannot reserve it. Reserving
-         it by hand then costs 47px of real screen, and iOS still draws its glass band
-         over the top of the web view.
-         `black-translucent` hands the whole screen to the page instead: the inset
-         becomes real, the tab bar grows into it on its own, and the band blurs the flat
-         colour of that bar. Both tags are read when the user adds the app to the home
-         screen — an app installed before this build keeps the old behaviour until it is
-         removed and added again. -->
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <!-- Colour iOS/Android put behind their own system bars. ThemeProvider keeps it in
-         sync with the tab-bar colour; the boot script below restores the last one so the
-         status bar does not flash the wrong colour before React mounts. -->
-    <meta name="theme-color" id="aura-theme-color" content="#0f172a" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aura – ioBroker Dashboard</title>
     <style>
       :root { --aura-boot-bg: #0f172a; --aura-boot-fg: #94a3b8; }
@@ -80,22 +58,19 @@
     </style>
     <script>
       // Repaint the boot splash in the theme this device rendered last (written by
-      // ThemeProvider as "<--app-bg>|<--text-secondary>|<nav colour>"). Without it the
-      // splash is hard-coded dark, so a light device flashes dark on every reload.
-      // The third field is optional — caches written before #662 only have two.
+      // ThemeProvider as "<--app-bg>|<--text-secondary>"). Without it the splash is
+      // hard-coded dark, so a light device flashes dark on every reload.
       try {
         var c = (localStorage.getItem('aura-boot-colors') || '').split('|');
-        if (c.length >= 2 && c[0] && c[1]) {
+        if (c.length === 2 && c[0] && c[1]) {
           var r = document.documentElement.style;
           r.setProperty('--aura-boot-bg', c[0]);
           r.setProperty('--aura-boot-fg', c[1]);
           r.setProperty('--app-bg', c[0]);
-          var m = document.getElementById('aura-theme-color');
-          if (m) m.setAttribute('content', c[2] || c[0]);
         }
       } catch (e) {}
     </script>
-    <script type="module" crossorigin src="/assets/index-DG3VxOlT.js"></script>
+    <script type="module" crossorigin src="/assets/index-B413m8Je.js"></script>
     <link rel="modulepreload" crossorigin href="/assets/react-okGu5lkI.js">
     <link rel="modulepreload" crossorigin href="/assets/react-dom-DrD5giaT.js">
     <link rel="modulepreload" crossorigin href="/assets/router-CIdYoo77.js">
@@ -103,7 +78,7 @@
     <link rel="modulepreload" crossorigin href="/assets/lucide-BDGfa7h5.js">
     <link rel="modulepreload" crossorigin href="/assets/dompurify-Cdnc6Rlq.js">
     <link rel="stylesheet" crossorigin href="/assets/grid-DULRuONn.css">
-    <link rel="stylesheet" crossorigin href="/assets/index-6O4qSnZX.css">
+    <link rel="stylesheet" crossorigin href="/assets/index-D3zyvyUh.css">
   </head>
   <body>
     <div id="aura-boot">
@@ -158,6 +133,6 @@
         }, TIMEOUT_MS);
       })();
     </script>
-    <script src="/socket.io/socket.io.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
   </body>
 </html>

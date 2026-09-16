@@ -165,7 +165,6 @@ Weitere `aura-`Klassen im Adminbereich sind Anker für die automatischen Tests �
 | `[data-aura-toasts="<position>"]` | Toast-Ecke der Meldungen |
 | `[data-aura-click-popup="<art>"]` | Popup eines Widget-Klicks |
 | `[data-aura-locked]` | Widget mit gesperrter Bedienung |
-| `[data-aura-safe-top]` / `[data-aura-safe-bottom]` | wer den sicheren Bereich am Rand hält (`header`/`section`/`tabs`/`page`) |
 
 ## CSS-Variablen
 
@@ -176,37 +175,11 @@ Weitere `aura-`Klassen im Adminbereich sind Anker für die automatischen Tests �
 | `--aura-bleed-max` | wie weit Listenzeilen in den Innenabstand ragen dürfen |
 | `--aura-sbw` | gemessene Breite der Scrollleiste |
 | `--font-scale` | Schriftskalierung des Frontends |
-| `--aura-safe-top` / `--aura-safe-bottom` | Höhe des sicheren Bereichs oben/unten, Vorgabe `env(safe-area-inset-*)` |
-| `--aura-safe-left` / `--aura-safe-right` | dasselbe seitlich (Notch im Querformat) |
-| `--aura-safe-top-bg` / `--aura-safe-bottom-bg` | Farbe des Streifens, nur wenn dort keine Leiste sitzt |
 
 Eigener Inhalt am Kartenrand richtet sich nach `--aura-widget-pad` statt nach einem festen Wert:
 
 ```css
 .aura-widget-type-list .aura-widget-row {
     margin-inline: calc(-1 * var(--aura-widget-pad, 16px));
-}
-```
-
-## Sicherer Bereich
-
-Auf Geräten mit Notch, Dynamic Island oder Gestenleiste wächst die Leiste am Bildschirmrand — Kopfzeile, Bereichsleiste oder Tab-Leiste — um den freigehaltenen Bereich, statt einen eigenen Streifen darüber zu setzen. Sitzt dort keine Leiste, hält `.aura-page` den Abstand selbst und färbt ihn (`::before` oben, `::after` unten). Wer welchen Rand besitzt, steht in `data-aura-safe-top` bzw. `data-aura-safe-bottom` (`header` | `section` | `tabs` | `page`).
-
-Installierte Web-Apps unter iOS 26/27 legen oben einen System-Blur über die Seite. Eine einfarbige Fläche darunter macht ihn unsichtbar. Den oberen Bereich meldet iOS nur, wenn die App mit der Statusleisten-Einstellung `black-translucent` abgelegt wurde — die liest iOS beim **Hinzufügen zum Home-Bildschirm**. Eine älter abgelegte App meldet weiterhin `0px`; sie muss einmal entfernt und neu abgelegt werden. Solange das nicht geht, lässt sich der Platz von Hand reservieren — er geht dann allerdings vom Bildschirm ab:
-
-```css
-.aura-page {
-    --aura-safe-top: 47px;
-}
-```
-
-Der Wert steht im Diagnose-Bericht (`?diag=1`, Abschnitt `safe area`) als `… px kept above the page`.
-
-Abschalten:
-
-```css
-.aura-page {
-    --aura-safe-top: 0px;
-    --aura-safe-bottom: 0px;
 }
 ```

@@ -54,21 +54,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         // admin backend (which sets color-scheme:dark). Also fixes scrollbars /
         // selects / date pickers to render dark in dark themes.
         root.style.colorScheme = theme.dark ? 'dark' : 'light';
-        // Colour the system bars of an installed web app take: the tab bar's, because
-        // that is the chrome bordering them. A literal value only — `theme-color` is
-        // read by the OS, which knows nothing about CSS vars (#662).
-        const navBg = vars['--nav-bg'] || vars['--app-surface'] || vars['--app-bg'];
-        const meta = document.getElementById('aura-theme-color');
-        if (meta && navBg && /^(#|rgb|hsl|oklch|lab|lch|color\()/i.test(navBg.trim())) {
-            meta.setAttribute('content', navBg.trim());
-        }
         // Hand the current colours to the pre-React boot splash (inline script in
         // index.html). Without this the splash is always dark, so a light-theme
         // device flashes dark → light on every reload.
         try {
             const bg = vars['--app-bg'];
             const fg = vars['--text-secondary'];
-            if (bg && fg) localStorage.setItem(BOOT_COLORS_KEY, `${bg}|${fg}|${navBg ?? bg}`);
+            if (bg && fg) localStorage.setItem(BOOT_COLORS_KEY, `${bg}|${fg}`);
         } catch {
             /* quota / private mode */
         }

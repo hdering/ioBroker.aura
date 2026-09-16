@@ -1215,23 +1215,6 @@ export default function App() {
     // Tab bar can be placed above the dashboard (default) or as a footer below it.
     const tabBarAtBottom = tabBarResolved.position === 'bottom';
 
-    // ── Who owns the safe area at each screen edge (index.css) ───────────────────
-    // The bar that touches the edge grows INTO the inset, so the edge of the screen
-    // is the same surface as the bar: one taller bar, no seam and no empty row above
-    // it. Only where no chrome sits does the page pad itself and paint a strip.
-    // The order below mirrors the render order further down. Visibility of the tab
-    // bar follows the same rule TabBar uses: an injected drawer keeps it on even
-    // when a single tab would not (#662).
-    const tabBarShown = drawerInTabBar || tabBarShowsOnOwn(visibleTabCount(tabs), tabBarResolved);
-    const safeTopOwner = effectiveSettings.showHeader
-        ? 'header'
-        : drawerBarTop
-          ? 'section'
-          : tabBarShown && !tabBarAtBottom
-            ? 'tabs'
-            : 'page';
-    const safeBottomOwner = drawerBarBottom ? 'section' : tabBarShown && tabBarAtBottom ? 'tabs' : 'page';
-
     const tabBarNode = (
         <TabBar
             readonly
@@ -1291,8 +1274,6 @@ export default function App() {
         <div
             data-aura-app="frontend"
             className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`}
-            data-aura-safe-top={safeTopOwner}
-            data-aura-safe-bottom={safeBottomOwner}
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}
         >
             <ConnectionIndicator showBadge={showBadge} />
