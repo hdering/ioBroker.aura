@@ -205,6 +205,24 @@ function classDelta(r: MutationRecord, out: Map<string, number>): void {
     for (const c of before) if (!after.has(c)) bump(out, `-${c}`);
 }
 
+/** Where in the page an element sits, as far up as it takes to recognise it.
+ *
+ * `on: div.flex-1.min-h-0 464` was the fourth report's dead end: that class pair
+ * appears in the app shell, in both of Dashboard's layout branches and inside
+ * UniversalWidget, and the count alone cannot say which one is swapping its
+ * children. The chain up to the first landmark can. */
+function pathOf(node: Node | null): string {
+    let el: Element | null =
+        node && node.nodeType === 1 ? (node as Element) : ((node?.parentElement as Element | null) ?? null);
+    const parts: string[] = [];
+    for (let hops = 0; el && hops < 12 && parts.length < 5; hops++, el = el.parentElement) {
+        parts.push(sig(el));
+        const cls = el.getAttribute?.('class') || '';
+        if (el.getAttribute?.('data-aura-widget') || /(^|\s)aura-/.test(cls)) break;
+    }
+    return parts.reverse().join(' > ');
+}
+
 function bump(m: Map<string, number>, key: string): void {
     m.set(key, (m.get(key) ?? 0) + 1);
 }
@@ -239,6 +257,7 @@ async function collectActivity(
     const nodesIn = new Map<string, number>();
     const nodesOut = new Map<string, number>();
     const targets = new Map<string, number>();
+    const paths = new Map<string, string>();
     const classToggles = new Map<string, number>();
     const kinds = { attributes: 0, childList: 0, characterData: 0 };
 
@@ -246,7 +265,9 @@ async function collectActivity(
         mutations += records.length;
         for (const r of records) {
             bump(blame, blameFor(r.target));
-            bump(targets, sig(r.target));
+            const tsig = sig(r.target);
+            bump(targets, tsig);
+            if (!paths.has(tsig)) paths.set(tsig, pathOf(r.target));
             kinds[r.type]++;
             if (r.type === 'attributes') {
                 bump(attrNames, r.attributeName || '?');
@@ -358,6 +379,9 @@ async function collectActivity(
         `  per frame: scroller ${range.wMax < 0 ? 'none' : `${range.wMin}-${range.wMax} px`}` +
             `, grid items ${range.gMin}-${range.gMax}, cards ${range.cMin}-${range.cMax}`,
         `  on: ${top(targets, 3) || '—'}`,
+        ...(ranked.length
+            ? [`  path: ${paths.get([...targets.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? '') ?? '—'}`]
+            : []),
         ...(classToggles.size ? [`  class: ${top(classToggles, 4)}`] : []),
         `  nodes in: ${top(nodesIn, 3) || '—'}`,
         `  nodes out: ${top(nodesOut, 3) || '—'}`,
@@ -413,18 +437,29 @@ async function collectLoopSuspect(ranked: [string, number][], total: number, per
                     // breakpoints. What is missing is the frame around it — the
                     // grid geometry and the breakpoint decide which layout branch
                     // runs at all, and those live on the layout and the section.
+                    // The fourth report came back with both of these empty, which
+                    // means every number in play is a GLOBAL setting — and those
+                    // were the one thing the dump still did not carry.
+                    let global: unknown = 'unreadable';
+                    try {
+                        const { useConfigStore } = await import('../store/configStore');
+                        global = useConfigStore.getState().frontend;
+                    } catch {
+                        /* keep the placeholder */
+                    }
                     const env = JSON.stringify({
                         box: w.gridPos,
                         widgetsOnTab: (tab.widgets ?? []).length,
                         layout: layout.settings ?? {},
                         section: section.settings ?? {},
+                        global,
                     });
                     return [
                         '',
                         '— loop suspect —',
                         `${w.type} #${id} on tab "${tab.name ?? tab.id}"`,
                         json.length > 1500 ? `${json.slice(0, 1500)}… (${json.length} chars)` : json,
-                        env.length > 700 ? `${env.slice(0, 700)}…` : env,
+                        env.length > 2000 ? `${env.slice(0, 2000)}…` : env,
                     ];
                 }
             }
