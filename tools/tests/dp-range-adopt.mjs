@@ -99,6 +99,10 @@ await adopt.click();
 await page.waitForTimeout(400);
 eq('one click writes the range', [(await opts()).minValue, (await opts()).maxValue], [10, 30]);
 check('and the offer is gone', (await dlg.locator('button:text-is("Übernehmen"):visible').count()) === 0);
+check(
+    'while the line still says where the numbers come from',
+    (await dlg.getByText(/Datenpunkt meldet 10/).count()) === 1,
+);
 const minField = dlg.locator('label:text-is("Min") + input').first();
 eq('the Min field shows it', await minField.inputValue(), '10');
 
@@ -107,9 +111,15 @@ dlg = await open(knob(SETPOINT, { minValue: 5, maxValue: 40 }), VIEW);
 check('a hand-set scale still gets the hint', (await dlg.getByText(/Datenpunkt meldet 10/).count()) === 1);
 eq('but nothing is written behind the back', [(await opts()).minValue, (await opts()).maxValue], [5, 40]);
 
-// ── 3. A datapoint without a range says nothing ──────────────────────────────
+// ── 3. A datapoint without a range says so ────────────────────────────
+// A missing line would read as a broken feature; it has to name the reason.
 dlg = await open(knob(PLAIN, {}), VIEW);
-check('no range declared, no hint', (await dlg.getByText(/Datenpunkt meldet/).count()) === 0);
+check('no range declared, the line says so', (await dlg.getByText(/meldet keinen Bereich/).count()) === 1);
+check('and offers nothing', (await dlg.locator('button:text-is("Übernehmen"):visible').count()) === 0);
+
+// ── 3b. An unknown datapoint says nothing at all ──────────────────────
+dlg = await open(knob('alias.0.gibt.es.nicht', {}), VIEW);
+check('an id the list does not know stays silent', (await dlg.getByText(/Datenpunkt meldet/).count()) === 0);
 
 // ── 4. Exchanging the datapoint adopts the range right away ──────────────────
 dlg = await open(knob(PLAIN, {}), VIEW);
