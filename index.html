@@ -5,10 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <!-- `viewport-fit=cover` lets the page reach the physical screen edges. Without it
          every `env(safe-area-inset-*)` resolves to 0px, so neither Aura nor a user's
-         custom CSS could react to a notch, a Dynamic Island or a gesture bar. The app
-         hands the freed strips back as padding and paints them itself (index.css,
-         `.aura-page::before/::after`) — see #662. -->
+         custom CSS could react to a notch, a Dynamic Island or a gesture bar. The bar
+         at each edge then grows into the inset (index.css) — see #662. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <!-- Measured on iOS 27: with `viewport-fit=cover` alone the web app reports
+         `safe-area-inset-bottom: 34px` but `top: 0px`. That is the documented effect of
+         the status bar style `default` — iOS lays the web view out BELOW the status bar,
+         so the page never learns that the strip exists and cannot reserve it. Reserving
+         it by hand then costs 47px of real screen, and iOS still draws its glass band
+         over the top of the web view.
+         `black-translucent` hands the whole screen to the page instead: the inset
+         becomes real, the tab bar grows into it on its own, and the band blurs the flat
+         colour of that bar. Both tags are read when the user adds the app to the home
+         screen — an app installed before this build keeps the old behaviour until it is
+         removed and added again. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <!-- Colour iOS/Android put behind their own system bars. ThemeProvider keeps it in
          sync with the tab-bar colour; the boot script below restores the last one so the
          status bar does not flash the wrong colour before React mounts. -->

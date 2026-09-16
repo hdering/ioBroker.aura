@@ -192,7 +192,7 @@ Eigener Inhalt am Kartenrand richtet sich nach `--aura-widget-pad` statt nach ei
 
 Auf Geräten mit Notch, Dynamic Island oder Gestenleiste wächst die Leiste am Bildschirmrand — Kopfzeile, Bereichsleiste oder Tab-Leiste — um den freigehaltenen Bereich, statt einen eigenen Streifen darüber zu setzen. Sitzt dort keine Leiste, hält `.aura-page` den Abstand selbst und färbt ihn (`::before` oben, `::after` unten). Wer welchen Rand besitzt, steht in `data-aura-safe-top` bzw. `data-aura-safe-bottom` (`header` | `section` | `tabs` | `page`).
 
-Installierte Web-Apps unter iOS 26/27 legen oben einen System-Blur über die Seite. Eine einfarbige Fläche darunter macht ihn unsichtbar. iOS meldet den oberen Bereich aber nur, wenn die Seite als Web-App deklariert ist — sonst bleibt `env(safe-area-inset-top)` bei `0px` und der Platz muss von Hand reserviert werden:
+Installierte Web-Apps unter iOS 26/27 legen oben einen System-Blur über die Seite. Eine einfarbige Fläche darunter macht ihn unsichtbar. Den oberen Bereich meldet iOS nur, wenn die App mit der Statusleisten-Einstellung `black-translucent` abgelegt wurde — die liest iOS beim **Hinzufügen zum Home-Bildschirm**. Eine älter abgelegte App meldet weiterhin `0px`; sie muss einmal entfernt und neu abgelegt werden. Solange das nicht geht, lässt sich der Platz von Hand reservieren — er geht dann allerdings vom Bildschirm ab:
 
 ```css
 .aura-page {

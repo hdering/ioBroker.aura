@@ -616,6 +616,12 @@ function collectSafeArea(): string[] {
     // this line also says whether the device is running a build that has the fix.
     const viewport = document.querySelector('meta[name=viewport]')?.getAttribute('content') ?? 'missing';
     out.push(`viewport: ${viewport}`);
+    // Read by iOS when the app is ADDED to the home screen, not on every load —
+    // so the tag being right here says nothing about the installed app.
+    const barStyle =
+        document.querySelector('meta[name=apple-mobile-web-app-status-bar-style]')?.getAttribute('content') ??
+        'missing';
+    out.push(`apple status bar style: ${barStyle} (read when the app was installed)`);
     out.push(`theme-color: ${document.getElementById('aura-theme-color')?.getAttribute('content') ?? 'missing'}`);
 
     const env = readEnvInsets();
@@ -664,7 +670,11 @@ function collectSafeArea(): string[] {
     // glass band lands in, and `kept` is the room it needs.
     const coverWorks = env.bottom !== '0px' || env.left !== '0px' || env.right !== '0px';
     if (coverWorks && env.top === '0px') {
-        out.push(`=> iOS withholds the top inset — try --aura-safe-top: ${kept || 47}px in the custom CSS field.`);
+        out.push(
+            `=> iOS withholds the top inset: this app was installed with the status bar style "default".` +
+                ` Remove it from the home screen and add it again, or reserve the room by hand` +
+                ` (--aura-safe-top: ${kept || 47}px), which costs that much screen.`,
+        );
     } else if (!installed && env.top === '0px') {
         out.push(
             '=> browser tab. iOS paints its band only in the installed web app — measure from the home-screen icon.',
