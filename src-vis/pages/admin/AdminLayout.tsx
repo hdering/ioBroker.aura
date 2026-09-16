@@ -43,8 +43,18 @@ import {
     groupDefsReadyForSave,
 } from '../../store/persistManager';
 import { useDashboardStore } from '../../store/dashboardStore';
-import { useEditHistoryStore, undo, redo, resetEditHistory, clearHistoryNotice } from '../../store/editHistory';
-import { useEditHistoryLifecycle, useUndoRedoShortcuts } from '../../store/editHistorySetup';
+import {
+    useEditHistoryStore,
+    undo,
+    redo,
+    peekUndo,
+    peekRedo,
+    resetEditHistory,
+    clearHistoryNotice,
+} from '../../store/editHistory';
+import { useEditHistoryLifecycle, useUndoRedoShortcuts, describeEntry } from '../../store/editHistorySetup';
+import { formatChangeDetails } from '../../utils/changeLabels';
+import { EditHistoryMenu } from './EditHistoryMenu';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
@@ -217,6 +227,11 @@ export function AdminLayout() {
         const id = setTimeout(clearHistoryNotice, 6000);
         return () => clearTimeout(id);
     }, [historyNotice]);
+    // Tooltip names the step: "Rückgängig (Strg+Z): Widget „Küche“ verschoben".
+    const stepTitle = (base: string, entry: ReturnType<typeof peekUndo>) =>
+        entry ? `${base}: ${formatChangeDetails(t, describeEntry(entry))}` : base;
+    const undoTitle = stepTitle(t('admin.save.undoStep'), peekUndo());
+    const redoTitle = stepTitle(t('admin.save.redoStep'), peekRedo());
     // Keep a stable ref to the latest save() so the Ctrl+S / auto-save effects
     // (which don't depend on `save`) always invoke the current closure — and so
     // both paths surface the same save-blocked hint instead of failing silently.
@@ -634,8 +649,8 @@ export function AdminLayout() {
                                 <button
                                     onClick={() => undo()}
                                     disabled={undoCount === 0}
-                                    title={t('admin.save.undoStep')}
-                                    aria-label={t('admin.save.undoStep')}
+                                    title={undoTitle}
+                                    aria-label={undoTitle}
                                     data-history-undo
                                     className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity disabled:opacity-30 disabled:hover:opacity-30"
                                     style={{
@@ -649,8 +664,8 @@ export function AdminLayout() {
                                 <button
                                     onClick={() => redo()}
                                     disabled={redoCount === 0}
-                                    title={t('admin.save.redoStep')}
-                                    aria-label={t('admin.save.redoStep')}
+                                    title={redoTitle}
+                                    aria-label={redoTitle}
                                     data-history-redo
                                     className="w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80 transition-opacity disabled:opacity-30 disabled:hover:opacity-30"
                                     style={{
@@ -661,6 +676,7 @@ export function AdminLayout() {
                                 >
                                     <Redo2 size={13} />
                                 </button>
+                                <EditHistoryMenu />
                             </div>
                             {dirty ? (
                                 <>

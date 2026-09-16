@@ -64,6 +64,14 @@ export const de = {
     'admin.save.save': 'Speichern',
     'admin.save.saved': 'Alle Änderungen gespeichert',
     'admin.save.autoIn': 'Automatisch in {s}s…',
+    'admin.history.title': 'Verlauf',
+    'admin.history.steps': 'Schritte dieser Sitzung',
+    'admin.history.current': 'Aktueller Stand',
+    'admin.history.empty': 'Noch keine Änderungen',
+    'admin.history.undoTo': 'Zu diesem Stand zurück',
+    'admin.history.redoTo': 'Bis hierhin wiederholen',
+    'admin.history.saved': 'Gespeicherte Stände',
+    'admin.history.loading': 'Wird geladen …',
     'admin.update.available': 'Version {v} ist verfügbar — Release-Notes öffnen',
 
     // ── Editor settings ───────────────────────────────────────────────────────────
@@ -361,6 +369,7 @@ export const de = {
     'settings.autobackup.change.section-added.n': '{count} Bereiche hinzugefügt',
     'settings.autobackup.change.section-removed': 'Bereich „{label}“ entfernt',
     'settings.autobackup.change.section-removed.n': '{count} Bereiche entfernt',
+    'settings.autobackup.change.restore-safety': 'Stand vor der Wiederherstellung',
     'settings.autobackup.change.section-renamed': 'Bereich „{label}“ umbenannt',
     'settings.autobackup.change.section-renamed.n': '{count} Bereiche umbenannt',
 

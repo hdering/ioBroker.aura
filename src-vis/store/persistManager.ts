@@ -587,6 +587,10 @@ function diffDashboard(beforeRaw: string, afterRaw: string): RawChange[] {
     const before = parseLayouts(beforeRaw);
     const after = parseLayouts(afterRaw);
     if (!before || !after) return [];
+    return diffLayouts(before, after);
+}
+
+function diffLayouts(before: LayoutLite[], after: LayoutLite[]): RawChange[] {
     const out: RawChange[] = [];
     const beforeById = new Map(before.filter((l) => l.id).map((l) => [l.id, l]));
     const afterById = new Map(after.filter((l) => l.id).map((l) => [l.id, l]));
@@ -619,6 +623,13 @@ function aggregate(store: string, raw: RawChange[]): BackupChangeDetail[] {
         else out.push({ store, kind, count: list.length });
     });
     return out;
+}
+
+/** Structured change list between two in-memory layout trees. The undo history
+ *  labels its entries with this and so shares the wording of the backup list. */
+export function describeLayoutsChange(before: unknown, after: unknown): BackupChangeDetail[] {
+    if (!Array.isArray(before) || !Array.isArray(after)) return [];
+    return aggregate('aura-dashboard', diffLayouts(before as LayoutLite[], after as LayoutLite[]));
 }
 
 // Produce change details for one saved key. `before === undefined` means no
@@ -687,6 +698,14 @@ async function writeBackup(changedKeys: SyncStoreKey[] = [], details: BackupChan
     } catch (err) {
         console.error('[aura backup] write failed', err);
     }
+}
+
+/** Snapshot the current stores — unsaved edits included — before a restore
+ *  replaces them, so the restore stays reversible from the backup list even
+ *  after a reload. Shows up in the list as "state before the restore". */
+export function writeSafetyBackup(): Promise<void> {
+    if (screenshotMode || !groupDefsReadyForSave()) return Promise.resolve();
+    return writeBackup([...SYNC_STORE_KEYS], [{ store: 'aura-dashboard', kind: 'restore-safety' }]);
 }
 
 export interface BackupFileEntry {

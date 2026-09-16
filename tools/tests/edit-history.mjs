@@ -50,7 +50,9 @@ const stubPlugin = {
                 export const setStateDirect = () => {};
                 export const getStateDirect = async () => null;
                 export const getStateFromCache = () => undefined;
-                export const writeFileDirect = async () => {};
+                export const writeFileDirect = async (ns, name, data) => {
+                    (globalThis.__auraFiles ??= []).push({ name, data });
+                };
                 export const readFileDirect = async () => null;
                 export const readDirDirect = async () => [];
                 export const deleteFileDirect = async () => {};
@@ -72,7 +74,8 @@ await build({
         contents: `
             export * as history from './src-vis/store/editHistory.ts';
             export { HISTORY_LIMIT, COALESCE_MS } from './src-vis/store/editHistory.ts';
-            export { isTextEditTarget } from './src-vis/store/editHistorySetup.ts';
+            export { isTextEditTarget, describeEntry } from './src-vis/store/editHistorySetup.ts';
+            export { restoreBackupPayload } from './src-vis/utils/backupRestore.ts';
             export {
                 isDirty,
                 hasDirtyFlag,
@@ -405,7 +408,51 @@ const counts = (mod) => {
     eq('stack is capped', counts(mod)[0], mod.HISTORY_LIMIT);
 }
 
-// ── 8. Shortcut target rule (pure predicate) ─────────────────────────────────
+// ── 8. Labels share the backup wording; restore = safety backup + one entry ──
+{
+    const { mod } = await boot({ 'aura-dashboard': dashboardPayload([widget('w1'), widget('w2')]) });
+    const top = () => mod.describeEntry(mod.history.peekUndo());
+    mod.useDashboardStore.getState().updateWidget('w1', { title: 'Küche' });
+    eq('rename → widget-renamed', top(), [{ store: 'aura-dashboard', kind: 'widget-renamed', label: 'Küche' }]);
+    tick(2000);
+    mod.useDashboardStore.getState().updateWidget('w2', { gridPos: { x: 5, y: 0, w: 10, h: 6 } });
+    eq('move → widget-moved', top(), [{ store: 'aura-dashboard', kind: 'widget-moved', label: 'w2' }]);
+    tick(100);
+    mod.useDashboardStore.getState().updateWidget('w2', { gridPos: { x: 9, y: 0, w: 10, h: 6 } });
+    eq('a merged entry re-labels from its first before', top(), [
+        { store: 'aura-dashboard', kind: 'widget-moved', label: 'w2' },
+    ]);
+    tick(2000);
+    mod.history.historyGroup(() => {
+        mod.useDashboardStore.getState().removeWidget('w2');
+        mod.useThemeStore.getState().setTheme('light');
+    });
+    eq('group → one detail per store', top(), [
+        { store: 'aura-dashboard', kind: 'widget-removed', label: 'w2' },
+        { store: 'aura-theme', kind: 'store-changed', label: 'aura-theme' },
+    ]);
+
+    // Restore a backup payload: the current state is snapshotted first, the
+    // switch is one entry and undoes in one step.
+    globalThis.__auraFiles = [];
+    const entriesBefore = counts(mod)[0];
+    const ok = await mod.restoreBackupPayload({
+        'aura-dashboard': dashboardPayload([widget('w1', { title: 'Restored' })]),
+    });
+    check('restore reports success', ok);
+    eq('restore applied', titleOf(mod, 'w1'), 'Restored');
+    eq('restore is ONE entry', counts(mod)[0], entriesBefore + 1);
+    const safety = globalThis.__auraFiles.find(
+        (f) => f.name.endsWith('.meta.json') && String(f.data).includes('restore-safety'),
+    );
+    check('a safety snapshot was written before the restore', !!safety);
+    mod.history.undo();
+    eq('undo restore → previous state', titleOf(mod, 'w1'), 'Küche');
+    eq('… theme too', mod.useThemeStore.getState().themeId, 'light');
+    eq('restore entry label', mod.describeEntry(mod.history.peekRedo())[0].kind, 'widget-renamed');
+}
+
+// ── 9. Shortcut target rule (pure predicate) ─────────────────────────────────
 {
     const { mod } = await boot({});
     globalThis.HTMLElement = class {};

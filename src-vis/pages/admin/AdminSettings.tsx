@@ -7,11 +7,10 @@ import { useConfigStore } from '../../store/configStore';
 import { useAdminPrefsStore, MAX_BACKUP_COUNT } from '../../store/adminPrefsStore';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
-import { applyRaw, rehydrateAll } from '../../utils/configLoader';
+import { restoreBackupPayload } from '../../utils/backupRestore';
+import { formatChangeDetail, formatTimestamp } from '../../utils/changeLabels';
 import { getObjectViewDirect, getStateDirect, setStateDirect } from '../../hooks/useIoBroker';
 import {
-    saveAll,
-    saveToIoBroker,
     listBackupFiles,
     loadBackupPayload,
     buildBackupPayload,
@@ -86,56 +85,12 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 
 // ── Backup card (manual + auto combined) ──────────────────────────────────────
 
-const BACKUP_SYNC_KEYS = [
-    'aura-dashboard',
-    'aura-theme',
-    'aura-groups',
-    'aura-config',
-    'aura-global-settings',
-    'aura-group-defs',
-    'aura-popup-config',
-    'aura-widget-presets',
-] as const;
-
 interface BackupEntry {
     ts: string;
     filename: string;
     size: number;
     changed: string[];
     details: BackupChangeDetail[];
-}
-
-function fmtTs(iso: string): string {
-    try {
-        return new Intl.DateTimeFormat(undefined, { dateStyle: 'short', timeStyle: 'medium' }).format(new Date(iso));
-    } catch {
-        return iso;
-    }
-}
-
-function applyBackupPayload(payload: Record<string, unknown>): boolean {
-    let changed = false;
-    BACKUP_SYNC_KEYS.forEach((key) => {
-        const val = payload[key];
-        if (!val) return;
-        const str = typeof val === 'string' ? val : JSON.stringify(val);
-        if (str.length < 3) return;
-        applyRaw(key as Parameters<typeof applyRaw>[0], str);
-        changed = true;
-    });
-    if (!changed) return false;
-    rehydrateAll(true);
-    // Force ALL sync keys to ioBroker — otherwise keys whose post-rehydrate value
-    // byte-matches the restored value aren't marked dirty and stay un-synced,
-    // letting the next page load pull stale ioBroker data and silently undo the
-    // restore.
-    try {
-        saveAll();
-        saveToIoBroker({ all: true });
-    } catch {
-        /* quota – non-fatal */
-    }
-    return true;
 }
 
 /** Stepper granularity: single backups while the ring is small, coarser above —
@@ -159,12 +114,7 @@ function BackupCard() {
 
     // Render one structured change detail: a named single change, an aggregated
     // count, or the coarse store-level fallback.
-    const fmtDetail = (d: BackupChangeDetail): string => {
-        if (d.kind === 'store-changed') return t(`settings.autobackup.store.${d.label}` as TranslationKey);
-        if (d.count && d.count > 1)
-            return t(`settings.autobackup.change.${d.kind}.n` as TranslationKey, { count: d.count });
-        return t(`settings.autobackup.change.${d.kind}` as TranslationKey, { label: d.label ?? '' });
-    };
+    const fmtDetail = (d: BackupChangeDetail): string => formatChangeDetail(t, d);
 
     const loadBackups = useCallback(async () => {
         // Screenshot harness: show one representative entry instead of the real
@@ -220,7 +170,8 @@ function BackupCard() {
                 setStatus('nodata');
                 return;
             }
-            const ok = applyBackupPayload(payload);
+            // Safety snapshot first, then one undo entry — see backupRestore.ts.
+            const ok = await restoreBackupPayload(payload);
             setStatus(ok ? 'success' : 'nodata');
         } catch {
             setStatus('error');
@@ -286,12 +237,13 @@ function BackupCard() {
                           'aura-theme': data.theme !== undefined ? JSON.stringify(data.theme) : undefined,
                           'aura-config': data.config !== undefined ? JSON.stringify(data.config) : undefined,
                       };
-                const ok = applyBackupPayload(payload);
-                if (!ok) {
-                    alert(t('settings.backup.invalidFile'));
-                    return;
-                }
-                window.location.reload();
+                void restoreBackupPayload(payload).then((ok) => {
+                    if (!ok) {
+                        alert(t('settings.backup.invalidFile'));
+                        return;
+                    }
+                    window.location.reload();
+                });
             } catch {
                 alert(t('settings.backup.invalidFile'));
             }
@@ -416,7 +368,7 @@ function BackupCard() {
                                         className="text-xs font-medium truncate"
                                         style={{ color: 'var(--text-primary)' }}
                                     >
-                                        {fmtTs(b.ts)}
+                                        {formatTimestamp(b.ts)}
                                     </p>
                                     {i === 0 && (
                                         <p className="text-[10px]" style={{ color: 'var(--accent)' }}>

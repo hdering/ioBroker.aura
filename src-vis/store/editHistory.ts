@@ -68,15 +68,27 @@ export type HistoryNotice = 'remote';
 interface EditHistoryUi {
     undoCount: number;
     redoCount: number;
+    /** Bumps on every change — a merge into the top entry included — so a list
+     *  of entries re-renders even when the counts stay the same. */
+    version: number;
     /** 'remote': entries were dropped because another device/client changed a store. */
     notice: HistoryNotice | null;
 }
 
 /** Small UI store so the save bar re-renders when the stacks change. */
-export const useEditHistoryStore = create<EditHistoryUi>()(() => ({ undoCount: 0, redoCount: 0, notice: null }));
+export const useEditHistoryStore = create<EditHistoryUi>()(() => ({
+    undoCount: 0,
+    redoCount: 0,
+    version: 0,
+    notice: null,
+}));
 
 function publish(): void {
-    useEditHistoryStore.setState({ undoCount: undoStack.length, redoCount: redoStack.length });
+    useEditHistoryStore.setState((s) => ({
+        undoCount: undoStack.length,
+        redoCount: redoStack.length,
+        version: s.version + 1,
+    }));
 }
 
 export function registerHistoryStore(key: SyncStoreKey, adapter: HistoryStoreAdapter): void {

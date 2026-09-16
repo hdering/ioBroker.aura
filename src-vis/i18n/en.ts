@@ -66,6 +66,14 @@ export const en: Record<TranslationKey, string> = {
     'admin.save.save': 'Save',
     'admin.save.saved': 'All changes saved',
     'admin.save.autoIn': 'Auto-saving in {s}s…',
+    'admin.history.title': 'History',
+    'admin.history.steps': 'Steps in this session',
+    'admin.history.current': 'Current state',
+    'admin.history.empty': 'No changes yet',
+    'admin.history.undoTo': 'Back to this state',
+    'admin.history.redoTo': 'Redo up to here',
+    'admin.history.saved': 'Saved states',
+    'admin.history.loading': 'Loading …',
     'admin.update.available': 'Version {v} is available — open the release notes',
 
     // ── Editor settings ───────────────────────────────────────────────────────────
@@ -360,6 +368,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.autobackup.change.section-added.n': '{count} sections added',
     'settings.autobackup.change.section-removed': 'Section “{label}” removed',
     'settings.autobackup.change.section-removed.n': '{count} sections removed',
+    'settings.autobackup.change.restore-safety': 'State before the restore',
     'settings.autobackup.change.section-renamed': 'Section “{label}” renamed',
     'settings.autobackup.change.section-renamed.n': '{count} sections renamed',
 

@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 Advanced chart - can start on the current calendar day (00:00-24:00) instead of the rolling range
 Editor - step-wise undo/redo (Ctrl+Z / Ctrl+Y or the arrows in the save bar), also after saving; "Discard" reverts all unsaved changes and is itself undoable
+Editor - history menu in the save bar lists every step of the session by name and the saved states from the auto-backups; restoring one writes a safety backup first and is a single undo step

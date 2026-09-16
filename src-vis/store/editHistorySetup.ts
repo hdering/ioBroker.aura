@@ -14,8 +14,16 @@ import { useGlobalSettingsStore } from './globalSettingsStore';
 import { usePopupConfigStore } from './popupConfigStore';
 import { useGroupDefsStore } from './groupDefsStore';
 import { useWidgetPresetsStore } from './widgetPresetsStore';
-import type { SyncStoreKey } from './persistManager';
-import { registerHistoryStore, startEditHistory, stopEditHistory, undo, redo, type Snapshot } from './editHistory';
+import { describeLayoutsChange, type BackupChangeDetail, type SyncStoreKey } from './persistManager';
+import {
+    registerHistoryStore,
+    startEditHistory,
+    stopEditHistory,
+    undo,
+    redo,
+    type HistoryEntry,
+    type Snapshot,
+} from './editHistory';
 
 /** Every non-function field of the state except the listed ones. New store
  *  fields are covered automatically; only per-device/UI fields must be excluded. */
@@ -47,6 +55,35 @@ register('aura-global-settings', useGlobalSettingsStore);
 register('aura-popup-config', usePopupConfigStore);
 register('aura-group-defs', useGroupDefsStore, ['hydrated']);
 register('aura-widget-presets', useWidgetPresetsStore, ['hydrated']);
+
+// Labels are computed lazily (a full tree diff per entry) and cached per entry;
+// a merge into the top entry swaps its `after`, which invalidates the cache.
+const labelCache = new WeakMap<HistoryEntry, { sig: unknown[]; details: BackupChangeDetail[] }>();
+
+/** What an entry did, in the wording of the backup list ("Widget „X“ verschoben"). */
+export function describeEntry(entry: HistoryEntry): BackupChangeDetail[] {
+    const cached = labelCache.get(entry);
+    if (
+        cached &&
+        cached.sig.length === entry.changes.length &&
+        cached.sig.every((s, i) => s === entry.changes[i].after)
+    ) {
+        return cached.details;
+    }
+    const details: BackupChangeDetail[] = [];
+    for (const change of entry.changes) {
+        if (change.key === 'aura-dashboard') {
+            const d = describeLayoutsChange(change.before.layouts, change.after.layouts);
+            if (d.length > 0) {
+                details.push(...d);
+                continue;
+            }
+        }
+        details.push({ store: change.key, kind: 'store-changed', label: change.key });
+    }
+    labelCache.set(entry, { sig: entry.changes.map((c) => c.after), details });
+    return details;
+}
 
 /** Text fields keep the browser's own undo; everything else (checkbox, slider,
  *  colour, buttons, the page itself) hands Ctrl+Z to the editor history. */
