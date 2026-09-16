@@ -477,6 +477,79 @@ function collectTabs(): string[] {
     return [`mounted tabs: ${tabs.length}, of them hidden but still running: ${hidden.length}`];
 }
 
+/** What the four `env(safe-area-inset-*)` actually resolve to on this device.
+ *
+ *  They cannot be read back from a style declaration — the browser resolves
+ *  env() while computing a value — so a throwaway element asks the question by
+ *  padding itself with them. */
+function readEnvInsets(): { top: string; right: string; bottom: string; left: string } {
+    const probe = document.createElement('div');
+    probe.style.cssText = [
+        'position:fixed',
+        'top:0',
+        'left:0',
+        'visibility:hidden',
+        'pointer-events:none',
+        'padding-top:env(safe-area-inset-top,0px)',
+        'padding-right:env(safe-area-inset-right,0px)',
+        'padding-bottom:env(safe-area-inset-bottom,0px)',
+        'padding-left:env(safe-area-inset-left,0px)',
+    ].join(';');
+    document.body.appendChild(probe);
+    const cs = getComputedStyle(probe);
+    const out = { top: cs.paddingTop, right: cs.paddingRight, bottom: cs.paddingBottom, left: cs.paddingLeft };
+    probe.remove();
+    return out;
+}
+
+/** The safe area as the shell sees it (#662).
+ *
+ *  iOS 26/27 paint a glass band over the top edge of an installed web app.
+ *  Aura cannot remove it, only make it blur a single flat colour — which works
+ *  exactly as far as the inset iOS reports reaches. Two failure modes have to be
+ *  told apart from a screenshot, and nothing else in this report can do it:
+ *  the device reports 0px (nothing moves, the band still lands on the tabs), or
+ *  the band simply reaches further down than the inset it announced. So print
+ *  what was asked for, what came back, and where the first bar ends up. */
+function collectSafeArea(): string[] {
+    const out: string[] = [];
+    const modes = ['standalone', 'fullscreen', 'minimal-ui', 'browser', 'window-controls-overlay'];
+    const active = modes.filter((m) => matchMedia(`(display-mode: ${m})`).matches);
+    out.push(`display-mode: ${active.join(', ') || 'unknown'}   navigator.standalone: ${'standalone' in navigator}`);
+
+    // Without `viewport-fit=cover` every inset below is 0px by definition — so
+    // this line also says whether the device is running a build that has the fix.
+    const viewport = document.querySelector('meta[name=viewport]')?.getAttribute('content') ?? 'missing';
+    out.push(`viewport: ${viewport}`);
+    out.push(`theme-color: ${document.getElementById('aura-theme-color')?.getAttribute('content') ?? 'missing'}`);
+
+    const env = readEnvInsets();
+    out.push(`env(safe-area-inset-*): top ${env.top}, right ${env.right}, bottom ${env.bottom}, left ${env.left}`);
+
+    const page = document.querySelector('.aura-page');
+    if (!page) return [...out, 'no .aura-page — the shell is not rendered'];
+    const cs = getComputedStyle(page);
+    out.push(
+        `.aura-page padding: top ${cs.paddingTop}, right ${cs.paddingRight}, bottom ${cs.paddingBottom}, left ${cs.paddingLeft}`,
+    );
+    const before = getComputedStyle(page, '::before');
+    const after = getComputedStyle(page, '::after');
+    out.push(`strips: top ${before.height} ${before.backgroundColor}, bottom ${after.height} ${after.backgroundColor}`);
+
+    // Where the first bar actually sits. Anything above its top edge is flat
+    // colour; if the band reaches past that line, this is the number to raise
+    // `--aura-safe-top` to.
+    const chrome = document.querySelector('.aura-tabs-top, .aura-header, .aura-section-bar');
+    if (chrome) {
+        const r = chrome.getBoundingClientRect();
+        const name = chrome.className.split(/\s+/).find((c) => c.startsWith('aura-')) ?? chrome.tagName.toLowerCase();
+        out.push(`first bar: ${name} from ${Math.round(r.top)}px to ${Math.round(r.bottom)}px`);
+    } else {
+        out.push('first bar: none — the dashboard starts at the top edge');
+    }
+    return out;
+}
+
 export default function DiagnosticsOverlay(): React.ReactElement | null {
     const [enabled, setEnabled] = useState(diagRequested);
     const [report, setReport] = useState<string>('collecting…');
@@ -489,6 +562,7 @@ export default function DiagnosticsOverlay(): React.ReactElement | null {
         lines.push(`origin: ${location.origin}`);
         lines.push(`screen: ${innerWidth}x${innerHeight} dpr ${devicePixelRatio}`);
         lines.push(`UA: ${navigator.userAgent}`);
+        lines.push('', '— safe area —', ...collectSafeArea());
         const activity = await collectActivity(2000);
         lines.push('', '— activity —', ...activity.lines);
         lines.push('', '— icons —', ...collectIcons());
