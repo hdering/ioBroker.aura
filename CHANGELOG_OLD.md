@@ -1,5 +1,10 @@
 # Changelog (older entries)
 
+## 0.56.1 (2026-09-08)
+- MCP - PIN-protected sections and tabs are now reported as protected instead of empty; without a release the AI server only sees their structure (id, type, gridPos) and cannot write, and aura_review counts them as not checked
+- MCP - new per-view switch "Editable via MCP" in the editor (section/tab gear, admin login required) releases a PIN-protected view for the AI server without ever revealing the PIN; aura_write_tab stays blocked there
+- PIN protection - a section's own badges and badge aggregate no longer get lost when a PIN is set on it
+
 ## 0.56.0 (2026-09-08)
 - Section title - the "Framed" style is now part of the AI widget schema, so the MCP accepts what the editor writes
 - Layout styles come from one list for the editor, the AI schema and the documentation - styles no widget ever rendered are gone, and the light, camera and knob now show their real styles everywhere
