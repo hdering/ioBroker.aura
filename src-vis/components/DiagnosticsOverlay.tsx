@@ -176,6 +176,26 @@ function blameFor(node: Node | null): string {
     return landmark || 'outside the grid';
 }
 
+/** Short, stable name for a node that was added or removed.
+ *
+ * "108 node changes under .aura-page" says the churn is above the widgets and
+ * nothing more — a whole subtree being thrown away and rebuilt looks exactly
+ * like a toast appearing 54 times a second. An `aura-` class is preferred over
+ * the Tailwind utilities next to it because it is the one name that survives a
+ * restyle. */
+function sig(n: Node): string {
+    if (n.nodeType === 3) return '#text';
+    if (n.nodeType !== 1) return `#${n.nodeName.toLowerCase()}`;
+    const el = n as Element;
+    const tag = el.tagName.toLowerCase();
+    const type = el.getAttribute('data-aura-widget-type');
+    if (type) return `${tag}[${type}]`;
+    const classes = (el.getAttribute('class') || '').split(/\s+/).filter(Boolean);
+    const aura = classes.find((c) => c.startsWith('aura-'));
+    const pick = aura ? [aura] : classes.slice(0, 2);
+    return pick.length ? `${tag}.${pick.join('.')}` : tag;
+}
+
 function bump(m: Map<string, number>, key: string): void {
     m.set(key, (m.get(key) ?? 0) + 1);
 }
@@ -205,6 +225,8 @@ async function collectActivity(ms: number): Promise<string[]> {
 
     const blame = new Map<string, number>();
     const attrNames = new Map<string, number>();
+    const nodesIn = new Map<string, number>();
+    const nodesOut = new Map<string, number>();
     const kinds = { attributes: 0, childList: 0, characterData: 0 };
 
     const mo = new MutationObserver((records) => {
@@ -215,9 +237,11 @@ async function collectActivity(ms: number): Promise<string[]> {
             if (r.type === 'attributes') bump(attrNames, r.attributeName || '?');
             r.addedNodes.forEach((n) => {
                 if (n.nodeName === 'svg') svgIn++;
+                bump(nodesIn, sig(n));
             });
             r.removedNodes.forEach((n) => {
                 if (n.nodeName === 'svg') svgOut++;
+                bump(nodesOut, sig(n));
             });
         }
     });
@@ -263,7 +287,12 @@ async function collectActivity(ms: number): Promise<string[]> {
         const sd = socketDiagnostics();
         live =
             `socket now: library ${sd.lib ? 'loaded' : 'MISSING (/socket.io/socket.io.js)'}` +
-            `, ${sd.connected ? 'connected' : 'OFFLINE'}${sd.stub ? ' (inert stub)' : ''}`;
+            `, ${sd.connected ? 'connected' : 'OFFLINE'}${sd.stub ? ' (inert stub)' : ''}\n` +
+            // Counted in the socket handlers, so these hold no matter when the
+            // report was switched on — unlike everything above them.
+            `  events since load: ${sd.stateChanges} state changes, ` +
+            `${sd.connects} connects, ${sd.disconnects} drops\n` +
+            `  subscribed datapoints: ${sd.subscriptions}`;
     } catch (e) {
         live = `socket now: unreadable (${(e as Error).message})`;
     }
@@ -275,6 +304,8 @@ async function collectActivity(ms: number): Promise<string[]> {
         `  kinds: attr ${kinds.attributes}` +
             `${attrNames.size ? ` (${top(attrNames, 3)})` : ''}` +
             `, nodes ${kinds.childList}, text ${kinds.characterData}`,
+        `  nodes in: ${top(nodesIn, 3) || '—'}`,
+        `  nodes out: ${top(nodesOut, 3) || '—'}`,
         `  svg added: ${svgIn}   removed: ${svgOut}`,
         `  long tasks: ${longTasks}, longest ${Math.round(longestMs)} ms`,
         `  socket: ${d.msgs} msgs, ${kb(d.bytes)} in, ${d.sent} sent, ${d.opens} new connections`,

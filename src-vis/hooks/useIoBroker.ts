@@ -43,6 +43,17 @@ export interface LogEntry {
     seq?: number;
 }
 
+/** Always-on traffic counters for the on-device report (#636).
+ *
+ * The report's WebSocket wrapper only counts when `?diag=1` was in the URL
+ * before the socket opened — and both device reports so far were taken by
+ * appending the flag to a page that was already running, so every socket number
+ * in them was a zero that meant nothing. These three cost one increment per
+ * event, need no wrapper, and are therefore true whenever the report is opened.
+ * A state-change storm and a reconnect loop are the two explanations a redraw
+ * loop most often has, and neither could be ruled out without them. */
+const traffic = { stateChanges: 0, connects: 0, disconnects: 0 };
+
 // Module-level singleton
 let socket: IoBrokerSocket | null = null;
 const subscribers = new Map<string, Set<(state: ioBrokerState) => void>>();
@@ -446,6 +457,7 @@ function createSocket(url: string): IoBrokerSocket {
     const handleConnected = (reconnected: boolean): void => {
         if (connectionActive) return;
         connectionActive = true;
+        traffic.connects++;
         connectPerfMark = typeof performance !== 'undefined' ? performance.now() : 0;
         firstStateReported = false;
         console.log(
@@ -476,6 +488,7 @@ function createSocket(url: string): IoBrokerSocket {
     s.on('reconnect', () => handleConnected(true));
     s.on('disconnect', () => {
         connectionActive = false;
+        traffic.disconnects++;
         // Nothing is being kept current while we are offline, so every cached value
         // now needs confirming — even for subscriptions that outlive the drop (the
         // non-hook `subscribeStateDirect` consumers, which don't watch `connected`).
@@ -490,6 +503,7 @@ function createSocket(url: string): IoBrokerSocket {
     s.on('stateChange', (...args: unknown[]) => {
         const id = args[0] as string;
         const state = args[1] as ioBrokerState;
+        traffic.stateChanges++;
         if (state) cacheState(id, state);
         subscribers.get(id)?.forEach((fn) => fn(state));
         // Perf: first live data after connect. Reported inline (rather than via
@@ -525,7 +539,16 @@ export function getSocket(): IoBrokerSocket {
  * quiet — and the first device report could not tell the two apart. Reads the
  * state directly instead of counting frames, so it stays true even when the
  * report was opened on an already-running page. */
-export function socketDiagnostics(): { lib: boolean; connected: boolean; stub: boolean; url: string } {
+export function socketDiagnostics(): {
+    lib: boolean;
+    connected: boolean;
+    stub: boolean;
+    url: string;
+    stateChanges: number;
+    connects: number;
+    disconnects: number;
+    subscriptions: number;
+} {
     const lib = !!getIo();
     return {
         lib,
@@ -533,6 +556,10 @@ export function socketDiagnostics(): { lib: boolean; connected: boolean; stub: b
         // createSocket() hands out an inert stub while the library is missing.
         stub: !!socket && !lib,
         url: currentUrl,
+        // Without this, "0 state changes" has two readings: a quiet system, or a
+        // dashboard that subscribed to nothing and can only show stale cache.
+        subscriptions: subscribers.size,
+        ...traffic,
     };
 }
 

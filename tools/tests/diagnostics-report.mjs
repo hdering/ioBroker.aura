@@ -125,13 +125,19 @@ try {
     await page.waitForFunction(() => (document.querySelector('pre')?.textContent || '').startsWith('measuring'), null, {
         timeout: 10000,
     });
-    // Churn inside the card for the whole measuring window.
+    // Churn inside the card for the whole measuring window: an attribute, a text
+    // node, and a subtree that is mounted and thrown away again — the shape a
+    // remount loop has.
     await page.evaluate(async () => {
         const el = document.querySelector('[data-aura-widget="w-test"]');
         for (let i = 0; i < 40; i++) {
             el.setAttribute('data-tick', String(i));
             el.firstChild.textContent = String(i);
+            const churn = document.createElement('div');
+            churn.className = 'aura-churn-probe';
+            el.appendChild(churn);
             await new Promise((r) => setTimeout(r, 40));
+            churn.remove();
         }
     });
     const blamed = await waitForReport(page);
@@ -145,6 +151,13 @@ try {
         'the changed attribute is named',
         /kinds: attr \d+ \(data-tick/.test(blamed),
         blamed.split('\n').find((l) => l.includes('kinds:')),
+    );
+    // An `aura-` class beats the Tailwind utilities beside it, so a subtree that
+    // is mounted and discarded can be recognised by name.
+    check(
+        'the mounted and discarded subtree is named',
+        /nodes in: .*div\.aura-churn-probe \d+/.test(blamed) && /nodes out: .*div\.aura-churn-probe \d+/.test(blamed),
+        blamed.split('\n').find((l) => l.includes('nodes in:')),
     );
     await ctx.close();
 
@@ -161,6 +174,14 @@ try {
     check('overlay opens on a running page without a reload', late.includes('— activity —'));
     check('late start admits the counters are blind', late.includes('NOT MEASURED'));
     check('late start still reads the live socket', /socket now: library/.test(late));
+    // The counters that do NOT depend on when the flag was set: a state-change
+    // storm and a reconnect loop are the two things a redraw loop is usually
+    // blamed on, and a late report could rule out neither.
+    check(
+        'late start still counts state changes and drops',
+        /events since load: \d+ state changes, \d+ connects, \d+ drops/.test(late),
+        late.split('\n').find((l) => l.includes('events since load:')),
+    );
     await ctx2.close();
 } finally {
     await browser.close();
