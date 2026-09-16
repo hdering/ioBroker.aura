@@ -165,6 +165,7 @@ Weitere `aura-`Klassen im Adminbereich sind Anker für die automatischen Tests �
 | `[data-aura-toasts="<position>"]` | Toast-Ecke der Meldungen |
 | `[data-aura-click-popup="<art>"]` | Popup eines Widget-Klicks |
 | `[data-aura-locked]` | Widget mit gesperrter Bedienung |
+| `[data-aura-safe-top]` / `[data-aura-safe-bottom]` | wer den sicheren Bereich am Rand hält (`header`/`section`/`tabs`/`page`) |
 
 ## CSS-Variablen
 
@@ -177,7 +178,7 @@ Weitere `aura-`Klassen im Adminbereich sind Anker für die automatischen Tests �
 | `--font-scale` | Schriftskalierung des Frontends |
 | `--aura-safe-top` / `--aura-safe-bottom` | Höhe des sicheren Bereichs oben/unten, Vorgabe `env(safe-area-inset-*)` |
 | `--aura-safe-left` / `--aura-safe-right` | dasselbe seitlich (Notch im Querformat) |
-| `--aura-safe-top-bg` / `--aura-safe-bottom-bg` | Farbe des Streifens im sicheren Bereich |
+| `--aura-safe-top-bg` / `--aura-safe-bottom-bg` | Farbe des Streifens, nur wenn dort keine Leiste sitzt |
 
 Eigener Inhalt am Kartenrand richtet sich nach `--aura-widget-pad` statt nach einem festen Wert:
 
@@ -189,16 +190,17 @@ Eigener Inhalt am Kartenrand richtet sich nach `--aura-widget-pad` statt nach ei
 
 ## Sicherer Bereich
 
-Auf Geräten mit Notch, Dynamic Island oder Gestenleiste hält `.aura-page` den Inhalt aus diesen Zonen heraus und färbt den frei gewordenen Streifen in der Farbe der angrenzenden Leiste (`.aura-page::before` oben, `.aura-page::after` unten). Auf Bildschirmen ohne solche Zonen sind die Streifen 0 px hoch.
+Auf Geräten mit Notch, Dynamic Island oder Gestenleiste wächst die Leiste am Bildschirmrand — Kopfzeile, Bereichsleiste oder Tab-Leiste — um den freigehaltenen Bereich, statt einen eigenen Streifen darüber zu setzen. Sitzt dort keine Leiste, hält `.aura-page` den Abstand selbst und färbt ihn (`::before` oben, `::after` unten). Wer welchen Rand besitzt, steht in `data-aura-safe-top` bzw. `data-aura-safe-bottom` (`header` | `section` | `tabs` | `page`).
 
-Installierte Web-Apps unter iOS 26/27 legen dort einen System-Blur über die Seite. Ein einfarbiger Streifen macht ihn unsichtbar; nötigenfalls lässt sich mehr Platz reservieren:
+Installierte Web-Apps unter iOS 26/27 legen oben einen System-Blur über die Seite. Eine einfarbige Fläche darunter macht ihn unsichtbar. iOS meldet den oberen Bereich aber nur, wenn die Seite als Web-App deklariert ist — sonst bleibt `env(safe-area-inset-top)` bei `0px` und der Platz muss von Hand reserviert werden:
 
 ```css
 .aura-page {
-    --aura-safe-top: 44px;
-    --aura-safe-top-bg: #1f2937;
+    --aura-safe-top: 47px;
 }
 ```
+
+Der Wert steht im Diagnose-Bericht (`?diag=1`, Abschnitt `safe area`) als `… px kept above the page`.
 
 Abschalten:
 

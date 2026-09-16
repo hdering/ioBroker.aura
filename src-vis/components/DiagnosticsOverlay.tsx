@@ -631,17 +631,27 @@ function collectSafeArea(): string[] {
     const after = getComputedStyle(page, '::after');
     out.push(`strips: top ${before.height} ${before.backgroundColor}, bottom ${after.height} ${after.backgroundColor}`);
 
-    // Where the first bar actually sits. Anything above its top edge is flat
-    // colour; if the band reaches past that line, this is the number to raise
-    // `--aura-safe-top` to.
-    const chrome = document.querySelector('.aura-tabs-top, .aura-header, .aura-section-bar');
+    // The reserve is not a strip of its own: the bar at the edge grows into it.
+    // So the numbers that matter are which bar was given the edge, how much it
+    // grew, and where its content ends up — anything above that line is flat
+    // colour, and if the band reaches past it, that is what has to go up.
+    const owner = page.getAttribute('data-aura-safe-top') ?? '?';
+    const sel: Record<string, string> = {
+        header: '.aura-header',
+        section: '.aura-section-bar',
+        tabs: '.aura-tabs-top',
+    };
+    const chrome = sel[owner] ? document.querySelector(sel[owner]) : null;
     if (chrome) {
         const r = chrome.getBoundingClientRect();
-        const name = chrome.className.split(/\s+/).find((c) => c.startsWith('aura-')) ?? chrome.tagName.toLowerCase();
-        out.push(`first bar: ${name} from ${Math.round(r.top)}px to ${Math.round(r.bottom)}px`);
+        const pad = getComputedStyle(chrome).paddingTop;
+        out.push(
+            `top edge owned by ${owner}: bar ${Math.round(r.top)}..${Math.round(r.bottom)}px, padding ${pad}, content from ${Math.round(r.top + parseFloat(pad))}px`,
+        );
     } else {
-        out.push('first bar: none — the dashboard starts at the top edge');
+        out.push(`top edge owned by ${owner} — no bar there, the page holds the gap itself`);
     }
+    out.push(`bottom edge owned by ${page.getAttribute('data-aura-safe-bottom') ?? '?'}`);
 
     // Say what the numbers mean, so a report does not have to be interpreted by
     // whoever reads it — both of these were answered wrongly at first glance.

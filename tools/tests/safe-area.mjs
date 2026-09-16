@@ -10,10 +10,10 @@
 // (`.aura-page::before/::after`).
 //
 // Two properties matter and both are checked here:
-//   * On a screen without insets NOTHING changes — the strips are 0px high, so
+//   * On a screen without insets NOTHING changes — no padding anywhere, so
 //     desktop, kiosk and Android keep the layout they had.
-//   * When an inset exists, the content moves out of it and the strip carries
-//     the colour of the chrome bordering it (tab bar / header).
+//   * When an inset exists, the bar that touches that edge grows into it — one
+//     taller bar rather than a strip above it — and its content moves clear.
 //
 // `env(safe-area-inset-*)` cannot be faked in a desktop browser, so the test
 // drives the same knobs a user's custom CSS would: `--aura-safe-top` and
@@ -66,16 +66,20 @@ function startVite(target) {
     });
 }
 
-/** Strip + padding as the browser computes them right now. */
+/** Ownership, padding and strips as the browser computes them right now. */
 const READ_SAFE_AREA = () => {
     const page = document.querySelector('.aura-page');
     if (!page) return { missing: true };
     const cs = getComputedStyle(page);
     const before = getComputedStyle(page, '::before');
     const after = getComputedStyle(page, '::after');
-    // Whatever chrome borders the top edge — the strip has to continue it.
-    const bar = document.querySelector('.aura-tabs-top, .aura-header');
+    const owner = page.getAttribute('data-aura-safe-top');
+    // The chrome App.tsx handed the top edge to — that is what has to grow.
+    const sel = { header: '.aura-header', section: '.aura-section-bar', tabs: '.aura-tabs-top' }[owner];
+    const bar = sel ? document.querySelector(sel) : null;
     return {
+        owner,
+        bottomOwner: page.getAttribute('data-aura-safe-bottom'),
         padTop: cs.paddingTop,
         padBottom: cs.paddingBottom,
         padLeft: cs.paddingLeft,
@@ -86,8 +90,9 @@ const READ_SAFE_AREA = () => {
         afterHeight: after.height,
         afterBg: after.backgroundColor,
         barTag: bar ? bar.className : null,
-        barBg: bar ? getComputedStyle(bar).backgroundColor : null,
-        barTop: bar ? Math.round(bar.getBoundingClientRect().top) : null,
+        barPadTop: bar ? getComputedStyle(bar).paddingTop : null,
+        barHeight: bar ? Math.round(bar.getBoundingClientRect().height) : null,
+        barContentTop: bar ? Math.round(bar.getBoundingClientRect().top + parseFloat(getComputedStyle(bar).paddingTop)) : null,
     };
 };
 
@@ -121,19 +126,18 @@ try {
     // ── No inset: the shell must be exactly what it was before ───────────────
     const plain = await page.evaluate(READ_SAFE_AREA);
     check('shell found', plain.missing !== true);
+    check('an owner is named for both edges', Boolean(plain.owner) && Boolean(plain.bottomOwner), `${plain.owner} / ${plain.bottomOwner}`);
     check(
         'without an inset nothing is padded away',
         plain.padTop === '0px' && plain.padBottom === '0px' && plain.padLeft === '0px' && plain.padRight === '0px',
         `${plain.padTop}/${plain.padRight}/${plain.padBottom}/${plain.padLeft}`,
     );
-    check(
-        'without an inset the strips are invisible',
-        plain.beforeHeight === '0px' && plain.afterHeight === '0px',
-        `top ${plain.beforeHeight}, bottom ${plain.afterHeight}`,
-    );
-    check('strips are pinned to the viewport', plain.beforePosition === 'fixed', plain.beforePosition);
+    // The owning bar keeps exactly the padding it always had — this is the check
+    // that catches a safe-area rule wiping out a Tailwind `py-*`.
+    const naturalPad = plain.barPadTop;
+    check('the owning bar keeps its own padding', naturalPad != null && naturalPad !== '', `${plain.owner} → ${naturalPad}`);
 
-    // ── With an inset: content steps aside, the strip takes the bar colour ───
+    // ── With an inset: the owning bar grows, its content moves clear ─────────
     const INSET = 28;
     await page.addStyleTag({
         content: `.aura-page { --aura-safe-top: ${INSET}px; --aura-safe-bottom: ${INSET}px; }`,
@@ -141,29 +145,48 @@ try {
     await page.waitForTimeout(150);
     const inset = await page.evaluate(READ_SAFE_AREA);
     check(
-        'an inset is handed back as padding',
-        inset.padTop === `${INSET}px` && inset.padBottom === `${INSET}px`,
-        `${inset.padTop} / ${inset.padBottom}`,
+        'the page itself is NOT padded — the bar owns the edge',
+        inset.padTop === '0px',
+        `${inset.owner} owns it, page padding ${inset.padTop}`,
+    );
+    check(
+        'the owning bar grew by exactly the inset',
+        parseFloat(inset.barPadTop) === parseFloat(naturalPad) + INSET,
+        `${naturalPad} → ${inset.barPadTop}`,
+    );
+    check(
+        'its content sits clear of the inset',
+        inset.barContentTop != null && inset.barContentTop >= INSET,
+        `content starts at ${inset.barContentTop}px`,
+    );
+    check(
+        'the bar is one surface, not a strip plus a row',
+        inset.beforeHeight === 'auto' || inset.beforeHeight === '0px',
+        `strip height ${inset.beforeHeight}`,
+    );
+
+    // ── No chrome at the edge: the page pads itself and paints the gap ───────
+    await page.evaluate(() => {
+        document.querySelector('.aura-page')?.setAttribute('data-aura-safe-top', 'page');
+        document.querySelector('.aura-page')?.setAttribute('data-aura-safe-bottom', 'page');
+    });
+    await page.waitForTimeout(150);
+    const bare = await page.evaluate(READ_SAFE_AREA);
+    check(
+        'a bare edge is handed back as padding',
+        bare.padTop === `${INSET}px` && bare.padBottom === `${INSET}px`,
+        `${bare.padTop} / ${bare.padBottom}`,
     );
     check(
         'the strips fill exactly the inset',
-        inset.beforeHeight === `${INSET}px` && inset.afterHeight === `${INSET}px`,
-        `top ${inset.beforeHeight}, bottom ${inset.afterHeight}`,
+        bare.beforeHeight === `${INSET}px` && bare.afterHeight === `${INSET}px`,
+        `top ${bare.beforeHeight}, bottom ${bare.afterHeight}`,
     );
+    check('strips are pinned to the viewport', bare.beforePosition === 'fixed', bare.beforePosition);
     check(
         'the strip is opaque — a blurred transparency is what started this',
-        /^rgb\(/.test(inset.beforeBg) && !/rgba\([^)]*,\s*0(\.\d+)?\)$/.test(inset.beforeBg),
-        inset.beforeBg,
-    );
-    check(
-        'the top strip continues the chrome below it',
-        Boolean(inset.barBg) && inset.beforeBg === inset.barBg,
-        `${inset.beforeBg} vs ${inset.barBg} (${inset.barTag})`,
-    );
-    check(
-        'that chrome itself sits below the inset',
-        inset.barTop != null && inset.barTop >= INSET,
-        `top edge at ${inset.barTop}px`,
+        /^rgb\(/.test(bare.beforeBg) && !/rgba\([^)]*,\s*0(\.\d+)?\)$/.test(bare.beforeBg),
+        bare.beforeBg,
     );
 
     // ── The documented escape hatches ────────────────────────────────────────
