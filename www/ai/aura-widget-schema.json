@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.60.1",
+    "auraVersion": "0.60.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -9005,6 +9005,16 @@
           "type": "boolean",
           "default": false,
           "description": "Taste für Vollbild anzeigen."
+        },
+        "iframeColorScheme": {
+          "type": "string",
+          "enum": [
+            "theme",
+            "device",
+            "neutral"
+          ],
+          "default": "theme",
+          "description": "Welche Helligkeit die eingebettete Seite bekommt: \"theme\" (Standard) gibt das Aura-Theme weiter, \"device\" überlässt sie der Systemeinstellung des Geräts, \"neutral\" setzt gar keine - dann scheint die Widget-Karte durch eine Seite ohne eigenen Hintergrund, die Seite selbst bleibt aber hell. Safari und Firefox reichen die Helligkeit durch, Chrome nicht."
         },
         "iframeUrl": {
           "type": "string",
