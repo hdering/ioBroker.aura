@@ -163,6 +163,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
         (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? series[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = (o.lockRange as boolean | undefined) ?? false;
     const dayNav = (o.echartDayNav as boolean | undefined) ?? false;
+    const dayNavDefault = (o.echartDayNavDefault as boolean | undefined) ?? false;
     // Which presets the frontend range selector offers (default: all).
     const frontendPresets = CHART_RANGES.filter((r) => r !== 'custom');
     const visibleRanges = (o.echartVisibleRanges as EChartTimeRange[] | undefined) ?? frontendPresets;
@@ -765,6 +766,19 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                 {t('echart.dayNavToggle')}
                             </span>
                         </label>
+                        {dayNav && (
+                            <label className="flex items-center gap-2 mt-2 ml-5 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={dayNavDefault}
+                                    onChange={(e) => setO({ echartDayNavDefault: e.target.checked })}
+                                    className="rounded"
+                                />
+                                <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('echart.dayNavDefaultToggle')}
+                                </span>
+                            </label>
+                        )}
                     </div>
                 )}
 

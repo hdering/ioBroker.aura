@@ -1556,6 +1556,7 @@ export const en: Record<TranslationKey, string> = {
         'For meters: plots the increase per time unit instead of the meter reading. Fits ever-rising meters (electricity, water, gas) as well as day counters that fall back to 0 at midnight (e.g. a PV day yield). Meter swaps, rollovers and stray readings are not booked as consumption.',
     'echart.visibleRanges': 'Time ranges shown in frontend',
     'echart.dayNavToggle': 'Day navigation in frontend (◀ Today ▶)',
+    'echart.dayNavDefaultToggle': 'Open on today (00:00–24:00) instead of the rolling range',
     'echart.today': 'Today',
     'echart.dayPrevTitle': 'Previous day',
     'echart.dayTodayTitle': 'Go to current day',

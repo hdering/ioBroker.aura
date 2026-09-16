@@ -1570,6 +1570,7 @@ export const de = {
         'Für Zähler: zeigt den Zuwachs je Zeiteinheit statt des Zählerstands. Passt für fortlaufende Zähler (Strom, Wasser, Gas) ebenso wie für Tageszähler, die um Mitternacht auf 0 zurückspringen (z.B. PV-Tagesertrag). Zählerwechsel, Überlauf und Ausreißer werden nicht als Verbrauch gewertet.',
     'echart.visibleRanges': 'Sichtbare Zeitbereiche im Frontend',
     'echart.dayNavToggle': 'Tages-Navigation im Frontend (◀ Heute ▶)',
+    'echart.dayNavDefaultToggle': 'Beim Laden auf den heutigen Tag stellen (00:00–24:00)',
     'echart.today': 'Heute',
     'echart.dayPrevTitle': 'Einen Tag zurück',
     'echart.dayTodayTitle': 'Zum aktuellen Tag',

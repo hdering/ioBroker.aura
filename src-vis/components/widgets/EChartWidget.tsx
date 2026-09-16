@@ -303,7 +303,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // ── Day navigation (◀ Heute ▶): view a single calendar day, step day by day ──
     // null = normal rolling-range mode; number = offset in days from today (0 = today, -1 = yesterday …)
     const dayNav = o.echartDayNav === true;
-    const [dayOffset, setDayOffset] = useState<number | null>(null);
+    // Opening straight on today's day window is opt-in, so an existing chart keeps its rolling range.
+    const [dayOffset, setDayOffset] = useState<number | null>(dayNav && o.echartDayNavDefault === true ? 0 : null);
     const dayWindow = (() => {
         if (!dayNav || dayOffset === null) return null;
         const d = new Date();
@@ -315,12 +316,21 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     })();
     const dayInputRef = useRef<HTMLInputElement>(null);
 
-    // Reset frontend selection when the admin config changes
+    // Reset frontend selection when the admin config changes. Deliberately without `dayOffset`:
+    // day mode is its own selection and must survive a range change, and the start-on-today
+    // option below would be pulled back to the rolling range on the very first run.
     useEffect(() => {
         setActiveRange(cfgRange);
         setActiveCustomVal(cfgCustomVal);
         setActiveCustomUnit(cfgCustomUnit);
     }, [cfgRange, cfgCustomVal, cfgCustomUnit]);
+
+    // Only the two day-nav options themselves move the day mode — so toggling them in the editor
+    // shows immediately, while browsing to another day afterwards is left alone.
+    const dayNavDefault = dayNav && o.echartDayNavDefault === true;
+    useEffect(() => {
+        setDayOffset(dayNavDefault ? 0 : null);
+    }, [dayNavDefault]);
 
     // Popup charts opened from a value-display widget carry no history instance to inherit.
     // Detect the adapter per series from its resolved datapoint — auto-select the sole one,

@@ -551,6 +551,10 @@ export const WIDGET_OPTION_NOTES = {
         echartRangeCustomUnit: { description: 'Einheit des eigenen Zeitraums: h oder d.' },
         echartVisibleRanges: { description: 'Welche Zeiträume der Umschalter anbietet.' },
         echartDayNav: { description: 'Blättern zwischen einzelnen Tagen erlauben.' },
+        echartDayNavDefault: {
+            description:
+                'Startet das Diagramm auf dem heutigen Tag (00:00–24:00) statt auf dem rollenden Zeitraum. Setzt echartDayNav voraus.',
+        },
         echartShowCurrent: { description: 'Aktuellen Wert je Reihe über dem Diagramm anzeigen.' },
         echartCurrentFrom: { description: '"last" nimmt den letzten Punkt der Reihe, "first" den ersten.' },
         echartCurrentAlign: { description: 'Ausrichtung des Aktuell-Blocks.' },

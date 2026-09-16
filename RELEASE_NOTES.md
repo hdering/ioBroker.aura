@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+Advanced chart - can start on the current calendar day (00:00-24:00) instead of the rolling range

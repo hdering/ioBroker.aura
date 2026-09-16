@@ -138,6 +138,84 @@ check(
     JSON.stringify(cleared),
 );
 
+// ── Starting in day mode (echartDayNavDefault) — the widget opens on today, unclicked ────────
+const dayWidget = (id, opts) => ({
+    id,
+    type: 'echart',
+    title: 'Leistung',
+    datapoint: '',
+    layout: 'default',
+    gridPos: { x: 0, y: 0, w: 12, h: 8 },
+    options: {
+        echartMode: 'timeseries',
+        echartShowCurrent: false,
+        echartVisibleRanges: ['24h', '7d', '30d'],
+        ...opts,
+        echartSeries: [
+            {
+                id: 's1',
+                name: 'Leistung',
+                datapointId: 'demo.power',
+                chartType: 'line',
+                color: '#3b82f6',
+                historyInstance: 'history.0',
+                historyRange: '24h',
+                yAxisIndex: 0,
+            },
+        ],
+    },
+});
+const mountFresh = async (id, opts) => {
+    await page.evaluate((w) => window.__auraShot.showWidgets([w]), dayWidget(id, opts));
+    await widget.locator('[_echarts_instance_]').waitFor({ state: 'attached', timeout: 20000 });
+    await page.waitForTimeout(900);
+};
+
+{
+    await mountFresh('w-echart-daydefault', { echartDayNav: true, echartDayNavDefault: true });
+    const span = await spanDays();
+    check('the option opens the chart on a single day without a click', near(span, 1, 0.1), `${span.toFixed(2)} d`);
+
+    const win = await page.evaluate(() => {
+        const a = window.__auraShot.chartAxes();
+        return a && Array.isArray(a.xExtent) ? a.xExtent : null;
+    });
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    check(
+        'and that day is today, not a fixed timestamp',
+        win !== null && Math.abs(win[0] - midnight.getTime()) < 60_000,
+        win ? new Date(win[0]).toISOString() : 'no extent',
+    );
+
+    const todayActive = await widget
+        .locator('button:text-is("Heute")')
+        .evaluate((el) => getComputedStyle(el).backgroundColor);
+    const border = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--accent'));
+    check('"Heute" is marked as the active button', todayActive !== 'rgba(0, 0, 0, 0)', `${todayActive} vs ${border}`);
+}
+
+// ── …and it stays opt-in: without the day navigation it changes nothing ──────────────────────
+{
+    await mountFresh('w-echart-daydefault-off', {
+        echartDayNav: false,
+        echartDayNavDefault: true,
+        echartRange: '7d',
+    });
+    // The window itself is what must not be pinned — the axis span alone would not tell, the
+    // mocked history covers the same stretch whatever range is asked for.
+    const pinned = await page.evaluate(() => {
+        const a = window.__auraShot.chartAxes();
+        return a && a.xAxis ? { min: a.xAxis.min ?? null, max: a.xAxis.max ?? null } : null;
+    });
+    check(
+        'without the day navigation the axis is not pinned to a calendar day',
+        pinned !== null && pinned.min === null && pinned.max === null,
+        JSON.stringify(pinned),
+    );
+    check('and no day controls are offered', (await widget.locator('button:text-is("Heute")').count()) === 0);
+}
+
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 2).join(' | '));
 
 await browser.close();

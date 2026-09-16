@@ -7662,6 +7662,11 @@
           "default": false,
           "description": "Blättern zwischen einzelnen Tagen erlauben."
         },
+        "echartDayNavDefault": {
+          "type": "boolean",
+          "default": false,
+          "description": "Startet das Diagramm auf dem heutigen Tag (00:00–24:00) statt auf dem rollenden Zeitraum. Setzt echartDayNav voraus."
+        },
         "echartJsonAxisBounds": {
           "type": "boolean",
           "default": false,
