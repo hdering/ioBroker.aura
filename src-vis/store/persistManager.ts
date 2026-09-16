@@ -473,6 +473,16 @@ function gridChanged(a?: WidgetLite['gridPos'], b?: WidgetLite['gridPos']): bool
 
 // True when anything other than gridPos differs (title, datapoint, options…).
 function widgetEdited(a: WidgetLite, b: WidgetLite): boolean {
+    if (a === b) return false;
+    // Reference check first: a grid drop re-emits every widget of the tab as a
+    // fresh object whose fields are the very same references, only gridPos is
+    // new. Stringifying each of them would put the whole config through
+    // JSON.stringify twice on every drop — and this runs in the undo history
+    // right after the pointer is released.
+    const ra = a as Record<string, unknown>;
+    const rb = b as Record<string, unknown>;
+    const ka = Object.keys(ra);
+    if (ka.length === Object.keys(rb).length && ka.every((k) => k === 'gridPos' || ra[k] === rb[k])) return false;
     return JSON.stringify({ ...a, gridPos: undefined }) !== JSON.stringify({ ...b, gridPos: undefined });
 }
 

@@ -136,7 +136,8 @@ export function EditHistoryMenu() {
     }, [open]);
 
     // Timeline top → bottom: farthest redo … next redo, current, newest undo … oldest.
-    const { undo: past, redo: future } = historyEntries();
+    // Read only while open — closed, this is just a button that must stay cheap.
+    const { undo: past, redo: future } = open ? historyEntries() : { undo: [], redo: [] };
     const futureRows = [...future].reverse();
     const jumpBack = (times: number) => {
         for (let i = 0; i < times; i++) if (!undo()) break;
