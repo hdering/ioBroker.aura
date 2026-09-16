@@ -603,8 +603,14 @@ function collectSafeArea(): string[] {
         `display-mode: ${active.join(', ') || 'unknown'}   navigator.standalone: ${standalone ?? 'not supported'}`,
     );
     // A browser tab is short by the height of the Safari toolbars, an installed
-    // web app is not — the clearest single number for telling them apart.
-    out.push(`viewport: ${innerWidth}x${innerHeight} of screen ${screen.width}x${screen.height}`);
+    // web app only by the strip iOS keeps for the status bar — the clearest
+    // single number for telling them apart, and the one the verdict below needs.
+    const sameOrientation = screen.width === innerWidth;
+    const kept = sameOrientation ? Math.max(0, screen.height - innerHeight) : 0;
+    out.push(
+        `window: ${innerWidth}x${innerHeight} of screen ${screen.width}x${screen.height}` +
+            `${sameOrientation ? ` — ${kept}px kept above the page` : ''}`,
+    );
 
     // Without `viewport-fit=cover` every inset below is 0px by definition — so
     // this line also says whether the device is running a build that has the fix.
@@ -638,14 +644,20 @@ function collectSafeArea(): string[] {
     }
 
     // Say what the numbers mean, so a report does not have to be interpreted by
-    // whoever reads it. Both of these were answered wrongly at first glance.
-    if (!installed) {
+    // whoever reads it — both of these were answered wrongly at first glance.
+    //
+    // The insets alone settle it, without having to trust display-mode (a
+    // home-screen web app without a manifest still reports `browser`) or
+    // navigator.standalone. A non-zero bottom inset proves `viewport-fit=cover`
+    // is in effect; a top inset of 0 next to it means iOS kept the status bar
+    // strip for itself and never told the page about it. That is the case the
+    // glass band lands in, and `kept` is the room it needs.
+    const coverWorks = env.bottom !== '0px' || env.left !== '0px' || env.right !== '0px';
+    if (coverWorks && env.top === '0px') {
+        out.push(`=> iOS withholds the top inset — try --aura-safe-top: ${kept || 47}px in the custom CSS field.`);
+    } else if (!installed && env.top === '0px') {
         out.push(
             '=> browser tab. iOS paints its band only in the installed web app — measure from the home-screen icon.',
-        );
-    } else if (env.top === '0px') {
-        out.push(
-            '=> installed, but iOS reports no top inset: nothing can be reserved on its own, set --aura-safe-top by hand.',
         );
     }
     return out;
