@@ -100,6 +100,8 @@ try {
     check('report names the churn source', /changed most: /.test(first));
     check('report splits the changes by kind', /kinds: attr \d+, nodes \d+, text \d+/.test(first));
     check('armed counters are not flagged as blind', !first.includes('NOT MEASURED'));
+    // A quiet page must not dump a configuration nobody asked for.
+    check('an idle page prints no loop suspect', !first.includes('— loop suspect —'));
 
     // A dead proxy target means the socket library never arrives — the report has
     // to name that instead of showing a quiet, healthy-looking zero.
@@ -132,6 +134,7 @@ try {
         const el = document.querySelector('[data-aura-widget="w-test"]');
         for (let i = 0; i < 40; i++) {
             el.setAttribute('data-tick', String(i));
+            el.classList.toggle('aura-cond-flap');
             el.firstChild.textContent = String(i);
             const churn = document.createElement('div');
             churn.className = 'aura-churn-probe';
@@ -158,6 +161,26 @@ try {
         'the mounted and discarded subtree is named',
         /nodes in: .*div\.aura-churn-probe \d+/.test(blamed) && /nodes out: .*div\.aura-churn-probe \d+/.test(blamed),
         blamed.split('\n').find((l) => l.includes('nodes in:')),
+    );
+    // The class that goes on and off is usually the mechanism itself, so the
+    // report has to name it rather than just counting "class" changes.
+    check(
+        'the toggled class is named',
+        /class: .*\+aura-cond-flap \d+/.test(blamed) && /-aura-cond-flap \d+/.test(blamed),
+        blamed.split('\n').find((l) => l.trim().startsWith('class:')),
+    );
+    check(
+        'the mutated element is named',
+        /on: .*div\[mediaplayer\] \d+/.test(blamed),
+        blamed.split('\n').find((l) => l.trim().startsWith('on:')),
+    );
+    // A loop with one owner gets its configuration printed so it can be rebuilt
+    // elsewhere; the synthetic card is in no stored layout, which is the other
+    // branch of the same lookup.
+    check(
+        'a dominating widget triggers the config dump',
+        blamed.includes('— loop suspect —'),
+        blamed.split('\n').find((l) => l.includes('stored layout')),
     );
     await ctx.close();
 

@@ -166,7 +166,8 @@ function blameFor(node: Node | null): string {
     let landmark = '';
     for (let hops = 0; el && hops < 40; hops++, el = el.parentElement) {
         const id = el.getAttribute?.('data-aura-widget');
-        if (id) return `${el.getAttribute('data-aura-widget-type') || 'widget'} #${id.slice(0, 8)}`;
+        // The id stays whole: the loop-suspect dump below reads it back out.
+        if (id) return `${el.getAttribute('data-aura-widget-type') || 'widget'} #${id.slice(0, 24)}`;
         if (el.getAttribute?.('data-aura-render-probe')) return 'off-screen render probe';
         if (!landmark) {
             const cls = (el.getAttribute?.('class') || '').split(/\s+/).find((c) => c.startsWith('aura-'));
@@ -196,6 +197,14 @@ function sig(n: Node): string {
     return pick.length ? `${tag}.${pick.join('.')}` : tag;
 }
 
+/** Which class names a `class` mutation actually added or removed. */
+function classDelta(r: MutationRecord, out: Map<string, number>): void {
+    const before = new Set((r.oldValue || '').split(/\s+/).filter(Boolean));
+    const after = new Set(((r.target as Element).getAttribute('class') || '').split(/\s+/).filter(Boolean));
+    for (const c of after) if (!before.has(c)) bump(out, `+${c}`);
+    for (const c of before) if (!after.has(c)) bump(out, `-${c}`);
+}
+
 function bump(m: Map<string, number>, key: string): void {
     m.set(key, (m.get(key) ?? 0) + 1);
 }
@@ -214,7 +223,9 @@ function top(m: Map<string, number>, n: number): string {
  * the device was visibly redrawing the same card over and over — a state a
  * single sample cannot describe. So look at what MOVES: repaint rate, DOM
  * churn, blocked main thread, and what the socket is doing meanwhile. */
-async function collectActivity(ms: number): Promise<string[]> {
+async function collectActivity(
+    ms: number,
+): Promise<{ lines: string[]; top: string; share: number; perSecond: number }> {
     const before = { ...sock };
     let frames = 0;
     let mutations = 0;
@@ -227,14 +238,20 @@ async function collectActivity(ms: number): Promise<string[]> {
     const attrNames = new Map<string, number>();
     const nodesIn = new Map<string, number>();
     const nodesOut = new Map<string, number>();
+    const targets = new Map<string, number>();
+    const classToggles = new Map<string, number>();
     const kinds = { attributes: 0, childList: 0, characterData: 0 };
 
     const mo = new MutationObserver((records) => {
         mutations += records.length;
         for (const r of records) {
             bump(blame, blameFor(r.target));
+            bump(targets, sig(r.target));
             kinds[r.type]++;
-            if (r.type === 'attributes') bump(attrNames, r.attributeName || '?');
+            if (r.type === 'attributes') {
+                bump(attrNames, r.attributeName || '?');
+                if (r.attributeName === 'class') classDelta(r, classToggles);
+            }
             r.addedNodes.forEach((n) => {
                 if (n.nodeName === 'svg') svgIn++;
                 bump(nodesIn, sig(n));
@@ -245,7 +262,16 @@ async function collectActivity(ms: number): Promise<string[]> {
             });
         }
     });
-    mo.observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+    mo.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        characterData: true,
+        // The class that goes on and off is usually the mechanism itself — a
+        // condition effect, a scale step, a drag state. Without the old value
+        // the report can only say that "class" changed 87 times.
+        attributeOldValue: true,
+    });
 
     let po: PerformanceObserver | null = null;
     try {
@@ -297,13 +323,16 @@ async function collectActivity(ms: number): Promise<string[]> {
         live = `socket now: unreadable (${(e as Error).message})`;
     }
 
-    return [
+    const ranked = [...blame.entries()].sort((a, b) => b[1] - a[1]);
+    const lines = [
         `over ${s} s at rest:`,
         `  frames: ${frames} (${Math.round(frames / s)}/s)   DOM changes: ${mutations} (${Math.round(mutations / s)}/s)`,
         `  changed most: ${top(blame, 3) || '—'}`,
         `  kinds: attr ${kinds.attributes}` +
             `${attrNames.size ? ` (${top(attrNames, 3)})` : ''}` +
             `, nodes ${kinds.childList}, text ${kinds.characterData}`,
+        `  on: ${top(targets, 3) || '—'}`,
+        ...(classToggles.size ? [`  class: ${top(classToggles, 4)}`] : []),
         `  nodes in: ${top(nodesIn, 3) || '—'}`,
         `  nodes out: ${top(nodesOut, 3) || '—'}`,
         `  svg added: ${svgIn}   removed: ${svgOut}`,
@@ -316,6 +345,50 @@ async function collectActivity(ms: number): Promise<string[]> {
             : `  ^ NOT MEASURED: ?diag=1 was added to a page that was already running.\n` +
               `    Reload with the flag in the URL for socket numbers.\n${live}`,
     ];
+    return {
+        lines,
+        top: ranked[0]?.[0] ?? '',
+        share: mutations ? (ranked[0]?.[1] ?? 0) / mutations : 0,
+        perSecond: mutations / s,
+    };
+}
+
+/** The configuration of the widget that dominates the churn.
+ *
+ * Three device reports in, the loop is measured from every angle and still not
+ * reproducible here, because the one thing a screenshot cannot carry is the
+ * widget that causes it. When a single card owns most of the DOM changes, print
+ * what it is configured as — that turns the next screenshot into a recipe that
+ * can be rebuilt locally instead of another round of guessing.
+ *
+ * Only printed when there IS a loop and one widget owns it, so a healthy page
+ * never dumps a configuration nobody asked for.
+ */
+async function collectLoopSuspect(topBlame: string, share: number, perSecond: number): Promise<string[]> {
+    if (perSecond < 20 || share < 0.25) return [];
+    const id = /#(\S+)$/.exec(topBlame)?.[1];
+    if (!id) return [];
+    try {
+        const { useDashboardStore } = await import('../store/dashboardStore');
+        for (const layout of useDashboardStore.getState().layouts ?? []) {
+            for (const section of layout.sections ?? []) {
+                for (const tab of section.tabs ?? []) {
+                    const w = (tab.widgets ?? []).find((x) => x.id === id);
+                    if (!w) continue;
+                    const json = JSON.stringify({ type: w.type, title: w.title, options: w.options });
+                    return [
+                        '',
+                        '— loop suspect —',
+                        `${w.type} #${id} on tab "${tab.name ?? tab.id}"`,
+                        json.length > 1500 ? `${json.slice(0, 1500)}… (${json.length} chars)` : json,
+                    ];
+                }
+            }
+        }
+        return ['', '— loop suspect —', `${topBlame} is not in this device's stored layout`];
+    } catch (e) {
+        return ['', '— loop suspect —', `config unreadable (${(e as Error).message})`];
+    }
 }
 
 /** Ask the adapter for a known icon, so a broken /icons/ route shows up as what
@@ -416,13 +489,15 @@ export default function DiagnosticsOverlay(): React.ReactElement | null {
         lines.push(`origin: ${location.origin}`);
         lines.push(`screen: ${innerWidth}x${innerHeight} dpr ${devicePixelRatio}`);
         lines.push(`UA: ${navigator.userAgent}`);
-        lines.push('', '— activity —', ...(await collectActivity(2000)));
+        const activity = await collectActivity(2000);
+        lines.push('', '— activity —', ...activity.lines);
         lines.push('', '— icons —', ...collectIcons());
         lines.push(await probeIconEndpoint());
         lines.push('', '— network —', ...collectResources());
         lines.push('', '— media —', ...collectMedia());
         lines.push('', '— storage —', ...collectStorage());
         lines.push('', '— tabs —', ...collectTabs());
+        lines.push(...(await collectLoopSuspect(activity.top, activity.share, activity.perSecond)));
         setReport(lines.join('\n'));
     }, []);
 
