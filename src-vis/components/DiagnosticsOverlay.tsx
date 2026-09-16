@@ -283,8 +283,7 @@ async function collectActivity(ms: number): Promise<string[]> {
         sockArmed
             ? live
             : `  ^ NOT MEASURED: ?diag=1 was added to a page that was already running.\n` +
-              `    Reload with the flag in the URL for socket numbers.\n` +
-              live,
+              `    Reload with the flag in the URL for socket numbers.\n${live}`,
     ];
 }
 
