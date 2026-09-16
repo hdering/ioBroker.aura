@@ -9,17 +9,78 @@ body,
     height: 100%;
 }
 
+/* ── Safe area of the screen (notch, Dynamic Island, gesture bar) ─────────────
+ * index.html asks for `viewport-fit=cover`, so the page really does reach the
+ * physical edges. Two things follow from that, both handled here:
+ *
+ * 1. The app keeps its content out of the edges again (padding on .aura-page).
+ * 2. The freed strip is painted as ONE flat, opaque colour — the colour of the
+ *    chrome bordering it, handed down inline by App.tsx as --aura-chrome-top /
+ *    --aura-chrome-bottom. Those are internal: the public override below is a
+ *    separate name, because a stylesheet cannot outbid an inline declaration of
+ *    the same property without !important.
+ *
+ * Point 2 is the answer to iOS 26/27: an installed web app gets a blurred glass
+ * band drawn over its top edge by the system, which smeared the tab icons
+ * sitting there (#662). The band is not ours to switch off — but blurring a
+ * single colour is invisible, so moving the icons out and leaving a flat strip
+ * behind removes the effect from view.
+ *
+ * Everything is overridable from the custom CSS field:
+ *   .aura-page { --aura-safe-top: 0px; }        → ignore the inset entirely
+ *   .aura-page { --aura-safe-top-bg: #123456; } → other strip colour
+ *   .aura-page { --aura-safe-top: 44px; }       → more room than iOS reports
+ */
+.aura-page {
+    padding-top: var(--aura-safe-top, env(safe-area-inset-top, 0px));
+    padding-bottom: var(--aura-safe-bottom, env(safe-area-inset-bottom, 0px));
+    padding-left: var(--aura-safe-left, env(safe-area-inset-left, 0px));
+    padding-right: var(--aura-safe-right, env(safe-area-inset-right, 0px));
+}
+
+.aura-page::before,
+.aura-page::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    /* Above every dashboard layer (tab bar is 20) but below drawers, modals and
+       the boot splash — the strip is decoration, never a lid over the UI. */
+    z-index: 900;
+    pointer-events: none;
+}
+
+.aura-page::before {
+    top: 0;
+    height: var(--aura-safe-top, env(safe-area-inset-top, 0px));
+    background: var(--aura-safe-top-bg, var(--aura-chrome-top, var(--nav-bg, var(--app-surface))));
+}
+
+.aura-page::after {
+    bottom: 0;
+    height: var(--aura-safe-bottom, env(safe-area-inset-bottom, 0px));
+    background: var(--aura-safe-bottom-bg, var(--aura-chrome-bottom, var(--nav-bg, var(--app-surface))));
+}
+
 /*
  * ThemeProvider sets `color-scheme: dark` on <html> so native form controls
  * (range inputs, scrollbars, selects) render dark. `color-scheme` is inherited,
- * so every <iframe> would otherwise inherit `dark`. When an embedded document
- * (external page, /echarts preset page) does not itself declare `dark`, the
- * browser treats this as a color-scheme mismatch and paints an OPAQUE WHITE
- * canvas behind the frame — giving iframe/eCharts widgets a white background in
- * dark mode. Reset iframes to `normal` so they no longer inherit the forced
- * dark scheme and composite transparently over the (dark) widget card again.
+ * so an <iframe> inherits `dark` too. When an embedded document does not itself
+ * declare `dark`, the browser treats this as a color-scheme mismatch and paints an
+ * OPAQUE WHITE canvas behind the frame — giving the frame a white background in
+ * dark mode. `normal` opts the frame out, so it composites transparently over the
+ * (dark) widget card again (f229a2fe).
+ *
+ * This used to be a blanket `iframe` rule, which cost more than it bought: WebKit
+ * hands the embedder's scheme down to the embedded document, and reads `normal` as
+ * light — so every embedded page was forced light on a dark iPhone, EVCC and Kanban
+ * included (#663). Blink ignores the whole mechanism, which is why it took an iOS
+ * update to surface. Now only frames that really need a transparent backdrop opt
+ * out: Aura's own pages (eCharts preset, HTML widget) and camera streams, which
+ * paint an image with no background of their own. Everything that embeds a foreign
+ * page passes Aura's brightness on — see utils/iframeColorScheme.ts.
  */
-iframe {
+iframe.aura-frame-neutral {
     color-scheme: normal;
 }
 

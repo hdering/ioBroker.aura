@@ -2497,9 +2497,13 @@ check('the element tokens say which base token they inherit', () => {
     for (const t of THEME_TOKENS.elementTokens) {
         assert.ok(t.inherits, `${t.name} has no fallback`);
         if (t.inherits.startsWith('--')) {
+            // Usually a base token — but an element token may also follow
+            // another one: --nav-icon takes the colour of its entry's label
+            // (--nav-text) unless a colour of its own is set (#640).
             assert.ok(
-                THEME_TOKENS.baseTokens.some((b) => b.name === t.inherits),
-                `${t.name} inherits from ${t.inherits}, which is not a base token`,
+                THEME_TOKENS.baseTokens.some((b) => b.name === t.inherits) ||
+                    THEME_TOKENS.elementTokens.some((e) => e.name === t.inherits && e.name !== t.name),
+                `${t.name} inherits from ${t.inherits}, which is no token at all`,
             );
         }
     }

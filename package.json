@@ -67,6 +67,7 @@
     "test:widget-search": "node tools/tests/widget-search.mjs",
     "test:widget-picker": "node tools/tests/widget-picker-search.mjs",
     "test:widget-fullscreen": "node tools/tests/widget-fullscreen.mjs",
+    "test:safe-area": "node tools/tests/safe-area.mjs",
     "test:widget-fullscreen-logic": "node tools/tests/widget-fullscreen-logic.mjs",
     "test:widget-style": "node tools/tests/widget-style-copy.mjs",
     "test:text-wrap": "node tools/tests/widget-text-wrap.mjs",

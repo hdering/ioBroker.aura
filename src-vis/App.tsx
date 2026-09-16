@@ -1215,6 +1215,24 @@ export default function App() {
     // Tab bar can be placed above the dashboard (default) or as a footer below it.
     const tabBarAtBottom = tabBarResolved.position === 'bottom';
 
+    // ── Colour of the safe-area strips (index.css, `.aura-page::before/::after`) ──
+    // The strip continues whatever chrome borders it, so the screen edge reads as
+    // part of that bar instead of a stripe of its own. Same visibility rule the bar
+    // itself uses in TabBar: an injected drawer keeps it on even with a single tab.
+    const tabBarShown = drawerInTabBar || tabBarShowsOnOwn(visibleTabCount(tabs), tabBarResolved);
+    const tabBarBg = tabBarResolved.background ?? 'var(--nav-bg, var(--app-surface))';
+    const safeTopBg =
+        effectiveSettings.showHeader || drawerBarTop
+            ? 'var(--app-surface)'
+            : tabBarShown && !tabBarAtBottom
+              ? tabBarBg
+              : 'var(--app-bg)';
+    const safeBottomBg = drawerBarBottom
+        ? 'var(--app-surface)'
+        : tabBarShown && tabBarAtBottom
+          ? tabBarBg
+          : 'var(--app-bg)';
+
     const tabBarNode = (
         <TabBar
             readonly
@@ -1274,7 +1292,14 @@ export default function App() {
         <div
             data-aura-app="frontend"
             className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`}
-            style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}
+            style={
+                {
+                    background: 'var(--app-bg)',
+                    color: 'var(--text-primary)',
+                    '--aura-chrome-top': safeTopBg,
+                    '--aura-chrome-bottom': safeBottomBg,
+                } as React.CSSProperties
+            }
         >
             <ConnectionIndicator showBadge={showBadge} />
             <TabSleepHint />

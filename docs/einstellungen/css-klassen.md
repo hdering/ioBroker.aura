@@ -174,11 +174,36 @@ Weitere `aura-`Klassen im Adminbereich sind Anker für die automatischen Tests �
 | `--aura-bleed-max` | wie weit Listenzeilen in den Innenabstand ragen dürfen |
 | `--aura-sbw` | gemessene Breite der Scrollleiste |
 | `--font-scale` | Schriftskalierung des Frontends |
+| `--aura-safe-top` / `--aura-safe-bottom` | Höhe des sicheren Bereichs oben/unten, Vorgabe `env(safe-area-inset-*)` |
+| `--aura-safe-left` / `--aura-safe-right` | dasselbe seitlich (Notch im Querformat) |
+| `--aura-safe-top-bg` / `--aura-safe-bottom-bg` | Farbe des Streifens im sicheren Bereich |
 
 Eigener Inhalt am Kartenrand richtet sich nach `--aura-widget-pad` statt nach einem festen Wert:
 
 ```css
 .aura-widget-type-list .aura-widget-row {
     margin-inline: calc(-1 * var(--aura-widget-pad, 16px));
+}
+```
+
+## Sicherer Bereich
+
+Auf Geräten mit Notch, Dynamic Island oder Gestenleiste hält `.aura-page` den Inhalt aus diesen Zonen heraus und färbt den frei gewordenen Streifen in der Farbe der angrenzenden Leiste (`.aura-page::before` oben, `.aura-page::after` unten). Auf Bildschirmen ohne solche Zonen sind die Streifen 0 px hoch.
+
+Installierte Web-Apps unter iOS 26/27 legen dort einen System-Blur über die Seite. Ein einfarbiger Streifen macht ihn unsichtbar; nötigenfalls lässt sich mehr Platz reservieren:
+
+```css
+.aura-page {
+    --aura-safe-top: 44px;
+    --aura-safe-top-bg: #1f2937;
+}
+```
+
+Abschalten:
+
+```css
+.aura-page {
+    --aura-safe-top: 0px;
+    --aura-safe-bottom: 0px;
 }
 ```
