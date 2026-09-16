@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.60.2",
+    "version": "0.60.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.60.3": {
+        "en": "Diagnostics - the `?diag=1` report now also measures what the page is doing: repaint rate, DOM changes, blocked main thread, socket messages and reconnects (#636)",
+        "de": "Diagnose – der „?diag=1“-Bericht misst jetzt auch, was die Seite tut: Repaint-Rate, DOM-Änderungen, blockierter Hauptthread, Socket-Nachrichten und erneute Verbindungen (#636)",
+        "ru": "Диагностика — отчет `?diag=1` теперь также измеряет то, что делает страница: скорость перерисовки, изменения DOM, блокировку основного потока, сообщения сокета и повторные подключения (#636).",
+        "pt": "Diagnóstico - o relatório `?diag=1` agora também mede o que a página está fazendo: taxa de repintura, alterações no DOM, thread principal bloqueada, mensagens de soquete e reconexões (#636)",
+        "nl": "Diagnostiek - het `?diag=1` rapport meet nu ook wat de pagina doet: repaint-snelheid, DOM-wijzigingen, geblokkeerde hoofdthread, socketberichten en opnieuw verbinden (#636)",
+        "fr": "Diagnostics - le rapport `?diag=1` mesure désormais également ce que fait la page : taux de repeinture, modifications du DOM, thread principal bloqué, messages de socket et reconnexions (#636)",
+        "it": "Diagnostica - il report `?diag=1` ora misura anche cosa sta facendo la pagina: frequenza di ridisegno, modifiche DOM, thread principale bloccato, messaggi socket e riconnessioni (#636)",
+        "es": "Diagnóstico: el informe `?diag=1` ahora también mide lo que está haciendo la página: tasa de repintado, cambios de DOM, hilo principal bloqueado, mensajes de socket y reconexiones (#636)",
+        "pl": "Diagnostyka — raport „?diag=1” mierzy teraz także to, co robi strona: częstotliwość odświeżania, zmiany DOM, zablokowany główny wątek, komunikaty gniazd i ponowne połączenia (#636)",
+        "uk": "Діагностика – звіт `?diag=1` тепер також вимірює, що робить сторінка: швидкість повторного малювання, зміни DOM, заблокований основний потік, повідомлення сокета та повторне підключення (#636)",
+        "zh-cn": "诊断 - “?diag=1” 报告现在还可以测量页面正在执行的操作：重绘率、DOM 更改、阻塞主线程、套接字消息和重新连接 (#636)"
+      },
       "0.60.2": {
         "en": "Custom CSS - the tab button in the tab bar is now `.aura-tab-btn`; `.aura-tab` again matches only a tab's content area (#648)\nDocumentation - new reference page listing every CSS class, data attribute and variable custom CSS can target (#648)\n🌟 New feature: Tab bar and section bar - new menu position \"Even\" spreads the entries over the full bar width, so the active marker runs wider than the label (#661)",
         "de": "Benutzerdefiniertes CSS – die Tab-Schaltfläche in der Tab-Leiste ist jetzt „.aura-tab-btn“; „.aura-tab“ stimmt wieder nur mit dem Inhaltsbereich eines Tabs überein (#648)\nDokumentation – neue Referenzseite, die alle CSS-Klassen, Datenattribute und Variablen auflistet, auf die benutzerdefiniertes CSS abzielen kann (#648)\n🌟 Neue Funktion: Tab-Leiste und Abschnittsleiste – neue Menüposition „Gerade“ verteilt die Einträge über die gesamte Balkenbreite, sodass die aktive Markierung breiter als die Beschriftung verläuft (#661)",
@@ -184,19 +197,6 @@
         "pl": "🌟 Nowa funkcja: Suwak - opcjonalna skala pokazująca wartości kroków, min i max wzdłuż toru; dostępne w widżecie Suwak, wierszach list i komórce suwaka uniwersalnego widżetu (#643)\nWidżety iFrame i HTML — w telefonach ramka zachowuje proporcje panelu zamiast pełnej wysokości wiersza, więc osadzona strona nie znajduje się już w wysokim pustym pudełku (#645)\n🌟 Nowa funkcja: Lista statyczna i dynamiczna - punkt danych w drugiej linii może zamiast swojej wartości pokazywać, kiedy się ostatnio zmienił (lub został ostatnio zapisany); domyślnie względny, z dostępnymi formatami godziny i daty, a pusty identyfikator punktu danych oznacza własny punkt danych wiersza (#646)",
         "uk": "🌟 Нова функція: повзунок - необов'язкова шкала, що показує значення кроку, мінімальне та максимальне значення вздовж доріжки; доступний у віджеті Slider, рядках списку та комірці повзунка універсального віджета (#643)\nВіджети iFrame та HTML – на телефонах рамка зберігає співвідношення сторін панелі приладів замість повної висоти рядка, тому вбудована сторінка більше не розміщується у високій порожній коробці (#645)\n🌟 Нова функція: статичний і динамічний список - точка даних у другому рядку може показувати, коли вона востаннє змінювалася (або була записана) замість свого значення; відносний за замовчуванням, із доступними форматами часу та дати, а порожній ідентифікатор точки даних означає власну точку даних рядка (#646)",
         "zh-cn": "🌟 新功能：滑块 - 可选刻度显示沿轨道的步长值、最小值和最大值；可在滑块小部件、列表行和通用小部件的滑块单元格中使用 (#643)\niFrame 和 HTML 小部件 - 在手机上，框架保持其仪表板纵横比而不是完整的行高，因此嵌入的页面不再位于一个高的空盒子中(#645)\n🌟 新功能：静态和动态列表 - 第二行中的数据点可以显示其上次更改（或上次写入）的时间，而不是其值；默认情况下是相对的，可以使用时间和日期格式，空数据点 ID 表示行自己的数据点 (#646)"
-      },
-      "0.59.1": {
-        "en": "Auto-return pause element - choose icon only, label only or both, with or without background",
-        "de": "Element für die automatische Rückkehrpause – wählen Sie nur das Symbol, nur die Beschriftung oder beides, mit oder ohne Hintergrund",
-        "ru": "Элемент паузы с автовозвратом — выберите только значок, только метку или и то, и другое, с фоном или без него.",
-        "pt": "Elemento de pausa de retorno automático - escolha apenas ícone, apenas rótulo ou ambos, com ou sem fundo",
-        "nl": "Pauze-element automatisch retourneren - kies alleen pictogram, alleen label of beide, met of zonder achtergrond",
-        "fr": "Élément de pause à retour automatique : choisissez l'icône uniquement, l'étiquette uniquement ou les deux, avec ou sans arrière-plan",
-        "it": "Elemento di pausa con ritorno automatico: scegli solo icona, solo etichetta o entrambi, con o senza sfondo",
-        "es": "Elemento de pausa de retorno automático: elija solo ícono, solo etiqueta o ambos, con o sin fondo",
-        "pl": "Element pauzy automatycznego powrotu - wybierz tylko ikonę, tylko etykietę lub oba, z tłem lub bez",
-        "uk": "Елемент паузи автоматичного повернення - виберіть лише значок, лише мітку або обидва, із фоном чи без нього",
-        "zh-cn": "自动返回暂停元素 - 仅选择图标、仅标签或两者，带或不带背景"
       }
     }
   },
