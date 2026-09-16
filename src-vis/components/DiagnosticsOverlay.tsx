@@ -594,7 +594,17 @@ function collectSafeArea(): string[] {
     const out: string[] = [];
     const modes = ['standalone', 'fullscreen', 'minimal-ui', 'browser', 'window-controls-overlay'];
     const active = modes.filter((m) => matchMedia(`(display-mode: ${m})`).matches);
-    out.push(`display-mode: ${active.join(', ') || 'unknown'}   navigator.standalone: ${'standalone' in navigator}`);
+    // The VALUE, not `'standalone' in navigator` — the property exists on every
+    // iOS Safari, so the membership test reported "installed web app" for a
+    // plain browser tab and sent the first report for #662 down the wrong path.
+    const standalone = (navigator as Navigator & { standalone?: boolean }).standalone;
+    const installed = active.includes('standalone') || active.includes('fullscreen') || standalone === true;
+    out.push(
+        `display-mode: ${active.join(', ') || 'unknown'}   navigator.standalone: ${standalone ?? 'not supported'}`,
+    );
+    // A browser tab is short by the height of the Safari toolbars, an installed
+    // web app is not — the clearest single number for telling them apart.
+    out.push(`viewport: ${innerWidth}x${innerHeight} of screen ${screen.width}x${screen.height}`);
 
     // Without `viewport-fit=cover` every inset below is 0px by definition — so
     // this line also says whether the device is running a build that has the fix.
@@ -625,6 +635,18 @@ function collectSafeArea(): string[] {
         out.push(`first bar: ${name} from ${Math.round(r.top)}px to ${Math.round(r.bottom)}px`);
     } else {
         out.push('first bar: none — the dashboard starts at the top edge');
+    }
+
+    // Say what the numbers mean, so a report does not have to be interpreted by
+    // whoever reads it. Both of these were answered wrongly at first glance.
+    if (!installed) {
+        out.push(
+            '=> browser tab. iOS paints its band only in the installed web app — measure from the home-screen icon.',
+        );
+    } else if (env.top === '0px') {
+        out.push(
+            '=> installed, but iOS reports no top inset: nothing can be reserved on its own, set --aura-safe-top by hand.',
+        );
     }
     return out;
 }
