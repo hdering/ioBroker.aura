@@ -36,6 +36,51 @@ if (typeof performance !== 'undefined' && diagRequested()) {
     }
 }
 
+/* ── socket traffic ──────────────────────────────────────────────────────────
+ *
+ * Everything the dashboard receives after the page has loaded comes over the
+ * ioBroker socket, and a WebSocket never appears in resource timing: the first
+ * report for #636 showed twelve resources and 2.5 MB — the bundle, nothing else —
+ * while the device it came from was pulling a few hundred kB/s. So count the
+ * frames at the source. Wrapping the constructor only happens with `?diag=1`,
+ * and this module is evaluated from main.tsx before the socket is opened. */
+const sock = { opens: 0, closes: 0, errors: 0, msgs: 0, bytes: 0, sent: 0, sentBytes: 0 };
+
+function sizeOf(data: unknown): number {
+    if (typeof data === 'string') return data.length;
+    const d = data as { byteLength?: number; size?: number } | null;
+    return d?.byteLength ?? d?.size ?? 0;
+}
+
+if (typeof window !== 'undefined' && typeof window.WebSocket === 'function' && diagRequested()) {
+    const Native = window.WebSocket;
+    const Counting = function (this: unknown, url: string | URL, protocols?: string | string[]) {
+        const ws = protocols === undefined ? new Native(url) : new Native(url, protocols);
+        sock.opens++;
+        ws.addEventListener('message', (ev: MessageEvent) => {
+            sock.msgs++;
+            sock.bytes += sizeOf(ev.data);
+        });
+        ws.addEventListener('close', () => sock.closes++);
+        ws.addEventListener('error', () => sock.errors++);
+        const send = ws.send.bind(ws);
+        ws.send = (data: Parameters<WebSocket['send']>[0]) => {
+            sock.sent++;
+            sock.sentBytes += sizeOf(data);
+            send(data);
+        };
+        return ws;
+    } as unknown as typeof WebSocket;
+    Counting.prototype = Native.prototype;
+    Object.assign(Counting, {
+        CONNECTING: Native.CONNECTING,
+        OPEN: Native.OPEN,
+        CLOSING: Native.CLOSING,
+        CLOSED: Native.CLOSED,
+    });
+    window.WebSocket = Counting;
+}
+
 function kb(bytes: number): string {
     if (bytes >= 1024 * 1024) return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
     if (bytes >= 1024) return `${Math.round(bytes / 1024)} kB`;
@@ -83,7 +128,87 @@ function collectIcons(): string[] {
         /* storage blocked */
     }
     out.push(`Iconify loaded: ${loaded}   device cache: ${cache < 0 ? 'localStorage blocked' : `${cache} chars`}`);
+    // "0 icons in the DOM" has two very different causes: the icons did not
+    // render, or the widgets around them are not there either. Counting the
+    // cards and every other svg tells them apart in the same screenshot.
+    const allSvg = document.querySelectorAll('svg').length;
+    const lucide = document.querySelectorAll('svg.lucide').length;
+    const cards = document.querySelectorAll('[data-aura-widget]');
+    const blank = [...cards].filter((c) => !c.querySelector('svg')).length;
+    out.push(`svg total: ${allSvg}   of them lucide-react: ${lucide}`);
+    out.push(`widget cards: ${cards.length}, without any svg: ${blank}`);
     return out;
+}
+
+/** Watch the page for a moment instead of photographing it once.
+ *
+ * The screenshot from #636 showed a dashboard with no icons in it at all while
+ * the device was visibly redrawing the same card over and over — a state a
+ * single sample cannot describe. So look at what MOVES: repaint rate, DOM
+ * churn, blocked main thread, and what the socket is doing meanwhile. */
+async function collectActivity(ms: number): Promise<string[]> {
+    const before = { ...sock };
+    let frames = 0;
+    let mutations = 0;
+    let svgIn = 0;
+    let svgOut = 0;
+    let longTasks = 0;
+    let longestMs = 0;
+
+    const mo = new MutationObserver((records) => {
+        mutations += records.length;
+        for (const r of records) {
+            r.addedNodes.forEach((n) => {
+                if (n.nodeName === 'svg') svgIn++;
+            });
+            r.removedNodes.forEach((n) => {
+                if (n.nodeName === 'svg') svgOut++;
+            });
+        }
+    });
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+
+    let po: PerformanceObserver | null = null;
+    try {
+        po = new PerformanceObserver((list) => {
+            for (const e of list.getEntries()) {
+                longTasks++;
+                longestMs = Math.max(longestMs, e.duration);
+            }
+        });
+        po.observe({ entryTypes: ['longtask'] });
+    } catch {
+        po = null; // Safari / Firefox — the other three numbers still answer
+    }
+
+    let running = true;
+    const tick = (): void => {
+        frames++;
+        if (running) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+
+    await new Promise((r) => setTimeout(r, ms));
+    running = false;
+    mo.disconnect();
+    po?.disconnect();
+
+    const s = ms / 1000;
+    const d = {
+        msgs: sock.msgs - before.msgs,
+        bytes: sock.bytes - before.bytes,
+        sent: sock.sent - before.sent,
+        opens: sock.opens - before.opens,
+    };
+    return [
+        `over ${s} s at rest:`,
+        `  frames: ${frames} (${Math.round(frames / s)}/s)   DOM changes: ${mutations} (${Math.round(mutations / s)}/s)`,
+        `  svg added: ${svgIn}   removed: ${svgOut}`,
+        `  long tasks: ${longTasks}, longest ${Math.round(longestMs)} ms`,
+        `  socket: ${d.msgs} msgs, ${kb(d.bytes)} in, ${d.sent} sent, ${d.opens} new connections`,
+        `socket since load: ${sock.opens} connections (${sock.closes} closed, ${sock.errors} errors)`,
+        `  ${sock.msgs} messages, ${kb(sock.bytes)} received, ${sock.sent} sent`,
+    ];
 }
 
 /** Ask the adapter for a known icon, so a broken /icons/ route shows up as what
@@ -146,6 +271,26 @@ function collectMedia(): string[] {
     return out;
 }
 
+/** What this device kept from earlier sessions. A dashboard that was edited and
+ *  never saved keeps a `_aura_dirty:` flag, which blocks the pull from the
+ *  adapter and pushes this device's frozen copy back instead — worth seeing
+ *  before blaming the rendering. */
+function collectStorage(): string[] {
+    let keys: string[];
+    try {
+        keys = Object.keys(localStorage);
+    } catch {
+        return ['localStorage blocked'];
+    }
+    let chars = 0;
+    for (const k of keys) chars += (localStorage.getItem(k) || '').length + k.length;
+    const dirty = keys.filter((k) => k.startsWith('_aura_dirty:')).map((k) => k.slice('_aura_dirty:'.length));
+    return [
+        `localStorage: ${keys.length} keys, ${chars} chars`,
+        `unsaved edits held on this device: ${dirty.length ? dirty.join(', ') : 'none'}`,
+    ];
+}
+
 function collectTabs(): string[] {
     const tabs = [...document.querySelectorAll('[data-aura-tab-id]')];
     const hidden = tabs.filter((t) => (t as HTMLElement).style.display === 'none');
@@ -158,15 +303,18 @@ export default function DiagnosticsOverlay(): React.ReactElement | null {
     const [copied, setCopied] = useState(false);
 
     const build = useCallback(async () => {
+        setReport('measuring for 2 s…');
         const lines: string[] = [];
         lines.push(`Aura diagnostics — ${new Date().toLocaleString()}`);
         lines.push(`origin: ${location.origin}`);
         lines.push(`screen: ${innerWidth}x${innerHeight} dpr ${devicePixelRatio}`);
         lines.push(`UA: ${navigator.userAgent}`);
+        lines.push('', '— activity —', ...(await collectActivity(2000)));
         lines.push('', '— icons —', ...collectIcons());
         lines.push(await probeIconEndpoint());
         lines.push('', '— network —', ...collectResources());
         lines.push('', '— media —', ...collectMedia());
+        lines.push('', '— storage —', ...collectStorage());
         lines.push('', '— tabs —', ...collectTabs());
         setReport(lines.join('\n'));
     }, []);

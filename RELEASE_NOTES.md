@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Diagnostics - the `?diag=1` report now also measures what the page is doing: repaint rate, DOM changes, blocked main thread, socket messages and reconnects (#636)
