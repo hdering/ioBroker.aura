@@ -65,6 +65,7 @@ import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { useT } from '../../i18n';
 import { useAdminPrefsStore } from '../../store/adminPrefsStore';
 import { ensureDatapointCache } from '../../hooks/useDatapointList';
+import { hasScaleFromDatapoint, scaleOptionsFromDatapoint } from '../../utils/dpScale';
 import {
     DP_TEMPLATES,
     DP_TEMPLATE_CATEGORIES,
@@ -300,15 +301,20 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
 
         let finalTitle = title.trim();
         let finalUnit = unit.trim();
+        // Scale bounds the chosen datapoint declares in common.min/max — a room
+        // setpoint of 10…30 °C beats the placeholder 0…100 the widget would
+        // otherwise start on (#665).
+        let dpScale: Record<string, number> = {};
 
-        if (dpId && (!finalTitle || ((widgetType === 'value' || widgetType === 'chart') && !finalUnit))) {
+        const takesUnitFromDp = ['value', 'chart', 'gauge', 'fill', 'knob', 'slider'].includes(widgetType);
+        if (dpId && (!finalTitle || (takesUnitFromDp && !finalUnit) || hasScaleFromDatapoint(widgetType))) {
             try {
                 const entries = await ensureDatapointCache();
                 const entry = entries.find((e) => e.id === dpId);
                 if (entry) {
                     if (!finalTitle && entry.name) finalTitle = entry.name;
-                    if ((widgetType === 'value' || widgetType === 'chart') && !finalUnit && entry.unit)
-                        finalUnit = entry.unit;
+                    if (takesUnitFromDp && !finalUnit && entry.unit) finalUnit = entry.unit;
+                    dpScale = scaleOptionsFromDatapoint(widgetType, entry);
                 }
             } catch {
                 /* ignore */
@@ -405,7 +411,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                               ? {
                                     minValue: 0,
                                     maxValue: 100,
-                                    unit: '',
+                                    unit: finalUnit || '',
                                     decimals: 1,
                                     showMinMax: true,
                                     colorZones: false,
@@ -428,6 +434,9 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                 : finalUnit
                                   ? { unit: finalUnit }
                                   : {}),
+                // Last, so the datapoint's own range wins over the placeholder
+                // defaults above and over a template's generic bounds.
+                ...dpScale,
             },
         });
         onClose();

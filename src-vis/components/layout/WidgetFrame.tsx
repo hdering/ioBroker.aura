@@ -108,7 +108,9 @@ import { ImagePathHint } from '../config/ImagePathHint';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import { useBadges } from '../../hooks/useBadges';
 import { getObjectDirect, subscribeStateDirect, getStateDirect, getObjectViewDirect } from '../../hooks/useIoBroker';
-import { lookupDatapointEntry, ensureDatapointCache } from '../../hooks/useDatapointList';
+import { lookupDatapointEntry, ensureDatapointCache, type DatapointEntry } from '../../hooks/useDatapointList';
+import { scalePatchFromDatapoint } from '../../utils/dpScale';
+import { DpRangeHint } from '../config/DpRangeHint';
 import { detectMediaDevices, type DetectedMediaDevice } from '../../utils/mediaDeviceDetectors';
 import { WIDGET_REGISTRY, WIDGET_GROUPS, WIDGET_BY_TYPE, conditionSlotsFor } from '../../widgetRegistry';
 import { detectType } from '../../utils/widgetDetection';
@@ -3460,6 +3462,7 @@ function SliderEditPanel({
                             </div>
                         ))}
                     </div>
+                    <DpRangeHint type={config.type} datapoint={config.datapoint} options={o} onApply={setO} />
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             {t('sl.range.unit' as never)}
@@ -9495,29 +9498,48 @@ export function WidgetFrame({
                                                     'gauge',
                                                     'fill',
                                                     'knob',
+                                                    'slider',
                                                 ].includes(config.type);
-                                                const apply = (name: string | undefined, unit: string | undefined) => {
+                                                const apply = (entry: DatapointEntry) => {
                                                     let updated: typeof config = { ...config, datapoint: ref };
-                                                    if (!updated.title?.trim() && name)
-                                                        updated = { ...updated, title: applyDpNameFilter(name) };
+                                                    if (!updated.title?.trim() && entry.name)
+                                                        updated = {
+                                                            ...updated,
+                                                            title: applyDpNameFilter(entry.name),
+                                                        };
                                                     if (
                                                         supportsUnit &&
                                                         !(updated.options?.unit as string | undefined) &&
-                                                        unit
+                                                        entry.unit
                                                     ) {
-                                                        updated = { ...updated, options: { ...updated.options, unit } };
+                                                        updated = {
+                                                            ...updated,
+                                                            options: { ...updated.options, unit: entry.unit },
+                                                        };
                                                     }
+                                                    // The range the object declares replaces a scale that is still
+                                                    // on its 0...100 default - a typed-in one stays (#665).
+                                                    const scale = scalePatchFromDatapoint(
+                                                        config.type,
+                                                        entry,
+                                                        updated.options,
+                                                    );
+                                                    if (Object.keys(scale).length)
+                                                        updated = {
+                                                            ...updated,
+                                                            options: { ...updated.options, ...scale },
+                                                        };
                                                     onConfigChange(updated);
                                                 };
                                                 // Try synchronous cache first; fall back to full cache load (same path as DatapointPicker)
                                                 const cached = lookupDatapointEntry(id);
                                                 if (cached) {
-                                                    apply(cached.name, cached.unit);
+                                                    apply(cached);
                                                     return;
                                                 }
                                                 void ensureDatapointCache().then((entries) => {
                                                     const entry = entries.find((e) => e.id === id);
-                                                    if (entry) apply(entry.name, entry.unit);
+                                                    if (entry) apply(entry);
                                                 });
                                             }}
                                             className="flex-1 text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none min-w-0"
@@ -10347,6 +10369,12 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
+                                        <DpRangeHint
+                                            type={config.type}
+                                            datapoint={config.datapoint}
+                                            options={o}
+                                            onApply={set}
+                                        />
                                         <ScaleBoundsRow
                                             minDatapoint={o.minDatapoint as string | undefined}
                                             maxDatapoint={o.maxDatapoint as string | undefined}
@@ -10940,6 +10968,12 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
+                                        <DpRangeHint
+                                            type={config.type}
+                                            datapoint={config.datapoint}
+                                            options={o}
+                                            onApply={set}
+                                        />
                                         <ValueFormatRow
                                             unit={o.unit as string | undefined}
                                             unitPlaceholder="°C, %, W"
@@ -12664,6 +12698,12 @@ export function WidgetFrame({
                                                 />
                                             </div>
                                         </div>
+                                        <DpRangeHint
+                                            type={config.type}
+                                            datapoint={config.datapoint}
+                                            options={o}
+                                            onApply={set}
+                                        />
                                         <ScaleBoundsRow
                                             minDatapoint={o.minDatapoint as string | undefined}
                                             maxDatapoint={o.maxDatapoint as string | undefined}
@@ -18753,20 +18793,33 @@ export function WidgetFrame({
                                 const typePatch: { type?: WidgetType } =
                                     allowTypeChange && detected ? { type: detected.type } : {};
                                 const effectiveType = (typePatch.type ?? config.type) as WidgetType;
-                                const supportsUnit = ['value', 'chart', 'gauge', 'fill', 'input'].includes(
-                                    effectiveType,
-                                );
+                                const supportsUnit = [
+                                    'value',
+                                    'chart',
+                                    'gauge',
+                                    'fill',
+                                    'input',
+                                    'knob',
+                                    'slider',
+                                ].includes(effectiveType);
                                 const unitAlreadySet = !!(config.options?.unit as string | undefined);
                                 const resolvedUnit = unit || detected?.unit;
                                 const unitPatch =
                                     supportsUnit && !unitAlreadySet && resolvedUnit ? { unit: resolvedUnit } : {};
                                 const titlePatch = !config.title?.trim() && name ? { title: name } : {};
+                                // common.min/max of the picked object - the picker has the full
+                                // datapoint cache loaded, so the entry is there synchronously (#665).
+                                const scalePatch = scalePatchFromDatapoint(
+                                    effectiveType,
+                                    lookupDatapointEntry(id),
+                                    config.options,
+                                );
                                 const updatedConfig = {
                                     ...config,
                                     ...typePatch,
                                     ...titlePatch,
                                     datapoint: id,
-                                    options: { ...config.options, ...unitPatch },
+                                    options: { ...config.options, ...unitPatch, ...scalePatch },
                                 };
                                 onConfigChange(updatedConfig);
                                 // Auto-fill secondary DPs (actualDatapoint, batteryDp, unreachDp …)
