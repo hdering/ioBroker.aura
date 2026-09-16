@@ -48,6 +48,7 @@
     "test:client-tree": "node test/client-tree.test.js",
     "test:edit-history": "node tools/tests/edit-history.mjs",
     "test:edit-history-ui": "node tools/tests/edit-history-ui.mjs",
+    "test:editor-drop-perf": "node tools/tests/editor-drop-perf.mjs",
     "test:idle-return": "node test/idle-return.test.js && node tools/tests/idle-return.mjs",
     "test:idle-return-ui": "node tools/tests/idle-return-ui.mjs",
     "test:client-id": "node tools/tests/client-id-stability.mjs",

@@ -79,6 +79,8 @@ export function Dashboard({
     const t = useT();
     const activeLayout = useActiveLayout();
     const { updateWidget, updateLayouts, removeWidget, addWidgetToLayoutTab } = useDashboardStore();
+    // One stable callback for every frame — an inline arrow would defeat WidgetFrame's memo.
+    const handleConfigChange = useCallback((cfg: WidgetConfig) => updateWidget(cfg.id, cfg), [updateWidget]);
 
     // Resolve the section whose tabs this dashboard renders. The frontend passes an
     // explicit layoutId + sectionId (its layout may differ from the admin editor's
@@ -483,7 +485,7 @@ export function Dashboard({
                                         config={fillTabWidget}
                                         editMode={editMode}
                                         onRemove={removeWidget}
-                                        onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                        onConfigChange={handleConfigChange}
                                     />
                                 </div>
                             )}
@@ -514,7 +516,7 @@ export function Dashboard({
                                                     config={w}
                                                     editMode={false}
                                                     onRemove={removeWidget}
-                                                    onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                                    onConfigChange={handleConfigChange}
                                                 />
                                             )),
                                     )}
@@ -650,9 +652,7 @@ export function Dashboard({
                                                                         config={w}
                                                                         editMode={editMode}
                                                                         onRemove={removeWidget}
-                                                                        onConfigChange={(cfg) =>
-                                                                            updateWidget(cfg.id, cfg)
-                                                                        }
+                                                                        onConfigChange={handleConfigChange}
                                                                     />
                                                                 </div>
                                                             );
@@ -693,7 +693,7 @@ export function Dashboard({
                                 config={fillTabWidget}
                                 editMode={editMode}
                                 onRemove={removeWidget}
-                                onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                onConfigChange={handleConfigChange}
                             />
                         </div>
                     )}
@@ -740,7 +740,7 @@ export function Dashboard({
                                                     config={w}
                                                     editMode={false}
                                                     onRemove={removeWidget}
-                                                    onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                                    onConfigChange={handleConfigChange}
                                                 />
                                             )),
                                     )}
@@ -958,6 +958,12 @@ export function Dashboard({
                                                     hasGroupChildren(mirrorSrc) ||
                                                     usesContentAutoHeight(w);
                                                 const h = derivedH ? w.gridPos.h : pos.h;
+                                                // Same place as before → same object. A drop re-emits every
+                                                // widget of the tab; keeping the untouched ones reference-stable
+                                                // lets the memoised WidgetFrame skip them.
+                                                const g = w.gridPos;
+                                                if (g.x === pos.x && g.y === pos.y && g.w === pos.w && g.h === h)
+                                                    return w;
                                                 return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
                                             });
 
@@ -1051,7 +1057,7 @@ export function Dashboard({
                                                                 config={w}
                                                                 editMode={isActive && editMode}
                                                                 onRemove={removeWidget}
-                                                                onConfigChange={(cfg) => updateWidget(cfg.id, cfg)}
+                                                                onConfigChange={handleConfigChange}
                                                             />
                                                         </div>
                                                     ))}

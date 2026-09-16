@@ -6176,7 +6176,13 @@ function CarouselEditPanel({
  *  children are locked individually, and the write lock still covers them. */
 const LOCK_PASSTHROUGH_TYPES = new Set(['group', 'panels']);
 
-export function WidgetFrame({
+/** The section the editor works in — useActiveSection's resolution on a raw state. */
+function activeSectionState(s: ReturnType<typeof useDashboardStore.getState>) {
+    const l = s.layouts.find((x) => x.id === s.activeLayoutId) ?? s.layouts[0];
+    return l?.sections.find((sec) => sec.id === l.activeSectionId) ?? l?.sections[0];
+}
+
+function WidgetFrameInner({
     config,
     editMode,
     onRemove,
@@ -6225,9 +6231,14 @@ export function WidgetFrame({
         return () => clearTimeout(id);
     }, [styleToast]);
     const [showSavePresetDialog, setShowSavePresetDialog] = useState(false);
-    const { addWidgetToLayoutTab, removeWidgetFromLayoutTab } = useDashboardStore();
+    // Actions only: subscribing to the whole store re-rendered every frame on the
+    // tab for every dashboard write — a grid drop, a keystroke in any config panel.
+    const addWidgetToLayoutTab = useDashboardStore((s) => s.addWidgetToLayoutTab);
+    const removeWidgetFromLayoutTab = useDashboardStore((s) => s.removeWidgetFromLayoutTab);
     const activeLayoutId = useDashboardStore((s) => s.activeLayoutId);
-    const { activeTabId, tabs: activeTabs } = useActiveSection();
+    // The active tab's id as a primitive. The section object (useActiveSection)
+    // changes with every widget edit and would drag every frame along with it.
+    const activeTabId = useDashboardStore((s) => activeSectionState(s)?.activeTabId ?? '');
     // Stable across widget-only mutations: only changes when tabs/sections/layouts are added, removed, or renamed.
     const moveTargets = useStoreWithEqualityFn(
         useDashboardStore,
@@ -12472,9 +12483,9 @@ export function WidgetFrame({
                                             </button>
                                         </div>
                                         {(() => {
-                                            const currentTab = activeTabs.find((t) =>
-                                                t.widgets?.some((w) => w.id === config.id),
-                                            );
+                                            const currentTab = activeSectionState(
+                                                useDashboardStore.getState(),
+                                            )?.tabs.find((t) => t.widgets?.some((w) => w.id === config.id));
                                             const otherCount = (currentTab?.widgets?.length ?? 1) - 1;
                                             const canEnable = otherCount === 0;
                                             const isEnabled = !!(o.fillTab ?? false);
@@ -19616,3 +19627,33 @@ export function WidgetFrame({
         </div>
     );
 }
+
+// Containers lay their children out in an inner grid whose pitch is derived from
+// the measured box. That chain has a latent order dependence (after a header
+// appears the inner grid can stay on the old pitch until the next render) which
+// the dashboard's incidental re-renders used to heal — so these two keep
+// re-rendering with the dashboard exactly as before. tools/tests/group-fit.mjs
+// pins that behaviour: with them memoised it flipped 19 constellations.
+const ALWAYS_RENDER_TYPES = new Set<string>(['group', 'panels']);
+
+function frameEqual(prev: WidgetFrameProps, next: WidgetFrameProps): boolean {
+    if (ALWAYS_RENDER_TYPES.has(next.config.type)) return false;
+    return (
+        prev.config === next.config &&
+        prev.editMode === next.editMode &&
+        prev.onRemove === next.onRemove &&
+        prev.onConfigChange === next.onConfigChange &&
+        prev.onDuplicate === next.onDuplicate &&
+        prev.onCopy === next.onCopy &&
+        prev.inGroup === next.inGroup &&
+        prev.fullscreen === next.fullscreen
+    );
+}
+
+// Memoised: a grid drop re-emits the tab's whole widget list, and without this
+// every frame on the tab re-rendered for one moved widget (~0.6 ms each in dev —
+// sixty widgets were a visibly dropped frame on every release). The props are the
+// config object (reference-stable for untouched widgets, see buildTabUpdated in
+// Dashboard), two flags and store actions; everything else the frame reads through
+// its own hooks and contexts, which re-render it on their own.
+export const WidgetFrame = React.memo(WidgetFrameInner, frameEqual);
