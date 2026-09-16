@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.60.7",
+    "version": "0.60.8",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.60.8": {
+        "en": "feat(diagnostics): measure whether the width is what moves (#636)",
+        "de": "Kunststück(Diagnose): Messen Sie, ob die Breite das ist, was sich bewegt (#636)",
+        "ru": "feat(diagnostics): измерить, движется ли ширина (#636)",
+        "pt": "façanha(diagnóstico): mede se a largura é o que se move (#636)",
+        "nl": "feat(diagnostics): meet of de breedte is wat beweegt (#636)",
+        "fr": "feat(diagnostics) : mesurer si c'est la largeur qui bouge (#636)",
+        "it": "feat(diagnostica): misurare se è la larghezza a muoversi (#636)",
+        "es": "hazaña(diagnóstico): medir si el ancho es lo que se mueve (#636)",
+        "pl": "feat(diagnostyka): zmierz, czy szerokość jest tym, co się porusza (#636)",
+        "uk": "feat(diagnostics): виміряти, чи рухається ширина (#636)",
+        "zh-cn": "feat(diagnostics)：测量宽度是否是移动的(#636)"
+      },
       "0.60.7": {
         "en": "Gauge, Dial, Level and Slider - the line under Min/Max now also reports when the datapoint declares no range at all, so a scale left on 0...100 is not mistaken for a bug (#665)\nFixed a redraw loop that made a dashboard rebuild itself dozens of times a second on some phones: the layout is no longer switched by a momentary zero-width measurement, which also brings back icons that never got the chance to finish loading (#636)",
         "de": "Messgerät, Skala, Wasserwaage und Schieberegler – die Zeile unter „Min/Max“ meldet jetzt auch, wenn der Datenpunkt überhaupt keinen Bereich angibt, sodass eine Skala, die auf 0...100 belassen wird, nicht mit einem Fehler verwechselt wird (#665)\nEs wurde eine Neuzeichnungsschleife behoben, die dazu führte, dass sich ein Dashboard auf einigen Telefonen Dutzende Male pro Sekunde neu aufbaute: Das Layout wird nicht mehr durch eine vorübergehende Nullbreitenmessung geändert, wodurch auch Symbole zurückkommen, die nie die Chance hatten, den Ladevorgang abzuschließen (#636)",
@@ -184,19 +197,6 @@
         "pl": "Niestandardowy CSS - przycisk tab na pasku zakładek to teraz `.aura-tab-btn`; `.aura-tab` ponownie pasuje tylko do obszaru zawartości karty (#648)\nDokumentacja — nowa strona referencyjna zawierająca listę wszystkich klas CSS, atrybutów danych i zmiennych, na które można kierować niestandardowe CSS (#648)\n🌟 Nowa funkcja: Pasek zakładek i pasek sekcji - nowa pozycja menu „Parzysta” rozkłada wpisy na całą szerokość paska, dzięki czemu aktywny znacznik rozciąga się szerzej niż etykieta (#661)",
         "uk": "Користувацький CSS – кнопка вкладки на панелі вкладок тепер `.aura-tab-btn`; `.aura-tab` знову відповідає лише області вмісту вкладки (#648)\nДокументація – нова довідкова сторінка з переліком усіх класів CSS, атрибутів даних і змінних, на які можна націлити спеціальний CSS (#648)\n🌟 Нова функція: панель вкладок і панель розділів - нова позиція меню \"Рівномірно\" розподіляє записи на всю ширину панелі, тому активний маркер розташовується ширше за мітку (#661)",
         "zh-cn": "自定义 CSS - 选项卡栏中的选项卡按钮现在为 `.aura-tab-btn`； `.aura-tab` 再次仅匹配选项卡的内容区域 (#648)\n文档 - 新的参考页面列出了每个 CSS 类、数据属性和自定义 CSS 可以定位的变量 (#648)\n🌟 新功能：选项卡栏和分区栏 - 新的菜单位置“Even”将条目分布在整个栏宽度上，因此活动标记比标签更宽(#661)"
-      },
-      "0.60.1": {
-        "en": "🌟 New feature: Every widget can wrap long text over up to 4 lines instead of cutting it off (Design > Text wrap) (#653)",
-        "de": "🌟 Neue Funktion: Jedes Widget kann langen Text über bis zu 4 Zeilen umbrechen, anstatt ihn abzuschneiden (Design > Textumbruch) (#653)",
-        "ru": "🌟 Новая функция: каждый виджет может переносить длинный текст длиной до 4 строк вместо того, чтобы обрезать его (Дизайн > Перенос текста) (#653).",
-        "pt": "🌟 Novo recurso: cada widget pode quebrar texto longo em até 4 linhas em vez de cortá-lo (Design > Quebra de texto) (#653)",
-        "nl": "🌟 Nieuwe functie: elke widget kan lange tekst over maximaal 4 regels laten lopen in plaats van deze af te snijden (Ontwerp > Tekstomloop) (#653)",
-        "fr": "🌟 Nouvelle fonctionnalité : chaque widget peut envelopper un texte long sur jusqu'à 4 lignes au lieu de le couper (Conception > Renvoi au texte) (#653)",
-        "it": "🌟 Nuova funzionalità: ogni widget può mandare a capo un testo lungo fino a 4 righe invece di tagliarlo (Design > Contorna testo) (#653)",
-        "es": "🌟 Nueva característica: Cada widget puede ajustar texto largo en hasta 4 líneas en lugar de cortarlo (Diseño > Ajuste de texto) (#653)",
-        "pl": "🌟 Nowa funkcja: każdy widżet może zawijać długi tekst do 4 linii zamiast go obcinać (Projekt > Zawijanie tekstu) (#653)",
-        "uk": "🌟 Нова функція: кожен віджет може обтікати довгий текст до 4 рядків замість того, щоб обрізати його (Дизайн > Обтікання текстом) (#653)",
-        "zh-cn": "🌟 新功能：每个小部件都可以将长文本换行最多 4 行，而不是将其截断（设计 > 文本换行）(#653)"
       }
     }
   },
