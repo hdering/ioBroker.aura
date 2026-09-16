@@ -286,9 +286,32 @@ async function collectActivity(
         po = null; // Safari / Firefox — the other three numbers still answer
     }
 
+    // Counting changes says THAT the page rebuilds itself; it never says whether
+    // the thing driving it is the measured width. Dashboard picks its layout from
+    // the width of `.aura-scroll` and mounts the grid only while that width is
+    // above zero, so a width that moves and a width that stands still are two
+    // completely different bugs — and the mutation counts look identical either
+    // way. Sample the few numbers that tell them apart once per frame.
+    const range = { wMin: Infinity, wMax: -1, gMin: Infinity, gMax: -1, cMin: Infinity, cMax: -1 };
+    const sample = (): void => {
+        const sc = document.querySelector('.aura-scroll');
+        if (sc) {
+            const w = Math.round(sc.getBoundingClientRect().width);
+            range.wMin = Math.min(range.wMin, w);
+            range.wMax = Math.max(range.wMax, w);
+        }
+        const g = document.querySelectorAll('.react-grid-item').length;
+        range.gMin = Math.min(range.gMin, g);
+        range.gMax = Math.max(range.gMax, g);
+        const c = document.querySelectorAll('[data-aura-widget]').length;
+        range.cMin = Math.min(range.cMin, c);
+        range.cMax = Math.max(range.cMax, c);
+    };
+
     let running = true;
     const tick = (): void => {
         frames++;
+        sample();
         if (running) requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -331,6 +354,9 @@ async function collectActivity(
         `  kinds: attr ${kinds.attributes}` +
             `${attrNames.size ? ` (${top(attrNames, 3)})` : ''}` +
             `, nodes ${kinds.childList}, text ${kinds.characterData}`,
+        // A range that is a single value means the thing stood still all window.
+        `  per frame: scroller ${range.wMax < 0 ? 'none' : `${range.wMin}-${range.wMax} px`}` +
+            `, grid items ${range.gMin}-${range.gMax}, cards ${range.cMin}-${range.cMax}`,
         `  on: ${top(targets, 3) || '—'}`,
         ...(classToggles.size ? [`  class: ${top(classToggles, 4)}`] : []),
         `  nodes in: ${top(nodesIn, 3) || '—'}`,
@@ -382,11 +408,23 @@ async function collectLoopSuspect(ranked: [string, number][], total: number, per
                     const w = (tab.widgets ?? []).find((x) => x.id === id);
                     if (!w) continue;
                     const json = JSON.stringify({ type: w.type, title: w.title, options: w.options });
+                    // The widget alone did not rebuild the loop here: its exact
+                    // configuration ran clean through six variants and thirteen
+                    // breakpoints. What is missing is the frame around it — the
+                    // grid geometry and the breakpoint decide which layout branch
+                    // runs at all, and those live on the layout and the section.
+                    const env = JSON.stringify({
+                        box: w.gridPos,
+                        widgetsOnTab: (tab.widgets ?? []).length,
+                        layout: layout.settings ?? {},
+                        section: section.settings ?? {},
+                    });
                     return [
                         '',
                         '— loop suspect —',
                         `${w.type} #${id} on tab "${tab.name ?? tab.id}"`,
                         json.length > 1500 ? `${json.slice(0, 1500)}… (${json.length} chars)` : json,
+                        env.length > 700 ? `${env.slice(0, 700)}…` : env,
                     ];
                 }
             }
