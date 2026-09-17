@@ -225,19 +225,32 @@ export function ValueWidget({ config }: WidgetProps) {
 
     // --- MINIMAL: Nur Zahl, sehr groß ---
     if (layout === 'minimal') {
+        // Value above title, both centred in a box whose height the grid fixes. Nothing
+        // here can wrap or shrink, so a bigger font scale (or a short cell) pushed the
+        // pair past the card edge and the title — the lower one — was cut in half (#668).
+        // Both sizes are therefore capped against the card height: `.aura-fit-box` makes
+        // this row a size container, so 100cqh IS the height available, minus the 8px
+        // gap of `mt-2`. The two shares add up to just under that space (0.48 × 1.15
+        // line box + 0.33 × 1.35 line box), and `min()` means the cap only ever shrinks:
+        // at the nominal sizes the configured value wins and nothing changes.
+        const fitBox = 'calc(100cqh - 8px)';
+        const nominalValue = valueFontSize > 0 ? `${valueFontSize}px` : 'calc(1.25rem * var(--font-scale, 1))';
+        const fitValue = `max(10px, min(${nominalValue}, calc(${fitBox} * 0.48)))`;
+        const fitTitle = `max(8px, min(calc(0.75rem * var(--font-scale, 1)), calc(${fitBox} * 0.33)))`;
         return (
             <div
-                className="aura-widget-row flex flex-col items-center justify-center h-full"
+                className="aura-widget-row aura-fit-box flex flex-col items-center justify-center h-full"
                 style={{ position: 'relative' }}
             >
                 {showValue &&
                     (htmlValueNode ?? (
                         <div className="aura-widget-value flex items-baseline gap-1 leading-none">
-                            <span className={`${valueSizeCls}`} style={{ color: accentColor, ...valueSizeStyle }}>
-                                {displayValue}
-                            </span>
+                            <span style={{ color: accentColor, fontSize: fitValue }}>{displayValue}</span>
                             {showUnit && unit && (
-                                <span className="text-lg font-medium" style={{ color: 'var(--text-secondary)' }}>
+                                <span
+                                    className="font-medium"
+                                    style={{ color: 'var(--text-secondary)', fontSize: `calc(${fitValue} * 0.9)` }}
+                                >
                                     {unit}
                                 </span>
                             )}
@@ -245,10 +258,15 @@ export function ValueWidget({ config }: WidgetProps) {
                     ))}
                 {showTitle && (
                     <span
-                        className="aura-widget-title text-xs mt-2 truncate max-w-full"
+                        className="aura-widget-title mt-2 truncate max-w-full"
                         style={{
                             color: 'var(--text-secondary)',
                             textAlign: titleAlign as React.CSSProperties['textAlign'],
+                            fontSize: fitTitle,
+                            // Relative, so the line box shrinks with the font — an absolute
+                            // one (what text-xs ships) would keep reserving the unscaled
+                            // height and clip the descenders.
+                            lineHeight: 1.35,
                         }}
                     >
                         {config.title}

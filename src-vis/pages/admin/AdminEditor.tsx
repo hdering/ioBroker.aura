@@ -2618,7 +2618,17 @@ export function AdminEditor() {
                         </div>
                     </div>
                 )}
-                <div className="flex-1 min-w-0 flex flex-col overflow-hidden">
+                {/* data-aura-scale + --font-scale: the preview renders the very widgets the
+                    frontend renders, so it has to use the frontend's font scale for the
+                    layout/section being edited. Without it the editor previewed every
+                    dashboard at scale 1 and a title that fit here was cut off live (#668).
+                    The frontend's own marker (data-aura-app) stays out on purpose — it
+                    answers the portal-target queries, which must not land in this box. */}
+                <div
+                    className="flex-1 min-w-0 flex flex-col overflow-hidden"
+                    data-aura-scale=""
+                    style={{ '--font-scale': String(editorSettings.fontScale ?? 1) } as React.CSSProperties}
+                >
                     <FocusedWidgetContext.Provider value={focusedWidgetId}>
                         <Dashboard editMode={true} />
                     </FocusedWidgetContext.Provider>

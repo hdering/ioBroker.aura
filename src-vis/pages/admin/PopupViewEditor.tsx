@@ -494,7 +494,15 @@ export function PopupViewEditor() {
                 <div
                     ref={containerRefCallback}
                     className="aura-scroll flex-1 overflow-auto p-4"
-                    style={{ background: view.background ?? globalPopupBackground ?? DEFAULT_POPUP_BACKGROUND }}
+                    data-aura-scale=""
+                    style={
+                        {
+                            background: view.background ?? globalPopupBackground ?? DEFAULT_POPUP_BACKGROUND,
+                            // Same widgets as in the popup itself, hence the same font
+                            // scale — an unscaled preview lies about what fits (#668).
+                            '--font-scale': String(settings.fontScale ?? 1),
+                        } as React.CSSProperties
+                    }
                 >
                     {widgets.length === 0 ? (
                         <div
