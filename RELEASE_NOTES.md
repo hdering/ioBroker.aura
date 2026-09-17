@@ -20,3 +20,4 @@ Editor - toggling a timer or an auto-list picking up new datapoints inside the e
 Frontend - opened in the same browser as an admin, the frontend no longer mirrors the admin's unsaved edits live (every widget drag used to show up there at once); it shows the saved configuration, leaves the admin's copy and flags alone, and takes a save over the moment it arrives
 Editor - the preview now renders with the font scale of the layout being edited, so the admin shows what the frontend shows (#668)
 Value widget - in the "minimal" layout value and title shrink to stay inside the card instead of the title being cut off at the bottom edge (#668)
+Value widget - a double click in the HTML template field selects the clicked word again instead of the whole template (#670)

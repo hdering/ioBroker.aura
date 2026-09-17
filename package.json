@@ -251,7 +251,8 @@
     "test:html-bridge": "node tools/tests/html-bridge.mjs",
     "test:editor-lock": "node tools/tests/editor-widget-lock.mjs",
     "test:editor-lock-sweep": "node tools/tests/editor-widget-lock-sweep.mjs",
-    "test:html-api": "node tools/tests/html-api.mjs"
+    "test:html-api": "node tools/tests/html-api.mjs",
+    "test:html-template-dblclick": "node tools/tests/html-template-dblclick.mjs"
   },
   "dependencies": {
     "@iobroker/adapter-core": "^3.4.1",

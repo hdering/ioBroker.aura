@@ -1993,6 +1993,9 @@ function CenteredModal({
 // damit DOM-Selektion (Drag-Mark, Doppelklick, Ctrl+A) nicht ständig gecleart wird.
 // Memo-Vergleich nur über value; onCommit landet in einer Ref, damit eine neue
 // Closure pro Parent-Render keinen Re-Render auslöst.
+// Kein onDoubleClick-select() mehr: das war der Notnagel, solange die Selektion
+// weggerendert wurde, und hat danach jedes Doppelklick-Wort zur Komplettauswahl
+// aufgeblasen (#670). Der Browser markiert von allein das Wort.
 const HtmlTemplateInput = React.memo(
     function HtmlTemplateInput({ value, onCommit }: { value: string; onCommit: (v: string) => void }) {
         const [local, setLocal] = useState(value);
@@ -2005,12 +2008,12 @@ const HtmlTemplateInput = React.memo(
         }, [value]);
         return (
             <textarea
+                data-html-template
                 value={local}
                 onChange={(e) => {
                     setLocal(e.target.value);
                     commitRef.current(e.target.value);
                 }}
-                onDoubleClick={(e) => (e.currentTarget as HTMLTextAreaElement).select()}
                 placeholder='z.B. <b style="color:var(--accent)">{dp}</b> °C'
                 rows={3}
                 spellCheck={false}
