@@ -96,6 +96,11 @@ await page.waitForTimeout(950);
 await page.keyboard.press('Escape');
 await page.waitForTimeout(300);
 eq('the rename is one step and dirty', await counts(), { undo: 1, redo: 0, dirty: true });
+eq(
+    'the save bar names the unsaved change (this session)',
+    await page.locator('[data-unsaved-status]').getAttribute('data-unsaved-status'),
+    'session',
+);
 await page.evaluate(() => window.__auraEditHistory.persistNow());
 await page.waitForTimeout(400);
 
@@ -109,12 +114,19 @@ eq('after the reload the step is back and the edit is still unsaved', await coun
     dirty: true,
 });
 eq('… the widget shows the new name', await titleOf('w1'), 'Umbenannt');
+eq(
+    '… and the save bar flags it as carried over from the last session',
+    await page.locator('[data-unsaved-status]').getAttribute('data-unsaved-status'),
+    'carried',
+);
+check('… in words', (await page.locator('[data-unsaved-status]').innerText()).includes('letzten Sitzung'));
 
 await page.evaluate(() => document.activeElement && document.activeElement.blur());
 await page.keyboard.press('Control+z');
 await page.waitForTimeout(400);
 eq('Ctrl+Z after the reload restores the name', await titleOf('w1'), 'W w1');
 eq('… and disarms the save bar (back on the saved value)', await counts(), { undo: 0, redo: 1, dirty: false });
+eq('… the status chip is gone', await page.locator('[data-unsaved-status]').count(), 0);
 
 // ── 2. the chain must end at the current state — a foreign change discards it ─
 await page.keyboard.press('Control+y');

@@ -57,6 +57,7 @@ export const de = {
 
     // ── Admin Save Bar ────────────────────────────────────────────────────────────
     'admin.save.unsaved': 'Ungespeicherte Änderungen',
+    'admin.save.carriedOver': 'aus der letzten Sitzung übernommen',
     'admin.save.discard': 'Verwerfen',
     'admin.save.undoStep': 'Rückgängig ({mod}+Z)',
     'admin.save.redoStep': 'Wiederholen ({mod}+Y)',

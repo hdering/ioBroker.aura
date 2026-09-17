@@ -34,6 +34,8 @@ import { getTheme, ADMIN_DARK_THEME } from '../../themes';
 import {
     isDirty,
     isPending,
+    hasDirtyFlag,
+    IOBROKER_STATE_MAP,
     saveAll,
     revertAll,
     subscribeDirty,
@@ -209,6 +211,14 @@ export function AdminLayout() {
     const { sessionActive } = useAuthStore();
     useSessionWatch(sessionActive);
     const { dirty, save, revert, saveError } = useSaveState();
+    // Unsaved edits that survived a reload (their _dirty flags did). Named in the
+    // save bar until the user saves or discards; new edits after that are just edits.
+    const [carriedOver, setCarriedOver] = useState<string[]>(() =>
+        Object.keys(IOBROKER_STATE_MAP).filter((key) => hasDirtyFlag(key)),
+    );
+    useEffect(() => {
+        if (!dirty) setCarriedOver([]);
+    }, [dirty]);
     // Step-wise undo/redo — recorded only while the editor is mounted. The
     // buttons live in EditHistoryControls, so a history change re-renders those
     // and not this shell.
@@ -324,15 +334,12 @@ export function AdminLayout() {
                 // suppresses dirty marking on first persist); we still need to
                 // seed every key.
                 saveToIoBroker({ all: true });
-            } else if (remoteHasData && localHasData) {
-                // Both have data – flush any cross-session unsaved edits (_dirty flag
-                // survivors). saveToIoBroker writes only dirty keys, so if there are
-                // none this is a cheap no-op — and then no backup is written either.
-                // When it does write it overwrites the remote copy with this device's
-                // carried-over one, which is exactly the save that must show up in
-                // Settings → Backups instead of happening invisibly.
-                saveToIoBroker();
             }
+            // Both have data and this device carries unsaved edits from an earlier
+            // session (_dirty flags): they used to be pushed right here, which turned
+            // a reload into a save nobody asked for. They stay unsaved now — the save
+            // bar flags them as carried over, the restored history shows every step,
+            // and Speichern / Verwerfen remain the user's decision.
         });
     }, [connected]);
 
@@ -605,8 +612,8 @@ export function AdminLayout() {
                         <div
                             className="shrink-0 flex items-center gap-2 px-4 py-2 transition-all"
                             style={{
-                                background: dirty ? 'var(--accent)11' : 'var(--app-surface)',
-                                borderBottom: `1px solid ${dirty ? 'var(--accent)44' : 'var(--app-border)'}`,
+                                background: dirty ? 'var(--accent)1a' : 'var(--app-surface)',
+                                borderBottom: `1px solid ${dirty ? 'var(--accent)66' : 'var(--app-border)'}`,
                                 minHeight: '44px',
                             }}
                         >
@@ -626,6 +633,29 @@ export function AdminLayout() {
                                 >
                                     <AlertTriangle size={13} className="shrink-0" />
                                     {saveError}
+                                </span>
+                            )}
+                            {dirty && (
+                                <span
+                                    className="flex items-center gap-2 text-xs font-medium min-w-0"
+                                    style={{ color: 'var(--accent)' }}
+                                    data-unsaved-status={carriedOver.length > 0 ? 'carried' : 'session'}
+                                >
+                                    <span
+                                        className="w-2 h-2 rounded-full animate-pulse shrink-0"
+                                        style={{ background: 'var(--accent)' }}
+                                    />
+                                    <span className="truncate">
+                                        {countdown !== null
+                                            ? t('admin.save.autoIn', { s: String(countdown) })
+                                            : t('admin.save.unsaved')}
+                                        {carriedOver.length > 0 && (
+                                            <span className="font-normal" style={{ color: 'var(--text-secondary)' }}>
+                                                {' · '}
+                                                {t('admin.save.carriedOver')}
+                                            </span>
+                                        )}
+                                    </span>
                                 </span>
                             )}
                             <EditHistoryControls />

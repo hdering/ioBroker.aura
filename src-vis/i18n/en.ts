@@ -59,6 +59,7 @@ export const en: Record<TranslationKey, string> = {
 
     // ── Admin Save Bar ────────────────────────────────────────────────────────────
     'admin.save.unsaved': 'Unsaved Changes',
+    'admin.save.carriedOver': 'carried over from the last session',
     'admin.save.discard': 'Discard',
     'admin.save.undoStep': 'Undo ({mod}+Z)',
     'admin.save.redoStep': 'Redo ({mod}+Y)',
