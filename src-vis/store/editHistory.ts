@@ -21,6 +21,7 @@
  * import any store (persistManager imports it, the stores import persistManager).
  */
 import { create } from 'zustand';
+import { diffSnapshots } from '../utils/refPatch';
 
 /** A sync-store key (aura-dashboard, …) or an adapter-owned external key such as
  *  the message defaults — anything persistManager tracks as pending. */
@@ -47,6 +48,8 @@ export interface HistoryEntry {
     changes: HistoryChange[];
     /** Set after undo/redo so the next edit never merges into this entry. */
     sealed?: boolean;
+    /** What kind of step a group was ('discard', 'restore') — names it in tooltips and the menu. */
+    label?: string;
 }
 
 /** Entries kept per stack. Structural sharing keeps this cheap; only bulk
@@ -112,6 +115,12 @@ function sameSnapshot(a: Snapshot | undefined, b: Snapshot): boolean {
     return true;
 }
 
+/** A change worth a step: different references AND different content. A rehydrate
+ *  or a re-emitted equal object changes every reference but nothing the user did. */
+function changed(before: Snapshot | undefined, after: Snapshot): before is Snapshot {
+    return !!before && !sameSnapshot(before, after) && diffSnapshots(before, after).length > 0;
+}
+
 function addChange(entry: HistoryEntry, key: HistoryKey, before: Snapshot, after: Snapshot): void {
     const existing = entry.changes.find((c) => c.key === key);
     if (existing) existing.after = after;
@@ -151,7 +160,7 @@ export function recordChange(key: HistoryKey): void {
     if (groupDepth > 0) return;
     const before = lastAccepted.get(key);
     lastAccepted.set(key, after);
-    if (!before || sameSnapshot(before, after)) return;
+    if (!changed(before, after)) return;
     if (attachedDepth > 0) {
         attachToTop([{ key, before, after }]);
         return;
@@ -196,31 +205,31 @@ export function resyncHistoryKey(key: HistoryKey): void {
  * Also the way to record a change that bypasses managedStorage (a rehydrate
  * from localStorage): the group compares every store on close.
  */
-export function historyGroup<T>(fn: () => T): T {
+export function historyGroup<T>(fn: () => T, label?: string): T {
     if (!active) return fn();
     groupDepth++;
     try {
         return fn();
     } finally {
         groupDepth--;
-        if (groupDepth === 0) closeGroup();
+        if (groupDepth === 0) closeGroup(label);
     }
 }
 
-function closeGroup(): void {
+function closeGroup(label?: string): void {
     const changes: HistoryChange[] = [];
     adapters.forEach((adapter, key) => {
         const after = adapter.getSnapshot();
         const before = lastAccepted.get(key);
         lastAccepted.set(key, after);
-        if (before && !sameSnapshot(before, after)) changes.push({ key, before, after });
+        if (changed(before, after)) changes.push({ key, before, after });
     });
     if (restoring || changes.length === 0) return;
     if (attachedDepth > 0) {
         attachToTop(changes);
         return;
     }
-    push({ id: nextId++, ts: Date.now(), changes });
+    push({ id: nextId++, ts: Date.now(), changes, ...(label ? { label } : {}) });
 }
 
 /**

@@ -386,7 +386,7 @@ export function revertAll(rehydrateFns: Array<() => void>): void {
     // One history entry for the whole revert — "discard everything" is itself
     // undoable. The rehydrate below writes localStorage's value back unchanged,
     // so managedStorage cannot see the change; the group compares the stores.
-    historyGroup(() => revertAllInner(rehydrateFns));
+    historyGroup(() => revertAllInner(rehydrateFns), 'discard');
 }
 
 function revertAllInner(rehydrateFns: Array<() => void>): void {

@@ -197,8 +197,12 @@ async function boot(persisted, { seedDefaults = true } = {}) {
     ]) {
         if (map.has(key)) continue;
         // JSON.stringify drops the action functions — same shape zustand persists.
-        mod.applyRaw(key, JSON.stringify({ state: store.getState(), version: 0 }));
-        store.persist.rehydrate();
+        // Twice: the popup store normalises on its first rehydrate (ensureBuiltins
+        // seeds the type defaults), so the value in storage must be the settled one.
+        for (let round = 0; round < 2; round++) {
+            mod.applyRaw(key, JSON.stringify({ state: store.getState(), version: 0 }));
+            store.persist.rehydrate();
+        }
     }
     mod.hydrateGroupDefs(JSON.stringify({ state: { defs: {} }, version: 0 }));
     mod.markWidgetPresetsHydrated();
@@ -341,6 +345,15 @@ const counts = (mod) => {
     eq('revertAll restores the saved header', mod.useConfigStore.getState().frontend.headerTitle, 'Aura');
     check('revertAll leaves nothing dirty', !mod.isDirty());
     eq('revertAll is ONE entry', counts(mod)[0], before + 1);
+    eq(
+        '… that names only the stores that were actually dirty (rehydrating the rest is no change)',
+        mod.history
+            .peekUndo()
+            .changes.map((c) => c.key)
+            .sort(),
+        ['aura-config', 'aura-dashboard', 'aura-theme'],
+    );
+    eq('… and is labelled as a discard', mod.describeEntry(mod.history.peekUndo())[0].kind, 'discard');
     mod.history.undo();
     eq('undo revertAll brings the last edit back', titleOf(mod, 'w1'), 'R2');
     eq('… and the theme', mod.useThemeStore.getState().themeId, 'light');
@@ -476,7 +489,12 @@ const counts = (mod) => {
     mod.history.undo();
     eq('undo restore → previous state', titleOf(mod, 'w1'), 'Küche');
     eq('… theme too', mod.useThemeStore.getState().themeId, 'light');
-    eq('restore entry label', mod.describeEntry(mod.history.peekRedo())[0].kind, 'widget-renamed');
+    eq('restore entry label', mod.describeEntry(mod.history.peekRedo())[0].kind, 'restore');
+    eq(
+        'restore entry touches only the dashboard',
+        mod.history.peekRedo().changes.map((c) => c.key),
+        ['aura-dashboard'],
+    );
 }
 
 // ── 8b. Adapter-owned ("external") keys join the history ─────────────────────

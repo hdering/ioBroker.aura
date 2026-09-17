@@ -30,12 +30,15 @@ export function diffSnapshots(
 ): PatchOp[] {
     if (before === after) return out;
     if (isPlainObject(before) && isPlainObject(after)) {
+        // A key holding `undefined` and a missing key are the same thing once
+        // serialised — a store's hydration produces the one, a spread the other.
         for (const k of Object.keys(before)) {
+            if (before[k] === undefined) continue;
             if (!(k in after) || after[k] === undefined) out.push({ p: [...path, k], d: true });
         }
         for (const k of Object.keys(after)) {
             if (after[k] === undefined) continue;
-            if (!(k in before)) out.push({ p: [...path, k], v: after[k] });
+            if (!(k in before) || before[k] === undefined) out.push({ p: [...path, k], v: after[k] });
             else diffSnapshots(before[k], after[k], [...path, k], out);
         }
         return out;

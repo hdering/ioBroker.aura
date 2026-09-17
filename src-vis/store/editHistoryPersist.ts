@@ -43,7 +43,7 @@ export interface PersistedHistory {
     /** Per store: serialised snapshot before the first entry that touches it. */
     base: Record<string, string>;
     /** Oldest first. */
-    entries: Array<{ id: number; ts: number; changes: PersistedChange[] }>;
+    entries: Array<{ id: number; ts: number; label?: string; changes: PersistedChange[] }>;
     /** Per store: the saved value a pending key had before its first edit. */
     originals: Record<string, string | null>;
 }
@@ -134,7 +134,7 @@ export function serializeHistory(): PersistedHistory | null {
         }
         for (const c of changes) bytes += JSON.stringify(c.ops).length;
         if (bytes > MAX_BYTES) return null;
-        if (changes.length > 0) entries.push({ id: e.id, ts: e.ts, changes });
+        if (changes.length > 0) entries.push({ id: e.id, ts: e.ts, changes, ...(e.label ? { label: e.label } : {}) });
     }
     const originals: Record<string, string | null> = {};
     for (const key of Object.keys(base)) {
@@ -180,6 +180,7 @@ export async function restorePersistedHistory(): Promise<RestoreResult> {
         const entries: HistoryEntry[] = data.entries.map((e) => ({
             id: e.id,
             ts: e.ts,
+            ...(e.label ? { label: e.label } : {}),
             changes: e.changes.map((c) => {
                 const before = cursor[c.key];
                 const after = applyPatch(before, c.ops) as Snapshot;

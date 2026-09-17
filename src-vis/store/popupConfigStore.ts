@@ -212,7 +212,10 @@ function hasExistingSetup(
     >,
 ): boolean {
     return (
-        s.views.length > 0 ||
+        // The always-seeded view is not evidence of a set-up installation: the first
+        // ensureBuiltins() plants it on a fresh install, and counting it made the very
+        // next rehydrate (Verwerfen, a restore, an inbound sync) seed every type default.
+        s.views.some((v) => !ALWAYS_SEEDED_VIEW_IDS.has(v.id)) ||
         Object.keys(s.typeDefaults).length > 0 ||
         s.deletedBuiltinIds.length > 0 ||
         s.removedBuiltinTypeDefaults.length > 0 ||

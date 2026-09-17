@@ -52,5 +52,5 @@ export function applyBackupPayload(payload: Record<string, unknown>): boolean {
  */
 export async function restoreBackupPayload(payload: Record<string, unknown>): Promise<boolean> {
     await writeSafetyBackup();
-    return historyGroup(() => applyBackupPayload(payload));
+    return historyGroup(() => applyBackupPayload(payload), 'restore');
 }

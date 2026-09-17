@@ -32,6 +32,7 @@ import {
     type HistoryEntry,
     type Snapshot,
 } from './editHistory';
+import { diffSnapshots } from '../utils/refPatch';
 import {
     flushHistoryPersistence,
     restorePersistedHistory,
@@ -85,6 +86,13 @@ export function describeEntry(entry: HistoryEntry): BackupChangeDetail[] {
         return cached.details;
     }
     const details: BackupChangeDetail[] = [];
+    // A labelled group (Verwerfen, Wiederherstellen) is named as that step, not
+    // as the sum of the stores it touched.
+    if (entry.label) {
+        details.push({ store: entry.changes[0]?.key ?? '', kind: entry.label, count: entry.changes.length });
+        labelCache.set(entry, { sig: entry.changes.map((c) => c.after), details });
+        return details;
+    }
     for (const change of entry.changes) {
         if (change.key === 'aura-dashboard') {
             const d = describeLayoutsChange(change.before.layouts, change.after.layouts);
@@ -144,6 +152,12 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
         redo,
         persistNow: flushHistoryPersistence,
         restore: restorePersistedHistory,
+        /** Structural diff of one undo entry (newest first) per store — what a step really changed. */
+        diff: (i: number) =>
+            (historyEntries().undo[i]?.changes ?? []).map((c) => ({
+                key: c.key,
+                ops: diffSnapshots(c.before, c.after),
+            })),
     };
 }
 
@@ -159,6 +173,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
 // right after, as before.
 interface SeedableStore {
     setState(partial: object): void;
+    persist?: { rehydrate(): unknown };
 }
 const PERSISTED_STORES: Array<[SyncStoreKey, SeedableStore]> = [
     ['aura-dashboard', useDashboardStore],
@@ -181,6 +196,10 @@ export function seedMissingPersistedKeys(): void {
         if (current !== null) continue;
         // An empty merge re-runs persist's setItem with the current (default) state.
         withSuppressedDirty(() => store.setState({}));
+        // Settle right away: a store may normalise on hydration (the popup store
+        // seeds its built-in type defaults once persisted config exists). Doing that
+        // now keeps later rehydrates — Verwerfen, a restore — free of surprise diffs.
+        withSuppressedDirty(() => void store.persist?.rehydrate());
         try {
             if (localStorage.getItem(key) !== null) seededDefaults.add(key);
         } catch {
