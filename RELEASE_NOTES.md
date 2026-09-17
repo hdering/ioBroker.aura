@@ -10,3 +10,5 @@ Advanced chart - can start on the current calendar day (00:00-24:00) instead of 
 Editor - step-wise undo/redo (Ctrl+Z / Ctrl+Y or the arrows in the save bar), also after saving; "Discard" reverts all unsaved changes and is itself undoable
 Editor - history menu in the save bar lists every step of the session by name and the saved states from the auto-backups; restoring one writes a safety backup first and is a single undo step
 Editor - dropping a widget no longer re-renders every other widget on the tab, so releasing it no longer stutters on busy tabs
+Messages - the presentation defaults take part in undo/redo; undoing them back to the saved values disarms the save bar again
+Settings - the first change to a setting that was never saved before (fresh installation, unused datapoint groups) now arms the save bar and can be discarded like any other

@@ -21,7 +21,10 @@
  * import any store (persistManager imports it, the stores import persistManager).
  */
 import { create } from 'zustand';
-import type { SyncStoreKey } from './persistManager';
+
+/** A sync-store key (aura-dashboard, …) or an adapter-owned external key such as
+ *  the message defaults — anything persistManager tracks as pending. */
+export type HistoryKey = string;
 
 export type Snapshot = Record<string, unknown>;
 
@@ -33,7 +36,7 @@ export interface HistoryStoreAdapter {
 }
 
 export interface HistoryChange {
-    key: SyncStoreKey;
+    key: HistoryKey;
     before: Snapshot;
     after: Snapshot;
 }
@@ -52,9 +55,12 @@ export const HISTORY_LIMIT = 100;
 /** Consecutive edits of the same store inside this window merge into one entry —
  *  typing a title, dragging a colour picker or a slider becomes a single step. */
 export const COALESCE_MS = 800;
+/** Writes to different stores this close together come from ONE user action (a
+ *  control that updates two stores synchronously) — no human makes two edits in it. */
+export const SAME_ACTION_MS = 40;
 
-const adapters = new Map<SyncStoreKey, HistoryStoreAdapter>();
-const lastAccepted = new Map<SyncStoreKey, Snapshot>();
+const adapters = new Map<HistoryKey, HistoryStoreAdapter>();
+const lastAccepted = new Map<HistoryKey, Snapshot>();
 let undoStack: HistoryEntry[] = [];
 let redoStack: HistoryEntry[] = [];
 let active = false;
@@ -91,7 +97,7 @@ function publish(): void {
     }));
 }
 
-export function registerHistoryStore(key: SyncStoreKey, adapter: HistoryStoreAdapter): void {
+export function registerHistoryStore(key: HistoryKey, adapter: HistoryStoreAdapter): void {
     adapters.set(key, adapter);
     if (active) lastAccepted.set(key, adapter.getSnapshot());
 }
@@ -106,7 +112,7 @@ function sameSnapshot(a: Snapshot | undefined, b: Snapshot): boolean {
     return true;
 }
 
-function addChange(entry: HistoryEntry, key: SyncStoreKey, before: Snapshot, after: Snapshot): void {
+function addChange(entry: HistoryEntry, key: HistoryKey, before: Snapshot, after: Snapshot): void {
     const existing = entry.changes.find((c) => c.key === key);
     if (existing) existing.after = after;
     else entry.changes.push({ key, before, after });
@@ -132,7 +138,7 @@ function attachToTop(changes: HistoryChange[]): void {
  * A store's persisted value changed through a user edit. Called by
  * persistManager (managedStorage.setItem / markDirty) — never directly.
  */
-export function recordChange(key: SyncStoreKey): void {
+export function recordChange(key: HistoryKey): void {
     if (!active) return;
     const adapter = adapters.get(key);
     if (!adapter) return;
@@ -152,12 +158,24 @@ export function recordChange(key: SyncStoreKey): void {
     }
     const now = Date.now();
     const top = undoStack[undoStack.length - 1];
-    if (top && !top.sealed && now - top.ts < COALESCE_MS && top.changes.length === 1 && top.changes[0].key === key) {
-        top.changes[0].after = after;
-        top.ts = now;
-        redoStack = [];
-        publish();
-        return;
+    if (top && !top.sealed) {
+        // One user action that writes several stores — a grid setting that lives on
+        // the layout AND in the frontend config — arrives as separate setItem calls
+        // in the same tick. One step, not two.
+        if (now - top.ts < SAME_ACTION_MS) {
+            addChange(top, key, before, after);
+            top.ts = now;
+            redoStack = [];
+            publish();
+            return;
+        }
+        if (now - top.ts < COALESCE_MS && top.changes.length === 1 && top.changes[0].key === key) {
+            top.changes[0].after = after;
+            top.ts = now;
+            redoStack = [];
+            publish();
+            return;
+        }
     }
     push({ id: nextId++, ts: now, changes: [{ key, before, after }] });
 }
@@ -167,7 +185,7 @@ export function recordChange(key: SyncStoreKey): void {
  * vault merge): take the new state as the base for the next entry. Otherwise
  * the next undo would also roll back what came in from outside.
  */
-export function resyncHistoryKey(key: SyncStoreKey): void {
+export function resyncHistoryKey(key: HistoryKey): void {
     if (!active || groupDepth > 0) return;
     const adapter = adapters.get(key);
     if (adapter) lastAccepted.set(key, adapter.getSnapshot());
@@ -296,7 +314,7 @@ export function resetEditHistory(): void {
  * key are dropped — undoing across someone else's save is undefined and would
  * overwrite their work on the next save — and the key is re-based.
  */
-export function invalidateHistoryKey(key: SyncStoreKey): void {
+export function invalidateHistoryKey(key: HistoryKey): void {
     if (!active) return;
     const adapter = adapters.get(key);
     if (adapter) lastAccepted.set(key, adapter.getSnapshot());

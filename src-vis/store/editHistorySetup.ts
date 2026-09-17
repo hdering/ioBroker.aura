@@ -14,13 +14,21 @@ import { useGlobalSettingsStore } from './globalSettingsStore';
 import { usePopupConfigStore } from './popupConfigStore';
 import { useGroupDefsStore } from './groupDefsStore';
 import { useWidgetPresetsStore } from './widgetPresetsStore';
-import { describeLayoutsChange, type BackupChangeDetail, type SyncStoreKey } from './persistManager';
+import {
+    describeLayoutsChange,
+    isDirty,
+    withSuppressedDirty,
+    type BackupChangeDetail,
+    type SyncStoreKey,
+} from './persistManager';
 import {
     registerHistoryStore,
     startEditHistory,
     stopEditHistory,
     undo,
     redo,
+    historyEntries,
+    useEditHistoryStore,
     type HistoryEntry,
     type Snapshot,
 } from './editHistory';
@@ -117,9 +125,71 @@ export function useUndoRedoShortcuts(): void {
     useEffect(() => installUndoRedoShortcuts(), []);
 }
 
+// DEV only: lets tools/tests/admin-undo-sweep.mjs read the history and the dirty
+// state from the real admin (no screenshot harness there). Stripped in production.
+if (import.meta.env.DEV && typeof window !== 'undefined') {
+    (window as unknown as Record<string, unknown>).__auraEditHistory = {
+        counts: () => {
+            const s = useEditHistoryStore.getState();
+            return { undo: s.undoCount, redo: s.redoCount, dirty: isDirty() };
+        },
+        keys: () => historyEntries().undo.map((e) => e.changes.map((c) => c.key)),
+        undo,
+        redo,
+    };
+}
+
+// ── Defaults for keys that were never persisted ──────────────────────────────
+// zustand's persist writes nothing on hydration when the key is absent — it only
+// re-writes after a version migration. So on a fresh install, or for a store the
+// user never touched (datapoint groups, global settings), the FIRST edit reaches
+// managedStorage.setItem with current === null and is taken for the init write:
+// not dirty, no original to revert to. The save bar stays disarmed, "Verwerfen"
+// cannot reach it, and an undo back to the starting value is not recognised as
+// "saved". Writing the defaults once, suppressed, gives every later edit a real
+// predecessor. Keys that ioBroker holds are overwritten by loadConfigFromIoBroker
+// right after, as before.
+interface SeedableStore {
+    setState(partial: object): void;
+}
+const PERSISTED_STORES: Array<[SyncStoreKey, SeedableStore]> = [
+    ['aura-dashboard', useDashboardStore],
+    ['aura-theme', useThemeStore],
+    ['aura-groups', useGroupStore],
+    ['aura-config', useConfigStore],
+    ['aura-global-settings', useGlobalSettingsStore],
+    ['aura-popup-config', usePopupConfigStore],
+];
+const seededDefaults = new Set<string>();
+
+export function seedMissingPersistedKeys(): void {
+    for (const [key, store] of PERSISTED_STORES) {
+        let current: string | null = null;
+        try {
+            current = localStorage.getItem(key);
+        } catch {
+            continue;
+        }
+        if (current !== null) continue;
+        // An empty merge re-runs persist's setItem with the current (default) state.
+        withSuppressedDirty(() => store.setState({}));
+        try {
+            if (localStorage.getItem(key) !== null) seededDefaults.add(key);
+        } catch {
+            /* quota */
+        }
+    }
+}
+
+/** True while the key holds only the default this admin wrote for it — not user data. */
+export function wasSeededDefault(key: string): boolean {
+    return seededDefaults.has(key);
+}
+
 /** Record while the editor is mounted; drop everything when it goes away. */
 export function useEditHistoryLifecycle(): void {
     useEffect(() => {
+        seedMissingPersistedKeys();
         startEditHistory();
         return () => stopEditHistory();
     }, []);

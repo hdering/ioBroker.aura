@@ -333,6 +333,7 @@ export const de = {
     'settings.autobackup.store.aura-group-defs': 'Gruppen-Inhalte',
     'settings.autobackup.store.aura-popup-config': 'Popups',
     'settings.autobackup.store.aura-widget-presets': 'Widget-Vorlagen',
+    'settings.autobackup.store.aura-message-defaults': 'Meldungen: Darstellung',
     'settings.autobackup.change.widget-added': 'Widget „{label}“ hinzugefügt',
     'settings.autobackup.change.widget-added.n': '{count} Widgets hinzugefügt',
     'settings.autobackup.change.widget-removed': 'Widget „{label}“ entfernt',

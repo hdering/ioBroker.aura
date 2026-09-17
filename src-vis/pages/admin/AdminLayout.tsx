@@ -33,6 +33,7 @@ import { useThemeStore } from '../../store/themeStore';
 import { getTheme, ADMIN_DARK_THEME } from '../../themes';
 import {
     isDirty,
+    isPending,
     saveAll,
     revertAll,
     subscribeDirty,
@@ -42,7 +43,7 @@ import {
 } from '../../store/persistManager';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { resetEditHistory } from '../../store/editHistory';
-import { useEditHistoryLifecycle, useUndoRedoShortcuts } from '../../store/editHistorySetup';
+import { useEditHistoryLifecycle, useUndoRedoShortcuts, wasSeededDefault } from '../../store/editHistorySetup';
 import { EditHistoryControls } from './EditHistoryControls';
 import { useGroupStore } from '../../store/groupStore';
 import { useConfigStore } from '../../store/configStore';
@@ -307,6 +308,9 @@ export function AdminLayout() {
                 'aura-config',
                 'aura-global-settings',
             ].some((key) => {
+                // A default this admin wrote itself (seedMissingPersistedKeys) is not
+                // local data — only an edit made on top of it is.
+                if (wasSeededDefault(key) && !isPending(key)) return false;
                 const v = localStorage.getItem(key);
                 return v !== null && v.length > 10;
             });

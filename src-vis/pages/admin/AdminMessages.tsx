@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, CheckCheck, Search, Send, Trash2, X } from 'lucide-react';
 import { getStateDirect, setStateDirect, setStateDirectAsync } from '../../hooks/useIoBroker';
-import { markExternalDirty, registerExternalConfigKey, subscribeDirty } from '../../store/persistManager';
+import {
+    discardPendingKey,
+    markExternalDirty,
+    registerExternalConfigKey,
+    subscribeDirty,
+} from '../../store/persistManager';
+import { registerHistoryStore, resyncHistoryKey } from '../../store/editHistory';
 import { NS } from '../../utils/namespace';
 import {
     MessageBuilder,
@@ -120,6 +126,19 @@ const editBuffer = {
     saved: null as MessageDefaults | null,
 };
 
+// Undo/redo: the buffer is one more store to the editor history. An edit lands
+// through markExternalDirty (which records the step); undo puts the earlier value
+// back here and re-derives the save bar — landing on the saved value leaves the
+// key clean again, exactly like a sync store.
+registerHistoryStore(DEFAULTS_KEY, {
+    getSnapshot: () => ({ value: editBuffer.value }),
+    applySnapshot: (snap) => {
+        editBuffer.value = (snap.value as MessageDefaults | null) ?? editBuffer.saved;
+        if (JSON.stringify(editBuffer.value) === JSON.stringify(editBuffer.saved)) discardPendingKey(DEFAULTS_KEY);
+        else markExternalDirty(DEFAULTS_KEY);
+    },
+});
+
 /** ack=true: an owned configuration value, not a command. */
 function writeDefaults(next: MessageDefaults): Promise<boolean> {
     return setStateDirectAsync(`${NS}.config.messageDefaults`, JSON.stringify(next), true).then(() => true);
@@ -159,6 +178,8 @@ function DefaultsSection() {
             const parsed = parseDefaults(st?.val);
             editBuffer.saved = parsed;
             editBuffer.value = parsed;
+            // Loading is not an edit: the history's base for this key is the loaded value.
+            resyncHistoryKey(DEFAULTS_KEY);
             setLoaded(true);
             bump((n) => n + 1);
         });

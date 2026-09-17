@@ -244,17 +244,17 @@ export function markDirty(key: string): void {
     if (suppressDirtyDepth > 0) {
         // Hydration / bookkeeping, not an edit — but the store did change, so
         // the undo history takes the new state as its base.
-        resyncHistoryKey(key as SyncStoreKey);
+        resyncHistoryKey(key);
         return;
     }
     if (screenshotMode) {
         // Never persisted; the DEV harness may still record to test the history.
-        recordChange(key as SyncStoreKey);
+        recordChange(key);
         return;
     }
     pending.set(key, '\x00'); // sentinel — replaced by externalReader at save time
     setDirtyFlag(key);
-    recordChange(key as SyncStoreKey);
+    recordChange(key);
     notify();
 }
 
@@ -286,6 +286,9 @@ export function registerExternalConfigKey(key: string, handlers: ExternalConfigK
 export function markExternalDirty(key: string): void {
     if (screenshotMode) return;
     pending.set(key, '\x00');
+    // The page owns the value; if it registered a history adapter for the key
+    // (registerHistoryStore), this is where its edit becomes an undo step.
+    recordChange(key);
     notify();
 }
 
@@ -994,7 +997,7 @@ export const managedStorage: StateStorage = {
             }
             // The store may still have changed (a rehydrate writes the string
             // it just read straight back) — keep the history's base current.
-            resyncHistoryKey(name as SyncStoreKey);
+            resyncHistoryKey(name);
             notify();
             return;
         }
@@ -1030,8 +1033,8 @@ export const managedStorage: StateStorage = {
         // with current === null — the history tells the two apart by comparing
         // against the state it accepted last. Screenshot mode never persists, but
         // the DEV harness may record to test the history.
-        if (suppressDirtyDepth === 0) recordChange(name as SyncStoreKey);
-        else resyncHistoryKey(name as SyncStoreKey);
+        if (suppressDirtyDepth === 0) recordChange(name);
+        else resyncHistoryKey(name);
         notify();
     },
     removeItem: (name) => {

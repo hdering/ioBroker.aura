@@ -82,6 +82,9 @@ await build({
                 revertAll,
                 saveToIoBroker,
                 withSuppressedDirty,
+                registerExternalConfigKey,
+                markExternalDirty,
+                discardPendingKey,
             } from './src-vis/store/persistManager.ts';
             export { useDashboardStore } from './src-vis/store/dashboardStore.ts';
             export { useThemeStore } from './src-vis/store/themeStore.ts';
@@ -100,6 +103,8 @@ await build({
     format: 'esm',
     outfile: bundle,
     plugins: [stubPlugin],
+    // Vite replaces this statically; here the DEV-only window hook must compile out.
+    define: { 'import.meta.env.DEV': 'false' },
     logLevel: 'warning',
 });
 const bundleUrl = pathToFileURL(bundle).href;
@@ -256,11 +261,31 @@ const counts = (mod) => {
     mod.history.undo();
     eq('undo the older (sealed) entry separately', titleOf(mod, 'w1'), 'w1');
 
-    // Different stores never merge, however fast.
+    // Different stores merge only within the same action (same tick); a moment
+    // later they are two steps, however close.
     upd('A');
-    tick(10);
+    tick(100);
     mod.useThemeStore.getState().setTheme('light');
-    eq('edits in two stores are two entries', counts(mod), [2, 0]);
+    eq('edits in two stores 100 ms apart are two entries', counts(mod), [2, 0]);
+    tick(2000);
+    mod.useConfigStore.getState().updateFrontend({ headerTitle: 'Zwei' });
+    tick(5);
+    mod.useThemeStore.getState().setTheme('dark');
+    eq('two stores written by one action are ONE entry', counts(mod), [3, 0]);
+    eq(
+        '… holding both keys',
+        mod.history
+            .peekUndo()
+            .changes.map((c) => c.key)
+            .sort(),
+        ['aura-config', 'aura-theme'],
+    );
+    mod.history.undo();
+    eq(
+        'undo of that entry reverts both',
+        [mod.useConfigStore.getState().frontend.headerTitle, mod.useThemeStore.getState().themeId],
+        ['Aura', 'light'],
+    );
 }
 
 // ── 3. Navigation is not an entry and is not undone ──────────────────────────
@@ -450,6 +475,72 @@ const counts = (mod) => {
     eq('undo restore → previous state', titleOf(mod, 'w1'), 'Küche');
     eq('… theme too', mod.useThemeStore.getState().themeId, 'light');
     eq('restore entry label', mod.describeEntry(mod.history.peekRedo())[0].kind, 'widget-renamed');
+}
+
+// ── 8b. Adapter-owned ("external") keys join the history ─────────────────────
+// The message presentation defaults live in a page-level buffer, not a store;
+// the page registers a history adapter and reports edits via markExternalDirty.
+// Same contract as a sync store: one step per edit, undo back to the saved value
+// leaves the key clean, revertAll covers it and is itself one undoable step.
+{
+    const { mod } = await boot({ 'aura-dashboard': dashboardPayload([widget('w1')]) });
+    const KEY = 'aura-test-external';
+    const buffer = { value: { a: 1 }, saved: { a: 1 } };
+    let saves = 0;
+    mod.registerExternalConfigKey(KEY, {
+        save: async () => {
+            saves++;
+            buffer.saved = buffer.value;
+            return true;
+        },
+        revert: () => {
+            buffer.value = buffer.saved;
+        },
+    });
+    mod.history.registerHistoryStore(KEY, {
+        getSnapshot: () => ({ value: buffer.value }),
+        applySnapshot: (snap) => {
+            buffer.value = snap.value;
+            if (JSON.stringify(buffer.value) === JSON.stringify(buffer.saved)) mod.discardPendingKey(KEY);
+            else mod.markExternalDirty(KEY);
+        },
+    });
+    mod.history.resetEditHistory();
+    const edit = (v) => {
+        buffer.value = v;
+        mod.markExternalDirty(KEY);
+    };
+
+    edit({ a: 2 });
+    eq('external edit → one entry', counts(mod), [1, 0]);
+    check('external edit → dirty', mod.isDirty());
+    eq(
+        '… the entry names the key',
+        mod.history.peekUndo().changes.map((c) => c.key),
+        [KEY],
+    );
+    eq('… label falls back to the store name', mod.describeEntry(mod.history.peekUndo()), [
+        { store: KEY, kind: 'store-changed', label: KEY },
+    ]);
+
+    mod.history.undo();
+    eq('undo puts the buffer back', buffer.value, { a: 1 });
+    check('undo back to the saved value leaves the key clean', !mod.isDirty(), 'still dirty');
+    mod.history.redo();
+    eq('redo re-applies', buffer.value, { a: 2 });
+    check('redo makes it dirty again', mod.isDirty());
+
+    tick(2000);
+    edit({ a: 3 });
+    eq('a later edit is a second entry', counts(mod)[0], 2);
+    mod.revertAll([]);
+    eq('revertAll restores the saved value', buffer.value, { a: 1 });
+    check('revertAll leaves it clean', !mod.isDirty());
+    eq('revertAll is one entry', counts(mod)[0], 3);
+    mod.history.undo();
+    eq('undo revertAll brings the edit back', buffer.value, { a: 3 });
+    check('… dirty again', mod.isDirty());
+    eq('save handler not invoked by undo/redo', saves, 0);
 }
 
 // ── 9. Shortcut target rule (pure predicate) ─────────────────────────────────

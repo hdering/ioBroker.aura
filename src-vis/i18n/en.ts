@@ -332,6 +332,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.autobackup.store.aura-group-defs': 'Group contents',
     'settings.autobackup.store.aura-popup-config': 'Popups',
     'settings.autobackup.store.aura-widget-presets': 'Widget presets',
+    'settings.autobackup.store.aura-message-defaults': 'Messages: presentation',
     'settings.autobackup.change.widget-added': 'Widget “{label}” added',
     'settings.autobackup.change.widget-added.n': '{count} widgets added',
     'settings.autobackup.change.widget-removed': 'Widget “{label}” removed',
