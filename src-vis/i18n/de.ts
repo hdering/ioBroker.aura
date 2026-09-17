@@ -371,6 +371,7 @@ export const de = {
     'settings.autobackup.change.section-removed': 'Bereich „{label}“ entfernt',
     'settings.autobackup.change.section-removed.n': '{count} Bereiche entfernt',
     'settings.autobackup.change.restore-safety': 'Stand vor der Wiederherstellung',
+    'settings.autobackup.change.external-write': 'Fremder Schreibzugriff von {label}',
     'settings.autobackup.change.section-renamed': 'Bereich „{label}“ umbenannt',
     'settings.autobackup.change.section-renamed.n': '{count} Bereiche umbenannt',
 

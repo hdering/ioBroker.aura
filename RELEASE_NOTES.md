@@ -12,3 +12,5 @@ Editor - history menu in the save bar lists every step of the session by name an
 Editor - dropping a widget no longer re-renders every other widget on the tab, so releasing it no longer stutters on busy tabs
 Messages - the presentation defaults take part in undo/redo; undoing them back to the saved values disarms the save bar again
 Settings - the first change to a setting that was never saved before (fresh installation, unused datapoint groups) now arms the save bar and can be discarded like any other
+Editor - the undo history survives a reload of the admin; steps come back as long as nothing else changed the configuration in between
+Adapter - a config datapoint (aura.0.config.*) written by a script or another tool without ack is backed up first; the previous value appears in the backup list as an external write

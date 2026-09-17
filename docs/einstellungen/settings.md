@@ -8,13 +8,13 @@ Allgemeine Einstellungen: Frontend, Grid, Sicherheit und Backup.
 | --- | --- |
 | Sprache | Deutsch / Englisch |
 | Editor | Automatisch speichern + Intervall (`Strg+S`, auf Apple-Geräten `⌘+S`, speichert sofort) |
-| Rückgängig / Wiederholen | `Strg+Z` / `Strg+Y` (Apple: `⌘+Z` / `⌘+Y`) oder die Pfeile in der Speicherleiste; jeder Schritt einzeln, auch nach dem Speichern, bis die Seite neu geladen wird. **Verwerfen** setzt alles Ungespeicherte zurück und ist selbst rückgängig. In Textfeldern gilt das Rückgängig des Browsers |
+| Rückgängig / Wiederholen | `Strg+Z` / `Strg+Y` (Apple: `⌘+Z` / `⌘+Y`) oder die Pfeile in der Speicherleiste; jeder Schritt einzeln, auch nach dem Speichern und nach einem Neuladen der Seite (solange niemand anderes die Konfiguration inzwischen geändert hat; Wiederholen geht beim Neuladen verloren). **Verwerfen** setzt alles Ungespeicherte zurück und ist selbst rückgängig. In Textfeldern gilt das Rückgängig des Browsers |
 | Verlauf (Uhr-Symbol in der Speicherleiste) | Alle Schritte dieser Sitzung mit Beschreibung („Widget „Küche“ verschoben“), Klick springt zu einem Stand. Darunter die gespeicherten Stände (Auto-Backups): Wiederherstellen legt vorher eine Sicherung des aktuellen Stands ab und ist ein einzelner Rückgängig-Schritt |
 | Admin-PIN | Passwort für den Adminbereich (min. 4 Zeichen). Wird serverseitig im Adapter geprüft (scrypt); nach dem Update auf diese Version einmalig neu setzen. Die Anmeldung gilt 8 Stunden — danach führt der Editor zurück zur Anmeldung. PIN vergessen: im Instanz-Datenverzeichnis in `security.json` den Eintrag `admin` löschen und die Instanz neu starten (geschützte Bereiche bleiben erhalten) |
 | Super-Admin-Schlüssel | Schützt Standard-Views vor Löschen; aktiviert über `/admin/popups?key=…` |
 | Admin-Basis-URL | Relative Bildpfade in JSON-Tabellen-Widgets auflösen |
 | Verbundene Geräte | Liste der Clients; umbenennen, feste ID vergeben, entfernen |
-| Backup & Restore | Manuelles Backup laden/importieren; Auto-Backups (Anzahl, Wiederherstellen) |
+| Backup & Restore | Manuelles Backup laden/importieren; Auto-Backups (Anzahl, Wiederherstellen). Schreibt ein Skript oder ein anderes Werkzeug einen `aura.0.config.*`-Datenpunkt ohne `ack`, sichert der Adapter den vorherigen Stand automatisch in dieselbe Liste („Fremder Schreibzugriff von …“, höchstens alle 30 s je Datenpunkt) |
 | Alles zurücksetzen | Löscht Dashboards, Widgets, Themes und Einstellungen — nicht rückgängig |
 
 ## Client-ID

@@ -1,17 +1,13 @@
-# Kontext
+# Session Context
 
-## Current Task
+**Current Task**: Undo/Redo im Admin-Editor nach Plan `C:\projects\plan-undo-redo-editor.md` — Stufe 1+2 fertig und gepusht (bis c2f41b99), jetzt Stufe 3 (Verlauf überlebt F5 via IndexedDB) und Stufe 4 (serverseitige Sicherung fremder config.*-Writes im Adapter).
 
-Issue #429 (Meldungs-System) auf Branch `feat/messages-429` vollständig umgesetzt und getestet — Adapter, Toast-Ebene, Widget, Admin-Seite, Header-Glocke, Bedingungs-Effekt, Doku. Noch nicht gepusht/gemerged.
+**Key Decisions**:
+- Verlauf = Store-Snapshots über `managedStorage.setItem` (`editHistory.ts`), kein Command-Pattern; externe Keys per `registerHistoryStore` (AdminMessages).
+- `WidgetFrame` ist `React.memo` (Gruppen/Panels ausgenommen); `seedMissingPersistedKeys` beim Admin-Mount schließt die „erster Edit ist Init“-Lücke.
+- Stufe 4 nur als Safety-Net für ack=false-Writes (fremde Skripte), kein Ersatz der Client-Backups.
 
-## Key Decisions
-
-- Der Adapter normalisiert jeden Payload und besitzt das Archiv (`messages.*`); das Frontend konsumiert nur fertige Einträge — kein zweites Regelwerk.
-- Präsentations-Standardwerte in `config.messageDefaults` (DP), von Adapter **und** Frontend gelesen, in Admin → Meldungen editiert. Archivgröße/Aufbewahrung bleiben Instanz-Einstellungen.
-- Seen-Tracking ist `id → ts`: gleiche id mit neuerem Zeitstempel ist ein Update (wiederverwendbare ID), gleicher Zeitstempel ein Replay nach Reload.
-
-## Next Steps
-
-- Auf der Testinstanz (192.168.188.168) manuell prüfen, sobald der Adapter dort läuft: Schreiben auf `aura.0.messages.send`, Layout-DP nach Umbenennung, `unreadCount` über mehrere Clients.
-- Doku-Screenshots der Frontend-Teile sind dunkel (Theme der Dev-Proxy-Instanz) — bei Gelegenheit hell nachziehen.
-- `npm run test:messages` (Adapter) und `npm run test:messages-ui` (Playwright gegen `npm run dev`).
+**Next Steps**:
+- Stufe 3: `editHistoryPersist.ts` (Referenz-Diff/Patch, IDB, Restore nach Boot mit Validierung gegen aktuellen Stand), Tests in `tools/tests/edit-history.mjs` + Reload-UI-Test.
+- Stufe 4: `main.js` onStateChange `config.*` mit `!state.ack` → vorherigen Wert als `backup-<ts>.json.gz` + Sidecar in `aura.0.backups`.
+- Danach `npm run test:admin-undo-sweep` und `test:group-fit` erneut; RELEASE_NOTES ergänzen; commit + build + push.

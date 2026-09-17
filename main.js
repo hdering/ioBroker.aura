@@ -23,6 +23,7 @@ const {
 } = require('./lib/security/dashboardVault');
 const { createSecurityApi } = require('./lib/security/apiHandler');
 const { createIconCache } = require('./lib/iconCache');
+const { createConfigGuard, CONFIG_KEYS } = require('./lib/configGuard');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -835,6 +836,19 @@ class Aura extends utils.Adapter {
             // Reset the selector so the same entry can be picked again.
             await this.setForeignStateAsync(id, { val: '', ack: true });
             return;
+        }
+
+        // Any config state: remember the value; a write without ack saves the
+        // previous one first (see onReady). Falls through to the handlers below.
+        if (id.startsWith(`${this.namespace}.config.`) && state && this._configGuard) {
+            const saved = await this._configGuard
+                .onChange(id, state)
+                .catch((e) => (this.log.warn(`[config-guard] ${e.message}`), null));
+            if (saved) {
+                this.log.info(
+                    `aura: ${id} was written by ${state.from} without ack — previous value kept as ${this.namespace}.backups/${saved}`,
+                );
+            }
         }
 
         // Dashboard config changed → rebuild the navigate selector dropdowns and
@@ -3242,6 +3256,15 @@ class Aura extends utils.Adapter {
         // Renames: mirror clients.<id>.info.name onto the client channel (#624).
         this.subscribeStates('clients.*.info.name');
         this.subscribeStates('config.dashboard');
+        // Foreign writes to the config states — a script or another tool writing
+        // aura.0.config.* without ack — keep their previous value in the backup
+        // ring (lib/configGuard). The frontend and the MCP server back up their own
+        // acknowledged writes, so those pass through untouched.
+        this._configGuard = createConfigGuard(this);
+        await this._configGuard.prime();
+        for (const short of Object.keys(CONFIG_KEYS)) {
+            if (short !== 'config.dashboard') this.subscribeStates(short);
+        }
         // Also completes the object tree of every known client (navigate.*, popup.*,
         // messages.*) and syncs the per-layout message datapoints.
         await this._syncNavigateTargets();

@@ -370,6 +370,7 @@ export const en: Record<TranslationKey, string> = {
     'settings.autobackup.change.section-removed': 'Section “{label}” removed',
     'settings.autobackup.change.section-removed.n': '{count} sections removed',
     'settings.autobackup.change.restore-safety': 'State before the restore',
+    'settings.autobackup.change.external-write': 'External write by {label}',
     'settings.autobackup.change.section-renamed': 'Section “{label}” renamed',
     'settings.autobackup.change.section-renamed.n': '{count} sections renamed',
 
