@@ -12,12 +12,8 @@ import {
     isScreenshotMode,
     type SyncStoreKey,
 } from '../store/persistManager';
-import { applyRemote, rehydrateAll } from '../utils/configLoader';
+import { applyRemote, isRemoteRawSeen, rehydrateAll, rememberRemoteRaw } from '../utils/configLoader';
 import { invalidateHistoryKey } from '../store/editHistory';
-
-// Read-only frontend: a key an admin in this browser is editing (dirty flag) is
-// hydrated in memory only, so "already applied" cannot be read off localStorage.
-const lastRemoteApplied = new Map<string, string>();
 
 /** True when this key's storage copy belongs to an admin with unsaved edits. */
 function adminOwnsStorage(key: SyncStoreKey, readOnly: boolean): boolean {
@@ -25,7 +21,7 @@ function adminOwnsStorage(key: SyncStoreKey, readOnly: boolean): boolean {
 }
 
 /** Apply one state value received from ioBroker to localStorage + stores. */
-function applyOneState(key: SyncStoreKey, raw: string, readOnly: boolean): boolean {
+export function applyOneState(key: SyncStoreKey, raw: string, readOnly: boolean): boolean {
     if (!raw || raw.length < 3) return false;
     // Screenshot harness owns the config — never let inbound ioBroker state
     // (subscription or poll) overwrite the seeded demo layout.
@@ -73,9 +69,12 @@ function applyOneState(key: SyncStoreKey, raw: string, readOnly: boolean): boole
         }
     }
 
-    if (adminOwnsStorage(key, readOnly)) {
-        if (lastRemoteApplied.get(key) === remoteStr) return false;
-        lastRemoteApplied.set(key, remoteStr);
+    if (readOnly) {
+        // The frontend: "already applied" is what this tab took over last, never
+        // what storage holds — in the same browser that is the admin's copy, and
+        // it equals the incoming value exactly when the admin has just saved.
+        if (isRemoteRawSeen(key, raw)) return false;
+        rememberRemoteRaw(key, raw);
         applyRemote(key, remoteStr, true);
         return true;
     }

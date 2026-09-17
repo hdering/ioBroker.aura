@@ -53,6 +53,7 @@
     "test:edit-history-reload": "node tools/tests/edit-history-reload.mjs",
     "test:config-guard": "node tools/tests/config-guard.mjs",
     "test:frontend-readonly": "node tools/tests/frontend-readonly-sync.mjs",
+    "test:frontend-same-browser-ui": "node tools/tests/frontend-same-browser-ui.mjs",
     "test:idle-return": "node test/idle-return.test.js && node tools/tests/idle-return.mjs",
     "test:idle-return-ui": "node tools/tests/idle-return-ui.mjs",
     "test:client-id": "node tools/tests/client-id-stability.mjs",

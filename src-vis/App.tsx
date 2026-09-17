@@ -27,8 +27,7 @@ import { useNavigationStore } from './store/navigationStore';
 import { useThemeStore } from './store/themeStore';
 import { bumpThemeEpoch } from './store/themeEpoch';
 import { getTheme } from './themes';
-import { useGroupStore } from './store/groupStore';
-import { loadConfigFromIoBroker, applyRaw } from './utils/configLoader';
+import { loadConfigFromIoBroker } from './utils/configLoader';
 import { Dashboard } from './components/layout/Dashboard';
 import { RenderProbe } from './components/layout/RenderProbe';
 import { FocusedWidgetContext } from './contexts/FocusedWidgetContext';
@@ -77,22 +76,6 @@ import {
     type EscapeTarget,
 } from './utils/pinLock';
 import { pinUnlock } from './utils/pinApi';
-
-const STORE_REHYDRATORS: Record<string, () => void> = {
-    'aura-dashboard': () => useDashboardStore.persist.rehydrate(),
-    'aura-theme': () => useThemeStore.persist.rehydrate(),
-    'aura-groups': () => useGroupStore.persist.rehydrate(),
-    'aura-config': () => useConfigStore.persist.rehydrate(),
-    'aura-group-defs': () => {
-        const v = localStorage.getItem('aura-group-defs');
-        if (v) applyRaw('aura-group-defs', v);
-    },
-    'aura-popup-config': () => usePopupConfigStore.persist.rehydrate(),
-    'aura-widget-presets': () => {
-        const v = localStorage.getItem('aura-widget-presets');
-        if (v) applyRaw('aura-widget-presets', v);
-    },
-};
 
 /** The datapoint that forces a brightness on every device. */
 const THEME_MODE_DP = `${NS}.config.themeMode.frontend`;
@@ -631,14 +614,11 @@ export default function App() {
         return () => clearTimeout(tid);
     }, [focusWidgetId, setFocusWidget]);
 
-    // Sync cross-tab localStorage changes (admin panel → frontend)
-    useEffect(() => {
-        const handler = (e: StorageEvent) => {
-            if (e.key && STORE_REHYDRATORS[e.key]) STORE_REHYDRATORS[e.key]();
-        };
-        window.addEventListener('storage', handler);
-        return () => window.removeEventListener('storage', handler);
-    }, []);
+    // Deliberately NO cross-tab localStorage sync here. An admin in another tab
+    // of this browser writes its UNSAVED edits to the very same keys, so
+    // rehydrating on `storage` events showed every drag in the frontend before
+    // Speichern. Saved changes arrive over the socket (useConfigSync:
+    // subscription + 30 s poll) — for this browser like for every other device.
 
     // Apply effective custom CSS (per-section/layout overrides global when set)
     useCustomCss(layout?.id, section?.id, false);

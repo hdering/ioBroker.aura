@@ -27,6 +27,21 @@ import { NS } from './namespace';
 
 type StoreKey = SyncStoreKey | 'aura-global-settings';
 
+// What the read-only frontend last took over from ioBroker, byte for byte as
+// delivered. In the same browser as an admin, storage is no yardstick for
+// "already shown": the admin writes its unsaved copy there, so storage equals the
+// incoming value the moment the admin saves — while this tab still shows the
+// older saved state it hydrated in memory. useConfigSync compares against this.
+const remoteRawSeen = new Map<string, string>();
+
+export function rememberRemoteRaw(key: string, raw: string): void {
+    remoteRawSeen.set(key, raw);
+}
+
+export function isRemoteRawSeen(key: string, raw: string): boolean {
+    return remoteRawSeen.get(key) === raw;
+}
+
 /** Apply a raw JSON string for a given key to localStorage + store.
  *  Also clears the _dirty flag — values pulled from ioBroker are by definition
  *  synced. */
@@ -136,6 +151,7 @@ export async function loadConfigFromIoBroker(
                 if (!val) continue;
                 const raw = typeof val === 'string' ? val : JSON.stringify(val);
                 if (!raw || raw.length < 3) continue;
+                if (ignoreDirty) rememberRemoteRaw(key, raw);
                 applyRemote(key, raw, ignoreDirty);
                 // Write to new separate state so next load uses new format
                 const stateId =
@@ -161,6 +177,7 @@ export async function loadConfigFromIoBroker(
             if (!state?.val) continue;
             const raw = String(state.val);
             if (!raw || raw.length < 3) continue;
+            if (ignoreDirty) rememberRemoteRaw(key, raw);
             const current =
                 key === 'aura-group-defs' || key === 'aura-widget-presets' ? null : localStorage.getItem(key);
             if (current === raw) continue;

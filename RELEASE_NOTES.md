@@ -17,6 +17,6 @@ Editor - unsaved changes are no longer saved automatically when the admin is rel
 Adapter - a config datapoint (aura.0.config.*) written by a script or another tool without ack is backed up first; the previous value appears in the backup list as an external write
 Popups - a fresh installation no longer receives every built-in popup view and type assignment on the second load, a discard or a restore; only the datapoint view is seeded until a popup is actually configured
 Editor - toggling a timer or an auto-list picking up new datapoints inside the editor no longer saves the whole dashboard on its own; both are unsaved edits under the save bar like everything else
-Frontend - opened in the same browser as an admin with unsaved changes, the frontend now shows the saved configuration without overwriting or discarding those changes
+Frontend - opened in the same browser as an admin, the frontend no longer mirrors the admin's unsaved edits live (every widget drag used to show up there at once); it shows the saved configuration, leaves the admin's copy and flags alone, and takes a save over the moment it arrives
 Editor - the preview now renders with the font scale of the layout being edited, so the admin shows what the frontend shows (#668)
 Value widget - in the "minimal" layout value and title shrink to stay inside the card instead of the title being cut off at the bottom edge (#668)

@@ -12,6 +12,9 @@
 //   4. In read-only mode a store write for a dirty key stays in RAM (pending) and
 //      never touches storage or the flag; discardPendingRam leaves flags alone.
 //   5. Without read-only mode (the admin) nothing changes: applyRaw overwrites.
+//   6. When the admin saves, storage already equals the incoming value (the admin
+//      wrote its copy there while editing) — the frontend must still apply it,
+//      because it shows the older saved state it hydrated in memory.
 import { build } from 'esbuild';
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
@@ -34,12 +37,14 @@ const stubPlugin = {
             ),
             loader: 'ts',
         }));
-        b.onResolve({ filter: /hooks\/useIoBroker$/ }, () => ({ path: 'stub-iobroker', namespace: 'stub' }));
+        // '../hooks/useIoBroker' from utils/, './useIoBroker' from hooks/useConfigSync
+        b.onResolve({ filter: /(^|\/)useIoBroker$/ }, () => ({ path: 'stub-iobroker', namespace: 'stub' }));
         b.onResolve({ filter: /utils\/namespace$/ }, () => ({ path: 'stub-namespace', namespace: 'stub' }));
         b.onLoad({ filter: /^stub-iobroker$/, namespace: 'stub' }, () => ({
             contents: `
                 export const setStateDirectAsync = async () => {};
                 export const setStateDirect = () => {};
+                export const subscribeStateDirect = () => () => {};
                 export const getStateDirect = async (id) => {
                     const v = globalThis.__remote.get(id);
                     return v === undefined ? null : { val: v, ack: true };
@@ -67,6 +72,7 @@ await build({
     stdin: {
         contents: `
             export { applyRemote, applyRaw, rehydrateOne, loadConfigFromIoBroker } from './src-vis/utils/configLoader.ts';
+            export { applyOneState } from './src-vis/hooks/useConfigSync.ts';
             export {
                 hasDirtyFlag,
                 isDirty,
@@ -250,6 +256,34 @@ const SAVED = dashboard('Gespeichert');
     eq('applyRaw overwrites storage as before', map.get('aura-dashboard'), SAVED);
     mod.applyRemote('aura-dashboard', dashboard('Neu'), false);
     eq('applyRemote without read-only overwrites too', map.get('aura-dashboard'), dashboard('Neu'));
+}
+
+// ── 6: the admin saves — storage already holds the value ─────────────────────
+{
+    remote.clear();
+    remote.set('aura.0.config.dashboard', SAVED);
+    const { mod, map } = await boot({ 'aura-dashboard': ADMIN_COPY, '_aura_dirty:aura-dashboard': '1' });
+    mod.setFrontendReadOnly(true);
+    await mod.loadConfigFromIoBroker(true, { ignoreDirty: true });
+    eq('boot: store shows the saved dashboard', titleOf(mod), 'Gespeichert');
+    check(
+        'the poll delivering the same saved value again is a no-op',
+        !mod.applyOneState('aura-dashboard', SAVED, true),
+    );
+    // A save that arrives while the flag is still set (socket beats the flag removal):
+    const SAVED2 = dashboard('Gespeichert 2');
+    check('a newer save with the flag still set is applied', mod.applyOneState('aura-dashboard', SAVED2, true));
+    eq('… in memory', titleOf(mod), 'Gespeichert 2');
+    eq("… storage still the admin's copy", map.get('aura-dashboard'), ADMIN_COPY);
+    // The admin saves ITS copy: flag cleared, storage byte-identical to the incoming value.
+    map.delete('_aura_dirty:aura-dashboard');
+    check(
+        "the admin's saved copy is applied although storage already equals it",
+        mod.applyOneState('aura-dashboard', ADMIN_COPY, true),
+    );
+    mod.rehydrateOne('aura-dashboard'); // useConfigSync rehydrates after a non-admin-owned apply
+    eq('… and the store shows it', titleOf(mod), 'Entwurf');
+    check('… its echo is deduplicated', !mod.applyOneState('aura-dashboard', ADMIN_COPY, true));
 }
 
 rmSync(bundle, { force: true });
