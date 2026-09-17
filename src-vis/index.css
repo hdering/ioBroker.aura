@@ -699,6 +699,31 @@ input[type='range']::-moz-range-thumb {
     }
 }
 
+/* iFrame zoom controls (issue #667). Same rule as the fullscreen button above:
+   permanently visible where there is no hover — a tablet is exactly the device
+   that needs to zoom — and only over the widget where a real pointer exists. */
+.aura-zoom-ctl {
+    opacity: 0.75;
+    transition: opacity 0.12s ease;
+}
+.aura-zoom-ctl:hover {
+    opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+    .aura-zoom-ctl {
+        opacity: 0;
+        pointer-events: none;
+    }
+    .aura-widget:hover .aura-zoom-ctl,
+    .aura-widget:focus-within .aura-zoom-ctl {
+        opacity: 0.75;
+        pointer-events: auto;
+    }
+    .aura-widget:hover .aura-zoom-ctl:hover {
+        opacity: 1;
+    }
+}
+
 /* ── Message HTML (issue #429) ────────────────────────────────────
    Title and body of a message render sanitised HTML, so a notice can carry a
    table, a list or some emphasis. Tailwind's preflight strips the browser

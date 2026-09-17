@@ -65,6 +65,7 @@ import { FillLimitsSection } from '../config/FillLimitsEditor';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { IFRAME_COLOR_SCHEME_MODES, resolveIframeColorSchemeMode } from '../../utils/iframeColorScheme';
+import { IFRAME_ZOOM_STOPS, clampIframeZoom } from '../../utils/iframeZoom';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
 import { baseDpId } from '../../utils/dpRef';
 import { defaultLayoutFor, getLayoutOptions, isUnknownLayout } from '../../utils/widgetLayouts';
@@ -12375,6 +12376,78 @@ function WidgetFrameInner({
                                                 weiter, Chrome folgt immer dem Gerät. {'„Neutral“'} lässt die
                                                 Widget-Karte durchscheinen, zeigt die Seite aber hell.
                                             </p>
+                                        </div>
+                                        {(() => {
+                                            // A level set through the MCP need not sit on the ladder —
+                                            // list it alongside instead of silently snapping it away.
+                                            const zoom = clampIframeZoom((o.iframeZoom as number) ?? 100);
+                                            const stops = (IFRAME_ZOOM_STOPS as readonly number[]).includes(zoom)
+                                                ? [...IFRAME_ZOOM_STOPS]
+                                                : [...IFRAME_ZOOM_STOPS, zoom].sort((a, b) => a - b);
+                                            return (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Zoom
+                                                    </label>
+                                                    <select
+                                                        value={zoom}
+                                                        onChange={(e) => set({ iframeZoom: parseInt(e.target.value) })}
+                                                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                                                        style={iSty}
+                                                    >
+                                                        {stops.map((z) => (
+                                                            <option key={z} value={z}>
+                                                                {z} %{z === 100 ? ' (Standard)' : ''}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    <p
+                                                        className="text-[10px] mt-1 leading-tight"
+                                                        style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                    >
+                                                        Gilt auf allen Geräten. Unter 100 % baut die Seite sich für eine
+                                                        breitere Fläche auf und passt dann ins Widget.
+                                                    </p>
+                                                </div>
+                                            );
+                                        })()}
+                                        <div className="flex items-start justify-between gap-2">
+                                            <div className="min-w-0">
+                                                <label
+                                                    className="text-[11px] block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Zoom am Gerät einstellbar
+                                                </label>
+                                                <p
+                                                    className="text-[10px]"
+                                                    style={{ color: 'var(--text-secondary)', opacity: 0.6 }}
+                                                >
+                                                    Tasten am Widget; die Stufe gilt nur auf diesem Gerät. Bei {'„'}Nur
+                                                    Klick-Aktion{'“'} zusätzlich Zwei-Finger-Zoom — ein bedienbarer
+                                                    Inhalt behält die Berührung für sich.
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() =>
+                                                    set({ iframeZoomControls: !(o.iframeZoomControls ?? false) })
+                                                }
+                                                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                                                style={{
+                                                    background:
+                                                        (o.iframeZoomControls ?? false)
+                                                            ? 'var(--accent)'
+                                                            : 'var(--app-border)',
+                                                }}
+                                            >
+                                                <span
+                                                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                    style={{ left: (o.iframeZoomControls ?? false) ? '18px' : '2px' }}
+                                                />
+                                            </button>
                                         </div>
                                         {!(o.keepAlive ?? false) && (
                                             <div>

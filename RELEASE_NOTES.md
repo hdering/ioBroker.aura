@@ -15,3 +15,4 @@ Popups - a fresh installation no longer receives every built-in popup view and t
 Frontend - opened in the same browser as an admin, the frontend no longer mirrors the admin's unsaved edits live (every widget drag used to show up there at once); it shows the saved configuration, leaves the admin's copy and flags alone, and takes a save over the moment it arrives
 Value widget - in the "minimal" layout value and title shrink to stay inside the card instead of the title being cut off at the bottom edge (#668)
 Value widget - a double click in the HTML template field selects the clicked word again instead of the whole template (#670)
+iFrame widget - the embedded page can be zoomed: one level for all devices in the editor, plus optional controls on the widget whose level is remembered for that device alone; where the content is locked, two fingers zoom it directly (#667)

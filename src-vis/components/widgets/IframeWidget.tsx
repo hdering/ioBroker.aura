@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { MonitorDot, Maximize2, AlertTriangle, ExternalLink, X } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { MonitorDot, Maximize2, AlertTriangle, ExternalLink, X, Minus, Plus } from 'lucide-react';
 import { useIframeStore } from '../../store/iframeStore';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import type { WidgetProps } from '../../types';
@@ -7,7 +7,16 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { resolveSandboxAttr, type SandboxPreset } from '../../utils/iframeSandbox';
 import { iframeScrollingAttr, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { useIframeColorScheme } from '../../hooks/useIframeColorScheme';
+import { useIframePinchZoom } from '../../hooks/useIframePinchZoom';
 import { useWakeReload } from '../../hooks/useWakeReload';
+import {
+    clampIframeZoom,
+    iframeZoomStyle,
+    readDeviceZoom,
+    resolveIframeZoom,
+    stepIframeZoom,
+    writeDeviceZoom,
+} from '../../utils/iframeZoom';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -31,6 +40,8 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const sandboxPreset = opts.sandboxPreset as SandboxPreset | undefined;
     const sandboxCustom = opts.sandboxCustom as string | undefined;
     const fullscreenButton = (opts.fullscreenButton as boolean) ?? false;
+    const baseZoom = clampIframeZoom((opts.iframeZoom as number) ?? 100);
+    const zoomControls = (opts.iframeZoomControls as boolean) ?? false;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
     const iconSize = (opts.iconSize as number) || 20;
@@ -38,6 +49,10 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, MonitorDot);
 
     const [tick, setTick] = useState(0);
+    // Per-device override (issue #667). Seeded once: only this widget ever writes
+    // it. Read even with the controls off, so switching them back on in the editor
+    // shows the level this device had rather than an empty one.
+    const [deviceZoom, setDeviceZoom] = useState<number | null>(() => readDeviceZoom(config.id));
     const [loaded, setLoaded] = useState(false);
     const [timedOut, setTimedOut] = useState(false);
     const [hintDismissed, setHintDismissed] = useState(false);
@@ -51,6 +66,26 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     const wakeNonce = useWakeReload(reloadOnWake && !!url);
     // Brightness handed down to the embedded page (#663) — no-op in Blink.
     const colorSchemeStyle = useIframeColorScheme(frameBoxRef, opts);
+
+    const zoom = resolveIframeZoom(baseZoom, deviceZoom, zoomControls);
+    const zoomRef = useRef(zoom);
+    zoomRef.current = zoom;
+    const applyZoom = useCallback(
+        (next: number | null) => {
+            setDeviceZoom(next);
+            writeDeviceZoom(config.id, next);
+        },
+        [config.id],
+    );
+    // Pinch only reaches the host where the blocker swallows the touches; the
+    // buttons stay the way in for an operable page (see useIframePinchZoom).
+    useIframePinchZoom(
+        frameBoxRef,
+        zoomControls && interactionMode === 'action',
+        () => zoomRef.current,
+        setDeviceZoom,
+        applyZoom,
+    );
 
     // Reset load state whenever URL or tick changes
     useEffect(() => {
@@ -169,7 +204,12 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                         setLoaded(true);
                         if (timeoutRef.current) clearTimeout(timeoutRef.current);
                     }}
-                    style={{ width: '100%', height: '100%', border: 'none', display: 'block', ...colorSchemeStyle }}
+                    style={{
+                        border: 'none',
+                        display: 'block',
+                        ...iframeZoomStyle(zoom),
+                        ...colorSchemeStyle,
+                    }}
                 />
                 {/* Interaction blocker — also the click path for the frame's action */}
                 {interactionMode === 'action' && (
@@ -194,6 +234,36 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                     >
                         <Maximize2 size={13} />
                     </button>
+                )}
+                {/* Zoom controls (#667) – the level they set lives on this device only */}
+                {zoomControls && (
+                    <div
+                        className="aura-zoom-ctl nodrag absolute bottom-1.5 right-1.5 z-[2] flex items-center rounded-md overflow-hidden"
+                        style={{ background: 'rgba(0,0,0,0.55)', color: '#fff', backdropFilter: 'blur(4px)' }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            onClick={() => applyZoom(stepIframeZoom(zoom, -1))}
+                            className="w-7 h-7 flex items-center justify-center hover:bg-white/15"
+                            title="Verkleinern"
+                        >
+                            <Minus size={13} />
+                        </button>
+                        <button
+                            onClick={() => applyZoom(null)}
+                            className="px-1.5 h-7 text-[10px] tabular-nums hover:bg-white/15"
+                            title="Auf die konfigurierte Stufe zurücksetzen"
+                        >
+                            {zoom}%
+                        </button>
+                        <button
+                            onClick={() => applyZoom(stepIframeZoom(zoom, 1))}
+                            className="w-7 h-7 flex items-center justify-center hover:bg-white/15"
+                            title="Vergrößern"
+                        >
+                            <Plus size={13} />
+                        </button>
+                    </div>
                 )}
                 {/* Load-failure hint – shown after timeout if iframe never fired onLoad */}
                 {timedOut && !loaded && !hintDismissed && (

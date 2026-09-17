@@ -214,6 +214,18 @@ export const WIDGET_OPTION_NOTES = {
         keepAlive: { description: 'Seite im Hintergrund geladen lassen statt beim Tabwechsel zu verwerfen.' },
         sandbox: { description: 'Sandbox einschalten.' },
         fullscreenButton: { description: 'Taste für Vollbild anzeigen.' },
+        iframeZoom: {
+            description:
+                'Zoomstufe der eingebetteten Seite in Prozent (25-400, Standard 100). Gilt auf allen Geräten. ' +
+                'Unter 100 baut die Seite sich für eine breitere Fläche auf und wird verkleinert ins Widget ' +
+                'gezeichnet - der Weg, eine Seite mit eigenen Umbruchpunkten in eine kleine Kachel zu bekommen.',
+        },
+        iframeZoomControls: {
+            description:
+                'Zoom-Tasten am Widget einblenden. Die dort eingestellte Stufe gilt nur auf dem Gerät, an dem ' +
+                'sie gesetzt wurde, und schlägt iframeZoom dort. Bei interactionMode "action" kommt Zwei-Finger-' +
+                'Zoom dazu; ein bedienbarer Inhalt behält die Berührung für sich, dort bleiben die Tasten der Weg.',
+        },
     },
     clock: {
         display: {

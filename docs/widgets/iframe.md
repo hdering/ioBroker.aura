@@ -29,6 +29,8 @@ Statische URL oder URL aus einem Datenpunkt. Bei `iframeUrlMode: datapoint` muss
 | `reloadOnWake` | `false` | nach Display-Standby neu laden (hebt `keepAlive` auf) |
 | `fullscreenButton` | `false` | Vollbild-Button beim Hover einblenden |
 | `iframeColorScheme` | `theme` | `theme` · `device` · `neutral` — siehe unten |
+| `iframeZoom` | `100` | Zoomstufe in % (25–400), gilt auf allen Geräten |
+| `iframeZoomControls` | `false` | Zoom-Tasten am Widget; Stufe gilt nur auf dem Gerät |
 
 `reloadOnWake` ist für eingebettete Videos/Streams gedacht: Der Browser bricht sie im
 Standby ab, und ohne Nutzer-Tipp startet der Player nicht wieder. Für Seiten mit
@@ -39,6 +41,27 @@ siehe [Editor](../einstellungen/editor.md#widget-neu-laden). Nötig, sobald sich
 Inhalt hinter einer gleichbleibenden URL ändert (z. B. Diagramm eines Skripts, das
 auf ein Auswahlfeld reagiert): Die Adresse ändert sich nicht, also lädt der iFrame
 von sich aus nicht neu.
+
+#### Zoom
+
+`iframeZoom` verkleinert oder vergrößert die eingebettete Seite. Unter 100 % baut sie
+sich für eine entsprechend breitere Fläche auf — eine Seite mit eigenen Umbruchpunkten
+zeigt dann ihre Desktop-Ansicht statt der Handy-Ansicht.
+
+`iframeZoomControls` blendet Tasten (`−` · Stufe · `+`) unten rechts im Widget ein. Die
+dort eingestellte Stufe gilt **nur auf dem Gerät**, an dem sie gesetzt wurde, und schlägt
+`iframeZoom` dort — für eine Seite, die auf dem Wandtablet und auf dem Handy
+unterschiedlich viel Platz braucht. Ein Tipp auf die Prozentzahl setzt auf die
+konfigurierte Stufe zurück.
+
+| | Zoom-Tasten | Zwei-Finger-Zoom |
+| --- | --- | --- |
+| `interactionMode: action` | ja | ja |
+| `interactionMode: content` / `contentOnly` | ja | nein |
+
+Die Wischgeste erreicht Aura nur, solange die Sperrschicht von `action` darüber liegt:
+Eine bedienbare Fremdseite behält ihre Berührungen für sich, davon erfährt das Widget
+nichts.
 
 #### Farbschema der Seite
 
