@@ -1,13 +1,13 @@
 # Session Context
 
-**Current Task**: Undo/Redo im Admin-Editor nach Plan `C:\projects\plan-undo-redo-editor.md` — Stufe 1+2 fertig und gepusht (bis c2f41b99), jetzt Stufe 3 (Verlauf überlebt F5 via IndexedDB) und Stufe 4 (serverseitige Sicherung fremder config.*-Writes im Adapter).
+**Current Task**: Undo/Redo im Admin-Editor (Plan `C:\projects\plan-undo-redo-editor.md`, alle 4 Stufen fertig) plus Nachläufer „ungespeicherte Änderungen erreichen das Frontend“ — zuletzt a36e18c3: Frontend-Tab im selben Browser spiegelt Admin-Edits nicht mehr live (storage-Listener in App.tsx entfernt, Inbound-Vergleich über rememberRemoteRaw statt localStorage).
 
 **Key Decisions**:
-- Verlauf = Store-Snapshots über `managedStorage.setItem` (`editHistory.ts`), kein Command-Pattern; externe Keys per `registerHistoryStore` (AdminMessages).
-- `WidgetFrame` ist `React.memo` (Gruppen/Panels ausgenommen); `seedMissingPersistedKeys` beim Admin-Mount schließt die „erster Edit ist Init“-Lücke.
-- Stufe 4 nur als Safety-Net für ack=false-Writes (fremde Skripte), kein Ersatz der Client-Backups.
+- Verlauf = Store-Snapshots über `managedStorage.setItem` (`editHistory.ts`), IndexedDB-Persistenz, kein Command-Pattern; Verwerfen/Restore als Gruppen mit Inhaltsvergleich.
+- Frontend ist read-only (`setFrontendReadOnly`, `hydrateFromValue`); gespeicherte Änderungen kommen NUR über den Socket, nie über `storage`-Events; Speicher ist im Frontend kein Maßstab für „schon angezeigt“.
+- Kein Auto-Save beim Admin-Reload; Statuschip „aus der letzten Sitzung übernommen“.
 
 **Next Steps**:
-- Stufe 3: `editHistoryPersist.ts` (Referenz-Diff/Patch, IDB, Restore nach Boot mit Validierung gegen aktuellen Stand), Tests in `tools/tests/edit-history.mjs` + Reload-UI-Test.
-- Stufe 4: `main.js` onStateChange `config.*` mit `!state.ack` → vorherigen Wert als `backup-<ts>.json.gz` + Sidecar in `aura.0.backups`.
-- Danach `npm run test:admin-undo-sweep` und `test:group-fit` erneut; RELEASE_NOTES ergänzen; commit + build + push.
+- Nutzer-Feedback zum Live-Frontend-Fix abwarten (Testinstanz braucht das neue www-Bundle).
+- Offen: group-fit 63 vorbestehende Drifts („3 mixed heights“), Offline-Fails in messages.mjs / pin-editor-ui (brauchen Backend).
+- Bei neuen „Frontend zeigt Ungespeichertes“-Meldungen zuerst `npm run test:frontend-same-browser-ui` und `test:frontend-readonly` laufen lassen.
