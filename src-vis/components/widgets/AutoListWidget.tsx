@@ -1362,15 +1362,20 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
                 }));
             if (newEntries.length > 0) {
                 saveOpts({ entries: [...entries, ...newEntries] });
-                saveAll();
-                // Scoped: the frontend must not push its theme/groups/popup-config
-                // copy along with a dashboard edit.
-                saveToIoBroker({ only: ['aura-dashboard'] });
+                // Frontend only: in the editor the new entries are one more unsaved
+                // edit under the save bar — flushing here would push every other
+                // unsaved change along with them.
+                if (!editMode) {
+                    saveAll();
+                    // Scoped: the frontend must not push its theme/groups/popup-config
+                    // copy along with a dashboard edit.
+                    saveToIoBroker({ only: ['aura-dashboard'] });
+                }
             }
         } finally {
             setSyncing(false);
         }
-    }, [opts, entries, saveOpts]);
+    }, [opts, entries, saveOpts, editMode]);
 
     useEffect(() => {
         const timer = setInterval(runSync, syncMs);

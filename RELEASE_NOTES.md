@@ -16,3 +16,5 @@ Editor - the undo history survives a reload of the admin; steps come back as lon
 Editor - unsaved changes are no longer saved automatically when the admin is reloaded; they stay unsaved, the save bar flags them as carried over from the last session, and saving, discarding or undoing them is the user's call
 Adapter - a config datapoint (aura.0.config.*) written by a script or another tool without ack is backed up first; the previous value appears in the backup list as an external write
 Popups - a fresh installation no longer receives every built-in popup view and type assignment on the second load, a discard or a restore; only the datapoint view is seeded until a popup is actually configured
+Editor - toggling a timer or an auto-list picking up new datapoints inside the editor no longer saves the whole dashboard on its own; both are unsaved edits under the save bar like everything else
+Frontend - opened in the same browser as an admin with unsaved changes, the frontend now shows the saved configuration without overwriting or discarding those changes

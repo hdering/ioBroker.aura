@@ -33,6 +33,7 @@ import {
     type Snapshot,
 } from './editHistory';
 import { diffSnapshots } from '../utils/refPatch';
+import { __devSetWriteLog, __devWrites } from '../hooks/useIoBroker';
 import {
     flushHistoryPersistence,
     restorePersistedHistory,
@@ -152,6 +153,10 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
         redo,
         persistNow: flushHistoryPersistence,
         restore: restorePersistedHistory,
+        /** Record every setState the admin sends (config.* included) so a test can
+         *  assert that nothing reaches ioBroker before Speichern. */
+        captureWrites: (on = true) => __devSetWriteLog(on),
+        writes: () => __devWrites(),
         /** Structural diff of one undo entry (newest first) per store — what a step really changed. */
         diff: (i: number) =>
             (historyEntries().undo[i]?.changes ?? []).map((c) => ({

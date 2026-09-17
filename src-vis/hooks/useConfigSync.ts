@@ -7,15 +7,25 @@ import {
     isPending,
     isSavingRecently,
     discardPendingKey,
+    hasDirtyFlag,
     IOBROKER_STATE_MAP,
     isScreenshotMode,
     type SyncStoreKey,
 } from '../store/persistManager';
-import { applyRaw, rehydrateAll } from '../utils/configLoader';
+import { applyRemote, rehydrateAll } from '../utils/configLoader';
 import { invalidateHistoryKey } from '../store/editHistory';
 
+// Read-only frontend: a key an admin in this browser is editing (dirty flag) is
+// hydrated in memory only, so "already applied" cannot be read off localStorage.
+const lastRemoteApplied = new Map<string, string>();
+
+/** True when this key's storage copy belongs to an admin with unsaved edits. */
+function adminOwnsStorage(key: SyncStoreKey, readOnly: boolean): boolean {
+    return readOnly && key !== 'aura-group-defs' && key !== 'aura-widget-presets' && hasDirtyFlag(key);
+}
+
 /** Apply one state value received from ioBroker to localStorage + stores. */
-function applyOneState(key: SyncStoreKey, raw: string): boolean {
+function applyOneState(key: SyncStoreKey, raw: string, readOnly: boolean): boolean {
     if (!raw || raw.length < 3) return false;
     // Screenshot harness owns the config — never let inbound ioBroker state
     // (subscription or poll) overwrite the seeded demo layout.
@@ -63,8 +73,14 @@ function applyOneState(key: SyncStoreKey, raw: string): boolean {
         }
     }
 
+    if (adminOwnsStorage(key, readOnly)) {
+        if (lastRemoteApplied.get(key) === remoteStr) return false;
+        lastRemoteApplied.set(key, remoteStr);
+        applyRemote(key, remoteStr, true);
+        return true;
+    }
     if (remoteStr === localStorage.getItem(key)) return false;
-    applyRaw(key, remoteStr);
+    applyRemote(key, remoteStr, readOnly);
     return true;
 }
 
@@ -97,7 +113,10 @@ export function useConfigSync(
                 // widget in one tab right after saving in another tab loses the
                 // change because it falls inside the 5 s window).
                 if (isSavingRecently(key, incoming)) return;
-                if (applyOneState(key, incoming)) {
+                if (applyOneState(key, incoming, ignoreDirty)) {
+                    // Hydrated in memory for an admin's key: storage and its flag
+                    // stay the admin's; a rehydrate would put that copy back.
+                    if (adminOwnsStorage(key, ignoreDirty)) return;
                     // include global settings so a live change to defaultDecimals
                     // (etc.) reaches the store, not just localStorage — otherwise
                     // it only takes effect after a reload.
@@ -129,12 +148,13 @@ export function useConfigSync(
                     // Same value-aware guard as the subscribe path: only skip if this
                     // is exactly our own recent write echoing back.
                     if (isSavingRecently(key, incoming)) return null;
-                    return applyOneState(key, incoming) ? key : null;
+                    return applyOneState(key, incoming, ignoreDirty) ? key : null;
                 }),
             ),
         ).then((results) => {
             const appliedKeys = results.filter(
-                (k): k is Exclude<SyncStoreKey, 'aura-group-defs' | 'aura-widget-presets'> => k !== null,
+                (k): k is Exclude<SyncStoreKey, 'aura-group-defs' | 'aura-widget-presets'> =>
+                    k !== null && !adminOwnsStorage(k, ignoreDirty),
             );
             if (appliedKeys.length > 0) {
                 // include global settings — see subscribe path above.

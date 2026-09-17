@@ -50,7 +50,7 @@ import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
 import { deriveHeaderItems } from './utils/menuItems';
 import type { Tab } from './store/dashboardStore';
 
-import { discardPending, isScreenshotMode } from './store/persistManager';
+import { discardPendingRam, isScreenshotMode, setFrontendReadOnly } from './store/persistManager';
 import { markGroupDefsHydrated } from './store/groupDefsStore';
 import { markWidgetPresetsHydrated } from './store/widgetPresetsStore';
 import { usePopupConfigStore, newTriggerHost } from './store/popupConfigStore';
@@ -714,10 +714,14 @@ export default function App() {
         // than each browser's stale localStorage — otherwise a browser that never
         // had the setting written locally renders with the store default (e.g.
         // 2 decimals) while another shows the configured 0.
+        // An admin in this same browser may hold unsaved edits (dirty flags in the
+        // shared localStorage). This tab shows the saved config regardless, but it
+        // must neither overwrite that copy nor clear those flags.
+        setFrontendReadOnly(true);
         void loadConfigFromIoBroker(true, { ignoreDirty: true }).finally(() => {
             markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
             markWidgetPresetsHydrated();
-            discardPending();
+            discardPendingRam();
         });
     }, [connected]);
 
@@ -1270,9 +1274,14 @@ export default function App() {
         />
     ) : null;
 
+    // data-aura-scale marks the subtree whose Tailwind text-* utilities follow the
+    // font scale (index.css). It is deliberately a second marker: the admin's widget
+    // previews carry it as well, while data-aura-app="frontend" stays the badge of the
+    // real frontend (scoped theme rule, portal targets).
     return (
         <div
             data-aura-app="frontend"
+            data-aura-scale=""
             className={`aura-page${layout?.slug ? ` aura-page-${layout.slug}` : ''}${activeTabSlug ? ` aura-${activeTabSlug}` : ''} h-full flex flex-col overflow-hidden`}
             style={{ background: 'var(--app-bg)', color: 'var(--text-primary)' }}
         >

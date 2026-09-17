@@ -12,6 +12,7 @@ import {
     type SyncStoreKey,
     hasDirtyFlag,
     clearDirtyFlag,
+    hydrateFromValue,
     isScreenshotMode,
 } from '../store/persistManager';
 import { hydrateGroupDefs } from '../store/groupDefsStore';
@@ -46,6 +47,34 @@ export function applyRaw(key: StoreKey, raw: string): void {
         /* quota — in-memory only */
     }
     clearDirtyFlag(key);
+}
+
+const PERSISTED_STORES: Record<string, { persist: { rehydrate: () => unknown } } | undefined> = {
+    'aura-dashboard': useDashboardStore,
+    'aura-theme': useThemeStore,
+    'aura-groups': useGroupStore,
+    'aura-config': useConfigStore,
+    'aura-popup-config': usePopupConfigStore,
+    'aura-global-settings': useGlobalSettingsStore,
+};
+
+/** Rehydrate one persisted store from what managedStorage.getItem serves. */
+export function rehydrateOne(key: StoreKey): void {
+    void PERSISTED_STORES[key]?.persist.rehydrate();
+}
+
+/**
+ * Apply a value pulled from ioBroker. `readOnly` (the frontend) protects an admin
+ * in the same browser: a key carrying a dirty flag keeps its localStorage copy and
+ * the flag; the store is hydrated from the remote value in memory only. The
+ * RAM-only stores have no storage copy to protect.
+ */
+export function applyRemote(key: StoreKey, raw: string, readOnly: boolean): void {
+    if (readOnly && key !== 'aura-group-defs' && key !== 'aura-widget-presets' && hasDirtyFlag(key)) {
+        hydrateFromValue(key, raw, () => rehydrateOne(key));
+        return;
+    }
+    applyRaw(key, raw);
 }
 
 /** Rehydrate all stores from localStorage / in-memory state. */
@@ -107,7 +136,7 @@ export async function loadConfigFromIoBroker(
                 if (!val) continue;
                 const raw = typeof val === 'string' ? val : JSON.stringify(val);
                 if (!raw || raw.length < 3) continue;
-                applyRaw(key, raw);
+                applyRemote(key, raw, ignoreDirty);
                 // Write to new separate state so next load uses new format
                 const stateId =
                     key === 'aura-global-settings'
@@ -135,11 +164,19 @@ export async function loadConfigFromIoBroker(
             const current =
                 key === 'aura-group-defs' || key === 'aura-widget-presets' ? null : localStorage.getItem(key);
             if (current === raw) continue;
-            applyRaw(key, raw);
+            applyRemote(key, raw, ignoreDirty);
             changed = true;
         }
     }
 
-    if (changed) rehydrateAll(includeGlobalSettings);
+    // Rehydrate from storage — except the keys applyRemote hydrated in memory:
+    // their storage copy is the admin's unsaved one and must not win back.
+    if (changed) {
+        for (const key of extraKeys) {
+            if (ignoreDirty && key !== 'aura-group-defs' && key !== 'aura-widget-presets' && hasDirtyFlag(key))
+                continue;
+            rehydrateOne(key);
+        }
+    }
     return changed;
 }

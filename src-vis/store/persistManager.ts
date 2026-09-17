@@ -360,6 +360,43 @@ export function discardPending(): void {
     notify();
 }
 
+/** Drop the RAM bookkeeping only. The read-only frontend uses this at boot: the
+ *  dirty FLAGS in the shared localStorage belong to an admin in the same browser. */
+export function discardPendingRam(): void {
+    pending.clear();
+    originals.clear();
+    notify();
+}
+
+// ── Read-only frontend next to an admin in the same browser ──────────────────
+// Both share localStorage. While the admin holds unsaved edits (dirty flag), the
+// frontend must still show the SAVED config — but neither overwrite the admin's
+// copy nor clear its flag. Two pieces: hydrateFromValue feeds persist's
+// rehydrate() a value that never touches storage, and in read-only mode setItem
+// leaves a dirty key's storage alone (its value is kept in RAM for a flush).
+const hydrationOverride = new Map<string, string>();
+let frontendReadOnly = false;
+
+/** Frontend boot: this tab never owns the storage copy of a key an admin edits. */
+export function setFrontendReadOnly(on: boolean): void {
+    frontendReadOnly = on;
+}
+
+/**
+ * Hydrate a store from `raw` without writing it to localStorage. `rehydrate`
+ * is the store's persist.rehydrate; getItem serves the override meanwhile.
+ */
+export function hydrateFromValue(key: string, raw: string, rehydrate: () => void): void {
+    hydrationOverride.set(key, raw);
+    try {
+        rehydrate();
+    } finally {
+        hydrationOverride.delete(key);
+    }
+    // The store now differs from the storage copy on purpose — not an edit.
+    resyncHistoryKey(key);
+}
+
 export function discardPendingKey(key: string): void {
     pending.delete(key);
     originals.delete(key);
@@ -992,8 +1029,19 @@ export async function resetAllConfig(): Promise<void> {
 }
 
 export const managedStorage: StateStorage = {
-    getItem: (name) => localStorage.getItem(name),
+    getItem: (name) => hydrationOverride.get(name) ?? localStorage.getItem(name),
     setItem: (name, value) => {
+        // A hydration from a remote value must not land in storage (the popup
+        // store's onRehydrateStorage normalises with a set() of its own).
+        if (hydrationOverride.has(name)) return;
+        // Read-only frontend, key dirty in the shared storage: an admin owns that
+        // copy. Keep this tab's value in RAM so an in-place flush (timer, auto-list)
+        // sends what this tab shows, and leave storage and flag untouched.
+        if (frontendReadOnly && hasDirtyFlag(name)) {
+            pending.set(name, value);
+            notify();
+            return;
+        }
         const current = localStorage.getItem(name);
         if (current === value) {
             // No-op write (e.g. Zustand re-persisting the same state after rehydrate).

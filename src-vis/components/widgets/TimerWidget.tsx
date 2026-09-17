@@ -35,6 +35,9 @@ import { NS } from '../../utils/namespace';
  * Scoped to aura-dashboard: an unscoped save from the read-only frontend also
  * pushes whatever this browser holds for theme/groups/popup-config, which can
  * roll the admin's config back to this device's copy.
+ *
+ * Frontend only. In the editor the toggle is one more unsaved edit under the
+ * save bar; flushing there would push every other unsaved change with it.
  */
 function flushDashboard() {
     try {
@@ -337,13 +340,13 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     const toggleMaster = () => {
         onConfigChange({ ...config, options: { ...o, enabled: !masterEnabled } });
-        setTimeout(flushDashboard, 0);
+        if (!editMode) setTimeout(flushDashboard, 0);
     };
 
     const toggleEvent = (eventId: string) => {
         const next = events.map((e) => (e.id === eventId ? { ...e, enabled: !e.enabled } : e));
         onConfigChange({ ...config, options: { ...o, events: next } });
-        setTimeout(flushDashboard, 0);
+        if (!editMode) setTimeout(flushDashboard, 0);
     };
 
     // ── Modal state ─────────────────────────────────────────────────────────────
@@ -357,7 +360,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             onConfigChange({ ...config, options: { ...o, events: events.map((x) => (x.id === ev.id ? ev : x)) } });
         }
         setEditing(null);
-        setTimeout(flushDashboard, 0);
+        if (!editMode) setTimeout(flushDashboard, 0);
     };
 
     const deleteFromModal = () => {
@@ -365,7 +368,7 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
             onConfigChange({ ...config, options: { ...o, events: events.filter((x) => x.id !== editing.id) } });
         }
         setEditing(null);
-        setTimeout(flushDashboard, 0);
+        if (!editMode) setTimeout(flushDashboard, 0);
     };
 
     const layout = config.layout ?? 'default';
