@@ -76,6 +76,8 @@ await build({
             export { HISTORY_LIMIT, COALESCE_MS } from './src-vis/store/editHistory.ts';
             export { isTextEditTarget, describeEntry } from './src-vis/store/editHistorySetup.ts';
             export { restoreBackupPayload } from './src-vis/utils/backupRestore.ts';
+            export * as persist from './src-vis/store/editHistoryPersist.ts';
+            export { diffSnapshots, applyPatch } from './src-vis/utils/refPatch.ts';
             export {
                 isDirty,
                 hasDirtyFlag,
@@ -541,6 +543,78 @@ const counts = (mod) => {
     eq('undo revertAll brings the edit back', buffer.value, { a: 3 });
     check('… dirty again', mod.isDirty());
     eq('save handler not invoked by undo/redo', saves, 0);
+}
+
+// ── 8c. Structural patches and the history across a reload ──────────────────
+{
+    const { mod, map } = await boot({ 'aura-dashboard': dashboardPayload([widget('w1'), widget('w2')]) });
+    const snap = () => mod.history.currentSnapshot('aura-dashboard');
+
+    // refPatch round trip on real store snapshots: rename, move, remove, add.
+    const s0 = snap();
+    mod.useDashboardStore.getState().updateWidget('w1', { title: 'Neu' });
+    const s1 = snap();
+    tick(2000);
+    mod.useDashboardStore.getState().removeWidget('w2');
+    const s2 = snap();
+    tick(2000);
+    mod.useDashboardStore.getState().addWidget(widget('w3'));
+    const s3 = snap();
+    const roundTrip = (a, b) => JSON.stringify(mod.applyPatch(a, mod.diffSnapshots(a, b))) === JSON.stringify(b);
+    check('patch reproduces a rename', roundTrip(s0, s1));
+    check('patch reproduces a removal (array shrinks)', roundTrip(s1, s2));
+    check('patch reproduces an add (array grows)', roundTrip(s2, s3));
+    check('patch of identical snapshots is empty', mod.diffSnapshots(s3, s3).length === 0);
+    check('rename patch is small', JSON.stringify(mod.diffSnapshots(s0, s1)).length < 400);
+
+    // Persist: in-memory storage stands in for IndexedDB.
+    const mem = { data: null, get: async () => mem.data, put: async (_ns, d) => void (mem.data = d) };
+    mod.persist.configureHistoryStorage(mem);
+    tick(2000);
+    mod.useThemeStore.getState().setTheme('light');
+    mod.persist.flushHistoryPersistence();
+    await Promise.resolve();
+    check('record written', !!mem.data);
+    eq('record holds the four steps', mem.data.entries.length, 4);
+    eq('one base per touched store', Object.keys(mem.data.base).sort(), ['aura-dashboard', 'aura-theme']);
+    check('the saved dashboard rides along as original', typeof mem.data.originals['aura-dashboard'] === 'string');
+
+    // "Reload": a fresh module instance on the localStorage the browser would
+    // have — edited values plus the dirty flags — and the same storage record.
+    const { mod: b } = await boot(Object.fromEntries(map));
+    b.persist.configureHistoryStorage(mem);
+    eq('after reload the live history is empty', counts(b), [0, 0]);
+    // Navigation before the restore must not count as a difference.
+    b.useDashboardStore.getState().setActiveTab('tab2');
+    eq('restore succeeds', await b.persist.restorePersistedHistory(), 'restored');
+    eq('all four steps are back', counts(b), [4, 0]);
+    eq('a second restore does nothing', await b.persist.restorePersistedHistory(), 'skipped');
+    b.history.undo();
+    eq('undo after reload: theme', b.useThemeStore.getState().themeId, 'dark');
+    b.history.undo();
+    b.history.undo();
+    b.history.undo();
+    eq('undo after reload: title', titleOf(b, 'w1'), 'w1');
+    check(
+        'undo after reload: w2 is back',
+        widgets(b).some((w) => w.id === 'w2'),
+    );
+    check('undo back to the saved value leaves the reloaded key clean', !b.isDirty(), 'still dirty');
+    b.history.redo();
+    eq('redo after reload works', titleOf(b, 'w1'), 'Neu');
+
+    // A different state than the chain ends in (another device saved) → discard.
+    const other = Object.fromEntries(map);
+    other['aura-dashboard'] = other['aura-dashboard'].replace('"Neu"', '"Fremd"');
+    const { mod: c } = await boot(other);
+    c.persist.configureHistoryStorage(mem);
+    eq('mismatching state → stale, nothing restored', await c.persist.restorePersistedHistory(), 'stale');
+    eq('… history stays empty', counts(c), [0, 0]);
+
+    // No storage → unavailable, never throws.
+    const { mod: d } = await boot({});
+    d.persist.configureHistoryStorage(null);
+    eq('no storage → unavailable', await d.persist.restorePersistedHistory(), 'unavailable');
 }
 
 // ── 9. Shortcut target rule (pure predicate) ─────────────────────────────────

@@ -300,6 +300,24 @@ export function historyEntries(): { undo: HistoryEntry[]; redo: HistoryEntry[] }
     return { undo: [...undoStack].reverse(), redo: [...redoStack].reverse() };
 }
 
+/** A registered store's current config snapshot (persistence, tests). */
+export function currentSnapshot(key: HistoryKey): Snapshot | undefined {
+    return adapters.get(key)?.getSnapshot();
+}
+
+/**
+ * Replace the undo stack with entries rebuilt from storage (oldest first); redo
+ * is cleared. The entries come sealed so the next edit starts a step of its own,
+ * and the stores' current state becomes the base for it.
+ */
+export function installHistory(entries: HistoryEntry[]): void {
+    undoStack = entries.slice(-HISTORY_LIMIT).map((e) => ({ ...e, sealed: true }));
+    redoStack = [];
+    for (const e of undoStack) nextId = Math.max(nextId, e.id + 1);
+    adapters.forEach((adapter, key) => lastAccepted.set(key, adapter.getSnapshot()));
+    publish();
+}
+
 /** Forget every entry and take the current stores as the new base — after the
  *  boot load, and whenever the whole config was replaced from outside. */
 export function resetEditHistory(): void {

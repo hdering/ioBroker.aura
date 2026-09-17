@@ -367,6 +367,21 @@ export function discardPendingKey(key: string): void {
     notify();
 }
 
+/** The saved value a pending key had before its first edit this session (null =
+ *  the key did not exist); undefined when the key is not pending. */
+export function getOriginal(key: string): string | null | undefined {
+    return originals.has(key) ? originals.get(key) : undefined;
+}
+
+/**
+ * After a reload the RAM original is gone while the dirty flag survives. The
+ * persisted undo history brings the original back, so an undo that lands on the
+ * saved value is recognised as clean (backToSaved) after the reload as well.
+ */
+export function seedOriginal(key: string, value: string | null): void {
+    if (!originals.has(key) && (pending.has(key) || hasDirtyFlag(key))) originals.set(key, value);
+}
+
 export function revertAll(rehydrateFns: Array<() => void>): void {
     // One history entry for the whole revert — "discard everything" is itself
     // undoable. The rehydrate below writes localStorage's value back unchanged,
@@ -1023,7 +1038,9 @@ export const managedStorage: StateStorage = {
                 originals.delete(name);
                 clearDirtyFlag(name);
             } else {
-                if (!pending.has(name)) originals.set(name, current);
+                // First edit of the session captures the saved value — unless the
+                // persisted undo history already seeded it after a reload (seedOriginal).
+                if (!pending.has(name) && !originals.has(name)) originals.set(name, current);
                 pending.set(name, value);
             }
         }

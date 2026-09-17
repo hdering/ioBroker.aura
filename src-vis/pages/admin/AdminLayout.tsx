@@ -43,6 +43,7 @@ import {
 } from '../../store/persistManager';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { resetEditHistory } from '../../store/editHistory';
+import { restorePersistedHistory } from '../../store/editHistoryPersist';
 import { useEditHistoryLifecycle, useUndoRedoShortcuts, wasSeededDefault } from '../../store/editHistorySetup';
 import { EditHistoryControls } from './EditHistoryControls';
 import { useGroupStore } from '../../store/groupStore';
@@ -299,8 +300,11 @@ export function AdminLayout() {
             adminConfigLoadedRef.current = true;
             markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
             markWidgetPresetsHydrated();
-            // The loaded config is the base — nothing before it can be undone.
+            // The loaded config is the base — nothing before it can be undone …
             resetEditHistory();
+            // … except the steps a reload interrupted: they come back from IndexedDB
+            // when their chain ends exactly at this state.
+            void restorePersistedHistory();
             const localHasData = [
                 'aura-dashboard',
                 'aura-theme',

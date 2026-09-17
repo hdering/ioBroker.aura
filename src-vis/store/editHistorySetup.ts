@@ -32,6 +32,12 @@ import {
     type HistoryEntry,
     type Snapshot,
 } from './editHistory';
+import {
+    flushHistoryPersistence,
+    restorePersistedHistory,
+    startHistoryPersistence,
+    stopHistoryPersistence,
+} from './editHistoryPersist';
 
 /** Every non-function field of the state except the listed ones. New store
  *  fields are covered automatically; only per-device/UI fields must be excluded. */
@@ -136,6 +142,8 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
         keys: () => historyEntries().undo.map((e) => e.changes.map((c) => c.key)),
         undo,
         redo,
+        persistNow: flushHistoryPersistence,
+        restore: restorePersistedHistory,
     };
 }
 
@@ -191,6 +199,15 @@ export function useEditHistoryLifecycle(): void {
     useEffect(() => {
         seedMissingPersistedKeys();
         startEditHistory();
-        return () => stopEditHistory();
+        // The reload case: the stores hold what localStorage had, the stored
+        // chain ends there → the steps from before the reload come back. After the
+        // config load the admin resets and restores once more against that state.
+        void restorePersistedHistory();
+        startHistoryPersistence();
+        return () => {
+            // Persistence off FIRST — the emptied stacks must not be written.
+            stopHistoryPersistence();
+            stopEditHistory();
+        };
     }, []);
 }
