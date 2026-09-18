@@ -26,7 +26,7 @@ import { CustomGridView } from './CustomGridView';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
-import { useGroupCollapseStore } from '../../store/groupCollapseStore';
+import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { verticalCompact } from '../../utils/gridCompact';
 import { GROUP_GAP, groupRows } from '../../utils/groupLayout';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -106,9 +106,9 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // reachable, so collapse never applies there.
     const defaultCollapsed = !!config.options?.defaultCollapsed;
     const collapsible = defaultCollapsed && !editMode;
-    const initCollapse = useGroupCollapseStore((s) => s.init);
-    const toggleCollapse = useGroupCollapseStore((s) => s.toggle);
-    const collapsed = useGroupCollapseStore((s) => s.collapsed[config.id] ?? defaultCollapsed);
+    const initCollapse = useWidgetCollapseStore((s) => s.init);
+    const toggleCollapse = useWidgetCollapseStore((s) => s.toggle);
+    const collapsed = useWidgetCollapseStore((s) => s.collapsed[config.id] ?? defaultCollapsed);
     useEffect(() => {
         if (defaultCollapsed) initCollapse(config.id, true);
     }, [config.id, defaultCollapsed, initCollapse]);

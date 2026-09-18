@@ -15,17 +15,28 @@ interface AutoHeightStore {
      * control, and those few pixels raise the group's inner scrollbar in the editor.
      */
     groupHeaders: Record<string, number>;
+    /**
+     * widgetId → measured height in px of the collapsed header row the WidgetFrame
+     * draws for a folded widget (issue #676). The Dashboard sizes the grid item to
+     * it (plus padding and border) — measured, not guessed, because icon size and
+     * font scale change it.
+     */
+    collapsedHeaders: Record<string, number>;
     setHeight: (id: string, px: number) => void;
     setGroupHeader: (id: string, px: number) => void;
+    setCollapsedHeader: (id: string, px: number) => void;
     clear: (id: string) => void;
 }
 
 export const useAutoHeightStore = create<AutoHeightStore>()((set) => ({
     heights: {},
     groupHeaders: {},
+    collapsedHeaders: {},
     setHeight: (id, px) => set((s) => (s.heights[id] === px ? s : { heights: { ...s.heights, [id]: px } })),
     setGroupHeader: (id, px) =>
         set((s) => (s.groupHeaders[id] === px ? s : { groupHeaders: { ...s.groupHeaders, [id]: px } })),
+    setCollapsedHeader: (id, px) =>
+        set((s) => (s.collapsedHeaders[id] === px ? s : { collapsedHeaders: { ...s.collapsedHeaders, [id]: px } })),
     clear: (id) =>
         set((s) => {
             if (!(id in s.heights)) return s;

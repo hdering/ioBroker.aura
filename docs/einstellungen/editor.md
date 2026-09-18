@@ -47,6 +47,17 @@ Jedes Widget bietet über sein Menü (Chevron) `Bearbeiten`, `Bedingungen`, `Kli
 
 Auf Touch-Geräten ist der Knopf dauerhaft sichtbar, mit Maus erst beim Überfahren der Kachel. `Esc` oder das Kreuz schließt. Nicht bei `iFrame`, `Kamera` und `eCharts` — die haben ein eigenes Vollbild.
 
+## Einklappen
+
+`Bearbeiten` → **Darstellung** → `Standardmäßig eingeklappt`. Das Widget startet als einzelne Zeile mit Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach.
+
+| Option | |
+| --- | --- |
+| Standardmäßig eingeklappt | Aus (Standard) / An |
+| Position | Ecke des Einklapp-Knopfes im ausgeklappten Zustand: `rechts oben` (Standard), `links oben`, `rechts unten` — teilt er sich die Ecke mit dem Vollbild-Knopf, rückt er eine Stelle nach innen |
+
+Nur im Frontend — im Editor bleibt jedes Widget ausgeklappt, und ein Neuladen stellt den eingeklappten Zustand wieder her. Der Einklapp-Knopf folgt den Sichtbarkeitsregeln des Vollbild-Knopfes. Die [Gruppe](./../widgets/gruppe) behält ihre eigene Kopfzeile mit Pfeil. Nicht beim `Abschnittstitel` und nicht für Widgets innerhalb einer Gruppe.
+
 ## PIN-Schutz
 
 Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach Eingabe des Codes gerendert — egal ob über Menü, Tab-Leiste, Widget-Klickaktion oder direkte URL.

@@ -1036,9 +1036,13 @@ export const de = {
     'wf.edit.group.autoShrink': 'Bei versteckten Widgets schrumpfen',
     'wf.edit.group.autoShrinkHint':
         'Sind Kind-Widgets per Bedingung ausgeblendet, verkleinert sich die Gruppe auf die sichtbaren Inhalte (nur im Frontend).',
-    'wf.edit.group.defaultCollapsed': 'Standardmäßig eingeklappt',
+    'wf.edit.defaultCollapsed': 'Standardmäßig eingeklappt',
+    'wf.edit.defaultCollapsedHint':
+        'Das Widget zeigt zunächst nur Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach. Ausgeklappt sitzt der Einklapp-Knopf in der gewählten Ecke (nur im Frontend).',
     'wf.edit.group.defaultCollapsedHint':
-        'Die Gruppe zeigt zunächst nur ihre Kopfzeile; ein Klick darauf klappt die Inhalte aus (nur im Frontend).',
+        'Die Gruppe zeigt zunächst nur ihre Kopfzeile; ein Klick darauf klappt die Inhalte aus, die Widgets darunter rücken nach (nur im Frontend).',
+    'wf.collapse.expand': 'Ausklappen',
+    'wf.collapse.collapse': 'Einklappen',
     'wf.edit.group.mobileKeepGrid': 'Raster auf dem Smartphone beibehalten',
     'wf.edit.group.mobileKeepGridHint':
         'Standardmäßig werden Widgets auf dem Smartphone untereinander gestapelt. Aktiviert bleibt die nebeneinander-Anordnung wie in der normalen Ansicht erhalten, nur verkleinert.',

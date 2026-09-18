@@ -39,6 +39,7 @@ import {
     CopyPlus,
     Palette,
     PaintBucket,
+    ChevronUp,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { setDragBridge } from '../../utils/dragBridge';
@@ -79,11 +80,15 @@ import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
 import {
     FULLSCREEN_POSITIONS,
     actionButtonRight,
+    collapseButtonIndex,
+    cornerInset,
     fullscreenButtonEnabled,
     fullscreenButtonInset,
     fullscreenPosition,
     supportsFullscreenButton,
 } from '../../utils/fullscreenButton';
+import { collapsePosition, collapsibleWidget, isCollapsedNow, supportsCollapse } from '../../utils/widgetCollapse';
+import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
@@ -7054,13 +7059,61 @@ function WidgetFrameInner({
     // right-edge badges (issue #502). For a mirror of a normal widget this keeps
     // the same padding the source has, so the mirror matches it.
     const framingType = config.type === 'mirror' && mirrorLcSource ? mirrorLcSource.type : config.type;
+
+    // ── Collapsible widget (issue #676) ───────────────────────────────────────
+    // A group draws its own header with the chevron in it (GroupWidget); every
+    // other type folds down to a header row the frame draws here — icon + title,
+    // the whole card is the toggle — and gets a fold button in a corner while it
+    // is expanded. Frontend only: in the editor the content has to stay reachable.
+    // The session toggle lives in the collapse store; absent it, the widget starts
+    // collapsed (that is what the option means).
+    const frameCollapsible =
+        framingType !== 'group' &&
+        collapsibleWidget(config.type, config.options, { editMode, inGroup, fullscreen, probe: isProbe });
+    const initCollapse = useWidgetCollapseStore((s) => s.init);
+    const toggleCollapse = useWidgetCollapseStore((s) => s.toggle);
+    const collapsedMap = useWidgetCollapseStore((s) => s.collapsed);
+    useEffect(() => {
+        if (frameCollapsible) initCollapse(config.id, true);
+    }, [config.id, frameCollapsible, initCollapse]);
+    const isCollapsed = frameCollapsible && isCollapsedNow(collapsedMap, config.id);
+    const collapsePos = collapsePosition(config.options);
+    // Report the real header height so the Dashboard folds the grid item to exactly
+    // this row (plus padding and border) — icon size and font scale change it.
+    const collapsedHeaderEl = useRef<HTMLDivElement>(null);
+    const setCollapsedHeader = useAutoHeightStore((s) => s.setCollapsedHeader);
+    useEffect(() => {
+        const el = collapsedHeaderEl.current;
+        if (!isCollapsed || !el) return;
+        const report = () => setCollapsedHeader(config.id, Math.ceil(el.getBoundingClientRect().height));
+        report();
+        const ro = new ResizeObserver(report);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, [isCollapsed, config.id, setCollapsedHeader]);
+    // A mirror folds to its SOURCE's icon and title — its own are empty.
+    const collapsedSource = mirrorLcSource ?? renderConfig;
+    const collapsedMeta = WIDGET_BY_TYPE[collapsedSource.type as WidgetType];
+    const collapsedTitle = collapsedSource.title || collapsedMeta?.label || collapsedSource.type;
+    const collapsedShowIcon = collapsedSource.options?.showIcon !== false;
+    const CollapsedIcon = getWidgetIcon(
+        collapsedSource.options?.icon as string | undefined,
+        collapsedMeta?.Icon ?? null,
+    );
+    const collapsedIconSize = (collapsedSource.options?.iconSize as number | undefined) || 20;
+    const collapsedTitleAlign = ((collapsedSource.options?.titleAlign as string | undefined) ??
+        'left') as React.CSSProperties['textAlign'];
+
+    // A folded card always keeps the normal padding — the header row needs it, and
+    // the Dashboard's row arithmetic (collapsedRows) assumes it.
     const isNoPad =
-        isBareHeader ||
-        framingType === 'group' ||
-        framingType === 'panels' ||
-        framingType === 'iframe' ||
-        framingType === 'map' ||
-        framingType === 'echartsPreset';
+        !isCollapsed &&
+        (isBareHeader ||
+            framingType === 'group' ||
+            framingType === 'panels' ||
+            framingType === 'iframe' ||
+            framingType === 'map' ||
+            framingType === 'echartsPreset');
     // Publish the padding that is actually applied, so widget content can align to
     // the card edge instead of assuming the default. Scrolling lists whose rows
     // bleed into this gutter need it to stay inside the card (.aura-bleed-* in
@@ -7312,7 +7365,40 @@ function WidgetFrameInner({
                 </div>
             )}
 
-            {Widget ? (
+            {isCollapsed ? (
+                // Folded (issue #676): only icon + title, mirroring the group's header
+                // row. The whole card is the toggle; the body is not mounted at all, so
+                // a folded camera or iframe costs nothing in the background.
+                <div
+                    className="aura-collapsed-header nodrag h-full w-full flex items-center cursor-pointer select-none"
+                    data-collapsed-header=""
+                    role="button"
+                    aria-expanded={false}
+                    title={t('wf.collapse.expand')}
+                    onClick={(e) => {
+                        // Never let the toggle bubble to a widget-level click action.
+                        e.stopPropagation();
+                        toggleCollapse(config.id);
+                    }}
+                >
+                    <div
+                        ref={collapsedHeaderEl}
+                        className="flex items-center gap-2 min-w-0 w-full"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        <ChevronDown size={16} className="shrink-0" style={{ transform: 'rotate(-90deg)' }} />
+                        {collapsedShowIcon && (
+                            <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
+                        )}
+                        <span
+                            className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
+                            style={{ textAlign: collapsedTitleAlign }}
+                        >
+                            {collapsedTitle}
+                        </span>
+                    </div>
+                </div>
+            ) : Widget ? (
                 // `display: contents` — the wrapper carries the lock class and the
                 // write-lock context without adding a box, so the widget keeps the
                 // frame as its layout parent exactly as before. (issue #655)
@@ -7361,6 +7447,7 @@ function WidgetFrameInner({
 
             {/* Last-change timestamp overlay */}
             {showLastChange &&
+                !isCollapsed &&
                 lastChangedTs > 0 &&
                 (() => {
                     const text = formatLastChange(lastChangedTs);
@@ -7394,6 +7481,7 @@ function WidgetFrameInner({
             {needsActionButton &&
                 hasClickAction &&
                 !editMode &&
+                !isCollapsed &&
                 (() => {
                     const ActionIcon =
                         clickAction.kind === 'link-external'
@@ -7415,6 +7503,7 @@ function WidgetFrameInner({
                     const actionRight = actionButtonRight({
                         iframeOwnFullscreen,
                         fullscreenTopRight: showFullscreenButton && fsPos === 'tr',
+                        collapseTopRight: frameCollapsible && collapsePos === 'tr',
                     });
                     return (
                         <button
@@ -7444,7 +7533,7 @@ function WidgetFrameInner({
                 wall tablet or phone has no hover, and that is exactly the case the
                 feature was asked for. The corner is configurable because ~26 widget
                 types draw their own value into the top-right of the title row. */}
-            {showFullscreenButton && (
+            {showFullscreenButton && !isCollapsed && (
                 <button
                     onClick={(e) => {
                         e.stopPropagation();
@@ -7468,6 +7557,32 @@ function WidgetFrameInner({
                     data-fullscreen-open=""
                 >
                     <Maximize2 size={13} />
+                </button>
+            )}
+
+            {/* Fold button of a collapsible widget while it is expanded (issue #676).
+                Same reveal rules and corner ladder as the fullscreen button: behind it
+                when both share a corner, otherwise outermost. */}
+            {frameCollapsible && !isCollapsed && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleCollapse(config.id);
+                    }}
+                    className="nodrag aura-collapse-btn absolute w-7 h-7 flex items-center justify-center rounded-md transition-opacity"
+                    style={{
+                        ...cornerInset(collapsePos, collapseButtonIndex(showFullscreenButton && fsPos === collapsePos)),
+                        zIndex: 4,
+                        background: 'rgba(0,0,0,0.55)',
+                        color: '#fff',
+                        backdropFilter: 'blur(4px)',
+                    }}
+                    title={t('wf.collapse.collapse')}
+                    aria-label={t('wf.collapse.collapse')}
+                    aria-expanded={true}
+                    data-collapse-toggle=""
+                >
+                    <ChevronUp size={13} />
                 </button>
             )}
 
@@ -8281,6 +8396,7 @@ function WidgetFrameInner({
                         const titleOn = o.showTitle !== false;
                         const iconOn = o.showIcon !== false;
                         const fsOn = o.fullscreenWidget === true;
+                        const collapsedOn = o.defaultCollapsed === true;
                         const currentIconName = o.icon as string | undefined;
                         const CurrentIcon = currentIconName
                             ? getWidgetIcon(currentIconName, (() => null) as unknown as LucideIcon)
@@ -8838,6 +8954,77 @@ function WidgetFrameInner({
                                             </p>
                                         </>
                                     )}
+                                    {/* Collapsible widget (issue #676). A group keeps the chevron in
+                                        its own header; every other type folds to a frame header and
+                                        gets a fold button in a corner. Children of a group are laid
+                                        out on the group's pitch and cannot shrink, so the option is
+                                        not offered there. */}
+                                    {supportsCollapse(config.type) && !inGroup && (
+                                        <>
+                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                            <div className="flex items-center justify-between">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('wf.edit.defaultCollapsed')}
+                                                </label>
+                                                <button
+                                                    onClick={() => setO({ defaultCollapsed: !collapsedOn })}
+                                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                                    style={{
+                                                        background: collapsedOn ? 'var(--accent)' : 'var(--app-border)',
+                                                    }}
+                                                    data-collapse-option=""
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: collapsedOn ? '18px' : '2px' }}
+                                                    />
+                                                </button>
+                                            </div>
+                                            {collapsedOn && config.type !== 'group' && (
+                                                <div className="flex items-center gap-2">
+                                                    <label
+                                                        className="text-[11px] shrink-0"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.edit.position')}
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {FULLSCREEN_POSITIONS.map((pos) => {
+                                                            const active = collapsePosition(o) === pos;
+                                                            return (
+                                                                <button
+                                                                    key={pos}
+                                                                    onClick={() => setO({ collapsePosition: pos })}
+                                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                                    style={{
+                                                                        background: active
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                        color: active
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                    }}
+                                                                >
+                                                                    {t(`wf.edit.fsPos.${pos}` as never)}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                {t(
+                                                    config.type === 'group'
+                                                        ? 'wf.edit.group.defaultCollapsedHint'
+                                                        : 'wf.edit.defaultCollapsedHint',
+                                                )}
+                                            </p>
+                                        </>
+                                    )}
                                 </div>
                             </details>
                         );
@@ -8983,7 +9170,6 @@ function WidgetFrameInner({
                         (() => {
                             const o = config.options ?? {};
                             const autoShrink = !!o.autoShrink;
-                            const defaultCollapsed = !!o.defaultCollapsed;
                             return (
                                 <div
                                     className="space-y-2.5 rounded-lg px-3 py-3"
@@ -9028,39 +9214,6 @@ function WidgetFrameInner({
                                             <span
                                                 className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
                                                 style={{ left: autoShrink ? '18px' : '2px' }}
-                                            />
-                                        </button>
-                                    </div>
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div>
-                                            <label
-                                                className="text-[11px] font-medium"
-                                                style={{ color: 'var(--text-primary)' }}
-                                            >
-                                                {t('wf.edit.group.defaultCollapsed')}
-                                            </label>
-                                            <p
-                                                className="text-[10px] mt-0.5"
-                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
-                                            >
-                                                {t('wf.edit.group.defaultCollapsedHint')}
-                                            </p>
-                                        </div>
-                                        <button
-                                            onClick={() =>
-                                                onConfigChange({
-                                                    ...config,
-                                                    options: { ...o, defaultCollapsed: !defaultCollapsed },
-                                                })
-                                            }
-                                            className="relative w-9 h-5 rounded-full transition-colors shrink-0"
-                                            style={{
-                                                background: defaultCollapsed ? 'var(--accent)' : 'var(--app-border)',
-                                            }}
-                                        >
-                                            <span
-                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                style={{ left: defaultCollapsed ? '18px' : '2px' }}
                                             />
                                         </button>
                                     </div>

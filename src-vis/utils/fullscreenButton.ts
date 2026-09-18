@@ -34,16 +34,33 @@ export function fullscreenPosition(options: Record<string, unknown> | undefined)
         : DEFAULT_FULLSCREEN_POSITION;
 }
 
-/** Card inset of the button itself, in px, by configured corner. */
+/**
+ * Card inset of the n-th button in a corner, in px. Index 0 is the outermost
+ * button; every further occupant of the same corner steps one slot inwards.
+ */
+export function cornerInset(
+    pos: FullscreenPosition,
+    index = 0,
+): {
+    top?: number;
+    bottom?: number;
+    left?: number;
+    right?: number;
+} {
+    const along = cornerRight(index);
+    if (pos === 'tl') return { top: 6, left: along };
+    if (pos === 'br') return { bottom: 6, right: along };
+    return { top: 6, right: along };
+}
+
+/** Card inset of the fullscreen button itself, in px, by configured corner. */
 export function fullscreenButtonInset(pos: FullscreenPosition): {
     top?: number;
     bottom?: number;
     left?: number;
     right?: number;
 } {
-    if (pos === 'tl') return { top: 6, left: 6 };
-    if (pos === 'br') return { bottom: 6, right: 6 };
-    return { top: 6, right: 6 };
+    return cornerInset(pos, 0);
 }
 
 /** Distance from the card's right edge for the n-th button in the top-right corner. */
@@ -52,11 +69,35 @@ export function cornerRight(index: number): number {
 }
 
 /**
+ * Who else sits in a corner. The fullscreen button is always the outermost one;
+ * the fold button of a collapsible widget (issue #676) takes the next slot when
+ * both are configured for the same corner.
+ */
+export interface CornerOccupants {
+    iframeOwnFullscreen: boolean;
+    fullscreenTopRight: boolean;
+    collapseTopRight?: boolean;
+}
+
+/**
  * Where the embed action button (issue #527) goes once the corner may hold other
  * buttons. It is always the innermost one, so it steps aside for each occupant to
- * its right: the iframe widget's own fullscreen button and this frame's button
- * when that one is configured top-right.
+ * its right: the iframe widget's own fullscreen button, this frame's fullscreen
+ * button and the fold button, each when configured top-right.
  */
-export function actionButtonRight(occupants: { iframeOwnFullscreen: boolean; fullscreenTopRight: boolean }): number {
-    return cornerRight((occupants.iframeOwnFullscreen ? 1 : 0) + (occupants.fullscreenTopRight ? 1 : 0));
+export function actionButtonRight(occupants: CornerOccupants): number {
+    return cornerRight(
+        (occupants.iframeOwnFullscreen ? 1 : 0) +
+            (occupants.fullscreenTopRight ? 1 : 0) +
+            (occupants.collapseTopRight ? 1 : 0),
+    );
+}
+
+/**
+ * Slot of the fold button in its corner: behind the fullscreen button when that
+ * one shares the corner, otherwise outermost. (The iframe's own fullscreen button
+ * lives in the widget body below the title row, so it never competes here.)
+ */
+export function collapseButtonIndex(sameCornerAsFullscreen: boolean): number {
+    return sameCornerAsFullscreen ? 1 : 0;
 }

@@ -28,6 +28,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 | `transparent` | `false` | Rahmen/Trennlinie ausblenden |
+| `defaultCollapsed` | `false` | startet eingeklappt, die Kopfzeile klappt auf — siehe [Einklappen](../einstellungen/editor#einklappen) |
 
 ### Master-Aktion
 

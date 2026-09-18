@@ -1029,9 +1029,13 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.group.autoShrink': 'Shrink when widgets are hidden',
     'wf.edit.group.autoShrinkHint':
         'When child widgets are hidden by a condition, the group shrinks to fit the visible content (frontend only).',
-    'wf.edit.group.defaultCollapsed': 'Collapsed by default',
+    'wf.edit.defaultCollapsed': 'Collapsed by default',
+    'wf.edit.defaultCollapsedHint':
+        'The widget initially shows only icon and title; a tap expands the content and the widgets below move up. While expanded, the fold button sits in the chosen corner (frontend only).',
     'wf.edit.group.defaultCollapsedHint':
-        'The group initially shows only its header; clicking it expands the content (frontend only).',
+        'The group initially shows only its header; clicking it expands the content and the widgets below move up (frontend only).',
+    'wf.collapse.expand': 'Expand',
+    'wf.collapse.collapse': 'Collapse',
     'wf.edit.group.mobileKeepGrid': 'Keep grid layout on mobile',
     'wf.edit.group.mobileKeepGridHint':
         'By default widgets are stacked in a single column on mobile. When enabled, the side-by-side arrangement from the normal view is kept, just scaled down.',

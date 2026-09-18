@@ -7,7 +7,13 @@ import { guidelinesTopInset, insetKeyFor, readMeasuredInset, storeMeasuredInset 
 import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
 import { useIsProbe } from '../../utils/probeContext';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
-import { useGroupCollapseStore } from '../../store/groupCollapseStore';
+import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
+import {
+    collapsibleWidget,
+    collapsedRows,
+    isCollapsedNow,
+    COLLAPSED_HEADER_FALLBACK_PX,
+} from '../../utils/widgetCollapse';
 import { useIframeStore, type IframeFullscreenData } from '../../store/iframeStore';
 import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
 import { WidgetFullscreenOverlay } from './WidgetFullscreenOverlay';
@@ -104,10 +110,23 @@ export function Dashboard({
     const autoHeights = useAutoHeightStore((s) => s.heights);
     // Measured group header heights — see groupRows / GroupWidget.
     const groupHeaderHeights = useAutoHeightStore((s) => s.groupHeaders);
+    // Measured collapsed-header heights of folded non-group widgets (issue #676).
+    const collapsedHeaderHeights = useAutoHeightStore((s) => s.collapsedHeaders);
     const snapX = settings.gridSnapX ?? settings.gridRowHeight ?? 20;
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const groupDefs = useGroupDefsStore((s) => s.defs);
-    const groupCollapsed = useGroupCollapseStore((s) => s.collapsed);
+    const groupCollapsed = useWidgetCollapseStore((s) => s.collapsed);
+    /** A folded non-group widget (issue #676): its frame shows only the header row,
+     *  so the box shrinks to that row and the widgets below move up. Groups keep
+     *  their own collapse path (header measured by GroupWidget, see below). A
+     *  mirror decides by its OWN options — its frame draws the collapsed header. */
+    const frameCollapsedNow = useCallback(
+        (w: WidgetConfig, framingType: string) =>
+            framingType !== 'group' &&
+            collapsibleWidget(w.type, w.options as Record<string, unknown> | undefined, { editMode }) &&
+            isCollapsedNow(groupCollapsed, w.id),
+        [editMode, groupCollapsed],
+    );
     /** True for a group that actually holds children — i.e. one whose height is
      *  derived from its content instead of the stored gridPos.h. */
     const hasGroupChildren = useCallback(
@@ -585,6 +604,7 @@ export function Dashboard({
                                                             // grid needs a definite height (CustomGridView is height:100%);
                                                             // minimal/compact already center, so they keep a fixed height.
                                                             const autoHeight =
+                                                                frameCollapsedNow(w, ew.type) ||
                                                                 ew.type === 'group' ||
                                                                 ew.type === 'mediaplayer' ||
                                                                 (ew.type === 'weather' &&
@@ -919,6 +939,18 @@ export function Dashboard({
                                                     h = rows;
                                                     minH = Math.min(minH, h);
                                                 }
+                                            }
+                                            // Collapsed widget of any other type (issue #676, frontend only):
+                                            // fold the box down to the header row the frame draws. Last, so it
+                                            // wins over every content-derived height above.
+                                            if (frameCollapsedNow(w, gw.type)) {
+                                                h = collapsedRows(
+                                                    collapsedHeaderHeights[w.id] ?? COLLAPSED_HEADER_FALLBACK_PX,
+                                                    widgetPadding,
+                                                    cellSize,
+                                                    MARGIN,
+                                                );
+                                                minH = Math.min(minH, h);
                                             }
                                             return {
                                                 i: w.id,
