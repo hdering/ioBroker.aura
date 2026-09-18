@@ -25,6 +25,7 @@ const {
 const { createSecurityApi } = require('./lib/security/apiHandler');
 const { createIconCache } = require('./lib/iconCache');
 const { createConfigGuard, CONFIG_KEYS } = require('./lib/configGuard');
+const { runBackendCheck: buildBackendReport, resolveTarget, listBackends } = require('./lib/backendCheck');
 
 // ── Calendar fetch helper ────────────────────────────────────────────────────
 
@@ -542,48 +543,7 @@ function proxyWebSocket(req, socket, targetWsUrl, log, sendForwardedFor = true) 
     proxyReq.end();
 }
 
-// ── Socket.io backend auto-detection ────────────────────────────────────────
-
-const SOCKET_BACKEND_WILDCARDS = new Set(['0.0.0.0', '::', '::0', '']);
-
-function pickSocketBackend(objectsMap, socketPort) {
-    const fallback = { host: '127.0.0.1', secure: false, pureWs: false, source: null, found: false, conflicts: [] };
-    const port = Number(socketPort);
-    if (!Number.isFinite(port) || port <= 0) return fallback;
-    const candidates = [];
-    for (const [id, obj] of Object.entries(objectsMap || {})) {
-        const name = obj?.common?.name;
-        if (name !== 'web' && name !== 'socketio') continue;
-        if (!obj.common?.enabled) continue;
-        const native = obj.native || {};
-        if (Number(native.port) !== port) continue;
-        candidates.push({ id, native });
-    }
-    if (!candidates.length) return fallback;
-    candidates.sort((a, b) => a.id.localeCompare(b.id));
-    const pick = candidates[0];
-    const bind = String(pick.native.bind || '').trim();
-    const host = SOCKET_BACKEND_WILDCARDS.has(bind) ? '127.0.0.1' : bind;
-    const secure = !!pick.native.secure;
-    // Socket transport mode of the web/socketio instance:
-    //  - usePureWebSockets (@iobroker/ws): the client connects at the root path
-    //    (/?sid=) and the server only accepts the connection as a trusted session
-    //    when it appears to come from localhost. Forwarding X-Forwarded-For makes
-    //    the backend see the real remote IP, drop the trust, and log
-    //    "No sid found" on every keepalive ping — so we must NOT forward it.
-    //  - classic socket.io (default) / forceWebSockets: engine.io establishes the
-    //    session inline during the handshake, independent of the source IP, so
-    //    X-Forwarded-For is safe and gives honest backend logs.
-    const pureWs = !!pick.native.usePureWebSockets;
-    return {
-        host,
-        secure,
-        pureWs,
-        source: pick.id,
-        found: true,
-        conflicts: candidates.slice(1).map((c) => c.id),
-    };
-}
+// ── Socket.io backend address ──────────────────────────────────
 
 function formatHostPort(host, port) {
     return host && host.includes(':') ? `[${host}]:${port}` : `${host}:${port}`;
@@ -1030,15 +990,27 @@ class Aura extends utils.Adapter {
         }
     }
 
-    async resolveSocketBackend(socketPort) {
+    /**
+     * Which web/socketio instance aura proxies to. An instance picked in the
+     * configuration wins over the port — then port, bind address and the HTTPS
+     * flag come from the instance object instead of being typed a second time.
+     *
+     * @returns {Promise<object>} the target, see lib/backendCheck.resolveTarget
+     */
+    async resolveSocketBackend() {
         let objs;
         try {
             objs = await this.getForeignObjectsAsync('system.adapter.*', 'instance');
         } catch (e) {
             this.log.warn(`aura: socket backend auto-detect failed (${e.message}) — falling back to 127.0.0.1`);
-            return { host: '127.0.0.1', secure: false, source: null, found: false, conflicts: [] };
+            objs = {};
         }
-        return pickSocketBackend(objs, socketPort);
+        this._instanceObjects = objs;
+        return resolveTarget({
+            objects: objs,
+            socketPort: this.config.socketPort || 8082,
+            webInstance: this.config.webInstance,
+        });
     }
 
     // ── server-side PIN / admin security ────────────────────────────────────────
@@ -1201,13 +1173,164 @@ class Aura extends utils.Adapter {
         return true;
     }
 
+    /**
+     * One HTTP probe against the socket backend. Returns a verdict object rather
+     * than throwing, because "it refused the connection" is exactly the finding
+     * the check wants to report. See lib/backendCheck.
+     *
+     * @param {object} at `{ host, port, secure, path }`
+     * @returns {Promise<object>} `{ status, location, error }`
+     */
+    probeBackend(at) {
+        return new Promise((resolve) => {
+            let done = false;
+            const finish = (v) => {
+                if (!done) {
+                    done = true;
+                    resolve(v);
+                }
+            };
+            try {
+                const lib = at.secure ? https : http;
+                const req = lib.request(
+                    {
+                        hostname: at.host,
+                        port: at.port,
+                        path: at.path,
+                        method: 'GET',
+                        timeout: 4000,
+                        rejectUnauthorized: false,
+                        headers: { 'user-agent': 'aura-backend-check' },
+                    },
+                    (res) => {
+                        res.resume();
+                        finish({ status: res.statusCode || 0, location: res.headers?.location || '' });
+                    },
+                );
+                req.on('timeout', () => {
+                    req.destroy();
+                    finish({ status: 0, error: 'no answer within 4 s' });
+                });
+                req.on('error', (e) => finish({ status: 0, error: e.message }));
+                req.end();
+            } catch (e) {
+                finish({ status: 0, error: e.message });
+            }
+        });
+    }
+
+    /**
+     * Run the backend self-check and publish the verdict: the full report goes to
+     * `info.backendCheck` (and into the config dialog on demand), every finding
+     * that is not `ok` goes to the log with its hint. A misconfigured backend is
+     * the single most common cause of "aura does not work" reports, and until now
+     * it only ever produced one warn line nobody read.
+     *
+     * @param {object} [opts] options
+     * @param {boolean} [opts.quiet] do not log, only return (used by the config button)
+     * @returns {Promise<object>} the check result, see lib/backendCheck.runBackendCheck
+     */
+    async runBackendCheck(opts = {}) {
+        let objects = {};
+        try {
+            objects = await this.getForeignObjectsAsync('system.adapter.*', 'instance');
+        } catch (e) {
+            this.log.debug(`aura: backend check could not read the instances (${e.message})`);
+        }
+        const alive = {};
+        for (const id of Object.keys(objects)) {
+            const short = id.replace(/^system\.adapter\./, '');
+            const name = objects[id]?.common?.name;
+            if (name !== 'web' && name !== 'socketio') continue;
+            try {
+                const st = await this.getForeignStateAsync(`${id}.alive`);
+                if (st) alive[short] = !!st.val;
+            } catch {
+                /* alive stays unknown */
+            }
+        }
+        let version = '';
+        try {
+            version = require('./package.json').version;
+        } catch {
+            /* ignore */
+        }
+        const result = await buildBackendReport({
+            objects,
+            config: this.config,
+            alive,
+            server: {
+                port: this.config.port || 8095,
+                https: !!this._httpsActive,
+                httpsWanted: !!this.config.secure,
+                listening: !!this._httpServer?.listening,
+            },
+            probe: (at) => this.probeBackend(at),
+            meta: { version, checkedAt: new Date().toISOString().replace('T', ' ').slice(0, 19) },
+        });
+
+        try {
+            await this.setStateAsync('info.backendCheck', result.text, true);
+        } catch {
+            /* the state may not exist yet on a very old instance */
+        }
+        if (!opts.quiet) {
+            for (const f of result.findings) {
+                if (f.level === 'ok' || f.level === 'info') {
+                    this.log.debug(`aura: backend check — ${f.title}`);
+                    continue;
+                }
+                const line = `aura: backend check — ${f.title}${f.hint ? ` → ${f.hint}` : ''}`;
+                if (f.level === 'error') this.log.error(line);
+                else this.log.warn(line);
+            }
+            if (result.level === 'ok') this.log.info('aura: backend check passed');
+            else {
+                this.log.info(
+                    'aura: open the aura instance settings and press "Check backend" for the full report ' +
+                        `(also in ${this.namespace}.info.backendCheck)`,
+                );
+            }
+        }
+        return result;
+    }
+
+    /**
+     * The proxy's own experience of the backend. A 404 on `/webfs/...` means the
+     * instance behind the socket port does not serve what a widget asked for —
+     * exactly the case of #519, where the user saw "load error" and nothing else.
+     * Warned once per path prefix, and at most a handful of times, so a broken
+     * dashboard cannot flood the log.
+     *
+     * @param {string} backendPath the path as sent to the backend
+     * @param {number} status the status the backend answered with
+     * @param {string} hostPort the backend address, for the message
+     * @param {string} [error] transport error, when there was no answer at all
+     */
+    _noteBackendResponse(backendPath, status, hostPort, error) {
+        if (!error && (status < 400 || status === 401 || status === 403)) return;
+        this._backendNotices = this._backendNotices || new Set();
+        if (this._backendNotices.size >= 8) return;
+        const key = `${status}:${String(backendPath).split('/').slice(0, 3).join('/')}`;
+        if (this._backendNotices.has(key)) return;
+        this._backendNotices.add(key);
+        const what = error ? `could not be reached (${error})` : `answered ${status}`;
+        this.log.warn(
+            `aura: the backend at ${hostPort} ${what} for ${backendPath} — a widget asked for this file and ` +
+                'will show a load error. Check the web instance in the aura settings ("Check backend").',
+        );
+    }
+
     async startHttpServer() {
         const port = this.config.port || 8095;
-        const socketPort = this.config.socketPort || 8082;
         const useHttps = !!this.config.secure;
 
-        const backend = await this.resolveSocketBackend(socketPort);
+        const backend = await this.resolveSocketBackend();
+        this._socketTarget = backend;
         const socketHost = backend.host;
+        // A picked instance brings its own port; only the port mode falls back to
+        // the number in the configuration.
+        const socketPort = backend.port || this.config.socketPort || 8082;
         const socketSecure = backend.found ? backend.secure : !!this.config.socketSecure;
         const socketHostPort = formatHostPort(socketHost, socketPort);
         // Only forward X-Forwarded-For to the socket backend for engine.io modes
@@ -1215,18 +1338,18 @@ class Aura extends utils.Adapter {
         // For usePureWebSockets the backend relies on the connection looking like
         // localhost; forwarding the real IP breaks the session ("No sid found" on
         // every ping). When no backend was detected, stay conservative and don't
-        // forward (works for every mode, just logs localhost). See pickSocketBackend.
+        // forward (works for every mode, just logs localhost). See lib/backendCheck.
         const socketSendForwardedFor = backend.found && !backend.pureWs;
         if (backend.found) {
             const proto = socketSecure ? 'https' : 'http';
             const mode = backend.pureWs ? 'pure-ws (iobroker.ws)' : 'socket.io';
             const extra = backend.conflicts.length ? ` (other matches ignored: ${backend.conflicts.join(', ')})` : '';
             this.log.info(
-                `aura: socket.io backend ${proto}://${socketHostPort} (via ${backend.source}, ${mode}, X-Forwarded-For ${socketSendForwardedFor ? 'on' : 'off'})${extra}`,
+                `aura: socket.io backend ${proto}://${socketHostPort} (via ${backend.id}, ${mode}, X-Forwarded-For ${socketSendForwardedFor ? 'on' : 'off'})${extra}`,
             );
         } else {
             this.log.warn(
-                `aura: no enabled web/socketio instance found with port ${socketPort} — proxying to ${socketHostPort}`,
+                `aura: no enabled web/socketio instance found for ${backend.mode === 'instance' ? backend.wanted : `port ${socketPort}`} — proxying to ${socketHostPort}`,
             );
         }
 
@@ -1247,6 +1370,7 @@ class Aura extends utils.Adapter {
                     rejectUnauthorized: false,
                 },
                 (proxyRes) => {
+                    this._noteBackendResponse(backendPath, proxyRes.statusCode, socketHostPort);
                     res.writeHead(proxyRes.statusCode || 200, proxyRes.headers);
                     proxyRes.pipe(res, { end: true });
                 },
@@ -1259,6 +1383,7 @@ class Aura extends utils.Adapter {
                 }
             });
             proxyReq.on('error', (e) => {
+                this._noteBackendResponse(backendPath, 502, socketHostPort, e.message);
                 if (!res.headersSent) {
                     res.writeHead(502);
                     res.end(`Proxy error: ${e.message}`);
@@ -1725,6 +1850,9 @@ class Aura extends utils.Adapter {
         this._httpsActive = httpsActive;
         server.listen(port, () => {
             this.log.info(`aura: ${httpsActive ? 'HTTPS' : 'HTTP'} server listening on port ${port}`);
+            // A wrong socket port is the most common cause of "aura does not work":
+            // check it once, here, where the answer is still cheap to act on.
+            this.runBackendCheck().catch((e) => this.log.debug(`aura: backend check failed (${e.message})`));
             if (this.config.mcpEnabled) {
                 if (this.config.mcpToken) {
                     this.log.info(
@@ -4068,6 +4196,39 @@ class Aura extends utils.Adapter {
                         mcpDesktopConfig: blocks.desktop,
                     },
                     result: 'MCP token generated',
+                });
+                return;
+            }
+
+            // ── Backend self-check (config dialog) ────────────────────────────
+            // Fills the dropdown of web/socketio instances. The label carries the
+            // port, because that is the number people get wrong.
+            if (msg.command === 'listSocketBackends') {
+                let objects = {};
+                try {
+                    objects = await this.getForeignObjectsAsync('system.adapter.*', 'instance');
+                } catch {
+                    /* an empty list still leaves manual entry */
+                }
+                const options = listBackends(objects)
+                    .filter((c) => c.enabled)
+                    .map((c) => ({
+                        value: c.id,
+                        label: `${c.id} — port ${c.port}${c.secure ? ', HTTPS' : ''}`,
+                        description: c.kind === 'socketio' ? 'socketio: socket only, serves no files' : undefined,
+                    }));
+                reply([{ value: '', label: 'automatic (use the port below)' }, ...options]);
+                return;
+            }
+
+            // The "Check backend" button. Returns the report both as the button's
+            // own result and as a native field, so it stays readable (and
+            // copyable — for a forum post) after the snackbar is gone.
+            if (msg.command === 'checkBackend') {
+                const result = await this.runBackendCheck({ quiet: true });
+                reply({
+                    native: { backendCheckReport: result.text },
+                    result: result.level === 'ok' ? 'Backend OK' : 'See the report below',
                 });
                 return;
             }

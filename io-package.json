@@ -205,6 +205,8 @@
     "port": 8095,
     "socketPort": 8082,
     "socketSecure": false,
+    "webInstance": "",
+    "backendCheckReport": "",
     "socketUrl": "",
     "secure": false,
     "certPublic": "",
@@ -284,6 +286,19 @@
       "type": "state",
       "common": {
         "name": "Currently displayed tab",
+        "type": "string",
+        "role": "text",
+        "read": true,
+        "write": false,
+        "def": ""
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.backendCheck",
+      "type": "state",
+      "common": {
+        "name": "Result of the last backend check",
         "type": "string",
         "role": "text",
         "read": true,

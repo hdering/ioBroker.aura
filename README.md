@@ -28,13 +28,20 @@ Aura runs its **own web server** (frontend + built-in iframe proxy) and connects
 | Setting | Default | Meaning |
 |---------|---------|---------|
 | **Port** | `8095` | Port of Aura's HTTP server (frontend + iframe proxy) |
-| **ioBroker socket port** | `8082` | Port of the `iobroker.web` instance that provides the socket.io connection |
-| **Web adapter uses HTTPS** | off | Enable if that web instance runs HTTPS |
+| **web instance** | automatic | The `iobroker.web` instance to connect to. Pick one and its port, bind address and HTTPS setting are taken from it — the two fields below are then hidden |
+| **ioBroker socket port** | `8082` | Only in automatic mode: port of the `iobroker.web` instance that provides the socket.io connection |
+| **Web adapter uses HTTPS** | off | Only in automatic mode: enable if that web instance runs HTTPS |
 
 > **Requirement:** A running `iobroker.web` (or `iobroker.socketio`) instance must serve socket.io on
 > the configured socket port. The stock `web.0` with **socket.io = integrated** provides this on
 > port `8082` (the default). Aura auto-detects the matching instance and proxies the connection
 > internally, so no `/aura/` path or web extension is needed anymore.
+
+**If anything does not work — a blank dashboard, widgets with a load error, images that stay
+empty — press *Check backend* in the instance settings first.** It tests the instance, the
+socket connection and the file delivery live and says in plain words what is wrong; the report
+is meant to be pasted into a forum post or a GitHub issue. Aura runs the same check at every
+start and writes the result to the log and to `aura.0.info.backendCheck`.
 
 ### Step 4 – Open dashboard
 

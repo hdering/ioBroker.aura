@@ -72,6 +72,25 @@
       "lg": 4,
       "xl": 4
     },
+    "webInstance": {
+      "type": "selectSendTo",
+      "command": "listSocketBackends",
+      "manual": true,
+      "noTranslation": true,
+      "label": {
+        "en": "web instance",
+        "de": "web-Instanz"
+      },
+      "help": {
+        "en": "The iobroker.web instance aura talks to. Port, bind address and HTTPS are then taken from that instance — the fields below are no longer needed. \"automatic\" keeps the old behaviour and looks the instance up by the port below. The list is only filled while this instance runs.",
+        "de": "Die iobroker.web-Instanz, mit der aura spricht. Port, Bind-Adresse und HTTPS kommen dann aus dieser Instanz — die Felder darunter entfallen. „Automatisch“ behält das bisherige Verhalten bei und sucht die Instanz über den Port darunter. Die Liste wird nur gefüllt, solange diese Instanz läuft."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 4,
+      "lg": 4,
+      "xl": 4
+    },
     "socketPort": {
       "type": "number",
       "label": {
@@ -85,6 +104,7 @@
       "min": 1024,
       "max": 65535,
       "default": 8082,
+      "hidden": "!!data.webInstance",
       "xs": 12,
       "sm": 12,
       "md": 4,
@@ -101,11 +121,64 @@
         "en": "Enable if the iobroker.web instance at the socket port has HTTPS activated. Aura will then connect internally via wss/https (self-signed certificates are accepted).",
         "de": "Aktivieren wenn die iobroker.web-Instanz am Socket-Port HTTPS aktiviert hat. Aura verbindet dann intern über wss/https (selbstsignierte Zertifikate werden akzeptiert)."
       },
+      "hidden": "!!data.webInstance",
       "xs": 12,
       "sm": 12,
       "md": 4,
       "lg": 4,
       "xl": 4
+    },
+    "backendCheckHint": {
+      "type": "staticText",
+      "text": {
+        "en": "A wrong backend is the most common cause of \"aura does not work\": a blank dashboard, widgets with a load error, images that stay empty. The check below says in plain words what is wrong — and its report is what to paste into a forum post or a GitHub issue. Aura also runs it at every start and writes the result to the log and to info.backendCheck.",
+        "de": "Ein falsch eingestelltes Backend ist die häufigste Ursache für „aura geht nicht“: leeres Dashboard, Widgets mit Ladefehler, Bilder die leer bleiben. Die Prüfung unten sagt im Klartext, was nicht stimmt — und ihr Bericht ist genau das, was in einen Forumsbeitrag oder ein GitHub-Issue gehört. Aura führt sie außerdem bei jedem Start aus und schreibt das Ergebnis ins Log und nach info.backendCheck."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "backendCheckRun": {
+      "type": "sendTo",
+      "command": "checkBackend",
+      "label": {
+        "en": "Check backend",
+        "de": "Backend prüfen"
+      },
+      "variant": "contained",
+      "icon": "search",
+      "useNative": true,
+      "showProcess": true,
+      "timeout": 20000,
+      "help": {
+        "en": "Tests the instance, the socket connection and the file delivery live. The instance must be running.",
+        "de": "Prüft Instanz, Socket-Verbindung und Dateiauslieferung live. Die Instanz muss dafür laufen."
+      },
+      "xs": 12,
+      "sm": 12,
+      "md": 4,
+      "lg": 4,
+      "xl": 4
+    },
+    "backendCheckReport": {
+      "type": "text",
+      "readOnly": true,
+      "copyToClipboard": true,
+      "noClearButton": true,
+      "minRows": 6,
+      "maxRows": 24,
+      "label": {
+        "en": "Check report",
+        "de": "Prüfbericht"
+      },
+      "hidden": "!data.backendCheckReport",
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
     },
     "_tlsHeader": {
       "type": "header",
