@@ -507,7 +507,7 @@ export const en: Record<TranslationKey, string> = {
     'layouts.menuDesign': 'Section menu & header',
     'layouts.menuDesignHint': 'Visibility, position and elements of the left menu and the header.',
     'layouts.tabbarDesign': 'Tab bar',
-    'layouts.tabbarDesignHint': 'Position, style and alignment of this layout\'s tab bar.',
+    'layouts.tabbarDesignHint': "Position, style and alignment of this layout's tab bar.",
     'layouts.moreActions': 'More actions',
     'layouts.importShort': 'Import',
     'layouts.deleteLastHint': 'The last layout cannot be deleted',

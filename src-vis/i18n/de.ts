@@ -466,7 +466,8 @@ export const de = {
 
     // ── Layouts ───────────────────────────────────────────────────────────────────
     'layouts.title': 'Layouts',
-    'layouts.subtitle': 'Jedes Layout hat eigene Bereiche, Tabs und Widgets — ideal für verschiedene Tablets oder Räume.',
+    'layouts.subtitle':
+        'Jedes Layout hat eigene Bereiche, Tabs und Widgets — ideal für verschiedene Tablets oder Räume.',
 
     'layouts.newLayout': 'Neues Layout',
     'layouts.placeholder': 'Layout-Name, z.B. Schlafzimmer-Tablet',
