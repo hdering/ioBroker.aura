@@ -1,13 +1,13 @@
 # Session Context
 
-**Current Task**: Undo/Redo im Admin-Editor (Plan `C:\projects\plan-undo-redo-editor.md`, alle 4 Stufen fertig) plus Nachläufer „ungespeicherte Änderungen erreichen das Frontend“ — zuletzt a36e18c3: Frontend-Tab im selben Browser spiegelt Admin-Edits nicht mehr live (storage-Listener in App.tsx entfernt, Inbound-Vergleich über rememberRemoteRaw statt localStorage).
+**Current Task**: Layouts-Admin-Seite als Master-Detail umgebaut (Variante A aus `C:\projects\plan-layouts-redesign.md`) und Menü-Widget um Modus „Übersicht“ erweitert (#669); beides committed, www-Bundle noch NICHT neu gebaut.
 
 **Key Decisions**:
-- Verlauf = Store-Snapshots über `managedStorage.setItem` (`editHistory.ts`), IndexedDB-Persistenz, kein Command-Pattern; Verwerfen/Restore als Gruppen mit Inhaltsvergleich.
-- Frontend ist read-only (`setFrontendReadOnly`, `hydrateFromValue`); gespeicherte Änderungen kommen NUR über den Socket, nie über `storage`-Events; Speicher ist im Frontend kein Maßstab für „schon angezeigt“.
-- Kein Auto-Save beim Admin-Reload; Statuschip „aus der letzten Sitzung übernommen“.
+- Layouts-Seite: linke Baum-Leiste (geteilte `ScopeRow`) + Layout-/Bereichs-Detail, Auswahl in `?ctx=`, alter Editor-Deep-Link `?expand=` wird umgeschrieben; Tabs im Bereichs-Detail (Standard-Tab, Auge, Suche, Drag).
+- Menü-Widget `menuMode: overview` statt neuem Widget-Typ; Suche filtert statt hervorzuheben; Metrics bewusst ohne Messung (Höhe = Zahl der Tabs).
+- `tools/screenshots/demo-config.mjs` auf Bereiche migriert (war Vor-v3-Format und ließ den Admin abstürzen).
 
 **Next Steps**:
-- Nutzer-Feedback zum Live-Frontend-Fix abwarten (Testinstanz braucht das neue www-Bundle).
-- Offen: group-fit 63 vorbestehende Drifts („3 mixed heights“), Offline-Fails in messages.mjs / pin-editor-ui (brauchen Backend).
-- Bei neuen „Frontend zeigt Ungespeichertes“-Meldungen zuerst `npm run test:frontend-same-browser-ui` und `test:frontend-readonly` laufen lassen.
+- `npm run build` + Commit „chore(build): rebuild www frontend bundle“, sobald die parallele EChartWidget/chartLegend-Arbeit committed ist (Bundle enthielt sonst fremden Stand).
+- Feedback von Johannes zu #669 einholen (Screenshot `docs/widgets/assets/menue/mode-overview.png`).
+- Bei Layouts-Regressionen: `npm run test:admin-layouts-ui` und `npm run test:menu-overview` gegen einen Dev-Server auf 5199.
