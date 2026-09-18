@@ -14,6 +14,9 @@ export interface JsonColumnDef {
     label?: string; // display name override
     hidden?: boolean;
     html?: boolean; // render as HTML
+    /** Stretch the rendered HTML to the full column width (a top-level table/div/img/svg
+     *  gets width:100% instead of shrinking to its content, like ioBroker.vis does). */
+    htmlFill?: boolean;
     image?: boolean; // render as <img> (value = url, data: URI, or ioBroker path)
     imageSize?: number;
     /** Optional prefix prepended to relative image paths in this column.
@@ -621,6 +624,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                     )
                                                 ) : isHtml ? (
                                                     <span
+                                                        className={col.htmlFill ? 'aura-html-fill' : undefined}
                                                         dangerouslySetInnerHTML={{
                                                             __html: resolveHtmlAssets(decorated),
                                                         }}

@@ -61,6 +61,7 @@ Liste in `columns` (leer = alle Spalten automatisch aus den JSON-Daten). Pro Spa
 | `imageSize` | Bildgröße in px |
 | `imagePathPrefix` | Pfad-Präfix, überschreibt die globale Admin-URL |
 | `html` | Wert als HTML rendern |
+| `htmlFill` | HTML auf die Spaltenbreite strecken (äußerstes Element bekommt `width: 100%`) |
 | `iconify` | Iconify-Tokens (z. B. `mdi:home`) inline als Icon |
 
 ### Titel & Icon

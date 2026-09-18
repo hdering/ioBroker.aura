@@ -11,3 +11,4 @@
 - Chart (Advanced) - a legend that wraps onto several rows no longer covers the chart; the plot now starts below the last legend row (#673)
 - Select field - optional confirmation prompt before the picked entry is written to the datapoint, with a custom prompt text, like the input field already offers (#674)
 - Select field - the dropdown size (small / medium / large) and a fixed width are configurable, so a long entry no longer resizes the control and the touch target can be made bigger (#679)
+- JSON table - HTML columns can stretch their content to the column width, so a bar chart built from an HTML table fills the column like it does in vis instead of shrinking to a few pixels (#677)

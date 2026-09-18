@@ -612,6 +612,20 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                 </>
                             )}
                             {col.html && (
+                                <label
+                                    className="flex items-center gap-1.5 cursor-pointer"
+                                    title="Äußerstes Element des HTML auf die Spaltenbreite strecken (wie in ioBroker.vis)"
+                                >
+                                    <Toggle
+                                        value={col.htmlFill ?? false}
+                                        onToggle={() => updateCol(idx, { htmlFill: !(col.htmlFill ?? false) })}
+                                    />
+                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        Breite füllen
+                                    </span>
+                                </label>
+                            )}
+                            {col.html && (
                                 <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                                     Lokale Bilder in <code>{'<img>'}</code> via <code>aura-file:</code>-Präfix, z.B.{' '}
                                     <code>

@@ -4518,6 +4518,10 @@
           "type": "boolean",
           "description": "render as HTML"
         },
+        "htmlFill": {
+          "type": "boolean",
+          "description": "Stretch the rendered HTML to the full column width (a top-level table/div/img/svg gets width:100% instead of shrinking to its content, like ioBroker.vis does)."
+        },
         "image": {
           "type": "boolean",
           "description": "render as <img> (value = url, data: URI, or ioBroker path)"

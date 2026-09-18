@@ -791,6 +791,26 @@ input[type='range']::-moz-range-thumb {
     height: auto;
 }
 
+/* ── HTML cell stretched to the column width (issue #677) ─────────────────────
+   An HTML column normally shrinks to the content: a bar built from a <table>
+   with coloured cells comes out a few pixels wide, while ioBroker.vis paints it
+   across the whole column. With the column option "Breite füllen" the cell
+   content is handed the full column width — only the outermost element, so
+   nested markup keeps its own layout. */
+.aura-html-fill {
+    display: block;
+    width: 100%;
+}
+.aura-html-fill > table,
+.aura-html-fill > div,
+.aura-html-fill > img,
+.aura-html-fill > svg,
+.aura-html-fill > progress,
+.aura-html-fill > meter {
+    width: 100%;
+    max-width: 100%;
+}
+
 /* ── Navigation: evenly distributed entries (#661) ────────────────────────────
    Tab bar / section bar with alignment "stretch": every entry gets the same share
    of the row, so the active marker runs wider than the label. The row keeps its

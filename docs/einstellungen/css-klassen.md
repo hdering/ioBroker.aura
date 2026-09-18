@@ -119,6 +119,7 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-carousel-shake` | kurzer Anstoß beim Öffnen (Karussell) |
 | `.aura-map-pin` | Markierung im Karten-Widget |
 | `.aura-msg-html` | HTML-Inhalt einer Meldung (Titel und Text) |
+| `.aura-html-fill` | HTML-Zelle der JSON-Tabelle mit `Breite füllen` |
 
 ## Bedingungen
 
