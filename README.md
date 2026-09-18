@@ -115,6 +115,18 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.62.0 (2026-09-18)
+- 🌟 **New feature:** Layouts - the admin page is now a master-detail view like Frontend Design: a tree of layouts and sections on the left, the selected one on the right with labelled actions, a section list with default section and menu visibility, and a searchable tab list with default tab, hidden state and drag ordering
+- 🌟 **New feature:** Menu widget - new "Overview" mode lists every section of the layout with its tabs as clickable chips, generated from the layout itself, with optional search field, group titles, chip size and an "all layouts" source ([#669](https://github.com/hdering/ioBroker.aura/issues/669))
+- 🌟 **New feature:** Chart (Advanced) - a legend that wraps onto several rows no longer covers the chart; the plot now starts below the last legend row ([#673](https://github.com/hdering/ioBroker.aura/issues/673))
+- 🌟 **New feature:** Select field - optional confirmation prompt before the picked entry is written to the datapoint, with a custom prompt text, like the input field already offers ([#674](https://github.com/hdering/ioBroker.aura/issues/674))
+- 🌟 **New feature:** Select field - the dropdown size (small / medium / large) and a fixed width are configurable, so a long entry no longer resizes the control and the touch target can be made bigger ([#679](https://github.com/hdering/ioBroker.aura/issues/679))
+- JSON table - HTML columns can stretch their content to the column width, so a bar chart built from an HTML table fills the column like it does in vis instead of shrinking to a few pixels ([#677](https://github.com/hdering/ioBroker.aura/issues/677))
+- 🌟 **New feature:** Widgets - every widget can start collapsed: "Collapsed by default" (now in the Appearance section, moved there for the group as well) folds the card to a single row with icon and title, a tap expands it and the widgets below move up; while expanded a fold button sits in a configurable corner; optionally the editor shows the widget collapsed as well ([#676](https://github.com/hdering/ioBroker.aura/issues/676))
+- JSON table - a table row no longer reserves half a font size of unused height, so a one-line table fits a small card instead of having the bottom of its letters cut off ([#678](https://github.com/hdering/ioBroker.aura/issues/678))
+- 🌟 **New feature:** Fill level - optional datapoints for charging and connection: a bolt shows while the device charges, with an optional blinking or Knight-Rider effect on the fill, and a lost connection greys the widget out and shows its own icon; each datapoint can be read as a flag, an inverted flag (UNREACH) or a charge power ([#671](https://github.com/hdering/ioBroker.aura/issues/671))
+
+
 ### 0.61.0 (2026-09-17)
 - 🌟 **New feature:** Advanced chart - can start on the current calendar day (00:00-24:00) instead of the rolling range
 - 🌟 **New feature:** Editor - undo/redo for every edit: step-wise via Ctrl+Z / Ctrl+Y or the arrows in the save bar, also after saving; "Discard" reverts all unsaved changes and is itself undoable; the history menu in the save bar lists every step of the session by name plus the saved states from the auto-backups, restoring one writes a safety backup first and is a single undo step; the history survives a reload of the admin as long as nothing else changed the configuration in between. Unsaved changes are no longer saved automatically when the admin is reloaded but stay unsaved and are flagged as carried over from the last session; toggling a timer or an auto-list picking up new datapoints no longer saves the whole dashboard on its own either. Dropping a widget no longer re-renders every other widget on the tab, so releasing it no longer stutters on busy tabs, and the preview renders with the font scale of the layout being edited, so the admin shows what the frontend shows ([#668](https://github.com/hdering/ioBroker.aura/issues/668))
@@ -233,14 +245,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Lists, popups and messages - {{parent2}}, {{parent3}} ... address datapoints further up the tree, so a row can reach another channel of the same device (e.g. a HomeMatic maintenance channel); picking such a datapoint in the second-line template stores the pattern automatically ([#637](https://github.com/hdering/ioBroker.aura/issues/637))
 
 
-### 0.57.0 (2026-09-11)
-- 🌟 **New feature:** evcc - the widget is now called "Energiefluss (evcc)" and works far beyond evcc: the data source is a dropdown of the energy instances actually installed (evcc, SMA, Fronius, E3/DC, Kostal, SENEC, sonnen, Victron, Shelly and more) or "manual", picking a non-evcc one searches what that instance publishes and fills in the datapoints, and production and house consumption can now come from datapoints of your own just like grid and battery could, so with all five set the widget draws any PV system without an evcc instance; power datapoints in kW are converted automatically from the datapoint's own unit, a prefix can still be typed by hand and no longer snaps the old value back while you type, and a freshly added widget matches the text and icon size of every other widget and follows the global font scale instead of towering over them ([#629](https://github.com/hdering/ioBroker.aura/issues/629))
-- Date/time fields - no more double picker icon: where a browser insists on drawing its own clock, Aura no longer puts a second one next to it ([#633](https://github.com/hdering/ioBroker.aura/issues/633))
-- 🌟 **New feature:** Header, tab bar and section menu - the single clock and single datapoint slot became a list: add as many clocks, datapoints and texts as you like, left next to the title or on the right, with existing settings carried over automatically; a menu element can also be any widget, either a reference to one that already sits on a dashboard or an instance of its own, you pick which of the widget's layouts the menu draws (a fresh one starts on the densest, so a switch no longer towers over a 32px bar), and its conditions, badges and click actions work there just as they do on the dashboard ([#634](https://github.com/hdering/ioBroker.aura/issues/634))
-- 🌟 **New feature:** Conditions - the AND/OR between two clauses can now be set per row instead of for the whole rule, and clauses can be bracketed; a preview line spells out what the rule reads as ([#635](https://github.com/hdering/ioBroker.aura/issues/635))
-- Icons - widget, tab and list icons are now delivered by Aura itself instead of the public Iconify servers, so they also show up in Samsung Internet, Opera, Fully Kiosk and other browsers that block those hosts, and on a tablet with no internet; the icon search in the editor takes the same route ([#636](https://github.com/hdering/ioBroker.aura/issues/636))
-
-
 ## License
 
 MIT License
@@ -252,6 +256,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
