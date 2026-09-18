@@ -1031,6 +1031,50 @@
           }
         }
       ]
+    },
+    {
+      "id": "akku-status",
+      "title": "Akku mit Lade- und Verbindungsanzeige",
+      "when": "Ein Gerät meldet neben dem Ladestand auch, ob es gerade lädt und ob es erreichbar ist — Handy, HmIP-Sensor, PV-Speicher.",
+      "instead": "einer Füllstandsanzeige in einer transparenten Gruppe, daneben zwei weitere Kacheln für Laden und Verbindung",
+      "notes": [
+        "chargeDatapoint und connectedDatapoint werden nur gelesen. Leeres Feld = die Anzeige bleibt genau wie vorher.",
+        "chargeCondition sagt, was der Wert bedeutet: true für ein Flag, gt0 für eine Ladeleistung, lt0 für eine Einspeisung.",
+        "Ein UNREACH-Datenpunkt meldet die Störung, nicht die Verbindung — dort connectedCondition auf \"false\" setzen, sonst steht das Gerät dauerhaft auf getrennt.",
+        "chargeEffect \"blink\" lässt die Füllung pulsieren, \"scan\" schickt ein Lauflicht über den gefüllten Teil; das Blitz-Icon zeigt den Zustand auch ohne Effekt.",
+        "Ohne Wert gilt ein Datenpunkt weder als ladend noch als getrennt — nach einem Reload graut nichts aus, bevor die Werte da sind."
+      ],
+      "widgets": [
+        {
+          "id": "w-akku",
+          "type": "fill",
+          "title": "Handy-Akku",
+          "datapoint": "%dp.akku.ladestand%",
+          "layout": "battery",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 4,
+            "h": 8
+          },
+          "options": {
+            "unit": "%",
+            "decimals": 0,
+            "minValue": 0,
+            "maxValue": 100,
+            "orientation": "vertical",
+            "showValue": true,
+            "chargeDatapoint": "%dp.akku.laedt%",
+            "chargeCondition": "true",
+            "chargeEffect": "blink",
+            "showChargeIcon": true,
+            "connectedDatapoint": "%dp.akku.unreach%",
+            "connectedCondition": "false",
+            "showOfflineIcon": true,
+            "offlineDim": true
+          }
+        }
+      ]
     }
   ]
 }
