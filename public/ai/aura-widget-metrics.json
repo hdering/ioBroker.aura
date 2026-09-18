@@ -648,8 +648,8 @@
     },
     "jsontable": {
       "item": "Tabellenzeile",
-      "basePx": 86,
-      "perItemPx": 27,
+      "basePx": 82,
+      "perItemPx": 23,
       "fontScalePx": {
         "basePx": 6.7,
         "perItemPx": 0
@@ -658,15 +658,15 @@
       "measured": [
         {
           "n": 2,
-          "px": 140
+          "px": 128
         },
         {
           "n": 4,
-          "px": 194
+          "px": 174
         },
         {
           "n": 8,
-          "px": 302
+          "px": 266
         }
       ]
     },
@@ -1059,8 +1059,8 @@
       "atWidthPx": 200
     },
     "jsontable": {
-      "minPx": 302,
-      "minRowsDefaultGrid": 11,
+      "minPx": 266,
+      "minRowsDefaultGrid": 10,
       "fontScalePx": 6.7,
       "atWidthPx": 240
     },

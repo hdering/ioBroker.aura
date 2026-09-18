@@ -108,6 +108,7 @@
     "test:enum-confirm": "node tools/tests/enum-confirm.mjs",
     "test:enum-select-size": "node tools/tests/enum-select-size.mjs",
     "test:jsontable-fill": "node tools/tests/jsontable-html-fill.mjs",
+    "test:jsontable-rows": "node tools/tests/jsontable-row-height.mjs",
     "test:apple-keys": "node tools/tests/apple-shortcut-keys.mjs",
     "test:aircontrol-daikin": "node tools/tests/aircontrol-daikin.mjs",
     "test:cell-bar-color": "node tools/tests/cell-bar-color.mjs",

@@ -350,7 +350,12 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     ]);
 
     const fs = fontSize;
-    const pad = `${Math.round(fs * 0.35)}px ${Math.round(fs * 0.6)}px`;
+    // Vertical cell padding follows the font size. Together with the `normal` line
+    // height on the table a row now reserves about 1.85 × fontSize instead of 2.3 ×
+    // for a line of text that is 1.35 × tall — the dead height is what made a single
+    // 16 px row need a 37 px content box, more than a small tile has, and the card's
+    // scroller then cut the letters in half (#678).
+    const pad = `${Math.round(fs * 0.25)}px ${Math.round(fs * 0.6)}px`;
 
     if (!config.datapoint) {
         return (
@@ -483,7 +488,15 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
 
             {/* Table */}
             <div className={autoHeight ? 'overflow-x-auto min-w-0' : 'flex-1 overflow-auto min-h-0 min-w-0'}>
-                <table className="border-collapse" style={{ fontSize: fs, width: '100%', tableLayout: 'auto' }}>
+                {/* `lineHeight: normal` instead of the document's 1.5: half a font size of
+                    leading per row is what a paragraph needs, not a table of one-line cells,
+                    and the cell clips its own overflow — an inherited ABSOLUTE leading (any
+                    ancestor with a Tailwind `text-*` class) would cut the descenders off
+                    instead of following the configured font size (#678). */}
+                <table
+                    className="border-collapse"
+                    style={{ fontSize: fs, lineHeight: 'normal', width: '100%', tableLayout: 'auto' }}
+                >
                     {showHeader && columns.length > 0 && (
                         <thead>
                             <tr>
@@ -496,7 +509,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                             onClick={sortable ? () => toggleSort(col.key) : undefined}
                                             className="whitespace-nowrap sticky top-0"
                                             style={{
-                                                padding: `${Math.round(fs * 0.4)}px ${Math.round(fs * 0.6)}px`,
+                                                padding: `${Math.round(fs * 0.3)}px ${Math.round(fs * 0.6)}px`,
                                                 textAlign: align,
                                                 width: col.width && col.width > 0 ? col.width : undefined,
                                                 cursor: sortable ? 'pointer' : undefined,
