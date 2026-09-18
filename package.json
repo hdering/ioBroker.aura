@@ -191,6 +191,7 @@
     "test:thermo-dial": "node tools/tests/thermostat-dial.mjs",
     "test:chart-series-modal": "node tools/tests/chart-series-modal.mjs",
     "test:chart-json-labels": "node tools/tests/chart-json-time-labels.mjs",
+    "test:chart-legend": "node tools/tests/chart-legend-rows.mjs",
     "test:energy-bar": "node tools/tests/energy-balance-bar.mjs",
     "test:energy-counter": "node tools/tests/energy-counter-increase.mjs",
     "test:map-style": "node tools/tests/map-style-chips.mjs",

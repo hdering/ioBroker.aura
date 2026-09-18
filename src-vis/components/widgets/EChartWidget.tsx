@@ -38,6 +38,7 @@ import {
 import { openNativePicker } from '../common/DateTimeInput';
 import { transformSign } from '../../utils/valueTransform';
 import { axisIsZeroBased, gridLineAxis } from '../../utils/chartAxis';
+import { legendGridTop, LEGEND_TOP } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 
@@ -382,6 +383,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const chartRef = useRef<any>(null);
     const [hasSize, setHasSize] = useState(false);
+    // The legend wraps at the chart's width, so the grid can only clear it once we know that width.
+    const [chartWidth, setChartWidth] = useState(0);
     // Single ResizeObserver handles both initial sizing and tab-switch resize.
     // Avoids the two-effect race where the first effect returns early on visible
     // mount and the second effect never fires when switching to a hidden tab.
@@ -393,6 +396,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             const h = containerRef.current?.clientHeight ?? 0;
             if (w > 0 && h > 0) {
                 setHasSize(true);
+                setChartWidth(w);
                 chartRef.current?.getEchartsInstance?.()?.resize?.();
             }
         };
@@ -925,6 +929,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             .filter((c) => c.value !== null);
         const showJsonCurrent = echartShowCurrent && jsonCurrentValues.length > 0;
 
+        const jsonLegendNames = jsonSeriesList.map((ser) => String(ser.name ?? ''));
+
         const jsonOption: Record<string, unknown> = {
             backgroundColor: 'transparent',
             animation: echartAnimation,
@@ -965,12 +971,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 },
             },
             legend: echartShowLegend
-                ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: 4 }
+                ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: LEGEND_TOP }
                 : { show: false },
             grid: {
                 left: AXIS_GAP,
                 right: AXIS_GAP,
-                top: echartShowLegend ? 30 : AXIS_GAP_V,
+                top: echartShowLegend ? legendGridTop(jsonLegendNames, chartWidth, AXIS_GAP_V) : AXIS_GAP_V,
                 bottom: AXIS_GAP_V,
                 containLabel: true,
             },
@@ -1146,6 +1152,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         };
     });
 
+    const legendNames = seriesList.map((ser) => String(ser.name ?? ''));
+
     const option: Record<string, unknown> = {
         backgroundColor: 'transparent',
         animation: echartAnimation,
@@ -1215,12 +1223,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             },
         },
         legend: echartShowLegend
-            ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: 4 }
+            ? { show: true, textStyle: { color: onCanvasMuted, fontSize: 11 }, top: LEGEND_TOP }
             : { show: false },
         grid: {
             left: AXIS_GAP,
             right: AXIS_GAP,
-            top: echartShowLegend ? 30 : AXIS_GAP_V,
+            top: echartShowLegend ? legendGridTop(legendNames, chartWidth, AXIS_GAP_V) : AXIS_GAP_V,
             bottom: AXIS_GAP_V,
             containLabel: true,
         },
