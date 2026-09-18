@@ -618,6 +618,36 @@ const MIME_TYPES = {
     '.zip': 'application/zip',
 };
 
+/**
+ * `/adapter/<name>/<file>` is the ioBroker web adapter's mapping onto the file
+ * storage of `<name>.admin` — that is where adapters keep the graphics they
+ * publish as relative paths in states (pirate-weather's weather icons are the
+ * common case). Aura can read that storage itself, so such a request never has
+ * to depend on which instance sits behind the configured socket port: a
+ * `socketio` instance, or a `web` instance on a different port than the one
+ * configured, answers 404 for adapter files and the image stays blank. (#519)
+ *
+ * Returns `{ adapter, file }` for a servable path, `null` for anything else —
+ * traversal segments and encoded NULs are rejected rather than sanitised.
+ *
+ * @param {string} p path below `/webfs`, still percent-encoded
+ * @returns {{adapter: string, file: string}|null} the adapter and the file below its `.admin` storage, or null
+ */
+function parseAdapterAssetPath(p) {
+    const m = /^\/adapter\/([A-Za-z0-9][A-Za-z0-9._-]*)\/(.+)$/.exec(p);
+    if (!m) return null;
+    let file;
+    try {
+        file = decodeURIComponent(m[2]);
+    } catch {
+        return null;
+    }
+    if (file.includes('\0') || file.includes('\\')) return null;
+    const parts = file.split('/');
+    if (parts.some((s) => s === '' || s === '.' || s === '..')) return null;
+    return { adapter: m[1], file };
+}
+
 const WWW_DIR = path.join(__dirname, 'www');
 
 function serveStatic(pathname, res, host, isSecure, socketUrlOverride, namespace) {
@@ -1128,6 +1158,38 @@ class Aura extends utils.Adapter {
         return this._securityApi.handle(req, res, parsedUrl);
     }
 
+    /**
+     * Answer `/webfs/adapter/<name>/<file>` straight from the ioBroker file
+     * storage (`<name>.admin`) instead of proxying it to the web adapter. See
+     * parseAdapterAssetPath for why. Resolves `false` when the file is not
+     * there, so the caller can still fall back to the proxy — the web adapter
+     * may know paths aura does not (custom routes, other file roots).
+     *
+     * @param {{adapter: string, file: string}} asset parsed request path
+     * @param {import('node:http').ServerResponse} res response to write to
+     * @returns {Promise<boolean>} true when the response was written
+     */
+    async serveAdapterAsset(asset, res) {
+        let data;
+        let mime;
+        try {
+            const raw = await this.readFileAsync(`${asset.adapter}.admin`, asset.file);
+            // adapter-core resolves either { file, mimeType } or [ data, mimeType ]
+            if (Array.isArray(raw)) [data, mime] = raw;
+            else if (raw && typeof raw === 'object') ({ file: data, mimeType: mime } = raw);
+            else data = raw;
+        } catch {
+            return false;
+        }
+        if (data === undefined || data === null) return false;
+        const body = Buffer.isBuffer(data) ? data : Buffer.from(String(data));
+        if (!body.length) return false;
+        const ct = MIME_TYPES[path.extname(asset.file).toLowerCase()] || mime || 'application/octet-stream';
+        res.writeHead(200, { 'Content-Type': ct, 'Cache-Control': 'max-age=30' });
+        res.end(body);
+        return true;
+    }
+
     async startHttpServer() {
         const port = this.config.port || 8095;
         const socketPort = this.config.socketPort || 8082;
@@ -1156,6 +1218,43 @@ class Aura extends utils.Adapter {
                 `aura: no enabled web/socketio instance found with port ${socketPort} — proxying to ${socketHostPort}`,
             );
         }
+
+        // Pipe a request through to the socket backend (the ioBroker web adapter)
+        // — cookies and all, so authenticated web instances keep working.
+        const proxyToWebBackend = (req, res, backendPath) => {
+            const socketLib = socketSecure ? https : http;
+            const fwdHeaders = { ...req.headers, host: socketHostPort };
+            if (socketSendForwardedFor) applyForwardedHeaders(fwdHeaders, req);
+            const proxyReq = socketLib.request(
+                {
+                    hostname: socketHost,
+                    port: socketPort,
+                    path: backendPath,
+                    method: req.method,
+                    headers: fwdHeaders,
+                    timeout: 30000,
+                    rejectUnauthorized: false,
+                },
+                (proxyRes) => {
+                    res.writeHead(proxyRes.statusCode || 200, proxyRes.headers);
+                    proxyRes.pipe(res, { end: true });
+                },
+            );
+            proxyReq.on('timeout', () => {
+                proxyReq.destroy();
+                if (!res.headersSent) {
+                    res.writeHead(504);
+                    res.end('Proxy timeout');
+                }
+            });
+            proxyReq.on('error', (e) => {
+                if (!res.headersSent) {
+                    res.writeHead(502);
+                    res.end(`Proxy error: ${e.message}`);
+                }
+            });
+            req.pipe(proxyReq, { end: true });
+        };
 
         // ── File-system helpers ──────────────────────────────────────────────────
         const fsRootsConfig = Array.isArray(this.config.fsRoots)
@@ -1451,50 +1550,35 @@ class Aura extends utils.Adapter {
                 return;
             }
 
-            // `/webfs/<path>` transparently forwards to the ioBroker web adapter
-            // backend (the socket backend, default :8082). Adapters like sonos serve
-            // assets (e.g. album art `sonos/coverImage/<ip>.png`) as relative paths
-            // that only exist on the web adapter, NOT on aura's own server. Widgets
-            // resolve such relative image DPs to `/webfs/...` so the browser hits
-            // aura's origin, and aura pipes it through to the web adapter — cookies
-            // and all, so authenticated web instances keep working.
+            // `/webfs/<path>` serves paths that exist on the ioBroker web adapter
+            // but not on aura's own server. Adapters publish assets as relative
+            // paths — sonos album art (`sonos/coverImage/<ip>.png`), pirate-weather
+            // icons (`/adapter/pirate-weather/icons/…`) — so widgets resolve such
+            // image DPs to `/webfs/…`, hitting aura's origin. `/adapter/<name>/…`
+            // is answered from the file storage directly (see serveAdapterAsset),
+            // everything else is piped to the socket backend (default :8082).
             const webAdapterPrefixes = ['/socket.io', '/echarts', '/lib'];
             const isWebFs = pathname === '/webfs' || pathname.startsWith('/webfs/');
             if (isWebFs || webAdapterPrefixes.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
-                const socketLib = socketSecure ? https : http;
-                const fwdHeaders = { ...req.headers, host: socketHostPort };
-                if (socketSendForwardedFor) applyForwardedHeaders(fwdHeaders, req);
                 // Strip the `/webfs` prefix so the backend receives the real web path.
                 const backendPath = isWebFs ? req.url.slice('/webfs'.length) || '/' : req.url;
-                const proxyReq = socketLib.request(
-                    {
-                        hostname: socketHost,
-                        port: socketPort,
-                        path: backendPath,
-                        method: req.method,
-                        headers: fwdHeaders,
-                        timeout: 30000,
-                        rejectUnauthorized: false,
-                    },
-                    (proxyRes) => {
-                        res.writeHead(proxyRes.statusCode || 200, proxyRes.headers);
-                        proxyRes.pipe(res, { end: true });
-                    },
-                );
-                proxyReq.on('timeout', () => {
-                    proxyReq.destroy();
-                    if (!res.headersSent) {
-                        res.writeHead(504);
-                        res.end('Proxy timeout');
-                    }
-                });
-                proxyReq.on('error', (e) => {
-                    if (!res.headersSent) {
-                        res.writeHead(502);
-                        res.end(`Proxy error: ${e.message}`);
-                    }
-                });
-                req.pipe(proxyReq, { end: true });
+                // Adapter assets live in the objects DB, which aura can read on its
+                // own — no detour over the web adapter, and no dependency on the
+                // configured socket port pointing at a file-serving instance (#519).
+                const asset =
+                    isWebFs && req.method === 'GET' ? parseAdapterAssetPath(pathname.slice('/webfs'.length)) : null;
+                if (asset) {
+                    const fallback = () => {
+                        if (!res.headersSent) proxyToWebBackend(req, res, backendPath);
+                    };
+                    this.serveAdapterAsset(asset, res)
+                        .then((served) => {
+                            if (!served) fallback();
+                        })
+                        .catch(() => fallback());
+                    return;
+                }
+                proxyToWebBackend(req, res, backendPath);
                 return;
             }
 
@@ -4327,6 +4411,8 @@ class Aura extends utils.Adapter {
 if (require.main !== module) {
     module.exports = (options) => new Aura(options);
     module.exports.sanitizeClientId = sanitizeClientId;
+    module.exports.parseAdapterAssetPath = parseAdapterAssetPath;
+    module.exports.Aura = Aura;
 } else {
     new Aura();
 }
