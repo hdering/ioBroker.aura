@@ -146,3 +146,34 @@ Der Füllstand begrenzt auf `maxValue` — voll und übergelaufen sehen gleich a
 | `overColor` | `#ef4444` | Warnfarbe der Füllung |
 
 Verglichen wird der **ungekappte** Wert, sonst wäre ein Überlauf nicht von „genau voll" zu unterscheiden.
+
+### Status: Laden und Verbindung
+
+Zwei optionale Datenpunkte neben dem Füllstand — beide werden nur gelesen. Leeres Feld = kein Status.
+Im Custom-Layout gibt es keine Statusanzeige.
+
+| Laden aktiv | Verbindung getrennt |
+| --- | --- |
+| ![](./assets/fuellstandsanzeige/status-laden.png) | ![](./assets/fuellstandsanzeige/status-getrennt.png) |
+
+| Option | Standard | |
+| --- | --- | --- |
+| `chargeDatapoint` | — | Datenpunkt „lädt gerade" (HmIP-Flag, Ladeschale, PV-Ladeleistung) |
+| `chargeCondition` | `true` | `true` (wahr/1) · `false` (falsch/0) · `gt0` · `lt0` |
+| `chargeEffect` | `none` | `none` · `blink` (Füllung pulsiert) · `scan` (Lauflicht über den gefüllten Teil) |
+| `showChargeIcon` | `true` | Icon unten rechts im Balken |
+| `chargeIcon` | `mdi:flash` | frei wählbar (Icon-Auswahl im Editor) |
+| `chargeColor` | `#22c55e` | Farbe von Blitz-Icon und Lauflicht |
+| `connectedDatapoint` | — | Datenpunkt der Verbindung |
+| `connectedCondition` | `true` | wie oben; für `UNREACH` gilt `false` = verbunden |
+| `showOfflineIcon` | `true` | Icon bei fehlender Verbindung |
+| `offlineIcon` | `mdi:wifi-off` | frei wählbar (Icon-Auswahl im Editor) |
+| `offlineColor` | `#ef4444` | Farbe dieses Icons |
+| `offlineDim` | `true` | Anzeige ausgrauen; das Icon bleibt farbig |
+
+::: tip Ladeleistung statt Flag
+`gt0` macht aus einer Lade-/Entladeleistung ein Ladesignal, `lt0` aus einer Einspeisung. Ein Datenpunkt ohne
+Wert gilt nie als „lädt" und nie als „getrennt" — nach einem Reload graut also nichts aus, bevor die Werte da sind.
+:::
+
+Beide Effekte pausieren, wenn das Betriebssystem reduzierte Bewegung meldet.

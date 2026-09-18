@@ -6,6 +6,8 @@ import { useTemplateValues } from '../../hooks/useTemplateValues';
 import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { FillLimits } from './FillLimits';
+import { FillStatusLayer } from './FillStatus';
+import { resolveFillStatus, type FillCondition, type FillChargeEffect } from '../../utils/fillStatus';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -28,6 +30,9 @@ export interface ColorZone {
 
 /** Default warning colour once the value hits `overThreshold` (#607). */
 export const OVER_COLOR = '#ef4444';
+/** Default colours of the status badges (#671). */
+export const CHARGE_COLOR = '#22c55e';
+export const OFFLINE_COLOR = '#ef4444';
 
 type Orientation = 'vertical' | 'horizontal';
 
@@ -606,6 +611,9 @@ function SegmentsViz({
                             rx={3}
                             fill={color ?? 'var(--app-border)'}
                             opacity={color ? 1 : 0.25}
+                            // A lit segment is this layout's fill — the charging blink
+                            // reaches it through exactly this marker (#671).
+                            {...(color ? { 'data-aura-fill-level': '' } : null)}
                         />
                     );
                 })}
@@ -650,6 +658,7 @@ function SegmentsViz({
                         rx={3}
                         fill={color ?? 'var(--app-border)'}
                         opacity={color ? 1 : 0.25}
+                        {...(color ? { 'data-aura-fill-level': '' } : null)}
                     />
                 );
             })}
@@ -745,7 +754,7 @@ function WaveViz({
             {/* Animated wave fill */}
             {pct > 0 && (
                 <g clipPath={`url(#${clipId})`}>
-                    <path d={wavePath} fill={waveColor} opacity={0.85}>
+                    <path d={wavePath} fill={waveColor} opacity={0.85} data-aura-fill-level="">
                         <animateTransform
                             attributeName="transform"
                             type="translate"
@@ -1392,6 +1401,54 @@ export function FillWidget({ config }: WidgetProps) {
         writeLimit(id, at);
     };
 
+    // ── Status datapoints (#671) ───────────────────────────────────────────────
+    // Two optional flags next to the level: "is it charging" and "is it still
+    // reachable" — an HmIP battery brings both, a PV storage brings a charge power.
+    // Both are read-only, and an unconfigured datapoint leaves the widget untouched.
+    const chargeDp = ((opts.chargeDatapoint as string) ?? '').trim();
+    const connectedDp = ((opts.connectedDatapoint as string) ?? '').trim();
+    const { value: chargeVal } = useDatapoint(chargeDp);
+    const { value: connectedVal } = useDatapoint(connectedDp);
+    const status = resolveFillStatus(
+        {
+            chargeDatapoint: chargeDp,
+            chargeCondition: opts.chargeCondition as FillCondition | undefined,
+            chargeEffect: opts.chargeEffect as FillChargeEffect | undefined,
+            connectedDatapoint: connectedDp,
+            connectedCondition: opts.connectedCondition as FillCondition | undefined,
+        },
+        { [chargeDp]: chargeVal, [connectedDp]: connectedVal },
+    );
+    const chargeColor = (opts.chargeColor as string) || CHARGE_COLOR;
+    const offlineColor = (opts.offlineColor as string) || OFFLINE_COLOR;
+    const dimOffline = status.offline && opts.offlineDim !== false;
+    /**
+     * Effect and dimming ride on the host as CSS classes, not as inline styles: blinking
+     * belongs to the fill (`[data-aura-fill-level]`, which every renderer marks) and the
+     * dimming has to spare the badges — both are one selector in index.css and zero
+     * changes in the five renderers.
+     */
+    const hostClass =
+        [status.effect === 'blink' ? 'aura-fill-blink' : '', dimOffline ? 'aura-fill-offline' : '']
+            .filter(Boolean)
+            .join(' ') || undefined;
+    /** The status layer, mounted in the same wrapper as the limits. */
+    const statusLayerFor = (ref: RefObject<Element> | null) => (
+        <FillStatusLayer
+            hostRef={hostRef}
+            trackRef={ref}
+            orientation={orientation}
+            fillFrac={pct / 100}
+            status={status}
+            showChargeIcon={opts.showChargeIcon !== false}
+            showOfflineIcon={opts.showOfflineIcon !== false}
+            chargeIcon={opts.chargeIcon as string | undefined}
+            offlineIcon={opts.offlineIcon as string | undefined}
+            chargeColor={chargeColor}
+            offlineColor={offlineColor}
+        />
+    );
+
     const layout = (config.layout ?? 'default') as string;
     /** The limits layer, mounted inside the (relative) bar wrapper of each layout. */
     const limitsLayerFor = (ref: RefObject<Element>) =>
@@ -1481,6 +1538,7 @@ export function FillWidget({ config }: WidgetProps) {
                 >
                     <div
                         ref={hostRef}
+                        className={hostClass}
                         style={
                             orientation === 'vertical'
                                 ? { width: `${barSize}%`, height: '100%', position: 'relative' }
@@ -1510,6 +1568,7 @@ export function FillWidget({ config }: WidgetProps) {
                             solid={solid}
                         />
                         {limitsLayer}
+                        {statusLayerFor(trackRef)}
                     </div>
                 </div>
             </div>
@@ -1543,7 +1602,9 @@ export function FillWidget({ config }: WidgetProps) {
                 )}
                 <div
                     ref={hostRef}
-                    className="aura-widget-value flex-1 flex items-center justify-center min-h-0 min-w-0"
+                    className={`aura-widget-value flex-1 flex items-center justify-center min-h-0 min-w-0${
+                        hostClass ? ` ${hostClass}` : ''
+                    }`}
                     style={{ position: 'relative' }}
                 >
                     <div style={orientation === 'vertical' ? { height: '100%' } : { width: '100%' }}>
@@ -1566,6 +1627,7 @@ export function FillWidget({ config }: WidgetProps) {
                         />
                     </div>
                     {limitsLayerFor(barRef)}
+                    {statusLayerFor(barRef)}
                 </div>
             </div>
         );
@@ -1598,10 +1660,12 @@ export function FillWidget({ config }: WidgetProps) {
                 )}
                 <div className="aura-widget-value flex-1 flex items-center justify-center min-h-0 min-w-0">
                     <div
+                        ref={hostRef}
+                        className={hostClass}
                         style={
                             orientation === 'vertical'
-                                ? { width: `${barSize}%`, height: '100%' }
-                                : { width: '100%', height: `${barSize}%` }
+                                ? { width: `${barSize}%`, height: '100%', position: 'relative' }
+                                : { width: '100%', height: `${barSize}%`, position: 'relative' }
                         }
                     >
                         <SegmentsViz
@@ -1618,6 +1682,8 @@ export function FillWidget({ config }: WidgetProps) {
                             showValue={showValue}
                             orientation={orientation}
                         />
+                        {/* No continuous bar to measure — the badges hang on the whole block. */}
+                        {statusLayerFor(null)}
                     </div>
                 </div>
             </div>
@@ -1651,10 +1717,12 @@ export function FillWidget({ config }: WidgetProps) {
                 )}
                 <div className="aura-widget-value flex-1 flex items-center justify-center min-h-0 min-w-0">
                     <div
+                        ref={hostRef}
+                        className={hostClass}
                         style={
                             orientation === 'vertical'
-                                ? { width: `${barSize}%`, height: '100%' }
-                                : { width: '100%', height: `${barSize}%` }
+                                ? { width: `${barSize}%`, height: '100%', position: 'relative' }
+                                : { width: '100%', height: `${barSize}%`, position: 'relative' }
                         }
                     >
                         <WaveViz
@@ -1667,6 +1735,7 @@ export function FillWidget({ config }: WidgetProps) {
                             showValue={showValue}
                             uid={uid}
                         />
+                        {statusLayerFor(null)}
                     </div>
                 </div>
             </div>
@@ -1735,14 +1804,24 @@ export function FillWidget({ config }: WidgetProps) {
             )}
             <div className="flex-1 flex items-center justify-center min-h-0 min-w-0">
                 {orientation === 'vertical' ? (
-                    <div ref={hostRef} style={{ width: `${barSize}%`, height: '100%', position: 'relative' }}>
+                    <div
+                        ref={hostRef}
+                        className={hostClass}
+                        style={{ width: `${barSize}%`, height: '100%', position: 'relative' }}
+                    >
                         <TankVertical {...tankProps} />
                         {limitsLayer}
+                        {statusLayerFor(trackRef)}
                     </div>
                 ) : (
-                    <div ref={hostRef} style={{ width: '100%', height: `${barSize}%`, position: 'relative' }}>
+                    <div
+                        ref={hostRef}
+                        className={hostClass}
+                        style={{ width: '100%', height: `${barSize}%`, position: 'relative' }}
+                    >
                         <TankHorizontal {...tankProps} />
                         {limitsLayer}
+                        {statusLayerFor(trackRef)}
                     </div>
                 )}
             </div>

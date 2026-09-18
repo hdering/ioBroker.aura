@@ -37,7 +37,7 @@ const HIT_R = 13;
 const PILL_W = 34;
 const PILL_H = 13;
 
-interface Box {
+export interface Box {
     left: number;
     top: number;
     width: number;
@@ -47,9 +47,10 @@ interface Box {
 /**
  * Measures `trackRef` relative to `hostRef` and keeps it current across resizes.
  * Returns null until the first measurement, so nothing is drawn at the wrong place
- * for a frame.
+ * for a frame. Shared with the status layer (FillStatus), which hangs its badges on
+ * the same box.
  */
-function useTrackBox(hostRef: RefObject<HTMLElement>, trackRef: RefObject<Element>): Box | null {
+export function useTrackBox(hostRef: RefObject<HTMLElement>, trackRef: RefObject<Element>): Box | null {
     const [box, setBox] = useState<Box | null>(null);
     const observed = useRef<Element | null>(null);
     const ro = useRef<ResizeObserver | null>(null);

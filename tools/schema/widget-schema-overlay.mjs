@@ -315,6 +315,43 @@ export const WIDGET_OPTION_NOTES = {
                 'Prozent der Skala, ab dem die Warnfarbe gilt (100 = der Max-Wert). Der Rohwert zählt, nicht der begrenzte.',
         },
         overColor: { description: 'Farbe der Füllung ab der Schwelle. Überschreibt Füllfarbe und Farbzonen.' },
+        chargeDatapoint: {
+            description:
+                'Datenpunkt „lädt gerade" (#671) — HmIP-Flag, Ladeschale, PV-Ladeleistung. Wird nur gelesen. ' +
+                'Leer = kein Ladezustand. Zeigt ein Blitz-Icon unten rechts im Balken und kann zusätzlich einen ' +
+                'Effekt auf der Füllung auslösen (chargeEffect).',
+        },
+        chargeCondition: {
+            description:
+                'Wann der Ladewert „lädt" bedeutet: true = wahr/1 (Standard), false = falsch/0, gt0 = größer 0 ' +
+                '(Ladeleistung), lt0 = kleiner 0 (Einspeisung). Ein Wert, der noch nicht da ist, gilt nie als Laden.',
+        },
+        chargeEffect: {
+            description:
+                'Effekt auf der Füllung, solange geladen wird: none (Standard), blink = die Füllung pulsiert, ' +
+                'scan = Lauflicht, das über den gefüllten Teil hin und her wandert. Bei reduzierter Bewegung ' +
+                '(Systemeinstellung) laufen beide nicht.',
+        },
+        showChargeIcon: { description: 'Icon anzeigen, solange geladen wird.' },
+        chargeIcon: {
+            description:
+                'Icon, solange geladen wird — beliebiges Iconify-Icon (z. B. mdi:flash) oder Lucide-Name. Leer = mdi:flash.',
+        },
+        chargeColor: { description: 'Farbe von Blitz-Icon und Lauflicht.' },
+        connectedDatapoint: {
+            description:
+                'Datenpunkt „Verbindung" (#671). Wird nur gelesen. Leer = keine Verbindungsanzeige. Ein ' +
+                'UNREACH-Datenpunkt meldet die Störung, nicht die Verbindung — dann connectedCondition auf false setzen.',
+        },
+        connectedCondition: {
+            description: 'Wann der Verbindungswert „verbunden" bedeutet: true (Standard), false, gt0 oder lt0.',
+        },
+        showOfflineIcon: { description: 'Icon anzeigen, wenn die Verbindung fehlt.' },
+        offlineIcon: {
+            description: 'Icon bei fehlender Verbindung. Leer = mdi:wifi-off.',
+        },
+        offlineColor: { description: 'Farbe des Verbindungs-Icons.' },
+        offlineDim: { description: 'Anzeige ausgrauen, wenn die Verbindung fehlt. Icon bleibt sichtbar.' },
     },
     gauge: {
         minValue: { description: 'Skalenanfang.' },

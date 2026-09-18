@@ -4505,6 +4505,23 @@
         }
       }
     },
+    "FillCondition": {
+      "type": "string",
+      "enum": [
+        "true",
+        "false",
+        "gt0",
+        "lt0"
+      ]
+    },
+    "FillChargeEffect": {
+      "type": "string",
+      "enum": [
+        "none",
+        "blink",
+        "scan"
+      ]
+    },
     "SandboxPreset": {
       "type": "string",
       "enum": [
@@ -8505,9 +8522,44 @@
           "type": "string",
           "description": "Icon im untersten Abschnitt, also unter der niedrigsten Grenze. Der hat keine Grenze über sich, an der ein Icon hängen könnte."
         },
+        "chargeColor": {
+          "type": "string",
+          "description": "Farbe von Blitz-Icon und Lauflicht."
+        },
+        "chargeCondition": {
+          "type": "string",
+          "ref": "FillCondition",
+          "description": "Wann der Ladewert „lädt\" bedeutet: true = wahr/1 (Standard), false = falsch/0, gt0 = größer 0 (Ladeleistung), lt0 = kleiner 0 (Einspeisung). Ein Wert, der noch nicht da ist, gilt nie als Laden."
+        },
+        "chargeDatapoint": {
+          "type": "string",
+          "default": "",
+          "description": "Datenpunkt „lädt gerade\" (#671) — HmIP-Flag, Ladeschale, PV-Ladeleistung. Wird nur gelesen. Leer = kein Ladezustand. Zeigt ein Blitz-Icon unten rechts im Balken und kann zusätzlich einen Effekt auf der Füllung auslösen (chargeEffect).",
+          "datapoint": true
+        },
+        "chargeEffect": {
+          "type": "string",
+          "ref": "FillChargeEffect",
+          "description": "Effekt auf der Füllung, solange geladen wird: none (Standard), blink = die Füllung pulsiert, scan = Lauflicht, das über den gefüllten Teil hin und her wandert. Bei reduzierter Bewegung (Systemeinstellung) laufen beide nicht."
+        },
+        "chargeIcon": {
+          "type": "string",
+          "description": "Icon, solange geladen wird — beliebiges Iconify-Icon (z. B. mdi:flash) oder Lucide-Name. Leer = mdi:flash."
+        },
         "colorZones": {
           "type": "boolean",
           "default": false
+        },
+        "connectedCondition": {
+          "type": "string",
+          "ref": "FillCondition",
+          "description": "Wann der Verbindungswert „verbunden\" bedeutet: true (Standard), false, gt0 oder lt0."
+        },
+        "connectedDatapoint": {
+          "type": "string",
+          "default": "",
+          "description": "Datenpunkt „Verbindung\" (#671). Wird nur gelesen. Leer = keine Verbindungsanzeige. Ein UNREACH-Datenpunkt meldet die Störung, nicht die Verbindung — dann connectedCondition auf false setzen.",
+          "datapoint": true
         },
         "limitClampNeighbours": {
           "type": "boolean",
@@ -8552,6 +8604,19 @@
           "default": 0,
           "description": "Kleinster Wert der Skala."
         },
+        "offlineColor": {
+          "type": "string",
+          "description": "Farbe des Verbindungs-Icons."
+        },
+        "offlineDim": {
+          "type": "boolean",
+          "default": true,
+          "description": "Anzeige ausgrauen, wenn die Verbindung fehlt. Icon bleibt sichtbar."
+        },
+        "offlineIcon": {
+          "type": "string",
+          "description": "Icon bei fehlender Verbindung. Leer = mdi:wifi-off."
+        },
         "orientation": {
           "type": "string",
           "ref": "Orientation",
@@ -8571,6 +8636,16 @@
           "type": "number",
           "default": 100,
           "description": "Prozent der Skala, ab dem die Warnfarbe gilt (100 = der Max-Wert). Der Rohwert zählt, nicht der begrenzte."
+        },
+        "showChargeIcon": {
+          "type": "boolean",
+          "default": true,
+          "description": "Icon anzeigen, solange geladen wird."
+        },
+        "showOfflineIcon": {
+          "type": "boolean",
+          "default": true,
+          "description": "Icon anzeigen, wenn die Verbindung fehlt."
         },
         "showTicks": {
           "type": "boolean",

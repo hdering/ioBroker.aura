@@ -517,6 +517,60 @@ iframe {
     will-change: transform;
 }
 
+/* ── Fill widget: charging effects (#671) ────────────────────────────────────
+   Both run only while the charge datapoint says so; the widget adds/removes the
+   class. Blink sits on the fill itself (every renderer marks it with
+   data-aura-fill-level), the sweep is a band inside the overlay of FillStatus —
+   45 % of the lit part, moved by the remaining 55 % and back (122 % of its own
+   width), which is the "Knight Rider" of the request. */
+@keyframes aura-fill-blink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.35;
+    }
+}
+.aura-fill-blink [data-aura-fill-level] {
+    animation: aura-fill-blink 1.2s ease-in-out infinite;
+}
+@keyframes aura-fill-scan-x {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(122%);
+    }
+}
+@keyframes aura-fill-scan-y {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(122%);
+    }
+}
+/* Connection lost: the picture greys out, the badge must not. Everything but the
+   status layer is a direct child of the host, so one selector does it. */
+.aura-fill-offline > *:not([data-aura-fill-status]) {
+    opacity: 0.4;
+    filter: grayscale(0.6);
+}
+.aura-fill-scan-band-x {
+    animation: aura-fill-scan-x 1.6s ease-in-out infinite alternate;
+}
+.aura-fill-scan-band-y {
+    animation: aura-fill-scan-y 1.6s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+    .aura-fill-blink [data-aura-fill-level],
+    .aura-fill-scan-band-x,
+    .aura-fill-scan-band-y {
+        animation: none;
+    }
+}
+
 /* ── React-Grid-Layout drag placeholder ──────────────────────────────────────
    The placeholder always mounts on mousedown (even without actual drag movement).
    Adding an animation-delay of 120 ms means clicks that resolve faster than that
