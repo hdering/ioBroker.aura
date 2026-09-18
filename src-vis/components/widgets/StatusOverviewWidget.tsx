@@ -564,6 +564,11 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                 }}
                                 {...rowProps}
                             >
+                                {/* State first, device second: the tile answers "what happened"
+                                    before "where", which is how the list is scanned. */}
+                                <span className="text-sm font-bold leading-none" style={{ color }}>
+                                    {item.label}
+                                </span>
                                 <span
                                     className="flex items-start gap-1 text-[10px] leading-tight"
                                     style={{ color: 'var(--text-secondary)' }}
@@ -572,9 +577,6 @@ export function StatusOverviewWidget({ config, editMode }: WidgetProps) {
                                     {/* Names wrap instead of truncating — a tile is the only place
                                         the device name appears, so it must stay fully readable. */}
                                     <span className="min-w-0 break-words">{labelFor(item)}</span>
-                                </span>
-                                <span className="text-sm font-bold leading-none" style={{ color }}>
-                                    {item.label}
                                 </span>
                                 {batteryLabel && (
                                     <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
