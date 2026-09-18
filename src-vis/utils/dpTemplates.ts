@@ -110,8 +110,9 @@ export interface DpTemplate {
     hint?: string;
 }
 
-/** Shared by the roller-shutter and the venetian-blind template — same device
- *  family, the latter only starts with the tilt regulator switched on. */
+/** Secondary DPs of the one shading template — roller shutter, venetian blind
+ *  and awning are the same device family; the tilt DP simply stays empty when
+ *  the device has no slats, and the widget then hides the tilt regulator. */
 const SHUTTER_SECONDARY_DPS: DpTemplate['secondaryDps'] = [
     {
         optionKey: 'activityDp',
@@ -173,21 +174,11 @@ export const DP_TEMPLATES: DpTemplate[] = [
     // ── BESCHATTUNG ───────────────────────────────────────────────────────────
     {
         id: 'shutter',
-        label: 'Rollladen / Markise',
+        label: 'Rollladen / Jalousie / Markise',
         icon: '🪟',
         widgetType: 'shutter',
         category: 'shading',
-        hint: 'Für alle positionsgesteuerten Beschattungsgeräte: Rollladen, Jalousie, Rollo, Markise – Datenpunkt liefert 0–100 %',
-        secondaryDps: SHUTTER_SECONDARY_DPS,
-    },
-    {
-        id: 'blind-tilt',
-        label: 'Jalousie / Raffstore',
-        icon: '📐',
-        widgetType: 'shutter',
-        category: 'shading',
-        hint: 'Wie Rollladen, zusätzlich mit Lamellen-Neigung (HmIP LEVEL_2, HM LEVEL_SLATS, Zigbee tilt) – der Neigungs-Regler ist gleich eingeschaltet',
-        defaultOptions: { tiltPlacement: 'inline', tiltControl: 'slider-v' },
+        hint: 'Für alle positionsgesteuerten Beschattungsgeräte: Rollladen, Jalousie, Raffstore, Rollo, Markise – Datenpunkt liefert 0–100 %. Ein Lamellen-Datenpunkt (HmIP LEVEL_2, HM LEVEL_SLATS, Zigbee tilt) wird erkannt und schaltet den Neigungs-Regler frei.',
         secondaryDps: SHUTTER_SECONDARY_DPS,
     },
 

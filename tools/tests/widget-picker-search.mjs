@@ -1,13 +1,15 @@
 // Verifies the search inside the "Neues Widget" dialog (#652): the caret starts
 // in the search box, typing anywhere in the dialog lands there, entries that do
 // not match disappear, categories without a hit step back instead of lying, and
-// picking an entry only picks it — the dialog stays open so the hint under the
-// grid can be read and another entry chosen.
+// a single click only picks — the dialog stays open so the hint under the grid
+// can be read and another entry chosen, while a double click adds the entry and
+// closes the dialog.
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/widget-picker-search.mjs
 //
-// Nothing is saved: the dialog is opened and closed again, no widget is added.
+// Nothing is saved: the double-click at the end lands in the admin's unsaved
+// layout inside this throwaway browser context, never on the instance.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -37,6 +39,9 @@ await page.evaluate(() =>
 );
 await page.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
 await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 40000 });
+
+/** The one shading template — roller shutter, venetian blind and awning share it. */
+const SHUTTER = 'Rollladen / Jalousie / Markise';
 
 const dialog = page.locator('text=Widget manuell hinzufügen');
 const search = page.getByPlaceholder('Widget suchen …');
@@ -76,7 +81,7 @@ try {
     const visible = async () =>
         (await page.locator('.grid button').allInnerTexts()).map((s) => s.split(/\r?\n/).pop().trim()).filter(Boolean);
     const rolllHits = await visible();
-    check('the matching entry is shown', rolllHits.includes('Rollladen / Markise'), rolllHits.join(' | '));
+    check('the matching entry is shown', rolllHits.includes(SHUTTER), rolllHits.join(' | '));
     check(
         'a template of another category is gone',
         !rolllHits.includes('Thermostat') && !rolllHits.includes('Messwert'),
@@ -99,22 +104,20 @@ try {
     check('a search leaves the picked category behind', wertHits.includes('Messwert'), wertHits.join(' | '));
     check('and finds the widget types behind it', wertHits.includes('Gauge'), wertHits.join(' | '));
 
-    // ── 5. Picking is only picking ──────────────────────────────────────────
+    // ── 5. A single click is only picking ───────────────────────────────────
     await search.fill('rolll');
     await page.waitForTimeout(150);
-    const tile = page.getByRole('button', { name: 'Rollladen / Markise' });
-    await tile.first().click();
+    await page.getByRole('button', { name: SHUTTER }).first().click();
     check('a click leaves the dialog open', await dialog.first().isVisible());
     check('and arms the add button', await addBtn.isEnabled());
     check('and shows the hint for the picked entry', (await page.locator('text=positionsgesteuerten').count()) > 0);
 
-    await tile.first().dblclick();
-    check('a double click does not add behind the back either', await dialog.first().isVisible());
-
     // Re-choosing has to work - that is what the open dialog is for.
-    await page.getByRole('button', { name: 'Jalousie / Raffstore' }).first().click();
+    await search.fill('');
+    await page.waitForTimeout(150);
+    await page.getByRole('button', { name: 'Thermostat' }).first().click();
     check('another entry can be picked afterwards', await dialog.first().isVisible());
-    check('and its own hint is shown', (await page.locator('text=Lamellen-Neigung').count()) > 0);
+    check('and its own hint is shown', (await page.locator('text=Heizkörper-Thermostate').count()) > 0);
 
     // ── 6. Nothing matches ──────────────────────────────────────────────────
     await search.fill('zzzz');
@@ -130,6 +133,22 @@ try {
     await page.keyboard.press('Escape');
     await page.waitForTimeout(250);
     check('the second Escape closes the dialog', (await dialog.count()) === 0);
+
+    // ── 8. A double click picks and adds in one go ──────────────────────────
+    // Comes last because it closes the dialog for good.
+    const cards = () => page.locator('.react-grid-item').count();
+    const before = await cards();
+    await openDialog();
+    await search.fill('rolll');
+    await page.waitForTimeout(150);
+    await page.getByRole('button', { name: SHUTTER }).first().dblclick();
+    await page.waitForTimeout(800);
+    check('a double click closes the dialog', (await dialog.count()) === 0);
+    check(
+        'and the widget really landed on the canvas',
+        (await cards()) === before + 1,
+        `${before} -> ${await cards()}`,
+    );
 
     eq('no page errors', pageErrors, []);
 } finally {

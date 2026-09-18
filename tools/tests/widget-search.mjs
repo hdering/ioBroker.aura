@@ -94,24 +94,19 @@ eq(
 );
 ok('the category name itself is typeable', matchesQuery(hay(sensors[0]), normalizeQuery('Messwerte')));
 
-// The same for the widget type: every template that produces a given widget is
-// found by that widget's name.
-const byType = new Map();
-for (const tpl of DP_TEMPLATES) byType.set(tpl.widgetType, [...(byType.get(tpl.widgetType) ?? []), tpl]);
-const shared = [...byType.entries()].filter(([, tpls]) => tpls.length > 1);
-ok('some widget types carry more than one template', shared.length > 0, `${shared.length} types`);
-const typeBlind = shared.flatMap(([type, tpls]) => {
-    const label = schema.widgets?.[type]?.label;
+// The same for the widget type: every template is found by the name of the widget
+// it produces, whether or not its own label carries that word.
+const typeBlind = DP_TEMPLATES.flatMap((tpl) => {
+    const label = schema.widgets?.[tpl.widgetType]?.label;
     if (!label) return [];
-    return tpls.filter((tpl) => !matchesQuery(hay(tpl), normalizeQuery(label))).map((tpl) => `${tpl.id}<${label}>`);
+    return matchesQuery(hay(tpl), normalizeQuery(label)) ? [] : [`${tpl.id}<${label}>`];
 });
 eq('every template answers to the name of its widget type', typeBlind, []);
-// …and that is not free: at least one template carries the widget name nowhere in
-// its own label, so without the wider haystack it would be unfindable that way.
-const crossHits = shared.flatMap(([type, tpls]) => {
-    const label = schema.widgets?.[type]?.label;
-    if (!label) return [];
-    return tpls.filter((tpl) => !matchesQuery(buildHaystack([tpl.label]), normalizeQuery(label)));
+// …and that is not free: some templates carry the widget name nowhere in their own
+// label, so without the wider haystack they would be unfindable that way.
+const crossHits = DP_TEMPLATES.filter((tpl) => {
+    const label = schema.widgets?.[tpl.widgetType]?.label;
+    return label && !matchesQuery(buildHaystack([tpl.label]), normalizeQuery(label));
 });
 ok(
     'the widget name reaches templates that do not carry it',

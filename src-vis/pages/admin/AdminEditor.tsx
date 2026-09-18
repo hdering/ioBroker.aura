@@ -89,9 +89,23 @@ interface RecentTemplate {
     icon: string;
 }
 
+/** Templates that were merged into another one. A stored "recently used" entry
+ *  must not keep pointing at an id the list no longer holds. */
+const MERGED_TEMPLATE_IDS: Record<string, string> = { 'blind-tilt': 'shutter' };
+
 function getRecentTemplates(): RecentTemplate[] {
     try {
-        return JSON.parse(localStorage.getItem(RECENT_TEMPLATES_KEY) ?? '[]') as RecentTemplate[];
+        const stored = JSON.parse(localStorage.getItem(RECENT_TEMPLATES_KEY) ?? '[]') as RecentTemplate[];
+        const seen = new Set<string>();
+        const out: RecentTemplate[] = [];
+        for (const entry of stored) {
+            const templateId = MERGED_TEMPLATE_IDS[entry.templateId] ?? entry.templateId;
+            if (seen.has(templateId)) continue;
+            seen.add(templateId);
+            const tpl = DP_TEMPLATES.find((t) => t.id === templateId);
+            out.push({ ...entry, templateId, label: tpl?.label ?? entry.label, icon: tpl?.icon ?? entry.icon });
+        }
+        return out;
     } catch {
         return [];
     }
@@ -575,6 +589,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                         key={recent.templateId}
                                         type="button"
                                         onClick={() => selectRecent(recent)}
+                                        onDoubleClick={() => void handleAdd(recent.widgetType, recent.templateId)}
                                         className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium hover:opacity-80 transition-opacity"
                                         style={{
                                             background: isActive ? `${meta.color}22` : 'var(--app-bg)',
@@ -700,6 +715,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                                         key={tpl.id}
                                                         type="button"
                                                         onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
+                                                        onDoubleClick={() => void handleAdd(tpl.widgetType, tpl.id)}
                                                         className="flex items-center gap-2 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left w-full"
                                                         style={{
                                                             padding: '7px 10px',
@@ -741,6 +757,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                             key={tpl.id}
                                             type="button"
                                             onClick={() => selectTemplate(tpl.id, tpl.widgetType)}
+                                            onDoubleClick={() => void handleAdd(tpl.widgetType, tpl.id)}
                                             className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
                                             style={{
                                                 padding: '8px 12px',
@@ -785,6 +802,7 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
                                                 type="button"
                                                 title={w.hint}
                                                 onClick={() => selectTemplate(w.type, w.type)}
+                                                onDoubleClick={() => void handleAdd(w.type, w.type)}
                                                 className="flex items-center gap-2.5 rounded-xl transition-all hover:scale-[1.02] active:scale-95 text-left"
                                                 style={{
                                                     padding: '8px 12px',
