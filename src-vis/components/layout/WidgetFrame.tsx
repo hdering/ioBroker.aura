@@ -209,15 +209,16 @@ const NO_CONDITIONS: WidgetCondition[] = [];
 const NO_BADGES: BadgeDef[] = [];
 
 // ── Edit-Dialog Template (siehe widget-config-template.md) ──────────────────
-// Single source of truth for "which widget gets which visible-field toggle in
-// the Darstellung block". Adding a new widget type only needs an entry here
-// (or nothing — empty = just showTitle/showIcon).
+// Single source of truth for "which widget gets which visible-field toggle at
+// the top of its widget-specific block". Adding a new widget type only needs an
+// entry here (or nothing — empty = the Darstellung block's showTitle/showIcon
+// are all it has).
 // `def` is the widget's own default for an option it reads as off-by-default —
 // without it the toggle shows ON for a field nothing is drawing yet.
 const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: string; def?: boolean }[]>> = {
     // shutter: Position %/Steuerknöpfe/Schieberegler live in the shutter settings
     // block (Sichtbare Felder), right below the size sliders they belong to —
-    // kept out of the generic Darstellung block.
+    // kept out of this generic list.
     switch: [{ key: 'showLabel', label: 'Status (AN/AUS)' }],
     dimmer: [
         { key: 'showValue', label: 'Prozentwert' },
@@ -228,7 +229,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     // (Sichtbare Felder), next to the scale's own settings - kept out of the
     // generic Darstellung block.
     // thermostat: visibility toggles live in the thermostat settings block
-    // (Soll/Ist/Tasten/Schnellwahl) — kept out of the generic Darstellung block.
+    // (Soll/Ist/Tasten/Schnellwahl) — kept out of this generic list.
     value: [
         { key: 'showValue', label: 'Wert' },
         { key: 'showUnit', label: 'Einheit' },
@@ -236,7 +237,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
     // enum: current-selection / dropdown / display-mode toggles live in EnumConfig
     // (below the entries), matching the universal widget's DP-Auswahlfeld cell editor.
     // climate: Ist/Soll/Luftfeuchtigkeit/Komfortzone/Temperaturverlauf toggles live
-    // in the Raumklima settings block (ClimateConfig) — kept out of the generic Darstellung block.
+    // in the Raumklima settings block (ClimateConfig) — kept out of this generic list.
     windowcontact: [{ key: 'showLabel', label: 'Status-Text' }],
     binarysensor: [{ key: 'showLabel', label: 'Status-Text' }],
     stateimage: [{ key: 'showLabel', label: 'Status-Text' }],
@@ -8422,8 +8423,8 @@ function WidgetFrameInner({
 
                     {/* ─── DARSTELLUNG ─────────────────────────────────────────────────── */}
                     {/* Always shown — every widget type uses the same Darstellung template
-              (siehe widget-config-template.md). Per-widget toggles come from
-              VIS_FIELDS_PER_TYPE. */}
+              (siehe widget-config-template.md). The per-type visibility toggles
+              (VIS_FIELDS_PER_TYPE) sit in the widget-specific block below. */}
                     {(() => {
                         const o = config.options ?? {};
                         const setO = (patch: Record<string, unknown>) =>
@@ -8511,87 +8512,6 @@ function WidgetFrameInner({
                                             </div>
                                         </div>
                                     )}
-                                    {config.type === 'light' &&
-                                        (() => {
-                                            const stateOn = o.showState !== false;
-                                            return (
-                                                <div className="flex items-center justify-between gap-2">
-                                                    <span
-                                                        className="text-[11px]"
-                                                        style={{ color: 'var(--text-primary)' }}
-                                                    >
-                                                        Status (An / Aus)
-                                                    </span>
-                                                    <div className="flex items-center gap-2">
-                                                        {stateOn && (
-                                                            <div className="flex gap-1">
-                                                                {(['left', 'center', 'right'] as const).map((p) => {
-                                                                    const lbls: Record<string, string> = {
-                                                                        left: t('wf.edit.posLeft'),
-                                                                        center: t('wf.edit.posCenter'),
-                                                                        right: t('wf.edit.posRight'),
-                                                                    };
-                                                                    const active =
-                                                                        ((o.statusAlign as string) ?? 'left') === p;
-                                                                    return (
-                                                                        <button
-                                                                            key={p}
-                                                                            onClick={() => setO({ statusAlign: p })}
-                                                                            className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                                                                            style={{
-                                                                                background: active
-                                                                                    ? 'var(--accent)'
-                                                                                    : 'var(--app-bg)',
-                                                                                color: active
-                                                                                    ? '#fff'
-                                                                                    : 'var(--text-secondary)',
-                                                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                            }}
-                                                                        >
-                                                                            {lbls[p]}
-                                                                        </button>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        )}
-                                                        <button
-                                                            onClick={() => setO({ showState: !stateOn })}
-                                                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                            style={{
-                                                                background: stateOn
-                                                                    ? 'var(--accent)'
-                                                                    : 'var(--app-border)',
-                                                            }}
-                                                        >
-                                                            <span
-                                                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                                style={{ left: stateOn ? '14px' : '2px' }}
-                                                            />
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            );
-                                        })()}
-                                    {(VIS_FIELDS_PER_TYPE[config.type] ?? []).map(({ key, label, def }) => {
-                                        const val = o[key] === undefined ? (def ?? true) : o[key] !== false;
-                                        return (
-                                            <div key={key} className="flex items-center justify-between">
-                                                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                                    {label}
-                                                </span>
-                                                <button
-                                                    onClick={() => setO({ [key]: !val })}
-                                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                    style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: val ? '14px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                        );
-                                    })}
                                     {config.type !== 'stateimage' && config.type !== 'mirror' && (
                                         <>
                                             <div className="h-px" style={{ background: 'var(--app-border)' }} />
@@ -9318,6 +9238,101 @@ function WidgetFrameInner({
                                 {WIDGET_BY_TYPE[config.type]?.label ?? config.type}
                             </p>
                         )}
+                        {/* Sichtbare Felder des Typs (VIS_FIELDS_PER_TYPE) und der Licht-Status
+                            mit seiner Ausrichtung: sie gehören zum Widget, nicht zur allgemeinen
+                            Darstellung — deshalb hier, vor den übrigen typspezifischen Einstellungen. */}
+                        {(() => {
+                            const o = config.options ?? {};
+                            const setO = (patch: Record<string, unknown>) =>
+                                onConfigChange({ ...config, options: { ...o, ...patch } });
+                            const fields = VIS_FIELDS_PER_TYPE[config.type] ?? [];
+                            if (fields.length === 0 && config.type !== 'light') return null;
+                            return (
+                                <div className="space-y-2">
+                                    {config.type === 'light' &&
+                                        (() => {
+                                            const stateOn = o.showState !== false;
+                                            return (
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                    >
+                                                        Status (An / Aus)
+                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        {stateOn && (
+                                                            <div className="flex gap-1">
+                                                                {(['left', 'center', 'right'] as const).map((p) => {
+                                                                    const lbls: Record<string, string> = {
+                                                                        left: t('wf.edit.posLeft'),
+                                                                        center: t('wf.edit.posCenter'),
+                                                                        right: t('wf.edit.posRight'),
+                                                                    };
+                                                                    const active =
+                                                                        ((o.statusAlign as string) ?? 'left') === p;
+                                                                    return (
+                                                                        <button
+                                                                            key={p}
+                                                                            onClick={() => setO({ statusAlign: p })}
+                                                                            className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                                            style={{
+                                                                                background: active
+                                                                                    ? 'var(--accent)'
+                                                                                    : 'var(--app-bg)',
+                                                                                color: active
+                                                                                    ? '#fff'
+                                                                                    : 'var(--text-secondary)',
+                                                                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                            }}
+                                                                        >
+                                                                            {lbls[p]}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
+                                                        <button
+                                                            onClick={() => setO({ showState: !stateOn })}
+                                                            className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                                            style={{
+                                                                background: stateOn
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                            }}
+                                                        >
+                                                            <span
+                                                                className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                                style={{ left: stateOn ? '14px' : '2px' }}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
+                                    {fields.map(({ key, label, def }) => {
+                                        const val = o[key] === undefined ? (def ?? true) : o[key] !== false;
+                                        return (
+                                            <div key={key} className="flex items-center justify-between">
+                                                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                                    {label}
+                                                </span>
+                                                <button
+                                                    onClick={() => setO({ [key]: !val })}
+                                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
+                                                    style={{ background: val ? 'var(--accent)' : 'var(--app-border)' }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: val ? '14px' : '2px' }}
+                                                    />
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
                         {/* Abschnittstitel: Untertiteltext, der Strich (Akzentbalken bzw.
                             Trennlinie) und Farbe/Groesse der beiden Textzeilen. Der Stil
                             bleibt oben beim Widget-Typ — er ist dort das Layout. */}
