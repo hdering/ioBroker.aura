@@ -47,6 +47,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 
+### Größe des Dropdowns
+
+| Option | Standard | |
+| --- | --- | --- |
+| `selectSize` | `sm` | `sm` ≈ 30 px · `md` ≈ 38 px · `lg` ≈ 46 px hoch — Schrift und Eintragsliste wachsen mit |
+| `selectWidth` | — | feste Breite in px; leer = so breit wie der aktuelle Eintrag |
+
+![](./assets/auswahlfeld/groessen.png)
+
+Die Stufen kommen zur Schriftskalierung des Dashboards hinzu, sie ersetzen sie nicht. Eine größere Stufe hebt die Mindesthöhe des Widgets um denselben Betrag (`md` +8 px, `lg` +16 px).
+
 ### Sicherheitsabfrage
 
 Blendet nach der Auswahl eine Bestätigung über dem Widget ein; erst **Ja** schreibt den Wert auf den Datenpunkt.

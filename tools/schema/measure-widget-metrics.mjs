@@ -796,6 +796,23 @@ const MIN_VARIANTS = {
  * is what the probe here renders with.
  */
 const MIN_MODIFIERS = {
+    // The Auswahlfeld's dropdown sets the height of the row it sits in (#679), so
+    // a bigger control raises the whole widget's minimum. Two entries rather than
+    // one because the option has three steps and `sm` is the measured baseline.
+    enum: [
+        {
+            key: 'selectSize=md',
+            label: 'Auswahlfeld mittel (selectSize md)',
+            when: { path: 'selectSize', equals: 'md' },
+            options: { selectSize: 'md' },
+        },
+        {
+            key: 'selectSize=lg',
+            label: 'Auswahlfeld groß (selectSize lg)',
+            when: { path: 'selectSize', equals: 'lg' },
+            options: { selectSize: 'lg' },
+        },
+    ],
     slider: [
         {
             key: 'showScale',

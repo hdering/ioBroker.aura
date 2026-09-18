@@ -487,6 +487,18 @@ export const WIDGET_OPTION_NOTES = {
         fieldAlign: { description: 'Ausrichtung des Eingabefelds in der Kachel.' },
         unit: { description: 'Einheit rechts neben dem Eingabefeld, z. B. "°C". Leer = keine Einheit.' },
     },
+    enum: {
+        selectSize: {
+            enum: ['sm', 'md', 'lg'],
+            description:
+                'Größe des Dropdowns: sm (Standard) ≈ 30 px hoch, md ≈ 38 px, lg ≈ 46 px. Schrift und Innenabstand wachsen mit, die Mindesthöhe des Widgets also auch.',
+        },
+        selectWidth: {
+            type: 'number',
+            description:
+                'Feste Breite des Dropdowns in px. Ohne Angabe ist es so breit wie der aktuelle Eintrag und springt mit ihm.',
+        },
+    },
     datepicker: {
         timeOnly: { description: 'Nur eine Uhrzeit statt eines Datums abfragen.' },
         showTime: { description: 'Zusätzlich zur Datumsauswahl eine Uhrzeit abfragen.' },

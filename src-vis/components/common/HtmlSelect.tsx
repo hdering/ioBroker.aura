@@ -18,6 +18,28 @@ export interface HtmlSelectEntry {
     content: React.ReactNode;
 }
 
+/** Control size. `sm` is the original look, so an unset size renders as before. */
+export type HtmlSelectSize = 'sm' | 'md' | 'lg';
+
+/**
+ * Per-size classes for the closed control, the chevron and the menu rows.
+ *
+ * Deliberately Tailwind text classes rather than inline px: `text-*` carries
+ * `--font-scale` (index.css), so a dashboard's own font scaling keeps working on
+ * top of the chosen size. The paddings are plain px — they set the control's
+ * height and should not scale twice.
+ */
+const SIZE: Record<HtmlSelectSize, { control: string; chevron: number; chevronPos: string; item: string }> = {
+    sm: { control: 'text-xs pl-2.5 pr-7 py-1.5', chevron: 12, chevronPos: 'right-2', item: 'text-xs px-3 py-1.5' },
+    md: { control: 'text-sm pl-3 pr-8 py-2', chevron: 14, chevronPos: 'right-2.5', item: 'text-sm px-3 py-2' },
+    lg: {
+        control: 'text-base pl-3.5 pr-9 py-2.5',
+        chevron: 16,
+        chevronPos: 'right-3',
+        item: 'text-base px-3.5 py-2.5',
+    },
+};
+
 /**
  * Theme vars the portaled menu references (directly or via inheritance). They
  * are copied from the anchor's resolved style onto the portal panel so the menu
@@ -55,11 +77,14 @@ interface Props {
     /** Extra style for the closed control — a custom-grid cell hands in its own
      *  font size, colour and weight so the dropdown matches the rest of the cell. */
     style?: React.CSSProperties;
+    /** Control size (#679). Default 'sm' — the size this component always had. */
+    size?: HtmlSelectSize;
 }
 
-export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder, style }: Props) {
+export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder, style, size = 'sm' }: Props) {
     const [open, setOpen] = useState(false);
     const anchorRef = useRef<HTMLButtonElement>(null);
+    const sz = SIZE[size] ?? SIZE.sm;
 
     const current = entries.find((e) => e.value === value);
 
@@ -72,7 +97,7 @@ export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder, sty
                 ref={anchorRef}
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                className={`nodrag text-xs rounded-lg pl-2.5 pr-7 py-1.5 focus:outline-none inline-flex items-center truncate ${fullWidth ? 'w-full' : ''}`}
+                className={`nodrag rounded-lg focus:outline-none inline-flex items-center truncate ${sz.control} ${fullWidth ? 'w-full' : ''}`}
                 style={{
                     background: 'var(--app-bg)',
                     color: 'var(--text-primary)',
@@ -90,8 +115,8 @@ export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder, sty
                 )}
             </button>
             <ChevronDown
-                size={12}
-                className="absolute right-2 pointer-events-none"
+                size={sz.chevron}
+                className={`absolute ${sz.chevronPos} pointer-events-none`}
                 style={{ color: 'var(--text-secondary)' }}
             />
             {open && (
@@ -99,6 +124,7 @@ export function HtmlSelect({ entries, value, onPick, fullWidth, placeholder, sty
                     anchorRef={anchorRef}
                     entries={entries}
                     value={value}
+                    itemCls={sz.item}
                     onClose={() => setOpen(false)}
                     onPick={(v) => {
                         onPick(v);
@@ -114,12 +140,15 @@ function HtmlSelectMenu({
     anchorRef,
     entries,
     value,
+    itemCls,
     onClose,
     onPick,
 }: {
     anchorRef: React.RefObject<HTMLButtonElement>;
     entries: HtmlSelectEntry[];
     value: string;
+    /** Font size and padding of one menu row — matches the closed control. */
+    itemCls: string;
     onClose: () => void;
     onPick: (value: string) => void;
 }) {
@@ -192,7 +221,7 @@ function HtmlSelectMenu({
             onMouseDown={(e) => e.stopPropagation()}
         >
             {entries.length === 0 && (
-                <div className="px-3 py-1.5 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                <div className={itemCls} style={{ color: 'var(--text-secondary)' }}>
                     –
                 </div>
             )}
@@ -201,7 +230,7 @@ function HtmlSelectMenu({
                     key={e.value}
                     type="button"
                     onClick={() => onPick(e.value)}
-                    className="w-full text-left px-3 py-1.5 text-xs flex items-center hover:opacity-80"
+                    className={`w-full text-left flex items-center hover:opacity-80 ${itemCls}`}
                     style={{ background: e.value === value ? 'var(--app-bg)' : 'transparent' }}
                 >
                     {e.content}

@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-09-13",
+    "measured": "2026-09-18",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -997,7 +997,27 @@
       "minPx": 74,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 20,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "selectSize=md",
+          "label": "Auswahlfeld mittel (selectSize md)",
+          "when": {
+            "path": "selectSize",
+            "equals": "md"
+          },
+          "basePx": 8
+        },
+        {
+          "key": "selectSize=lg",
+          "label": "Auswahlfeld groß (selectSize lg)",
+          "when": {
+            "path": "selectSize",
+            "equals": "lg"
+          },
+          "basePx": 16
+        }
+      ]
     },
     "fill": {
       "minPx": 60,

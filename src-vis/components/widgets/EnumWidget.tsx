@@ -10,7 +10,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { CustomGridView } from './CustomGridView';
-import { HtmlSelect } from '../common/HtmlSelect';
+import { HtmlSelect, type HtmlSelectSize } from '../common/HtmlSelect';
 import { EnumCurrent, EnumOptionLabel, type EnumEntry, type EnumEntryDisplay } from './enumEntry';
 
 function parseValue(raw: string): boolean | number | string {
@@ -42,6 +42,11 @@ export function EnumWidget({ config }: WidgetProps) {
     const iconSize = (o.iconSize as number) || 20;
     const confirmAction = !!o.confirmAction;
     const confirmText = (o.confirmText as string) ?? '';
+    // Size and width of the dropdown (#679). Without them the control keeps the
+    // size it always had and hugs the current entry, so existing widgets are
+    // pixel-identical.
+    const selectSize = (o.selectSize as HtmlSelectSize) ?? 'sm';
+    const selectWidth = Number(o.selectWidth) > 0 ? Number(o.selectWidth) : undefined;
 
     // Entries come either from the manually maintained list or from a datapoint
     // holding JSON (issue #577). The JSON DP is only subscribed in that mode.
@@ -115,13 +120,31 @@ export function EnumWidget({ config }: WidgetProps) {
     // its own rich render mode.
     const renderOption = (e: EnumEntry) => <EnumOptionLabel entry={e} />;
 
-    const selectEl = showSelect ? (
+    const selectCore = showSelect ? (
         <HtmlSelect
             value={current?.value ?? ''}
             onPick={onPick}
+            size={selectSize}
+            // A fixed width is only meaningful if the control fills it — otherwise
+            // it would keep hugging the label inside the wider box.
+            fullWidth={!!selectWidth}
+            // With a fixed width the label is cut off rather than widening the box,
+            // so the raw value has to stay readable when no entry matches.
+            placeholder={selectWidth ? currentLabel : undefined}
             entries={entries.map((e) => ({ value: e.value, content: renderOption(e) }))}
         />
     ) : null;
+
+    // The width sits on a wrapper: HtmlSelect's own root is inline-flex and would
+    // shrink back to the label.
+    const selectEl =
+        selectCore && selectWidth ? (
+            <div className="min-w-0 shrink-0" style={{ width: selectWidth }}>
+                {selectCore}
+            </div>
+        ) : (
+            selectCore
+        );
 
     // --- CUSTOM (3×3 Standard-Grid, vordefinierte Component-Slots: icon / select / label) ---
     if (layout === 'custom') {

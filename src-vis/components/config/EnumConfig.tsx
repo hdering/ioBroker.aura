@@ -377,6 +377,66 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                 </div>
             </div>
 
+            {/* Größe und Breite des Dropdowns (#679) */}
+            <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between gap-2">
+                    <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                        Größe Auswahlfeld
+                    </label>
+                    <div
+                        className="flex rounded-lg overflow-hidden shrink-0"
+                        style={{ border: '1px solid var(--app-border)' }}
+                    >
+                        {(
+                            [
+                                { key: 'sm', label: 'Klein' },
+                                { key: 'md', label: 'Mittel' },
+                                { key: 'lg', label: 'Groß' },
+                            ] as const
+                        ).map(({ key, label }) => {
+                            const active = ((o.selectSize as string) ?? 'sm') === key;
+                            return (
+                                <button
+                                    key={key}
+                                    onClick={() => setO({ selectSize: key })}
+                                    className="text-[10px] px-2 py-1 transition-colors"
+                                    style={{
+                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        color: active ? '#fff' : 'var(--text-secondary)',
+                                        border: 'none',
+                                    }}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                    <div>
+                        <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                            Breite Auswahlfeld (px)
+                        </label>
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            Leer = so breit wie der Eintrag
+                        </p>
+                    </div>
+                    <input
+                        type="number"
+                        min={40}
+                        max={600}
+                        placeholder="auto"
+                        value={(o.selectWidth as number | undefined) ?? ''}
+                        onChange={(e) => {
+                            const n = parseInt(e.target.value, 10);
+                            setO({ selectWidth: Number.isFinite(n) && n > 0 ? n : undefined });
+                        }}
+                        className={`${fieldCls} shrink-0`}
+                        style={{ ...iSty, width: '80px' }}
+                    />
+                </div>
+            </div>
+
             {/* Sicherheitsabfrage vor dem Schalten (#674) */}
             <div className="space-y-1.5 pt-1">
                 <div className="flex items-center justify-between gap-2">
