@@ -8133,6 +8133,16 @@
         "unreachDp"
       ],
       "options": {
+        "confirmAction": {
+          "type": "boolean",
+          "default": false,
+          "description": "Vor dem Schalten eine Rückfrage anzeigen."
+        },
+        "confirmText": {
+          "type": "string",
+          "default": "",
+          "description": "Text der Rückfrage. Leer = Standardtext."
+        },
         "entriesColorKey": {
           "type": "string",
           "description": "Feldname im JSON, der die Farbe liefert."

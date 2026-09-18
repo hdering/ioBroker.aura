@@ -47,6 +47,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
 
+### Sicherheitsabfrage
+
+Blendet nach der Auswahl eine Bestätigung über dem Widget ein; erst **Ja** schreibt den Wert auf den Datenpunkt.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `confirmAction` | `false` | Bestätigung vor dem Schreiben |
+| `confirmText` | — | Abfragetext, leer = Standardtext |
+
+![](./assets/auswahlfeld/sicherheitsabfrage.png)
+
 ### Einträge
 
 Umschalter **Manuell** / **JSON-Datenpunkt**.

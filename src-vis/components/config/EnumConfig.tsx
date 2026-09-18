@@ -377,6 +377,36 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                 </div>
             </div>
 
+            {/* Sicherheitsabfrage vor dem Schalten (#674) */}
+            <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between gap-2">
+                    <div>
+                        <label className="text-[11px] font-medium" style={{ color: 'var(--text-secondary)' }}>
+                            Sicherheitsabfrage
+                        </label>
+                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                            Bestätigung vor dem Schalten
+                        </p>
+                    </div>
+                    <Toggle on={!!o.confirmAction} onClick={() => setO({ confirmAction: !o.confirmAction })} />
+                </div>
+                {o.confirmAction === true && (
+                    <div style={{ borderLeft: '2px solid var(--app-border)', paddingLeft: 10, marginLeft: 2 }}>
+                        <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                            Abfragetext (optional)
+                        </label>
+                        <input
+                            type="text"
+                            value={(o.confirmText as string) ?? ''}
+                            onChange={(e) => setO({ confirmText: e.target.value || undefined })}
+                            placeholder="Wirklich umschalten?"
+                            className={`${fieldCls} w-full`}
+                            style={iSty}
+                        />
+                    </div>
+                )}
+            </div>
+
             {iconPickerIdx !== null && entries[iconPickerIdx] && (
                 <IconPickerModal
                     current={entries[iconPickerIdx]?.icon ?? ''}

@@ -59,7 +59,11 @@ await page.evaluate(() => localStorage.setItem('aura-auth', JSON.stringify({ sta
 // all ioBroker writes).
 // `customShots` entries are shot by a dedicated script (see widgets-meta.mjs) —
 // regenerating them here would replace those images with poorer generic ones.
-const GENERIC = WIDGETS.filter((w) => !w.customShots);
+// `--only <slug>[,<slug>]` regenerates single pages without touching the rest —
+// a new option in one config panel should not rewrite 50 screenshots.
+const onlyArg = process.argv.indexOf('--only');
+const ONLY = onlyArg > -1 ? (process.argv[onlyArg + 1] ?? '').split(',').filter(Boolean) : null;
+const GENERIC = WIDGETS.filter((w) => !w.customShots).filter((w) => !ONLY || ONLY.includes(w.slug));
 const withRuntime = GENERIC.filter((w) => w.runtime !== null);
 
 async function renderShot(w, cfg, dp, val, mock, click, file) {

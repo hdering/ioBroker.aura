@@ -1,12 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { ListChecks } from 'lucide-react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useIoBroker } from '../../hooks/useIoBroker';
+import { useConfirmAction } from '../../hooks/useConfirmAction';
 import type { WidgetProps } from '../../types';
 import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
 import { contentPositionClass, titlePositionStyle } from '../../utils/widgetUtils';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
+import { ConfirmOverlay } from './ConfirmOverlay';
 import { CustomGridView } from './CustomGridView';
 import { HtmlSelect } from '../common/HtmlSelect';
 import { EnumCurrent, EnumOptionLabel, type EnumEntry, type EnumEntryDisplay } from './enumEntry';
@@ -38,6 +40,8 @@ export function EnumWidget({ config }: WidgetProps) {
     const entryDisplay = (o.entryDisplay as EnumEntryDisplay | undefined) ?? 'text';
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const iconSize = (o.iconSize as number) || 20;
+    const confirmAction = !!o.confirmAction;
+    const confirmText = (o.confirmText as string) ?? '';
 
     // Entries come either from the manually maintained list or from a datapoint
     // holding JSON (issue #577). The JSON DP is only subscribed in that mode.
@@ -70,9 +74,30 @@ export function EnumWidget({ config }: WidgetProps) {
     const currentLabel = current?.label ?? (value === null || value === undefined ? '–' : String(value));
     const currentColor = current?.color;
 
-    const onPick = (raw: string) => {
+    // Optional security confirmation (#674). The picked value is parked in a ref
+    // instead of state: useConfirmAction only re-runs the action closure, and a ref
+    // is always current — even for the disabled path, where run() fires straight away.
+    const picked = useRef<string | null>(null);
+    const doPick = () => {
+        const raw = picked.current;
+        picked.current = null;
+        if (raw === null) return;
         setState(config.datapoint, parseValue(raw));
     };
+    const { run: runPick, pending, confirm, cancel } = useConfirmAction(doPick, confirmAction);
+
+    const onPick = (raw: string) => {
+        picked.current = raw;
+        runPick();
+    };
+    const cancelPick = () => {
+        picked.current = null;
+        cancel();
+    };
+
+    const confirmOverlay = pending ? (
+        <ConfirmOverlay text={confirmText} onConfirm={confirm} onCancel={cancelPick} />
+    ) : null;
 
     // Render the current selection honoring the entryDisplay option
     // (text / icon+text / icon) — shared with the list widgets' select row.
@@ -101,26 +126,29 @@ export function EnumWidget({ config }: WidgetProps) {
     // --- CUSTOM (3×3 Standard-Grid, vordefinierte Component-Slots: icon / select / label) ---
     if (layout === 'custom') {
         return (
-            <CustomGridView
-                config={config}
-                value={currentLabel}
-                valueColor={currentColor}
-                extraComponents={{
-                    icon: showIcon ? (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: currentColor ?? 'var(--accent)', flexShrink: 0 }}
-                        />
-                    ) : null,
-                    select: selectEl,
-                    label: showValue
-                        ? renderCurrent('aura-widget-value text-base font-semibold truncate', {
-                              color: currentColor ?? 'var(--text-primary)',
-                          })
-                        : null,
-                }}
-            />
+            <div className="relative w-full h-full">
+                <CustomGridView
+                    config={config}
+                    value={currentLabel}
+                    valueColor={currentColor}
+                    extraComponents={{
+                        icon: showIcon ? (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: currentColor ?? 'var(--accent)', flexShrink: 0 }}
+                            />
+                        ) : null,
+                        select: selectEl,
+                        label: showValue
+                            ? renderCurrent('aura-widget-value text-base font-semibold truncate', {
+                                  color: currentColor ?? 'var(--text-primary)',
+                              })
+                            : null,
+                    }}
+                />
+                {confirmOverlay}
+            </div>
         );
     }
 
@@ -163,6 +191,7 @@ export function EnumWidget({ config }: WidgetProps) {
                     {selectEl}
                 </div>
                 <StatusBadges config={config} />
+                {confirmOverlay}
             </div>
         );
     }
@@ -191,6 +220,7 @@ export function EnumWidget({ config }: WidgetProps) {
                     </span>
                 )}
                 <StatusBadges config={config} />
+                {confirmOverlay}
             </div>
         );
     }
@@ -228,6 +258,7 @@ export function EnumWidget({ config }: WidgetProps) {
                     </div>
                 </div>
                 <StatusBadges config={config} />
+                {confirmOverlay}
             </div>
         );
     }
@@ -274,6 +305,7 @@ export function EnumWidget({ config }: WidgetProps) {
                 {selectEl}
             </div>
             <StatusBadges config={config} />
+            {confirmOverlay}
         </div>
     );
 }

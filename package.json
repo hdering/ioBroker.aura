@@ -103,6 +103,7 @@
     "test:security-api": "node tools/tests/security-api.mjs",
     "test:modal-clamp": "node tools/tests/modal-viewport-clamp.mjs",
     "test:cell-state": "node tools/tests/cell-state.mjs",
+    "test:enum-confirm": "node tools/tests/enum-confirm.mjs",
     "test:apple-keys": "node tools/tests/apple-shortcut-keys.mjs",
     "test:aircontrol-daikin": "node tools/tests/aircontrol-daikin.mjs",
     "test:cell-bar-color": "node tools/tests/cell-bar-color.mjs",
