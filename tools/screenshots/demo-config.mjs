@@ -21,7 +21,7 @@ const W = (type, title, datapoint, options = {}, layout = 'default') => ({
     options,
 });
 
-export const LAYOUTS = [
+const LEGACY_LAYOUTS = [
     {
         id: 'layout-wohnzimmer',
         name: 'Wohnzimmer',
@@ -94,6 +94,35 @@ export const LAYOUTS = [
         ],
     },
 ];
+
+// v3 store shape: a layout holds sections, each section holds the tabs. The demo
+// content above is authored in the flat pre-v3 form and rehung here into one
+// "Standard" section per layout (what the store migration does as well).
+export const LAYOUTS = LEGACY_LAYOUTS.map(({ tabs, activeTabId, ...layout }) => {
+    const sectionId = `${layout.id}-section`;
+    return {
+        ...layout,
+        sections: [{ id: sectionId, name: 'Wohnen', slug: 'wohnen', icon: 'lucide:sofa', tabs, activeTabId }],
+        activeSectionId: sectionId,
+    };
+});
+// The first layout gets a second section so the Layouts page and the section
+// menu have something to show.
+LAYOUTS[0].sections.push({
+    id: 'layout-wohnzimmer-technik',
+    name: 'Technik',
+    slug: 'technik',
+    icon: 'lucide:server',
+    tabs: [
+        {
+            id: 'tab-wz-netz',
+            name: 'Netzwerk',
+            slug: 'netzwerk',
+            widgets: placeRow([W('value', 'Router-Temperatur', 'demo.we.temp', { unit: '°C' })]),
+        },
+    ],
+    activeTabId: 'tab-wz-netz',
+});
 
 export const ACTIVE_LAYOUT_ID = 'layout-wohnzimmer';
 

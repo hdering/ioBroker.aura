@@ -176,6 +176,55 @@ await seed(
 );
 await shotWidget(MENU_ID, `${ASSETS}/menue/mode-tab.png`);
 
+// Overview (#669): every section as a group with its tabs as chips. Needs tabs in
+// more than one section, so this layout is built here rather than via LAYOUT().
+const tabsOf = (names) =>
+    names.map((n) => ({ id: `tab-${n.toLowerCase()}`, name: n, slug: n.toLowerCase(), widgets: [] }));
+const OVERVIEW_LAYOUT = {
+    id: 'lay-doc',
+    name: 'Zuhause',
+    slug: 'zuhause',
+    activeSectionId: 'sec-wohnen',
+    sections: [
+        {
+            id: 'sec-wohnen',
+            name: 'Wohnen',
+            slug: 'wohnen',
+            icon: 'lucide:sofa',
+            activeTabId: 'tab-overview',
+            tabs: [
+                {
+                    id: 'tab-overview',
+                    name: 'Übersicht',
+                    slug: 'uebersicht',
+                    widgets: [
+                        menuWidget({ menuMode: 'overview', showSearch: true, gap: 8 }, { x: 0, y: 0, w: 14, h: 9 }),
+                    ],
+                },
+                ...tabsOf(['Licht', 'Heizung', 'Rollladen', 'Medien']),
+            ],
+        },
+        {
+            id: 'sec-kueche',
+            name: 'Küche',
+            slug: 'kueche',
+            icon: 'lucide:utensils',
+            activeTabId: 'tab-geraete',
+            tabs: tabsOf(['Geräte', 'Einkauf', 'Rezepte']),
+        },
+        {
+            id: 'sec-technik',
+            name: 'Technik',
+            slug: 'technik',
+            icon: 'lucide:cog',
+            activeTabId: 'tab-server',
+            tabs: tabsOf(['Server', 'Netzwerk', 'Updates', 'Backups', 'Energie']),
+        },
+    ],
+};
+await seed(OVERVIEW_LAYOUT);
+await shotWidget(MENU_ID, `${ASSETS}/menue/mode-overview.png`);
+
 // ── Spiegel: a source widget and its mirror side by side ─────────────────────
 const sourceWidget = {
     id: SRC_ID,
@@ -206,6 +255,10 @@ await ready();
 
 await seed(LAYOUT([menuWidget({ variant: 'hbar' }, { x: 0, y: 0, w: 14, h: 2 })]), true);
 await shotConfig(MENU_ID, `${ASSETS}/menue/config.png`);
+
+// The overview's own options only show in that mode.
+await seed(OVERVIEW_LAYOUT, true);
+await shotConfig(MENU_ID, `${ASSETS}/menue/config-overview.png`);
 
 await seed(LAYOUT([sourceWidget, mirrorWidget]), true);
 await shotConfig(MIRROR_ID, `${ASSETS}/spiegel/config.png`);

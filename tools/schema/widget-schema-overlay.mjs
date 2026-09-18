@@ -747,6 +747,55 @@ export const WIDGET_OPTION_NOTES = {
         subDpTemplate: { description: 'Vorlage für die Zweitzeile, z. B. ein Batterie- oder Verbrauchs-DP.' },
         subDpTemplateHideMissing: { description: 'Zeilen ohne passenden Zweitzeilen-DP ohne Zweitzeile zeigen.' },
     },
+    menu: {
+        menuMode: {
+            enum: ['section', 'tab', 'overview'],
+            description:
+                '"section" listet die Bereiche des Layouts, "tab" die Tabs des aktuellen Bereichs, "overview" alle ' +
+                'Bereiche als Gruppen mit ihren Tabs als Chips — die automatische Übersichtsseite (#669); Klick auf ' +
+                'einen Chip springt in diesen Tab, auch in einem anderen Bereich.',
+        },
+        hiddenItems: {
+            description:
+                'Abgewählte Einträge (Slugs): Bereiche bei "section" und "overview" (dort entfällt die ganze Gruppe), ' +
+                'Tabs bei "tab". Als hidden markierte Bereiche/Tabs fehlen ohnehin.',
+        },
+        variant: {
+            enum: ['hbar', 'vlist', 'grid', 'pills'],
+            description:
+                'Anordnung: eine scrollende Zeile, Liste untereinander, Raster mit gridCols oder umbrechende Chips. Wirkt nicht bei menuMode "overview" (immer umbrechende Chips je Gruppe).',
+        },
+        indicatorStyle: {
+            enum: ['text', 'underline', 'filled', 'pills'],
+            description:
+                'Stil des aktiven Eintrags. "pills" ist bei variant "pills" erzwungen und bei menuMode "overview" der Standard.',
+        },
+        gridCols: { description: 'Spalten des Rasters, nur bei variant "grid".' },
+        showIcons: {
+            description:
+                'Icons anzeigen: Bereiche ohne eigenes Icon bekommen ein Standard-Icon, Tabs ohne Icon nur Text.',
+        },
+        showLabels: { description: 'Text der Einträge anzeigen. Bei menuMode "overview" immer an.' },
+        menuSource: {
+            enum: ['layout', 'all'],
+            description:
+                'Nur bei menuMode "overview": "layout" = Bereiche des aktuellen Layouts, "all" = zusätzlich die Bereiche aller anderen Layouts, je Layout mit dessen Namen als Überschrift.',
+        },
+        showSearch: {
+            description:
+                'Nur bei menuMode "overview": Suchfeld über den Gruppen, filtert die Chips live nach Tab- oder Bereichsname; Gruppen ohne Treffer verschwinden.',
+        },
+        groupTitle: {
+            enum: ['iconName', 'name', 'none'],
+            description:
+                'Nur bei menuMode "overview": Titel jeder Bereichs-Gruppe — Icon + Name, nur Name oder kein Titel.',
+        },
+        chipSize: {
+            enum: ['sm', 'md', 'lg'],
+            description:
+                'Nur bei menuMode "overview": Innenabstand der Tab-Chips (klein, mittel, groß). Die Schrift folgt der Widget-Skalierung.',
+        },
+    },
 };
 
 /**

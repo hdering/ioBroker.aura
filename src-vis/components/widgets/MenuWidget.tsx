@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Icon } from '@iconify/react';
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Search } from 'lucide-react';
 import {
     useDashboardStore,
     useActiveLayout,
     useActiveSection,
     resolveView,
+    type DashboardLayout,
     type Section,
     type Tab,
 } from '../../store/dashboardStore';
@@ -15,9 +17,12 @@ import { useT } from '../../i18n';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import type { WidgetProps } from '../../types';
 
-type MenuMode = 'section' | 'tab';
+type MenuMode = 'section' | 'tab' | 'overview';
 type MenuVariant = 'hbar' | 'vlist' | 'grid' | 'pills';
 type IndicatorStyle = 'text' | 'underline' | 'filled' | 'pills';
+type MenuSource = 'layout' | 'all';
+type GroupTitle = 'iconName' | 'name' | 'none';
+type ChipSize = 'sm' | 'md' | 'lg';
 
 interface MenuItem {
     key: string; // slug ?? id — stable identifier used for navigation, active-match and de-selection
@@ -25,6 +30,24 @@ interface MenuItem {
     icon?: string;
     disabled?: boolean;
 }
+
+/** One section of the overview (#669): its tabs as chips under a group title. */
+interface OverviewGroup {
+    key: string;
+    layoutId: string;
+    layoutSlug: string;
+    layoutName: string;
+    multiSection: boolean; // the layout has more than one section → URL carries /s/<section>
+    section: MenuItem;
+    items: MenuItem[];
+}
+
+// Chip padding per size; the font follows the widget's own text scale.
+const CHIP_SIZE: Record<ChipSize, { padding: string; cls: string }> = {
+    sm: { padding: '2px 8px', cls: 'text-xs' },
+    md: { padding: '4px 10px', cls: 'text-sm' },
+    lg: { padding: '7px 14px', cls: 'text-base' },
+};
 
 // Mirrors TabBar.tabStyle (TabBar.tsx:143-182). Kept local so this widget stays
 // purely additive — no export/refactor of the tab-bar internals required.
@@ -68,8 +91,14 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
     const gap = (o.gap as number) ?? 6;
     const align = (o.align as 'start' | 'center' | 'end') ?? 'start';
     const gridCols = Math.max(1, (o.gridCols as number) || 3);
+    // Overview mode (#669): every section of the layout with its tabs as chips.
+    const menuSource = (o.menuSource as MenuSource) ?? 'layout';
+    const showSearch = o.showSearch === true;
+    const groupTitle = (o.groupTitle as GroupTitle) ?? 'iconName';
+    const chipSize = (o.chipSize as ChipSize) ?? 'md';
 
     const t = useT();
+    const [query, setQuery] = useState('');
 
     // ── Context: which view does this menu belong to? ─────────────────────────
     // The surrounding Dashboard publishes the layout and section it renders — the
@@ -102,10 +131,10 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
 
     // ── Active entry ──────────────────────────────────────────────────────────
     const keyOf = (it: Section | Tab) => it.slug ?? it.id;
-    let activeKey = '';
-    if (menuMode === 'section') {
-        activeKey = section ? keyOf(section) : '';
-    } else {
+    const activeSectionKey = section ? keyOf(section) : '';
+    // The tab on screen — in the editor the one being edited, in the frontend the
+    // one the URL names (falling back to the section's default).
+    const activeTabKey = (() => {
         const tabs = section?.tabs ?? [];
         let active: Tab | undefined;
         if (inert) {
@@ -117,20 +146,55 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                 tabs.find((tb) => tb.id === section?.activeTabId) ??
                 tabs[0];
         }
-        activeKey = active ? keyOf(active) : '';
-    }
+        return active ? keyOf(active) : '';
+    })();
+    const activeKey = menuMode === 'section' ? activeSectionKey : activeTabKey;
 
     // ── Items — respect the global `hidden` flag AND the per-widget de-selection ─
-    const rawItems: (Section | Tab)[] = menuMode === 'section' ? (layout?.sections ?? []) : (section?.tabs ?? []);
+    const toItem = (it: Section | Tab): MenuItem => ({
+        key: keyOf(it),
+        name: it.name,
+        icon: it.icon,
+        disabled: (it as Tab).disabled,
+    });
+    const rawItems: (Section | Tab)[] = menuMode === 'tab' ? (section?.tabs ?? []) : (layout?.sections ?? []);
     const items: MenuItem[] = rawItems
         .filter((it) => !it.hidden)
-        .map((it) => ({
-            key: keyOf(it),
-            name: it.name,
-            icon: it.icon,
-            disabled: (it as Tab).disabled,
-        }))
+        .map(toItem)
         .filter((it) => !hiddenItems.includes(it.key));
+
+    // ── Overview groups (#669) ────────────────────────────────────────────────
+    // One group per visible section; `hiddenItems` de-selects whole sections here.
+    // The search matches the tab name or its section's name and drops empty groups,
+    // so on a tablet the hits are the only thing left to tap.
+    const needle = query.trim().toLowerCase();
+    const sourceLayouts: DashboardLayout[] = menuSource === 'all' ? allLayouts : layout ? [layout] : [];
+    const groups: OverviewGroup[] =
+        menuMode === 'overview'
+            ? sourceLayouts
+                  .filter((l) => !l.hidden)
+                  .flatMap((l) =>
+                      l.sections
+                          .filter((sec) => !sec.hidden && !hiddenItems.includes(keyOf(sec)))
+                          .map((sec): OverviewGroup => {
+                              const sectionHit = !needle || sec.name.toLowerCase().includes(needle);
+                              return {
+                                  key: `${l.id}/${sec.id}`,
+                                  layoutId: l.id,
+                                  layoutSlug: l.slug,
+                                  layoutName: l.name,
+                                  multiSection: l.sections.length > 1,
+                                  section: toItem(sec),
+                                  items: sec.tabs
+                                      .filter((tb) => !tb.hidden)
+                                      .map(toItem)
+                                      .filter((it) => sectionHit || it.name.toLowerCase().includes(needle)),
+                              };
+                          })
+                          .filter((g) => g.items.length > 0),
+                  )
+            : [];
+    const showLayoutHeading = menuSource === 'all' && new Set(groups.map((g) => g.layoutId)).size > 1;
 
     const go = (item: MenuItem) => {
         if (inert || !layout || item.disabled) return; // editor preview is inert
@@ -145,6 +209,16 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                     : `/view/${layout.slug}`;
             navigate(`${base}/tab/${item.key}`);
         }
+    };
+
+    // Same URL rule as `go`, for the section the chip belongs to — which may be
+    // another section or (menuSource "all") another layout than the one on screen.
+    const goOverview = (group: OverviewGroup, item: MenuItem) => {
+        if (inert || item.disabled) return;
+        const base = group.multiSection
+            ? `/view/${group.layoutSlug}/s/${group.section.key}`
+            : `/view/${group.layoutSlug}`;
+        navigate(`${base}/tab/${item.key}`);
     };
 
     const alignJustify = align === 'end' ? 'flex-end' : align === 'center' ? 'center' : 'flex-start';
@@ -165,16 +239,19 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                   };
 
     // Pills variant forces the pill indicator; every other variant honours the choice.
-    const effIndicator: IndicatorStyle = variant === 'pills' ? 'pills' : indicatorStyle;
+    // The overview is a wrapping chip field, so it starts as pills too — until the
+    // user picks an indicator explicitly.
+    const effIndicator: IndicatorStyle =
+        variant === 'pills' || (menuMode === 'overview' && o.indicatorStyle === undefined) ? 'pills' : indicatorStyle;
 
-    const renderIcon = (item: MenuItem, isActive: boolean) => {
+    const renderIcon = (item: MenuItem, isActive: boolean, fallback: boolean, size = iconSize) => {
         if (!showIcons) return null;
         // Sections fall back to a generic icon (like the section menu); tabs show
         // no icon when none is set (matching the tab bar).
         const glyph = item.icon ? (
-            <Icon icon={item.icon} width={iconSize} height={iconSize} style={{ color: 'currentColor' }} />
-        ) : menuMode === 'section' ? (
-            <LayoutDashboard size={iconSize} />
+            <Icon icon={item.icon} width={size} height={size} style={{ color: 'currentColor' }} />
+        ) : fallback ? (
+            <LayoutDashboard size={size} />
         ) : null;
         if (!glyph) return null;
         // The icon follows the entry's text colour unless the theme overrides it.
@@ -188,6 +265,108 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
             </span>
         );
     };
+
+    // ── Overview (#669) ───────────────────────────────────────────────────────
+    if (menuMode === 'overview') {
+        const chip = CHIP_SIZE[chipSize] ?? CHIP_SIZE.md;
+        const titleIcon = Math.max(10, Math.round(iconSize * 0.75));
+        let lastLayoutId = '';
+        return (
+            <div className="aura-widget-row relative w-full h-full flex flex-col" data-menu-overview="">
+                {showSearch && (
+                    <div
+                        className="nodrag flex items-center gap-1.5 rounded-lg px-2 py-1 mb-2 shrink-0"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    >
+                        <Search size={12} style={{ color: 'var(--text-secondary)' }} />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder={t('menu.searchPlaceholder')}
+                            data-menu-search=""
+                            className="flex-1 min-w-0 bg-transparent text-xs focus:outline-none"
+                            style={{ color: 'var(--text-primary)' }}
+                        />
+                    </div>
+                )}
+                <div className="nodrag flex-1 min-h-0" style={{ overflowY: 'auto' }}>
+                    {groups.length === 0 ? (
+                        <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                            {needle ? t('menu.noMatch') : t('menu.empty')}
+                        </p>
+                    ) : (
+                        <div className="flex flex-col" style={{ gap: `${gap + 8}px` }}>
+                            {groups.map((group) => {
+                                const heading = showLayoutHeading && group.layoutId !== lastLayoutId;
+                                lastLayoutId = group.layoutId;
+                                return (
+                                    <div key={group.key} data-menu-group={group.section.key}>
+                                        {heading && (
+                                            <p
+                                                data-menu-layout={group.layoutSlug}
+                                                className="text-xs font-semibold mb-1.5"
+                                                style={{ color: 'var(--text-primary)' }}
+                                            >
+                                                {group.layoutName}
+                                            </p>
+                                        )}
+                                        {groupTitle !== 'none' && (
+                                            <div
+                                                className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider mb-1.5"
+                                                style={{ color: navText() }}
+                                            >
+                                                {groupTitle === 'iconName' &&
+                                                    renderIcon(group.section, false, true, titleIcon)}
+                                                <span className="truncate">{group.section.name}</span>
+                                            </div>
+                                        )}
+                                        <div
+                                            style={{
+                                                display: 'flex',
+                                                flexWrap: 'wrap',
+                                                gap: `${gap}px`,
+                                                justifyContent: alignJustify,
+                                            }}
+                                        >
+                                            {group.items.map((item) => {
+                                                const isActive =
+                                                    group.layoutId === layout?.id &&
+                                                    group.section.key === activeSectionKey &&
+                                                    item.key === activeTabKey;
+                                                return (
+                                                    <button
+                                                        key={item.key}
+                                                        data-menu-item={item.key}
+                                                        data-active={isActive ? '' : undefined}
+                                                        onClick={() => goOverview(group, item)}
+                                                        className={`flex items-center gap-1.5 ${chip.cls} whitespace-nowrap transition-opacity hover:opacity-80`}
+                                                        style={{
+                                                            padding: chip.padding,
+                                                            ...menuItemStyle(isActive, effIndicator),
+                                                            opacity: item.disabled ? 0.4 : undefined,
+                                                            cursor: inert
+                                                                ? 'default'
+                                                                : item.disabled
+                                                                  ? 'not-allowed'
+                                                                  : 'pointer',
+                                                        }}
+                                                    >
+                                                        {renderIcon(item, isActive, false)}
+                                                        <span className="truncate">{item.name}</span>
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="aura-widget-row relative w-full h-full flex flex-col">
@@ -221,7 +400,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
                                         cursor: inert ? 'default' : item.disabled ? 'not-allowed' : 'pointer',
                                     }}
                                 >
-                                    {renderIcon(item, isActive)}
+                                    {renderIcon(item, isActive, menuMode === 'section')}
                                     {showLabels && <span className="truncate">{item.name}</span>}
                                 </button>
                             );

@@ -4430,9 +4430,13 @@ function MenuEditPanel({
     // tabs of the active section (tab mode) so the user can de-select entries.
     const layout = useActiveLayout();
     const section = useActiveSection();
-    const rawItems = (menuMode === 'section' ? (layout?.sections ?? []) : (section?.tabs ?? [])).filter(
-        (it) => !it.hidden,
-    );
+    // The overview lists sections too — de-selecting one drops its whole group.
+    const rawItems = (menuMode === 'tab' ? (section?.tabs ?? []) : (layout?.sections ?? [])).filter((it) => !it.hidden);
+    const MODE_LABEL = {
+        section: 'menu.mode.section',
+        tab: 'menu.mode.tab',
+        overview: 'menu.mode.overview',
+    } as const;
 
     // Build stable key ↔ display-label maps; disambiguate duplicate names so the
     // MultiSelect (which is label-keyed) never collapses two distinct entries.
@@ -4470,9 +4474,9 @@ function MenuEditPanel({
                     />
                 </summary>
                 <div className="space-y-3">
-                    {/* Menu type — section vs tab */}
+                    {/* Menu type — section, tab or the overview of all sections with their tabs (#669) */}
                     <div className="flex gap-1">
-                        {(['section', 'tab'] as const).map((val) => {
+                        {(['section', 'tab', 'overview'] as const).map((val) => {
                             const active = menuMode === val;
                             return (
                                 <button
@@ -4487,7 +4491,7 @@ function MenuEditPanel({
                                         border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
                                     }}
                                 >
-                                    {tHook(val === 'section' ? 'menu.mode.section' : 'menu.mode.tab')}
+                                    {tHook(MODE_LABEL[val])}
                                 </button>
                             );
                         })}
@@ -4506,6 +4510,60 @@ function MenuEditPanel({
                             setO({ hiddenItems: allKeys.filter((k) => !selKeys.includes(k)) });
                         }}
                     />
+
+                    {menuMode === 'overview' && (
+                        <>
+                            <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    {tHook('menu.source')}
+                                </label>
+                                <select
+                                    value={(o.menuSource as string) ?? 'layout'}
+                                    onChange={(e) => setO({ menuSource: e.target.value })}
+                                    className={selCls}
+                                    style={sInputStyle}
+                                >
+                                    <option value="layout">{tHook('menu.source.layout')}</option>
+                                    <option value="all">{tHook('menu.source.all')}</option>
+                                </select>
+                            </div>
+                            <ToggleRow
+                                label={tHook('menu.showSearch')}
+                                value={o.showSearch === true}
+                                onChange={(v) => setO({ showSearch: v })}
+                            />
+                            <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    {tHook('menu.groupTitle')}
+                                </label>
+                                <select
+                                    value={(o.groupTitle as string) ?? 'iconName'}
+                                    onChange={(e) => setO({ groupTitle: e.target.value })}
+                                    className={selCls}
+                                    style={sInputStyle}
+                                >
+                                    <option value="iconName">{tHook('menu.groupTitle.iconName')}</option>
+                                    <option value="name">{tHook('menu.groupTitle.name')}</option>
+                                    <option value="none">{tHook('menu.groupTitle.none')}</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                                    {tHook('menu.chipSize')}
+                                </label>
+                                <select
+                                    value={(o.chipSize as string) ?? 'md'}
+                                    onChange={(e) => setO({ chipSize: e.target.value })}
+                                    className={selCls}
+                                    style={sInputStyle}
+                                >
+                                    <option value="sm">{tHook('menu.chipSize.sm')}</option>
+                                    <option value="md">{tHook('menu.chipSize.md')}</option>
+                                    <option value="lg">{tHook('menu.chipSize.lg')}</option>
+                                </select>
+                            </div>
+                        </>
+                    )}
                 </div>
             </details>
 
@@ -4521,24 +4579,28 @@ function MenuEditPanel({
                     />
                 </summary>
                 <div className="space-y-3">
-                    <select
-                        value={variant}
-                        onChange={(e) => setO({ variant: e.target.value })}
-                        className={selCls}
-                        style={sInputStyle}
-                    >
-                        <option value="hbar">{tHook('menu.variant.hbar')}</option>
-                        <option value="vlist">{tHook('menu.variant.vlist')}</option>
-                        <option value="grid">{tHook('menu.variant.grid')}</option>
-                        <option value="pills">{tHook('menu.variant.pills')}</option>
-                    </select>
+                    {/* The overview is always a wrapping chip field — no variant to pick. */}
+                    {menuMode !== 'overview' && (
+                        <select
+                            value={variant}
+                            onChange={(e) => setO({ variant: e.target.value })}
+                            className={selCls}
+                            style={sInputStyle}
+                        >
+                            <option value="hbar">{tHook('menu.variant.hbar')}</option>
+                            <option value="vlist">{tHook('menu.variant.vlist')}</option>
+                            <option value="grid">{tHook('menu.variant.grid')}</option>
+                            <option value="pills">{tHook('menu.variant.pills')}</option>
+                        </select>
+                    )}
 
                     <div>
                         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                             {tHook('menu.indicator.title')}
                         </label>
                         <select
-                            value={indicatorStyle}
+                            // The overview starts as pills — show what is actually on screen.
+                            value={o.indicatorStyle === undefined && menuMode === 'overview' ? 'pills' : indicatorStyle}
                             onChange={(e) => setO({ indicatorStyle: e.target.value })}
                             className={selCls}
                             style={sInputStyle}
@@ -4566,7 +4628,7 @@ function MenuEditPanel({
                         </select>
                     </div>
 
-                    {variant === 'grid' && (
+                    {menuMode !== 'overview' && variant === 'grid' && (
                         <div>
                             <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                 {tHook('menu.gridCols')}
@@ -4603,11 +4665,13 @@ function MenuEditPanel({
                         value={o.showIcons !== false}
                         onChange={(v) => setO({ showIcons: v })}
                     />
-                    <ToggleRow
-                        label={tHook('menu.showLabels')}
-                        value={o.showLabels !== false}
-                        onChange={(v) => setO({ showLabels: v })}
-                    />
+                    {menuMode !== 'overview' && (
+                        <ToggleRow
+                            label={tHook('menu.showLabels')}
+                            value={o.showLabels !== false}
+                            onChange={(v) => setO({ showLabels: v })}
+                        />
+                    )}
                 </div>
             </details>
         </>

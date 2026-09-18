@@ -6,6 +6,7 @@ import { useDashboardStore } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 
 import { SubTabsNav, type SubTab } from './layouts/sections/SubTabsNav';
+import { ScopeRow } from './layouts/shared/ScopeRow';
 import { useStartBrightness } from './layouts/shared/BrightnessTabs';
 
 import { ThemePresetSection } from './layouts/sections/ThemePresetSection';
@@ -67,48 +68,6 @@ function ActiveSection({ subTab, contextId }: { subTab: SubTab; contextId: strin
         default:
             return null;
     }
-}
-
-// ── ScopeRow ────────────────────────────────────────────────────────────────
-
-interface ScopeRowProps {
-    active: boolean;
-    onClick: () => void;
-    label: string;
-    sub?: string;
-    iconNode: React.ReactNode;
-}
-
-function ScopeRow({ active, onClick, label, sub, iconNode }: ScopeRowProps) {
-    return (
-        <button
-            onClick={onClick}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left transition-colors hover:opacity-90"
-            style={{
-                background: active ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
-                border: `1px solid ${active ? 'var(--accent)' : 'transparent'}`,
-                color: active ? 'var(--accent)' : 'var(--text-primary)',
-            }}
-        >
-            <span
-                className="w-6 h-6 flex items-center justify-center shrink-0 rounded"
-                style={{ background: active ? 'transparent' : 'var(--app-bg)' }}
-            >
-                {iconNode}
-            </span>
-            <span className="flex-1 min-w-0">
-                <span className="block text-xs font-medium truncate">{label}</span>
-                {sub && (
-                    <span
-                        className="block text-[10px] truncate"
-                        style={{ color: active ? 'var(--accent)' : 'var(--text-secondary)', opacity: 0.8 }}
-                    >
-                        {sub}
-                    </span>
-                )}
-            </span>
-        </button>
-    );
 }
 
 // ── AdminDesign ───────────────────────────────────────────────────────────────

@@ -1,6 +1,6 @@
 # Menü
 
-Frei positionierbares Navigations-Menü — zeigt die Bereiche des Layouts oder die Tabs des Bereichs zum direkten Umschalten.
+Frei positionierbares Navigations-Menü — zeigt die Bereiche des Layouts, die Tabs des Bereichs oder eine Übersicht aller Bereiche mit ihren Tabs zum direkten Umschalten.
 
 ![](./assets/menue/variant-hbar.png)
 
@@ -14,12 +14,33 @@ Keiner. Die Einträge, ihre Namen und Icons stammen aus dem Layout ([Layouts](..
 | --- | --- | --- |
 | `section` | Bereiche des Layouts | `/view/<layout>/s/<bereich>` |
 | `tab` | Tabs des aktuellen Bereichs | `/view/…/tab/<tab>` |
+| `overview` | alle Bereiche des Layouts als Gruppen, darunter ihre Tabs als Chips | `/view/<layout>/s/<bereich>/tab/<tab>` |
 
 Tab-Menü (`menuMode: tab`):
 
 ![](./assets/menue/mode-tab.png)
 
+Übersicht (`menuMode: overview`) mit Suchfeld:
+
+![](./assets/menue/mode-overview.png)
+
 Als `hidden` markierte Bereiche und Tabs erscheinen nie. Ein Wechsel des Menü-Typs setzt die Auswahl der Menüpunkte zurück.
+
+### Übersicht (`overview`)
+
+Baut sich aus dem Layout selbst — umbenannte, verschobene oder neue Tabs sind sofort drin.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `menuSource` | `layout` | `layout` (aktuelles Layout) · `all` (alle Layouts, Layout-Name als Überschrift) |
+| `showSearch` | `false` | Suchfeld über den Gruppen — filtert live nach Tab- oder Bereichsname, leere Gruppen verschwinden |
+| `groupTitle` | `iconName` | `iconName` (Icon + Name) · `name` (nur Name) · `none` (aus) |
+| `chipSize` | `md` | `sm` · `md` · `lg` |
+| `hiddenItems` | `[]` | abgewählte **Bereiche** — die ganze Gruppe entfällt |
+
+`variant`, `gridCols` und `showLabels` wirken hier nicht; `indicatorStyle` ist ohne Angabe `pills`. Der Inhalt scrollt im Widget, wenn die Chips nicht in die Höhe passen.
+
+![](./assets/menue/config-overview.png)
 
 ## Varianten
 
@@ -57,8 +78,8 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 | Option | Standard | |
 | --- | --- | --- |
-| `menuMode` | `section` | `section` (Bereich-Menü) · `tab` (Tab-Menü) |
-| `hiddenItems` | `[]` | abgewählte Einträge; im Dialog werden die **sichtbaren** Menüpunkte gewählt |
+| `menuMode` | `section` | `section` (Bereich-Menü) · `tab` (Tab-Menü) · `overview` (Übersicht) |
+| `hiddenItems` | `[]` | abgewählte Einträge; im Dialog werden die **sichtbaren** Menüpunkte gewählt (bei `overview`: Bereiche) |
 
 ### Variante
 
@@ -79,7 +100,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | --- | --- |
 | Aktiver Eintrag | Bereich bzw. Tab der aktuell angezeigten Ansicht |
 | Deaktivierte Tabs | ausgegraut, kein Klick |
-| Keine Einträge übrig | Hinweis „Keine Menüpunkte" |
+| Keine Einträge übrig | Hinweis „Keine Menüpunkte"; Suche ohne Treffer: „Keine Treffer" |
 | Editor & Admin-Bereich | Vorschau, Klicks navigieren nicht |
 | Rahmen | ohne Titelzeile; im Editor liegen die Werkzeuge oben rechts |
 

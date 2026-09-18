@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.60.8",
+    "auraVersion": "0.61.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -5221,7 +5221,8 @@
       "type": "string",
       "enum": [
         "section",
-        "tab"
+        "tab",
+        "overview"
       ]
     },
     "MenuVariant": {
@@ -5240,6 +5241,29 @@
         "underline",
         "filled",
         "pills"
+      ]
+    },
+    "MenuSource": {
+      "type": "string",
+      "enum": [
+        "layout",
+        "all"
+      ]
+    },
+    "GroupTitle": {
+      "type": "string",
+      "enum": [
+        "iconName",
+        "name",
+        "none"
+      ]
+    },
+    "ChipSize": {
+      "type": "string",
+      "enum": [
+        "sm",
+        "md",
+        "lg"
       ]
     }
   },
@@ -10513,7 +10537,7 @@
       "label": "Menü",
       "group": "layout",
       "addMode": "free",
-      "hint": "Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten",
+      "hint": "Frei positionierbares Navigations-Menü – zeigt die Bereiche, die Tabs oder eine Übersicht aller Bereiche mit ihren Tabs zum direkten Umschalten",
       "defaultSize": {
         "w": 12,
         "h": 2
@@ -10544,6 +10568,17 @@
           "default": "start",
           "description": "Horizontale Ausrichtung."
         },
+        "chipSize": {
+          "type": "string",
+          "ref": "ChipSize",
+          "default": "md",
+          "description": "Nur bei menuMode \"overview\": Innenabstand der Tab-Chips (klein, mittel, groß). Die Schrift folgt der Widget-Skalierung.",
+          "enum": [
+            "sm",
+            "md",
+            "lg"
+          ]
+        },
         "gap": {
           "type": "number",
           "default": 6,
@@ -10551,13 +10586,26 @@
         },
         "gridCols": {
           "type": "number",
-          "default": 3
+          "default": 3,
+          "description": "Spalten des Rasters, nur bei variant \"grid\"."
+        },
+        "groupTitle": {
+          "type": "string",
+          "ref": "GroupTitle",
+          "default": "iconName",
+          "enum": [
+            "iconName",
+            "name",
+            "none"
+          ],
+          "description": "Nur bei menuMode \"overview\": Titel jeder Bereichs-Gruppe — Icon + Name, nur Name oder kein Titel."
         },
         "hiddenItems": {
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "description": "Abgewählte Einträge (Slugs): Bereiche bei \"section\" und \"overview\" (dort entfällt die ganze Gruppe), Tabs bei \"tab\". Als hidden markierte Bereiche/Tabs fehlen ohnehin."
         },
         "iconSize": {
           "type": "number",
@@ -10567,25 +10615,62 @@
         "indicatorStyle": {
           "type": "string",
           "ref": "IndicatorStyle",
-          "default": "underline"
+          "default": "underline",
+          "enum": [
+            "text",
+            "underline",
+            "filled",
+            "pills"
+          ],
+          "description": "Stil des aktiven Eintrags. \"pills\" ist bei variant \"pills\" erzwungen und bei menuMode \"overview\" der Standard."
         },
         "menuMode": {
           "type": "string",
           "ref": "MenuMode",
-          "default": "section"
+          "default": "section",
+          "enum": [
+            "section",
+            "tab",
+            "overview"
+          ],
+          "description": "\"section\" listet die Bereiche des Layouts, \"tab\" die Tabs des aktuellen Bereichs, \"overview\" alle Bereiche als Gruppen mit ihren Tabs als Chips — die automatische Übersichtsseite (#669); Klick auf einen Chip springt in diesen Tab, auch in einem anderen Bereich."
+        },
+        "menuSource": {
+          "type": "string",
+          "ref": "MenuSource",
+          "default": "layout",
+          "enum": [
+            "layout",
+            "all"
+          ],
+          "description": "Nur bei menuMode \"overview\": \"layout\" = Bereiche des aktuellen Layouts, \"all\" = zusätzlich die Bereiche aller anderen Layouts, je Layout mit dessen Namen als Überschrift."
         },
         "showIcons": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Icons anzeigen: Bereiche ohne eigenes Icon bekommen ein Standard-Icon, Tabs ohne Icon nur Text."
         },
         "showLabels": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Text der Einträge anzeigen. Bei menuMode \"overview\" immer an."
+        },
+        "showSearch": {
+          "type": "boolean",
+          "default": false,
+          "description": "Nur bei menuMode \"overview\": Suchfeld über den Gruppen, filtert die Chips live nach Tab- oder Bereichsname; Gruppen ohne Treffer verschwinden."
         },
         "variant": {
           "type": "string",
           "ref": "MenuVariant",
-          "default": "hbar"
+          "default": "hbar",
+          "enum": [
+            "hbar",
+            "vlist",
+            "grid",
+            "pills"
+          ],
+          "description": "Anordnung: eine scrollende Zeile, Liste untereinander, Raster mit gridCols oder umbrechende Chips. Wirkt nicht bei menuMode \"overview\" (immer umbrechende Chips je Gruppe)."
         }
       }
     },

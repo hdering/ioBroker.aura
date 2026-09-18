@@ -904,7 +904,7 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         addMode: 'free',
         widgetGroup: 'layout',
         mock: { t: 'Menü', v: '☰' },
-        hint: 'Frei positionierbares Navigations-Menü – zeigt die Bereiche oder die Tabs zum direkten Umschalten',
+        hint: 'Frei positionierbares Navigations-Menü – zeigt die Bereiche, die Tabs oder eine Übersicht aller Bereiche mit ihren Tabs zum direkten Umschalten',
     },
     {
         type: 'messages',

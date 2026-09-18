@@ -1108,7 +1108,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
             style={{ background: 'var(--app-bg)', borderBottom: '1px solid var(--app-border)' }}
         >
             <a
-                href={`#/admin/layouts?expand=${layoutId}`}
+                href={`#/admin/layouts?ctx=${layoutId}`}
                 title={t('sections.manage')}
                 className="text-[10px] font-semibold shrink-0 mr-1 inline-flex items-center gap-0.5 hover:underline"
                 style={{ color: 'var(--text-secondary)' }}

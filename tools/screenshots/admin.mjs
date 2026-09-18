@@ -95,9 +95,11 @@ await shotPage('popups');
 await go('admin/widgets');
 await shotPage('widgets');
 
-// ── 5. Layouts (list) ────────────────────────────────────────────────────────
+// ── 5. Layouts (master-detail: layout, then one of its sections) ─────────────
 await go('admin/layouts');
 await shotPage('layouts');
+await go(`admin/layouts?ctx=${LAYOUTS[0].sections[0].id}`);
+await shotPage('layouts-bereich');
 
 // ── 6. Design (global-frame sections + scoped appearance sub-tabs) ────────────
 for (const frame of ['header', 'menu', 'nav']) {

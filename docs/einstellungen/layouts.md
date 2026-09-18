@@ -4,14 +4,36 @@ Jedes Layout hat eigene Tabs und Widgets — ideal für verschiedene Tablets ode
 
 ## Layouts
 
-![](./assets/layouts-theme.png)
+Links der Baum aus Layouts und ihren Bereichen, rechts das gewählte Element. Die Auswahl steht in der URL (`#/admin/layouts?ctx=<id>`).
 
-| Element                           |                                                   |
-| --------------------------------- | ------------------------------------------------- |
-| Layout-Zeile                      | Name, Slug, Tab-/Widget-Anzahl                    |
-| Bearbeiten                        | Öffnet das Layout im [Dashboard-Editor](./editor) |
-| Aktionen                          | Duplizieren, Exportieren, Löschen                 |
-| Neues Layout / Layout importieren | Anlegen bzw. aus JSON einfügen                    |
+![](./assets/layouts.png)
+
+| Element                    |                                                                                       |
+| -------------------------- | ------------------------------------------------------------------------------------- |
+| Baum (links)               | Layouts mit URL und ihre Bereiche mit Tab-Anzahl; Layouts per Griff sortieren          |
+| Kopf                       | Icon (klicken = ändern), Name, URL, Anzahl Bereiche/Tabs/Widgets                       |
+| Im Frontend öffnen         | Layout im Frontend in neuem Tab                                                        |
+| Frontend-Design            | Öffnet den Geltungsbereich des Layouts im Frontend-Design (Abschnitte unten)             |
+| ⋯                          | Duplizieren, Exportieren, Löschen (zweiter Klick bestätigt)                            |
+| Allgemein                  | Name, URL-Slug (erstes Layout = Startseite `#/`), Icon                                 |
+| Start & Menü               | Standard-Bereich; Sprung zu Bereichs-Menü, Header und Tab-Leiste im Frontend-Design    |
+| Bereiche                   | Reihenfolge = Bereichs-Menü; Standard-Chip, Auge = aus dem Menü ausblenden, ⋯ je Zeile |
+| Neues Layout / Importieren | Anlegen bzw. aus JSON einfügen; das neue Layout wird sofort ausgewählt                |
+
+### Bereich
+
+![](./assets/layouts-bereich.png)
+
+| Element            |                                                                                         |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| Kopf               | Brotkrume Layout / Bereich, URL, Standard- und Ausgeblendet-Chip                        |
+| Im Editor öffnen   | Bereich im [Dashboard-Editor](./editor)                                                 |
+| ⋯                  | Duplizieren, in anderes Layout verschieben/kopieren, Exportieren, Löschen               |
+| Allgemein          | Name, URL-Slug (`/s/…`), Icon                                                           |
+| Sichtbarkeit       | Layout-Standard, aus Menü ausblenden, Menü in diesem Bereich verbergen                  |
+| Tabs               | Reihenfolge = Tab-Leiste; Standard-Tab (Radio), Auge = aus Tab-Leiste ausblenden, Editor |
+| Tab suchen         | Filtert die Liste nach Name oder Slug                                                   |
+| Neuer Tab          | Legt einen leeren Tab im Bereich an                                                      |
 
 ## Theme & CSS-Vars
 
