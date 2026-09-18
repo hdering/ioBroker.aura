@@ -55,8 +55,9 @@ Auf Touch-Geräten ist der Knopf dauerhaft sichtbar, mit Maus erst beim Überfah
 | --- | --- |
 | Standardmäßig eingeklappt | Aus (Standard) / An |
 | Position | Ecke des Einklapp-Knopfes im ausgeklappten Zustand: `rechts oben` (Standard), `links oben`, `rechts unten` — teilt er sich die Ecke mit dem Vollbild-Knopf, rückt er eine Stelle nach innen |
+| Auch im Editor eingeklappt | Aus (Standard): im Editor bleibt das Widget ausgeklappt. An: auch der Editor zeigt nur die Kopfzeile, ein Klick klappt zum Bearbeiten aus |
 
-Nur im Frontend — im Editor bleibt jedes Widget ausgeklappt, und ein Neuladen stellt den eingeklappten Zustand wieder her. Der Einklapp-Knopf folgt den Sichtbarkeitsregeln des Vollbild-Knopfes. Die [Gruppe](./../widgets/gruppe) behält ihre eigene Kopfzeile mit Pfeil. Nicht beim `Abschnittstitel` und nicht für Widgets innerhalb einer Gruppe.
+Ein Neuladen stellt den eingeklappten Zustand wieder her; die gespeicherte Höhe bleibt in beiden Ansichten unangetastet. Der Einklapp-Knopf folgt den Sichtbarkeitsregeln des Vollbild-Knopfes. Die [Gruppe](./../widgets/gruppe) behält ihre eigene Kopfzeile mit Pfeil. Nicht beim `Abschnittstitel` und nicht für Widgets innerhalb einer Gruppe.
 
 ## PIN-Schutz
 

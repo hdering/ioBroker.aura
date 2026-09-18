@@ -37,9 +37,9 @@ const {
     isCollapsedNow,
     collapsedRows,
     collapsePosition,
+    collapseButtonSlot,
     cornerInset,
     fullscreenButtonInset,
-    collapseButtonIndex,
     actionButtonRight,
 } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
@@ -66,7 +66,24 @@ ok('off without options', !collapsibleWidget('value', undefined, fe));
 ok('off with an empty options object', !collapsibleWidget('value', {}, fe));
 ok('on with defaultCollapsed: true', collapsibleWidget('value', { defaultCollapsed: true }, fe));
 ok('a string "true" does not count', !collapsibleWidget('value', { defaultCollapsed: 'true' }, fe));
-ok('never in the editor', !collapsibleWidget('value', { defaultCollapsed: true }, { editMode: true }));
+ok('not in the editor by itself', !collapsibleWidget('value', { defaultCollapsed: true }, { editMode: true }));
+ok(
+    'in the editor once the widget opts in',
+    collapsibleWidget('value', { defaultCollapsed: true, collapseInEditor: true }, { editMode: true }),
+);
+ok(
+    'collapseInEditor alone does nothing',
+    !collapsibleWidget('value', { collapseInEditor: true }, { editMode: true }) &&
+        !collapsibleWidget('value', { collapseInEditor: true }, { editMode: false }),
+);
+ok(
+    'the editor opt-in does not override the group-child rule',
+    !collapsibleWidget('value', { defaultCollapsed: true, collapseInEditor: true }, { editMode: true, inGroup: true }),
+);
+ok(
+    'a group may fold in the editor too',
+    collapsibleWidget('group', { defaultCollapsed: true, collapseInEditor: true }, { editMode: true }),
+);
 ok('never as a group child', !collapsibleWidget('value', { defaultCollapsed: true }, { ...fe, inGroup: true }));
 ok(
     'never inside the fullscreen overlay',
@@ -105,8 +122,24 @@ eq('outermost bottom right', cornerInset('br', 0), { bottom: 6, right: 6 });
 for (const pos of ['tr', 'tl', 'br']) {
     eq(`fullscreen button still outermost in ${pos}`, fullscreenButtonInset(pos), cornerInset(pos, 0));
 }
-eq('fold button alone is outermost', collapseButtonIndex(false), 0);
-eq('fold button behind the fullscreen button', collapseButtonIndex(true), 1);
+const fe0 = { editMode: false, fullscreenSameCorner: false };
+eq('fold button alone is outermost', collapseButtonSlot('tr', fe0), 0);
+eq('fold button behind the fullscreen button', collapseButtonSlot('tr', { ...fe0, fullscreenSameCorner: true }), 1);
+eq(
+    'editor: top right steps past the two chrome buttons',
+    collapseButtonSlot('tr', { editMode: true, fullscreenSameCorner: false }),
+    2,
+);
+eq(
+    'editor: bottom right steps past the resize handle',
+    collapseButtonSlot('br', { editMode: true, fullscreenSameCorner: false }),
+    1,
+);
+eq(
+    'editor: top left has nothing to step past',
+    collapseButtonSlot('tl', { editMode: true, fullscreenSameCorner: false }),
+    0,
+);
 
 // ── 7. The embed action button steps aside for the fold button as well ──
 eq('old two-occupant shape unchanged', actionButtonRight({ iframeOwnFullscreen: false, fullscreenTopRight: false }), 6);

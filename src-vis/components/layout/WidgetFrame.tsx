@@ -80,14 +80,19 @@ import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
 import {
     FULLSCREEN_POSITIONS,
     actionButtonRight,
-    collapseButtonIndex,
     cornerInset,
     fullscreenButtonEnabled,
     fullscreenButtonInset,
     fullscreenPosition,
     supportsFullscreenButton,
 } from '../../utils/fullscreenButton';
-import { collapsePosition, collapsibleWidget, isCollapsedNow, supportsCollapse } from '../../utils/widgetCollapse';
+import {
+    collapseButtonSlot,
+    collapsePosition,
+    collapsibleWidget,
+    isCollapsedNow,
+    supportsCollapse,
+} from '../../utils/widgetCollapse';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
@@ -6926,15 +6931,16 @@ function WidgetFrameInner({
     const isTransparent = !!config.options?.transparent;
     // A group with title + icon off and no master switch renders no header bar.
     // In the editor its config controls float in on hover (top-left toolbar) so
-    // children can sit flush to the top without a reserved strip. (collapsible is
-    // frontend-only, so it never applies to this editor-only chrome.)
+    // children can sit flush to the top without a reserved strip. A group that
+    // folds in the editor too draws its chevron bar there, which counts as a header.
     const isHeaderlessGroup =
         editMode &&
         isGroup &&
         !(
             (config.options?.showTitle !== false && !!config.title) ||
             config.options?.showIcon !== false ||
-            !!config.options?.groupSwitch
+            !!config.options?.groupSwitch ||
+            collapsibleWidget(config.type, config.options, { editMode })
         );
     // The menu widget has no title/icon header and its whole body is `nodrag`, so
     // there is no surface to grab for a grid move. Give it the same hover-reveal
@@ -7064,9 +7070,10 @@ function WidgetFrameInner({
     // A group draws its own header with the chevron in it (GroupWidget); every
     // other type folds down to a header row the frame draws here — icon + title,
     // the whole card is the toggle — and gets a fold button in a corner while it
-    // is expanded. Frontend only: in the editor the content has to stay reachable.
-    // The session toggle lives in the collapse store; absent it, the widget starts
-    // collapsed (that is what the option means).
+    // is expanded. In the editor only when the widget opts in (collapseInEditor) —
+    // a click on the header then opens it for editing. The session toggle lives in
+    // the collapse store; absent it, the widget starts collapsed (that is what the
+    // option means).
     const frameCollapsible =
         framingType !== 'group' &&
         collapsibleWidget(config.type, config.options, { editMode, inGroup, fullscreen, probe: isProbe });
@@ -7369,8 +7376,11 @@ function WidgetFrameInner({
                 // Folded (issue #676): only icon + title, mirroring the group's header
                 // row. The whole card is the toggle; the body is not mounted at all, so
                 // a folded camera or iframe costs nothing in the background.
+                // In the editor the folded card has no other surface to grab, so the
+                // header is the grid's drag handle there (no `nodrag`); a click without a
+                // move still reaches onClick and toggles.
                 <div
-                    className="aura-collapsed-header nodrag h-full w-full flex items-center cursor-pointer select-none"
+                    className={`aura-collapsed-header h-full w-full flex items-center cursor-pointer select-none ${editMode ? '' : 'nodrag'}`}
                     data-collapsed-header=""
                     role="button"
                     aria-expanded={false}
@@ -7562,7 +7572,8 @@ function WidgetFrameInner({
 
             {/* Fold button of a collapsible widget while it is expanded (issue #676).
                 Same reveal rules and corner ladder as the fullscreen button: behind it
-                when both share a corner, otherwise outermost. */}
+                when both share a corner, otherwise outermost; in the editor past the
+                edit chrome / resize handle (collapseButtonSlot). */}
             {frameCollapsible && !isCollapsed && (
                 <button
                     onClick={(e) => {
@@ -7571,7 +7582,13 @@ function WidgetFrameInner({
                     }}
                     className="nodrag aura-collapse-btn absolute w-7 h-7 flex items-center justify-center rounded-md transition-opacity"
                     style={{
-                        ...cornerInset(collapsePos, collapseButtonIndex(showFullscreenButton && fsPos === collapsePos)),
+                        ...cornerInset(
+                            collapsePos,
+                            collapseButtonSlot(collapsePos, {
+                                editMode,
+                                fullscreenSameCorner: showFullscreenButton && fsPos === collapsePos,
+                            }),
+                        ),
                         zIndex: 4,
                         background: 'rgba(0,0,0,0.55)',
                         color: '#fff',
@@ -8397,6 +8414,7 @@ function WidgetFrameInner({
                         const iconOn = o.showIcon !== false;
                         const fsOn = o.fullscreenWidget === true;
                         const collapsedOn = o.defaultCollapsed === true;
+                        const collapseEditorOn = o.collapseInEditor === true;
                         const currentIconName = o.icon as string | undefined;
                         const CurrentIcon = currentIconName
                             ? getWidgetIcon(currentIconName, (() => null) as unknown as LucideIcon)
@@ -9023,6 +9041,43 @@ function WidgetFrameInner({
                                                         : 'wf.edit.defaultCollapsedHint',
                                                 )}
                                             </p>
+                                            {/* Editor too? Off keeps the editor open as before; on shows
+                                                the same header row there, a click opens for editing. */}
+                                            {collapsedOn && (
+                                                <>
+                                                    <div className="flex items-center justify-between">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('wf.edit.collapseInEditor')}
+                                                        </label>
+                                                        <button
+                                                            onClick={() =>
+                                                                setO({ collapseInEditor: !collapseEditorOn })
+                                                            }
+                                                            className="relative w-9 h-5 rounded-full transition-colors"
+                                                            style={{
+                                                                background: collapseEditorOn
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                            }}
+                                                            data-collapse-editor-option=""
+                                                        >
+                                                            <span
+                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                style={{ left: collapseEditorOn ? '18px' : '2px' }}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                    <p
+                                                        className="text-[10px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.edit.collapseInEditorHint')}
+                                                    </p>
+                                                </>
+                                            )}
                                         </>
                                     )}
                                 </div>

@@ -1038,9 +1038,12 @@ export const de = {
         'Sind Kind-Widgets per Bedingung ausgeblendet, verkleinert sich die Gruppe auf die sichtbaren Inhalte (nur im Frontend).',
     'wf.edit.defaultCollapsed': 'Standardmäßig eingeklappt',
     'wf.edit.defaultCollapsedHint':
-        'Das Widget zeigt zunächst nur Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach. Ausgeklappt sitzt der Einklapp-Knopf in der gewählten Ecke (nur im Frontend).',
+        'Das Widget zeigt zunächst nur Icon und Titel; ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach. Ausgeklappt sitzt der Einklapp-Knopf in der gewählten Ecke.',
     'wf.edit.group.defaultCollapsedHint':
-        'Die Gruppe zeigt zunächst nur ihre Kopfzeile; ein Klick darauf klappt die Inhalte aus, die Widgets darunter rücken nach (nur im Frontend).',
+        'Die Gruppe zeigt zunächst nur ihre Kopfzeile; ein Klick darauf klappt die Inhalte aus, die Widgets darunter rücken nach.',
+    'wf.edit.collapseInEditor': 'Auch im Editor eingeklappt',
+    'wf.edit.collapseInEditorHint':
+        'Aus: im Editor bleibt das Widget ausgeklappt. An: auch dort nur die Kopfzeile; ein Klick darauf klappt zum Bearbeiten aus, die gespeicherte Höhe bleibt erhalten.',
     'wf.collapse.expand': 'Ausklappen',
     'wf.collapse.collapse': 'Einklappen',
     'wf.edit.group.mobileKeepGrid': 'Raster auf dem Smartphone beibehalten',

@@ -25,6 +25,7 @@ export function supportsCollapse(type: string): boolean {
 }
 
 export interface CollapseContext {
+    /** Editor: folds only when the widget also opts in via `collapseInEditor`. */
     editMode: boolean;
     /** Child of a group: the group lays its children out on its own pitch, so a
      *  collapsed child would leave its cell empty instead of shrinking it. */
@@ -36,9 +37,11 @@ export interface CollapseContext {
 }
 
 /**
- * True when this widget folds in the current context. Collapse is a frontend
- * feature: in the editor the content has to stay reachable, and a widget that
- * fills its tab has nothing below it to move up.
+ * True when this widget folds in the current context. In the editor the content
+ * has to stay reachable, so the widget stays open there unless it also carries
+ * `collapseInEditor` — then the editor shows the same header row and a click on it
+ * opens the content for editing (session only, the stored height is untouched).
+ * A widget that fills its tab has nothing below it to move up.
  */
 export function collapsibleWidget(
     type: string,
@@ -48,7 +51,8 @@ export function collapsibleWidget(
     if (!supportsCollapse(type)) return false;
     if (options?.defaultCollapsed !== true) return false;
     if (options?.fillTab) return false;
-    if (ctx.editMode || ctx.inGroup || ctx.fullscreen || ctx.probe) return false;
+    if (ctx.inGroup || ctx.fullscreen || ctx.probe) return false;
+    if (ctx.editMode && options?.collapseInEditor !== true) return false;
     return true;
 }
 
@@ -75,6 +79,20 @@ export function collapsedRows(headerPx: number, widgetPadding: number, cellSize:
 export const COLLAPSED_HEADER_FALLBACK_PX = 20;
 
 export type CollapsePosition = FullscreenPosition;
+
+/**
+ * Slot of the fold button in its corner (0 = outermost, see cornerInset). In the
+ * frontend it steps behind the fullscreen button when both share a corner. In the
+ * editor the top-right corner belongs to the edit chrome (two buttons) and the
+ * bottom-right to the grid's resize handle, so the button steps past those.
+ */
+export function collapseButtonSlot(
+    pos: CollapsePosition,
+    ctx: { editMode: boolean; fullscreenSameCorner: boolean },
+): number {
+    if (ctx.editMode) return pos === 'tr' ? 2 : pos === 'br' ? 1 : 0;
+    return ctx.fullscreenSameCorner ? 1 : 0;
+}
 
 /** Corner of the fold button while the widget is expanded; same ladder as the fullscreen button. */
 export function collapsePosition(options: Record<string, unknown> | undefined): CollapsePosition {

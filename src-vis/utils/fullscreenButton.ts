@@ -92,12 +92,3 @@ export function actionButtonRight(occupants: CornerOccupants): number {
             (occupants.collapseTopRight ? 1 : 0),
     );
 }
-
-/**
- * Slot of the fold button in its corner: behind the fullscreen button when that
- * one shares the corner, otherwise outermost. (The iframe's own fullscreen button
- * lives in the widget body below the title row, so it never competes here.)
- */
-export function collapseButtonIndex(sameCornerAsFullscreen: boolean): number {
-    return sameCornerAsFullscreen ? 1 : 0;
-}

@@ -116,16 +116,27 @@ export function Dashboard({
     const MARGIN = settings.gridGap ?? DEFAULT_MARGIN;
     const groupDefs = useGroupDefsStore((s) => s.defs);
     const groupCollapsed = useWidgetCollapseStore((s) => s.collapsed);
-    /** A folded non-group widget (issue #676): its frame shows only the header row,
-     *  so the box shrinks to that row and the widgets below move up. Groups keep
-     *  their own collapse path (header measured by GroupWidget, see below). A
-     *  mirror decides by its OWN options — its frame draws the collapsed header. */
-    const frameCollapsedNow = useCallback(
-        (w: WidgetConfig, framingType: string) =>
-            framingType !== 'group' &&
-            collapsibleWidget(w.type, w.options as Record<string, unknown> | undefined, { editMode }) &&
-            isCollapsedNow(groupCollapsed, w.id),
+    /** A folded widget (issue #676): only its header row shows, so the box shrinks
+     *  to that row and the widgets below move up. Two paths draw the header — the
+     *  GroupWidget for a group (measured into groupHeaders), the WidgetFrame for
+     *  every other type (collapsedHeaders). The config that decides is the source
+     *  group for a mirror of a group (the mirror shows the group's own header) and
+     *  the mirror itself for everything else (its frame draws the header). Editor
+     *  folding needs the widget's `collapseInEditor` as well — see collapsibleWidget. */
+    const collapsedItemNow = useCallback(
+        (w: WidgetConfig, source: WidgetConfig) => {
+            const cfg = source.type === 'group' ? source : w;
+            return (
+                collapsibleWidget(cfg.type, cfg.options as Record<string, unknown> | undefined, { editMode }) &&
+                isCollapsedNow(groupCollapsed, cfg.id)
+            );
+        },
         [editMode, groupCollapsed],
+    );
+    /** Same, for a non-group frame only (the group has its own height path). */
+    const frameCollapsedNow = useCallback(
+        (w: WidgetConfig, source: WidgetConfig) => source.type !== 'group' && collapsedItemNow(w, source),
+        [collapsedItemNow],
     );
     /** True for a group that actually holds children — i.e. one whose height is
      *  derived from its content instead of the stored gridPos.h. */
@@ -604,7 +615,7 @@ export function Dashboard({
                                                             // grid needs a definite height (CustomGridView is height:100%);
                                                             // minimal/compact already center, so they keep a fixed height.
                                                             const autoHeight =
-                                                                frameCollapsedNow(w, ew.type) ||
+                                                                frameCollapsedNow(w, ew) ||
                                                                 ew.type === 'group' ||
                                                                 ew.type === 'mediaplayer' ||
                                                                 (ew.type === 'weather' &&
@@ -799,11 +810,7 @@ export function Dashboard({
 
                                             // A non-autoShrink group hugs its children (equal GROUP_GAP spacing on
                                             // all sides, no trailing row) in both views — see groupRows / GroupWidget.
-                                            const groupCollapsedNow =
-                                                isGroup &&
-                                                !editMode &&
-                                                !!gw.options?.defaultCollapsed &&
-                                                (groupCollapsed[gw.id] ?? true);
+                                            const groupCollapsedNow = isGroup && collapsedItemNow(w, gw);
                                             // An empty group has nothing to hug: without this it would clamp to
                                             // minH (= 1 row) in the editor, so a fresh group came out as a flat
                                             // strip and its stored height had no effect at all.
@@ -823,8 +830,13 @@ export function Dashboard({
                                                 );
                                                 const showTitle = gw.options?.showTitle !== false;
                                                 const showIcon = gw.options?.showIcon !== false;
+                                                // A group that folds in the editor too shows its chevron bar
+                                                // there — count it like GroupWidget's hasHeaderContent does.
                                                 const hasHeader =
-                                                    (showTitle && !!gw.title) || showIcon || !!gw.options?.groupSwitch;
+                                                    (showTitle && !!gw.title) ||
+                                                    showIcon ||
+                                                    !!gw.options?.groupSwitch ||
+                                                    collapsibleWidget(gw.type, gw.options, { editMode });
                                                 minH = groupRows(
                                                     maxBottom,
                                                     hasHeader,
@@ -908,16 +920,11 @@ export function Dashboard({
                                                     minH = Math.min(minH, h);
                                                 }
                                             }
-                                            // Collapsed group (frontend only): fold the outer box down to just
-                                            // the header. Mirrors GroupWidget, which hides the body in the same
-                                            // state. A user toggle lives in groupCollapsed; absent it, the config
-                                            // default applies.
-                                            if (
-                                                isGroup &&
-                                                !editMode &&
-                                                !!gw.options?.defaultCollapsed &&
-                                                (groupCollapsed[gw.id] ?? true)
-                                            ) {
+                                            // Collapsed group: fold the outer box down to just the header.
+                                            // Mirrors GroupWidget, which hides the body in the same state. A
+                                            // user toggle lives in groupCollapsed; absent it, the config default
+                                            // applies. Frontend, and the editor when the group opts in.
+                                            if (groupCollapsedNow) {
                                                 const headerPx = groupHeaderHeights[gw.id] ?? 37;
                                                 const headerRows = Math.ceil(
                                                     (headerPx + 10 + MARGIN) / (cellSize + MARGIN),
@@ -940,10 +947,10 @@ export function Dashboard({
                                                     minH = Math.min(minH, h);
                                                 }
                                             }
-                                            // Collapsed widget of any other type (issue #676, frontend only):
-                                            // fold the box down to the header row the frame draws. Last, so it
-                                            // wins over every content-derived height above.
-                                            if (frameCollapsedNow(w, gw.type)) {
+                                            // Collapsed widget of any other type (issue #676): fold the box
+                                            // down to the header row the frame draws. Last, so it wins over
+                                            // every content-derived height above.
+                                            if (frameCollapsedNow(w, gw)) {
                                                 h = collapsedRows(
                                                     collapsedHeaderHeights[w.id] ?? COLLAPSED_HEADER_FALLBACK_PX,
                                                     widgetPadding,
@@ -959,6 +966,10 @@ export function Dashboard({
                                                 w: Math.min(w.gridPos.w ?? 2, effectiveCols),
                                                 h,
                                                 minH,
+                                                // A folded widget in the editor keeps its stored height for the
+                                                // day it opens again — dragging its edge would only persist a
+                                                // transient row count, so the handle is taken away while folded.
+                                                ...(editMode && collapsedItemNow(w, gw) ? { isResizable: false } : {}),
                                             };
                                         });
                                         const buildTabUpdated = (
@@ -985,10 +996,13 @@ export function Dashboard({
                                                               (w.options?.targetWidgetId as string | undefined) ?? '',
                                                           )
                                                         : undefined;
+                                                // A widget folded in the editor (issue #676) renders at its header
+                                                // height; the stored one is what it opens back to.
                                                 const derivedH =
                                                     hasGroupChildren(w) ||
                                                     hasGroupChildren(mirrorSrc) ||
-                                                    usesContentAutoHeight(w);
+                                                    usesContentAutoHeight(w) ||
+                                                    collapsedItemNow(w, mirrorSrc ?? w);
                                                 const h = derivedH ? w.gridPos.h : pos.h;
                                                 // Same place as before → same object. A drop re-emits every
                                                 // widget of the tab; keeping the untouched ones reference-stable

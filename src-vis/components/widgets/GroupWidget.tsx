@@ -27,6 +27,7 @@ import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
+import { collapsibleWidget } from '../../utils/widgetCollapse';
 import { verticalCompact } from '../../utils/gridCompact';
 import { GROUP_GAP, groupRows } from '../../utils/groupLayout';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
@@ -103,9 +104,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // A group with `defaultCollapsed` set is collapsible in the live dashboard:
     // its header stays, the body folds away, and the outer box shrinks to the
     // header (see Dashboard height computation). In the editor children must stay
-    // reachable, so collapse never applies there.
+    // reachable, so collapse applies there only when the group also opts in via
+    // `collapseInEditor` — a click on the header then opens it for editing.
     const defaultCollapsed = !!config.options?.defaultCollapsed;
-    const collapsible = defaultCollapsed && !editMode;
+    const collapsible = collapsibleWidget(config.type, config.options, { editMode });
     const initCollapse = useWidgetCollapseStore((s) => s.init);
     const toggleCollapse = useWidgetCollapseStore((s) => s.toggle);
     const collapsed = useWidgetCollapseStore((s) => s.collapsed[config.id] ?? defaultCollapsed);

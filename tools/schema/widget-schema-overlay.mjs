@@ -958,8 +958,8 @@ export const UNIVERSAL_OPTIONS = {
         ts: 'boolean',
         description:
             'Widget startet eingeklappt: die Karte zeigt nur Icon und Titel in einer Zeile, ein Tipp darauf ' +
-            'klappt den Inhalt aus, die Widgets darunter rücken nach (nur im Frontend, im Editor immer ' +
-            'ausgeklappt). Ausgeklappt sitzt ein Einklapp-Knopf in der Ecke collapsePosition. Die Gruppe ' +
+            'klappt den Inhalt aus, die Widgets darunter rücken nach (im Editor nur zusammen mit ' +
+            'collapseInEditor). Ausgeklappt sitzt ein Einklapp-Knopf in der Ecke collapsePosition. Die Gruppe ' +
             'behält ihre eigene Kopfzeile mit Pfeil. Nicht bei "header" und nicht für Kinder einer Gruppe. ' +
             'Eingeklappt belegt die Karte nur die Kopfzeile plus Innenabstand — die gespeicherte Höhe gilt ' +
             'ausgeklappt.',
@@ -969,6 +969,13 @@ export const UNIVERSAL_OPTIONS = {
         description:
             'Ecke des Einklapp-Knopfes bei defaultCollapsed: "tr" rechts oben (Standard), "tl" links oben, ' +
             '"br" rechts unten. Teilt er sich die Ecke mit dem Vollbild-Knopf, rückt er eine Stelle nach innen.',
+    },
+    collapseInEditor: {
+        ts: 'boolean',
+        description:
+            'Nur zusammen mit defaultCollapsed: auch der Editor zeigt das Widget eingeklappt (Kopfzeile, ' +
+            'Klick klappt zum Bearbeiten aus). Ohne diese Option bleibt es im Editor immer ausgeklappt. ' +
+            'Die gespeicherte Höhe bleibt in beiden Fällen unangetastet.',
     },
 };
 

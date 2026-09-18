@@ -182,6 +182,52 @@ const expandedPx = (rows) => rows * ROW + (rows - 1) * GAP;
         (await page.locator('[data-aura-widget="cl-ed"] .aura-widget-value').count()) === 1,
     );
 
+    // ── 4b. „Auch im Editor eingeklappt": Kopfzeile, Bedien-Chrome, Höhe, Ausklappen ──
+    await show(
+        page,
+        [
+            widget('cl-edc', 'value', { defaultCollapsed: true, collapseInEditor: true }),
+            widget('cl-edb', 'value', {}, { x: 0, y: 10, w: 20, h: 4 }),
+        ],
+        { editMode: true },
+    );
+    check('mit Editor-Option zeigt der Editor die Kopfzeile', (await page.locator(header('cl-edc')).count()) === 1);
+    check(
+        'die Kopfzeile ist im Editor die Griff-Fläche (kein nodrag)',
+        !(await page.locator(header('cl-edc')).evaluate((el) => el.classList.contains('nodrag'))),
+    );
+    check(
+        'das Bedien-Chrome bleibt erreichbar',
+        (await page.locator('[data-aura-widget="cl-edc"] .aura-edit-chrome').count()) === 1,
+    );
+    let ec = await box(page, 'cl-edc');
+    let eb = await box(page, 'cl-edb');
+    check('im Editor schrumpft die Karte ebenfalls', ec && ec.height <= expandedPx(3) + 1, `Höhe ${ec?.height}`);
+    check(
+        'im Editor rückt das Widget darunter nach',
+        ec && eb && eb.y < ec.y + expandedPx(10) - 40,
+        ec && eb ? `b.y ${Math.round(eb.y)}, a.y ${Math.round(ec.y)}` : 'keine Box',
+    );
+    await page.click(header('cl-edc'));
+    await page.waitForTimeout(500);
+    check('ein Klick klappt im Editor zum Bearbeiten aus', (await page.locator(header('cl-edc')).count()) === 0);
+    ec = await box(page, 'cl-edc');
+    check(
+        'ausgeklappt gilt im Editor die gespeicherte Höhe',
+        ec && Math.abs(ec.height - expandedPx(10)) <= 2,
+        `Höhe ${ec?.height}, erwartet ${expandedPx(10)}`,
+    );
+    await page.hover('[data-aura-widget="cl-edc"]');
+    await page.waitForTimeout(250);
+    const edFold = await page.locator(toggle('cl-edc')).boundingBox();
+    const edMenu = await page.locator('[data-aura-widget="cl-edc"] .aura-edit-chrome button:last-child').boundingBox();
+    check('im Editor gibt es den Einklapp-Knopf', !!edFold);
+    check(
+        'er liegt links neben dem Bedien-Chrome statt darauf',
+        edFold && edMenu && edFold.x + edFold.width <= edMenu.x - 20,
+        edFold && edMenu ? `fold ${Math.round(edFold.x + edFold.width)}, chrome ${Math.round(edMenu.x)}` : 'keine Box',
+    );
+
     // ── 5. Das Optionen-Panel: Schalter im Bereich Darstellung ─────────────────────
     await show(page, [widget('cl-cfg', 'value')], { editMode: true });
     await page.click('[data-aura-widget="cl-cfg"] .aura-edit-chrome button:last-child');
@@ -216,6 +262,23 @@ const expandedPx = (rows) => rows * ROW + (rows - 1) * GAP;
         JSON.stringify(afterChip),
     );
     check('im Editor bleibt das Widget trotz Option ausgeklappt', (await page.locator(header('cl-cfg')).count()) === 0);
+    const edLabel = page.getByText('Auch im Editor eingeklappt', { exact: true });
+    check('die Editor-Unteroption erscheint, sobald eingeklappt an ist', (await edLabel.count()) === 1);
+    await page.locator('[data-collapse-editor-option]').click();
+    await page.waitForTimeout(500);
+    const afterEditor = await page.evaluate(() => window.__auraShot.widgetOptions('cl-cfg'));
+    check(
+        'die Unteroption schreibt collapseInEditor',
+        afterEditor?.collapseInEditor === true,
+        JSON.stringify(afterEditor),
+    );
+    check('damit klappt das Widget im Editor sofort ein', (await page.locator(header('cl-cfg')).count()) === 1);
+    await page.locator('[data-collapse-option]').click();
+    await page.waitForTimeout(250);
+    check(
+        'ohne „eingeklappt" verschwindet die Unteroption',
+        (await page.getByText('Auch im Editor eingeklappt', { exact: true }).count()) === 0,
+    );
 
     // Gruppe: der Schalter ist umgezogen — genau einmal, in Darstellung, ohne Ecken-Chips
     await show(page, [widget('cl-gcfg', 'group', {}, { x: 0, y: 0, w: 20, h: 8 })], { editMode: true });
