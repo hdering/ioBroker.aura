@@ -66,12 +66,26 @@ export function isCollapsedNow(collapsed: Record<string, boolean>, id: string): 
 }
 
 /**
- * Grid rows a collapsed (non-group) widget occupies: the measured header row plus
- * the card's own padding and border, rounded up to whole rows. Same arithmetic as
- * the content auto-height path in Dashboard, so the two never disagree.
+ * Vertical padding of the folded card. The full widget padding (16 px by default)
+ * made a folded card three grid rows tall while a folded group — whose header
+ * carries 10 px above and below — fits in two; the folded card takes the group's
+ * measure so every collapsed widget is as slim as the group. Horizontal padding
+ * stays the widget's, so the header row aligns with the title of an open card.
  */
-export function collapsedRows(headerPx: number, widgetPadding: number, cellSize: number, margin: number): number {
-    const total = headerPx + widgetPadding * 2 + 2;
+export const COLLAPSED_PAD_Y = 10;
+
+export function collapsedPadY(widgetPadding: number): number {
+    return Math.min(widgetPadding, COLLAPSED_PAD_Y);
+}
+
+/**
+ * Grid rows a collapsed (non-group) widget occupies: the measured header row plus
+ * the card's reduced vertical padding (collapsedPadY) and border, rounded up to
+ * whole rows. Same arithmetic as the content auto-height path in Dashboard, so
+ * the two never disagree. Pass the vertical padding actually applied.
+ */
+export function collapsedRows(headerPx: number, padY: number, cellSize: number, margin: number): number {
+    const total = headerPx + padY * 2 + 2;
     return Math.max(1, Math.ceil((total + margin) / (cellSize + margin)));
 }
 

@@ -89,6 +89,7 @@ import {
 import {
     collapseButtonSlot,
     collapsePosition,
+    collapsedPadY,
     collapsibleWidget,
     isCollapsedNow,
     supportsCollapse,
@@ -7111,8 +7112,10 @@ function WidgetFrameInner({
     const collapsedTitleAlign = ((collapsedSource.options?.titleAlign as string | undefined) ??
         'left') as React.CSSProperties['textAlign'];
 
-    // A folded card always keeps the normal padding — the header row needs it, and
-    // the Dashboard's row arithmetic (collapsedRows) assumes it.
+    // A folded card always keeps a padding — the header row needs it — but a slim
+    // one above and below (collapsedPadY, the group header's measure) so it fits the
+    // same two grid rows a folded group does; the Dashboard's row arithmetic
+    // (collapsedRows) uses the same value.
     const isNoPad =
         !isCollapsed &&
         (isBareHeader ||
@@ -7165,7 +7168,11 @@ function WidgetFrameInner({
                           borderWidth: isBareHeader ? 0 : editMode ? 1 : 'var(--widget-border-width)',
                           borderStyle: 'dashed',
                           borderColor: isTransparent && editMode ? 'var(--app-border)' : 'transparent',
-                          padding: isNoPad ? undefined : widgetPadding,
+                          padding: isNoPad
+                              ? undefined
+                              : isCollapsed
+                                ? `${collapsedPadY(widgetPadding)}px ${widgetPadding}px`
+                                : widgetPadding,
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
                           opacity: 'var(--widget-opacity, 1)',
@@ -7184,7 +7191,11 @@ function WidgetFrameInner({
                           borderWidth: 'var(--widget-border-width)',
                           borderStyle: 'solid',
                           borderColor: cardBorderColor,
-                          padding: isNoPad ? undefined : widgetPadding,
+                          padding: isNoPad
+                              ? undefined
+                              : isCollapsed
+                                ? `${collapsedPadY(widgetPadding)}px ${widgetPadding}px`
+                                : widgetPadding,
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
                           opacity: 'var(--widget-opacity, 1)',

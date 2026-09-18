@@ -36,6 +36,8 @@ const {
     collapsibleWidget,
     isCollapsedNow,
     collapsedRows,
+    collapsedPadY,
+    COLLAPSED_PAD_Y,
     collapsePosition,
     collapseButtonSlot,
     cornerInset,
@@ -100,8 +102,13 @@ ok('expanded by the user -> open', !isCollapsedNow({ a: false }, 'a'));
 ok('folded again by the user -> collapsed', isCollapsedNow({ a: true }, 'a'));
 ok("another widget's toggle does not leak", isCollapsedNow({ b: false }, 'a'));
 
-// ── 4. Rows of the folded card: header + padding + border, rounded up ──
-eq('20px header, default grid (20/10, pad 16)', collapsedRows(20, 16, 20, 10), 3); // 54 + 10 = 64 / 30
+// ── 4. Rows of the folded card: header + slim padding + border, rounded up ──
+eq('the folded card pads like a group header', COLLAPSED_PAD_Y, 10);
+eq('default widget padding is trimmed', collapsedPadY(16), 10);
+eq('a smaller widget padding is kept', collapsedPadY(6), 6);
+eq('zero padding stays zero', collapsedPadY(0), 0);
+eq('20px header, default grid: two rows like a folded group', collapsedRows(20, collapsedPadY(16), 20, 10), 2); // 42 + 10 = 52 / 30
+eq('20px header with the full padding would need three', collapsedRows(20, 16, 20, 10), 3); // 54 + 10 = 64 / 30
 eq('20px header without padding', collapsedRows(20, 0, 20, 10), 2); // 22 + 10 = 32 / 30
 eq('37px header on a 40px grid', collapsedRows(37, 16, 40, 10), 2); // 71 + 10 = 81 / 50
 eq('never below one row', collapsedRows(0, 0, 20, 10), 1);

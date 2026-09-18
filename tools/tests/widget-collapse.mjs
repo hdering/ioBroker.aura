@@ -58,9 +58,11 @@ const header = (id) => `[data-aura-widget="${id}"] [data-collapsed-header]`;
 const toggle = (id) => `[data-aura-widget="${id}"] [data-collapse-toggle]`;
 
 // Standardraster: 20 px Zeile, 10 px Lücke, 16 px Innenabstand. Zehn Zeilen sind 290 px.
+// Eingeklappt passt die Karte in zwei Zeilen (50 px) — so flach wie eine eingeklappte Gruppe.
 const ROW = 20;
 const GAP = 10;
 const expandedPx = (rows) => rows * ROW + (rows - 1) * GAP;
+const COLLAPSED_ROWS = 2;
 
 // ── 1. Maus-Kontext: eingeklappt starten, nachrücken, auf-/zuklappen ──────────────────
 {
@@ -82,7 +84,11 @@ const expandedPx = (rows) => rows * ROW + (rows - 1) * GAP;
 
     let a = await box(page, 'cl-a');
     let b = await box(page, 'cl-b');
-    check('die Karte ist auf wenige Zeilen geschrumpft', a && a.height <= expandedPx(3) + 1, `Höhe ${a?.height}`);
+    check(
+        'die Karte ist auf zwei Zeilen geschrumpft',
+        a && Math.abs(a.height - expandedPx(COLLAPSED_ROWS)) <= 1,
+        `Höhe ${a?.height}`,
+    );
     check(
         'das Widget darunter rückt nach',
         a && b && b.y < a.y + expandedPx(10) - 40,
@@ -127,7 +133,11 @@ const expandedPx = (rows) => rows * ROW + (rows - 1) * GAP;
     await page.waitForTimeout(500);
     check('der Knopf klappt wieder ein', (await page.locator(header('cl-a')).count()) === 1);
     a = await box(page, 'cl-a');
-    check('die Karte ist wieder geschrumpft', a && a.height <= expandedPx(3) + 1, `Höhe ${a?.height}`);
+    check(
+        'die Karte ist wieder geschrumpft',
+        a && Math.abs(a.height - expandedPx(COLLAPSED_ROWS)) <= 1,
+        `Höhe ${a?.height}`,
+    );
 
     // ── 2. Ecke: Einklapp-Knopf neben dem Vollbild-Knopf, nicht darauf ─────────────
     await show(page, [widget('cl-fs', 'value', { defaultCollapsed: true, fullscreenWidget: true })]);
@@ -202,7 +212,11 @@ const expandedPx = (rows) => rows * ROW + (rows - 1) * GAP;
     );
     let ec = await box(page, 'cl-edc');
     let eb = await box(page, 'cl-edb');
-    check('im Editor schrumpft die Karte ebenfalls', ec && ec.height <= expandedPx(3) + 1, `Höhe ${ec?.height}`);
+    check(
+        'im Editor schrumpft die Karte auf dieselben zwei Zeilen',
+        ec && Math.abs(ec.height - expandedPx(COLLAPSED_ROWS)) <= 1,
+        `Höhe ${ec?.height}`,
+    );
     check(
         'im Editor rückt das Widget darunter nach',
         ec && eb && eb.y < ec.y + expandedPx(10) - 40,
@@ -319,7 +333,7 @@ const expandedPx = (rows) => rows * ROW + (rows - 1) * GAP;
     check('mobil zeigt die Karte die Kopfzeile', (await page.locator(header('cl-m')).count()) === 1);
     let m = await box(page, 'cl-m');
     let m2 = await box(page, 'cl-m2');
-    check('mobil hugt der Stapel die Kopfzeile', m && m.height < 100, `Höhe ${m?.height}`);
+    check('mobil hugt der Stapel die Kopfzeile', m && m.height <= 44, `Höhe ${m?.height}`);
     check(
         'mobil rückt das nächste Widget direkt nach',
         m && m2 && m2.y - (m.y + m.height) <= GAP + 2,

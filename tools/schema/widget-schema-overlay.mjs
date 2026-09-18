@@ -961,8 +961,8 @@ export const UNIVERSAL_OPTIONS = {
             'klappt den Inhalt aus, die Widgets darunter rücken nach (im Editor nur zusammen mit ' +
             'collapseInEditor). Ausgeklappt sitzt ein Einklapp-Knopf in der Ecke collapsePosition. Die Gruppe ' +
             'behält ihre eigene Kopfzeile mit Pfeil. Nicht bei "header" und nicht für Kinder einer Gruppe. ' +
-            'Eingeklappt belegt die Karte nur die Kopfzeile plus Innenabstand — die gespeicherte Höhe gilt ' +
-            'ausgeklappt.',
+            'Eingeklappt belegt die Karte nur die Kopfzeile mit schmalem Innenabstand (so flach wie eine ' +
+            'eingeklappte Gruppe, bei Standardraster zwei Zeilen) — die gespeicherte Höhe gilt ausgeklappt.',
     },
     collapsePosition: {
         ts: "'tr' | 'tl' | 'br'",

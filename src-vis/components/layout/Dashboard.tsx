@@ -10,6 +10,7 @@ import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import {
     collapsibleWidget,
+    collapsedPadY,
     collapsedRows,
     isCollapsedNow,
     COLLAPSED_HEADER_FALLBACK_PX,
@@ -953,7 +954,7 @@ export function Dashboard({
                                             if (frameCollapsedNow(w, gw)) {
                                                 h = collapsedRows(
                                                     collapsedHeaderHeights[w.id] ?? COLLAPSED_HEADER_FALLBACK_PX,
-                                                    widgetPadding,
+                                                    collapsedPadY(widgetPadding),
                                                     cellSize,
                                                     MARGIN,
                                                 );
