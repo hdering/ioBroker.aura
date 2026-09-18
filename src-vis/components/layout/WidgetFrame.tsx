@@ -63,6 +63,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
 import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
 import { FillLimitsSection } from '../config/FillLimitsEditor';
+import { FillStatusSection } from '../config/FillStatusSection';
 import { SANDBOX_PRESETS, type SandboxPreset } from '../../utils/iframeSandbox';
 import { IFRAME_INTERACTION_MODES, resolveIframeInteractionMode } from '../../utils/iframeInteraction';
 import { IFRAME_COLOR_SCHEME_MODES, resolveIframeColorSchemeMode } from '../../utils/iframeColorScheme';
@@ -110,7 +111,11 @@ import type {
 } from '../../types';
 import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
 import { DEFAULT_KNOB_GRID } from '../widgets/KnobWidget';
-import { OVER_COLOR as FILL_OVER_COLOR } from '../widgets/FillWidget';
+import {
+    OVER_COLOR as FILL_OVER_COLOR,
+    CHARGE_COLOR as FILL_CHARGE_COLOR,
+    OFFLINE_COLOR as FILL_OFFLINE_COLOR,
+} from '../widgets/FillWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
 import { ScaleBoundsRow } from '../config/ScaleBoundsRow';
 import { ConditionEditor, ColorField } from '../config/ConditionEditor';
@@ -6496,6 +6501,8 @@ function WidgetFrameInner({
         | 'gauge_pointer3Dp'
         | 'scale_minDp'
         | 'scale_maxDp'
+        | 'fill_chargeDp'
+        | 'fill_connectedDp'
         | 'windowcontact_batteryDp'
         | 'wc_lockDp'
         | 'status_batteryDp'
@@ -8703,6 +8710,7 @@ function WidgetFrameInner({
                                             )}
                                         </>
                                     )}
+                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                     {/* Textumbruch (#653) — one universal option instead of a
                                         wrap toggle per widget type; the .aura-textwrap rule in
                                         index.css does the work. */}
@@ -8821,168 +8829,6 @@ function WidgetFrameInner({
                                                 </div>
                                             );
                                         })()}
-                                    {/* "Last change" makes no sense for a map (no single value) — hide it.
-                                        The mirror inherits its source's last-change setting, so hide the
-                                        toggle here too (see the mirror-source resolution above). */}
-                                    {config.type !== 'map' && config.type !== 'mirror' && (
-                                        <>
-                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('wf.edit.showLastChange')}
-                                                </label>
-                                                <button
-                                                    onClick={() => setO({ showLastChange: !showLastChange })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{
-                                                        background: showLastChange
-                                                            ? 'var(--accent)'
-                                                            : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: showLastChange ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {showLastChange && (
-                                                <div className="flex items-center gap-2">
-                                                    <label
-                                                        className="text-[11px] shrink-0"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {t('wf.edit.position')}
-                                                    </label>
-                                                    <div className="flex gap-1">
-                                                        {(['left', 'center', 'right'] as const).map((p) => {
-                                                            const lbls: Record<string, string> = {
-                                                                left: t('wf.edit.posLeft'),
-                                                                center: t('wf.edit.posCenter'),
-                                                                right: t('wf.edit.posRight'),
-                                                            };
-                                                            const active = lastChangePos === p;
-                                                            return (
-                                                                <button
-                                                                    key={p}
-                                                                    onClick={() => setO({ lastChangePosition: p })}
-                                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                                                                    style={{
-                                                                        background: active
-                                                                            ? 'var(--accent)'
-                                                                            : 'var(--app-bg)',
-                                                                        color: active
-                                                                            ? '#fff'
-                                                                            : 'var(--text-secondary)',
-                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                    }}
-                                                                >
-                                                                    {lbls[p]}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {showLastChange && !config.datapoint && (
-                                                <div>
-                                                    <label
-                                                        className="text-[11px] mb-1 block"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        Datenpunkt{' '}
-                                                        <span style={{ opacity: 0.6 }}>
-                                                            (für Zeitstempel, da kein Haupt-Datenpunkt)
-                                                        </span>
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        value={(o.lastChangeDatapoint as string) ?? ''}
-                                                        onChange={(e) =>
-                                                            onConfigChange({
-                                                                ...config,
-                                                                options: {
-                                                                    ...o,
-                                                                    lastChangeDatapoint: e.target.value || undefined,
-                                                                },
-                                                            })
-                                                        }
-                                                        placeholder="z.B. evcc.0.status.pvPower"
-                                                        className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
-                                                        style={{
-                                                            background: 'var(--app-bg)',
-                                                            color: 'var(--text-primary)',
-                                                            border: '1px solid var(--app-border)',
-                                                        }}
-                                                    />
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
-                                    {/* Fullscreen button (issue #644). Excluded for the types that
-                                        already carry their own — see utils/fullscreenButton. */}
-                                    {supportsFullscreenButton(config.type) && (
-                                        <>
-                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                            <div className="flex items-center justify-between">
-                                                <label
-                                                    className="text-[11px]"
-                                                    style={{ color: 'var(--text-secondary)' }}
-                                                >
-                                                    {t('wf.edit.fullscreenWidget')}
-                                                </label>
-                                                <button
-                                                    onClick={() => setO({ fullscreenWidget: !fsOn })}
-                                                    className="relative w-9 h-5 rounded-full transition-colors"
-                                                    style={{ background: fsOn ? 'var(--accent)' : 'var(--app-border)' }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: fsOn ? '18px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {fsOn && (
-                                                <div className="flex items-center gap-2">
-                                                    <label
-                                                        className="text-[11px] shrink-0"
-                                                        style={{ color: 'var(--text-secondary)' }}
-                                                    >
-                                                        {t('wf.edit.position')}
-                                                    </label>
-                                                    <div className="flex gap-1">
-                                                        {FULLSCREEN_POSITIONS.map((pos) => {
-                                                            const active = fullscreenPosition(o) === pos;
-                                                            return (
-                                                                <button
-                                                                    key={pos}
-                                                                    onClick={() => setO({ fullscreenPosition: pos })}
-                                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                                                                    style={{
-                                                                        background: active
-                                                                            ? 'var(--accent)'
-                                                                            : 'var(--app-bg)',
-                                                                        color: active
-                                                                            ? '#fff'
-                                                                            : 'var(--text-secondary)',
-                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                    }}
-                                                                >
-                                                                    {t(`wf.edit.fsPos.${pos}` as never)}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                                {t('wf.edit.fullscreenHint')}
-                                            </p>
-                                        </>
-                                    )}
                                     {/* Collapsible widget (issue #676). A group keeps the chevron in
                                         its own header; every other type folds to a frame header and
                                         gets a fold button in a corner. Children of a group are laid
@@ -9088,6 +8934,168 @@ function WidgetFrameInner({
                                                         {t('wf.edit.collapseInEditorHint')}
                                                     </p>
                                                 </>
+                                            )}
+                                        </>
+                                    )}
+                                    {/* Fullscreen button (issue #644). Excluded for the types that
+                                        already carry their own — see utils/fullscreenButton. */}
+                                    {supportsFullscreenButton(config.type) && (
+                                        <>
+                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                            <div className="flex items-center justify-between">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('wf.edit.fullscreenWidget')}
+                                                </label>
+                                                <button
+                                                    onClick={() => setO({ fullscreenWidget: !fsOn })}
+                                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                                    style={{ background: fsOn ? 'var(--accent)' : 'var(--app-border)' }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: fsOn ? '18px' : '2px' }}
+                                                    />
+                                                </button>
+                                            </div>
+                                            {fsOn && (
+                                                <div className="flex items-center gap-2">
+                                                    <label
+                                                        className="text-[11px] shrink-0"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.edit.position')}
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {FULLSCREEN_POSITIONS.map((pos) => {
+                                                            const active = fullscreenPosition(o) === pos;
+                                                            return (
+                                                                <button
+                                                                    key={pos}
+                                                                    onClick={() => setO({ fullscreenPosition: pos })}
+                                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                                    style={{
+                                                                        background: active
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                        color: active
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                    }}
+                                                                >
+                                                                    {t(`wf.edit.fsPos.${pos}` as never)}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                {t('wf.edit.fullscreenHint')}
+                                            </p>
+                                        </>
+                                    )}
+                                    {/* "Last change" makes no sense for a map (no single value) — hide it.
+                                        The mirror inherits its source's last-change setting, so hide the
+                                        toggle here too (see the mirror-source resolution above). */}
+                                    {config.type !== 'map' && config.type !== 'mirror' && (
+                                        <>
+                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                            <div className="flex items-center justify-between">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    {t('wf.edit.showLastChange')}
+                                                </label>
+                                                <button
+                                                    onClick={() => setO({ showLastChange: !showLastChange })}
+                                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                                    style={{
+                                                        background: showLastChange
+                                                            ? 'var(--accent)'
+                                                            : 'var(--app-border)',
+                                                    }}
+                                                >
+                                                    <span
+                                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                        style={{ left: showLastChange ? '18px' : '2px' }}
+                                                    />
+                                                </button>
+                                            </div>
+                                            {showLastChange && (
+                                                <div className="flex items-center gap-2">
+                                                    <label
+                                                        className="text-[11px] shrink-0"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.edit.position')}
+                                                    </label>
+                                                    <div className="flex gap-1">
+                                                        {(['left', 'center', 'right'] as const).map((p) => {
+                                                            const lbls: Record<string, string> = {
+                                                                left: t('wf.edit.posLeft'),
+                                                                center: t('wf.edit.posCenter'),
+                                                                right: t('wf.edit.posRight'),
+                                                            };
+                                                            const active = lastChangePos === p;
+                                                            return (
+                                                                <button
+                                                                    key={p}
+                                                                    onClick={() => setO({ lastChangePosition: p })}
+                                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                                    style={{
+                                                                        background: active
+                                                                            ? 'var(--accent)'
+                                                                            : 'var(--app-bg)',
+                                                                        color: active
+                                                                            ? '#fff'
+                                                                            : 'var(--text-secondary)',
+                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                    }}
+                                                                >
+                                                                    {lbls[p]}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {showLastChange && !config.datapoint && (
+                                                <div>
+                                                    <label
+                                                        className="text-[11px] mb-1 block"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        Datenpunkt{' '}
+                                                        <span style={{ opacity: 0.6 }}>
+                                                            (für Zeitstempel, da kein Haupt-Datenpunkt)
+                                                        </span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        value={(o.lastChangeDatapoint as string) ?? ''}
+                                                        onChange={(e) =>
+                                                            onConfigChange({
+                                                                ...config,
+                                                                options: {
+                                                                    ...o,
+                                                                    lastChangeDatapoint: e.target.value || undefined,
+                                                                },
+                                                            })
+                                                        }
+                                                        placeholder="z.B. evcc.0.status.pvPower"
+                                                        className="w-full text-xs rounded-lg px-2.5 py-2 font-mono focus:outline-none"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-primary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    />
+                                                </div>
                                             )}
                                         </>
                                     )}
@@ -13291,6 +13299,21 @@ function WidgetFrameInner({
                                                 </p>
                                             </>
                                         )}
+
+                                        {/* Laden / Verbindung als eigene Datenpunkte (#671). */}
+                                        <FillStatusSection
+                                            options={o}
+                                            set={set}
+                                            onPick={(which) =>
+                                                setPickerTarget(
+                                                    which === 'charge' ? 'fill_chargeDp' : 'fill_connectedDp',
+                                                )
+                                            }
+                                            inputClassName={fCls}
+                                            inputStyle={fSty}
+                                            chargeColor={FILL_CHARGE_COLOR}
+                                            offlineColor={FILL_OFFLINE_COLOR}
+                                        />
                                     </>
                                 );
                             })()}
@@ -19375,6 +19398,10 @@ function WidgetFrameInner({
                             onConfigChange({ ...config, options: { ...config.options, minDatapoint: id } });
                         } else if (pickerTarget === 'scale_maxDp') {
                             onConfigChange({ ...config, options: { ...config.options, maxDatapoint: id } });
+                        } else if (pickerTarget === 'fill_chargeDp') {
+                            onConfigChange({ ...config, options: { ...config.options, chargeDatapoint: id } });
+                        } else if (pickerTarget === 'fill_connectedDp') {
+                            onConfigChange({ ...config, options: { ...config.options, connectedDatapoint: id } });
                         } else if (pickerTarget === 'gauge_pointer2Dp') {
                             onConfigChange({ ...config, options: { ...config.options, pointer2Datapoint: id } });
                         } else if (pickerTarget === 'gauge_pointer3Dp') {
