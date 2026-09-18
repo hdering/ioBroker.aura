@@ -1160,6 +1160,26 @@
         "gemessen mit fünf Vorhersagetagen (der Standard). Mit bekanntem forecastDays rechnet aura_measure genau: siehe counted.weather"
       ],
       "atWidthPx": 200
+    },
+    "countdown": {
+      "minPx": 116,
+      "minRowsDefaultGrid": 5,
+      "fontScalePx": 6.7,
+      "atWidthPx": 120,
+      "modifiers": [
+        {
+          "key": "presets",
+          "label": "Vorgaben-Chips (presets)",
+          "when": {
+            "path": "presets",
+            "nonEmpty": true
+          },
+          "basePx": 50,
+          "fontScalePx": {
+            "basePx": 113.3
+          }
+        }
+      ]
     }
   },
   "notMeasurable": {
