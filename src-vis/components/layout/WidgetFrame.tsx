@@ -9773,6 +9773,7 @@ function WidgetFrameInner({
                             config.type !== 'httpRequest' &&
                             config.type !== 'universal' &&
                             config.type !== 'timer' &&
+                            config.type !== 'countdown' &&
                             config.type !== 'adapterstatus' &&
                             config.type !== 'scriptstatus' &&
                             config.type !== 'adapterlogs' &&

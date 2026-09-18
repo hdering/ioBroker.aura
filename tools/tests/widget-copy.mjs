@@ -293,6 +293,17 @@ seed();
     );
     check('timer events re-issued', timer.options.events[0].id !== 't_1');
     check('timer stateBaseId dropped', timer.options.stateBaseId === undefined);
+
+    // A copied countdown must not drive the original's countdowns.<key> channel (#675).
+    const countdown = copyWidget(
+        widget('w-c', {
+            type: 'countdown',
+            options: { durationSec: 900, presets: [300, 900], stateBaseId: 'aura.0.countdowns.abc' },
+        }),
+    );
+    check('countdown stateBaseId dropped', countdown.options.stateBaseId === undefined);
+    check('countdown keeps its other options', countdown.options.durationSec === 900);
+    check('countdown presets are copied', countdown.options.presets.length === 2);
 }
 
 // ── 6) reference remapping helper ─────────────────────────────────────────────

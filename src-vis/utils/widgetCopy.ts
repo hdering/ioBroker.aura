@@ -126,6 +126,14 @@ export function cloneWidget(widget: WidgetConfig, scope: CloneScope): WidgetConf
         return { ...widget, id, options };
     }
 
+    // COUNTDOWN widgets: same reason — the copy must not drive the original's
+    // countdowns.<key> channel; CountdownWidget stamps a fresh key on mount.
+    if (widget.type === 'countdown' && widget.options?.stateBaseId !== undefined) {
+        const options = { ...widget.options } as Record<string, unknown>;
+        delete options.stateBaseId;
+        return { ...widget, id, options };
+    }
+
     return { ...widget, id };
 }
 
