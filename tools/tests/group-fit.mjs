@@ -58,6 +58,10 @@ const CHILDSETS = [
     { name: '2 side by side', children: [{ w: 8, h: 4 }, { w: 8, h: 4, x: 8 }] },
     { name: '3 mixed heights', children: [{ w: 8, h: 4 }, { w: 8, h: 6, x: 8 }, { w: 8, h: 3, y: 6 }] },
     { name: '1 child 8x12 (tall)', children: [{ w: 8, h: 12 }] },
+    // Positions the inner grid never draws that way: it packs upward in BOTH views,
+    // so the box has to hug the packed content, not the stored one (#680).
+    { name: 'gap under the 2nd', children: [{ w: 8, h: 4 }, { w: 8, h: 4, y: 4 }, { w: 8, h: 4, y: 10 }] },
+    { name: '2 columns, short right', children: [{ w: 8, h: 6 }, { w: 8, h: 2, x: 8 }, { w: 8, h: 3, x: 8, y: 6 }] },
 ];
 
 function childCfg(c, i) {

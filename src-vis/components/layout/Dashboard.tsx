@@ -826,8 +826,15 @@ export function Dashboard({
                                             // earlier layout (e.g. with a header) can't leave a gap below the last
                                             // child. autoShrink keeps its own scroll-based logic (below).
                                             if (editMode && hugGroup && groupChildren.length > 0) {
+                                                // Packed positions, not the stored ones: the inner grid runs with
+                                                // compactType 'vertical' in the editor, so a stored gap (or a short
+                                                // neighbour in the next column) is never drawn — measuring it anyway
+                                                // made the box a row or two too tall, with the slack showing as a big
+                                                // empty strip under the last child, while the frontend hugged (#680).
                                                 const maxBottom = Math.max(
-                                                    ...groupChildren.map((c) => c.gridPos.y + c.gridPos.h),
+                                                    ...verticalCompact(groupChildren).map(
+                                                        (c) => c.gridPos.y + c.gridPos.h,
+                                                    ),
                                                 );
                                                 const showTitle = gw.options?.showTitle !== false;
                                                 const showIcon = gw.options?.showIcon !== false;

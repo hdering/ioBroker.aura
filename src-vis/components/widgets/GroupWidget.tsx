@@ -93,7 +93,15 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // evaluated — see the off-screen container at the bottom of this component.
     const reflowHiddenIds = useReflowHiddenIds();
     const reflowHiddenChildren = !editMode ? children.filter((c) => reflowHiddenIds.has(c.id)) : [];
-    const gridChildren = !editMode ? verticalCompact(children.filter((c) => !reflowHiddenIds.has(c.id))) : children;
+    // Both views lay the children out packed upward. The frontend drops the
+    // reflow-hidden ones first; the editor keeps every child (they stay editable)
+    // but still packs them, because the inner grid runs with compactType
+    // 'vertical' there and would draw them packed anyway — reading the stored
+    // positions for the fill maths made the editor disagree with the frontend
+    // about the group's height as soon as anything sat below a gap (#680).
+    const gridChildren = !editMode
+        ? verticalCompact(children.filter((c) => !reflowHiddenIds.has(c.id)))
+        : verticalCompact(children);
     const transparent = !!config.options?.transparent;
     const showTitle = config.options?.showTitle !== false;
     // autoShrink groups keep their own scroll-based height logic and the classic
@@ -309,7 +317,8 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
 
     const computeH = (next: WidgetConfig[]) => {
         if (next.length === 0) return config.gridPos.h;
-        const maxBottom = Math.max(...next.map((c) => c.gridPos.y + c.gridPos.h));
+        // Packed, like the grid draws them — see gridChildren (#680).
+        const maxBottom = Math.max(...verticalCompact(next).map((c) => c.gridPos.y + c.gridPos.h));
         return groupRows(maxBottom, hasHeaderContent, showTitle && !!config.title, cellSize, gridGap);
     };
 
