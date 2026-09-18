@@ -8542,6 +8542,10 @@
           "ref": "FillChargeEffect",
           "description": "Effekt auf der Füllung, solange geladen wird: none (Standard), blink = die Füllung pulsiert, scan = Lauflicht, das über den gefüllten Teil hin und her wandert. Bei reduzierter Bewegung (Systemeinstellung) laufen beide nicht."
         },
+        "chargeIcon": {
+          "type": "string",
+          "description": "Icon, solange geladen wird — beliebiges Iconify-Icon (z. B. mdi:flash) oder Lucide-Name. Leer = mdi:flash."
+        },
         "colorZones": {
           "type": "boolean",
           "default": false
@@ -8609,6 +8613,10 @@
           "default": true,
           "description": "Anzeige ausgrauen, wenn die Verbindung fehlt. Icon bleibt sichtbar."
         },
+        "offlineIcon": {
+          "type": "string",
+          "description": "Icon bei fehlender Verbindung. Leer = mdi:wifi-off."
+        },
         "orientation": {
           "type": "string",
           "ref": "Orientation",
@@ -8632,7 +8640,7 @@
         "showChargeIcon": {
           "type": "boolean",
           "default": true,
-          "description": "Blitz-Icon anzeigen, solange geladen wird."
+          "description": "Icon anzeigen, solange geladen wird."
         },
         "showOfflineIcon": {
           "type": "boolean",
