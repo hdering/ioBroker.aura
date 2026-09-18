@@ -155,6 +155,16 @@ const overflow = await page.evaluate((sel) => {
 }, SEL);
 check('the long entry does not push out of the card', overflow <= 1, `${Math.round(overflow)} px over`);
 
+// ── 6. A value no entry covers stays blank, width or not (#679) ──────────
+// One datapoint can feed several Auswahlfelder, each listing only its own room.
+// A widget must not print a value that belongs to another one's list — a fixed
+// width used to turn the raw value into the control's placeholder.
+const foreignAuto = await show({}, { value: 99 });
+eq('an unlisted value shows a dash without a width', foreignAuto.text.trim(), '–');
+const foreignFixed = await show({ selectWidth: 180 }, { value: 99 });
+eq('and the same dash with a fixed width', foreignFixed.text.trim(), '–');
+eq('the fixed width still holds', foreignFixed.w, 180);
+
 // ── 5. Size and width combine ────────────────────────────────────────────────
 const both = await show({ selectSize: 'lg', selectWidth: 200 });
 eq('width holds at size lg', both.w, 200);

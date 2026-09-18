@@ -128,9 +128,6 @@ export function EnumWidget({ config }: WidgetProps) {
             // A fixed width is only meaningful if the control fills it — otherwise
             // it would keep hugging the label inside the wider box.
             fullWidth={!!selectWidth}
-            // With a fixed width the label is cut off rather than widening the box,
-            // so the raw value has to stay readable when no entry matches.
-            placeholder={selectWidth ? currentLabel : undefined}
             entries={entries.map((e) => ({ value: e.value, content: renderOption(e) }))}
         />
     ) : null;
