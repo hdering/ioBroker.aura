@@ -8750,6 +8750,7 @@ function WidgetFrameInner({
                                             Zeilen. Das Widget braucht dafür die Höhe.
                                         </p>
                                     </div>
+                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                     <div className="flex items-center justify-between">
                                         <div>
                                             <label
