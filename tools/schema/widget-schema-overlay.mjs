@@ -757,15 +757,15 @@ export const WIDGET_OPTION_NOTES = {
         },
         valueOnEnd: {
             description:
-                'Wert für targetDp am Ende, als Text; wird zu Boolean/Zahl/Text geparst. Leer = nichts schreiben.',
+                'Wert für targetDp am Ende, als Text; wird zu Boolean/Zahl/Text geparst. Standard "false"; leerer Text "" = nichts schreiben.',
         },
         valueOnStart: {
             description:
-                'Optionaler Wert für targetDp beim Start — "true" hier und "false" in valueOnEnd ergibt „für N Minuten einschalten“.',
+                'Wert für targetDp beim Start. Standard "true" — zusammen mit valueOnEnd "false" ergibt das „für N Minuten einschalten“; leerer Text "" = beim Start nichts schreiben (reine Endaktion).',
         },
         stopWritesEnd: {
             description:
-                'Stopp schreibt ebenfalls valueOnEnd (Abbruch schaltet zurück). Ohne Angabe: an, sobald valueOnStart gesetzt ist.',
+                'Stopp schreibt ebenfalls valueOnEnd (Abbruch schaltet zurück). Ohne Angabe: an, solange valueOnStart nicht leer ist.',
         },
         publishRemaining: {
             description:

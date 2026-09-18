@@ -2391,4 +2391,15 @@ export const en: Record<TranslationKey, string> = {
     'countdown.cfg.states': 'Adapter states',
     'countdown.cfg.statesHint':
         'Scripts control the countdown through cmd: start, pause, resume, toggle, stop, end, +60, -60, =300 (seconds or h:m:s).',
+    'countdown.cfg.examples': 'Examples',
+    'countdown.cfg.ex.js': 'JavaScript adapter',
+    'countdown.cfg.ex.start': 'start (restarts when already running)',
+    'countdown.cfg.ex.pause': 'pause – resume continues',
+    'countdown.cfg.ex.stop': 'cancel – the end value is written',
+    'countdown.cfg.ex.add': 'add 5 minutes (-300 removes them)',
+    'countdown.cfg.ex.set': 'set the duration to 30 minutes',
+    'countdown.cfg.ex.toggle': 'one button: start ↔ pause',
+    'countdown.cfg.ex.read': 'watch the state',
+    'countdown.cfg.ex.blockly':
+        'Blockly: "control datapoint" block on …cmd with a text value such as start or +300. Times in seconds or h:m:s.',
 };

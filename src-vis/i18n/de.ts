@@ -2406,6 +2406,17 @@ export const de = {
     'countdown.cfg.states': 'Adapter-States',
     'countdown.cfg.statesHint':
         'Skripte steuern den Countdown über cmd: start, pause, resume, toggle, stop, end, +60, -60, =300 (Sekunden oder h:m:s).',
+    'countdown.cfg.examples': 'Beispiele',
+    'countdown.cfg.ex.js': 'JavaScript-Adapter',
+    'countdown.cfg.ex.start': 'starten (läuft er schon: neu starten)',
+    'countdown.cfg.ex.pause': 'anhalten – resume setzt fort',
+    'countdown.cfg.ex.stop': 'abbrechen – der Endwert wird geschrieben',
+    'countdown.cfg.ex.add': '5 Minuten dazu (-300 zieht ab)',
+    'countdown.cfg.ex.set': 'Dauer auf 30 Minuten setzen',
+    'countdown.cfg.ex.toggle': 'ein Taster: Start ↔ Pause',
+    'countdown.cfg.ex.read': 'Zustand beobachten',
+    'countdown.cfg.ex.blockly':
+        'Blockly: Baustein „Steuere Datenpunkt“ auf …cmd mit einem Text-Wert wie start oder +300. Zeiten in Sekunden oder h:m:s.',
 } as const;
 
 export type TranslationKey = keyof typeof de;

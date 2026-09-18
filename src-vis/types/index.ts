@@ -216,9 +216,9 @@ export interface CountdownWidgetOptions {
     stepSec?: number; // seconds the + and − buttons add or remove
     presets?: number[]; // preset durations in seconds, shown as chips
     targetDp?: string; // datapoint written when the countdown ends
-    valueOnEnd?: string; // value written to targetDp at the end (parsed to boolean / number / text)
-    valueOnStart?: string; // optional value written to targetDp at start, e.g. true for "on for 30 minutes"
-    stopWritesEnd?: boolean; // Stop also writes valueOnEnd (default: on when valueOnStart is set)
+    valueOnEnd?: string; // value written to targetDp at the end, parsed to boolean / number / text; default "false", empty string = write nothing
+    valueOnStart?: string; // value written to targetDp at start; default "true" ("on for N minutes"), empty string = write nothing
+    stopWritesEnd?: boolean; // Stop also writes valueOnEnd (default: on as long as valueOnStart is not empty)
     publishRemaining?: boolean; // adapter writes remainingMs once per second while running, for scripts
     format?: CountdownFormat; // auto (mm:ss below one hour), hms, ms or hm
     showDays?: boolean; // show days as their own field from 24 h on

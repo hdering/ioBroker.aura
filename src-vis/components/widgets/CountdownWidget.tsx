@@ -85,8 +85,10 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
         [o.presets],
     );
     const targetDp = o.targetDp as string | undefined;
-    const valueOnEnd = o.valueOnEnd as string | undefined;
-    const valueOnStart = o.valueOnStart as string | undefined;
+    // Defaults spell out the "on for N minutes" pattern; an explicit empty string
+    // means "write nothing" — the config panel stores '' when a field is cleared.
+    const valueOnEnd = o.valueOnEnd === undefined ? 'false' : String(o.valueOnEnd);
+    const valueOnStart = o.valueOnStart === undefined ? 'true' : String(o.valueOnStart);
     const stopWritesEnd = o.stopWritesEnd as boolean | undefined;
     const publishRemaining = o.publishRemaining === true;
     const format = (o.format as CountdownFormat | undefined) ?? 'auto';
@@ -105,7 +107,7 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
     const posClass = contentPositionClass(o.contentPosition as string | undefined);
     const layout = config.layout ?? 'default';
     const interactive = !editMode;
-    const { setState } = useIoBroker();
+    const { setState, connected } = useIoBroker();
 
     // Stable, instance-unique backend key — same scheme as the Zeitschaltuhr:
     // copies are stripped of stateBaseId and get their own channel.
@@ -121,6 +123,11 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
 
     // ── Publish config to the adapter whenever it changes ──────────────────────
     const lastPublishedRef = useRef('');
+    // A publish made while the socket was down went nowhere — forget it, so the
+    // next effect run (connected is in its deps) sends the config again.
+    useEffect(() => {
+        if (connected) lastPublishedRef.current = '';
+    }, [connected]);
     useEffect(() => {
         if (!backendKey) return;
         const payload: CountdownConfigPayload = {
@@ -137,7 +144,17 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
             publishCountdownConfig(backendKey, config.title || 'Countdown', payload);
             lastPublishedRef.current = serialized;
         }
-    }, [backendKey, durationSec, targetDp, valueOnEnd, valueOnStart, stopWritesEnd, publishRemaining, config.title]);
+    }, [
+        backendKey,
+        connected,
+        durationSec,
+        targetDp,
+        valueOnEnd,
+        valueOnStart,
+        stopWritesEnd,
+        publishRemaining,
+        config.title,
+    ]);
 
     // ── Mirror the adapter's status states ─────────────────────────────────────
     const [live, setLive] = useState<Live>(INITIAL_LIVE);

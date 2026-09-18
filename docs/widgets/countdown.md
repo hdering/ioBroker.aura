@@ -21,7 +21,23 @@ Bei der Quelle „Eigener Countdown“ bleibt das Feld leer. Der Adapter legt pr
 | `remainingMs` | number | Adapter → alle | Restzeit bei Pause; laufend nur mit „sekündlich veröffentlichen“ |
 | `durationMs` | number | Adapter → alle | aktuell eingestellte Dauer (ändert sich mit ±, Chips, `=N`) |
 
-Der Pfad steht im Widget-Edit-Panel unter **Adapter-States**. Skripte schreiben `cmd` mit `ack=false`; der Adapter quittiert.
+Der Pfad steht im Widget-Edit-Panel unter **Adapter-States** – mit fertigen Beispielen für den eigenen Schlüssel. Skripte schreiben `cmd` mit `ack=false`; der Adapter quittiert.
+
+```js
+// JavaScript-Adapter
+setState('aura.0.countdowns.<key>.cmd', 'start');  // starten (läuft er schon: neu starten)
+setState('aura.0.countdowns.<key>.cmd', 'pause');  // anhalten – resume setzt fort
+setState('aura.0.countdowns.<key>.cmd', 'stop');   // abbrechen – der Endwert wird geschrieben
+setState('aura.0.countdowns.<key>.cmd', '+300');   // 5 Minuten dazu (-300 zieht ab)
+setState('aura.0.countdowns.<key>.cmd', '=1800');  // Dauer auf 30 Minuten setzen
+setState('aura.0.countdowns.<key>.cmd', 'toggle'); // ein Taster: Start ↔ Pause
+
+on({ id: 'aura.0.countdowns.<key>.state', change: 'ne' }, (obj) => {
+    // obj.state.val: idle | running | paused | ended
+});
+```
+
+Blockly: Baustein „Steuere Datenpunkt“ auf `…cmd` mit einem Text-Wert wie `start` oder `+300`.
 
 ## Layouts
 
@@ -85,9 +101,9 @@ Bei `datapoint` sind Tasten, Chips und Balken ausgeblendet; die Restzeit tickt z
 | Option | Typ | Standard | |
 | --- | --- | --- | --- |
 | `targetDp` | `string` | – | Datenpunkt, den der Adapter schreibt |
-| `valueOnEnd` | `string` | – | Wert am Ende; wird als `boolean` · `number` · `string` geparst; leer = nichts schreiben |
-| `valueOnStart` | `string` | – | Wert beim Start – `true` hier und `false` am Ende ergibt „für N Minuten einschalten“ |
-| `stopWritesEnd` | `boolean` | an, sobald `valueOnStart` gesetzt | Stopp schreibt ebenfalls `valueOnEnd` (Abbruch schaltet zurück) |
+| `valueOnEnd` | `string` | `false` | Wert am Ende; wird als `boolean` · `number` · `string` geparst; Feld leeren = nichts schreiben |
+| `valueOnStart` | `string` | `true` | Wert beim Start – die Vorgabe ergibt „für N Minuten einschalten“; Feld leeren = beim Start nichts schreiben (reine Endaktion) |
+| `stopWritesEnd` | `boolean` | an, solange `valueOnStart` nicht leer | Stopp schreibt ebenfalls `valueOnEnd` (Abbruch schaltet zurück) |
 | `publishRemaining` | `boolean` | `false` | `remainingMs` jede Sekunde schreiben – für Skripte; füllt History-Adapter |
 
 Nach einem Adapter-Neustart läuft ein Countdown aus dem gespeicherten `endTs` weiter; war er in der Zwischenzeit abgelaufen, wird `valueOnEnd` nachgeholt.

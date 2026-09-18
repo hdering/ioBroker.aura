@@ -12,8 +12,14 @@ import { setStateDirect, getSocket, sendToDirect } from '../hooks/useIoBroker';
 import { NS } from './namespace';
 
 function setObjectAsync(id: string, obj: object): Promise<void> {
+    const socket = getSocket();
+    // Offline (or the screenshot harness): the emit callback would never fire and
+    // the publish would hang forever. Resolve right away — the state write that
+    // follows is dropped or captured downstream, and the widget republishes as
+    // soon as the socket connects (see CountdownWidget).
+    if (!socket.connected) return Promise.resolve();
     return new Promise((resolve) => {
-        getSocket().emit('setObject', id, obj, () => resolve());
+        socket.emit('setObject', id, obj, () => resolve());
     });
 }
 

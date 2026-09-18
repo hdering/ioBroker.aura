@@ -4051,6 +4051,9 @@ class Aura extends utils.Adapter {
             // Status objects may not exist yet for a countdown created by a script.
             await this._ensureCountdownObjects(p.key);
             this._countdowns.ingestConfig(p.key, state.val);
+            // Let the status writes land before the next state change is handled,
+            // so a cmd that follows the config never overtakes its publish.
+            await this._countdowns.settle();
             return;
         }
         if (p.sub === 'cmd') {
@@ -4082,6 +4085,7 @@ class Aura extends utils.Adapter {
                 const st = await this.getStateAsync(`countdowns.${p.key}.config`);
                 await this._ensureCountdownObjects(p.key);
                 this._countdowns.ingestConfig(p.key, st ? st.val : '');
+                await this._countdowns.settle();
             } catch (e) {
                 this.log.warn(`[countdowns] objectChange ingest failed (${id}): ${e.message}`);
             }

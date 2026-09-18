@@ -136,6 +136,18 @@ const progressWidth = (id) =>
         return Math.round((bar.getBoundingClientRect().width / track.getBoundingClientRect().width) * 100);
     }, root(id));
 
+// ── 0. Mount publishes the config with the "on for N minutes" defaults ───────
+{
+    const all = await writes();
+    const cfgWrite = all.find((w) => w.id === `${KEY('run')}.config`);
+    check('mount publishes config for the aura source', !!cfgWrite, all.map((w) => w.id).join(', '));
+    const cfg = cfgWrite ? JSON.parse(String(cfgWrite.val)) : {};
+    eq('published durationSec', cfg.durationSec, 900);
+    eq('valueOnStart defaults to "true"', cfg.valueOnStart, 'true');
+    eq('valueOnEnd defaults to "false"', cfg.valueOnEnd, 'false');
+    eq('datapoint source publishes nothing', all.some((w) => w.id.startsWith(`${KEY('x')}.`)), false);
+}
+
 // ── 1. Running: digits from endTs, ticking once a second ─────────────────────
 {
     const d1 = await digits('cd-run');

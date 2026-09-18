@@ -62,9 +62,10 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
     const durationSec = Number(o.durationSec) || 0;
     const stepSec = Number(o.stepSec) || 60;
     const targetDp = (o.targetDp as string | undefined) ?? '';
-    const valueOnEnd = (o.valueOnEnd as string | undefined) ?? '';
-    const valueOnStart = (o.valueOnStart as string | undefined) ?? '';
-    const stopWritesEnd = o.stopWritesEnd === true;
+    // Undefined = the default ("on for N minutes"); an explicit '' = write nothing.
+    const valueOnEnd = o.valueOnEnd === undefined ? 'false' : String(o.valueOnEnd);
+    const valueOnStart = o.valueOnStart === undefined ? 'true' : String(o.valueOnStart);
+    const stopWritesEnd = o.stopWritesEnd === undefined ? valueOnStart.trim() !== '' : o.stopWritesEnd === true;
     const publishRemaining = o.publishRemaining === true;
     const format = (o.format as CountdownFormat | undefined) ?? 'auto';
     const showDays = o.showDays === true;
@@ -296,10 +297,11 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     <input
                                         type="text"
                                         value={valueOnStart}
-                                        onChange={(e) => setOpts({ valueOnStart: e.target.value || undefined })}
-                                        placeholder="true"
+                                        onChange={(e) => setOpts({ valueOnStart: e.target.value })}
+                                        placeholder="—"
                                         className={inputCls}
                                         style={inputStyle}
+                                        data-field="valueOnStart"
                                     />
                                 </div>
                                 <div className="flex-1 min-w-0">
@@ -309,10 +311,11 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                                     <input
                                         type="text"
                                         value={valueOnEnd}
-                                        onChange={(e) => setOpts({ valueOnEnd: e.target.value || undefined })}
-                                        placeholder="false"
+                                        onChange={(e) => setOpts({ valueOnEnd: e.target.value })}
+                                        placeholder="—"
                                         className={inputCls}
                                         style={inputStyle}
+                                        data-field="valueOnEnd"
                                     />
                                 </div>
                             </div>
@@ -448,6 +451,32 @@ export function CountdownConfig({ config, onConfigChange }: Props) {
                         </code>
                         <p className={hintCls} style={hintStyle}>
                             {t('countdown.cfg.statesHint')}
+                        </p>
+                        <p className="text-[11px] pt-1" style={{ color: 'var(--text-primary)' }}>
+                            {t('countdown.cfg.examples')}
+                        </p>
+                        <pre
+                            className="text-[10px] px-2 py-1.5 rounded-md font-mono whitespace-pre overflow-x-auto"
+                            style={{
+                                background: 'var(--app-surface)',
+                                color: 'var(--text-secondary)',
+                                border: '1px solid var(--app-border)',
+                            }}
+                            data-testid="countdown-cmd-examples"
+                        >{`// ${t('countdown.cfg.ex.js')}
+setState('${stateBaseId}.cmd', 'start');  // ${t('countdown.cfg.ex.start')}
+setState('${stateBaseId}.cmd', 'pause');  // ${t('countdown.cfg.ex.pause')}
+setState('${stateBaseId}.cmd', 'stop');   // ${t('countdown.cfg.ex.stop')}
+setState('${stateBaseId}.cmd', '+300');   // ${t('countdown.cfg.ex.add')}
+setState('${stateBaseId}.cmd', '=1800');  // ${t('countdown.cfg.ex.set')}
+setState('${stateBaseId}.cmd', 'toggle'); // ${t('countdown.cfg.ex.toggle')}
+
+// ${t('countdown.cfg.ex.read')}
+on({ id: '${stateBaseId}.state', change: 'ne' }, (obj) => {
+    // obj.state.val: idle | running | paused | ended
+});`}</pre>
+                        <p className={hintCls} style={hintStyle}>
+                            {t('countdown.cfg.ex.blockly')}
                         </p>
                     </div>
                 )}
