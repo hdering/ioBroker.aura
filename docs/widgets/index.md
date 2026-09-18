@@ -8,6 +8,7 @@
 | --- | --- |
 | [Auswahlfeld](./auswahlfeld) | DP-Werte (0,1,2…) auf Text-Labels mappen; Dropdown schreibt den Wert zurück. |
 | [Binärsensor](./binaersensor) | Allgemeinen Binärsensor anzeigen (z. B. Bewegungsmelder, Alarm). |
+| [Countdown](./countdown) | Restzeit hh:mm:ss mit Start/Pause/Stopp und ±-Tasten – läuft im Adapter, schaltet am Ende einen Datenpunkt; zeigt wahlweise die Restzeit eines fremden Datenpunkts. |
 | [Datumswähler](./datumswaehler) | Datum/Uhrzeit auswählen und als Datenpunkt speichern. |
 | [Diagramm (einfach)](./diagramm) | Verlauf eines einzelnen Datenpunkts als einfaches Diagramm. |
 | [Diagramm (erweitert)](./diagramm-erweitert) | Erweitertes Diagramm mit mehreren Datenpunkten und Optionen. |

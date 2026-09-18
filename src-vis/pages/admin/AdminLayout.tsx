@@ -63,6 +63,7 @@ import {
     sendToDirect,
 } from '../../hooks/useIoBroker';
 import { renameAllTimers } from '../../utils/publishTimerConfig';
+import { renameAllCountdowns } from '../../utils/publishCountdown';
 import { useVersionGuard } from '../../hooks/useVersionGuard';
 import { useT } from '../../i18n';
 import { NS } from '../../utils/namespace';
@@ -90,6 +91,7 @@ function useSaveState() {
                 .getState()
                 .layouts.flatMap((l) => l.sections.flatMap((s) => s.tabs.flatMap((t) => t.widgets)));
             renameAllTimers(widgets);
+            renameAllCountdowns(widgets);
         } catch {
             setSaveError('Speichern fehlgeschlagen: localStorage-Speicher voll');
         }

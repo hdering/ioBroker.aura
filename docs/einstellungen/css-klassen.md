@@ -114,6 +114,10 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-clock-time` · `.aura-clock-date` · `.aura-clock-weekday` | Uhr: Zeit, Datum, Wochentag |
 | `.aura-clock-custom` | Uhr mit eigenem Format |
 | `.aura-clock-extras` | Zusatzzeile (Ort, Auf-/Untergang, KW) |
+| `.aura-countdown` | Countdown-Widget; `data-state` trägt `idle` · `running` · `paused` · `ended` · `unknown` |
+| `.aura-countdown-digits` · `.aura-countdown-progress` · `.aura-countdown-state` | Countdown: Ziffern, Fortschrittsbalken, Zustandstext |
+| `.aura-countdown-controls` · `.aura-countdown-primary` · `.aura-countdown-stop` · `.aura-countdown-step` · `.aura-countdown-presets` | Countdown: Tastenzeile, Start/Pause, Stopp, ±-Tasten, Vorgaben-Chips |
+| `.aura-countdown-modal` | Countdown: Dialog „Dauer einstellen“ |
 | `.aura-cal-*` | Kalender — [eigene Tabelle](../widgets/kalender#css-klassen) |
 | `.aura-custom-grid` | Raster des Benutzerdefinierten Widgets |
 | `.aura-custom-cell-<index>` | eine Zelle darin, von `0` an gezählt |

@@ -6,6 +6,7 @@ const https = require('node:https');
 const fs = require('node:fs');
 const path = require('node:path');
 const SunCalc = require('suncalc');
+const { CountdownEngine, COUNTDOWN_STATE_DEFS } = require('./lib/countdowns');
 const { handleAuthDiscovery, handleMcpRequest } = require('./lib/mcp/httpEndpoint');
 const { maskClientConfig, resolveBothConfigs } = require('./lib/mcp/clientConfig');
 const { mergeRenderReport, renderReportEntry } = require('./lib/mcp/auraConfig');
@@ -733,6 +734,12 @@ class Aura extends utils.Adapter {
             return;
         }
 
+        // Countdown widget config/cmd (#675)
+        if (id.startsWith(`${this.namespace}.countdowns.`) && state) {
+            await this._onCountdownStateChange(id, state);
+            return;
+        }
+
         // Client register relay: frontend writes {clientId, name} → adapter creates object tree
         if (id.endsWith('clients.register') && state && !state.ack && state.val) {
             let reg;
@@ -989,6 +996,10 @@ class Aura extends utils.Adapter {
     // adapter restart. Deletes are handled symmetrically to keep _timerState in
     // sync with what actually exists on disk.
     async onObjectChange(id, obj) {
+        if (id.startsWith(`${this.namespace}.countdowns.`)) {
+            await this._onCountdownObjectChange(id, obj);
+            return;
+        }
         if (!id.startsWith(`${this.namespace}.timers.`)) return;
         const m = id.match(/^.+\.timers\.([^.]+)\.(config|enabled)$/);
         if (!m) return;
@@ -3402,6 +3413,28 @@ class Aura extends utils.Adapter {
         );
         this.log.info(`[timers] scheduler tick = ${tickSec}s`);
 
+        // ── Countdown widget engine (#675) ─────────────────────────────────────
+        // The CountdownWidget publishes its config to countdowns.<key>.config and
+        // writes commands to .cmd; the engine runs the countdown here so it
+        // survives a closed tab, and re-arms from the persisted endTs after a
+        // restart. Status goes back through .state/.endTs/.remainingMs/.durationMs.
+        this.subscribeStates('countdowns.*');
+        this.subscribeObjects('countdowns.*');
+        this._countdownObjectsEnsured = new Set();
+        this._countdowns = new CountdownEngine({
+            log: this.log,
+            writeStatus: (key, status) => this._writeCountdownStatus(key, status),
+            writeTarget: (dp, raw, why) => this._writeCountdownTarget(dp, raw, why),
+        });
+        try {
+            const existing = await this.getStatesAsync(`${this.namespace}.countdowns.*`);
+            this._ingestCountdownScan(existing || {});
+            await this._countdowns.restore();
+            this.log.info(`[countdowns] loaded ${this._countdowns.size} countdown(s)`);
+        } catch (e) {
+            this.log.warn(`[countdowns] initial scan failed: ${e.message}`);
+        }
+
         // ── Live log relay for AdapterLogsWidget ───────────────────────────────────
         // The iobroker.web socket exposed to the frontend cannot deliver `requireLog`
         // events to anonymous users, so we collect logs here. The widget polls
@@ -3848,6 +3881,147 @@ class Aura extends utils.Adapter {
         }
     }
 
+    // ── Countdown widget (#675) ─────────────────────────────────────────────────
+    // Glue between the countdowns.* states and lib/countdowns.js: the engine
+    // owns the transitions, this section only reads/writes ioBroker.
+
+    /** aura.<inst>.countdowns.<key>.<sub> → { key, sub } or null. */
+    _countdownIdParts(fullId) {
+        const m = fullId.match(/^.+\.countdowns\.([^.]+)\.(config|cmd|state|endTs|remainingMs|durationMs)$/);
+        return m ? { key: m[1], sub: m[2] } : null;
+    }
+
+    /**
+     * Initial scan: configs first so every key exists, then the persisted status
+     * so restore() knows what was running when the adapter stopped.
+     */
+    _ingestCountdownScan(states) {
+        const status = new Map();
+        for (const [fullId, st] of Object.entries(states)) {
+            if (!st) continue;
+            const p = this._countdownIdParts(fullId);
+            if (!p) continue;
+            if (p.sub === 'config') {
+                this._countdowns.ingestConfig(p.key, st.val);
+                this._countdownObjectsEnsured.add(p.key);
+            } else if (p.sub !== 'cmd') {
+                const cur = status.get(p.key) || {};
+                cur[p.sub] = st.val;
+                status.set(p.key, cur);
+            }
+        }
+        for (const [key, partial] of status) {
+            if (this._countdowns.has(key)) this._countdowns.ingestStatus(key, partial);
+        }
+    }
+
+    async _onCountdownStateChange(id, state) {
+        if (!this._countdowns) return;
+        const p = this._countdownIdParts(id);
+        if (!p) return;
+        if (p.sub === 'config') {
+            // Status objects may not exist yet for a countdown created by a script.
+            await this._ensureCountdownObjects(p.key);
+            this._countdowns.ingestConfig(p.key, state.val);
+            return;
+        }
+        if (p.sub === 'cmd') {
+            if (state.ack) return;
+            const cmd = String(state.val ?? '').trim();
+            if (!cmd) return;
+            await this._ensureCountdownObjects(p.key);
+            await this._countdowns.command(p.key, cmd);
+            try {
+                await this.setStateAsync(`countdowns.${p.key}.cmd`, cmd, true);
+            } catch (e) {
+                this.log.debug(`[countdowns] cmd ack failed (${p.key}): ${e.message}`);
+            }
+        }
+    }
+
+    /**
+     * A freshly created widget's config object may land before its first value
+     * reaches the pattern subscription — ingest the current value as soon as the
+     * object appears (same reasoning as the timers). A deleted config object
+     * forgets the countdown.
+     */
+    async _onCountdownObjectChange(id, obj) {
+        if (!this._countdowns) return;
+        const p = this._countdownIdParts(id);
+        if (!p || p.sub !== 'config') return;
+        if (obj && obj.type === 'state') {
+            try {
+                const st = await this.getStateAsync(`countdowns.${p.key}.config`);
+                await this._ensureCountdownObjects(p.key);
+                this._countdowns.ingestConfig(p.key, st ? st.val : '');
+            } catch (e) {
+                this.log.warn(`[countdowns] objectChange ingest failed (${id}): ${e.message}`);
+            }
+            return;
+        }
+        if (!obj) {
+            this._countdowns.remove(p.key);
+            this._countdownObjectsEnsured.delete(p.key);
+        }
+    }
+
+    /** Create the channel and its six states unless they exist (once per key). */
+    async _ensureCountdownObjects(key, title) {
+        if (this._countdownObjectsEnsured.has(key)) return;
+        this._countdownObjectsEnsured.add(key);
+        const base = `countdowns.${key}`;
+        const name = title || 'Countdown';
+        try {
+            await this.setObjectNotExistsAsync(base, { type: 'channel', common: { name }, native: {} });
+            for (const [sub, def] of Object.entries(COUNTDOWN_STATE_DEFS)) {
+                await this.setObjectNotExistsAsync(`${base}.${sub}`, {
+                    type: 'state',
+                    common: { name: `${name} — ${sub}`, ...def },
+                    native: {},
+                });
+            }
+        } catch (e) {
+            this._countdownObjectsEnsured.delete(key);
+            this.log.warn(`[countdowns] could not create objects for ${key}: ${e.message}`);
+        }
+    }
+
+    /** Publish the engine's status (ack=true). Partial objects carry only the ticker's remainingMs. */
+    async _writeCountdownStatus(key, status) {
+        await this._ensureCountdownObjects(key);
+        for (const sub of ['state', 'endTs', 'remainingMs', 'durationMs']) {
+            if (status[sub] === undefined) continue;
+            try {
+                await this.setStateAsync(`countdowns.${key}.${sub}`, status[sub], true);
+            } catch (e) {
+                this.log.warn(`[countdowns] status write failed (${key}.${sub}): ${e.message}`);
+            }
+        }
+    }
+
+    async _writeCountdownTarget(targetDp, raw, why) {
+        const val = this._parseValue(raw);
+        try {
+            await this.setForeignStateAsync(targetDp, val, false);
+            this.log.info(`[countdowns] ${why}: ${targetDp} ← ${JSON.stringify(val)}`);
+        } catch (e) {
+            this.log.warn(`[countdowns] write failed (${targetDp}): ${e.message}`);
+        }
+    }
+
+    async _syncCountdownName(key, title) {
+        const base = `countdowns.${key}`;
+        const ch = await this.getObjectAsync(base);
+        if (!ch) return;
+        const want = title || 'Countdown';
+        if (ch.common?.name === want) return;
+        await this.extendObjectAsync(base, { common: { name: want } });
+        for (const sub of Object.keys(COUNTDOWN_STATE_DEFS)) {
+            await this.extendObjectAsync(`${base}.${sub}`, { common: { name: `${want} — ${sub}` } });
+        }
+        this.log.info(`[countdowns] renamed ${this.namespace}.${base} → "${want}"`);
+    }
+
     // ── onMessage: frontend → backend RPC (adapter-status widget) ───────────────
     // Frontend calls sendTo('aura.0', 'upgradeAdapter' | 'restartAdapter', payload, cb).
     // We acknowledge via this.sendTo(msg.from, msg.command, result, msg.callback).
@@ -3961,8 +4135,20 @@ class Aura extends utils.Adapter {
                 return;
             }
 
-            if (msg.command === 'listTimers' || msg.command === 'listLists' || msg.command === 'listPanels') {
-                const ns = msg.command === 'listTimers' ? 'timers' : msg.command === 'listLists' ? 'lists' : 'panels';
+            if (
+                msg.command === 'listTimers' ||
+                msg.command === 'listLists' ||
+                msg.command === 'listPanels' ||
+                msg.command === 'listCountdowns'
+            ) {
+                const ns =
+                    msg.command === 'listTimers'
+                        ? 'timers'
+                        : msg.command === 'listLists'
+                          ? 'lists'
+                          : msg.command === 'listPanels'
+                            ? 'panels'
+                            : 'countdowns';
                 try {
                     const channels = await this.getChannelsOfAsync(ns);
                     const prefix = `${this.namespace}.${ns}.`;
@@ -4088,6 +4274,53 @@ class Aura extends utils.Adapter {
                 }
                 this._timerState.delete(widgetId);
                 this.log.info(`[timers] deleteTimer ${base} → ${JSON.stringify(results)}`);
+                reply({ ok: true, results });
+                return;
+            }
+
+            if (msg.command === 'renameCountdown') {
+                const key = String(msg.message?.widgetId || '').trim();
+                const title = String(msg.message?.title || '');
+                if (!key || !/^[a-zA-Z0-9_-]+$/.test(key)) {
+                    reply({ ok: false, error: `Invalid widgetId: ${key}` });
+                    return;
+                }
+                try {
+                    await this._syncCountdownName(key, title);
+                    reply({ ok: true });
+                } catch (e) {
+                    reply({ ok: false, error: e?.message || String(e) });
+                }
+                return;
+            }
+
+            if (msg.command === 'deleteCountdown') {
+                const key = String(msg.message?.widgetId || '').trim();
+                if (!key || !/^[a-zA-Z0-9_-]+$/.test(key)) {
+                    reply({ ok: false, error: `Invalid widgetId: ${key}` });
+                    return;
+                }
+                const localBase = `countdowns.${key}`;
+                const results = {};
+                if (this._countdowns) this._countdowns.remove(key);
+                if (this._countdownObjectsEnsured) this._countdownObjectsEnsured.delete(key);
+                for (const sub of Object.keys(COUNTDOWN_STATE_DEFS)) {
+                    try {
+                        await this.delObjectAsync(`${localBase}.${sub}`);
+                        results[sub] = 'ok';
+                    } catch (e) {
+                        results[sub] = e?.message || String(e);
+                    }
+                }
+                try {
+                    await this.delObjectAsync(localBase);
+                    results.channel = 'ok';
+                } catch (e) {
+                    results.channel = e?.message || String(e);
+                }
+                this.log.info(
+                    `[countdowns] deleteCountdown ${this.namespace}.${localBase} → ${JSON.stringify(results)}`,
+                );
                 reply({ ok: true, results });
                 return;
             }
@@ -4379,6 +4612,9 @@ class Aura extends utils.Adapter {
             if (this._timerInterval) {
                 this.clearInterval(this._timerInterval);
                 this._timerInterval = null;
+            }
+            if (this._countdowns) {
+                this._countdowns.dispose();
             }
             if (this._idleReturnInterval) {
                 this.clearInterval(this._idleReturnInterval);

@@ -23,6 +23,11 @@ export const WIDGETS = [
     { type: 'dimmer', slug: 'dimmer', label: 'Dimmer', group: 'control',
       hint: 'Licht dimmen – Helligkeitsregler 0–100 % mit Ein/Aus-Taste.',
       runtime: r(75, {}, { w: 11, h: 6 }) },
+    // Screenshots come from tools/screenshots/countdown.mjs (needs the adapter's
+    // status states mocked), so no generic runtime shot here.
+    { type: 'countdown', slug: 'countdown', label: 'Countdown', group: 'control',
+      hint: 'Restzeit hh:mm:ss mit Start/Pause/Stopp und ±-Tasten – läuft im Adapter und schaltet am Ende einen Datenpunkt.',
+      runtime: null },
     { type: 'slider', slug: 'schieberegler', label: 'Schieberegler', group: 'control',
       hint: 'Beliebigen Zahlenwert per Schieberegler einstellen.',
       runtime: r(50, { unit: '%', min: 0, max: 100 }, { w: 11, h: 5 }) },

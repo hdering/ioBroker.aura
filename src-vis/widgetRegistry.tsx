@@ -12,6 +12,7 @@
 
 import {
     Zap,
+    Hourglass,
     TrendingUp,
     SlidersHorizontal,
     Thermometer,
@@ -716,6 +717,20 @@ export const WIDGET_REGISTRY: WidgetMeta[] = [
         widgetGroup: 'special',
         mock: { t: 'Zeitschaltuhr', v: '3 Ereignisse' },
         hint: 'Zeitgesteuerte Ereignisse — Wochentag/Astro/Einmalig/Zeitraum, schreibt Ziel-DP automatisch (Backend-Scheduler)',
+    },
+    {
+        type: 'countdown',
+        label: 'Countdown',
+        shortLabel: 'Countdown',
+        Icon: Hourglass,
+        iconName: 'Hourglass',
+        color: '#f97316',
+        defaultW: 6,
+        defaultH: 4,
+        addMode: 'free',
+        widgetGroup: 'control',
+        mock: { t: 'Countdown', v: '00:14:59' },
+        hint: 'Restzeit hh:mm:ss mit Start/Pause/Stopp und ±-Tasten — läuft im Adapter weiter und schaltet am Ende einen Datenpunkt; zeigt wahlweise die Restzeit eines fremden Datenpunkts (z. B. mytime)',
     },
     {
         type: 'adapterstatus',

@@ -427,6 +427,14 @@
       "native": {}
     },
     {
+      "_id": "countdowns",
+      "type": "channel",
+      "common": {
+        "name": "Countdowns (countdown widgets)"
+      },
+      "native": {}
+    },
+    {
       "_id": "admin.pinHash",
       "type": "state",
       "common": {

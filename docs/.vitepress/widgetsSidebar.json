@@ -24,6 +24,10 @@
         "link": "/widgets/binaersensor"
       },
       {
+        "text": "Countdown",
+        "link": "/widgets/countdown"
+      },
+      {
         "text": "Datumswähler",
         "link": "/widgets/datumswaehler"
       },

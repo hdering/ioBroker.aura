@@ -36,6 +36,7 @@ import { CarouselWidget } from './CarouselWidget';
 import { PanelsWidget } from './PanelsWidget';
 import { KnobWidget } from './KnobWidget';
 import { TimerWidget } from './TimerWidget';
+import { CountdownWidget } from './CountdownWidget';
 import { AdapterStatusWidget } from './AdapterStatusWidget';
 import { ScriptStatusWidget } from './ScriptStatusWidget';
 import { AdapterLogsWidget } from './AdapterLogsWidget';
@@ -109,6 +110,7 @@ export function getWidgetMap() {
         panels: PanelsWidget,
         knob: KnobWidget,
         timer: TimerWidget,
+        countdown: CountdownWidget,
         adapterstatus: AdapterStatusWidget,
         scriptstatus: ScriptStatusWidget,
         adapterlogs: AdapterLogsWidget,

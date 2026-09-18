@@ -667,6 +667,9 @@ const DP_FOR = {
  */
 const OPTIONS_FOR = {
     enum: { entries: [{ value: 1, label: 'Eins' }] },
+    // No adapter behind the harness: the widget shows the configured duration
+    // (15:00) in its waiting state, with the control row it draws by default.
+    countdown: { durationSec: 900 },
     list: { entries: listEntries(4) },
     chips: { chips: chipItems(4) },
     carousel: { items: chipItems(4) },
@@ -822,6 +825,16 @@ const MIN_MODIFIERS = {
             when: { path: 'showScale', equals: true },
             // What the probe is rendered with to measure the delta.
             options: { showScale: true },
+        },
+    ],
+    // The preset chips are a row of their own under the buttons; without presets
+    // the row is not drawn at all, so the baseline is measured without them.
+    countdown: [
+        {
+            key: 'presets',
+            label: 'Vorgaben-Chips (presets)',
+            when: { path: 'presets', nonEmpty: true },
+            options: { presets: [300, 900, 3600] },
         },
     ],
 };

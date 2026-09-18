@@ -12,6 +12,7 @@ import { useConfigStore } from '../../store/configStore';
 import { exportWidget } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
+import { unpublishCountdownForWidget } from '../../utils/publishCountdown';
 
 // ── Meta (derived from central registry) ─────────────────────────────────────
 
@@ -879,6 +880,7 @@ export function AdminWidgets() {
                             }
                             onDelete={(entry) => {
                                 unpublishTimerForWidget(entry.config);
+                                unpublishCountdownForWidget(entry.config);
                                 removeWidgetFromLayoutTab(entry.layout.id, entry.tab.id, entry.config.id);
                             }}
                             defaultOpen={false}

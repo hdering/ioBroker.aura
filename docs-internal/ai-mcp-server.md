@@ -1972,3 +1972,31 @@ Im Browser dazu `npm run test:render-probe` (braucht den Dev-Server) — der Tei
 den kein Unit-Test erreicht: dass ein off-screen geparkter Container überhaupt
 ausgelayoutet wird, dass die Kamera darin ein leerer Kasten bleibt, und dass sich
 die Probe wieder abbaut.
+
+## Der Countdown: ein Widget mit eigenen Adapter-States
+
+Der Countdown (#675) ist neben der Zeitschaltuhr der zweite Typ, dessen Logik
+**im Adapter** läuft. Das Widget schreibt seine Konfiguration nach
+`aura.0.countdowns.<key>.config`, der Adapter (`lib/countdowns.js`) führt den
+Countdown, schreibt am Ende `targetDp` und meldet über `state`, `endTs`,
+`remainingMs` und `durationMs` zurück. Das Frontend rechnet die Restzeit aus
+`endTs` selbst; solange nichts endet, fließt kein Wert pro Sekunde über den
+Socket. Nach einem Adapter-Neustart wird aus dem persistierten `endTs` neu
+armiert, ein in der Zwischenzeit abgelaufener Countdown holt seine Endaktion nach.
+
+Für ein Modell heißt das dreierlei. Erstens: `stateBaseId` **nicht** setzen —
+das Widget vergibt den Schlüssel beim ersten Rendern, wie die Zeitschaltuhr.
+Zweitens: Bedienung geht nicht über Widget-Optionen, sondern über den
+`cmd`-State (`start`, `pause`, `resume`, `toggle`, `stop`, `end`, `+60`, `-60`,
+`=300`; Zeiten in Sekunden oder `h:m:s`). Das ist derselbe Wortschatz wie bei
+mytime, damit Skripte umziehen können. Drittens: `durationSec` ist der
+Startwert, nicht der aktuelle Stand — die ±-Tasten und die Chips ändern die
+laufende Einstellung im Adapter, ohne die Option anzufassen.
+
+`publishRemaining` ist bewusst aus: sekündliche Writes von `remainingMs`
+braucht nur ein Skript, und jeder History-Adapter würde sie mitschreiben.
+
+Das Rezept `countdown` zeigt das Muster „für N Minuten einschalten“
+(`valueOnStart` true, `valueOnEnd` false). `npm run test:countdowns` prüft die
+Engine ohne js-controller, `npm run test:countdown-format` die Ziffern,
+`npm run test:countdown-ui` das Widget gegen den Dev-Server.

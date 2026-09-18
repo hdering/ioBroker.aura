@@ -53,6 +53,7 @@ import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { SavePresetDialog } from '../config/SavePresetDialog';
 import { FEATURES } from '../../featureFlags';
 import { unpublishTimerForWidget } from '../../utils/publishTimerConfig';
+import { unpublishCountdownForWidget } from '../../utils/publishCountdown';
 import { panelActiveStateId } from '../../utils/publishPanelState';
 import { useFocusedWidgetId } from '../../contexts/FocusedWidgetContext';
 import { copyToClipboard } from '../../utils/clipboard';
@@ -195,6 +196,7 @@ import { ToggleRow } from '../../pages/admin/layouts/shared/SettingControls';
 
 import { AlarmConfig } from '../widgets/AlarmWidget';
 import { TimerConfig } from '../config/TimerConfig';
+import { CountdownConfig } from '../config/CountdownConfig';
 import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
@@ -8173,6 +8175,7 @@ function WidgetFrameInner({
                                 <button
                                     onClick={() => {
                                         unpublishTimerForWidget(config);
+                                        unpublishCountdownForWidget(config);
                                         onRemove(config.id);
                                     }}
                                     className="flex-1 text-xs py-1.5 rounded-md text-white hover:opacity-80"
@@ -13339,6 +13342,11 @@ function WidgetFrameInner({
 
                         {/* ── Timer / Zeitschaltuhr config ── */}
                         {config.type === 'timer' && <TimerConfig config={config} onConfigChange={onConfigChange} />}
+
+                        {/* ── Countdown config (#675) ── */}
+                        {config.type === 'countdown' && (
+                            <CountdownConfig config={config} onConfigChange={onConfigChange} />
+                        )}
 
                         {/* ── TrashSchedule / Müllabfuhr-Zeitplan config ── */}
                         {config.type === 'trashSchedule' && (

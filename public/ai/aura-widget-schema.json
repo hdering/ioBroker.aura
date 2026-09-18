@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.61.0",
+    "auraVersion": "0.62.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -4868,6 +4868,23 @@
         "blocked"
       ]
     },
+    "CountdownDpKind": {
+      "type": "string",
+      "enum": [
+        "remaining-ms",
+        "remaining-s",
+        "end-ts"
+      ]
+    },
+    "CountdownFormat": {
+      "type": "string",
+      "enum": [
+        "auto",
+        "hms",
+        "ms",
+        "hm"
+      ]
+    },
     "FilterMode": {
       "type": "string",
       "enum": [
@@ -7486,6 +7503,139 @@
         "timeFontSize": {
           "type": "number",
           "default": 0
+        }
+      }
+    },
+    "countdown": {
+      "label": "Countdown",
+      "group": "control",
+      "addMode": "free",
+      "hint": "Restzeit hh:mm:ss mit Start/Pause/Stopp und ±-Tasten — läuft im Adapter weiter und schaltet am Ende einen Datenpunkt; zeigt wahlweise die Restzeit eines fremden Datenpunkts (z. B. mytime)",
+      "defaultSize": {
+        "w": 6,
+        "h": 4
+      },
+      "layouts": [
+        "default",
+        "compact",
+        "custom"
+      ],
+      "conditionSlots": [
+        "icon",
+        "title"
+      ],
+      "commonOptions": [
+        "badges",
+        "clickAction",
+        "collapseInEditor",
+        "collapsePosition",
+        "conditions",
+        "contentPosition",
+        "customGrid",
+        "defaultCollapsed",
+        "fullscreenPosition",
+        "fullscreenWidget",
+        "icon",
+        "showIcon",
+        "showTitle",
+        "styleOverride",
+        "textLines",
+        "titleAlign",
+        "transparency",
+        "transparent"
+      ],
+      "options": {
+        "digitSize": {
+          "description": "Schriftgröße der Ziffern in px; 0 = passt sich der Kachelbreite an."
+        },
+        "dpKind": {
+          "type": "string",
+          "ref": "CountdownDpKind",
+          "default": "remaining-ms",
+          "description": "Nur source \"datapoint\": was der Datenpunkt enthält — \"remaining-ms\" (Restzeit in ms), \"remaining-s\" (Sekunden) oder \"end-ts\" (Endzeitpunkt als Epoch ms oder s, z. B. mytime.0.Countdowns.<n>.end)."
+        },
+        "durationSec": {
+          "description": "Startwert des Countdowns in Sekunden. ±-Tasten, Vorgaben und Kommandos (+N, -N, =N) ändern die laufende Einstellung, ohne diese Option zu überschreiben."
+        },
+        "endedText": {
+          "type": "string",
+          "default": "",
+          "description": "Text statt 00:00 nach Ablauf, z. B. \"Fertig\". Leer = 00:00 bleibt stehen."
+        },
+        "format": {
+          "type": "string",
+          "ref": "CountdownFormat",
+          "default": "auto",
+          "description": "Ziffernformat: \"auto\" (mm:ss unter einer Stunde, sonst hh:mm:ss), \"hms\" (immer hh:mm:ss), \"ms\" (Minuten gesamt), \"hm\" (hh:mm, Sekunden aufgerundet)."
+        },
+        "iconSize": {
+          "type": "number",
+          "default": 18,
+          "description": "Icongröße in px."
+        },
+        "presets": {
+          "type": "array",
+          "items": {},
+          "description": "Vorgaben in Sekunden, als Chips unter den Tasten; ein Tipp setzt die Dauer (=N). Beispiel [300, 900, 3600]."
+        },
+        "publishRemaining": {
+          "type": "boolean",
+          "default": false,
+          "description": "Adapter schreibt remainingMs jede Sekunde, solange der Countdown läuft (für Skripte). Standard aus — die Anzeige braucht es nicht und History-Adapter füllen sich sonst."
+        },
+        "showControls": {
+          "type": "boolean",
+          "default": true,
+          "description": "Tasten Start/Pause und Stopp anzeigen."
+        },
+        "showDays": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ab 24 h die Tage vor die Ziffern stellen (\"2d 03:04:05\") statt die Stunden weiterzuzählen."
+        },
+        "showPresets": {
+          "type": "boolean",
+          "default": true,
+          "description": "Vorgaben-Chips anzeigen."
+        },
+        "showProgress": {
+          "type": "boolean",
+          "default": true,
+          "description": "Fortschrittsbalken unter den Ziffern (Restanteil der eingestellten Dauer)."
+        },
+        "showStep": {
+          "type": "boolean",
+          "default": true,
+          "description": "±-Tasten anzeigen (Schritt = stepSec)."
+        },
+        "source": {
+          "description": "Woher die Restzeit kommt: \"aura\" = der Adapter führt den Countdown (Standard, alle Tasten aktiv); \"datapoint\" = nur Anzeige eines fremden Datenpunkts (datapoint des Widgets), Tasten ausgeblendet."
+        },
+        "stateBaseId": {
+          "type": "string",
+          "description": "Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen."
+        },
+        "stepSec": {
+          "type": "number",
+          "default": 60,
+          "description": "Sekunden, die eine ±-Taste hinzufügt bzw. abzieht (Standard 60)."
+        },
+        "stopWritesEnd": {
+          "type": "boolean",
+          "description": "Stopp schreibt ebenfalls valueOnEnd (Abbruch schaltet zurück). Ohne Angabe: an, sobald valueOnStart gesetzt ist."
+        },
+        "targetDp": {
+          "type": "string",
+          "description": "Datenpunkt, den der Adapter am Ende schreibt (und beim Start, wenn valueOnStart gesetzt ist). Läuft ohne offenen Browser weiter.",
+          "datapoint": true
+        },
+        "valueOnEnd": {
+          "type": "string",
+          "description": "Wert für targetDp am Ende, als Text; wird zu Boolean/Zahl/Text geparst. Leer = nichts schreiben."
+        },
+        "valueOnStart": {
+          "type": "string",
+          "description": "Optionaler Wert für targetDp beim Start — \"true\" hier und \"false\" in valueOnEnd ergibt „für N Minuten einschalten“."
         }
       }
     },

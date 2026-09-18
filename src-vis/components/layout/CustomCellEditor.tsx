@@ -161,6 +161,14 @@ const COMPONENT_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'events', label: 'Ereignis-Liste' },
         { key: 'add', label: '+ Ereignis-Button' },
     ],
+    countdown: [
+        { key: 'icon', label: 'Widget-Icon' },
+        { key: 'digits', label: '⏱ Restzeit-Ziffern' },
+        { key: 'progress', label: 'Fortschrittsbalken' },
+        { key: 'controls', label: '▶ Start / Pause / Stopp' },
+        { key: 'step', label: '± Schritt-Tasten' },
+        { key: 'presets', label: 'Vorgaben-Chips' },
+    ],
     calendar: [
         { key: 'icon', label: 'Widget-Icon' },
         { key: 'cal-icon', label: '📅 Kalender-Icon des Termins' },
@@ -484,6 +492,12 @@ const FIELD_OPTIONS: Record<string, { key: string; label: string }[]> = {
         { key: 'enabled', label: 'Aktive Ereignisse' },
         { key: 'target', label: 'Ziel-DP' },
         { key: 'value', label: 'Ziel-Wert' },
+    ],
+    countdown: [
+        { key: 'remaining', label: 'Restzeit (Ziffern)' },
+        { key: 'state', label: 'Zustand (Text)' },
+        { key: 'duration', label: 'Eingestellte Dauer' },
+        { key: 'target', label: 'Ziel-DP' },
     ],
 };
 

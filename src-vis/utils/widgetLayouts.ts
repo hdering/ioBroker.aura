@@ -51,6 +51,7 @@ const LAYOUTS: Record<string, WidgetLayout[]> = {
     clock: ['default', 'card', 'minimal', 'custom'],
     weather: ['default', 'compact', 'minimal', 'custom'],
     timer: ['default', 'compact', 'custom'],
+    countdown: ['default', 'compact', 'custom'],
     // One layout, no choice: the widget ignores `layout` entirely.
     gauge: ['default'],
     climate: ['default'],

@@ -733,6 +733,62 @@ export const WIDGET_OPTION_NOTES = {
         showAstroSymbol: { description: 'Sonnensymbol bei astronomischen Zeiten anzeigen.' },
         showEvents: { description: 'Liste der Schaltzeiten anzeigen.' },
     },
+    countdown: {
+        source: {
+            description:
+                'Woher die Restzeit kommt: "aura" = der Adapter führt den Countdown (Standard, alle Tasten aktiv); "datapoint" = nur Anzeige eines fremden Datenpunkts (datapoint des Widgets), Tasten ausgeblendet.',
+        },
+        dpKind: {
+            description:
+                'Nur source "datapoint": was der Datenpunkt enthält — "remaining-ms" (Restzeit in ms), "remaining-s" (Sekunden) oder "end-ts" (Endzeitpunkt als Epoch ms oder s, z. B. mytime.0.Countdowns.<n>.end).',
+        },
+        durationSec: {
+            description:
+                'Startwert des Countdowns in Sekunden. ±-Tasten, Vorgaben und Kommandos (+N, -N, =N) ändern die laufende Einstellung, ohne diese Option zu überschreiben.',
+        },
+        stepSec: { description: 'Sekunden, die eine ±-Taste hinzufügt bzw. abzieht (Standard 60).' },
+        presets: {
+            description:
+                'Vorgaben in Sekunden, als Chips unter den Tasten; ein Tipp setzt die Dauer (=N). Beispiel [300, 900, 3600].',
+        },
+        targetDp: {
+            description:
+                'Datenpunkt, den der Adapter am Ende schreibt (und beim Start, wenn valueOnStart gesetzt ist). Läuft ohne offenen Browser weiter.',
+        },
+        valueOnEnd: {
+            description:
+                'Wert für targetDp am Ende, als Text; wird zu Boolean/Zahl/Text geparst. Leer = nichts schreiben.',
+        },
+        valueOnStart: {
+            description:
+                'Optionaler Wert für targetDp beim Start — "true" hier und "false" in valueOnEnd ergibt „für N Minuten einschalten“.',
+        },
+        stopWritesEnd: {
+            description:
+                'Stopp schreibt ebenfalls valueOnEnd (Abbruch schaltet zurück). Ohne Angabe: an, sobald valueOnStart gesetzt ist.',
+        },
+        publishRemaining: {
+            description:
+                'Adapter schreibt remainingMs jede Sekunde, solange der Countdown läuft (für Skripte). Standard aus — die Anzeige braucht es nicht und History-Adapter füllen sich sonst.',
+        },
+        format: {
+            description:
+                'Ziffernformat: "auto" (mm:ss unter einer Stunde, sonst hh:mm:ss), "hms" (immer hh:mm:ss), "ms" (Minuten gesamt), "hm" (hh:mm, Sekunden aufgerundet).',
+        },
+        showDays: {
+            description: 'Ab 24 h die Tage vor die Ziffern stellen ("2d 03:04:05") statt die Stunden weiterzuzählen.',
+        },
+        digitSize: { description: 'Schriftgröße der Ziffern in px; 0 = passt sich der Kachelbreite an.' },
+        showProgress: { description: 'Fortschrittsbalken unter den Ziffern (Restanteil der eingestellten Dauer).' },
+        showControls: { description: 'Tasten Start/Pause und Stopp anzeigen.' },
+        showStep: { description: '±-Tasten anzeigen (Schritt = stepSec).' },
+        showPresets: { description: 'Vorgaben-Chips anzeigen.' },
+        endedText: { description: 'Text statt 00:00 nach Ablauf, z. B. "Fertig". Leer = 00:00 bleibt stehen.' },
+        stateBaseId: {
+            description:
+                'Objektpfad aura.0.countdowns.<key>, unter dem der Adapter config, cmd, state, endTs, remainingMs und durationMs führt. Wird beim ersten Rendern vergeben — nicht setzen.',
+        },
+    },
     trashSchedule: {
         hiddenNames: { description: 'Tonnen, die nicht angezeigt werden.' },
         iconMap: { description: 'Zuordnung von Tonnennamen zu Icons.' },

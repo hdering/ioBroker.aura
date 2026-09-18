@@ -76,6 +76,7 @@ export type WidgetType =
     | 'panels'
     | 'knob'
     | 'timer'
+    | 'countdown'
     | 'adapterstatus'
     | 'scriptstatus'
     | 'adapterlogs'
@@ -192,6 +193,42 @@ export interface TimerWidgetOptions {
     holidaysDp?: string; // optional DP (JSON array of YYYY-MM-DD strings) — special days
     vacationDp?: string; // optional DP (JSON array of YYYY-MM-DD strings) — vacation days
     stateBaseId?: string; // the timers.<widgetId> base path used by the backend scheduler
+}
+
+// ── Countdown widget (#675) ───────────────────────────────────────────────────
+
+/** Where the remaining time comes from. */
+export type CountdownSource = 'aura' | 'datapoint';
+/** What a foreign remaining-time datapoint holds. */
+export type CountdownDpKind = 'remaining-ms' | 'remaining-s' | 'end-ts';
+/** Digit format of the remaining time. */
+export type CountdownFormat = 'auto' | 'hms' | 'ms' | 'hm';
+
+/**
+ * Options of the Countdown widget. With source 'aura' the adapter runs the
+ * countdown (lib/countdowns.js) and the widget only sends commands; with
+ * 'datapoint' the widget displays a foreign datapoint (e.g. mytime's `end`).
+ */
+export interface CountdownWidgetOptions {
+    source?: CountdownSource; // aura = the adapter runs the countdown (default); datapoint = show a foreign remaining-time datapoint
+    dpKind?: CountdownDpKind; // source=datapoint: remaining-ms, remaining-s or end-ts (epoch ms or s)
+    durationSec?: number; // default duration in seconds — the value Start counts down from
+    stepSec?: number; // seconds the + and − buttons add or remove
+    presets?: number[]; // preset durations in seconds, shown as chips
+    targetDp?: string; // datapoint written when the countdown ends
+    valueOnEnd?: string; // value written to targetDp at the end (parsed to boolean / number / text)
+    valueOnStart?: string; // optional value written to targetDp at start, e.g. true for "on for 30 minutes"
+    stopWritesEnd?: boolean; // Stop also writes valueOnEnd (default: on when valueOnStart is set)
+    publishRemaining?: boolean; // adapter writes remainingMs once per second while running, for scripts
+    format?: CountdownFormat; // auto (mm:ss below one hour), hms, ms or hm
+    showDays?: boolean; // show days as their own field from 24 h on
+    digitSize?: number; // font size of the digits in px, 0 = fit the widget width
+    showProgress?: boolean; // progress bar under the digits
+    showControls?: boolean; // Start / Pause / Stop buttons
+    showStep?: boolean; // + and − buttons
+    showPresets?: boolean; // preset chips
+    endedText?: string; // text shown instead of 00:00 once the countdown has ended
+    stateBaseId?: string; // the countdowns.<key> base path used by the adapter
 }
 
 // ── Custom-Grid layout ────────────────────────────────────────────────────────
