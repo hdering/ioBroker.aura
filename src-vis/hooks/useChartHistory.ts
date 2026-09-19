@@ -153,12 +153,18 @@ export function useChartHistory(
         })
             .then((data: HistoryEntry[]) => {
                 if (!mountedRef.current) return;
-                const points: ChartDataPoint[] = data
+                let points: ChartDataPoint[] = data
                     .filter(
                         (d): d is { ts: number; val: number; ack?: boolean; q?: number } => typeof d.val === 'number',
                     )
                     .map((d) => ({ t: d.ts, v: d.val as number }))
                     .sort((a, b) => a.t - b.t);
+                // An aggregated row is stamped in the MIDDLE of its bucket, and the last bucket is
+                // only partly elapsed — so its timestamp lies up to half a step in the future. Live
+                // updates then land in front of that tail and the line bends backwards.
+                if (step && points.length > 1 && points[points.length - 1].t > end) {
+                    points = points.filter((p) => p.t <= end);
+                }
                 setHistory(points);
                 setLoading(false);
             })
@@ -179,7 +185,11 @@ export function useChartHistory(
                 setHistory((prev) => {
                     const cutoff = Date.now() - cutoffMs;
                     const trimmed = prev.filter((p) => p.t >= cutoff);
-                    if (trimmed.length > 0 && trimmed[trimmed.length - 1].t === state.ts) return trimmed;
+                    const tail = trimmed.length > 0 ? trimmed[trimmed.length - 1].t : -Infinity;
+                    if (tail === state.ts) return trimmed;
+                    // Anything stamped after the reading that just arrived would bend the line
+                    // backwards — the newer reading replaces it.
+                    if (tail > state.ts) return [...trimmed.filter((p) => p.t < state.ts), { t: state.ts, v: val }];
                     return [...trimmed, { t: state.ts, v: val }];
                 });
             } else {

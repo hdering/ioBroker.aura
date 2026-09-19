@@ -929,19 +929,45 @@ export function useMultiSeriesData(
     // back on when the growing bar is published (issue #594).
     const deltaBaseRef = useRef<Map<string, { bucket: number; base: number; unit: DeltaBucket }>>(new Map());
 
+    // ── Periodic refresh so a long-open browser does not drift away from the database ─────────
+    // Without it the history is read exactly once and everything after that is live socket
+    // traffic: a missed update, a suspended tab or a reconnect leaves the curve short forever,
+    // and the aggregation grid never rolls on. Same cadence as the simple chart widget
+    // (hooks/useChartHistory.ts), but silent — a tick must not flash the spinner.
+    const [refreshTick, setRefreshTick] = useState(0);
+    const silentRef = useRef(false);
+    useEffect(() => {
+        if (!connected || series.length === 0) return;
+        // A window pinned to a past day is a frozen view — there is nothing new to read.
+        const live = series.some((s) => !(typeof s.historyEnd === 'number' && s.historyEnd < Date.now()));
+        if (!live) return;
+        const shortest = Math.min(...series.map((s) => windowMs(s)));
+        const interval = shortest <= 3_600_000 ? 60_000 : shortest <= 86_400_000 ? 300_000 : 900_000;
+        const id = globalThis.setInterval(() => {
+            silentRef.current = true;
+            setRefreshTick((t) => t + 1);
+        }, interval);
+        return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [depKey, connected]);
+
     // Fetch history for all series
     useEffect(() => {
         if (!connected || series.length === 0) return;
 
-        // Mark all as loading
-        setResultsMap((prev) => {
-            const next = new Map(prev);
-            for (const s of series) {
-                const existing = next.get(s.id);
-                next.set(s.id, { data: existing?.data ?? [], current: existing?.current ?? null, loading: true });
-            }
-            return next;
-        });
+        // Mark all as loading (skipped for a periodic refresh: the curve is already on screen)
+        const silent = silentRef.current;
+        silentRef.current = false;
+        if (!silent) {
+            setResultsMap((prev) => {
+                const next = new Map(prev);
+                for (const s of series) {
+                    const existing = next.get(s.id);
+                    next.set(s.id, { data: existing?.data ?? [], current: existing?.current ?? null, loading: true });
+                }
+                return next;
+            });
+        }
 
         series.forEach((s) => {
             if (!s.datapointId) {
@@ -1133,6 +1159,16 @@ export function useMultiSeriesData(
                             data = data.filter((p) => p[0] > start);
                         }
 
+                        // The same middle-of-the-bucket stamp at the RIGHT edge: the last bucket is
+                        // only partly elapsed, so its row carries a timestamp up to half a step in
+                        // the FUTURE. Every live update that follows lands in front of it, and the
+                        // line runs backwards from the tail to the newest value — a permanent kink
+                        // at the end of the curve, because nothing re-sorts the array afterwards.
+                        // The live value appended below carries the window to `now` instead.
+                        if (step && data.length > 1 && data[data.length - 1][0] > end) {
+                            data = data.filter((p) => p[0] <= end);
+                        }
+
                         if (hasAbsWindow) {
                             // History adapters append border values at the window edges (last value
                             // before start, first value after end). For a pinned calendar-day window
@@ -1221,7 +1257,7 @@ export function useMultiSeriesData(
             );
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [depKey, connected]);
+    }, [depKey, connected, refreshTick]);
 
     // Subscribe to live updates for all series
     useEffect(() => {
@@ -1309,8 +1345,16 @@ export function useMultiSeriesData(
                                     ? s.historyStart
                                     : rollingWindowStart(series, getRangeMs(s), Date.now());
                             const trimmed = existing.data.filter((p) => p[0] >= cutoff);
-                            if (trimmed.length > 0 && trimmed[trimmed.length - 1][0] === state.ts) {
+                            const tail = trimmed.length > 0 ? trimmed[trimmed.length - 1][0] : -Infinity;
+                            if (tail === state.ts) {
                                 newData = trimmed;
+                            } else if (tail > state.ts) {
+                                // A point already stamped LATER than the reading that just arrived
+                                // can only be an aggregation artefact (a bucket stamped in the
+                                // middle of its still-open interval) or a clock that ran ahead.
+                                // Appending behind it would bend the line backwards for the rest of
+                                // the session, so the newer reading supersedes that tail.
+                                newData = [...trimmed.filter((p) => p[0] < state.ts), [state.ts, val]];
                             } else {
                                 newData = [...trimmed, [state.ts, val]];
                             }

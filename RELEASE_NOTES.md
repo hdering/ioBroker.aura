@@ -11,3 +11,4 @@
 - Switch, dimmer, list rows, custom-layout cells and the group master switch can show a checkbox instead of the slide toggle (#683)
 - Datapoint picker - a new toggle shows the ioBroker object tree instead of the flat list, and the browser remembers the chosen view (#686)
 - Editor - expanding or folding a collapsible widget no longer marks the widgets below it as changed (#676)
+- Advanced chart - the curve no longer bends backwards at its end after the browser has been open for a while, and the history is re-read periodically so the chart keeps up with the datapoint
