@@ -60,6 +60,7 @@ import { copyToClipboard } from '../../utils/clipboard';
 import { useCopiedStyle, useStyleClipboardStore } from '../../store/styleClipboardStore';
 import { applyWidgetStyle, styleFit, styleMenuAction, countStyleChanges } from '../../utils/widgetStyle';
 import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry';
+import { useEscapeLayer } from '../../utils/escapeStack';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { type ColorThreshold } from '../../utils/colorThresholds';
 import { ColorThresholdsEditor } from '../config/ColorThresholdsEditor';
@@ -1889,13 +1890,8 @@ function CenteredModal({
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
-        document.addEventListener('keydown', handler);
-        return () => document.removeEventListener('keydown', handler);
-    }, [onClose]);
+    // Escape closes us only while no sub-editor or picker sits on top.
+    useEscapeLayer(onClose);
 
     const onHeaderMouseDown = (e: React.MouseEvent) => {
         if (e.button !== 0) return;
@@ -6691,21 +6687,18 @@ function WidgetFrameInner({
 
     // Escape + outside-click close the cell context menu
     const cellMenuRef = useRef<HTMLDivElement>(null);
+    const closeCellMenu = useCallback(() => setCustomCellContextMenu(null), []);
+    useEscapeLayer(closeCellMenu, !!customCellContextMenu);
     useEffect(() => {
         if (!customCellContextMenu) return;
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setCustomCellContextMenu(null);
-        };
         const onDown = (e: MouseEvent) => {
             if (cellMenuRef.current && !cellMenuRef.current.contains(e.target as Node)) {
                 setCustomCellContextMenu(null);
             }
         };
-        document.addEventListener('keydown', onKey);
         document.addEventListener('mousedown', onDown, true);
         document.addEventListener('contextmenu', onDown, true);
         return () => {
-            document.removeEventListener('keydown', onKey);
             document.removeEventListener('mousedown', onDown, true);
             document.removeEventListener('contextmenu', onDown, true);
         };

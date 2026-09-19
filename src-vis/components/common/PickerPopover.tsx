@@ -10,6 +10,7 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarDays, Clock } from 'lucide-react';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
+import { useEscapeLayer } from '../../utils/escapeStack';
 
 /** Room reserved at the right edge of a field for the picker button. */
 export const PICKER_BTN_SPACE = 22;
@@ -112,16 +113,12 @@ export function PickerPopover({
                 onClose();
             }
         };
-        const key = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
-        };
         document.addEventListener('mousedown', away);
-        document.addEventListener('keydown', key);
-        return () => {
-            document.removeEventListener('mousedown', away);
-            document.removeEventListener('keydown', key);
-        };
+        return () => document.removeEventListener('mousedown', away);
     }, [anchorRef, onClose]);
+
+    // Escape belongs to the popover, not to the dialog underneath it.
+    useEscapeLayer(onClose);
 
     return createPortal(
         <div

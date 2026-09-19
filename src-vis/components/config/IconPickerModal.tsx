@@ -6,6 +6,7 @@ import { ICON_CATEGORIES } from '../../utils/iconCategories';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useOverlayZ } from '../../contexts/OverlayZContext';
+import { useEscapeLayer } from '../../utils/escapeStack';
 
 // ── Props ──────────────────────────────────────────────────────────────────────
 interface IconPickerModalProps {
@@ -66,6 +67,9 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const [onlineIds, setOnlineIds] = useState<string[]>([]);
     const [onlineLoading, setOnlineLoading] = useState(false);
     const searchRef = useRef<HTMLInputElement>(null);
+
+    // Topmost layer: Escape closes the picker, not the dialog it was opened from.
+    useEscapeLayer(onClose);
 
     const currentId = toIconifyId(current);
 

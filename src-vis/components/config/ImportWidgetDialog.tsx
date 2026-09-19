@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { X, Database, Upload, LayoutGrid } from 'lucide-react';
 import type { WidgetConfig, WidgetType } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
@@ -6,6 +6,7 @@ import { WIDGET_BY_TYPE } from '../../widgetRegistry';
 import { DatapointPicker } from './DatapointPicker';
 import { useT } from '../../i18n';
 import { importGroupDefs, importTab } from '../../utils/widgetExportImport';
+import { useEscapeLayer } from '../../utils/escapeStack';
 
 const inputCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
 const inputStyle: React.CSSProperties = {
@@ -46,18 +47,9 @@ export function ImportWidgetDialog({
     const [datapoint, setDatapoint] = useState('');
     const [showPicker, setShowPicker] = useState(false);
 
-    // Capture phase + stopPropagation: the dialog is the topmost layer, so no editor
-    // below it may react to the same Escape. While the datapoint picker sits on top,
-    // the keyboard belongs to it.
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key !== 'Escape' || showPicker) return;
-            e.stopPropagation();
-            onClose();
-        };
-        document.addEventListener('keydown', handler, true);
-        return () => document.removeEventListener('keydown', handler, true);
-    }, [showPicker, onClose]);
+    // Escape closes the dialog, but not while the datapoint picker sits on top of
+    // it — the shared layer stack always serves the topmost overlay only.
+    useEscapeLayer(onClose);
 
     const tryParse = (text: string) => {
         setJsonText(text);

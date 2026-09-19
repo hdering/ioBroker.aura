@@ -18,6 +18,7 @@ import { useT } from '../../i18n';
 import { isRelevantDp } from '../../utils/dpRelevance';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { getSocket } from '../../hooks/useIoBroker';
+import { useEscapeLayer } from '../../utils/escapeStack';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1371,6 +1372,10 @@ export function DatapointPicker({
     const t = useT();
     const themeVars = usePortalThemeVars();
     const { datapoints, loading, loaded, load } = useDatapointList();
+
+    // The picker is always the topmost layer, so Escape closes it — and nothing
+    // else. Without the shared stack the dialog underneath closed instead.
+    useEscapeLayer(onClose);
 
     const effectiveModes = modes.length > 0 ? modes : ['dp' as const];
     const [mode, setMode] = useState<'dp' | 'files'>(() => {

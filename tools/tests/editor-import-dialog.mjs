@@ -86,8 +86,12 @@ await page.waitForTimeout(400);
 const picker = page.getByPlaceholder('ID oder Name suchen…');
 check(await picker.first().isVisible(), 'datapoint picker is open');
 await page.keyboard.press('Escape');
-await page.waitForTimeout(200);
+await page.waitForTimeout(300);
+check((await picker.count()) === 0, 'Escape closes the picker');
 check((await dialog.count()) === 1, 'Escape does not close the dialog behind the picker');
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
+check((await dialog.count()) === 0, 'the next Escape closes the dialog');
 
 await browser.close();
 console.log(`\n${passed} passed, ${failed} failed`);

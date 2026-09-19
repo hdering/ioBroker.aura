@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { OverlayZContext } from '../../contexts/OverlayZContext';
 import { clampModalPos, usePersistedModalSize } from '../../utils/modalGeometry';
+import { useEscapeLayer } from '../../utils/escapeStack';
 
 /**
  * Popup for sub-editors of a widget's options panel (battery assignment, name filters, …).
@@ -49,18 +50,8 @@ export function ConfigModal({
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
-    // Capture phase + stopPropagation: CenteredModal (the widget edit dialog that
-    // usually sits below us) listens for Escape on `document` in the bubble phase.
-    // Without this, one Escape closes both layers at once.
-    useEffect(() => {
-        const handler = (e: KeyboardEvent) => {
-            if (e.key !== 'Escape') return;
-            e.stopPropagation();
-            onClose();
-        };
-        document.addEventListener('keydown', handler, true);
-        return () => document.removeEventListener('keydown', handler, true);
-    }, [onClose]);
+    // Escape closes us only while no picker or sub-editor sits on top.
+    useEscapeLayer(onClose);
 
     const onHeaderMouseDown = (e: React.MouseEvent) => {
         if (e.button !== 0) return;

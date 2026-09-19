@@ -19,6 +19,7 @@ import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useOverlayZ } from '../../contexts/OverlayZContext';
 import { createThrottle } from '../../utils/throttleCommit';
+import { useEscapeLayer } from '../../utils/escapeStack';
 
 interface Props {
     /** Current color: `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()/rgba()` or a CSS var. */
@@ -321,16 +322,14 @@ function ColorPopover({
                 onClose();
             }
         };
-        const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
         // Capture phase so config dialogs that stop `mousedown` bubbling can't
         // swallow the outside-click that should close the popover.
         document.addEventListener('mousedown', onDown, true);
-        document.addEventListener('keydown', onKey);
-        return () => {
-            document.removeEventListener('mousedown', onDown, true);
-            document.removeEventListener('keydown', onKey);
-        };
+        return () => document.removeEventListener('mousedown', onDown, true);
     }, [anchorRef, onClose]);
+
+    // Escape belongs to the popover, not to the config dialog underneath it.
+    useEscapeLayer(onClose);
 
     const [hexText, setHexText] = useState(alphaEnabled && alpha < 100 ? combineColor(hex6, alpha) : hex6);
     // While the user is typing in the text field, never overwrite it with the

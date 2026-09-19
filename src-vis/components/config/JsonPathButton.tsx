@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Braces, X } from 'lucide-react';
 import { useT } from '../../i18n';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { splitDpRef, joinDpRef, baseDpId } from '../../utils/dpRef';
+import { useEscapeLayer } from '../../utils/escapeStack';
 
 interface JsonPathButtonProps {
     /** Full datapoint reference (may already carry a `#path` suffix). */
@@ -26,6 +27,7 @@ export function JsonPathButton({ value, onChange, size = 13 }: JsonPathButtonPro
     const path = splitDpRef(value).path ?? '';
 
     const [open, setOpen] = useState(false);
+    const closePopover = useCallback(() => setOpen(false), []);
     const btnRef = useRef<HTMLButtonElement | null>(null);
     const popRef = useRef<HTMLDivElement | null>(null);
     const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -49,16 +51,12 @@ export function JsonPathButton({ value, onChange, size = 13 }: JsonPathButtonPro
             if (popRef.current?.contains(target) || btnRef.current?.contains(target)) return;
             setOpen(false);
         };
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setOpen(false);
-        };
         window.addEventListener('mousedown', onDown, true);
-        window.addEventListener('keydown', onKey, true);
-        return () => {
-            window.removeEventListener('mousedown', onDown, true);
-            window.removeEventListener('keydown', onKey, true);
-        };
+        return () => window.removeEventListener('mousedown', onDown, true);
     }, [open]);
+
+    // Escape closes the popover only, never the config dialog behind it.
+    useEscapeLayer(closePopover, open);
 
     const apply = (next: string) => onChange(joinDpRef(baseId, next));
 

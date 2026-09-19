@@ -1,9 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { FunctionSquare, X } from 'lucide-react';
 import { usePortalThemeVars } from '../../contexts/PortalTargetContext';
 import { matchValueTransformPreset } from '../../utils/valueTransform';
 import { hasTimeDisplay } from '../../utils/timeDisplay';
+import { useEscapeLayer } from '../../utils/escapeStack';
 import { ValueTransformFields, type ValueTransformPatch } from './ValueTransformFields';
 
 interface ValueTransformButtonProps {
@@ -52,6 +53,7 @@ export function ValueTransformButton({
 }: ValueTransformButtonProps) {
     const themeVars = usePortalThemeVars();
     const [open, setOpen] = useState(false);
+    const closePopover = useCallback(() => setOpen(false), []);
     const btnRef = useRef<HTMLButtonElement | null>(null);
     const popRef = useRef<HTMLDivElement | null>(null);
     const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
@@ -73,16 +75,12 @@ export function ValueTransformButton({
             if (popRef.current?.contains(target) || btnRef.current?.contains(target)) return;
             setOpen(false);
         };
-        const onKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setOpen(false);
-        };
         window.addEventListener('mousedown', onDown, true);
-        window.addEventListener('keydown', onKey, true);
-        return () => {
-            window.removeEventListener('mousedown', onDown, true);
-            window.removeEventListener('keydown', onKey, true);
-        };
+        return () => window.removeEventListener('mousedown', onDown, true);
     }, [open]);
+
+    // Escape closes the popover only, never the config dialog behind it.
+    useEscapeLayer(closePopover, open);
 
     return (
         <>
