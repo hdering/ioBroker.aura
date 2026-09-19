@@ -15,6 +15,10 @@
 //   gapTopPx / gapBottomPx  inset between the group's grid area and the first /
 //               last child. Both should equal GROUP_GAP (4px) — a much larger
 //               bottom gap is the row-snapping slack showing up.
+//   parityPx    smallest (child height − the height the same widget has on the tab
+//               grid, h·row + (h−1)·gap) over all children. MUST be >= 0: one grid
+//               row is worth the same pixels inside a group as outside, so content
+//               that fits on the tab fits in the group (#680).
 //
 // Everything runs against injected demo state with screenshotMode on, so no
 // ioBroker object or state is ever written.
@@ -54,14 +58,47 @@ const VARIANTS = [
 const CHILDSETS = [
     { name: '1 child 8x4', children: [{ w: 8, h: 4 }] },
     { name: '1 child 8x1 (tiny)', children: [{ w: 8, h: 1 }] },
-    { name: '2 stacked 8x4', children: [{ w: 8, h: 4 }, { w: 8, h: 4, y: 4 }] },
-    { name: '2 side by side', children: [{ w: 8, h: 4 }, { w: 8, h: 4, x: 8 }] },
-    { name: '3 mixed heights', children: [{ w: 8, h: 4 }, { w: 8, h: 6, x: 8 }, { w: 8, h: 3, y: 6 }] },
+    {
+        name: '2 stacked 8x4',
+        children: [
+            { w: 8, h: 4 },
+            { w: 8, h: 4, y: 4 },
+        ],
+    },
+    {
+        name: '2 side by side',
+        children: [
+            { w: 8, h: 4 },
+            { w: 8, h: 4, x: 8 },
+        ],
+    },
+    {
+        name: '3 mixed heights',
+        children: [
+            { w: 8, h: 4 },
+            { w: 8, h: 6, x: 8 },
+            { w: 8, h: 3, y: 6 },
+        ],
+    },
     { name: '1 child 8x12 (tall)', children: [{ w: 8, h: 12 }] },
     // Positions the inner grid never draws that way: it packs upward in BOTH views,
     // so the box has to hug the packed content, not the stored one (#680).
-    { name: 'gap under the 2nd', children: [{ w: 8, h: 4 }, { w: 8, h: 4, y: 4 }, { w: 8, h: 4, y: 10 }] },
-    { name: '2 columns, short right', children: [{ w: 8, h: 6 }, { w: 8, h: 2, x: 8 }, { w: 8, h: 3, x: 8, y: 6 }] },
+    {
+        name: 'gap under the 2nd',
+        children: [
+            { w: 8, h: 4 },
+            { w: 8, h: 4, y: 4 },
+            { w: 8, h: 4, y: 10 },
+        ],
+    },
+    {
+        name: '2 columns, short right',
+        children: [
+            { w: 8, h: 6 },
+            { w: 8, h: 2, x: 8 },
+            { w: 8, h: 3, x: 8, y: 6 },
+        ],
+    },
 ];
 
 function childCfg(c, i) {
@@ -84,14 +121,15 @@ function groupCfg(variant, rows) {
         datapoint: '',
         layout: 'default',
         options: { icon: 'Layers2', defId: DEF, ...variant.options },
-        // Deliberately "wrong": the hug math must derive the real height from the
-        // children, not trust this.
+        // Deliberately below any hug: the floor must win over the stored height.
+        // (A stored height ABOVE the hug is a legitimate stretch since #680 — see
+        // group-stretch.mjs for that side.)
         gridPos: { x: 0, y: 0, w: 24, h: rows },
     };
 }
 
 // ── measurement (runs in the page) ───────────────────────────────────────────
-const MEASURE = (gid) => {
+const MEASURE = ({ gid, kids, grid: outer }) => {
     const root = document.querySelector(`.aura-widget-${gid}`);
     if (!root) return { error: 'group not rendered' };
     const grid = root.querySelector('.react-grid-layout');
@@ -103,7 +141,14 @@ const MEASURE = (gid) => {
     const gb = grid.getBoundingClientRect();
     const tops = items.map((el) => el.getBoundingClientRect().top);
     const bottoms = items.map((el) => el.getBoundingClientRect().bottom);
+    // Row parity: each child against the pixels it would get on the tab grid.
+    const parity = kids.map((k) => {
+        const item = root.querySelector(`.aura-widget-${k.id}`)?.closest('.react-grid-item');
+        if (!item) return NaN;
+        return item.getBoundingClientRect().height - (k.h * outer.gridRowHeight + (k.h - 1) * outer.gridGap);
+    });
     return {
+        parityPx: Math.round(Math.min(...parity)),
         barPx: Math.round(box.offsetWidth - box.clientWidth),
         contentPx: Math.round(box.scrollHeight - box.clientHeight),
         gridOverPx: Math.round(gb.height - bb.height),
@@ -137,7 +182,7 @@ for (const grid of GRIDS) {
         for (const set of CHILDSETS) {
             for (const editMode of [true, false]) {
                 const children = set.children.map(childCfg);
-                const cfg = groupCfg(variant, 6);
+                const cfg = groupCfg(variant, 1);
                 await page.evaluate(
                     ({ cfg, children, def, grid, editMode }) => {
                         window.__auraShot.mock({ 'demo.switch': true });
@@ -158,7 +203,11 @@ for (const grid of GRIDS) {
                 let prev = '';
                 for (let i = 0; i < 15; i++) {
                     await page.waitForTimeout(120);
-                    m = await page.evaluate(MEASURE, GID);
+                    m = await page.evaluate(MEASURE, {
+                        gid: GID,
+                        kids: children.map((c) => ({ id: c.id, h: c.gridPos.h })),
+                        grid,
+                    });
                     const key = JSON.stringify(m);
                     if (key === prev) break;
                     prev = key;
@@ -202,7 +251,9 @@ for (const grid of GRIDS) {
         }, GID);
         const want = EMPTY_H * grid.gridRowHeight + (EMPTY_H - 1) * grid.gridGap;
         if (Math.abs(got - want) > TOL)
-            emptyFails.push(`${(editMode ? 'editor' : 'frontend').padEnd(8)} | ${grid.name.padEnd(28)} | ${got}px, expected ${want}px`);
+            emptyFails.push(
+                `${(editMode ? 'editor' : 'frontend').padEnd(8)} | ${grid.name.padEnd(28)} | ${got}px, expected ${want}px`,
+            );
     }
 }
 
@@ -214,6 +265,7 @@ const failed = rows.filter(
         r.error ||
         r.barPx > 0 ||
         r.gridOverPx > TOL ||
+        !(r.parityPx >= -TOL) ||
         Math.abs(r.gapBottomPx - 4) > 2 ||
         Math.abs(r.gapTopPx - 4) > 2,
 );
@@ -224,6 +276,7 @@ const fmt = (r) =>
         : `${r.view.padEnd(8)} | ${r.grid.padEnd(28)} | ${r.variant.padEnd(20)} | ${r.children.padEnd(20)} | ` +
           `bar ${String(r.barPx).padStart(3)} | grid ${String(r.gridOverPx).padStart(4)} | ` +
           `top ${String(r.gapTopPx).padStart(3)} | bottom ${String(r.gapBottomPx).padStart(4)} | ` +
+          `parity ${String(r.parityPx).padStart(4)} | ` +
           `clipped ${String(r.contentPx).padStart(4)} | outer ${r.outerPx}`;
 
 console.log(`\nchecked ${checked} constellations — ${failed.length} failing\n`);
@@ -241,7 +294,10 @@ if (failed.length) {
     console.log(`by variant : ${by('variant')}`);
     console.log(`by children: ${by('children')}`);
 } else {
-    console.log('all constellations fit: no scrollbar, grid within the box, uniform 4px inset top and bottom.');
+    console.log(
+        'all constellations fit: no scrollbar, grid within the box, uniform 4px inset top and bottom, ' +
+            'every child at least as tall as on the tab grid.',
+    );
     const clipped = rows.filter((r) => r.contentPx > TOL);
     if (clipped.length) {
         console.log(

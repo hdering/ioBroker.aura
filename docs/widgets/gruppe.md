@@ -7,7 +7,7 @@ Fasst mehrere Widgets in einem gemeinsamen Rahmen zusammen. Die Kind-Widgets wer
 Über die Layout-Auswahl der Gruppe wählbar.
 
 ### Default
-Kind-Widgets in einem inneren Raster; die Gruppenhöhe passt sich automatisch an den Inhalt an; im Editor lässt sich deshalb nur die Breite ziehen.
+Kind-Widgets in einem inneren Raster. Die Gruppe ist mindestens so hoch wie ihre Kinder (Kinderzeilen + Kopfzeile) und wächst automatisch mit; im Editor lässt sie sich höher ziehen, die Kinder füllen den Platz dann gleichmäßig. Eine Rasterzeile ist in der Gruppe genauso viel wert wie auf dem Tab. **Höhe an Inhalt anpassen** im Bearbeiten-Dialog führt zurück auf die Mindesthöhe.
 
 ### Custom
 Kind-Widgets frei in einer Zellenmatrix platzieren — siehe [Custom-Layout](./custom-layout).

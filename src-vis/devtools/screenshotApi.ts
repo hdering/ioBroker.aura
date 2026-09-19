@@ -244,6 +244,19 @@ function installScreenshotApi(): void {
             return null;
         },
 
+        /** A widget's STORED gridPos, straight out of the layout store — not what RGL
+         *  renders. A group with children renders at max(stored h, hug), so this is how
+         *  a test tells a persisted stretch from the hug (#680). */
+        widgetGridPos(widgetId: string): WidgetConfig['gridPos'] | null {
+            for (const layout of useDashboardStore.getState().layouts)
+                for (const section of layout.sections ?? [])
+                    for (const tab of section.tabs ?? []) {
+                        const found = (tab.widgets ?? []).find((w) => w.id === widgetId);
+                        if (found) return found.gridPos;
+                    }
+            return null;
+        },
+
         /** What the widgets of the open tab MEASURE right now — the same walk the
          *  frontend reports to the adapter (utils/renderReport.ts). Exposed so the
          *  measurement itself can be tested against a real layout instead of being

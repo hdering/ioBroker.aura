@@ -7018,7 +7018,9 @@ function WidgetFrameInner({
 
     const fitGroupHeight = () => {
         if (!groupDefId || groupChildren.length === 0) return;
-        const maxBottom = Math.max(...groupChildren.map((c) => c.gridPos.y + c.gridPos.h));
+        // The explicit way back to the hug after a stretch (#680) — packed, like the
+        // grid draws the children and like Dashboard / GroupWidget measure them.
+        const maxBottom = Math.max(...verticalCompact(groupChildren).map((c) => c.gridPos.y + c.gridPos.h));
         const hasHeader = !isHeaderlessGroup;
         const titled = config.options?.showTitle !== false && !!config.title;
         const newH = groupRows(

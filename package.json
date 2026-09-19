@@ -98,7 +98,7 @@
     "test:notify-rows": "node tools/tests/cond-notify-rows.mjs",
     "test:cond-reorder": "node tools/tests/condition-reorder.mjs",
     "test:group-fit": "node tools/tests/group-fit.mjs",
-    "test:group-resize-lock": "node tools/tests/group-resize-lock.mjs",
+    "test:group-stretch": "node tools/tests/group-stretch.mjs",
     "test:widget-copy": "node tools/tests/widget-copy.mjs",
     "test:pin-lock": "node tools/tests/pin-lock.mjs",
     "test:pin-lock-ui": "node tools/tests/pin-lock-ui.mjs",

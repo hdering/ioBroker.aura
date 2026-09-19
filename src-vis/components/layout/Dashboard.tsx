@@ -811,6 +811,10 @@ export function Dashboard({
 
                                             // A non-autoShrink group hugs its children (equal GROUP_GAP spacing on
                                             // all sides, no trailing row) in both views — see groupRows / GroupWidget.
+                                            // The hug is a FLOOR, not a fixed height: a gridPos.h stored above it is
+                                            // the user's stretch — the group was dragged taller in the editor so its
+                                            // children get more room — and is honoured in both views; the fill in
+                                            // GroupWidget spreads the extra rows evenly over the children (#680).
                                             const groupCollapsedNow = isGroup && collapsedItemNow(w, gw);
                                             // An empty group has nothing to hug: without this it would clamp to
                                             // minH (= 1 row) in the editor, so a fresh group came out as a flat
@@ -820,32 +824,28 @@ export function Dashboard({
                                                 !autoShrink &&
                                                 !groupCollapsedNow &&
                                                 groupChildren.length > 0;
-
-                                            let minH = 1;
-                                            // Editor: hug a group to its exact fit so a height stored under an
-                                            // earlier layout (e.g. with a header) can't leave a gap below the last
-                                            // child. autoShrink keeps its own scroll-based logic (below).
-                                            if (editMode && hugGroup && groupChildren.length > 0) {
-                                                // Packed positions, not the stored ones: the inner grid runs with
-                                                // compactType 'vertical' in the editor, so a stored gap (or a short
-                                                // neighbour in the next column) is never drawn — measuring it anyway
-                                                // made the box a row or two too tall, with the slack showing as a big
-                                                // empty strip under the last child, while the frontend hugged (#680).
-                                                const maxBottom = Math.max(
-                                                    ...verticalCompact(groupChildren).map(
-                                                        (c) => c.gridPos.y + c.gridPos.h,
-                                                    ),
-                                                );
+                                            // Outer rows the group needs for these children. Packed positions, not
+                                            // the stored ones: the inner grid runs with compactType 'vertical' in
+                                            // the editor and verticalCompact in the frontend, so a stored gap (or a
+                                            // short neighbour in the next column) is never drawn — measuring it
+                                            // anyway made the box a row or two too tall (#680).
+                                            const groupHug = (list: WidgetConfig[]): number => {
+                                                const packed = verticalCompact(list);
+                                                const maxBottom = packed.length
+                                                    ? Math.max(...packed.map((c) => c.gridPos.y + c.gridPos.h))
+                                                    : 0;
+                                                if (maxBottom <= 0) return 0;
                                                 const showTitle = gw.options?.showTitle !== false;
                                                 const showIcon = gw.options?.showIcon !== false;
-                                                // A group that folds in the editor too shows its chevron bar
-                                                // there — count it like GroupWidget's hasHeaderContent does.
+                                                // Mirrors GroupWidget's hasHeaderContent, which counts a collapsible
+                                                // group's chevron bar too (frontend always, editor only when it folds
+                                                // there as well) — without it the box came out one header short.
                                                 const hasHeader =
                                                     (showTitle && !!gw.title) ||
                                                     showIcon ||
                                                     !!gw.options?.groupSwitch ||
                                                     collapsibleWidget(gw.type, gw.options, { editMode });
-                                                minH = groupRows(
+                                                return groupRows(
                                                     maxBottom,
                                                     hasHeader,
                                                     showTitle && !!gw.title,
@@ -853,9 +853,24 @@ export function Dashboard({
                                                     MARGIN,
                                                     groupHeaderHeights[gw.id],
                                                 );
-                                            }
-                                            // Hugged groups clamp to the fit; everything else keeps the stored h.
-                                            let h = editMode && hugGroup ? minH : Math.max(w.gridPos.h ?? 2, minH);
+                                            };
+                                            // The floor counts EVERY child (the editor keeps hidden ones mounted), and
+                                            // the stretch is measured against that full set — so hiding a child in the
+                                            // frontend still shrinks the box by exactly that child, stretch kept.
+                                            const hugAll = hugGroup ? groupHug(groupChildren) : 0;
+                                            const stretchRows = hugGroup
+                                                ? Math.max(0, (gw.gridPos.h ?? 0) - hugAll)
+                                                : 0;
+
+                                            let minH = 1;
+                                            // Editor: the hug is the floor — RGL will not let the group be dragged
+                                            // below it, while a stretch above it stays resizable and gets persisted.
+                                            if (editMode && hugGroup) minH = hugAll;
+                                            // Hugged groups sit on floor + stretch; everything else keeps the stored h.
+                                            let h =
+                                                editMode && hugGroup
+                                                    ? hugAll + stretchRows
+                                                    : Math.max(w.gridPos.h ?? 2, minH);
 
                                             // Auto-shrink: collapse the group's outer height to its remaining
                                             // condition-visible children. The two views fit a different layout:
@@ -895,36 +910,19 @@ export function Dashboard({
                                                     minH = Math.min(minH, h); // never let RGL clamp back up
                                                 }
                                             }
-                                            // Frontend: hug a group to its compacted content so the box wraps its
-                                            // children with an equal margin on all sides — no trailing gap from a
-                                            // stored editor height or the outer-grid row rounding.
-                                            if (!editMode && hugGroup && groupChildren.length > 0) {
+                                            // Frontend: hug a group to its compacted VISIBLE content, so the box wraps
+                                            // its children with an equal margin on all sides — condition-hidden
+                                            // children shrink it, the user's stretch (see above) stays on top.
+                                            if (!editMode && hugGroup) {
                                                 const visible = groupChildren.filter(
                                                     (c) => !conditionReflowIds.has(c.id),
                                                 );
-                                                const fitLayout = verticalCompact(visible);
-                                                const maxBottom = fitLayout.length
-                                                    ? Math.max(...fitLayout.map((c) => c.gridPos.y + c.gridPos.h))
-                                                    : 0;
-                                                if (maxBottom > 0) {
-                                                    const showTitle = gw.options?.showTitle !== false;
-                                                    const showIcon = gw.options?.showIcon !== false;
-                                                    // Mirrors GroupWidget's hasHeaderContent, which counts a
-                                                    // collapsible group's chevron bar too (frontend only) — without
-                                                    // it the box came out one header short and scrolled.
-                                                    const hasHeader =
-                                                        (showTitle && !!gw.title) ||
-                                                        showIcon ||
-                                                        !!gw.options?.groupSwitch ||
-                                                        !!gw.options?.defaultCollapsed;
-                                                    h = groupRows(
-                                                        maxBottom,
-                                                        hasHeader,
-                                                        showTitle && !!gw.title,
-                                                        cellSize,
-                                                        MARGIN,
-                                                        groupHeaderHeights[gw.id],
-                                                    );
+                                                const hugVisible =
+                                                    visible.length === groupChildren.length
+                                                        ? hugAll
+                                                        : groupHug(visible);
+                                                if (hugVisible > 0) {
+                                                    h = hugVisible + stretchRows;
                                                     minH = Math.min(minH, h);
                                                 }
                                             }
@@ -967,19 +965,19 @@ export function Dashboard({
                                                 );
                                                 minH = Math.min(minH, h);
                                             }
-                                            // A derived height (group with children, content auto-height,
-                                            // folded card) is never persisted — buildTabUpdated keeps the
-                                            // canonical gridPos.h. Lock it in the editor too: RGL keeps a
-                                            // hand-resized row count in its own state until some OTHER layout
-                                            // change re-syncs it from props, so a group could be dragged two
-                                            // rows taller than the frontend renders it, nothing was saved (no
-                                            // "Speichern"), and it snapped back on the next unrelated resize
-                                            // (#680). Pinning minH = maxH = h leaves the width resizable via
-                                            // the same corner handle.
-                                            const derivedH =
-                                                hasGroupChildren(gw) ||
+                                            // A derived height that is never persisted — content auto-height, folded
+                                            // card, a mirror of a group — is locked in the editor: RGL keeps a
+                                            // hand-resized row count in its own state until some OTHER layout change
+                                            // re-syncs it from props, so the card could be dragged taller than the
+                                            // frontend renders it, nothing was saved (no "Speichern"), and it
+                                            // snapped back on the next unrelated resize (#680). Pinning minH = maxH
+                                            // = h leaves the width resizable via the same corner handle. A group
+                                            // with children only gets the floor (minH = hug, set above): dragging
+                                            // it taller is a real stretch that buildTabUpdated persists.
+                                            const lockedH =
                                                 usesContentAutoHeight(w) ||
-                                                collapsedItemNow(w, gw);
+                                                collapsedItemNow(w, gw) ||
+                                                (!!mirrorTarget && hasGroupChildren(gw));
                                             return {
                                                 i: w.id,
                                                 x: Math.min(w.gridPos.x ?? 0, effectiveCols - 1),
@@ -987,13 +985,15 @@ export function Dashboard({
                                                 w: Math.min(w.gridPos.w ?? 2, effectiveCols),
                                                 h,
                                                 minH,
-                                                ...(editMode && derivedH ? { minH: h, maxH: h } : {}),
+                                                ...(editMode && lockedH ? { minH: h, maxH: h } : {}),
                                                 // A folded widget in the editor keeps its stored height for the
                                                 // day it opens again — dragging its edge would only persist a
                                                 // transient row count, so the handle is taken away while folded.
                                                 ...(editMode && collapsedItemNow(w, gw) ? { isResizable: false } : {}),
                                             };
                                         });
+                                        // Rendered heights of this pass — see the group rule in buildTabUpdated.
+                                        const shownH = new Map(tabLayout.map((l): [string, number] => [l.i, l.h]));
                                         const buildTabUpdated = (
                                             newLayout: readonly {
                                                 i: string;
@@ -1007,11 +1007,11 @@ export function Dashboard({
                                                 if (reflowHiddenIds.has(w.id)) return w;
                                                 const pos = newLayout.find((l) => l.i === w.id);
                                                 if (!pos) return w;
-                                                // Groups hug their children at a derived height, and content
-                                                // auto-height widgets size to their content — neither's rendered
-                                                // height is stored, so keep the canonical gridPos.h and never let a
-                                                // transient value get persisted on an unrelated drag/resize.
-                                                // An empty group derives nothing, so its height stays user-settable.
+                                                // Content auto-height widgets size to their content and a mirror follows
+                                                // its source group — neither's rendered height is stored, so keep the
+                                                // canonical gridPos.h and never let a transient value get persisted on an
+                                                // unrelated drag/resize. An empty group derives nothing, so its height
+                                                // stays user-settable.
                                                 const mirrorSrc =
                                                     w.type === 'mirror'
                                                         ? widgetById.get(
@@ -1021,11 +1021,18 @@ export function Dashboard({
                                                 // A widget folded in the editor (issue #676) renders at its header
                                                 // height; the stored one is what it opens back to.
                                                 const derivedH =
-                                                    hasGroupChildren(w) ||
                                                     hasGroupChildren(mirrorSrc) ||
                                                     usesContentAutoHeight(w) ||
                                                     collapsedItemNow(w, mirrorSrc ?? w);
-                                                const h = derivedH ? w.gridPos.h : pos.h;
+                                                let h = derivedH ? w.gridPos.h : pos.h;
+                                                // A hugged group renders at max(stored h, hug). RGL hands that RENDERED
+                                                // h back for every widget of the tab on any drop (and once on mount via
+                                                // onLayoutChange), so writing it would turn an unrelated move into a
+                                                // change of the group. Only a height the user actually dragged — one
+                                                // that differs from what the group was rendered with — is persisted: the
+                                                // stretch above the hug, or the way back down to it (#680).
+                                                if (!derivedH && hasGroupChildren(w) && pos.h === shownH.get(w.id))
+                                                    h = w.gridPos.h;
                                                 // Same place as before → same object. A drop re-emits every
                                                 // widget of the tab; keeping the untouched ones reference-stable
                                                 // lets the memoised WidgetFrame skip them.

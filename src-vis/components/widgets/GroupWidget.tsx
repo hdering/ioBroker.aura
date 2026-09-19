@@ -29,7 +29,7 @@ import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { collapsibleWidget } from '../../utils/widgetCollapse';
 import { verticalCompact } from '../../utils/gridCompact';
-import { GROUP_GAP, groupRows } from '../../utils/groupLayout';
+import { GROUP_GAP, groupRowHeight, groupRows } from '../../utils/groupLayout';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useReflowHiddenIds } from '../../hooks/useConditionStyle';
 import { copyWidget } from '../../utils/widgetCopy';
@@ -294,8 +294,11 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // row of slack at the bottom. In the frontend the fill absorbs it; leaving the
     // editor on the fixed cellSize pitch made that slack visible as a big gap
     // between the last child and the group edge, i.e. the editor no longer showed
-    // what the frontend renders. The rescale is bounded by that slack (< 1 row
-    // spread over maxRow rows), and shrinkToFit re-hugs the box on every edit.
+    // what the frontend renders. On a hugged box the rescale is bounded by that
+    // slack (< 1 row spread over maxRow rows); a group the user dragged taller
+    // than its hug (#680) hands the extra rows to the same fill, so every child
+    // grows evenly and both views show the same picture. The nominal pitch is
+    // groupRowHeight, so a child is never shorter than on the tab grid.
     // Truncated to 1/100 px so the rows can never sum a hair ABOVE the box — the
     // editor's overflow-auto would answer that with a scrollbar.
     const fillRowHeight =
@@ -308,7 +311,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const rowHeight =
         keepGrid && width > 0
             ? Math.max(8, Math.floor((width - gridGap * (cols - 1)) / cols))
-            : (fillRowHeight ?? cellSize);
+            : (fillRowHeight ?? (filled ? groupRowHeight(cellSize, gridGap) : cellSize));
 
     const setChildren = (next: WidgetConfig[]) => useGroupDefsStore.getState().setDef(defId, next);
 
@@ -329,9 +332,16 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         }
     };
 
+    // After a child was removed, moved or resized. A group sitting on its hug
+    // follows the new hug, down as well as up. One the user dragged taller than
+    // its hug keeps that height — the stretch is deliberate — and only grows when
+    // the children no longer fit under it (#680). „Höhe an Inhalt anpassen" in
+    // the group's panel is the explicit way back to the hug.
     const shrinkToFit = (next: WidgetConfig[]) => {
-        const newH = computeH(next);
-        if (newH !== config.gridPos.h) {
+        const stored = config.gridPos.h;
+        const stretched = stored > computeH(children);
+        const newH = stretched ? Math.max(stored, computeH(next)) : computeH(next);
+        if (newH !== stored) {
             onConfigChange({ ...config, gridPos: { ...config.gridPos, h: newH } });
         }
     };
