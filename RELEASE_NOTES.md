@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Editor - the import dialog now closes with ESC like every other dialog (#684)
+- Chart (advanced) - rolling charts no longer draw a duplicate first bar from the reading before the window (#685)

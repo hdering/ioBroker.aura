@@ -1121,6 +1121,18 @@ export function useMultiSeriesData(
                             return;
                         }
 
+                        // An aggregated answer carries one row per bucket, stamped in the middle of
+                        // it — plus a BORDER row the adapter puts on the window start, holding the
+                        // last reading before the window. That reading is folded into the first
+                        // bucket as well, so the border row is a duplicate: on a line an extra
+                        // vertex at the left edge, on bars a second bar half a step in front of the
+                        // first one, carrying a value from outside the window (issue #685). Kept
+                        // when it is all there is — a datapoint that was not written inside the
+                        // window still has to show what it holds, not an empty chart.
+                        if (step && data.length > 1 && data[0][0] <= start) {
+                            data = data.filter((p) => p[0] > start);
+                        }
+
                         if (hasAbsWindow) {
                             // History adapters append border values at the window edges (last value
                             // before start, first value after end). For a pinned calendar-day window

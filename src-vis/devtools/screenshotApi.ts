@@ -301,19 +301,28 @@ function installScreenshotApi(): void {
          *  Needed for anything the generator can't shape — a monotonic counter above all,
          *  which is what the `delta` aggregation reads — and for showing what the
          *  aggregation itself does to a series. Unlisted ids fall back to the generator so
-         *  a mixed dashboard still draws. `false` restores the real getHistory path. */
-        mockHistory(byId: Record<string, [number, number][]> | false): void {
+         *  a mixed dashboard still draws. `false` restores the real getHistory path.
+         *
+         *  `borderValues` turns on the edge rows every real adapter adds unless it is asked
+         *  for `removeBorderValues`: the last reading BEFORE the window, stamped on the
+         *  window's start, and folded into the first aggregation bucket on top of that. Off
+         *  by default so the existing mocks keep serving exactly what they list (#685). */
+        mockHistory(byId: Record<string, [number, number][]> | false, opts: { borderValues?: boolean } = {}): void {
             if (byId === false) {
                 __devSetHistoryGen(null);
                 return;
             }
-            __devSetHistoryGen((id, opts) => {
+            __devSetHistoryGen((id, o) => {
                 const points = byId[id];
-                if (!points) return genHistory(id, opts);
+                if (!points) return genHistory(id, o);
                 const raw = points
-                    .filter(([ts]) => ts >= opts.start && ts <= opts.end)
+                    .filter(([ts]) => ts >= o.start && ts <= o.end)
                     .map(([ts, val]): HistoryEntry => ({ ts, val }));
-                return aggregateRaw(raw, opts.start, opts.step, opts.aggregate);
+                if (!opts.borderValues) return aggregateRaw(raw, o.start, o.step, o.aggregate);
+                const before = [...points].reverse().find(([ts]) => ts < o.start);
+                if (!before) return aggregateRaw(raw, o.start, o.step, o.aggregate);
+                const border: HistoryEntry = { ts: o.start, val: before[1] };
+                return [border, ...aggregateRaw([border, ...raw], o.start, o.step, o.aggregate)];
             });
         },
 
@@ -550,7 +559,7 @@ function installScreenshotApi(): void {
         },
 
         /** What the chart on screen actually plots, per series: name, point count, the
-         *  first/last x value and the colour that reached the canvas. Lets a screenshot
+         *  first/last x value, all x values and the colour that reached the canvas. Lets a screenshot
          *  script verify the curve covers the whole window before saving the image — an
          *  empty tail is invisible in a thumbnail — and lets a test check that a
          *  configured `var(--token)` arrived resolved (a canvas drops it unresolved). */
@@ -560,6 +569,7 @@ function installScreenshotApi(): void {
                   points: number;
                   first: unknown;
                   last: unknown;
+                  xs: unknown[];
                   color: unknown;
               }[]
             | null {
@@ -580,6 +590,10 @@ function installScreenshotApi(): void {
                     points: data.length,
                     first: at(data[0]),
                     last: at(data[data.length - 1]),
+                    // Every x value, so a test can look at the SPACING of the points and not
+                    // just at the ends - a duplicate bar half a step in front of the first one
+                    // is invisible in a count (issue #685).
+                    xs: data.map(at),
                     color: s.itemStyle?.color ?? s.color,
                 };
             });
