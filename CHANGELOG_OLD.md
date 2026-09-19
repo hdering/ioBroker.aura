@@ -1,5 +1,9 @@
 # Changelog (older entries)
 
+## 0.58.2 (2026-09-12)
+- Icons - icons that still have to be fetched on a cold device are now forced to repaint, so they no longer stay invisible on Android until you touch the screen ([#636](https://github.com/hdering/ioBroker.aura/issues/636))
+- Menu elements - a widget added to the header, tab bar or section menu now starts at the size it would have on a dashboard and is resized by dragging the corner of its preview, pixel by pixel; the width/height fields and the per-element layout picker are gone, a new element opens itself and the whole row toggles it ([#634](https://github.com/hdering/ioBroker.aura/issues/634))
+
 ## 0.58.1 (2026-09-12)
 - 🌟 **New feature:** Auto-return - new "Pause" element for the header, tab bar and section menu: one tap keeps the device on the page you are looking at, and the pause ends by itself ([#638](https://github.com/hdering/ioBroker.aura/issues/638))
 - 🌟 **New feature:** Auto-return - controllable per device through `aura.0.clients.<id>.idleReturn.snoozeMinutes` and `.delay` (and for all devices through `aura.0.idleReturn.*`) ([#638](https://github.com/hdering/ioBroker.aura/issues/638))
