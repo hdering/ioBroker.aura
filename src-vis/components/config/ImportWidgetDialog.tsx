@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Database, Upload, LayoutGrid } from 'lucide-react';
 import type { WidgetConfig, WidgetType } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
@@ -45,6 +45,19 @@ export function ImportWidgetDialog({
     );
     const [datapoint, setDatapoint] = useState('');
     const [showPicker, setShowPicker] = useState(false);
+
+    // Capture phase + stopPropagation: the dialog is the topmost layer, so no editor
+    // below it may react to the same Escape. While the datapoint picker sits on top,
+    // the keyboard belongs to it.
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            if (e.key !== 'Escape' || showPicker) return;
+            e.stopPropagation();
+            onClose();
+        };
+        document.addEventListener('keydown', handler, true);
+        return () => document.removeEventListener('keydown', handler, true);
+    }, [showPicker, onClose]);
 
     const tryParse = (text: string) => {
         setJsonText(text);
