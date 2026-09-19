@@ -169,6 +169,9 @@ export const de = {
     'settings.frontend.idleReturnDelay': 'Verzögerung',
     'settings.frontend.idleReturnHint':
         'Wechselt nach der angegebenen Inaktivitätszeit zum Standard-Bereich des Layouts und dessen Standard-Tab. Pro Gerät steuerbar über {ns}.clients.<id>.idleReturn.snoozeMinutes und .delay.',
+    'settings.frontend.iconsOffline': 'Icons für Offline-Geräte vorladen',
+    'settings.frontend.iconsOfflineHint':
+        'Das Gerät lädt direkt nach dem Start alle Icons des Layouts und behält sie lokal — auch die anderer Tabs und Zustände. Es spricht nur noch mit Aura, nie mit den öffentlichen Iconify-Servern; vollständig wirksam ab dem zweiten Start eines Geräts. Für Handys im Mobilfunk aus lassen, die holen Icons bei Bedarf.',
     'settings.frontend.optimisticUpdates': 'Sofortige Rückmeldung beim Schalten',
     'settings.frontend.optimisticUpdatesHint':
         'Zeigt geschriebene Werte direkt an, ohne auf die Bestätigung von ioBroker zu warten. Behebt hängende Anzeigen bei Datenpunkten ohne Rückmeldung (z. B. reine 0_userdata-Variablen).',
@@ -511,6 +514,8 @@ export const de = {
     'layouts.menuDesignHint': 'Sichtbarkeit, Position und Elemente des linken Menüs und der Kopfzeile.',
     'layouts.tabbarDesign': 'Tab-Leiste',
     'layouts.tabbarDesignHint': 'Position, Stil und Ausrichtung der Tab-Leiste dieses Layouts.',
+    'layouts.iconsDesign': 'Icons',
+    'layouts.iconsDesignHint': 'Icons für Geräte ohne Internet vorladen.',
     'layouts.moreActions': 'Weitere Aktionen',
     'layouts.importShort': 'Importieren',
     'layouts.deleteLastHint': 'Das letzte Layout kann nicht gelöscht werden',
@@ -610,7 +615,26 @@ export const de = {
     'layouts.subtab.header': 'Header',
     'layouts.subtab.menu': 'Bereichs-Menü',
     'layouts.subtab.nav': 'Navigation',
+    'layouts.subtab.icons': 'Icons',
     'layouts.subtab.values': 'Werte & Formatierung',
+
+    'design.icons.hint':
+        'Woher die Geräte, die dieses Layout zeigen, ihre Icons beziehen. Global oder pro Layout konfigurierbar.',
+    'design.icons.inventoryTitle': 'Icon-Vorrat',
+    'design.icons.inventoryLayout': 'Icons in diesem Layout',
+    'design.icons.inventoryAll': 'Icons in allen Layouts',
+    'design.icons.cached': 'im Adapter vorhanden',
+    'design.icons.missing': 'noch nicht vorhanden',
+    'design.icons.unreachable': 'Der Adapter hat nicht geantwortet — Status unbekannt.',
+    'design.icons.refresh': 'Erneut prüfen',
+    'design.icons.preload': 'Jetzt vorladen',
+    'design.icons.preloading': 'Lädt …',
+    'design.icons.resultLoaded': 'geladen',
+    'design.icons.resultMissing': 'der Icon-Quelle unbekannt',
+    'design.icons.resultPending': 'ohne Antwort',
+    'design.icons.missingHint':
+        'Beim Vorladen holt der Adapter die fehlenden Icons einmal aus dem Internet und behält sie. Was danach weiter fehlt, gibt es im Iconify-Katalog nicht — ein Tippfehler oder ein entferntes Icon.',
+    'design.icons.none': 'In diesem Geltungsbereich sind keine Icons konfiguriert.',
 
     'values.hint': 'Standard-Formatierung für Zahlen und Datenpunkt-Namen. Gilt für alle Layouts und Widgets.',
     'values.decimals.title': 'Dezimalstellen (global)',

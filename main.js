@@ -1409,7 +1409,29 @@ class Aura extends utils.Adapter {
         // Icons are served from our own origin (see lib/iconCache.js): the public
         // Iconify hosts are blocked by mobile tracker blockers and unreachable
         // from kiosk devices without internet, which left widgets iconless (#636).
-        const iconCache = createIconCache({ dir: this._instanceDataDir(), log: this.log });
+        // What the cache holds is mirrored into info.iconCache so an offline
+        // installation can see which icons its devices will get (#290).
+        await this.setObjectNotExistsAsync('info.iconCache', {
+            type: 'state',
+            common: {
+                name: 'Icons the adapter serves from its own cache (JSON: total, per prefix count + names, updatedAt)',
+                type: 'string',
+                role: 'json',
+                read: true,
+                write: false,
+                def: '',
+            },
+            native: {},
+        });
+        const publishIconCache = (summary) => {
+            try {
+                this.setState('info.iconCache', JSON.stringify(summary), true);
+            } catch (e) {
+                this.log.debug(`aura: info.iconCache not written — ${e.message}`);
+            }
+        };
+        const iconCache = createIconCache({ dir: this._instanceDataDir(), log: this.log, onChange: publishIconCache });
+        publishIconCache(iconCache.summary());
 
         const handler = (req, res) => {
             let parsedUrl;

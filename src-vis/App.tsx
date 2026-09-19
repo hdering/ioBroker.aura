@@ -44,6 +44,7 @@ import {
     useIdleReturnStore,
 } from './store/idleReturnStore';
 import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } from './hooks/useEffectiveSettings';
+import { useIconPreload } from './hooks/useIconPreload';
 import { useT } from './i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
 import { deriveHeaderItems } from './utils/menuItems';
@@ -685,6 +686,9 @@ export default function App() {
     // make useConfigSync skip every incoming stateChange (admin layout edits
     // would never propagate without F5).
     const ioBrokerConfigLoaded = useRef(false);
+    // State twin of the ref for effects that must wait for the saved config
+    // (the icon preload below): the ref never re-renders anything.
+    const [configSettled, setConfigSettled] = useState(false);
     useEffect(() => {
         if (!connected || ioBrokerConfigLoaded.current) return;
         ioBrokerConfigLoaded.current = true;
@@ -702,8 +706,16 @@ export default function App() {
             markGroupDefsHydrated(); // unblock group-defs saves even if remote was empty
             markWidgetPresetsHydrated();
             discardPendingRam();
+            setConfigSettled(true);
         });
     }, [connected]);
+
+    // Icons for devices without internet (#290): load the layout's whole icon
+    // inventory once the saved config is here, and remember per device whether
+    // the public Iconify hosts are to be skipped on the next boot. The
+    // screenshot harness seeds its layouts directly, so there is no remote
+    // config to wait for there.
+    useIconPreload(layout, !!effectiveSettings.iconsOffline, configSettled || isScreenshotMode());
 
     // React to external changes on aura.0.config.dashboard (subscription + polling)
     useConfigSync(connected, ioBrokerConfigLoaded, { ignoreDirty: true });

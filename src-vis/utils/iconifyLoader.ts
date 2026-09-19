@@ -23,6 +23,47 @@
 import { addAPIProvider, addCollection, getIcon, listIcons } from '@iconify/react';
 import type { IconifyIcon } from '@iconify/react';
 
+export { lucidePascalToIconify } from './iconId';
+
+/* ── Offline devices (#290) ───────────────────────────────────────────────────
+ *
+ * A layout can declare that the devices showing it have no internet
+ * (`iconsOffline`). For such a device the public hosts are not a fallback but
+ * dead weight: every icon the adapter cannot answer would be retried against
+ * them for 12 s before the widget shows its bundled Lucide fallback. Iconify
+ * freezes a provider's resource list the moment the first query goes out, and
+ * the layout is only known once the config has loaded — long after that. So
+ * the decision is remembered per device: `useIconPreload` writes this flag
+ * whenever the effective setting of the layout on screen is known, and the
+ * NEXT boot registers the provider without the public hosts. The very first
+ * start of a fresh device still runs with the fallback. */
+const OFFLINE_FLAG_KEY = 'aura-icons-offline';
+
+export function readIconsOfflineFlag(): boolean {
+    try {
+        return localStorage.getItem(OFFLINE_FLAG_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
+
+export function writeIconsOfflineFlag(on: boolean): void {
+    try {
+        if (on) localStorage.setItem(OFFLINE_FLAG_KEY, '1');
+        else localStorage.removeItem(OFFLINE_FLAG_KEY);
+    } catch {
+        /* quota / private mode */
+    }
+}
+
+/** Whether THIS boot registered the provider without the public hosts. */
+const offlineAtBoot = typeof localStorage !== 'undefined' && readIconsOfflineFlag();
+
+/** True once the device runs strictly against Aura's own server (from the boot after the flag was set). */
+export function isIconsOfflineActive(): boolean {
+    return offlineAtBoot;
+}
+
 /** Same-origin Iconify API. The empty host keeps the URL relative, so it follows
  *  the page's protocol, host and port without any configuration.
  *
@@ -31,12 +72,16 @@ import type { IconifyIcon } from '@iconify/react';
  *  that has it. Iconify only rotates to the next resource once the one before it
  *  gave up, and `rotate` is raised well above the default 750 ms so a cold icon —
  *  which the adapter has to fetch before it can answer — is not raced against the
- *  public hosts on every first request. */
+ *  public hosts on every first request.
+ *
+ *  An offline device (flag above) gets the own server only, with a timeout that
+ *  suits a LAN: a name the adapter cannot answer fails fast into the widget's
+ *  bundled fallback instead of waiting for hosts it can never reach. */
 addAPIProvider('', {
-    resources: ['', 'https://api.iconify.design'],
+    resources: offlineAtBoot ? [''] : ['', 'https://api.iconify.design'],
     path: '/icons/',
     rotate: 6000,
-    timeout: 12000,
+    timeout: offlineAtBoot ? 4000 : 12000,
 });
 
 /* ── Persistent icon cache ────────────────────────────────────────────────────
@@ -124,8 +169,10 @@ function trim(data: Required<IconifyIcon>): IconifyIcon {
     return out;
 }
 
-/** Write every currently loaded icon back to localStorage. */
-function saveIconCache(): void {
+/** Write every currently loaded icon back to localStorage. Exported so the
+ *  offline preload (#290) can persist its result right away instead of waiting
+ *  for the 30 s tick — a kiosk may lose power before that. */
+export function saveIconCache(): void {
     let names: string[];
     try {
         names = listIcons('');
@@ -244,14 +291,4 @@ export function loadIconSets(): Promise<void> {
 /** Always `true`: there is no global "loaded" state in API mode. */
 export function areIconSetsLoaded(): boolean {
     return true;
-}
-
-/** Convert PascalCase Lucide name to Iconify "lucide:kebab-case" ID.
- *  e.g. "ZapOff" → "lucide:zap-off", "Home" → "lucide:home" */
-export function lucidePascalToIconify(name: string): string {
-    if (name.includes(':')) return name;
-    const kebab = name.replace(/([A-Z])/g, (ch, _, offset) =>
-        offset === 0 ? ch.toLowerCase() : `-${ch.toLowerCase()}`,
-    );
-    return `lucide:${kebab}`;
 }

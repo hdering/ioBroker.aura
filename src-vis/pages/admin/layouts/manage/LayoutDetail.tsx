@@ -303,6 +303,11 @@ export function LayoutDetail({ layout, isFirst, isOnly, onSelect }: LayoutDetail
                             <Palette size={12} /> {t('admin.nav.design')}
                         </Btn>
                     </SettingRow>
+                    <SettingRow label={t('layouts.iconsDesign')} hint={t('layouts.iconsDesignHint')}>
+                        <Btn small onClick={() => navigate(`/admin/design?ctx=${layout.id}&tab=icons`)}>
+                            <Palette size={12} /> {t('admin.nav.design')}
+                        </Btn>
+                    </SettingRow>
                 </Card>
             </div>
 

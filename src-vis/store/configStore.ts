@@ -104,6 +104,12 @@ export interface FrontendSettings {
     /** Seconds of inactivity before returning to the default tab. */
     idleReturnDelay: number;
     /**
+     * Icons for devices without internet (#290): load every icon the layout
+     * uses right after boot instead of on first display, keep them on the
+     * device, and never fall back to the public Iconify hosts.
+     */
+    iconsOffline: boolean;
+    /**
      * Optimistic writes: reflect a setState locally the instant it is sent,
      * instead of waiting for ioBroker to push the change back. Fixes stale UI
      * for datapoints that never echo an ack:false write (e.g. plain
@@ -210,6 +216,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerItems: [],
     idleReturnEnabled: false,
     idleReturnDelay: 30,
+    iconsOffline: false,
     optimisticUpdates: true,
     superAdminKey: '',
     adminBaseUrl: '',

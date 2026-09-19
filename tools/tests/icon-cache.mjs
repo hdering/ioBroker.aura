@@ -216,6 +216,57 @@ try {
         check('reject: too many names', (await call(cache, `/icons/lucide.json?icons=${tooMany}`)).res.status === 400);
         check('reject: POST', (await call(cache, '/icons/lucide.json?icons=home', 'POST')).res.status === 405);
     }
+
+    // ── 10. /icons/status answers from disk only and says what the adapter holds (#290)
+    {
+        // The alias set of step 4 is written asynchronously — a fresh instance
+        // must find it on disk, so wait for the file like step 2 does.
+        const mdiFile = path.join(dir, 'icons', 'mdi.json');
+        for (let i = 0; i < 50 && !fs.existsSync(mdiFile); i++) await new Promise((r) => setTimeout(r, 10));
+        const calls = stubFetch(() => {
+            throw new Error('must not be called');
+        });
+        const seen = [];
+        const cache = createIconCache({ dir, log: { warn() {}, info() {} }, onChange: (s) => seen.push(s) });
+
+        const st = await call(cache, '/icons/status?icons=lucide:home,lucide:zap,mdi:bulb,mdi:nothing-here');
+        check('status: 200', st.res.status === 200, `got ${st.res.status}`);
+        check(
+            'status: cached names listed',
+            JSON.stringify(st.json?.cached) === JSON.stringify(['lucide:home', 'mdi:bulb']),
+        );
+        check(
+            'status: missing names listed',
+            JSON.stringify(st.json?.missing) === JSON.stringify(['lucide:zap', 'mdi:nothing-here']),
+        );
+        check('status: never asks upstream', calls.length === 0, `got ${calls.length}`);
+        check('status: not cached by the browser', /no-cache/.test(st.res.headers['Cache-Control'] || ''));
+        check('status: bad id rejected', (await call(cache, '/icons/status?icons=Home')).res.status === 400);
+        check(
+            'status: POST rejected',
+            (await call(cache, '/icons/status?icons=lucide:home', 'POST')).res.status === 405,
+        );
+
+        const sum = await call(cache, '/icons/status');
+        check('summary: total counts every cached icon', sum.json?.total === 2, JSON.stringify(sum.json));
+        check(
+            'summary: per prefix count',
+            sum.json?.prefixes?.lucide?.count === 1 && sum.json?.prefixes?.mdi?.count === 1,
+        );
+        check('summary: names listed', (sum.json?.prefixes?.lucide?.names || []).includes('home'));
+        check('summary: updatedAt from the files on disk', typeof sum.json?.updatedAt === 'string');
+        check('summary: same via summary()', cache.summary().total === 2);
+
+        // Growth: a fetch that adds an icon reports the new summary once.
+        stubFetch(() => ok({ prefix: 'lucide', icons: { sun: HOME, moon: HOME } }));
+        await call(cache, '/icons/lucide.json?icons=sun');
+        await call(cache, '/icons/lucide.json?icons=moon');
+        for (let i = 0; i < 50 && seen.length === 0; i++) await new Promise((r) => setTimeout(r, 20));
+        check('growth: listener called', seen.length >= 1, `got ${seen.length}`);
+        check('growth: burst reported once', seen.length === 1, `got ${seen.length}`);
+        check('growth: summary counts the new icons', seen[0]?.total === 4, JSON.stringify(seen[0]));
+        check('growth: updatedAt moved to now', Date.now() - Date.parse(seen[0]?.updatedAt || 0) < 5000);
+    }
 } finally {
     globalThis.fetch = realFetch;
     fs.rmSync(dir, { recursive: true, force: true });

@@ -170,6 +170,9 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.idleReturnDelay': 'Delay',
     'settings.frontend.idleReturnHint':
         "Switches to the layout's default section and its default tab after the specified idle time. Per device controllable via {ns}.clients.<id>.idleReturn.snoozeMinutes and .delay.",
+    'settings.frontend.iconsOffline': 'Preload icons for offline devices',
+    'settings.frontend.iconsOfflineHint':
+        'The device loads every icon of the layout right after start and keeps it locally, so icons of other tabs and states are already there. It only talks to Aura and never to the public Iconify hosts — fully in effect from the second start of a device. Leave this off for phones on mobile data; they fetch icons on demand.',
     'settings.frontend.optimisticUpdates': 'Instant feedback on control',
     'settings.frontend.optimisticUpdatesHint':
         'Reflect written values immediately without waiting for ioBroker to confirm. Fixes stale UI for datapoints that never echo a write back (e.g. plain 0_userdata variables).',
@@ -508,6 +511,8 @@ export const en: Record<TranslationKey, string> = {
     'layouts.menuDesignHint': 'Visibility, position and elements of the left menu and the header.',
     'layouts.tabbarDesign': 'Tab bar',
     'layouts.tabbarDesignHint': "Position, style and alignment of this layout's tab bar.",
+    'layouts.iconsDesign': 'Icons',
+    'layouts.iconsDesignHint': 'Preload icons for devices without internet.',
     'layouts.moreActions': 'More actions',
     'layouts.importShort': 'Import',
     'layouts.deleteLastHint': 'The last layout cannot be deleted',
@@ -606,7 +611,26 @@ export const en: Record<TranslationKey, string> = {
     'layouts.subtab.header': 'Header',
     'layouts.subtab.menu': 'Section menu',
     'layouts.subtab.nav': 'Navigation',
+    'layouts.subtab.icons': 'Icons',
     'layouts.subtab.values': 'Values & Formatting',
+
+    'design.icons.hint':
+        'Where the devices showing this layout get their icons from. Configurable globally or per layout.',
+    'design.icons.inventoryTitle': 'Icon inventory',
+    'design.icons.inventoryLayout': 'Icons used by this layout',
+    'design.icons.inventoryAll': 'Icons used by all layouts',
+    'design.icons.cached': 'held by the adapter',
+    'design.icons.missing': 'not held yet',
+    'design.icons.unreachable': 'The adapter did not answer — status unknown.',
+    'design.icons.refresh': 'Check again',
+    'design.icons.preload': 'Preload now',
+    'design.icons.preloading': 'Loading …',
+    'design.icons.resultLoaded': 'loaded',
+    'design.icons.resultMissing': 'unknown to the icon source',
+    'design.icons.resultPending': 'unanswered',
+    'design.icons.missingHint':
+        'Preloading asks the adapter for the missing icons; while it has internet it fetches them once and keeps them. Names that stay missing afterwards do not exist in the Iconify catalogue — a typo or a removed icon.',
+    'design.icons.none': 'No icons configured in this scope.',
 
     'values.hint': 'Default formatting for numbers and datapoint names. Applies to all layouts and widgets.',
     'values.decimals.title': 'Decimals (global)',

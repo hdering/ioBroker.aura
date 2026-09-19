@@ -75,6 +75,8 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'headerDatapoint',
     'headerDatapointTemplate',
     'headerItems',
+    // Icon source for the device showing this layout (#290)
+    'iconsOffline',
 ];
 
 // Narrow selectors: stable settings-object references so these only re-render

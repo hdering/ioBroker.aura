@@ -13,7 +13,9 @@
 // Stripped from production: only imported from main.tsx under import.meta.env.DEV.
 
 import { getInstanceByDom } from 'echarts';
+import { iconLoaded } from '@iconify/react';
 import { measureRenderedWidgets } from '../utils/renderReport';
+import { readIconsOfflineFlag } from '../utils/iconifyLoader';
 import {
     __devInjectObject,
     __devInjectState,
@@ -175,6 +177,17 @@ function installScreenshotApi(): void {
         /** Switch the frontend theme preset (e.g. 'light', 'dark'). */
         setTheme(id: string): void {
             withSuppressedDirty(() => useThemeStore.getState().setTheme(id));
+        },
+
+        /** Whether Iconify holds this icon in memory — how an offline-preload
+         *  test (#290) proves an icon arrived that nothing has rendered. */
+        iconLoaded(id: string): boolean {
+            return iconLoaded(id);
+        },
+
+        /** The per-device "icons offline" flag the next boot will act on (#290). */
+        iconsOfflineFlag(): boolean {
+            return readIconsOfflineFlag();
         },
 
         /** Inject fabricated datapoint values: { 'demo.switch': true, 'demo.temp': { val: 21.5, unit: '°C' } } */

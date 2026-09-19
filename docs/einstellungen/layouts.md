@@ -163,6 +163,26 @@ solange ein Widget im Vollbild läuft.
 | Vorübergehend am Gerät | Element **Rückkehr-Pause** in Header, Tab-Leiste oder Bereichs-Menü |
 | Per Datenpunkt | Siehe [Einstellungen → Rückkehr steuern](./settings#rückkehr-steuern) |
 
+## Icons
+
+Woher die Geräte eines Layouts ihre Icons beziehen. Global oder pro Layout einstellbar (Geltungsbereich links); ein Bereich überschreibt das nicht.
+
+| Option | |
+| --- | --- |
+| Icons für Offline-Geräte vorladen | Das Gerät lädt nach dem Start alle Icons des Layouts (auch anderer Tabs, Zustände, Popups) und behält sie lokal; es fragt nur noch Aura, nie die öffentlichen Iconify-Server |
+
+| Icon-Vorrat | |
+| --- | --- |
+| Icons in diesem Layout | Was die Konfiguration des Geltungsbereichs an Icons enthält, davon: im Adapter vorhanden / noch nicht vorhanden |
+| Jetzt vorladen | Lässt den Adapter die fehlenden Icons einmal aus dem Internet holen; was danach weiter fehlt, gibt es im Iconify-Katalog nicht |
+| Fehlende Icons | Liste der IDs, die der Adapter noch nicht hat |
+
+| Verhalten | |
+| --- | --- |
+| Ohne Schalter | Icons werden beim ersten Anzeigen geholt — klein und schnell, richtig für Handys im Mobilfunk |
+| Erster Start eines Geräts | Läuft noch mit dem öffentlichen Fallback; ab dem zweiten Start fragt das Gerät nur Aura |
+| Adapter | `aura.0.info.iconCache` zeigt, welche Icons der Adapter selbst vorhält (Anzahl und Namen je Sammlung); jedes neue Icon steht im Log |
+
 ## Werte & Formatierung
 
 Nur im Geltungsbereich **Global** — gilt für alle Layouts und Widgets.

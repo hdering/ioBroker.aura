@@ -227,6 +227,9 @@ export interface LayoutSettings {
     // Navigation (idle-return)
     idleReturnEnabled?: boolean;
     idleReturnDelay?: number;
+    // Icons for offline devices (#290) — layout level only: a device shows a
+    // layout, so a section cannot sensibly switch its icon source.
+    iconsOffline?: boolean;
 }
 
 export interface Tab {

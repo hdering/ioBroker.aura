@@ -9,19 +9,31 @@ import {
     Menu,
     Compass,
     Hash,
+    Shapes,
 } from 'lucide-react';
 import { useT } from '../../../../i18n';
 
-export type SubTab = 'theme' | 'typo' | 'grid' | 'guidelines' | 'tabbar' | 'header' | 'menu' | 'nav' | 'values';
+export type SubTab =
+    | 'theme'
+    | 'typo'
+    | 'grid'
+    | 'guidelines'
+    | 'tabbar'
+    | 'header'
+    | 'menu'
+    | 'nav'
+    | 'icons'
+    | 'values';
 
 // Frame tabs (whole-layout chrome) come first and are visually set apart from the
 // per-scope content tabs that follow.
-const FRAME_IDS: SubTab[] = ['header', 'menu'];
+const FRAME_IDS: SubTab[] = ['header', 'menu', 'icons'];
 const isFrame = (id: SubTab) => FRAME_IDS.includes(id);
 
 const ALL_TABS: { id: SubTab; labelKey: string; icon: React.ElementType }[] = [
     { id: 'header', labelKey: 'layouts.subtab.header', icon: PanelTop },
     { id: 'menu', labelKey: 'layouts.subtab.menu', icon: Menu },
+    { id: 'icons', labelKey: 'layouts.subtab.icons', icon: Shapes },
     { id: 'tabbar', labelKey: 'layouts.subtab.tabbar', icon: AlignJustify },
     { id: 'nav', labelKey: 'layouts.subtab.nav', icon: Compass },
     { id: 'theme', labelKey: 'layouts.subtab.theme', icon: Palette },
