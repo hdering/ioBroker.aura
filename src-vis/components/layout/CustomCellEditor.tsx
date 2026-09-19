@@ -2501,6 +2501,7 @@ export function CustomCellEditor({
                                     }}
                                     onDpChange={(dp) => onChange({ entriesDp: dp })}
                                     onKeyChange={(field, v) => onChange({ [ENTRY_KEY_OPTION[field]]: v })}
+                                    compact
                                 />
                             )}
 

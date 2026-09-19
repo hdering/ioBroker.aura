@@ -76,6 +76,7 @@ export function EnumJsonSourceSection({
     keys,
     onDpChange,
     onKeyChange,
+    compact = false,
 }: {
     /** DP reference holding the JSON, optionally with a `?path` suffix. */
     dp: string;
@@ -83,6 +84,11 @@ export function EnumJsonSourceSection({
     keys: EnumJsonKeys;
     onDpChange: (dp: string) => void;
     onKeyChange: (field: keyof EnumJsonKeys, value: string | undefined) => void;
+    /**
+     * Dense DP row (py-1.5, 12 px icons) for the Universal Widget's cell editor.
+     * The default matches the widget's main datapoint row (py-2, 13 px icons).
+     */
+    compact?: boolean;
 }) {
     const [showPicker, setShowPicker] = useState(false);
     const [showExample, setShowExample] = useState(false);
@@ -94,6 +100,7 @@ export function EnumJsonSourceSection({
     const colorKey = keys.color ?? '';
     const iconKey = keys.icon ?? '';
     const imageKey = keys.image ?? '';
+    const iconSize = compact ? 12 : 13;
 
     // Preview: read the DP once whenever the reference or a field name changes.
     useEffect(() => {
@@ -131,24 +138,25 @@ export function EnumJsonSourceSection({
 
     return (
         <div className="space-y-1.5">
-            <div className="flex items-center gap-1">
+            {/* No items-center: the picker buttons stretch to the input's height like on the main DP row. */}
+            <div className="flex gap-1">
                 <input
                     type="text"
                     value={dp}
                     onChange={(e) => onDpChange(e.target.value)}
                     placeholder="0_userdata.0.auswahl.liste"
-                    className={`${fieldCls} flex-1 min-w-0 font-mono`}
+                    className={`text-xs rounded-lg ${compact ? 'px-2 py-1.5' : 'px-2.5 py-2'} flex-1 min-w-0 font-mono focus:outline-none`}
                     style={iSty}
                 />
                 <button
                     onClick={() => setShowPicker(true)}
-                    className="px-1.5 py-1.5 rounded-lg hover:opacity-80 shrink-0"
-                    style={iSty}
+                    className="px-2 rounded-lg hover:opacity-80 shrink-0"
+                    style={{ ...iSty, color: 'var(--text-secondary)' }}
                     title="Aus ioBroker wählen"
                 >
-                    <Database size={12} />
+                    <Database size={iconSize} />
                 </button>
-                <JsonPathButton value={dp} onChange={(ref) => onDpChange(ref)} size={12} />
+                <JsonPathButton value={dp} onChange={(ref) => onDpChange(ref)} size={iconSize} />
             </div>
 
             {preview && (
