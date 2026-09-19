@@ -10,3 +10,4 @@
 - Datapoint picker - the "With History" filter now covers every logging adapter (history, influxdb, sql, ...) and no longer marks datapoints that only carry an iot/Alexa custom entry (#686)
 - Group - a child widget is now at least as tall inside a group as the same widget on the tab, so its content is no longer cut off; existing groups grow by about one row per five child rows (#680)
 - Group - the editor lets a group be dragged taller than its children again; the extra room is shared evenly among them and the frontend shows the same height (#680)
+- Group - a child can be pulled back onto the tab with a click on its grip; dropping it anywhere in the free tab area works too, and dropping it back onto its own group no longer loses it

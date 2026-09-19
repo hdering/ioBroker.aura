@@ -336,6 +336,12 @@ export function PanelsWidget({ config, editMode, onConfigChange }: WidgetProps) 
         setDragOver(false);
         const bridge = getDragBridge();
         if (!bridge) return;
+        // Dropped back onto its own panels: nothing to move (see GroupWidget —
+        // adding the copy and removing through the stale list lost the widget).
+        if (children.some((c) => c.id === bridge.widget.id)) {
+            setDragBridge(null);
+            return;
+        }
         const meta = WIDGET_BY_TYPE[bridge.widget.type as WidgetType];
         const newChild: WidgetConfig = {
             ...bridge.widget,

@@ -361,6 +361,13 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
         setIsDragOver(false);
         const bridge = getDragBridge();
         if (!bridge) return;
+        // Dropped back onto its own group: nothing to move. Going on would add a
+        // copy and then run the bridge's `remove`, which works on the child list
+        // this render closed over — without the copy — and so lost the widget.
+        if (children.some((c) => c.id === bridge.widget.id)) {
+            setDragBridge(null);
+            return;
+        }
         const meta = WIDGET_BY_TYPE[bridge.widget.type as WidgetType];
         const maxY = children.reduce((m, c) => Math.max(m, c.gridPos.y + c.gridPos.h), 0);
         const next = verticalCompact([

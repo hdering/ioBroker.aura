@@ -30,7 +30,7 @@ import { DashboardMobileContext } from '../../contexts/DashboardMobileContext';
 import type { WidgetConfig } from '../../types';
 import type { Tab } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
-import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
+import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
 import { reportMetric } from '../../utils/perfMetrics';
@@ -503,6 +503,45 @@ export function Dashboard({
     const activeTab = tabs.find((t) => t.id === activeTabId);
     const fillTabWidget = activeTab?.widgets?.find((w) => (w.options as Record<string, unknown>)?.fillTab);
 
+    // A widget dragged out of a group / panels lands on the active tab: appended
+    // at the bottom, where the grid's compaction places it, and removed from its
+    // source through the `remove` the source hands over in the drag bridge. The
+    // drop zone is the whole scroller, not the tab's own box — that box is only as
+    // tall as the widgets, so with a few of them most of the screen was free space
+    // below, and a drop there hit nothing at all. The same step is registered for
+    // the grip on a group child, which runs it on a plain click (no drag needed).
+    const acceptIntoActiveTab = useCallback<TabDropAccept>(
+        (widget, remove) => {
+            if (!activeTab) return;
+            addWidgetToLayoutTab(activeLayout.id, activeTab.id, {
+                ...widget,
+                id: `w-${Date.now()}`,
+                gridPos: { ...widget.gridPos, y: 9999 },
+            });
+            remove(widget.id);
+        },
+        [activeTab, activeLayout.id, addWidgetToLayoutTab],
+    );
+    useEffect(() => {
+        if (!editMode) return;
+        setTabDropAccept(acceptIntoActiveTab);
+        return () => setTabDropAccept(null);
+    }, [editMode, acceptIntoActiveTab]);
+    const tabDropHandlers = editMode
+        ? {
+              onDragOver: (e: React.DragEvent) => {
+                  if (getDragBridge()) e.preventDefault();
+              },
+              onDrop: (e: React.DragEvent) => {
+                  const bridge = getDragBridge();
+                  if (!bridge) return;
+                  e.preventDefault();
+                  acceptIntoActiveTab(bridge.widget, bridge.remove);
+                  setDragBridge(null);
+              },
+          }
+        : {};
+
     // ── mobile: single-column stack ───────────────────────────────────────
     if (containerWidth > 0 && containerWidth < mobileBreakpoint) {
         return (
@@ -736,6 +775,7 @@ export function Dashboard({
                             scrollbarGutter: 'stable both-edges',
                             ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
                         }}
+                        {...tabDropHandlers}
                     >
                         {showGuidelines && (
                             <GuidelinesOverlay
@@ -1069,27 +1109,6 @@ export function Dashboard({
                                             );
                                         }
 
-                                        const dropHandlers =
-                                            isActive && editMode
-                                                ? {
-                                                      onDragOver: (e: React.DragEvent) => {
-                                                          if (getDragBridge()) e.preventDefault();
-                                                      },
-                                                      onDrop: (e: React.DragEvent) => {
-                                                          const bridge = getDragBridge();
-                                                          if (!bridge) return;
-                                                          e.preventDefault();
-                                                          addWidgetToLayoutTab(activeLayout.id, tab.id, {
-                                                              ...bridge.widget,
-                                                              id: `w-${Date.now()}`,
-                                                              gridPos: { ...bridge.widget.gridPos, y: 9999 },
-                                                          });
-                                                          bridge.remove(bridge.widget.id);
-                                                          setDragBridge(null);
-                                                      },
-                                                  }
-                                                : {};
-
                                         return (
                                             <div
                                                 key={tab.id}
@@ -1097,7 +1116,6 @@ export function Dashboard({
                                                 data-aura-tab-id={tab.id}
                                                 className={`aura-tab aura-tab-${tab.slug}`}
                                                 style={{ display: isActive ? undefined : 'none' }}
-                                                {...dropHandlers}
                                             >
                                                 <ReactGridLayout
                                                     className="layout"

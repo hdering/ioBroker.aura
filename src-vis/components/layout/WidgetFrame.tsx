@@ -42,7 +42,7 @@ import {
     ChevronUp,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { setDragBridge } from '../../utils/dragBridge';
+import { setDragBridge, getTabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
@@ -7306,6 +7306,18 @@ function WidgetFrameInner({
                             e.dataTransfer.effectAllowed = 'move';
                         }}
                         onDragEnd={() => setDragBridge(null)}
+                        // A child's grip reads "pull out of group", so a plain click does
+                        // exactly that — onto the active tab, the same step a drop on the
+                        // tab performs (the drop position is not used there either). The
+                        // drag stays for moving the child into ANOTHER group or panels.
+                        onClick={
+                            onDuplicate
+                                ? (e) => {
+                                      e.stopPropagation();
+                                      getTabDropAccept()?.(config, onRemove);
+                                  }
+                                : undefined
+                        }
                         className="nodrag cursor-grab w-7 h-7 flex items-center justify-center rounded-lg hover:opacity-80"
                         title={t(onDuplicate ? 'wf.menu.dragOutOfGroup' : 'wf.menu.dragToGroup')}
                         style={{
