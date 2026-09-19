@@ -113,8 +113,14 @@ interface TreeRow {
     open: boolean;
 }
 
+/** Folders first (like the ioBroker object tree), then plain datapoints – each alphabetically. */
 const sortNodes = (nodes: TreeNode[]) =>
-    nodes.sort((a, b) => a.segment.localeCompare(b.segment, undefined, { numeric: true, sensitivity: 'base' }));
+    nodes.sort((a, b) => {
+        const aFolder = a.children.size > 0;
+        const bFolder = b.children.size > 0;
+        if (aFolder !== bFolder) return aFolder ? -1 : 1;
+        return a.segment.localeCompare(b.segment, undefined, { numeric: true, sensitivity: 'base' });
+    });
 
 /** Depth-first list of the currently visible rows, capped at `limit`. */
 function flattenTree(root: TreeNode, isOpen: (path: string) => boolean, limit: number): TreeRow[] {
@@ -349,7 +355,13 @@ function DpModeBody({
         () => Array.from(new Set(base.map((dp) => dp.unit).filter(Boolean) as string[])).sort(),
         [base],
     );
-    const hasHistory = useMemo(() => base.some((dp) => dp.logging.length > 0), [base]);
+    // Every logging adapter found in the list – history, influxdb, sql, … The filter
+    // takes them all, the tooltip names them so the button is not read as "history.0 only".
+    const loggingAdapters = useMemo(
+        () => Array.from(new Set(base.flatMap((dp) => dp.logging.map((id) => id.replace(/\.\d+$/, ''))))).sort(),
+        [base],
+    );
+    const hasHistory = loggingAdapters.length > 0;
 
     const filtered = useMemo(() => {
         let list = base;
@@ -679,6 +691,7 @@ function DpModeBody({
                         {hasHistory && (
                             <button
                                 onClick={() => setHistoryFilter((v) => !v)}
+                                title={`${t('dp.picker.historyOnlyHint')} (${loggingAdapters.join(', ')})`}
                                 className="rounded-lg px-3 py-1.5 text-xs shrink-0 transition-colors"
                                 style={{
                                     background: historyFilter ? '#10b98122' : 'var(--app-bg)',
@@ -944,10 +957,11 @@ function DpModeBody({
                         return (
                             <button
                                 key={dp.id}
+                                data-dp={dp.id}
                                 onClick={() =>
                                     multiSelect ? toggleCheck(dp) : onSelect(dp.id, dp.unit, dp.name, dp.role, dp.type)
                                 }
-                                className="w-full text-left px-5 py-2 flex items-center hover:opacity-80 transition-opacity"
+                                className="aura-dp-list-row w-full text-left px-5 py-2 flex items-center hover:opacity-80 transition-opacity"
                                 style={{
                                     background: (multiSelect ? isChecked : isSelected)
                                         ? 'color-mix(in srgb, var(--accent) 12%, transparent)'

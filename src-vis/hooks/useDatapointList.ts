@@ -134,6 +134,14 @@ export function normalizeStates(raw: unknown): Record<string, string> | undefine
     return Object.keys(out).length ? out : undefined;
 }
 
+/**
+ * Adapters that log datapoint values. ioBroker marks them with `common.type: 'storage'`
+ * in their instance object, so the list below is only the fallback for instances that
+ * were not read (e.g. a disabled one). Other adapters use `common.custom` as well –
+ * iot for the Alexa smart names, for instance – and must not count as "history".
+ */
+const KNOWN_LOGGING_ADAPTERS = new Set(['history', 'influxdb', 'sql']);
+
 async function loadAll(): Promise<DatapointEntry[]> {
     const [stateResult, aliasStateResult, channelResult, deviceResult, enumResult, instanceResult] = await Promise.all([
         getObjectViewDirect('state'),
@@ -152,12 +160,19 @@ async function loadAll(): Promise<DatapointEntry[]> {
 
     // Build set of enabled instance prefixes: "hm-rpc.0", "history.0", …
     const enabledPrefixes = new Set<string>();
+    // …and of every instance that stores values (history, influxdb, sql, …), so the
+    // picker's history column and filter cover all of them, disabled ones included.
+    const loggingInstances = new Set<string>();
     for (const { id, value: obj } of instanceResult.rows) {
-        if (obj?.common?.enabled === true) {
-            // id is "system.adapter.hm-rpc.0" → strip prefix
-            enabledPrefixes.add(id.slice('system.adapter.'.length));
-        }
+        // id is "system.adapter.hm-rpc.0" → strip prefix
+        const instanceId = id.slice('system.adapter.'.length);
+        if (obj?.common?.enabled === true) enabledPrefixes.add(instanceId);
+        // An instance's common.type is the adapter category ("storage", "logic", …),
+        // not the state type the row typing assumes.
+        if ((obj?.common as { type?: string } | undefined)?.type === 'storage') loggingInstances.add(instanceId);
     }
+    const isLoggingInstance = (instanceId: string) =>
+        loggingInstances.has(instanceId) || KNOWN_LOGGING_ADAPTERS.has(instanceId.replace(/\.\d+$/, ''));
     // 0_userdata.0 and alias.0 are built-in ioBroker namespaces, not adapter instances
     enabledPrefixes.add('0_userdata.0');
     enabledPrefixes.add('alias.0');
@@ -245,7 +260,7 @@ async function loadAll(): Promise<DatapointEntry[]> {
 
             const custom = common.custom ?? {};
             const logging = Object.entries(custom)
-                .filter(([, cfg]) => cfg?.enabled === true)
+                .filter(([id, cfg]) => cfg?.enabled === true && isLoggingInstance(id))
                 .map(([id]) => id);
 
             return {

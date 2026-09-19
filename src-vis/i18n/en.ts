@@ -1312,6 +1312,7 @@ export const en: Record<TranslationKey, string> = {
     'dp.picker.noResults': 'No results',
     'dp.picker.allUnits': 'All Units',
     'dp.picker.historyOnly': 'With History',
+    'dp.picker.historyOnlyHint': 'Only datapoints recorded by a logging adapter',
     'dp.picker.showInactive': 'Show inactive',
     'dp.picker.showInactiveHint': 'Also show states of disabled/uninstalled adapters and orphaned or imported states',
     'dp.picker.col.name': 'Name / ID',

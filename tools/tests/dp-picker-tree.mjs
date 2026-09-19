@@ -29,7 +29,13 @@ const objRow = (id, type, common) => ({ id, value: { _id: id, type, common } });
 // Two namespaces, so the top level of the tree has something to choose from.
 const VIEW = {
     state: [
-        stateRow('hm-rpc.0.ABC0001.1.STATE', { name: 'Schalter', type: 'boolean', role: 'switch', read: true, write: true }),
+        stateRow('hm-rpc.0.ABC0001.1.STATE', {
+            name: 'Schalter',
+            type: 'boolean',
+            role: 'switch',
+            read: true,
+            write: true,
+        }),
         stateRow('hm-rpc.0.ABC0001.1.LEVEL', {
             name: 'Helligkeit',
             type: 'number',
@@ -39,12 +45,48 @@ const VIEW = {
             write: true,
         }),
         stateRow('hm-rpc.0.ABC0002.2.STATE', { name: 'Fenster', type: 'boolean', role: 'sensor.window', read: true }),
-        stateRow('alias.0.wohnzimmer.licht', { name: 'Licht', type: 'boolean', role: 'switch', read: true, write: true }),
+        // The three faces of common.custom: a classic history adapter, another storage
+        // adapter (influxdb) and iot, which uses custom for the Alexa name and logs nothing.
+        stateRow('hm-rpc.0.ABC0002.2.HIST', {
+            name: 'Zaehler Tag',
+            type: 'number',
+            role: 'value',
+            read: true,
+            custom: { 'history.0': { enabled: true } },
+        }),
+        stateRow('hm-rpc.0.ABC0002.2.FLUX', {
+            name: 'Temperatur Flux',
+            type: 'number',
+            role: 'value',
+            read: true,
+            custom: { 'influxdb.0': { enabled: true } },
+        }),
+        stateRow('hm-rpc.0.ABC0002.2.ALEXA', {
+            name: 'Alexa Lampe',
+            type: 'boolean',
+            role: 'switch',
+            read: true,
+            custom: { 'iot.0': { enabled: true, smartName: 'Lampe' } },
+        }),
+        // Sorts before both devices alphabetically – folders still have to come first.
+        stateRow('hm-rpc.0.AAA_INFO', { name: 'Instanz-Info', type: 'boolean', role: 'indicator', read: true }),
+        stateRow('alias.0.wohnzimmer.licht', {
+            name: 'Licht',
+            type: 'boolean',
+            role: 'switch',
+            read: true,
+            write: true,
+        }),
     ],
     channel: [objRow('hm-rpc.0.ABC0001.1', 'channel', { name: 'Kanal 1' })],
     device: [objRow('hm-rpc.0.ABC0001', 'device', { name: 'Dimmaktor Flur' })],
     // Read for common.enabled: without it hm-rpc counts as inactive and stays hidden.
-    instance: [objRow('system.adapter.hm-rpc.0', 'instance', { enabled: true })],
+    instance: [
+        objRow('system.adapter.hm-rpc.0', 'instance', { enabled: true }),
+        objRow('system.adapter.history.0', 'instance', { enabled: true, type: 'storage' }),
+        objRow('system.adapter.influxdb.0', 'instance', { enabled: true, type: 'storage' }),
+        objRow('system.adapter.iot.0', 'instance', { enabled: true, type: 'iot-systems' }),
+    ],
 };
 
 const browser = await chromium.launch();
@@ -103,7 +145,11 @@ await page.evaluate(() => localStorage.removeItem('aura-dp-picker-view'));
 const dlg = await openConfig(knob(''));
 let picker = await openPicker(dlg);
 
-eq('a fresh browser starts on the list', await picker.locator('button[data-view="list"]').getAttribute('aria-pressed'), 'true');
+eq(
+    'a fresh browser starts on the list',
+    await picker.locator('button[data-view="list"]').getAttribute('aria-pressed'),
+    'true',
+);
 check('and offers the tree', (await picker.locator('button[data-view="tree"]').count()) === 1);
 check('the list view renders no tree rows', (await picker.locator('.aura-dp-tree-row').count()) === 0);
 
@@ -119,12 +165,15 @@ eq('opening a namespace reveals its instance', await rowPaths(picker), ['alias',
 
 await picker.locator('.aura-dp-tree-row[data-path="hm-rpc.0"]').click();
 await page.waitForTimeout(200);
-eq('and the instance its devices', await rowPaths(picker), [
+// #686: inside a folder the sub-folders come first, the plain datapoints last –
+// hm-rpc.0.AAA_INFO would be first alphabetically but is a leaf.
+eq('and the instance its devices, folders before datapoints', await rowPaths(picker), [
     'alias',
     'hm-rpc',
     'hm-rpc.0',
     'hm-rpc.0.ABC0001',
     'hm-rpc.0.ABC0002',
+    'hm-rpc.0.AAA_INFO',
 ]);
 check(
     'a folder that is a known device carries its name',
@@ -134,10 +183,7 @@ check(
 await picker.locator('.aura-dp-tree-row[data-path="hm-rpc.0.ABC0001"]').click();
 await picker.locator('.aura-dp-tree-row[data-path="hm-rpc.0.ABC0001.1"]').click();
 await page.waitForTimeout(250);
-check(
-    'the states below a channel are reachable',
-    (await rowPaths(picker)).includes('hm-rpc.0.ABC0001.1.LEVEL'),
-);
+check('the states below a channel are reachable', (await rowPaths(picker)).includes('hm-rpc.0.ABC0001.1.LEVEL'));
 
 // Closing it again folds the whole branch away.
 await picker.locator('.aura-dp-tree-row[data-path="hm-rpc"]').click();
@@ -168,13 +214,39 @@ eq('and hands the id to the widget', await dpField.inputValue(), 'hm-rpc.0.ABC00
 // ── 6. The browser remembers the view ────────────────────────────────────────
 eq('the choice is stored', await storedView(), 'tree');
 picker = await openPicker(dlg);
-eq('reopening comes back in the tree', await picker.locator('button[data-view="tree"]').getAttribute('aria-pressed'), 'true');
+eq(
+    'reopening comes back in the tree',
+    await picker.locator('button[data-view="tree"]').getAttribute('aria-pressed'),
+    'true',
+);
 check('with tree rows, not list rows', (await picker.locator('.aura-dp-tree-row').count()) > 0);
 
 // Switching back is remembered just as well.
 await picker.locator('button[data-view="list"]').click();
 await page.waitForTimeout(200);
 eq('switching back is stored too', await storedView(), 'list');
+
+// ── 6b. "Mit History" takes every logging adapter, not just history.0 ────────
+await picker.locator('input').first().fill(''); // section 4 left a search behind
+await page.waitForTimeout(250);
+const listIds = () => picker.locator('.aura-dp-list-row').evaluateAll((els) => els.map((e) => e.dataset.dp).sort());
+check('the unfiltered list shows every datapoint', (await listIds()).length > 4, (await listIds()).join(', '));
+const historyBtn = picker.locator('button:text-is("Mit History")');
+check('the history filter is offered', (await historyBtn.count()) === 1);
+await historyBtn.click();
+await page.waitForTimeout(250);
+eq('it keeps history and influxdb datapoints, but not the iot-only one', await listIds(), [
+    'hm-rpc.0.ABC0002.2.FLUX',
+    'hm-rpc.0.ABC0002.2.HIST',
+]);
+check(
+    'and both carry their adapter badge',
+    (await picker.locator('.aura-dp-list-row[data-dp="hm-rpc.0.ABC0002.2.FLUX"]').innerText()).includes('flux'),
+    await picker.locator('.aura-dp-list-row[data-dp="hm-rpc.0.ABC0002.2.FLUX"]').innerText(),
+);
+await historyBtn.click();
+await page.waitForTimeout(250);
+check('switching it off brings the others back', (await listIds()).includes('hm-rpc.0.ABC0002.2.ALEXA'));
 
 // ── 7. A whole branch can be checked at once (multi-select) ──────────────────
 // The list widget picks many datapoints in one go – there the tree also has to
@@ -211,7 +283,11 @@ picker = page.locator('.aura-dp-picker');
 await picker.waitFor({ timeout: 10000 });
 await page.waitForTimeout(700);
 
-eq('the stored view survives a reload', await picker.locator('button[data-view="list"]').getAttribute('aria-pressed'), 'true');
+eq(
+    'the stored view survives a reload',
+    await picker.locator('button[data-view="list"]').getAttribute('aria-pressed'),
+    'true',
+);
 await picker.locator('button[data-view="tree"]').click();
 await page.waitForTimeout(250);
 await picker.locator('.aura-dp-tree-row[data-path="hm-rpc"]').click();
@@ -229,11 +305,10 @@ check(
 await picker.locator('button:has-text("2 hinzufügen")').click();
 await page.waitForTimeout(500);
 const entries = await page.evaluate(() => window.__auraShot.widgetOptions('w-list')?.entries ?? []);
-eq(
-    'and hands both datapoints to the list',
-    entries.map((e) => e.id).sort(),
-    ['hm-rpc.0.ABC0001.1.LEVEL', 'hm-rpc.0.ABC0001.1.STATE'],
-);
+eq('and hands both datapoints to the list', entries.map((e) => e.id).sort(), [
+    'hm-rpc.0.ABC0001.1.LEVEL',
+    'hm-rpc.0.ABC0001.1.STATE',
+]);
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

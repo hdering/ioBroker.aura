@@ -1322,6 +1322,7 @@ export const de = {
     'dp.picker.noResults': 'Keine Ergebnisse',
     'dp.picker.allUnits': 'Alle Einheiten',
     'dp.picker.historyOnly': 'Mit History',
+    'dp.picker.historyOnlyHint': 'Nur Datenpunkte, die ein Speicher-Adapter aufzeichnet',
     'dp.picker.showInactive': 'Inaktive anzeigen',
     'dp.picker.showInactiveHint':
         'Auch States von deaktivierten/deinstallierten Adaptern sowie verwaiste oder importierte States anzeigen',
