@@ -1,7 +1,18 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { RefreshCw, Search, X, Check, Folder, File as FileIcon, ChevronRight } from 'lucide-react';
-import { useDatapointList, type DatapointEntry } from '../../hooks/useDatapointList';
+import {
+    RefreshCw,
+    Search,
+    X,
+    Check,
+    Folder,
+    File as FileIcon,
+    ChevronRight,
+    ChevronDown,
+    List as ListIcon,
+    FolderTree,
+} from 'lucide-react';
+import { useDatapointList, lookupObjectName, type DatapointEntry } from '../../hooks/useDatapointList';
 import { useFsRoots, useFsList } from '../../hooks/useFsList';
 import { useT } from '../../i18n';
 import { isRelevantDp } from '../../utils/dpRelevance';
@@ -50,9 +61,221 @@ function formatValue(val: unknown): string {
     return String(val);
 }
 
+// ── Tree helpers ──────────────────────────────────────────────────────────────
+
+/** One node of the object tree – a dot-separated segment of the datapoint IDs. */
+interface TreeNode {
+    /** Full id up to and including this segment, e.g. "hm-rpc.0.ABC" */
+    path: string;
+    /** Just this level's segment, e.g. "ABC" */
+    segment: string;
+    children: Map<string, TreeNode>;
+    /** Number of datapoints in this subtree (this node's own dp included) */
+    size: number;
+    /** Set when a state object exists with exactly this id – a node can be both */
+    dp?: DatapointEntry;
+}
+
+function buildTree(list: DatapointEntry[]): TreeNode {
+    const root: TreeNode = { path: '', segment: '', children: new Map(), size: 0 };
+    for (const dp of list) {
+        const parts = dp.id.split('.');
+        let node = root;
+        let path = '';
+        root.size++;
+        for (let i = 0; i < parts.length; i++) {
+            path = i === 0 ? parts[0] : `${path}.${parts[i]}`;
+            let child = node.children.get(parts[i]);
+            if (!child) {
+                child = { path, segment: parts[i], children: new Map(), size: 0 };
+                node.children.set(parts[i], child);
+            }
+            child.size++;
+            node = child;
+        }
+        node.dp = dp;
+    }
+    return root;
+}
+
+/** All datapoints below (and at) a node. */
+function collectDps(node: TreeNode, out: DatapointEntry[] = []): DatapointEntry[] {
+    if (node.dp) out.push(node.dp);
+    for (const child of node.children.values()) collectDps(child, out);
+    return out;
+}
+
+interface TreeRow {
+    node: TreeNode;
+    depth: number;
+    isFolder: boolean;
+    open: boolean;
+}
+
+const sortNodes = (nodes: TreeNode[]) =>
+    nodes.sort((a, b) => a.segment.localeCompare(b.segment, undefined, { numeric: true, sensitivity: 'base' }));
+
+/** Depth-first list of the currently visible rows, capped at `limit`. */
+function flattenTree(root: TreeNode, isOpen: (path: string) => boolean, limit: number): TreeRow[] {
+    const rows: TreeRow[] = [];
+    const walk = (node: TreeNode, depth: number) => {
+        for (const child of sortNodes([...node.children.values()])) {
+            if (rows.length >= limit) return;
+            const isFolder = child.children.size > 0;
+            const open = isFolder && isOpen(child.path);
+            rows.push({ node: child, depth, isFolder, open });
+            if (open) walk(child, depth + 1);
+        }
+    };
+    walk(root, 0);
+    return rows;
+}
+
 // ── DP Mode body ──────────────────────────────────────────────────────────────
 
 const MAX_DISPLAY = 250;
+/** Hard cap on visible tree rows so expanding a huge namespace cannot freeze the modal. */
+const MAX_TREE_ROWS = 600;
+/** Up to this many hits a narrowed tree opens itself, so a search reveals its matches. */
+const AUTO_EXPAND_MAX = 300;
+
+const VIEW_KEY = 'aura-dp-picker-view';
+
+function typeColor(type?: string): string {
+    if (type === 'boolean') return '#f59e0b';
+    if (type === 'number') return '#3b82f6';
+    if (type === 'string') return '#8b5cf6';
+    return 'var(--accent)';
+}
+
+/** Checkbox square used for datapoint rows and whole branches. */
+function CheckBox({ state }: { state: 'on' | 'off' | 'partial' }) {
+    return (
+        <div
+            className="rounded shrink-0 flex items-center justify-center mr-3"
+            style={{
+                width: 14,
+                height: 14,
+                background: state === 'on' ? 'var(--accent)' : 'var(--app-border)',
+            }}
+        >
+            {state === 'on' && <Check size={9} color="#fff" />}
+            {state === 'partial' && (
+                <div style={{ width: 7, height: 2, borderRadius: 1, background: 'var(--accent)' }} />
+            )}
+        </div>
+    );
+}
+
+/**
+ * The columns of a datapoint row – name/id, value, unit, type, history.
+ * Shared by the flat list and the tree so both stay aligned with the header.
+ */
+function DpRowCells({
+    dp,
+    value,
+    hasValue,
+    highlight,
+    label,
+}: {
+    dp: DatapointEntry;
+    value: unknown;
+    hasValue: boolean;
+    highlight: boolean;
+    /** Overrides the primary line – the tree shows the segment, the list the full name */
+    label?: string;
+}) {
+    const tc = typeColor(dp.type);
+    const valColor =
+        typeof value === 'boolean'
+            ? value
+                ? '#10b981'
+                : '#f59e0b'
+            : typeof value === 'number'
+              ? '#3b82f6'
+              : typeof value === 'string'
+                ? '#8b5cf6'
+                : 'var(--text-secondary)';
+    return (
+        <>
+            {/* Name + ID */}
+            <div className="flex-1 min-w-0 pr-2">
+                <p
+                    className="text-sm font-medium truncate"
+                    style={{ color: highlight ? 'var(--accent)' : 'var(--text-primary)' }}
+                >
+                    {label ?? (dp.name || dp.id.split('.').pop() || dp.id)}
+                </p>
+                <p className="font-mono text-[11px] truncate mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                    {dp.id}
+                </p>
+            </div>
+            {/* Value */}
+            <div style={{ width: 88, flexShrink: 0, textAlign: 'right', paddingRight: 8 }}>
+                <span className="text-xs font-mono" style={{ color: hasValue ? valColor : 'var(--app-border)' }}>
+                    {hasValue ? formatValue(value) : '·'}
+                </span>
+            </div>
+            {/* Unit */}
+            <div style={{ width: 56, flexShrink: 0, textAlign: 'right', paddingRight: 8 }}>
+                {dp.unit && (
+                    <span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
+                        {dp.unit}
+                    </span>
+                )}
+            </div>
+            {/* Type */}
+            <div style={{ width: 68, flexShrink: 0, textAlign: 'center' }}>
+                {dp.type && (
+                    <span
+                        className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                        style={{ background: `${tc}22`, color: tc }}
+                    >
+                        {dp.type}
+                    </span>
+                )}
+            </div>
+            {/* History */}
+            <div style={{ width: 44, flexShrink: 0, display: 'flex', justifyContent: 'center', gap: 2 }}>
+                {dp.logging.length > 0 ? (
+                    dp.logging.map((adapterId) => {
+                        const adapterName = adapterId.replace(/\.\d+$/, '');
+                        const label2 =
+                            adapterName === 'history'
+                                ? 'H'
+                                : adapterName === 'influxdb'
+                                  ? 'flux'
+                                  : adapterName === 'sql'
+                                    ? 'SQL'
+                                    : adapterName.slice(0, 4);
+                        return (
+                            <span
+                                key={adapterId}
+                                title={adapterId}
+                                className="text-[9px] px-1 py-0.5 rounded font-bold"
+                                style={{ background: '#10b98122', color: '#10b981' }}
+                            >
+                                {label2}
+                            </span>
+                        );
+                    })
+                ) : (
+                    <span className="text-[10px]" style={{ color: 'var(--app-border)' }}>
+                        –
+                    </span>
+                )}
+            </div>
+        </>
+    );
+}
+
+function readStoredView(): 'list' | 'tree' {
+    try {
+        return localStorage.getItem(VIEW_KEY) === 'tree' ? 'tree' : 'list';
+    } catch {
+        return 'list';
+    }
+}
 
 function DpModeBody({
     currentValue,
@@ -88,6 +311,18 @@ function DpModeBody({
     const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
     const [values, setValues] = useState<Map<string, unknown>>(new Map());
     const fetchedIds = useRef<Set<string>>(new Set());
+    // Flat list or ioBroker-style object tree. The choice is remembered per browser.
+    const [view, setView] = useState<'list' | 'tree'>(readStoredView);
+    const [expanded, setExpanded] = useState<Set<string>>(new Set());
+    const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
+    useEffect(() => {
+        try {
+            localStorage.setItem(VIEW_KEY, view);
+        } catch {
+            /* private mode / quota – the view just isn't remembered */
+        }
+    }, [view]);
 
     // States of disabled/uninstalled adapters (and orphaned/manually imported states
     // with no matching instance) are hidden by default. The toggle reveals them so a
@@ -134,10 +369,58 @@ function DpModeBody({
 
     const shown = useMemo(() => filtered.slice(0, MAX_DISPLAY), [filtered]);
 
+    // ── Tree view ─────────────────────────────────────────────────────────────
+    const tree = useMemo(() => (view === 'tree' ? buildTree(filtered) : null), [view, filtered]);
+
+    // A narrowed result opens itself so the matches are visible without clicking –
+    // including the datapoint that is currently set, which pre-fills the search box.
+    const narrowed =
+        Boolean(search.trim() || adapter || room || func || role || typeFilter || unitFilter || historyFilter) &&
+        filtered.length <= AUTO_EXPAND_MAX;
+
+    // A branch folded away by hand must not swallow the hits of the *next* search,
+    // so every change to the query forgets the manual folds (not the manual opens).
+    useEffect(() => {
+        setCollapsed(new Set());
+    }, [search, adapter, room, func, role, typeFilter, unitFilter, historyFilter]);
+
+    const isOpen = useCallback(
+        (path: string) => (collapsed.has(path) ? false : expanded.has(path) || narrowed),
+        [collapsed, expanded, narrowed],
+    );
+
+    const treeRows = useMemo(() => (tree ? flattenTree(tree, isOpen, MAX_TREE_ROWS) : []), [tree, isOpen]);
+    const treeTruncated = treeRows.length >= MAX_TREE_ROWS;
+
+    const toggleNode = (path: string) => {
+        const open = isOpen(path);
+        setExpanded((prev) => {
+            const next = new Set(prev);
+            open ? next.delete(path) : next.add(path);
+            return next;
+        });
+        setCollapsed((prev) => {
+            const next = new Set(prev);
+            open ? next.add(path) : next.delete(path);
+            return next;
+        });
+    };
+
+    // Rows the user can actually see right now – drives value fetching and the
+    // "select all" buttons in both views.
+    const visibleDps = useMemo(() => {
+        if (view !== 'tree') return shown;
+        const out: DatapointEntry[] = [];
+        for (const row of treeRows) if (row.node.dp) out.push(row.node.dp);
+        return out;
+    }, [view, treeRows, shown]);
+
     const countLabel =
-        filtered.length > MAX_DISPLAY
-            ? t('dp.picker.showing', { max: MAX_DISPLAY, count: filtered.length })
-            : t('dp.picker.count', { count: filtered.length });
+        view === 'tree'
+            ? t('dp.picker.count', { count: filtered.length })
+            : filtered.length > MAX_DISPLAY
+              ? t('dp.picker.showing', { max: MAX_DISPLAY, count: filtered.length })
+              : t('dp.picker.count', { count: filtered.length });
 
     const toggleCheck = (dp: DatapointEntry) => {
         setCheckedIds((prev) => {
@@ -149,15 +432,26 @@ function DpModeBody({
     const selectAllShown = () =>
         setCheckedIds((prev) => {
             const next = new Set(prev);
-            shown.forEach((dp) => next.add(dp.id));
+            visibleDps.forEach((dp) => next.add(dp.id));
             return next;
         });
     const selectRelevantShown = () =>
         setCheckedIds((prev) => {
             const next = new Set(prev);
-            shown.filter((dp) => isRelevantDp(dp.role, dp.type)).forEach((dp) => next.add(dp.id));
+            visibleDps.filter((dp) => isRelevantDp(dp.role, dp.type)).forEach((dp) => next.add(dp.id));
             return next;
         });
+    /** Whole-branch checkbox in the tree: on when every datapoint below is checked. */
+    const toggleBranch = (node: TreeNode) => {
+        const ids = collectDps(node).map((dp) => dp.id);
+        if (ids.length === 0) return;
+        setCheckedIds((prev) => {
+            const next = new Set(prev);
+            const allChecked = ids.every((id) => next.has(id));
+            ids.forEach((id) => (allChecked ? next.delete(id) : next.add(id)));
+            return next;
+        });
+    };
     const clearAll = () => setCheckedIds(new Set());
     const confirmMulti = () => {
         onMultiSelect?.(datapoints.filter((dp) => checkedIds.has(dp.id)));
@@ -165,7 +459,7 @@ function DpModeBody({
 
     useEffect(() => {
         if (!loaded) return;
-        const idsToFetch = shown.map((dp) => dp.id).filter((id) => !fetchedIds.current.has(id));
+        const idsToFetch = visibleDps.map((dp) => dp.id).filter((id) => !fetchedIds.current.has(id));
         if (idsToFetch.length === 0) return;
         const pending: [string, unknown][] = [];
         let flushTimer: ReturnType<typeof setTimeout> | null = null;
@@ -190,7 +484,7 @@ function DpModeBody({
         return () => {
             if (flushTimer) clearTimeout(flushTimer);
         };
-    }, [shown, loaded]);
+    }, [visibleDps, loaded]);
 
     const showFilters =
         adapters.length > 0 ||
@@ -207,28 +501,53 @@ function DpModeBody({
         <div className="flex flex-col flex-1 min-h-0">
             {/* Filter bar */}
             <div className="px-5 py-3 shrink-0 space-y-2" style={{ borderBottom: '1px solid var(--app-border)' }}>
-                <div
-                    className="flex items-center gap-2 rounded-lg px-3 py-2"
-                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-                >
-                    <Search size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
-                    <input
-                        autoFocus
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder={t('dp.picker.search')}
-                        className="flex-1 min-w-0 text-sm bg-transparent focus:outline-none"
-                        style={{ color: 'var(--text-primary)' }}
-                    />
-                    {search && (
-                        <button
-                            onClick={() => setSearch('')}
-                            className="hover:opacity-60"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            <X size={12} />
-                        </button>
-                    )}
+                <div className="flex items-center gap-2">
+                    <div
+                        className="flex items-center gap-2 rounded-lg px-3 py-2 flex-1 min-w-0"
+                        style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                    >
+                        <Search size={13} style={{ color: 'var(--text-secondary)', flexShrink: 0 }} />
+                        <input
+                            autoFocus
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder={t('dp.picker.search')}
+                            className="flex-1 min-w-0 text-sm bg-transparent focus:outline-none"
+                            style={{ color: 'var(--text-primary)' }}
+                        />
+                        {search && (
+                            <button
+                                onClick={() => setSearch('')}
+                                className="hover:opacity-60"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
+                                <X size={12} />
+                            </button>
+                        )}
+                    </div>
+                    {/* List ⇄ tree – the choice is kept in localStorage */}
+                    <div
+                        className="aura-dp-view-toggle flex rounded-lg overflow-hidden shrink-0"
+                        style={{ border: '1px solid var(--app-border)' }}
+                    >
+                        {(['list', 'tree'] as const).map((v) => (
+                            <button
+                                key={v}
+                                data-view={v}
+                                onClick={() => setView(v)}
+                                title={v === 'list' ? t('dp.picker.view.list') : t('dp.picker.view.tree')}
+                                aria-pressed={view === v}
+                                className="flex items-center gap-1.5 px-3 py-2 text-xs transition-colors"
+                                style={{
+                                    background: view === v ? 'var(--accent)' : 'var(--app-bg)',
+                                    color: view === v ? '#fff' : 'var(--text-secondary)',
+                                }}
+                            >
+                                {v === 'list' ? <ListIcon size={13} /> : <FolderTree size={13} />}
+                                {v === 'list' ? t('dp.picker.view.list') : t('dp.picker.view.tree')}
+                            </button>
+                        ))}
+                    </div>
                 </div>
                 {showFilters && (
                     <div className="flex items-center gap-2 flex-wrap">
@@ -453,7 +772,7 @@ function DpModeBody({
             )}
 
             {/* Column headers */}
-            {loaded && shown.length > 0 && (
+            {loaded && (view === 'tree' ? treeRows.length > 0 : shown.length > 0) && (
                 <div
                     className="px-5 flex items-center shrink-0 text-[10px] font-semibold uppercase tracking-wide"
                     style={{
@@ -488,37 +807,139 @@ function DpModeBody({
                             {t('dp.picker.loading')}
                         </p>
                     </div>
-                ) : shown.length === 0 ? (
+                ) : (view === 'tree' ? treeRows.length === 0 : shown.length === 0) ? (
                     <div className="flex items-center justify-center py-12">
                         <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                             {t('dp.picker.noResults')}
                         </p>
                     </div>
+                ) : view === 'tree' ? (
+                    <>
+                        {treeRows.map(({ node, depth, isFolder, open }) => {
+                            const dp = node.dp;
+                            const isSelected = !!dp && dp.id === currentValue;
+                            const isChecked = !!dp && checkedIds.has(dp.id);
+                            const relevant = !dp || isRelevantDp(dp.role, dp.type);
+                            const objName = isFolder ? lookupObjectName(node.path) : null;
+                            let branchState: 'on' | 'off' | 'partial' = 'off';
+                            if (multiSelect && isFolder) {
+                                const ids = collectDps(node).map((d) => d.id);
+                                const hit = ids.filter((id) => checkedIds.has(id)).length;
+                                branchState = hit === 0 ? 'off' : hit === ids.length ? 'on' : 'partial';
+                            }
+                            const activate = () => {
+                                if (dp) {
+                                    multiSelect ? toggleCheck(dp) : onSelect(dp.id, dp.unit, dp.name, dp.role, dp.type);
+                                } else {
+                                    toggleNode(node.path);
+                                }
+                            };
+                            return (
+                                <div
+                                    key={node.path}
+                                    role="button"
+                                    tabIndex={0}
+                                    data-path={node.path}
+                                    onClick={activate}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            activate();
+                                        }
+                                    }}
+                                    className="aura-dp-tree-row w-full text-left py-2 flex items-center cursor-pointer hover:opacity-80 transition-opacity"
+                                    style={{
+                                        paddingLeft: 20 + depth * 14,
+                                        paddingRight: 20,
+                                        background: (multiSelect ? isChecked : isSelected)
+                                            ? 'color-mix(in srgb, var(--accent) 12%, transparent)'
+                                            : 'transparent',
+                                        borderBottom: '1px solid var(--app-border)',
+                                        opacity: multiSelect && !relevant ? 0.55 : 1,
+                                    }}
+                                >
+                                    <span
+                                        onClick={(e) => {
+                                            if (!isFolder) return;
+                                            e.stopPropagation();
+                                            toggleNode(node.path);
+                                        }}
+                                        className="shrink-0 flex items-center justify-center"
+                                        style={{ width: 16, color: 'var(--text-secondary)' }}
+                                    >
+                                        {isFolder && (open ? <ChevronDown size={13} /> : <ChevronRight size={13} />)}
+                                    </span>
+                                    {multiSelect && isFolder && (
+                                        <span
+                                            data-branch-check={node.path}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleBranch(node);
+                                            }}
+                                            className="shrink-0 flex items-center"
+                                        >
+                                            <CheckBox state={branchState} />
+                                        </span>
+                                    )}
+                                    {multiSelect && !isFolder && <CheckBox state={isChecked ? 'on' : 'off'} />}
+                                    {dp ? (
+                                        <DpRowCells
+                                            dp={dp}
+                                            value={values.get(dp.id)}
+                                            hasValue={values.has(dp.id)}
+                                            highlight={multiSelect ? isChecked : isSelected}
+                                            label={node.segment}
+                                        />
+                                    ) : (
+                                        <>
+                                            <div className="flex-1 min-w-0 pr-2 flex items-center gap-2">
+                                                <Folder size={13} style={{ color: 'var(--accent)', flexShrink: 0 }} />
+                                                <div className="min-w-0">
+                                                    <p
+                                                        className="text-sm font-medium truncate"
+                                                        style={{ color: 'var(--text-primary)' }}
+                                                    >
+                                                        {node.segment}
+                                                    </p>
+                                                    {objName && objName !== node.segment && (
+                                                        <p
+                                                            className="text-[11px] truncate mt-0.5"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {objName}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {/* How many datapoints are waiting inside – right at
+                                                    the name, not under the value columns. */}
+                                                <span
+                                                    className="text-[10px] px-1.5 py-0.5 rounded shrink-0"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        color: 'var(--text-secondary)',
+                                                    }}
+                                                >
+                                                    {node.size}
+                                                </span>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            );
+                        })}
+                        {treeTruncated && (
+                            <div className="px-5 py-3 text-center">
+                                <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('dp.picker.treeTruncated', { max: MAX_TREE_ROWS })}
+                                </p>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     shown.map((dp) => {
                         const isSelected = dp.id === currentValue;
                         const isChecked = checkedIds.has(dp.id);
                         const relevant = isRelevantDp(dp.role, dp.type);
-                        const hasVal = values.has(dp.id);
-                        const val = values.get(dp.id);
-                        const tc =
-                            dp.type === 'boolean'
-                                ? '#f59e0b'
-                                : dp.type === 'number'
-                                  ? '#3b82f6'
-                                  : dp.type === 'string'
-                                    ? '#8b5cf6'
-                                    : 'var(--accent)';
-                        const valColor =
-                            typeof val === 'boolean'
-                                ? val
-                                    ? '#10b981'
-                                    : '#f59e0b'
-                                : typeof val === 'number'
-                                  ? '#3b82f6'
-                                  : typeof val === 'string'
-                                    ? '#8b5cf6'
-                                    : 'var(--text-secondary)';
                         return (
                             <button
                                 key={dp.id}
@@ -534,103 +955,13 @@ function DpModeBody({
                                     opacity: multiSelect && !relevant ? 0.55 : 1,
                                 }}
                             >
-                                {multiSelect && (
-                                    <div
-                                        className="rounded shrink-0 flex items-center justify-center mr-3"
-                                        style={{
-                                            width: 14,
-                                            height: 14,
-                                            background: isChecked ? 'var(--accent)' : 'var(--app-border)',
-                                        }}
-                                    >
-                                        {isChecked && <Check size={9} color="#fff" />}
-                                    </div>
-                                )}
-                                {/* Name + ID */}
-                                <div className="flex-1 min-w-0 pr-2">
-                                    <p
-                                        className="text-sm font-medium truncate"
-                                        style={{
-                                            color: (multiSelect ? isChecked : isSelected)
-                                                ? 'var(--accent)'
-                                                : 'var(--text-primary)',
-                                        }}
-                                    >
-                                        {dp.name || dp.id.split('.').pop() || dp.id}
-                                    </p>
-                                    <p
-                                        className="font-mono text-[11px] truncate mt-0.5"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    >
-                                        {dp.id}
-                                    </p>
-                                </div>
-                                {/* Value */}
-                                <div style={{ width: 88, flexShrink: 0, textAlign: 'right', paddingRight: 8 }}>
-                                    <span
-                                        className="text-xs font-mono"
-                                        style={{ color: hasVal ? valColor : 'var(--app-border)' }}
-                                    >
-                                        {hasVal ? formatValue(val) : '·'}
-                                    </span>
-                                </div>
-                                {/* Unit */}
-                                <div style={{ width: 56, flexShrink: 0, textAlign: 'right', paddingRight: 8 }}>
-                                    {dp.unit && (
-                                        <span className="text-xs font-medium" style={{ color: 'var(--accent)' }}>
-                                            {dp.unit}
-                                        </span>
-                                    )}
-                                </div>
-                                {/* Type */}
-                                <div style={{ width: 68, flexShrink: 0, textAlign: 'center' }}>
-                                    {dp.type && (
-                                        <span
-                                            className="text-[10px] px-1.5 py-0.5 rounded font-medium"
-                                            style={{ background: `${tc}22`, color: tc }}
-                                        >
-                                            {dp.type}
-                                        </span>
-                                    )}
-                                </div>
-                                {/* History */}
-                                <div
-                                    style={{
-                                        width: 44,
-                                        flexShrink: 0,
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        gap: 2,
-                                    }}
-                                >
-                                    {dp.logging.length > 0 ? (
-                                        dp.logging.map((adapterId) => {
-                                            const adapterName = adapterId.replace(/\.\d+$/, '');
-                                            const label =
-                                                adapterName === 'history'
-                                                    ? 'H'
-                                                    : adapterName === 'influxdb'
-                                                      ? 'flux'
-                                                      : adapterName === 'sql'
-                                                        ? 'SQL'
-                                                        : adapterName.slice(0, 4);
-                                            return (
-                                                <span
-                                                    key={adapterId}
-                                                    title={adapterId}
-                                                    className="text-[9px] px-1 py-0.5 rounded font-bold"
-                                                    style={{ background: '#10b98122', color: '#10b981' }}
-                                                >
-                                                    {label}
-                                                </span>
-                                            );
-                                        })
-                                    ) : (
-                                        <span className="text-[10px]" style={{ color: 'var(--app-border)' }}>
-                                            –
-                                        </span>
-                                    )}
-                                </div>
+                                {multiSelect && <CheckBox state={isChecked ? 'on' : 'off'} />}
+                                <DpRowCells
+                                    dp={dp}
+                                    value={values.get(dp.id)}
+                                    hasValue={values.has(dp.id)}
+                                    highlight={multiSelect ? isChecked : isSelected}
+                                />
                             </button>
                         );
                     })
@@ -1137,7 +1468,7 @@ export function DatapointPicker({
             onClick={(e) => e.stopPropagation()}
         >
             <div
-                className="rounded-xl flex flex-col shadow-2xl"
+                className="aura-dp-picker rounded-xl flex flex-col shadow-2xl"
                 style={{
                     background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)',
                     border: '1px solid var(--app-border)',

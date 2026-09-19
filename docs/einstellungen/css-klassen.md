@@ -161,6 +161,8 @@ Setzt eine [Bedingung](./editor) einen Effekt, landet die passende Klasse auf de
 | `.aura-peek` | am `<body>`, solange `Strg`+`Alt` die Editor-Elemente ausblendet |
 | `.aura-config-modal` | Konfigurations-Popup |
 | `.aura-widget-edit-modal` | Widget-Bearbeiten-Popup |
+| `.aura-dp-picker` | Datenpunkt-Auswahl |
+| `.aura-dp-tree-row` | eine Zeile der Baumansicht darin |
 
 Weitere `aura-`Klassen im Adminbereich sind Anker für die automatischen Tests — Custom CSS läuft dort nicht.
 

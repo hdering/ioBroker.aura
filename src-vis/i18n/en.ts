@@ -1319,6 +1319,9 @@ export const en: Record<TranslationKey, string> = {
     'dp.picker.col.unit': 'Unit',
     'dp.picker.col.type': 'Type',
     'dp.picker.col.history': 'History',
+    'dp.picker.view.list': 'List',
+    'dp.picker.view.tree': 'Tree',
+    'dp.picker.treeTruncated': 'First {max} rows only – collapse folders or narrow the search',
 
     // ── File Picker ──────────────────────────────────────────────────────────────
     'fs.picker.title': 'File Picker',

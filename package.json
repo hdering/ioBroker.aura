@@ -144,6 +144,7 @@
     "test:knob-touch": "node tools/tests/knob-touch.mjs",
     "test:dp-scale": "node tools/tests/dp-scale.mjs",
     "test:dp-range": "node tools/tests/dp-range-adopt.mjs",
+    "test:dp-picker-tree": "node tools/tests/dp-picker-tree.mjs",
     "test:evcc-scale": "node tools/tests/evcc-scale.mjs",
     "test:evcc-instance": "node tools/tests/evcc-instance.mjs",
     "test:evcc-dps": "node tools/tests/evcc-datapoints.mjs",

@@ -1330,6 +1330,9 @@ export const de = {
     'dp.picker.col.unit': 'Einheit',
     'dp.picker.col.type': 'Typ',
     'dp.picker.col.history': 'History',
+    'dp.picker.view.list': 'Liste',
+    'dp.picker.view.tree': 'Baum',
+    'dp.picker.treeTruncated': 'Nur die ersten {max} Zeilen – Ordner zuklappen oder Suche eingrenzen',
 
     // ── File Picker ──────────────────────────────────────────────────────────────
     'fs.picker.title': 'Datei-Picker',

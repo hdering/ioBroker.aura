@@ -9,3 +9,4 @@
 
 - Collapsed widgets - the folded card keeps a fixed slim padding and no longer shrinks onto the bare title row on dashboards with little widget padding, so the corner buttons stay inside the card (#676)
 - Switch, dimmer, list rows, custom-layout cells and the group master switch can show a checkbox instead of the slide toggle (#683)
+- Datapoint picker - a new toggle shows the ioBroker object tree instead of the flat list, and the browser remembers the chosen view (#686)

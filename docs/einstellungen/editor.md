@@ -36,6 +36,19 @@ Ein Schritt: Datenpunkt wählen (Widget-Typ wird automatisch erkannt) oder Typ a
 
 Jedes Widget bietet über sein Menü (Chevron) `Bearbeiten`, `Bedingungen`, `Klick-Aktion`, `Exportieren`, `Kopieren` und `Löschen`.
 
+## Datenpunkt wählen
+
+Der Knopf mit dem Datenbank-Symbol neben einem Datenpunkt-Feld öffnet die Auswahl. Oben rechts wird zwischen Liste und Baum umgeschaltet; die Wahl merkt sich der Browser.
+
+| Ansicht | |
+| --- | --- |
+| Liste | Flache Trefferliste, max. 250 Zeilen |
+| Baum | Objektbaum wie im ioBroker-Reiter *Objekte*; Ordner zeigen Geräte-/Kanalnamen und die Anzahl darunter |
+
+Such- und Filterfelder wirken in beiden Ansichten. Eine Suche klappt die Zweige mit Treffern selbst auf. In der Mehrfachauswahl wählt die Checkbox an einem Ordner alle Datenpunkte darunter.
+
+![](./assets/dp-picker-baum.png)
+
 ## Vollbild
 
 `Bearbeiten` → **Darstellung** → `Vollbild-Knopf`. Blendet einen Knopf in die Ecke der Kachel ein, der das Widget bildschirmfüllend öffnet.
