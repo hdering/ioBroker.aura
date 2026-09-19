@@ -335,7 +335,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // After a child was removed, moved or resized. A group sitting on its hug
     // follows the new hug, down as well as up. One the user dragged taller than
     // its hug keeps that height — the stretch is deliberate — and only grows when
-    // the children no longer fit under it (#680). „Höhe an Inhalt anpassen" in
+    // the children no longer fit under it (#680). „Höhe an Inhalt anpassen“ in
     // the group's panel is the explicit way back to the hug.
     const shrinkToFit = (next: WidgetConfig[]) => {
         const stored = config.gridPos.h;
