@@ -186,6 +186,11 @@ import { BINARY_SENSOR_PRESETS } from '../widgets/BinarySensorWidget';
 import { EChartsPresetConfig } from '../config/EChartsPresetConfig';
 import { JsonTableConfig } from '../config/JsonTableConfig';
 import { ValueTransformButton } from '../config/ValueTransformButton';
+import {
+    TRANSFORMABLE_WIDGET_TYPES,
+    WRITABLE_TRANSFORM_WIDGET_TYPES,
+    controlValueTransform,
+} from '../../utils/valueTransform';
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import type { NumberFormat } from '../../utils/formatValue';
 import { HtmlConfig } from '../config/HtmlConfig';
@@ -9798,7 +9803,9 @@ function WidgetFrameInner({
                                                   : config.type === 'shutter'
                                                     ? 'Positions-Datenpunkt (0–100 %)'
                                                     : config.type === 'dimmer'
-                                                      ? 'Helligkeits-Datenpunkt (0–100 %)'
+                                                      ? controlValueTransform(config.options).active
+                                                          ? 'Helligkeits-Datenpunkt (Rohwert, wird umgerechnet)'
+                                                          : 'Helligkeits-Datenpunkt (0–100 %)'
                                                       : config.type === 'climate'
                                                         ? 'Ist-Temperatur Datenpunkt'
                                                         : t('wf.edit.datapointId')}
@@ -9886,10 +9893,7 @@ function WidgetFrameInner({
                                             value={config.datapoint}
                                             onChange={(ref) => onConfigChange({ ...config, datapoint: ref })}
                                         />
-                                        {(config.type === 'value' ||
-                                            config.type === 'gauge' ||
-                                            config.type === 'fill' ||
-                                            config.type === 'chart') && (
+                                        {TRANSFORMABLE_WIDGET_TYPES.includes(config.type) && (
                                             <ValueTransformButton
                                                 factor={config.options?.valueFactor as number | undefined}
                                                 offset={config.options?.valueOffset as number | undefined}
@@ -9897,8 +9901,9 @@ function WidgetFrameInner({
                                                 timeFormat={config.options?.valueTimeFormat as string | undefined}
                                                 timePattern={config.options?.valueTimePattern as string | undefined}
                                                 allowTimeFormat={config.type === 'value'}
+                                                writable={WRITABLE_TRANSFORM_WIDGET_TYPES.includes(config.type)}
                                                 dpId={config.datapoint}
-                                                fillUnit
+                                                fillUnit={config.type !== 'dimmer'}
                                                 onPatch={(patch) =>
                                                     onConfigChange({
                                                         ...config,

@@ -197,6 +197,28 @@ export const WIDGET_OPTION_NOTES = {
         min: { description: 'Kleinster einstellbarer Wert.' },
         max: { description: 'Größter einstellbarer Wert.' },
         step: { description: 'Schrittweite.' },
+        valueFactor: {
+            description:
+                'Umrechnung: Anzeige = Rohwert × Faktor + Offset. Anders als bei Wert-Anzeige/Gauge/Füllstand wirkt sie in BEIDE Richtungen — beim Bedienen wird zurückgerechnet (Rohwert = (Eingabe − Offset) ÷ Faktor). ' +
+                'min, max, step, unit und die Skala gelten in der umgerechneten Einheit. ' +
+                'Sekunden-Datenpunkt in Minuten bedienen: 0.016666666666666666 (1/60).',
+        },
+        valueOffset: {
+            description:
+                'Umrechnung: wird nach dem Faktor addiert, beim Schreiben wieder abgezogen. Nur zusammen mit valueFactor sinnvoll.',
+        },
+    },
+    knob: {
+        valueFactor: {
+            description:
+                'Umrechnung: Anzeige = Rohwert × Faktor + Offset. Anders als bei Wert-Anzeige/Gauge/Füllstand wirkt sie in BEIDE Richtungen — beim Bedienen wird zurückgerechnet (Rohwert = (Eingabe − Offset) ÷ Faktor). ' +
+                'minValue, maxValue, step und unit gelten in der umgerechneten Einheit. ' +
+                'Sekunden-Datenpunkt in Minuten bedienen: 0.016666666666666666 (1/60).',
+        },
+        valueOffset: {
+            description:
+                'Umrechnung: wird nach dem Faktor addiert, beim Schreiben wieder abgezogen. Nur zusammen mit valueFactor sinnvoll.',
+        },
     },
     value: {
         htmlTemplate: { description: 'HTML-Vorlage für die Wertanzeige; {value} wird ersetzt.' },
@@ -411,6 +433,16 @@ export const WIDGET_OPTION_NOTES = {
         sliderHeight: { description: 'Höhe des Positionsreglers in px.' },
     },
     dimmer: {
+        valueFactor: {
+            description:
+                'Umrechnung: Anzeige = Rohwert × Faktor + Offset. Anders als bei Wert-Anzeige/Gauge/Füllstand wirkt sie in BEIDE Richtungen — beim Bedienen wird zurückgerechnet (Rohwert = (Eingabe − Offset) ÷ Faktor). ' +
+                'Das Widget arbeitet immer in 0…100 % — auch der Ein/Aus-Knopf schreibt 0 bzw. 100 durch die ' +
+                'Umrechnung. Datenpunkt mit 0…255: 0.39215686274509803 (100/255).',
+        },
+        valueOffset: {
+            description:
+                'Umrechnung: wird nach dem Faktor addiert, beim Schreiben wieder abgezogen. Nur zusammen mit valueFactor sinnvoll.',
+        },
         controlMode: {
             enum: ['toggle', 'checkbox', 'icon'],
             description:
@@ -518,6 +550,15 @@ export const WIDGET_OPTION_NOTES = {
         activeDpWrite: { description: 'Beim Blättern auch in activeDp schreiben.' },
     },
     input: {
+        valueFactor: {
+            description:
+                'Umrechnung: Anzeige = Rohwert × Faktor + Offset. Anders als bei Wert-Anzeige/Gauge/Füllstand wirkt sie in BEIDE Richtungen — beim Bedienen wird zurückgerechnet (Rohwert = (Eingabe − Offset) ÷ Faktor). ' +
+                'Nur bei inputMode "number". min, max, step und unit gelten in der umgerechneten Einheit.',
+        },
+        valueOffset: {
+            description:
+                'Umrechnung: wird nach dem Faktor addiert, beim Schreiben wieder abgezogen. Nur zusammen mit valueFactor sinnvoll.',
+        },
         inputMode: { description: '"number" für ein Zahlenfeld, sonst Text.' },
         multiline: { description: 'Mehrzeiliges Textfeld.' },
         placeholder: { description: 'Hinweistext im leeren Feld.' },
@@ -980,6 +1021,16 @@ export const EXTRA_OPTIONS = {
             description: 'Verweis auf die Kinderliste je Panel-Slide, analog zum Gruppen-Widget.',
         },
     },
+
+    // ── Umrechnung an bedienbaren Reglern (#682) ─────────────────────────────
+    // Gelesen über controlValueTransform(options), also nicht über die eigene
+    // Options-Bindung des Widgets — der Reader sieht die Schlüssel sonst nicht.
+    // Die Bedeutung steht in WIDGET_OPTION_NOTES: anders als bei Wert-Anzeige,
+    // Gauge und Füllstand wirkt die Umrechnung hier in BEIDE Richtungen.
+    slider: { valueFactor: { type: 'number', default: 1 }, valueOffset: { type: 'number', default: 0 } },
+    knob: { valueFactor: { type: 'number', default: 1 }, valueOffset: { type: 'number', default: 0 } },
+    dimmer: { valueFactor: { type: 'number', default: 1 }, valueOffset: { type: 'number', default: 0 } },
+    input: { valueFactor: { type: 'number', default: 1 }, valueOffset: { type: 'number', default: 0 } },
 };
 
 /**

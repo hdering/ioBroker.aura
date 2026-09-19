@@ -53,6 +53,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `max` | `100` | oberer Wert |
 | `step` | `1` | Schrittweite |
 
+### Umrechnung
+
+Rechnet zwischen der Einheit des Datenpunkts und der Einheit um, in der bedient wird — in **beide** Richtungen: gelesen wird `Wert × Faktor + Offset`, geschrieben `(Eingabe − Offset) ÷ Faktor`. `min`, `max`, `step`, `unit` und die Skala gelten dann in der umgerechneten Einheit, der Datenpunkt behält seine eigene.
+
+| Option | Standard | |
+| --- | --- | --- |
+| `valueFactor` | `1` | Multiplikator |
+| `valueOffset` | `0` | Summand |
+
+Vorlagen im Dialog über den Knopf **ƒ** neben dem Datenpunkt: Sekunden → Minuten/Stunden, Millisekunden → Sekunden, Wh → kWh, W → kW, Bytes → KB/MB/GB, 0..1 → Prozent, °C → °F — oder *Eigene…* für Faktor und Offset von Hand.
+
 ### Steuerelement
 
 | Option | Standard | |

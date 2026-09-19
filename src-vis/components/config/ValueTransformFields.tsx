@@ -35,6 +35,7 @@ export function ValueTransformFields({
     timeFormat,
     timePattern,
     allowTimeFormat = false,
+    writable = false,
     dpId,
     onPatch,
     fillUnit = false,
@@ -52,6 +53,9 @@ export function ValueTransformFields({
     timePattern?: string;
     /** Show the time-formatting section — only for targets that render the value as text. */
     allowTimeFormat?: boolean;
+    /** The target also WRITES its datapoint (slider, knob, dimmer, number input): the
+     *  conversion then runs both ways and the wording says so (issue #682). */
+    writable?: boolean;
     /** Datapoint reference of the edited target; drives the live preview. */
     dpId?: string;
     onPatch: (patch: ValueTransformPatch) => void;
@@ -113,7 +117,7 @@ export function ValueTransformFields({
         <div className="flex flex-col gap-2">
             <div>
                 <label className="text-[11px] mb-1 block" style={labelSty}>
-                    Umrechnung (nur Anzeige)
+                    {writable ? 'Umrechnung (Anzeige & Eingabe)' : 'Umrechnung (nur Anzeige)'}
                 </label>
                 <select
                     value={selected}
@@ -129,10 +133,14 @@ export function ValueTransformFields({
                     <option value="custom">Eigene…</option>
                 </select>
             </div>
-            <label className="flex items-center gap-2 text-[11px] cursor-pointer" style={labelSty}>
-                <input type="checkbox" checked={inverted} onChange={toggleInvert} className="cursor-pointer" />
-                Negativ darstellen (× −1)
-            </label>
+            {/* Drawing below the zero line is a chart idea (#594) — on a control it would only
+                mean "scale runs backwards", which "Eigene…" with a negative factor already says. */}
+            {!writable && (
+                <label className="flex items-center gap-2 text-[11px] cursor-pointer" style={labelSty}>
+                    <input type="checkbox" checked={inverted} onChange={toggleInvert} className="cursor-pointer" />
+                    Negativ darstellen (× −1)
+                </label>
+            )}
             {selected === 'custom' && (
                 <div className="flex gap-2">
                     <div className="flex-1">
@@ -176,7 +184,9 @@ export function ValueTransformFields({
                 </div>
             )}
             <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                Nur für die Anzeige. Der Datenpunktwert wird nicht verändert. Anzeige = Wert × Faktor + Offset
+                {writable
+                    ? 'Anzeige = Wert × Faktor + Offset. Min/Max/Schritt und der angezeigte Wert gelten in der umgerechneten Einheit; beim Schreiben wird zurückgerechnet.'
+                    : 'Nur für die Anzeige. Der Datenpunktwert wird nicht verändert. Anzeige = Wert × Faktor + Offset'}
             </p>
             {allowTimeFormat && (
                 <div className="flex flex-col gap-2 pt-2" style={{ borderTop: '1px solid var(--app-border)' }}>

@@ -10,6 +10,7 @@ import { CheckboxControl } from './CheckboxControl';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { evaluateClause } from '../../utils/conditionEval';
+import { controlValueTransform } from '../../utils/valueTransform';
 
 function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
     if (raw === undefined || raw === '') return fallback;
@@ -26,7 +27,12 @@ export function DimmerWidget({ config }: WidgetProps) {
     const switchDp = (o.switchDp as string | undefined) || '';
     const { value: switchValue } = useDatapoint(switchDp);
     const { setState } = useIoBroker();
-    const level = typeof value === 'number' ? Math.round(value) : 0;
+    // The widget works in 0…100 %. A dimmer whose datapoint counts 0…255 (or anything else) gets
+    // a conversion attached instead of a helper script — read converts, every write converts back
+    // (issue #682).
+    const tr = controlValueTransform(o);
+    const pct = tr.toDisplay(value);
+    const level = typeof pct === 'number' ? Math.round(pct) : 0;
     const layout = config.layout ?? 'default';
     const CompactIcon = useMemo(
         () => getWidgetIcon(config.options?.icon as string | undefined, SunDim),
@@ -60,12 +66,12 @@ export function DimmerWidget({ config }: WidgetProps) {
         if (sendOnRelease) {
             setDragValue(v);
         } else {
-            setState(config.datapoint, v);
+            setState(config.datapoint, tr.toRaw(v));
         }
     };
     const handleSliderRelease = () => {
         if (sendOnRelease && dragValue !== null) {
-            setState(config.datapoint, dragValue);
+            setState(config.datapoint, tr.toRaw(dragValue));
             setDragValue(null);
         }
     };
@@ -116,7 +122,7 @@ export function DimmerWidget({ config }: WidgetProps) {
         if (switchDp) {
             setState(switchDp, isOn ? falseWrite : trueWrite);
         } else {
-            setState(config.datapoint, isOn ? 0 : 100);
+            setState(config.datapoint, tr.toRaw(isOn ? 0 : 100));
         }
     };
 

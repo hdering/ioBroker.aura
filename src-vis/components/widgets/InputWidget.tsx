@@ -7,6 +7,7 @@ import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
 import { ConfirmOverlay } from './ConfirmOverlay';
+import { controlValueTransform } from '../../utils/valueTransform';
 
 type SubmitMode = 'live' | 'submit';
 
@@ -50,7 +51,12 @@ export function InputWidget({ config }: WidgetProps) {
     const unit = ((o.unit as string) ?? '').trim();
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, TextCursorInput);
 
-    const { value: rawVal } = useDatapoint(config.datapoint);
+    // Number mode may run in a different unit than the datapoint: min/max/step, the typed value
+    // and the unit label are all in the converted unit, the write converts back (issue #682).
+    // Text mode has nothing to convert.
+    const tr = numericInput ? controlValueTransform(o) : controlValueTransform(undefined);
+    const { value: dpRaw } = useDatapoint(config.datapoint);
+    const rawVal = tr.toDisplay(dpRaw);
     const dpString = rawVal == null ? '' : String(rawVal);
 
     // In submit mode we keep a local draft so the user can type without
@@ -77,7 +83,7 @@ export function InputWidget({ config }: WidgetProps) {
             if (!Number.isFinite(n)) return;
             const min = numMin ?? -Infinity;
             const max = numMax ?? Infinity;
-            setState(config.datapoint, Math.max(min, Math.min(max, n)));
+            setState(config.datapoint, tr.toRaw(Math.max(min, Math.min(max, n))));
             return;
         }
         setState(config.datapoint, v);

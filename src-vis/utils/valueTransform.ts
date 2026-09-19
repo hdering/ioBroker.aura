@@ -199,3 +199,92 @@ export function resolveValueTransform(
         active: factor !== undefined || offset !== undefined || timeFormat !== undefined,
     };
 }
+
+// ── Two-way conversion for controls that also WRITE (issue #682) ──────────────────────────────
+//
+// A slider on a datapoint that stores seconds should be able to work in minutes: the scale, the
+// step and the printed value are all minutes, and only the two ends of the pipe convert — read
+// `raw × factor + offset`, write `(display − offset) ÷ factor`. That keeps every existing option
+// (min/max/step/unit/scale labels) in the unit the user actually configured and leaves the
+// datapoint in its own, so no helper script is needed to translate between them.
+
+// Tidying binary-float noise (300 s × 1/60 = 5.000000000000001) is what keeps a converted control
+// readable — but the two directions can't round to the same width. Cutting the DISPLAYED value to
+// 12 digits already loses more than the inverse can recover: 7 s reads as 0.116666666667 min and
+// writes back 7.00000000002 s. So the display keeps 15 digits, which is wide enough to invert and
+// still narrow enough to swallow the noise, and only the value that actually reaches the datapoint
+// is cut to 12 — nothing reads it further.
+const DISPLAY_DIGITS = 15;
+const WRITE_DIGITS = 12;
+
+/** Rounds binary-float noise away at the given significant width. */
+function tidy(n: number, digits: number): number {
+    if (!Number.isFinite(n)) return n;
+    const r = Number(n.toPrecision(digits));
+    return Object.is(r, -0) ? 0 : r;
+}
+
+/** Inverse of {@link applyValueTransform} — a display value back in datapoint units. */
+export function invertValueTransform(value: number, factor?: number, offset?: number): number {
+    const f = typeof factor === 'number' && Number.isFinite(factor) && factor !== 0 ? factor : 1;
+    return tidy((value - num(offset, 0)) / f, WRITE_DIGITS);
+}
+
+export interface ControlValueTransform {
+    /** Configured multiplier, `1` while nothing is set up. */
+    factor: number;
+    /** Configured summand, `0` while nothing is set up. */
+    offset: number;
+    /** False while the conversion is a no-op — callers can keep their untouched path. */
+    active: boolean;
+    /** Datapoint value → the value the control, its scale and its label work in. */
+    toDisplay<T>(value: T): T | number;
+    /** Control value → what gets written back into the datapoint. */
+    toRaw(value: number): number;
+}
+
+/**
+ * Reads the widget-level conversion off an options object and hands back both directions.
+ *
+ * A factor of 0 has no inverse — writing back through it would put Infinity into the datapoint —
+ * so it counts as "nothing configured" rather than as a conversion.
+ */
+export function controlValueTransform(options?: Record<string, unknown>): ControlValueTransform {
+    const rawFactor = Number(options?.valueFactor ?? 1);
+    const rawOffset = Number(options?.valueOffset ?? 0);
+    const factor = Number.isFinite(rawFactor) && rawFactor !== 0 ? rawFactor : 1;
+    const offset = Number.isFinite(rawOffset) ? rawOffset : 0;
+    const active = options?.valueTransform !== 'none' && (factor !== 1 || offset !== 0);
+    return {
+        factor: active ? factor : 1,
+        offset: active ? offset : 0,
+        active,
+        toDisplay<T>(value: T): T | number {
+            if (!active) return value;
+            const out = applyValueTransform(value, factor, offset);
+            return typeof out === 'number' ? tidy(out, DISPLAY_DIGITS) : out;
+        },
+        toRaw(value: number): number {
+            return active ? invertValueTransform(value, factor, offset) : value;
+        },
+    };
+}
+
+/**
+ * Widget types whose datapoint row offers a conversion at all — the read-only displays plus,
+ * since #682, the controls. Kept here so the editor, the widgets and the docs generator all
+ * read the same list.
+ */
+export const TRANSFORMABLE_WIDGET_TYPES: readonly string[] = [
+    'value',
+    'gauge',
+    'fill',
+    'chart',
+    'slider',
+    'knob',
+    'dimmer',
+    'input',
+];
+
+/** Of those, the ones that also WRITE their datapoint — there the conversion runs both ways. */
+export const WRITABLE_TRANSFORM_WIDGET_TYPES: readonly string[] = ['slider', 'knob', 'dimmer', 'input'];

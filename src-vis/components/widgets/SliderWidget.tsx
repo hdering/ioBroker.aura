@@ -8,6 +8,7 @@ import { CustomGridView } from './CustomGridView';
 import { SliderScale } from './SliderScale';
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
+import { controlValueTransform } from '../../utils/valueTransform';
 
 type SliderAction = {
     id: string;
@@ -62,7 +63,12 @@ export function SliderWidget({ config }: WidgetProps) {
     // style is off); the bar style sizes itself through barSize instead.
     const thickness = (o.sliderThickness as number) || 6;
 
-    const { value: rawVal } = useDatapoint(config.datapoint);
+    // Everything above — min, max, step, unit, the scale labels — is configured in the unit the
+    // user wants to work in. Only the two ends of the pipe convert, so a datapoint in seconds can
+    // be driven in minutes without a helper script (issue #682).
+    const tr = controlValueTransform(o);
+    const { value: dpVal } = useDatapoint(config.datapoint);
+    const rawVal = tr.toDisplay(dpVal);
     const numericVal = typeof rawVal === 'number' ? rawVal : Number.isFinite(Number(rawVal)) ? Number(rawVal) : min;
 
     const [pending, setPending] = useState<number | null>(null);
@@ -72,7 +78,7 @@ export function SliderWidget({ config }: WidgetProps) {
     const writeStepped = (v: number) => {
         const stepped = Math.round(v / step) * step;
         const clamped = Math.max(min, Math.min(max, stepped));
-        setState(config.datapoint, clamped);
+        setState(config.datapoint, tr.toRaw(clamped));
     };
 
     const onSliderChange = (v: number) => {

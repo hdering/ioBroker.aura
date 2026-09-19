@@ -7,6 +7,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { CustomGridView } from './CustomGridView';
+import { controlValueTransform } from '../../utils/valueTransform';
 
 export type KnobPointerStyle = 'line' | 'circle' | 'arrow';
 export type KnobDialStyle = 'bogen' | 'skala' | 'endless';
@@ -155,7 +156,11 @@ export function KnobWidget({ config }: WidgetProps) {
     const endAngle = isEndless ? 486 : ((o.endAngle as number) ?? 405);
     const color = (o.color as string) || (isEndless ? '#4a4a4a' : 'var(--slider-fill, #3b82f6)');
 
-    const { value: rawVal } = useDatapoint(config.datapoint);
+    // The dial's scale, step, unit and label are in the unit the user configured; the datapoint
+    // keeps its own. Only reading and writing convert (issue #682).
+    const tr = controlValueTransform(o);
+    const { value: dpVal } = useDatapoint(config.datapoint);
+    const rawVal = tr.toDisplay(dpVal);
     const numericVal = typeof rawVal === 'number' ? rawVal : Number.isFinite(Number(rawVal)) ? Number(rawVal) : min;
 
     const [pending, setPending] = useState<number | null>(null);
@@ -169,7 +174,7 @@ export function KnobWidget({ config }: WidgetProps) {
     const writeStepped = (v: number, clamp: boolean) => {
         const stepped = Math.round(v / step) * step;
         const final = clamp ? Math.max(min, Math.min(max, stepped)) : stepped;
-        setState(config.datapoint, final);
+        setState(config.datapoint, tr.toRaw(final));
     };
 
     // Map a screen coordinate to SVG-local coords using the current viewBox.

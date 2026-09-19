@@ -14,6 +14,7 @@
  * in themselves: `scalePatchFromDatapoint` leaves those alone.
  */
 import type { DatapointEntry } from '../hooks/useDatapointList';
+import { controlValueTransform } from './valueTransform';
 
 /** Option keys a widget type uses for its scale, plus the values it falls back to. */
 const SCALE_KEYS: Record<
@@ -52,6 +53,26 @@ function rangeOf(entry: Pick<DatapointEntry, 'min' | 'max' | 'step'> | null | un
 }
 
 /**
+ * The range as the widget works in it. A control with a conversion attached (#682) has its
+ * scale in the converted unit — a seconds datapoint driven in minutes reports 0…86400 but
+ * belongs on a 0…1440 scale — so the object's range is converted the same way the value is.
+ * A negative factor turns the range round, hence the min/max sort.
+ */
+function displayRange(range: DpRange, options: Record<string, unknown> | undefined): DpRange {
+    const tr = controlValueTransform(options);
+    if (!tr.active) return range;
+    const a = tr.toDisplay(range.min) as number;
+    const b = tr.toDisplay(range.max) as number;
+    const out: DpRange = { min: Math.min(a, b), max: Math.max(a, b) };
+    // The step is a distance, so only the factor's magnitude applies to it — never the offset.
+    if (range.step !== undefined) {
+        const step = Math.abs(range.step * tr.factor);
+        if (Number.isFinite(step) && step > 0) out.step = step;
+    }
+    return out;
+}
+
+/**
  * Options for a widget that is being created on `entry` — the full range, since
  * there is nothing yet that could be overwritten. `{}` when the type has no
  * scale or the datapoint declares no usable range.
@@ -59,9 +80,11 @@ function rangeOf(entry: Pick<DatapointEntry, 'min' | 'max' | 'step'> | null | un
 export function scaleOptionsFromDatapoint(
     type: string | undefined,
     entry: Pick<DatapointEntry, 'min' | 'max' | 'step'> | null | undefined,
+    options?: Record<string, unknown>,
 ): Record<string, number> {
     const keys = type ? SCALE_KEYS[type] : undefined;
-    const range = rangeOf(entry);
+    const raw = rangeOf(entry);
+    const range = raw ? displayRange(raw, options) : null;
     if (!keys || !range) return {};
     const out: Record<string, number> = { [keys.min]: range.min, [keys.max]: range.max };
     if (keys.step && range.step !== undefined) out[keys.step] = range.step;
@@ -84,7 +107,8 @@ export function scalePatchFromDatapoint(
     options: Record<string, unknown> | undefined,
 ): Record<string, number> {
     const keys = type ? SCALE_KEYS[type] : undefined;
-    const range = rangeOf(entry);
+    const raw = rangeOf(entry);
+    const range = raw ? displayRange(raw, options) : null;
     if (!keys || !range) return {};
     const o = options ?? {};
     if (!untouched(o[keys.min], keys.defaultMin) || !untouched(o[keys.max], keys.defaultMax)) return {};

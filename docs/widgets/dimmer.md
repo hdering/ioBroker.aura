@@ -52,6 +52,17 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `barStyle` | `false` | gefüllter Balken statt nativem Regler |
 | `barSize` | `100` | Höhe des Balkens in % (nur bei `barStyle`) |
 
+### Umrechnung
+
+Rechnet zwischen der Einheit des Datenpunkts und der Einheit um, in der bedient wird — in **beide** Richtungen: gelesen wird `Wert × Faktor + Offset`, geschrieben `(Eingabe − Offset) ÷ Faktor`. Das Widget arbeitet immer in 0–100 % — auch die An/Aus-Taste schreibt `0` bzw. `100` durch die Umrechnung. Für einen Datenpunkt mit 0–255 ist der Faktor `0.39215686274509803` (100/255).
+
+| Option | Standard | |
+| --- | --- | --- |
+| `valueFactor` | `1` | Multiplikator |
+| `valueOffset` | `0` | Summand |
+
+Vorlagen im Dialog über den Knopf **ƒ** neben dem Datenpunkt: Sekunden → Minuten/Stunden, Millisekunden → Sekunden, Wh → kWh, W → kW, Bytes → KB/MB/GB, 0..1 → Prozent, °C → °F — oder *Eigene…* für Faktor und Offset von Hand.
+
 ### Schalter
 
 Schiebeschalter, Checkbox oder Icon-Taster — bei `controlMode: icon` werden `onIcon`/`offIcon` und `onColor`/`offColor` ausgewertet, bei `checkbox` färbt `onColor` das Häkchen-Feld.

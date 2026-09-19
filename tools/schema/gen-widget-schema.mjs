@@ -577,7 +577,9 @@ function collectWidgetOptions(type, file, index, types, otherWidgetFiles) {
     const stale = [];
     for (const [key, note] of Object.entries(WIDGET_OPTION_NOTES[type] ?? {})) {
         if (options[key]) {
-            options[key] = { ...options[key], ...note };
+            // `ownWording` survives into the hoisting step below: a note written for ONE widget
+            // must not be traded for the shared wording just because the type and default match.
+            options[key] = { ...options[key], ...note, ...(note.description ? { ownWording: true } : {}) };
         } else {
             stale.push(`${type}.${key}`);
         }
@@ -700,11 +702,11 @@ async function build() {
             // the key into the shared block would advertise it unconditionally —
             // the "accepted and silently ignored" case the whole file exists to
             // prevent (mediaplayer.showTitle).
-            if (shared && sameShape(entry, shared) && !entry.onlyLayouts) {
+            if (shared && sameShape(entry, shared) && !entry.onlyLayouts && !entry.ownWording) {
                 common.push(key);
                 continue;
             }
-            const { source, ...rest } = entry;
+            const { source, ownWording, ...rest } = entry;
             // Same key, different default (or a widget-specific note): keep the
             // entry here but let it inherit the shared wording.
             if (shared && sameDomain(entry, shared) && !rest.description) {

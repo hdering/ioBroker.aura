@@ -16,6 +16,7 @@
 import { useEffect, useState } from 'react';
 import { ensureDatapointCache, lookupDatapointEntry, type DatapointEntry } from '../../hooks/useDatapointList';
 import { hasScaleFromDatapoint, scaleOptionsFromDatapoint } from '../../utils/dpScale';
+import { controlValueTransform } from '../../utils/valueTransform';
 import { baseDpId } from '../../utils/dpRef';
 
 interface DpRangeHintProps {
@@ -58,9 +59,16 @@ export function DpRangeHint({ type, datapoint, options, onApply }: DpRangeHintPr
     // claim it has no range.
     if (!entry || !hasScaleFromDatapoint(type)) return null;
 
-    const patch = scaleOptionsFromDatapoint(type, entry);
+    const patch = scaleOptionsFromDatapoint(type, entry, options);
     const keys = Object.keys(patch);
-    const unit = entry.unit ? ` ${entry.unit}` : '';
+    // With a conversion attached (#682) the object's own numbers are in the datapoint's unit —
+    // reporting them raw would name a range the scale above must not be set to. So the line
+    // shows what the widget would actually take over, and says where it came from.
+    const tr = controlValueTransform(options);
+    const lo = tr.toDisplay(entry.min) as number;
+    const hi = tr.toDisplay(entry.max) as number;
+    const shown = tr.active ? { min: Math.min(lo, hi), max: Math.max(lo, hi) } : { min: entry.min, max: entry.max };
+    const unit = tr.active ? '' : entry.unit ? ` ${entry.unit}` : '';
     // The range is already in the widget's options — then the line only says where
     // the numbers above come from, and there is nothing left to take over.
     const onIt = keys.length > 0 && keys.every((k) => options?.[k] === patch[k]);
@@ -69,7 +77,7 @@ export function DpRangeHint({ type, datapoint, options, onApply }: DpRangeHintPr
         <div className="flex items-center justify-between gap-2 flex-wrap">
             <span className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.8 }}>
                 {keys.length
-                    ? `Datenpunkt meldet ${entry.min} … ${entry.max}${unit}`
+                    ? `Datenpunkt meldet ${shown.min} … ${shown.max}${unit}${tr.active ? ' (umgerechnet)' : ''}`
                     : 'Datenpunkt meldet keinen Bereich (kein Min/Max am Objekt)'}
             </span>
             {keys.length > 0 && !onIt && (

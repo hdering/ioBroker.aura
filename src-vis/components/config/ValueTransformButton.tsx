@@ -18,6 +18,8 @@ interface ValueTransformButtonProps {
     timePattern?: string;
     /** Show the time-formatting section — only for targets that render the value as text. */
     allowTimeFormat?: boolean;
+    /** The target also WRITES its datapoint — the conversion runs both ways (issue #682). */
+    writable?: boolean;
     /** Datapoint reference of the edited target; drives the live preview. */
     dpId?: string;
     onPatch: (patch: ValueTransformPatch) => void;
@@ -44,6 +46,7 @@ export function ValueTransformButton({
     timeFormat,
     timePattern,
     allowTimeFormat = false,
+    writable = false,
     dpId,
     onPatch,
     fillUnit = false,
@@ -88,7 +91,13 @@ export function ValueTransformButton({
                 ref={btnRef}
                 type="button"
                 onClick={() => setOpen((v) => !v)}
-                title={allowTimeFormat ? 'Umrechnung / Zeit-Formatierung (nur Anzeige)' : 'Umrechnung (nur Anzeige)'}
+                title={
+                    writable
+                        ? 'Umrechnung (Anzeige & Eingabe)'
+                        : allowTimeFormat
+                          ? 'Umrechnung / Zeit-Formatierung (nur Anzeige)'
+                          : 'Umrechnung (nur Anzeige)'
+                }
                 className={`px-2 rounded-lg hover:opacity-80 shrink-0 relative flex items-center justify-center ${className}`}
                 style={{
                     background: active ? 'color-mix(in srgb, var(--accent) 18%, var(--app-bg))' : 'var(--app-bg)',
@@ -137,6 +146,7 @@ export function ValueTransformButton({
                             timeFormat={timeFormat}
                             timePattern={timePattern}
                             allowTimeFormat={allowTimeFormat}
+                            writable={writable}
                             dpId={dpId}
                             onPatch={onPatch}
                             fillUnit={fillUnit}
