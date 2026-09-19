@@ -390,6 +390,62 @@ const COLLAPSED_ROWS = 2;
     await ctx.close();
 }
 
+// ── 8. Auf-/Zuklappen im Editor ist keine Änderung ───────────────────────────
+// Die eingeklappte Kopfzeile ist im Editor der Ziehgriff der Karte, ein Klick darauf
+// beendet also einen Zug über null Pixel. Früher schrieb der jedem Widget darunter
+// seine zusammengeschobene y-Position in den Speicher — „Speichern“ wurde aktiv,
+// obwohl nichts bewegt wurde. Echtes Ziehen und Größenändern muss weiter ankommen.
+{
+    const { ctx, page } = await open({});
+
+    await show(
+        page,
+        [
+            widget('cl-e', 'value', { defaultCollapsed: true, collapseInEditor: true }, { x: 0, y: 0, w: 10, h: 10 }),
+            widget('cl-e2', 'value', {}, { x: 0, y: 10, w: 10, h: 10 }),
+            widget('cl-e3', 'value', {}, { x: 0, y: 20, w: 10, h: 10 }),
+        ],
+        { editMode: true },
+    );
+
+    const stored = () =>
+        page.evaluate(() => {
+            const d = JSON.parse(localStorage.getItem('aura-dashboard'));
+            return d.state.layouts[0].sections[0].tabs[0].widgets
+                .map((w) => `${w.id}:${w.gridPos.x},${w.gridPos.y},${w.gridPos.w},${w.gridPos.h}`)
+                .join(' | ');
+        });
+    const drag = async (selector, dx, dy) => {
+        const b = await page.locator(selector).first().boundingBox();
+        if (!b) throw new Error(`keine Box für ${selector}`);
+        const sx = b.x + b.width / 2;
+        const sy = b.y + b.height / 2;
+        await page.mouse.move(sx, sy);
+        await page.mouse.down();
+        for (let i = 1; i <= 12; i++) {
+            await page.mouse.move(sx + (i * dx) / 12, sy + (i * dy) / 12);
+            await page.waitForTimeout(16);
+        }
+        await page.mouse.up();
+        await page.waitForTimeout(600);
+    };
+
+    const before = await stored();
+    await page.click(header('cl-e'));
+    await page.waitForTimeout(600);
+    check('das Ausklappen schreibt nichts in den Speicher', (await stored()) === before, await stored());
+    await page.click(toggle('cl-e'));
+    await page.waitForTimeout(600);
+    check('das Wieder-Einklappen schreibt nichts in den Speicher', (await stored()) === before, await stored());
+
+    await drag('.react-grid-item:has(.aura-widget-cl-e3)', 320, 0);
+    const moved = await stored();
+    check('echtes Ziehen wird weiter gespeichert', moved !== before && /cl-e3:10,/.test(moved), moved);
+    await drag('.react-grid-item:has(.aura-widget-cl-e2) > .react-resizable-handle', 0, 90);
+    check('echtes Größenändern wird weiter gespeichert', (await stored()) !== moved, await stored());
+    await ctx.close();
+}
+
 await browser.close();
 
 check('keine JS-Fehler', pageErrors.length === 0, pageErrors.join(' | '));

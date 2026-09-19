@@ -1034,6 +1034,18 @@ export function Dashboard({
                                                     return w;
                                                 return { ...w, gridPos: { x: pos.x, y: pos.y, w: pos.w, h } };
                                             });
+                                        // Did the user actually move/resize the grabbed card? RGL hands back the
+                                        // RENDERED layout, and a derived height (folded card, hugging group,
+                                        // auto-height widget) makes that differ from the stored one — everything
+                                        // below such a widget sits higher than its gridPos.y. In the editor the
+                                        // folded header is the card's own drag handle, so the click that expands it
+                                        // also ends a zero-distance drag, and every widget below was written back
+                                        // at its compacted y: „Speichern“ lit up although nothing had moved (#676
+                                        // follow-up). RGL's own before/after item is the honest test.
+                                        const itemMoved = (
+                                            a: { x: number; y: number; w: number; h: number } | null | undefined,
+                                            b: { x: number; y: number; w: number; h: number } | null | undefined,
+                                        ) => !a || !b || a.x !== b.x || a.y !== b.y || a.w !== b.w || a.h !== b.h;
 
                                         if (isActive && tabGridWidgets.length === 0) {
                                             return (
@@ -1092,8 +1104,9 @@ export function Dashboard({
                                                     onLayoutChange={(nl) => {
                                                         if (isActive) onLayoutChange?.(buildTabUpdated(nl));
                                                     }}
-                                                    onDragStop={(nl) => {
+                                                    onDragStop={(nl, oldItem, newItem) => {
                                                         if (!isActive || readonly || coarsePointer) return;
+                                                        if (!itemMoved(oldItem, newItem)) return;
                                                         // Skip if nothing moved (a click without drag fires onDragStop
                                                         // too). buildTabUpdated hands back the very same object for an
                                                         // untouched widget, so identity is the exact test — comparing
@@ -1103,8 +1116,9 @@ export function Dashboard({
                                                         if (updated.some((uw, idx) => uw !== tabWidgets[idx]))
                                                             updateLayouts(updated);
                                                     }}
-                                                    onResizeStop={(nl) => {
+                                                    onResizeStop={(nl, oldItem, newItem) => {
                                                         if (!isActive || readonly || coarsePointer) return;
+                                                        if (!itemMoved(oldItem, newItem)) return;
                                                         const updated = buildTabUpdated(nl);
                                                         if (updated.some((uw, idx) => uw !== tabWidgets[idx]))
                                                             updateLayouts(updated);
