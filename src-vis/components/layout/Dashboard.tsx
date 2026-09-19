@@ -967,6 +967,19 @@ export function Dashboard({
                                                 );
                                                 minH = Math.min(minH, h);
                                             }
+                                            // A derived height (group with children, content auto-height,
+                                            // folded card) is never persisted — buildTabUpdated keeps the
+                                            // canonical gridPos.h. Lock it in the editor too: RGL keeps a
+                                            // hand-resized row count in its own state until some OTHER layout
+                                            // change re-syncs it from props, so a group could be dragged two
+                                            // rows taller than the frontend renders it, nothing was saved (no
+                                            // "Speichern"), and it snapped back on the next unrelated resize
+                                            // (#680). Pinning minH = maxH = h leaves the width resizable via
+                                            // the same corner handle.
+                                            const derivedH =
+                                                hasGroupChildren(gw) ||
+                                                usesContentAutoHeight(w) ||
+                                                collapsedItemNow(w, gw);
                                             return {
                                                 i: w.id,
                                                 x: Math.min(w.gridPos.x ?? 0, effectiveCols - 1),
@@ -974,6 +987,7 @@ export function Dashboard({
                                                 w: Math.min(w.gridPos.w ?? 2, effectiveCols),
                                                 h,
                                                 minH,
+                                                ...(editMode && derivedH ? { minH: h, maxH: h } : {}),
                                                 // A folded widget in the editor keeps its stored height for the
                                                 // day it opens again — dragging its edge would only persist a
                                                 // transient row count, so the handle is taken away while folded.
@@ -1080,22 +1094,20 @@ export function Dashboard({
                                                     }}
                                                     onDragStop={(nl) => {
                                                         if (!isActive || readonly || coarsePointer) return;
-                                                        // Skip if nothing moved (click without drag fires onDragStop too)
-                                                        const moved = nl.some(({ i, x, y, w: nw, h: nh }) => {
-                                                            const widget = tabGridWidgets.find((tw) => tw.id === i);
-                                                            return (
-                                                                !widget ||
-                                                                widget.gridPos.x !== x ||
-                                                                widget.gridPos.y !== y ||
-                                                                widget.gridPos.w !== nw ||
-                                                                widget.gridPos.h !== nh
-                                                            );
-                                                        });
-                                                        if (moved) updateLayouts(buildTabUpdated(nl));
+                                                        // Skip if nothing moved (a click without drag fires onDragStop
+                                                        // too). buildTabUpdated hands back the very same object for an
+                                                        // untouched widget, so identity is the exact test — comparing
+                                                        // RGL's h against the stored one would flag every derived-height
+                                                        // item (group, auto-height card) on every click.
+                                                        const updated = buildTabUpdated(nl);
+                                                        if (updated.some((uw, idx) => uw !== tabWidgets[idx]))
+                                                            updateLayouts(updated);
                                                     }}
                                                     onResizeStop={(nl) => {
-                                                        if (isActive && !readonly && !coarsePointer)
-                                                            updateLayouts(buildTabUpdated(nl));
+                                                        if (!isActive || readonly || coarsePointer) return;
+                                                        const updated = buildTabUpdated(nl);
+                                                        if (updated.some((uw, idx) => uw !== tabWidgets[idx]))
+                                                            updateLayouts(updated);
                                                     }}
                                                     margin={[MARGIN, MARGIN]}
                                                     containerPadding={[0, 0]}
