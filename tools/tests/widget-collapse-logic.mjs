@@ -38,6 +38,7 @@ const {
     collapsedRows,
     collapsedPadY,
     COLLAPSED_PAD_Y,
+    COLLAPSED_MIN_PX,
     collapsePosition,
     collapseButtonSlot,
     cornerInset,
@@ -104,15 +105,18 @@ ok("another widget's toggle does not leak", isCollapsedNow({ b: false }, 'a'));
 
 // ── 4. Rows of the folded card: header + slim padding + border, rounded up ──
 eq('the folded card pads like a group header', COLLAPSED_PAD_Y, 10);
-eq('default widget padding is trimmed', collapsedPadY(16), 10);
-eq('a smaller widget padding is kept', collapsedPadY(6), 6);
-eq('zero padding stays zero', collapsedPadY(0), 0);
-eq('20px header, default grid: two rows like a folded group', collapsedRows(20, collapsedPadY(16), 20, 10), 2); // 42 + 10 = 52 / 30
+eq('the folded card never follows the widget padding', collapsedPadY(), 10);
+// A dense board (small row/gap and little widget padding) used to fold the card onto
+// the bare text row, so the 28 px corner buttons hung out of it (#676 follow-up).
+eq('the corner buttons set the floor', COLLAPSED_MIN_PX, 40);
+eq('20px header, default grid: two rows like a folded group', collapsedRows(20, collapsedPadY(), 20, 10), 2); // 42 + 10 = 52 / 30
 eq('20px header with the full padding would need three', collapsedRows(20, 16, 20, 10), 3); // 54 + 10 = 64 / 30
-eq('20px header without padding', collapsedRows(20, 0, 20, 10), 2); // 22 + 10 = 32 / 30
+eq('a dense grid keeps room for the corner buttons', collapsedRows(20, collapsedPadY(), 10, 4), 4); // 42 -> 46 / 14
+eq('a padding-less card is floored, not flattened', collapsedRows(20, 0, 10, 4), 4); // 22 -> 40, 44 / 14
 eq('37px header on a 40px grid', collapsedRows(37, 16, 40, 10), 2); // 71 + 10 = 81 / 50
-eq('never below one row', collapsedRows(0, 0, 20, 10), 1);
-eq('border alone tips a full row over', collapsedRows(28, 0, 20, 10), 2); // 28 + 2 = 30, (30 + 10) / 30 -> 2
+eq('an unmeasured header still clears the buttons', collapsedRows(0, 0, 20, 10), 2); // 40 + 10 = 50 / 30
+eq('never below one row', collapsedRows(0, 0, 80, 10), 1);
+eq('the floor tips a full row over', collapsedRows(28, 0, 20, 10), 2); // 40 + 10 = 50 / 30
 ok('fallback header is a sane single line', COLLAPSED_HEADER_FALLBACK_PX >= 16 && COLLAPSED_HEADER_FALLBACK_PX <= 28);
 
 // ── 5. Corner of the fold button ──

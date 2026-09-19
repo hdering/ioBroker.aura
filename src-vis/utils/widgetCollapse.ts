@@ -69,23 +69,34 @@ export function isCollapsedNow(collapsed: Record<string, boolean>, id: string): 
  * Vertical padding of the folded card. The full widget padding (16 px by default)
  * made a folded card three grid rows tall while a folded group — whose header
  * carries 10 px above and below — fits in two; the folded card takes the group's
- * measure so every collapsed widget is as slim as the group. Horizontal padding
- * stays the widget's, so the header row aligns with the title of an open card.
+ * measure so every collapsed widget is as slim as the group. It does NOT follow
+ * the dashboard's widget padding downwards: a dense board (padding 0–6) folded the
+ * card onto the bare text row, which left the corner buttons hanging out of the
+ * card (#676 follow-up). Horizontal padding stays the widget's, so the header row
+ * aligns with the title of an open card.
  */
 export const COLLAPSED_PAD_Y = 10;
 
-export function collapsedPadY(widgetPadding: number): number {
-    return Math.min(widgetPadding, COLLAPSED_PAD_Y);
+export function collapsedPadY(): number {
+    return COLLAPSED_PAD_Y;
 }
 
 /**
+ * Smallest folded card, in px: the corner buttons (edit chrome, fold button) sit
+ * 6 px inside the corner and are 28 px tall, so anything flatter than this lets
+ * them spill over the card edge onto the widget below.
+ */
+export const COLLAPSED_MIN_PX = 40;
+
+/**
  * Grid rows a collapsed (non-group) widget occupies: the measured header row plus
- * the card's reduced vertical padding (collapsedPadY) and border, rounded up to
- * whole rows. Same arithmetic as the content auto-height path in Dashboard, so
- * the two never disagree. Pass the vertical padding actually applied.
+ * the card's reduced vertical padding (collapsedPadY) and border, never below the
+ * corner buttons' own height, rounded up to whole rows. Same arithmetic as the
+ * content auto-height path in Dashboard, so the two never disagree. Pass the
+ * vertical padding actually applied.
  */
 export function collapsedRows(headerPx: number, padY: number, cellSize: number, margin: number): number {
-    const total = headerPx + padY * 2 + 2;
+    const total = Math.max(headerPx + padY * 2 + 2, COLLAPSED_MIN_PX);
     return Math.max(1, Math.ceil((total + margin) / (cellSize + margin)));
 }
 

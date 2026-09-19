@@ -7125,7 +7125,9 @@ function WidgetFrameInner({
     // A folded card always keeps a padding — the header row needs it — but a slim
     // one above and below (collapsedPadY, the group header's measure) so it fits the
     // same two grid rows a folded group does; the Dashboard's row arithmetic
-    // (collapsedRows) uses the same value.
+    // (collapsedRows) uses the same value. Deliberately NOT the dashboard's widget
+    // padding: on a dense board (padding 0–6) that folded the card onto the bare
+    // text row and the corner buttons spilled out of it.
     const isNoPad =
         !isCollapsed &&
         (isBareHeader ||
@@ -7181,7 +7183,7 @@ function WidgetFrameInner({
                           padding: isNoPad
                               ? undefined
                               : isCollapsed
-                                ? `${collapsedPadY(widgetPadding)}px ${widgetPadding}px`
+                                ? `${collapsedPadY()}px ${widgetPadding}px`
                                 : widgetPadding,
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.
@@ -7204,7 +7206,7 @@ function WidgetFrameInner({
                           padding: isNoPad
                               ? undefined
                               : isCollapsed
-                                ? `${collapsedPadY(widgetPadding)}px ${widgetPadding}px`
+                                ? `${collapsedPadY()}px ${widgetPadding}px`
                                 : widgetPadding,
                           cursor: !editMode && hasClickAction ? 'pointer' : undefined,
                           // Inert at 1 — only a condition's "Deckkraft" effect sets the var.

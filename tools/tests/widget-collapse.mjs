@@ -348,6 +348,48 @@ const COLLAPSED_ROWS = 2;
     await ctx.close();
 }
 
+// ── 7. Dichtes Raster, wenig Innenabstand: die Ecken-Knöpfe bleiben in der Karte ────
+// Früher folgte der Innenabstand der eingeklappten Karte dem Innenabstand des Dashboards
+// nach unten; bei 10-px-Zeilen, 4-px-Lücke und Innenabstand 0 schrumpfte die Karte auf die
+// blanke Textzeile (24 px) und die 28 px hohen Bedien-Knöpfe hingen unten heraus.
+{
+    const { ctx, page } = await open({});
+
+    await show(
+        page,
+        [
+            widget('cl-d', 'value', { defaultCollapsed: true, collapseInEditor: true }),
+            widget('cl-d2', 'value', {}, { x: 0, y: 10, w: 20, h: 4 }),
+        ],
+        { editMode: true, gridRowHeight: 10, gridGap: 4, widgetPadding: 0 },
+    );
+
+    const card = await box(page, 'cl-d');
+    check(
+        'die eingeklappte Karte fällt nicht auf die Textzeile zurück',
+        card && card.height >= 40,
+        `Höhe ${card?.height}`,
+    );
+    const chrome = await page.locator('[data-aura-widget="cl-d"] .aura-edit-chrome').first().boundingBox();
+    check(
+        'das Bedien-Chrome bleibt in der Karte',
+        card && chrome && chrome.y >= card.y - 1 && chrome.y + chrome.height <= card.y + card.height + 1,
+        card && chrome
+            ? `Karte ${Math.round(card.y)}..${Math.round(card.y + card.height)}, Chrome ${Math.round(chrome.y)}..${Math.round(chrome.y + chrome.height)}`
+            : 'keine Box',
+    );
+    const row = await page
+        .locator(`${header('cl-d')} > div`)
+        .first()
+        .boundingBox();
+    check(
+        'die Kopfzeile ist vollständig sichtbar',
+        card && row && row.y >= card.y - 1 && row.y + row.height <= card.y + card.height + 1,
+        card && row ? `Zeile ${Math.round(row.height)}px` : 'keine Box',
+    );
+    await ctx.close();
+}
+
 await browser.close();
 
 check('keine JS-Fehler', pageErrors.length === 0, pageErrors.join(' | '));

@@ -175,8 +175,9 @@ export const WIDGET_OPTION_NOTES = {
         onValue: { description: 'Wert, der beim Einschalten geschrieben wird. Leer = true.' },
         offValue: { description: 'Wert, der beim Ausschalten geschrieben wird. Leer = false.' },
         controlMode: {
-            enum: ['toggle', 'buttons'],
-            description: '"toggle" = ein Umschalter, "buttons" = getrennte Ein/Aus-Tasten.',
+            enum: ['toggle', 'checkbox', 'icon', 'image'],
+            description:
+                '"toggle" = Schiebeschalter, "checkbox" = Kontrollkästchen (Häkchen bei AN), "icon" = klickbares Icon (onIcon/offIcon), "image" = klickbares Bild (onImage/offImage). Checkbox und Schiebeschalter sind gleich hoch.',
         },
         momentary: { description: 'Taster statt Schalter: schreibt an und nach momentaryDelay wieder aus.' },
         momentaryDelay: { description: 'Verzögerung des Tastermodus in ms.' },
@@ -410,7 +411,11 @@ export const WIDGET_OPTION_NOTES = {
         sliderHeight: { description: 'Höhe des Positionsreglers in px.' },
     },
     dimmer: {
-        controlMode: { description: '"toggle" = ein Umschalter, "buttons" = getrennte Ein/Aus-Tasten.' },
+        controlMode: {
+            enum: ['toggle', 'checkbox', 'icon'],
+            description:
+                'Ein/Aus-Bedienelement neben dem Regler: "toggle" = Schiebeschalter, "checkbox" = Kontrollkästchen, "icon" = klickbares Icon (onIcon/offIcon).',
+        },
         controlIconSize: { description: 'Größe der Ein/Aus-Symbole in px.' },
         showToggle: { description: 'Ein/Aus-Schalter neben dem Regler anzeigen.' },
         sendOnRelease: { description: 'Helligkeit erst beim Loslassen des Reglers schreiben.' },
@@ -1054,7 +1059,8 @@ export const UNIVERSAL_OPTIONS = {
             'klappt den Inhalt aus, die Widgets darunter rücken nach (im Editor nur zusammen mit ' +
             'collapseInEditor). Ausgeklappt sitzt ein Einklapp-Knopf in der Ecke collapsePosition. Die Gruppe ' +
             'behält ihre eigene Kopfzeile mit Pfeil. Nicht bei "header" und nicht für Kinder einer Gruppe. ' +
-            'Eingeklappt belegt die Karte nur die Kopfzeile mit schmalem Innenabstand (so flach wie eine ' +
+            'Eingeklappt belegt die Karte nur die Kopfzeile mit schmalem Innenabstand (fest 10 px oben und ' +
+            'unten, unabhängig vom Innenabstand des Dashboards, mindestens 40 px hoch — so flach wie eine ' +
             'eingeklappte Gruppe, bei Standardraster zwei Zeilen) — die gespeicherte Höhe gilt ausgeklappt.',
     },
     collapsePosition: {

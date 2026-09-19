@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.63.0",
+    "auraVersion": "0.63.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -229,7 +229,7 @@
     },
     "defaultCollapsed": {
       "type": "boolean",
-      "description": "Widget startet eingeklappt: die Karte zeigt nur Icon und Titel in einer Zeile, ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach (im Editor nur zusammen mit collapseInEditor). Ausgeklappt sitzt ein Einklapp-Knopf in der Ecke collapsePosition. Die Gruppe behält ihre eigene Kopfzeile mit Pfeil. Nicht bei \"header\" und nicht für Kinder einer Gruppe. Eingeklappt belegt die Karte nur die Kopfzeile mit schmalem Innenabstand (so flach wie eine eingeklappte Gruppe, bei Standardraster zwei Zeilen) — die gespeicherte Höhe gilt ausgeklappt."
+      "description": "Widget startet eingeklappt: die Karte zeigt nur Icon und Titel in einer Zeile, ein Tipp darauf klappt den Inhalt aus, die Widgets darunter rücken nach (im Editor nur zusammen mit collapseInEditor). Ausgeklappt sitzt ein Einklapp-Knopf in der Ecke collapsePosition. Die Gruppe behält ihre eigene Kopfzeile mit Pfeil. Nicht bei \"header\" und nicht für Kinder einer Gruppe. Eingeklappt belegt die Karte nur die Kopfzeile mit schmalem Innenabstand (fest 10 px oben und unten, unabhängig vom Innenabstand des Dashboards, mindestens 40 px hoch — so flach wie eine eingeklappte Gruppe, bei Standardraster zwei Zeilen) — die gespeicherte Höhe gilt ausgeklappt."
     },
     "collapsePosition": {
       "type": "string",

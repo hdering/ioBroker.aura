@@ -961,7 +961,7 @@ export function Dashboard({
                                             if (frameCollapsedNow(w, gw)) {
                                                 h = collapsedRows(
                                                     collapsedHeaderHeights[w.id] ?? COLLAPSED_HEADER_FALLBACK_PX,
-                                                    collapsedPadY(widgetPadding),
+                                                    collapsedPadY(),
                                                     cellSize,
                                                     MARGIN,
                                                 );
