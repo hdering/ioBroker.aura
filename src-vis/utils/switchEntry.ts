@@ -14,10 +14,11 @@ import { cellStateActive, type StateEvalConfig } from './cellState';
 /** The switch-specific slice of a list entry. `EntryControlConfig` extends it, so the
  *  fields are declared once and the helpers below stay usable outside the widgets. */
 export interface SwitchEntryConfig extends StateEvalConfig {
-    /** Control shape: 'slide' = toggle (default), 'icon' = clickable icon, 'image' = clickable image.
-     *  With trueLabel/falseLabel and no style set, the row draws a labelled text pill instead of the
-     *  toggle; 'slide' written explicitly keeps the toggle and puts the label next to it. */
-    switchStyle?: 'slide' | 'icon' | 'image';
+    /** Control shape: 'slide' = toggle (default), 'checkbox' = tick box, 'icon' = clickable icon,
+     *  'image' = clickable image. With trueLabel/falseLabel and no style set, the row draws a labelled
+     *  text pill instead of the toggle; 'slide' or 'checkbox' written explicitly keeps the control and
+     *  puts the label next to it. */
+    switchStyle?: 'slide' | 'checkbox' | 'icon' | 'image';
     /** Icon/image style: shown in the on/true/>0 state. Icon falls back to Power. */
     trueIcon?: string;
     /** Icon/image style: shown in the off/false/0 state. Icon falls back to Power. */

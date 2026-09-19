@@ -108,6 +108,37 @@ export function GroupActionConfig({ opts, setOpts, candidates }: Props) {
                             </Info>
                             <div>
                                 <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
+                                    Darstellung
+                                </label>
+                                <div className="flex gap-1">
+                                    {(
+                                        [
+                                            ['slide', 'Schiebeschalter'],
+                                            ['checkbox', 'Checkbox'],
+                                        ] as const
+                                    ).map(([v, lbl]) => {
+                                        const active = (opts.groupSwitchStyle ?? 'slide') === v;
+                                        return (
+                                            <button
+                                                key={v}
+                                                onClick={() =>
+                                                    setOpts({ groupSwitchStyle: v === 'slide' ? undefined : v })
+                                                }
+                                                className="flex-1 text-[10px] py-1 rounded transition-colors"
+                                                style={{
+                                                    background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                                    color: active ? '#fff' : 'var(--text-secondary)',
+                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                }}
+                                            >
+                                                {lbl}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                                     {'Dimmer „AN“-Wert (AUS = 0)'}
                                 </label>
                                 <input

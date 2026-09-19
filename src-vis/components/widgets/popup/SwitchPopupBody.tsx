@@ -3,6 +3,7 @@ import { useDatapoint } from '../../../hooks/useDatapoint';
 import { useIoBroker } from '../../../hooks/useIoBroker';
 import { getWidgetIcon } from '../../../utils/widgetIconMap';
 import type { WidgetConfig } from '../../../types';
+import { CheckboxControl } from '../CheckboxControl';
 
 interface Props {
     widget: WidgetConfig;
@@ -41,6 +42,8 @@ export function SwitchPopupBody({ widget }: Props) {
 
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, Power);
     const green = 'var(--accent-green, #22c55e)';
+    // The secondary row mirrors the widget's own control style (issue #683).
+    const checkbox = o.controlMode === 'checkbox';
 
     return (
         <div className="flex flex-col items-center gap-8 py-8 px-4">
@@ -77,16 +80,26 @@ export function SwitchPopupBody({ widget }: Props) {
                 <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                     AUS
                 </span>
-                <button
-                    onClick={toggle}
-                    className="relative w-14 h-7 rounded-full transition-colors duration-300"
-                    style={{ background: isOn ? green : 'var(--app-border)' }}
-                >
-                    <span
-                        className="absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300"
-                        style={{ left: isOn ? '30px' : '4px' }}
+                {checkbox ? (
+                    <CheckboxControl
+                        onClick={toggle}
+                        checked={isOn}
+                        size={28}
+                        color={(o.onColor as string) || green}
+                        aria-label={isOn ? 'AN' : 'AUS'}
                     />
-                </button>
+                ) : (
+                    <button
+                        onClick={toggle}
+                        className="relative w-14 h-7 rounded-full transition-colors duration-300"
+                        style={{ background: isOn ? green : 'var(--app-border)' }}
+                    >
+                        <span
+                            className="absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300"
+                            style={{ left: isOn ? '30px' : '4px' }}
+                        />
+                    </button>
+                )}
                 <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                     AN
                 </span>

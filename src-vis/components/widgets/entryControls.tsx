@@ -53,6 +53,7 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { SliderScale } from './SliderScale';
 import { stepDecimals } from '../../utils/sliderScale';
 import { ConfirmOverlay } from './ConfirmOverlay';
+import { CheckboxControl } from './CheckboxControl';
 import { useDateValueFields, dateValueText, type DateValueSettings } from '../common/DateValueFields';
 import type { DateOutputFormat } from '../../utils/dateValue';
 import {
@@ -593,6 +594,45 @@ export function SwitchControl({
                         <StateIcon size={size} strokeWidth={active ? 2.5 : 1.75} />
                     )}
                 </button>
+                {overlay}
+            </>
+        );
+    }
+
+    // Checkbox (issue #683) — as tall as the toggle it replaces. A label, when set,
+    // sits beside the box like it does beside an explicit 'slide'.
+    if (style === 'checkbox') {
+        const box = (
+            <CheckboxControl
+                ref={anchorRef}
+                checked={active}
+                onClick={onClick}
+                writable={writable}
+                size={card ? 22 : 18}
+                color={activeColor}
+                aria-label={label}
+            />
+        );
+        return (
+            <>
+                {labelled ? (
+                    <span className={`shrink-0 flex items-center gap-1.5 ${card ? 'w-full justify-center' : ''}`}>
+                        <span
+                            className="text-xs font-medium"
+                            style={{
+                                color: cond?.color ?? (active ? activeColor : 'var(--text-secondary)'),
+                                ...condTextStyle(cond),
+                            }}
+                        >
+                            {label}
+                        </span>
+                        {box}
+                    </span>
+                ) : card ? (
+                    <span className="w-full flex justify-center">{box}</span>
+                ) : (
+                    box
+                )}
                 {overlay}
             </>
         );

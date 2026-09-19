@@ -19,6 +19,8 @@ export interface GroupActionConfigOpts {
     groupSwitch?: boolean;
     /** Which kind of group control to show. Default 'switch'. */
     groupActionType?: GroupActionType;
+    /** Shape of the 'switch' action: 'slide' = tri-state toggle (default), 'checkbox' = tick box (a dash marks the mixed state). */
+    groupSwitchStyle?: 'slide' | 'checkbox';
     /** Value written to dimmer/level DPs on "all on" (off always writes 0). Default 100. */
     groupDimmerOnValue?: number;
     /** Include plain numeric DPs (value.*) in group actions. Default false. */

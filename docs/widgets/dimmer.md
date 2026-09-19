@@ -54,12 +54,12 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Schalter
 
-Schiebeschalter oder Icon-Taster — bei `controlMode: icon` werden `onIcon`/`offIcon` und `onColor`/`offColor` ausgewertet.
+Schiebeschalter, Checkbox oder Icon-Taster — bei `controlMode: icon` werden `onIcon`/`offIcon` und `onColor`/`offColor` ausgewertet, bei `checkbox` färbt `onColor` das Häkchen-Feld.
 
 | Option | Standard | |
 | --- | --- | --- |
 | `showToggle` | `true` | Schalter anzeigen |
-| `controlMode` | `toggle` | `toggle` · `icon` |
+| `controlMode` | `toggle` | `toggle` · `checkbox` · `icon` |
 | `onIcon` / `offIcon` | `Power` | nur bei `icon` |
 | `onColor` | `--accent-green` | CSS-Farbe oder Variable |
 | `offColor` | `--text-secondary` | CSS-Farbe oder Variable |

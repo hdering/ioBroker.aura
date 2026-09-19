@@ -110,6 +110,7 @@
     "test:modal-clamp": "node tools/tests/modal-viewport-clamp.mjs",
     "test:cell-state": "node tools/tests/cell-state.mjs",
     "test:enum-confirm": "node tools/tests/enum-confirm.mjs",
+    "test:switch-checkbox": "node tools/tests/switch-checkbox.mjs",
     "test:enum-select-size": "node tools/tests/enum-select-size.mjs",
     "test:jsontable-fill": "node tools/tests/jsontable-html-fill.mjs",
     "test:jsontable-rows": "node tools/tests/jsontable-row-height.mjs",

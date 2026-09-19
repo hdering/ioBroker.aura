@@ -372,6 +372,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                             {(
                                 [
                                     ['slide', 'Schiebeschalter'],
+                                    ['checkbox', 'Checkbox'],
                                     ['icon', 'Icon'],
                                     ['image', 'Bild'],
                                 ] as const
@@ -394,7 +395,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                             })}
                         </div>
                     </div>
-                    {switchStyle !== 'slide' && (
+                    {(switchStyle === 'icon' || switchStyle === 'image') && (
                         <>
                             <div className="grid grid-cols-3 gap-1.5 items-end">
                                 {(['trueIcon', 'falseIcon'] as const).map((key) => (

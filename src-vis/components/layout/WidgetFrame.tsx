@@ -10242,6 +10242,7 @@ function WidgetFrameInner({
                                                 {(
                                                     [
                                                         ['toggle', 'Schiebeschalter'],
+                                                        ['checkbox', 'Checkbox'],
                                                         ['icon', 'Icon'],
                                                         ['image', 'Bild'],
                                                     ] as const
@@ -10380,6 +10381,26 @@ function WidgetFrameInner({
                                                     />
                                                 </div>
                                             </>
+                                        )}
+                                        {controlMode === 'checkbox' && (
+                                            <div className="flex items-center justify-between gap-2">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Farbe AN
+                                                </label>
+                                                <ColorPicker
+                                                    value={onColor}
+                                                    onChange={(v) => set({ onColor: v })}
+                                                    title="Farbe AN"
+                                                    className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                />
+                                            </div>
                                         )}
                                         {controlMode === 'image' && (
                                             <>
@@ -15096,6 +15117,7 @@ function WidgetFrameInner({
                                                 {(
                                                     [
                                                         ['toggle', 'Schiebeschalter'],
+                                                        ['checkbox', 'Checkbox'],
                                                         ['icon', 'Icon'],
                                                     ] as const
                                                 ).map(([val, lbl]) => (
@@ -15233,6 +15255,26 @@ function WidgetFrameInner({
                                                     />
                                                 </div>
                                             </>
+                                        )}
+                                        {controlMode === 'checkbox' && (
+                                            <div className="flex items-center justify-between gap-2">
+                                                <label
+                                                    className="text-[11px]"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Farbe AN
+                                                </label>
+                                                <ColorPicker
+                                                    value={onColor}
+                                                    onChange={(v) => setO({ onColor: v })}
+                                                    title="Farbe AN"
+                                                    className="w-8 h-9 rounded cursor-pointer shrink-0 p-0.5"
+                                                    style={{
+                                                        background: 'var(--app-bg)',
+                                                        border: '1px solid var(--app-border)',
+                                                    }}
+                                                />
+                                            </div>
                                         )}
                                         <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
                                         <div className="flex items-center justify-between">

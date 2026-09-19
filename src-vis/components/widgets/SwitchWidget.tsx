@@ -12,6 +12,7 @@ import { cellStateActive, type StateEvalConfig } from '../../utils/cellState';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
+import { CheckboxControl } from './CheckboxControl';
 
 function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
     if (raw === undefined || raw === '') return fallback;
@@ -78,6 +79,9 @@ export function SwitchWidget({ config }: WidgetProps) {
     const controlMode = (o.controlMode as string) ?? 'toggle';
     const isIconMode = controlMode === 'icon';
     const isImageMode = controlMode === 'image';
+    // Checkbox instead of the slide toggle (issue #683). Sized like the toggle of each
+    // layout so the card keeps its height; an explicit onColor paints the checked box.
+    const isCheckboxMode = controlMode === 'checkbox';
     const onColor = (o.onColor as string) || 'var(--accent-green)';
     const offColor = (o.offColor as string) || 'var(--text-secondary)';
     const OnIconComp = getWidgetIcon(o.onIcon as string | undefined, WidgetIcon);
@@ -112,6 +116,17 @@ export function SwitchWidget({ config }: WidgetProps) {
         </button>
     );
 
+    const checkboxControl = (size: number, extraClass = '') => (
+        <CheckboxControl
+            onClick={handleToggle}
+            checked={isOn}
+            size={size}
+            color={(o.onColor as string) || undefined}
+            className={`aura-widget-action nodrag ${extraClass}`}
+            aria-label={stateLabel}
+        />
+    );
+
     if (layout === 'custom')
         return (
             <div className="relative w-full h-full">
@@ -132,6 +147,8 @@ export function SwitchWidget({ config }: WidgetProps) {
                         toggle:
                             isIconMode || isImageMode ? (
                                 iconControlButton()
+                            ) : isCheckboxMode ? (
+                                checkboxControl(20)
                             ) : (
                                 <button
                                     onClick={handleToggle}
@@ -234,6 +251,8 @@ export function SwitchWidget({ config }: WidgetProps) {
                 {!showTitle && <span className="flex-1" />}
                 {isIconMode || isImageMode ? (
                     iconControlButton()
+                ) : isCheckboxMode ? (
+                    checkboxControl(24)
                 ) : (
                     <button
                         onClick={handleToggle}
@@ -302,6 +321,8 @@ export function SwitchWidget({ config }: WidgetProps) {
                 )}
                 {isIconMode || isImageMode ? (
                     iconControlButton(!showLabel ? 'ml-auto' : '')
+                ) : isCheckboxMode ? (
+                    checkboxControl(24, !showLabel ? 'ml-auto' : '')
                 ) : (
                     <button
                         onClick={handleToggle}

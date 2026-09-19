@@ -1,6 +1,6 @@
 # Schalter
 
-Schaltet einen `boolean`-Datenpunkt. Wahlweise als Schiebeschalter oder Icon-Taster, mit optionalem Impuls-Modus und Sicherheitsabfrage. Für dimmbare oder farbige Lampen ist das [Lampen-Widget](./) besser.
+Schaltet einen `boolean`-Datenpunkt. Wahlweise als Schiebeschalter, Checkbox oder Icon-Taster, mit optionalem Impuls-Modus und Sicherheitsabfrage. Für dimmbare oder farbige Lampen ist das [Lampen-Widget](./) besser.
 
 Mögliche Bildquellen (URL, Adapter-Pfad, Datei, Base64): siehe [Bildpfade](./bildpfade).
 
@@ -53,12 +53,13 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 
 ### Steuerelement
 
-Klassischer Schiebeschalter oder Icon-Taster — bei `controlMode: icon` werden `onIcon`/`offIcon` und `onColor`/`offColor` ausgewertet.
+Schiebeschalter, Checkbox, Icon- oder Bild-Taster — bei `controlMode: icon` werden `onIcon`/`offIcon` und `onColor`/`offColor` ausgewertet, bei `checkbox` färbt `onColor` das Häkchen-Feld (leer = Theme-Farbe des Schalters).
 
 | Option | Standard | |
 | --- | --- | --- |
-| `controlMode` | `toggle` | `toggle` · `icon` |
+| `controlMode` | `toggle` | `toggle` · `checkbox` · `icon` · `image` |
 | `onIcon` / `offIcon` | Widget-Icon | nur bei `icon` |
+| `onImage` / `offImage` | — | nur bei `image` |
 | `onColor` | `--accent-green` | CSS-Farbe oder Variable |
 | `offColor` | `--text-secondary` | CSS-Farbe oder Variable |
 | `controlIconSize` | `28` | px, nur bei `icon` |

@@ -95,6 +95,7 @@ export function GroupActionControl({
             <GroupMasterSwitch
                 aggregate={aggregate}
                 onToggle={toggleAll}
+                style={cfg.groupSwitchStyle}
                 title={`${activeCount}/${total}`}
                 editing={editing}
                 placeholderHint={placeholderHint}

@@ -9,10 +9,13 @@
  * controllable datapoints are added.
  */
 import type { GroupAggregate } from '../../hooks/useGroupControl';
+import { CheckboxControl } from './CheckboxControl';
 
 interface Props {
     aggregate: GroupAggregate;
     onToggle: () => void;
+    /** 'checkbox' draws a tick box instead of the toggle; mixed becomes a dash (issue #683). */
+    style?: 'slide' | 'checkbox';
     /** Tooltip / aria-label for the active switch, e.g. "3/7". */
     title?: string;
     className?: string;
@@ -28,12 +31,14 @@ interface Props {
 export function GroupMasterSwitch({
     aggregate,
     onToggle,
+    style = 'slide',
     title,
     className = '',
     editing = false,
     placeholderHint,
     placeholderLabel,
 }: Props) {
+    const checkbox = style === 'checkbox';
     if (aggregate === 'none') {
         if (!editing) return null;
         // Editor-only placeholder: dashed, muted, non-interactive — signals that
@@ -50,21 +55,44 @@ export function GroupMasterSwitch({
                         {placeholderLabel}
                     </span>
                 )}
-                <span
-                    className="relative w-9 h-[18px] rounded-full shrink-0"
-                    style={{ background: 'transparent', border: '1px dashed var(--app-border)', opacity: 0.6 }}
-                    aria-hidden
-                >
+                {checkbox ? (
                     <span
-                        className="absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full"
-                        style={{ background: 'var(--app-border)' }}
+                        className="w-[18px] h-[18px] rounded shrink-0"
+                        style={{ border: '1px dashed var(--app-border)', opacity: 0.6 }}
+                        aria-hidden
                     />
-                </span>
+                ) : (
+                    <span
+                        className="relative w-9 h-[18px] rounded-full shrink-0"
+                        style={{ background: 'transparent', border: '1px dashed var(--app-border)', opacity: 0.6 }}
+                        aria-hidden
+                    >
+                        <span
+                            className="absolute top-[2px] left-[2px] w-[14px] h-[14px] rounded-full"
+                            style={{ background: 'var(--app-border)' }}
+                        />
+                    </span>
+                )}
             </span>
         );
     }
     const on = aggregate === 'on';
     const mixed = aggregate === 'mixed';
+    if (checkbox)
+        return (
+            <CheckboxControl
+                checked={on}
+                mixed={mixed}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onToggle();
+                }}
+                size={18}
+                className={`aura-widget-action nodrag ${className}`}
+                title={title}
+                aria-label={title}
+            />
+        );
     const bg = on ? 'var(--accent-green)' : mixed ? 'var(--accent-yellow)' : 'var(--app-border)';
     const knobLeft = on ? 'calc(100% - 16px)' : mixed ? 'calc(50% - 7px)' : '2px';
 

@@ -6,6 +6,7 @@ import type { WidgetProps, ConditionOperator } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { getThresholdColor, type ColorThreshold } from '../../utils/colorThresholds';
 import { StatusBadges } from './StatusBadges';
+import { CheckboxControl } from './CheckboxControl';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { evaluateClause } from '../../utils/conditionEval';
@@ -43,6 +44,8 @@ export function DimmerWidget({ config }: WidgetProps) {
     const barSize = (o.barSize as number) ?? 100;
     const controlMode = (o.controlMode as string) ?? 'toggle';
     const isIconMode = controlMode === 'icon';
+    // Checkbox instead of the slide toggle (issue #683), as tall as the toggle.
+    const isCheckboxMode = controlMode === 'checkbox';
     const onColor = (o.onColor as string) || 'var(--accent-green)';
     const offColor = (o.offColor as string) || 'var(--text-secondary)';
     const OnIconComp = useMemo(() => getWidgetIcon(o.onIcon as string | undefined, Power), [o.onIcon]);
@@ -144,7 +147,17 @@ export function DimmerWidget({ config }: WidgetProps) {
             />
         </button>
     );
-    const toggleBtn = showToggle && (isIconMode ? iconToggleBtn : sliderToggleBtn);
+    const checkboxToggleBtn = (
+        <CheckboxControl
+            onClick={handleToggle}
+            checked={isOn}
+            size={24}
+            color={(o.onColor as string) || undefined}
+            className="aura-widget-action nodrag"
+            aria-label={isOn ? 'AN' : 'AUS'}
+        />
+    );
+    const toggleBtn = showToggle && (isIconMode ? iconToggleBtn : isCheckboxMode ? checkboxToggleBtn : sliderToggleBtn);
 
     const slider = (
         <input

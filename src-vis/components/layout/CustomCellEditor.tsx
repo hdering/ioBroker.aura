@@ -1226,6 +1226,7 @@ export function CustomCellEditor({
                                     {(
                                         [
                                             ['toggle', 'Schiebeschalter'],
+                                            ['checkbox', 'Checkbox'],
                                             ['icon', 'Icon'],
                                             ['button', 'Button'],
                                         ] as const

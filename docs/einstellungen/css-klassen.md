@@ -70,6 +70,9 @@ Diese vier setzt jedes Widget selbst — sie sind der Weg, Titel, Icon oder Wert
 | `.aura-widget-title` | Titelzeile |
 | `.aura-widget-value` | Wertanzeige |
 | `.aura-widget-action` | Bedienelement-Gruppe (nicht ziehbar) |
+| `.aura-checkbox` | Checkbox-Bedienelement (Schalter, Dimmer, Listenzeile, Custom-Zelle, Gruppen-Aktion) |
+| `.aura-checkbox-on` | dieselbe Checkbox im angehakten Zustand |
+| `.aura-checkbox-mixed` | Gruppen-Checkbox im gemischten Zustand (Strich) |
 | `.aura-last-change` | Zeitstempel „zuletzt geändert" |
 | `.aura-frame-neutral` | eingebettetes Dokument ohne eigenes Farbschema (HTML-, eCharts- und Kamera-Widget) |
 

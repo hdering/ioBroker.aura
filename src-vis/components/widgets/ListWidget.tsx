@@ -65,6 +65,7 @@ import {
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { ConfirmOverlay } from './ConfirmOverlay';
+import { CheckboxControl } from './CheckboxControl';
 import { EntrySubLine, subCondKey, useRelativeTick, type EntrySubDp } from './EntrySubLine';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { isStampSub, subDpsNeedTick } from '../../utils/subDpStamp';
@@ -609,6 +610,41 @@ function EntryValue({
     if (isBoolLike) {
         if (switchStyle === 'icon') {
             return renderIconToggle(on, () => setState(entry.id, isBool ? !on : on ? 0 : 1));
+        }
+        // Checkbox (issue #683): same row height as the toggle; a label sits beside it.
+        if (switchStyle === 'checkbox') {
+            const box = (
+                <CheckboxControl
+                    ref={confirmAnchorRef}
+                    checked={on}
+                    writable={writable}
+                    onClick={writable ? guardWrite(() => setState(entry.id, isBool ? !on : on ? 0 : 1)) : undefined}
+                    size={18}
+                    color={activeColor}
+                    aria-label={on ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                />
+            );
+            return (
+                <>
+                    {hasLabels ? (
+                        <span className="shrink-0 flex items-center gap-1.5">
+                            <span
+                                className="text-xs font-medium"
+                                style={{
+                                    color: condColor ?? (on ? activeColor : 'var(--text-secondary)'),
+                                    ...condFont,
+                                }}
+                            >
+                                {on ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                            </span>
+                            {box}
+                        </span>
+                    ) : (
+                        box
+                    )}
+                    {confirmOverlay}
+                </>
+            );
         }
         // The labelled pill is the default for a boolean row — but a config that
         // says switchStyle 'slide' gets the toggle, with the label next to it

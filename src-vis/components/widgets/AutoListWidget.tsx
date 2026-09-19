@@ -41,6 +41,7 @@ import {
     type GroupActionConfigOpts,
 } from '../../utils/groupTargets';
 import { GroupActionControl } from './GroupActionControl';
+import { CheckboxControl } from './CheckboxControl';
 import { EntrySubLine, subCondKey, useRelativeTick, type EntrySubDp } from './EntrySubLine';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { isStampSub, subDpsNeedTick } from '../../utils/subDpStamp';
@@ -756,6 +757,31 @@ function EntryValue({
     }
 
     if (isBoolLike) {
+        // Checkbox (issue #683): same row height as the toggle; a label sits beside it.
+        if (entry.switchStyle === 'checkbox') {
+            const box = (
+                <CheckboxControl
+                    checked={on}
+                    writable={writable}
+                    onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
+                    size={18}
+                    color={activeColor}
+                    aria-label={on ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                />
+            );
+            if (!hasLabels) return box;
+            return (
+                <span className="shrink-0 flex items-center gap-1.5">
+                    <span
+                        className="text-xs font-medium"
+                        style={{ color: condColor ?? (on ? activeColor : 'var(--text-secondary)'), ...condFont }}
+                    >
+                        {on ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                    </span>
+                    {box}
+                </span>
+            );
+        }
         if (hasLabels) {
             const fill = condColor ?? (on ? activeColor : inactiveColor);
             return (
@@ -1021,6 +1047,27 @@ function CardEntryValue({
     }
 
     if (isBoolLike) {
+        // Checkbox (issue #683): centred in the card, the state text beside it.
+        if (entry.switchStyle === 'checkbox') {
+            return (
+                <span className="w-full flex items-center justify-center gap-1.5">
+                    <span
+                        className="text-xs font-medium"
+                        style={{ color: condColor ?? (on ? activeColor : 'var(--text-secondary)'), ...condFont }}
+                    >
+                        {on ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                    </span>
+                    <CheckboxControl
+                        checked={on}
+                        writable={writable}
+                        onClick={writable ? () => setState(entry.id, isBool ? !on : on ? 0 : 1) : undefined}
+                        size={22}
+                        color={activeColor}
+                        aria-label={on ? trueLabel || 'AN' : falseLabel || 'AUS'}
+                    />
+                </span>
+            );
+        }
         if (hasLabels) {
             const fill = condColor ?? (on ? activeColor : inactiveColor);
             return (

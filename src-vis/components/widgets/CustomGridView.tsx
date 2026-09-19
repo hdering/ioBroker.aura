@@ -27,6 +27,7 @@ import { HelpCircle, Send } from 'lucide-react';
 import type { DateOutputFormat } from '../../utils/dateValue';
 import { useDateValueFields, type DateValueSettings } from '../common/DateValueFields';
 import { ConfirmOverlay } from './ConfirmOverlay';
+import { CheckboxControl } from './CheckboxControl';
 
 // ── Default grid (title top-left, large value + unit in middle row) ──────────
 
@@ -587,6 +588,32 @@ function SwitchCellView({
                 >
                     <Icon size={size} style={{ color }} />
                 </button>
+                {pending && (
+                    <ConfirmOverlay
+                        popup
+                        anchorRef={btnRef}
+                        text={cell.confirmText}
+                        onConfirm={confirm}
+                        onCancel={cancel}
+                    />
+                )}
+                {lcLine}
+            </div>
+        );
+    }
+    // Checkbox (issue #683): as tall as the toggle below; fontSize scales it like the icon mode.
+    if (cell.controlMode === 'checkbox') {
+        return (
+            <div className={`aura-custom-cell-${index}`} style={wrap}>
+                <CheckboxControl
+                    ref={btnRef}
+                    onClick={handleClick}
+                    checked={on}
+                    size={cell.fontSize ?? 24}
+                    color={cond.color || cell.trueColor || cell.color || 'var(--accent)'}
+                    className="nodrag"
+                    aria-label={switchButtonLabel(cell, on)}
+                />
                 {pending && (
                     <ConfirmOverlay
                         popup

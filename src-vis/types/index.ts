@@ -315,7 +315,7 @@ export interface CustomCell {
     stateValue?: string; // 'condition' mode: comparison value (parsed numerically where needed)
     // 'switch' type
     statusDpId?: string; // 'switch' cell: read-back DP — state, label and colours come from here while clicks still write to dpId (split command/status devices, issue #567)
-    controlMode?: 'toggle' | 'icon' | 'button'; // 'switch' cell: visual control style (default 'toggle')
+    controlMode?: 'toggle' | 'checkbox' | 'icon' | 'button'; // 'switch' cell: visual control style — 'toggle' slide switch (default), 'checkbox' tick box, 'icon' clickable icon, 'button' labelled button
     buttonTextColor?: string; // 'switch' cell (button mode): label text color (default #fff)
     buttonTrueColor?: string; // 'switch' cell (button mode): background for truthy value (falls back to color)
     buttonFalseColor?: string; // 'switch' cell (button mode): background for falsy value (falls back to color)

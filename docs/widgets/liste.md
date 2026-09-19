@@ -14,7 +14,7 @@ Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene 
 
 | Feld                           | Standard  |                                                                                                                                    |
 | ------------------------------ | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `switchStyle`                  | `slide`   | `slide` (Schiebeschalter) · `icon` (klickbares Icon) · `image` (klickbares Bild)                                                   |
+| `switchStyle`                  | `slide`   | `slide` (Schiebeschalter) · `checkbox` (Kontrollkästchen) · `icon` (klickbares Icon) · `image` (klickbares Bild)                   |
 | `trueIcon` / `falseIcon`       | Power     | Icon je Zustand (bei `icon` und `image`)                                                                                           |
 | `onImage` / `offImage`         | —         | Bild je Zustand (bei `image`); ohne Bild greift das Icon                                                                           |
 | `switchIconSize`               | `22`      | Größe von Icon/Bild in px. Leer = wie `iconSize` (das Icon vor dem Namen)                                                          |
@@ -22,7 +22,7 @@ Kein Haupt-Datenpunkt — jeder Listeneintrag (`entries[]`) trägt seine eigene 
 | `statusDp`                     | —         | Separater Status-Datenpunkt für Geräte, die Schalten und Rückmeldung trennen (Tasmota: `cmnd.POWER` schaltet, `stat.POWER` meldet) |
 | `stateMode`                    | `boolean` | `boolean` (an bei `true`, Zahl ungleich 0, `ON`) · `condition` (Vergleich)                                                         |
 | `stateOperator` / `stateValue` | `>` / `0` | Vergleich bei `stateMode: condition`                                                                                               |
-| `trueLabel` / `falseLabel`     | —         | Texte statt des Schiebeschalters (Pille)                                                                                           |
+| `trueLabel` / `falseLabel`     | —         | Texte statt des Schiebeschalters (Pille); bei explizitem `slide` oder `checkbox` stehen sie neben dem Bedienelement                |
 | `confirm` / `confirmText`      | `false`   | Sicherheitsabfrage vor dem Schalten                                                                                                |
 
 Ist `onValue` gesetzt und kein `statusDp` konfiguriert, gilt die Zeile als **an**, wenn der Wert genau
@@ -620,6 +620,7 @@ Master-Steuerung im Header für alle Einträge.
 | -------------------- | -------- | --------------------------------------------- |
 | `groupSwitch`        | `false`  | Sammelschalter anzeigen                       |
 | `groupActionType`    | `switch` | `switch` · `dimmer` · `shutter` · `momentary` |
+| `groupSwitchStyle`   | `slide`  | `slide` · `checkbox` (nur `switch`)           |
 | `groupDimmerOnValue` | `100`    | Schreibwert bei „alle an" (Dimmer)            |
 | `groupExcludeIds`    | —        | von der Gruppenaktion ausgenommene Einträge   |
 

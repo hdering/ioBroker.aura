@@ -89,7 +89,7 @@ Das [Eingabefeld](./eingabefeld)-Widget als Zelle. `text` ist hier der Platzhalt
 
 | Feld | | |
 | --- | --- | --- |
-| `controlMode` | `toggle` · `icon` · `button` | Schiebeschalter · Icon · Button |
+| `controlMode` | `toggle` · `checkbox` · `icon` · `button` | Schiebeschalter · Checkbox · Icon · Button |
 | `trueValue` / `falseValue` | z. B. `0`/`100`, `an`/`aus` | Schreibwerte; leer = `true`/`false` |
 | `statusDpId` | optional | Status-Datenpunkt: Zustand, Beschriftung und Farben kommen von hier, geschrieben wird auf den Datenpunkt oben |
 | `stateMode` | `boolean` · `condition` | Auswertung des Zustands: `true`/`1`/`on` · Vergleich mit `stateOperator` / `stateValue` |
