@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.59.1 (2026-09-13)
+- Auto-return pause element - choose icon only, label only or both, with or without background
+
 ## 0.59.0 (2026-09-13)
 - 🌟 **New feature:** Markers - the aggregate count of a tab or section can now count only conditional markers or sum the numbers of count markers, and a single marker can be excluded from it
 - 🌟 **New feature:** Settings - with "theme follows browser" the light and the dark theme can now be picked and fine-tuned separately: the preset grid stays usable and CSS variables have a shared, a light and a dark tab ([#640](https://github.com/hdering/ioBroker.aura/issues/640))
