@@ -2444,6 +2444,11 @@ export function CustomCellEditor({
                     const patchEntry = (i: number, patch: Partial<NonNullable<CustomCell['entries']>[number]>) =>
                         update(entries.map((e, idx) => (idx === i ? { ...e, ...patch } : e)));
                     const addEntry = () => update([...entries, { value: String(entries.length), label: '' }]);
+                    // Wert-Spalte wächst mit dem längsten Wert (#679): 60 px reichten
+                    // nur für Zahlen, Text-Werte waren abgeschnitten. Höchstens die
+                    // halbe Zeile, damit das Label nicht verschwindet.
+                    const longestValue = Math.max(0, ...entries.map((e) => String(e.value ?? '').length));
+                    const valueColWidth = `min(50%, ${Math.max(60, Math.round(longestValue * 6.4) + 18)}px)`;
                     const removeEntry = (i: number) => update(entries.filter((_, idx) => idx !== i));
                     const moveEntry = (i: number, dir: -1 | 1) => {
                         const j = i + dir;
@@ -2532,7 +2537,7 @@ export function CustomCellEditor({
                                                         onChange={(ev) => patchEntry(i, { value: ev.target.value })}
                                                         placeholder="Wert"
                                                         className="text-xs rounded-lg px-2 py-1 focus:outline-none"
-                                                        style={{ ...inputSty, width: 60, flexShrink: 0 }}
+                                                        style={{ ...inputSty, width: valueColWidth, flexShrink: 0 }}
                                                     />
                                                     <button
                                                         onClick={() => setEntryIconPicker(i)}
@@ -2571,7 +2576,7 @@ export function CustomCellEditor({
                                                         value={e.label}
                                                         onChange={(ev) => patchEntry(i, { label: ev.target.value })}
                                                         placeholder="Label"
-                                                        className="flex-1 text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                                        className="flex-1 min-w-0 text-xs rounded-lg px-2 py-1 focus:outline-none"
                                                         style={inputSty}
                                                     />
                                                     <ColorPicker

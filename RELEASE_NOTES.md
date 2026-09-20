@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - JSON table - HTML columns get a width mode: own width, fill the column, or proportional (the longest value fills the column, shorter ones keep their ratio); bars built with `cellspacing` keep their gaps again (#677)
+- Select field - in the editor the entry list's value column now grows with the longest value, so text values stay readable instead of being cut off; the same applies to the Universal widget's select cell (#679)

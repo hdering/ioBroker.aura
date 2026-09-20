@@ -72,6 +72,13 @@ export function EnumConfig({ config, onConfigChange }: Props) {
 
     const miniBtn = 'text-[10px] px-1 rounded shrink-0 hover:opacity-80';
 
+    // Breite der Wert-Spalte: 64 px reichen für Zahlen, aber nicht für Text-Werte
+    // — dort stand nur noch der Anfang im Feld (#679). Die Spalte wächst deshalb
+    // mit dem längsten Wert (Monospace bei text-xs ≈ 7,2 px/Zeichen + 20 px
+    // Innenabstand) und nimmt dem Label höchstens die halbe Zeile weg.
+    const longestValue = Math.max(0, ...entries.map((e) => String(e.value ?? '').length));
+    const valueColWidth = `min(50%, ${Math.max(64, Math.round(longestValue * 7.2) + 20)}px)`;
+
     const update = (idx: number, patch: Partial<EnumEntry>) =>
         setO({ entries: entries.map((e, i) => (i === idx ? { ...e, ...patch } : e)) });
     const remove = (idx: number) => setO({ entries: entries.filter((_, i) => i !== idx) });
@@ -220,7 +227,7 @@ export function EnumConfig({ config, onConfigChange }: Props) {
                                         placeholder="Wert"
                                         title="DP-Wert"
                                         className={`${fieldCls} font-mono`}
-                                        style={{ ...iSty, width: '64px', flexShrink: 0 }}
+                                        style={{ ...iSty, width: valueColWidth, flexShrink: 0 }}
                                     />
                                     {/* Icon */}
                                     <button
