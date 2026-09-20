@@ -609,7 +609,7 @@ function diffWidgets(before: WidgetLite[], after: WidgetLite[], out: RawChange[]
             out.push({ kind: 'widget-item-removed', label });
             specific = true;
         }
-        // Anything else (scalar options, mobileOrder, type) → generic.
+        // Anything else (scalar options, mobileOrder/tabletOrder, type) → generic.
         if (!specific) out.push({ kind: 'widget-edited', label });
     });
 }

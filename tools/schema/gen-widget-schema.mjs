@@ -839,6 +839,12 @@ async function build() {
             layout: { type: 'string', description: 'Darstellungsvariante, siehe widgets.<type>.layouts.' },
             options: { type: 'object', description: 'Widget-spezifische Optionen, siehe widgets.<type>.' },
             mobileOrder: { type: 'number', description: 'Reihenfolge in der einspaltigen Mobilansicht.' },
+            tabletOrder: {
+                type: 'number',
+                description:
+                    'Reihenfolge im mehrspaltigen Tablet-Fluss (Einstellung tabletBreakpoint/tabletCols). ' +
+                    'Fehlt sie, gilt mobileOrder, sonst die Rasterposition.',
+            },
         },
         groups: reg.WIDGET_GROUPS,
         commonOptions,

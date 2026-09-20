@@ -139,6 +139,8 @@
     "test:popup-bg": "node tools/tests/popup-background.mjs",
     "test:popup-pad": "node tools/tests/popup-padding.mjs",
     "test:mobile-header": "node tools/tests/mobile-header-clip.mjs",
+    "test:tablet-flow": "node tools/tests/tablet-flow.mjs",
+    "test:tablet-order-ui": "node tools/tests/tablet-order-panel.mjs",
     "test:mobile-embed": "node tools/tests/mobile-embed-aspect.mjs",
     "test:header-subtitle": "node tools/tests/header-subtitle.mjs",
     "test:fill-limits": "node tools/tests/fill-limits.mjs",

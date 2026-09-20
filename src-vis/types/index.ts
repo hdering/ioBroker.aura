@@ -14,6 +14,7 @@ export interface WidgetConfig {
     layout?: WidgetLayout;
     options?: Record<string, unknown>; // Widget-spezifische Optionen
     mobileOrder?: number; // Sortierung in der mobilen Ansicht (einzelne Spalte)
+    tabletOrder?: number; // Sortierung in der Tablet-Ansicht (N Spalten); fehlt sie, gilt mobileOrder
 }
 
 /**

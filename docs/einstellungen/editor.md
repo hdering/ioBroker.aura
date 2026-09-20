@@ -13,6 +13,7 @@ WYSIWYG-Editor für die Tabs und Widgets des gewählten Layouts. Widgets werden 
 | + Tab | Neuen Tab anlegen (Assistent) |
 | Importieren | Widget aus JSON-Export einfügen |
 | Mobile-Reihenfolge | Reihenfolge der Widgets in der Einspaltenansicht |
+| Tablet-Reihenfolge | Reihenfolge der Widgets im mehrspaltigen Tablet-Fluss; ohne eigene Reihenfolge gilt die mobile |
 | Schloss | Bedienelemente der Widgets sperren (Standard) oder freigeben |
 | Hilfslinien | Rote Ziellinien ein-/ausblenden |
 | Strg+Alt halten (Mac: ⌘+⌥) | Vorschau ohne Bearbeiten-Buttons |

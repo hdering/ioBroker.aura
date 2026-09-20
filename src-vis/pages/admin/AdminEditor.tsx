@@ -10,6 +10,7 @@ import {
     Check,
     Database,
     Smartphone,
+    Tablet,
     GripVertical,
     Upload,
     Settings,
@@ -32,6 +33,7 @@ import {
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { flowOrderField, sortForFlow, type FlowMode } from '../../utils/flowOrder';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
 import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
 import { KEEP_PIN } from '../../utils/pinLock';
@@ -911,8 +913,15 @@ function ManualWidgetDialog({ onAdd, onClose }: { onAdd: (w: WidgetConfig) => vo
 
 // TYPE_LABELS are now resolved via useT() inside components
 
-function MobileOrderPanel({ layoutId }: { layoutId: string }) {
+/**
+ * Arrange the active tab's widgets for one of the narrow-screen flows: the phone's
+ * single column (`mobileOrder`) or the tablet's column flow (`tabletOrder`, #413).
+ * Same panel, same sort rule as the Dashboard (utils/flowOrder) — the tablet list
+ * therefore starts out in the mobile order until the user moves something.
+ */
+function OrderPanel({ layoutId, mode }: { layoutId: string; mode: FlowMode }) {
     const t = useT();
+    const field = flowOrderField(mode);
     const { layouts, updateWidgetInTab } = useDashboardStore();
     const activeTabId = useDashboardStore((s) => {
         const l = s.layouts.find((x) => x.id === layoutId) ?? s.layouts[0];
@@ -928,19 +937,12 @@ function MobileOrderPanel({ layoutId }: { layoutId: string }) {
     const [dragIdx, setDragIdx] = useState<number | null>(null);
     const [overIdx, setOverIdx] = useState<number | null>(null);
 
-    const sorted = useMemo(() => {
-        const widgets = tab?.widgets ?? [];
-        return [...widgets].sort((a, b) => {
-            const oa = a.mobileOrder ?? a.gridPos.y * 1000 + a.gridPos.x;
-            const ob = b.mobileOrder ?? b.gridPos.y * 1000 + b.gridPos.x;
-            return oa - ob;
-        });
-    }, [tab?.widgets]);
+    const sorted = useMemo(() => sortForFlow(tab?.widgets ?? [], mode), [tab?.widgets, mode]);
 
     const applyOrder = (reordered: typeof sorted) => {
         if (!tab) return;
         reordered.forEach((w, i) => {
-            if (w.mobileOrder !== i) updateWidgetInTab(tab.id, w.id, { ...w, mobileOrder: i });
+            if (w[field] !== i) updateWidgetInTab(tab.id, w.id, { ...w, [field]: i });
         });
     };
 
@@ -968,15 +970,16 @@ function MobileOrderPanel({ layoutId }: { layoutId: string }) {
 
     return (
         <div
+            data-aura-order-list={mode}
             className="flex flex-col h-full overflow-hidden"
             style={{ borderLeft: '1px solid var(--app-border)', background: 'var(--app-surface)', width: 260 }}
         >
             <div className="px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--app-border)' }}>
                 <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {t('editor.mobile.title')}
+                    {t(mode === 'tablet' ? 'editor.tablet.title' : 'editor.mobile.title')}
                 </p>
                 <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                    {t('editor.mobile.title')}
+                    {t(mode === 'tablet' ? 'editor.tablet.hint' : 'editor.mobile.hint')}
                 </p>
             </div>
 
@@ -2456,7 +2459,9 @@ export function AdminEditor() {
     useCustomCss(activeLayoutId, activeSectionForEditor.id, true);
     const [showManual, setShowManual] = useState(false);
     const [showImport, setShowImport] = useState(false);
-    const [showMobileOrder, setShowMobileOrder] = useState(false);
+    // Which flow-order panel is open (phone or tablet) — at most one at a time.
+    const [orderPanel, setOrderPanel] = useState<FlowMode | null>(null);
+    const toggleOrderPanel = (mode: FlowMode) => setOrderPanel((cur) => (cur === mode ? null : mode));
 
     // "Peek" mode: while Ctrl+Alt (Cmd+Option on Apple, #651) are held, hide all
     // edit-only chrome (via the `aura-peek` body class + CSS) so the editor shows
@@ -2540,18 +2545,27 @@ export function AdminEditor() {
                 >
                     <Upload size={15} /> {t('widgets.import')}
                 </button>
-                <button
-                    onClick={() => setShowMobileOrder(!showMobileOrder)}
-                    className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"
-                    style={{
-                        background: showMobileOrder ? 'var(--accent)22' : 'var(--app-bg)',
-                        color: showMobileOrder ? 'var(--accent)' : 'var(--text-secondary)',
-                        border: `1px solid ${showMobileOrder ? 'var(--accent)' : 'var(--app-border)'}`,
-                    }}
-                    title={t('editor.mobile.title')}
-                >
-                    <Smartphone size={15} />
-                </button>
+                {(['mobile', 'tablet'] as const).map((mode) => {
+                    const active = orderPanel === mode;
+                    return (
+                        <button
+                            key={mode}
+                            data-aura-order-panel={mode}
+                            onClick={() => toggleOrderPanel(mode)}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"
+                            style={{
+                                background: active
+                                    ? 'color-mix(in srgb, var(--accent) 13%, transparent)'
+                                    : 'var(--app-bg)',
+                                color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                                border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                            }}
+                            title={t(mode === 'tablet' ? 'editor.tablet.title' : 'editor.mobile.title')}
+                        >
+                            {mode === 'tablet' ? <Tablet size={15} /> : <Smartphone size={15} />}
+                        </button>
+                    );
+                })}
                 <button
                     onClick={() => setLockWidgets(!lockWidgets)}
                     className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium hover:opacity-80"
@@ -2651,7 +2665,7 @@ export function AdminEditor() {
                         <Dashboard editMode={true} />
                     </FocusedWidgetContext.Provider>
                 </div>
-                {showMobileOrder && <MobileOrderPanel layoutId={activeLayoutId} />}
+                {orderPanel && <OrderPanel layoutId={activeLayoutId} mode={orderPanel} />}
             </div>
 
             {showManual && <ManualWidgetDialog onAdd={addWidget} onClose={() => setShowManual(false)} />}

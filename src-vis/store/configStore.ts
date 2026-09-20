@@ -40,6 +40,10 @@ export interface FrontendSettings {
     wizardMaxDatapoints: number;
     fontScale: number;
     mobileBreakpoint: number;
+    /** Below this width (and at/above mobileBreakpoint) the dashboard flows its widgets
+     *  into `tabletCols` columns instead of the desktop grid. 0 (or ≤ mobileBreakpoint) = off. */
+    tabletBreakpoint: number;
+    tabletCols: number;
     language: 'de' | 'en';
     /** Hide the draggable touch scroll indicator over the dashboard grid (mobile/coarse pointers). */
     hideGridScrollbar: boolean;
@@ -182,6 +186,12 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     wizardMaxDatapoints: 500,
     fontScale: 1,
     mobileBreakpoint: 600,
+    // Off by default: a persisted config without the key gets this value too, and a
+    // wall tablet at 800 or 1024 px whose grid was designed for exactly that width
+    // must not wake up in a two-column flow after an update (#413). Opt in per
+    // layout or globally in the Grid section.
+    tabletBreakpoint: 0,
+    tabletCols: 2,
     language: 'de',
     hideGridScrollbar: false,
     // Fresh installs show the guidelines + resolution readout in the frontend so

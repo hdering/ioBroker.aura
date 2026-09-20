@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Tablet mode - between the mobile and a new tablet breakpoint, widgets flow into a configurable number of columns (default 2) that fill the width instead of scrolling or being cut off; the order follows a new tablet order panel in the editor and falls back to the mobile order (#413)

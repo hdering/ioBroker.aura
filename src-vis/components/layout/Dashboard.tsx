@@ -33,6 +33,7 @@ import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
+import { flowModeFor, flowSpan, sortForFlow, tabExtentOf } from '../../utils/flowOrder';
 import { reportMetric } from '../../utils/perfMetrics';
 import { measureRenderedWidgets, reportSignature, sendRenderReport } from '../../utils/renderReport';
 
@@ -161,6 +162,9 @@ export function Dashboard({
         return m;
     }, [allLayoutsForMirror]);
     const mobileBreakpoint = settings.mobileBreakpoint ?? 600;
+    // Tablet band (#413): 0 = off, and a value at/below the mobile breakpoint is off too.
+    const tabletBreakpoint = settings.tabletBreakpoint ?? 0;
+    const tabletCols = Math.min(4, Math.max(1, Math.round(settings.tabletCols ?? 2)));
     const hideGridScrollbar = settings.hideGridScrollbar ?? false;
     const guidelinesEnabled = settings.guidelinesEnabled ?? false;
     const guidelinesWidth = settings.guidelinesWidth ?? 1280;
@@ -377,8 +381,9 @@ export function Dashboard({
     // and making the tab appear blank ({rglWidth > 0 && ...} renders nothing).
     //
     // A zero is never believed, for the same reason and a worse one (#636). This
-    // width decides which of the two layouts renders — below `mobileBreakpoint`
-    // the single-column stack, otherwise the grid — and the element it is
+    // width decides which layout renders — below `mobileBreakpoint` the
+    // single-column stack, in the tablet band the column flow, otherwise the
+    // grid — and the element it is
     // measured on only exists INSIDE the chosen branch. A zero therefore does not
     // just blank the tab: it switches the branch, which mounts a different
     // scroller, which is measured, which switches it back. Reported from a phone
@@ -542,8 +547,17 @@ export function Dashboard({
           }
         : {};
 
-    // ── mobile: single-column stack ───────────────────────────────────────
-    if (containerWidth > 0 && containerWidth < mobileBreakpoint) {
+    // ── flow: the phone's single-column stack, or the tablet's N-column flow ──
+    // One branch for both (#413). The phone stacks the tab's widgets in one column
+    // by `mobileOrder`; between the mobile and tablet breakpoints the same stack
+    // is laid out as a CSS grid of `tabletCols` columns by `tabletOrder`, wide
+    // widgets spanning several columns in proportion to their desktop width. No
+    // RGL in either — a stray drag can never touch the desktop gridPos. Groups
+    // and media players see the mobile context in both: a tablet column is a
+    // phone-width column, and their stacked form already knows how to size itself.
+    const flowMode = flowModeFor(containerWidth, { mobileBreakpoint, tabletBreakpoint, editMode });
+    if (flowMode) {
+        const flowCols = flowMode === 'tablet' ? tabletCols : 1;
         return (
             <DashboardMobileContext.Provider value={true}>
                 <ActiveLayoutContext.Provider value={effectiveLayoutId}>
@@ -604,11 +618,11 @@ export function Dashboard({
                                                 !reflowHiddenIds.has(w.id) &&
                                                 !(fillTabWidget && w.id === fillTabWidget.id),
                                         );
-                                        const sorted = [...tabWidgets].sort((a, b) => {
-                                            const oa = a.mobileOrder ?? a.gridPos.y * 1000 + a.gridPos.x;
-                                            const ob = b.mobileOrder ?? b.gridPos.y * 1000 + b.gridPos.x;
-                                            return oa - ob;
-                                        });
+                                        const sorted = sortForFlow(tabWidgets, flowMode);
+                                        // Column shares are measured against the width the tab really
+                                        // uses on the desktop, not the grid's column count — a tab
+                                        // that fills only the left half still gets a full-width flow.
+                                        const tabExtent = tabExtentOf(tabWidgets);
                                         return (
                                             <div
                                                 key={tab.id}
@@ -629,7 +643,23 @@ export function Dashboard({
                                                         </p>
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col" style={{ gap: MARGIN }}>
+                                                    <div
+                                                        data-aura-flow-cols={flowCols}
+                                                        style={{
+                                                            display: 'grid',
+                                                            gridTemplateColumns: `repeat(${flowCols}, minmax(0, 1fr))`,
+                                                            gap: MARGIN,
+                                                            // start, not stretch: stretch would override the
+                                                            // aspect-ratio box of an embedded page (#645) and
+                                                            // pull auto-height cards down to their neighbour.
+                                                            alignItems: 'start',
+                                                            // dense: a widget that no longer fits the current row
+                                                            // leaves a hole, and the next one that fits takes it —
+                                                            // no gaps, and the arranged order still decides who
+                                                            // comes first. Meaningless in one column.
+                                                            gridAutoFlow: flowCols > 1 ? 'row dense' : undefined,
+                                                        }}
+                                                    >
                                                         {sorted.map((w) => {
                                                             // A mirror renders its SOURCE inside, so the auto-height
                                                             // decision must follow the source's type/layout — otherwise a
@@ -670,6 +700,16 @@ export function Dashboard({
                                                             // widget loses everything above the scroll box — the title looked
                                                             // cut off by the tab bar. Grow the box to the text instead
                                                             // of shrinking a deliberately tall header: minHeight, not height.
+                                                            //
+                                                            // Not `height + min-height: fit-content` any more: the header's
+                                                            // row is h-full, and as a GRID item the percentage resolves
+                                                            // against the specified 20 px while the intrinsic size is being
+                                                            // computed — so "fit-content" was 20 px and the text stuck out
+                                                            // again (the flex stack treated the percentage as auto). The box
+                                                            // is therefore its own single-cell grid with only a min-height:
+                                                            // its height is the taller of grid rows and content, the frame
+                                                            // is stretched to it, and inside a stretched grid item h-full is
+                                                            // definite again, so a deliberately tall header stays centred.
                                                             const growToContent = ew.type === 'header';
                                                             const boxHeight =
                                                                 w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN;
@@ -685,38 +725,47 @@ export function Dashboard({
                                                                 1,
                                                                 w.gridPos.w * snapX + (w.gridPos.w - 1) * MARGIN,
                                                             );
+                                                            const boxStyle = autoHeight
+                                                                ? undefined
+                                                                : growToContent
+                                                                  ? {
+                                                                        display: 'grid',
+                                                                        minHeight: boxHeight,
+                                                                    }
+                                                                  : keepsAspect
+                                                                    ? {
+                                                                          aspectRatio: `${desktopWidth} / ${boxHeight}`,
+                                                                          maxHeight: boxHeight,
+                                                                          minHeight: Math.min(
+                                                                              boxHeight,
+                                                                              EMBED_MOBILE_MIN_H,
+                                                                          ),
+                                                                      }
+                                                                    : {
+                                                                          // 'panels' is a fixed-viewport carousel: its
+                                                                          // slide track is absolutely positioned, so with
+                                                                          // auto height the flex-1 viewport collapses to 0
+                                                                          // (only title + dots show). It needs a definite
+                                                                          // height like a normal widget — unlike group/
+                                                                          // mediaplayer which size to their stacked content.
+                                                                          height: boxHeight,
+                                                                      };
+                                                            // Tablet flow: a wide desktop widget takes several columns.
+                                                            const span = flowSpan(w, tabExtent, flowCols);
                                                             return (
                                                                 <div
                                                                     key={w.id}
                                                                     data-aura-widget={w.id}
                                                                     data-aura-widget-type={w.type}
                                                                     data-aura-widget-rows={w.gridPos.h}
+                                                                    data-aura-flow-span={span}
                                                                     style={
-                                                                        autoHeight
-                                                                            ? undefined
-                                                                            : growToContent
-                                                                              ? {
-                                                                                    height: boxHeight,
-                                                                                    minHeight: 'fit-content',
-                                                                                }
-                                                                              : keepsAspect
-                                                                                ? {
-                                                                                      aspectRatio: `${desktopWidth} / ${boxHeight}`,
-                                                                                      maxHeight: boxHeight,
-                                                                                      minHeight: Math.min(
-                                                                                          boxHeight,
-                                                                                          EMBED_MOBILE_MIN_H,
-                                                                                      ),
-                                                                                  }
-                                                                                : {
-                                                                                      // 'panels' is a fixed-viewport carousel: its
-                                                                                      // slide track is absolutely positioned, so with
-                                                                                      // auto height the flex-1 viewport collapses to 0
-                                                                                      // (only title + dots show). It needs a definite
-                                                                                      // height like a normal widget — unlike group/
-                                                                                      // mediaplayer which size to their stacked content.
-                                                                                      height: boxHeight,
-                                                                                  }
+                                                                        span > 1
+                                                                            ? {
+                                                                                  ...boxStyle,
+                                                                                  gridColumn: `span ${span}`,
+                                                                              }
+                                                                            : boxStyle
                                                                     }
                                                                 >
                                                                     <WidgetFrame

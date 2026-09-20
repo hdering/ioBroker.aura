@@ -11,7 +11,14 @@ interface GridSectionProps {
 }
 
 /** Keys owned by this card — reset touches exactly these. */
-const GRID_KEYS = ['gridRowHeight', 'gridSnapX', 'mobileBreakpoint', 'hideGridScrollbar'] as const;
+const GRID_KEYS = [
+    'gridRowHeight',
+    'gridSnapX',
+    'mobileBreakpoint',
+    'tabletBreakpoint',
+    'tabletCols',
+    'hideGridScrollbar',
+] as const;
 
 export function GridSection({ contextId }: GridSectionProps) {
     const t = useT();
@@ -23,10 +30,14 @@ export function GridSection({ contextId }: GridSectionProps) {
     const [rowH, rowHOv] = eff('gridRowHeight');
     const [snapX, snapXOv] = eff('gridSnapX');
     const [mob, mobOv] = eff('mobileBreakpoint');
+    const [tab, tabOv] = eff('tabletBreakpoint');
+    const [tabCols, tabColsOv] = eff('tabletCols');
     const [hideScroll, hideScrollOv] = eff('hideGridScrollbar');
 
     const effectiveRowH = (rowH ?? 20) as number;
     const effectiveSnapX = (snapX ?? effectiveRowH) as number;
+    const effectiveTab = (tab ?? 0) as number;
+    const effectiveTabCols = (tabCols ?? 2) as number;
     const effectiveMob = (mob ?? 600) as number;
 
     function resetDefaults() {
@@ -111,6 +122,41 @@ export function GridSection({ contextId }: GridSectionProps) {
                         { label: '600', value: 600 },
                         { label: '768', value: 768 },
                         { label: t('settings.grid.mobileOff'), value: 0 },
+                    ]}
+                />
+                {/* Tablet band (#413): widgets flow into N columns between the two
+                    breakpoints. Off (0) keeps the desktop grid — and its horizontal
+                    scrollbar — on tablets, which is what existing designs expect. */}
+                <SliderSetting
+                    label={t('settings.grid.tabletBreak')}
+                    value={effectiveTab}
+                    min={0}
+                    max={1600}
+                    step={10}
+                    unit=" px"
+                    onChange={(v) => set('tabletBreakpoint', v)}
+                    isOverridden={tabOv}
+                    onClearOverride={() => clear('tabletBreakpoint')}
+                    presets={[
+                        { label: '768', value: 768 },
+                        { label: '1024', value: 1024 },
+                        { label: '1280', value: 1280 },
+                        { label: t('settings.grid.mobileOff'), value: 0 },
+                    ]}
+                />
+                <SliderSetting
+                    label={t('settings.grid.tabletCols')}
+                    value={effectiveTabCols}
+                    min={1}
+                    max={4}
+                    step={1}
+                    onChange={(v) => set('tabletCols', v)}
+                    isOverridden={tabColsOv}
+                    onClearOverride={() => clear('tabletCols')}
+                    presets={[
+                        { label: '2', value: 2 },
+                        { label: '3', value: 3 },
+                        { label: '4', value: 4 },
                     ]}
                 />
             </div>
