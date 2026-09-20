@@ -18,7 +18,6 @@ import { collectSubKeyOptions, type ListFilterRow } from '../../../utils/listFil
 import {
     SORT_MODES,
     SORT_SOURCE_LABELS,
-    collectSortValues,
     isStampMode,
     newSortRule,
     orderLabels,
@@ -196,8 +195,6 @@ export function ListSortEditor({
                 const order = rule.order ?? 'asc';
                 const labels = orderLabels(mode);
                 const modeHint = SORT_MODES.find((m) => m.value === mode)?.hint;
-                const seen = mode === 'custom' ? collectSortValues(rule, liveRows) : [];
-                const list = rule.values ?? [];
                 return (
                     <div
                         key={idx}
@@ -342,55 +339,6 @@ export function ListSortEditor({
                                         </button>
                                     ))}
                                 </div>
-
-                                {mode === 'custom' && (
-                                    <div className="space-y-1">
-                                        <textarea
-                                            rows={Math.min(6, Math.max(3, list.length + 1))}
-                                            value={list.join('\n')}
-                                            onChange={(e) =>
-                                                patch(idx, {
-                                                    values: e.target.value.split('\n'),
-                                                })
-                                            }
-                                            placeholder={'ERROR\nWARN\nOK'}
-                                            className="w-full text-[10px] rounded px-1.5 py-1 focus:outline-none font-mono"
-                                            style={iSty}
-                                            title="Ein Wert pro Zeile. Werte, die hier fehlen, sortieren dahinter."
-                                        />
-                                        {seen.length > 0 && (
-                                            <div className="flex flex-wrap gap-1">
-                                                {seen.map((v) => {
-                                                    const already = list.some(
-                                                        (x) => x.trim().toLowerCase() === v.toLowerCase(),
-                                                    );
-                                                    return (
-                                                        <button
-                                                            key={v}
-                                                            disabled={already}
-                                                            onClick={() =>
-                                                                patch(idx, {
-                                                                    values: [...list.filter((x) => x.trim() !== ''), v],
-                                                                })
-                                                            }
-                                                            className="text-[9px] px-1.5 py-0.5 rounded-full disabled:opacity-30 hover:opacity-80"
-                                                            style={iSty}
-                                                            title={already ? 'Steht schon in der Liste' : 'Anhängen'}
-                                                        >
-                                                            {v}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                        <p
-                                            className="text-[9px]"
-                                            style={{ color: 'var(--text-secondary)', opacity: 0.75 }}
-                                        >
-                                            Ein Wert pro Zeile, oben zuerst. Was nicht aufgeführt ist, folgt dahinter.
-                                        </p>
-                                    </div>
-                                )}
 
                                 <div className="flex items-center justify-between gap-2">
                                     <label className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>

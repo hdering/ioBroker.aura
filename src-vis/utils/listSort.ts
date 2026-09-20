@@ -11,9 +11,8 @@
  * A sort rule fixes that the same way a filter preset fixed the three fixed filter
  * modes (utils/listFilter): the admin writes a CHAIN of rules, each naming what it
  * reads (main value / row name / one datapoint of the second line), how it compares
- * (automatic, number, text, active first, an order the admin types out, or the
- * datapoint's last change / last update instead of its value — issue #687) and
- * where rows without a value go.
+ * (automatic, number, text, active first, or the datapoint's last change / last
+ * update instead of its value — issue #687) and where rows without a value go.
  *
  * The two old option pairs stay readable: effectiveSortRules() maps them onto the
  * same chain, so stored dashboards sort exactly as before and both widgets have a
@@ -39,7 +38,7 @@ export type ListSortSource = 'value' | 'name' | 'sub';
  * datapoint the rule's source names (issue #687) — the same two stamps the second
  * line can already print (utils/subDpStamp).
  */
-export type ListSortMode = 'auto' | 'number' | 'text' | 'active' | 'custom' | 'lastChange' | 'lastUpdate';
+export type ListSortMode = 'auto' | 'number' | 'text' | 'active' | 'lastChange' | 'lastUpdate';
 
 export interface ListSortRule {
     /** Default 'value' — the row's main datapoint. */
@@ -55,14 +54,12 @@ export interface ListSortRule {
     order?: 'asc' | 'desc';
     /**
      * Default 'auto': numbers numerically, booleans false→true, everything else as
-     * text. 'number' / 'text' force one of the two, 'active' puts on / > 0 first,
-     * 'custom' follows `values`. 'lastChange' / 'lastUpdate' ignore the value and
-     * compare the datapoint's timestamp instead — `lc` resp. `ts` of whatever
-     * `source` names, so with 'sub' the timestamp of that second-line datapoint.
+     * text. 'number' / 'text' force one of the two, 'active' puts on / > 0 first.
+     * 'lastChange' / 'lastUpdate' ignore the value and compare the datapoint's
+     * timestamp instead — `lc` resp. `ts` of whatever `source` names, so with 'sub'
+     * the timestamp of that second-line datapoint.
      */
     mode?: ListSortMode;
-    /** mode 'custom': the value order, first entry first. Values not listed follow behind. */
-    values?: string[];
     /** Where rows without a value land, regardless of direction. Default 'last'. */
     empty?: 'first' | 'last';
 }
@@ -88,7 +85,6 @@ export const SORT_MODES: { value: ListSortMode; label: string; hint: string }[] 
     { value: 'number', label: 'Als Zahl', hint: 'Text wird in eine Zahl gewandelt; was keine ist, gilt als ohne Wert' },
     { value: 'text', label: 'Als Text', hint: 'Rein alphabetisch — „10“ steht damit vor „9“' },
     { value: 'active', label: 'Aktiv / Inaktiv', hint: 'An / > 0 zuerst, Rest danach' },
-    { value: 'custom', label: 'Eigene Reihenfolge', hint: 'Werte in der Reihenfolge, in der sie unten stehen' },
     {
         value: 'lastChange',
         label: 'Letzte Änderung',
@@ -110,19 +106,13 @@ export function isStampMode(mode: ListSortMode | undefined): boolean {
 export function orderLabels(mode: ListSortMode | undefined): { asc: string; desc: string } {
     if (isStampMode(mode)) return { asc: 'Älteste zuerst', desc: 'Neueste zuerst' };
     if (mode === 'active') return { asc: 'Aktive zuerst', desc: 'Inaktive zuerst' };
-    if (mode === 'custom') return { asc: 'Wie aufgelistet', desc: 'Umgekehrt' };
     if (mode === 'text') return { asc: 'A → Z', desc: 'Z → A' };
     return { asc: '↑ Aufsteigend', desc: '↓ Absteigend' };
 }
 
-/** A rule with no readable source is a half-configured card, not a criterion. */
+/** A criterion the chain can actually evaluate. */
 export function isUsableRule(rule: ListSortRule | undefined): boolean {
-    if (!rule) return false;
-    if (rule.mode === 'custom' && !(rule.values ?? []).some((v) => v.trim() !== '')) {
-        // An empty list would compare every row as "not listed" — i.e. sort by nothing.
-        return false;
-    }
-    return true;
+    return !!rule;
 }
 
 /**
@@ -206,14 +196,6 @@ function textOf(val: unknown): string {
     return String(val);
 }
 
-/** Position of a value in a hand-written order. Unlisted values sort behind all listed. */
-function customRank(val: unknown, values: string[] | undefined): number {
-    const list = (values ?? []).map((v) => v.trim().toLowerCase()).filter((v) => v !== '');
-    const key = textOf(val).trim().toLowerCase();
-    const at = list.indexOf(key);
-    return at === -1 ? list.length : at;
-}
-
 /** The 'auto' comparison — the behaviour both widgets had before the rule chain. */
 function compareAuto(a: unknown, b: unknown): number {
     if (typeof a === 'boolean' && typeof b === 'boolean') return (a ? 1 : 0) - (b ? 1 : 0);
@@ -242,7 +224,6 @@ export function compareByRule(rule: ListSortRule, a: ListFilterRow, b: ListFilte
     else if (mode === 'text') cmp = textOf(va).localeCompare(textOf(vb), undefined, { sensitivity: 'base' });
     else if (mode === 'active')
         cmp = (isActiveVal(va as ioBrokerState['val']) ? 0 : 1) - (isActiveVal(vb as ioBrokerState['val']) ? 0 : 1);
-    else if (mode === 'custom') cmp = customRank(va, rule.values) - customRank(vb, rule.values);
     else cmp = compareAuto(va, vb);
     if (cmp === 0) return 0;
     return (rule.order ?? 'asc') === 'desc' ? -cmp : cmp;
@@ -300,8 +281,6 @@ export function sortRuleLabel(rule: ListSortRule): string {
         return `${stamp}${of} ${(rule.order ?? 'asc') === 'desc' ? 'neueste zuerst' : 'älteste zuerst'}`;
     }
     if (mode === 'active') return `${what} (${(rule.order ?? 'asc') === 'desc' ? 'inaktive' : 'aktive'} zuerst)`;
-    if (mode === 'custom')
-        return `${what} (eigene Reihenfolge${(rule.order ?? 'asc') === 'desc' ? ', umgekehrt' : ''})`;
     return `${what} ${dir}`;
 }
 
@@ -315,22 +294,6 @@ export function sortSummary(o: ListSortOptions | undefined): string {
 /** A fresh rule for the "+ Kriterium" button — the main value, ascending. */
 export function newSortRule(): ListSortRule {
     return { source: 'value' };
-}
-
-/**
- * Distinct values the rule currently reads, for the custom-order editor and the
- * preview. Sorted the way the mode would, so the list doubles as a starting point
- * for typing an order out.
- */
-export function collectSortValues(rule: ListSortRule, rows: ListFilterRow[], limit = 40): string[] {
-    const seen = new Set<string>();
-    for (const row of rows) {
-        const text = textOf(ruleValue(rule, row));
-        if (text !== '') seen.add(text);
-    }
-    return [...seen]
-        .sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }))
-        .slice(0, limit);
 }
 
 /** Rows in the order the chain puts them — the editor's live preview. */

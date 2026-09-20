@@ -571,8 +571,7 @@ folgenden nur bei Gleichstand. Der Dialog zeigt live die daraus entstehende Reih
 | `source`      | `value`  | `value` (Wert) · `name` (angezeigter Zeilenname) · `sub` (Datenpunkt der 2. Zeile)     |
 | `subKey`      | —        | bei `sub`: Bezeichnung oder DP-Endung (`BATTERY`); leer = erster weiterer DP der Zeile |
 | `order`       | `asc`    | `asc` · `desc`                                                                         |
-| `mode`        | `auto`   | `auto` · `number` · `text` · `active` · `custom` · `lastChange` · `lastUpdate`             |
-| `values[]`    | —        | bei `mode: custom`: Werte in gewünschter Reihenfolge                                   |
+| `mode`        | `auto`   | `auto` · `number` · `text` · `active` · `lastChange` · `lastUpdate`                        |
 | `empty`       | `last`   | `last` · `first` — wohin Zeilen ohne Wert kommen                                       |
 
 | `mode`   |                                                              |
@@ -581,7 +580,6 @@ folgenden nur bei Gleichstand. Der Dialog zeigt live die daraus entstehende Reih
 | `number` | Text wird zur Zahl; was keine ist, gilt als ohne Wert        |
 | `text`   | rein alphabetisch — `10` steht damit vor `9`                 |
 | `active` | aktive (an / > 0) zuerst, `desc` dreht es                    |
-| `custom` | Reihenfolge aus `values[]`, nicht aufgeführte Werte dahinter |
 | `lastChange` | nicht der Wert, sondern wann er sich zuletzt geändert hat (`lc`) |
 | `lastUpdate` | wann der Adapter zuletzt geschrieben hat (`ts`) — auch ohne Wertänderung |
 

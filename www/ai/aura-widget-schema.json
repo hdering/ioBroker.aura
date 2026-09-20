@@ -2001,14 +2001,7 @@
         "mode": {
           "type": "string",
           "ref": "ListSortMode",
-          "description": "Default 'auto': numbers numerically, booleans false→true, everything else as text. 'number' / 'text' force one of the two, 'active' puts on / > 0 first, 'custom' follows `values`. 'lastChange' / 'lastUpdate' ignore the value and compare the datapoint's timestamp instead — `lc` resp. `ts` of whatever `source` names, so with 'sub' the timestamp of that second-line datapoint."
-        },
-        "values": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "mode 'custom': the value order, first entry first. Values not listed follow behind."
+          "description": "Default 'auto': numbers numerically, booleans false→true, everything else as text. 'number' / 'text' force one of the two, 'active' puts on / > 0 first. 'lastChange' / 'lastUpdate' ignore the value and compare the datapoint's timestamp instead — `lc` resp. `ts` of whatever `source` names, so with 'sub' the timestamp of that second-line datapoint."
         },
         "empty": {
           "type": "string",
@@ -2035,7 +2028,6 @@
         "number",
         "text",
         "active",
-        "custom",
         "lastChange",
         "lastUpdate"
       ]

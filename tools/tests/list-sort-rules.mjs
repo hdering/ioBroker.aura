@@ -19,7 +19,7 @@ await build({
     stdin: {
         contents: [
             'export { effectiveSortRules, hasSorting, isUsableRule, compareByRule, compareByRules,',
-            '  makeSortComparator, ruleValue, sortPreview, sortSummary, sortRuleLabel, collectSortValues,',
+            '  makeSortComparator, ruleValue, sortPreview, sortSummary, sortRuleLabel,',
             '  orderLabels, isStampMode, SORT_MODES, SORT_SOURCE_LABELS }',
             "  from './src-vis/utils/listSort.ts';",
         ].join('\n'),
@@ -42,7 +42,6 @@ const {
     sortPreview,
     sortSummary,
     sortRuleLabel,
-    collectSortValues,
     orderLabels,
     isStampMode,
     SORT_MODES,
@@ -205,30 +204,10 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
     });
 }
 
-// ── a hand-written value order ──────────────────────────────────────────────
+// ── a rule is a criterion as soon as it exists ──────────────────────────
 {
-    const rows = [row('A', 'OK'), row('B', 'ERROR'), row('C', 'WARN'), row('D', 'unbekannt')];
-    const rule = { source: 'value', mode: 'custom', values: ['ERROR', 'WARN', 'OK'] };
-    eq('mode custom: the listed order wins', order([rule], rows), ['B', 'C', 'A', 'D']);
-    eq('mode custom: unlisted values follow behind', ruleValue(rule, rows[3]), 'unbekannt');
-    eq('mode custom: desc reverses it', order([{ ...rule, order: 'desc' }], rows), ['D', 'A', 'C', 'B']);
-    eq(
-        'mode custom: matching ignores case and padding',
-        order([{ source: 'value', mode: 'custom', values: ['  error ', 'ok'] }], rows),
-        // WARN and unbekannt are both unlisted, so they keep their relative order.
-        ['B', 'A', 'C', 'D'],
-    );
-    check(
-        'mode custom: a rule with an empty list is not a criterion',
-        isUsableRule({ source: 'value', mode: 'custom', values: ['', ' '] }) === false,
-    );
     check('usable: an ordinary rule is', isUsableRule({ source: 'value' }) === true);
-    eq('custom editor: the values currently present are offered', collectSortValues(rule, rows), [
-        'ERROR',
-        'OK',
-        'unbekannt',
-        'WARN',
-    ]);
+    check('usable: nothing is not', isUsableRule(undefined) === false);
 }
 
 // ── the row name ────────────────────────────────────────────────────────────
@@ -286,7 +265,7 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
     eq(
         'tables: the modes the editor renders',
         SORT_MODES.map((m) => m.value),
-        ['auto', 'number', 'text', 'active', 'custom', 'lastChange', 'lastUpdate'],
+        ['auto', 'number', 'text', 'active', 'lastChange', 'lastUpdate'],
     );
     eq(
         'summary: a stamp rule names the timestamp, not the value',
