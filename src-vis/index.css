@@ -871,6 +871,16 @@ input[type='range']::-moz-range-thumb {
     height: auto;
 }
 
+/* ── HTML in a JSON table cell (issue #677) ───────────────────────────────────
+   Tailwind's preflight collapses every table, which silently swallows the
+   cellspacing attribute that the classic ioBroker.vis bars are built from: a
+   five-step bar comes out 19 px wide where vis paints 25 px, and the gaps
+   between the steps disappear. Only tables that carry the attribute go back to
+   separate borders — everything else keeps the collapsed default. */
+.aura-html-cell table[cellspacing] {
+    border-collapse: separate;
+}
+
 /* ── HTML cell stretched to the column width (issue #677) ─────────────────────
    An HTML column normally shrinks to the content: a bar built from a <table>
    with coloured cells comes out a few pixels wide, while ioBroker.vis paints it

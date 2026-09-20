@@ -61,8 +61,12 @@ Liste in `columns` (leer = alle Spalten automatisch aus den JSON-Daten). Pro Spa
 | `imageSize` | Bildgröße in px |
 | `imagePathPrefix` | Pfad-Präfix, überschreibt die globale Admin-URL |
 | `html` | Wert als HTML rendern |
-| `htmlFill` | HTML auf die Spaltenbreite strecken (äußerstes Element bekommt `width: 100%`) |
+| `htmlWidth` | HTML-Breite: `auto` (eigene Breite) · `fill` (Spalte füllen) · `scale` (längster Wert der Spalte füllt, kürzere im gleichen Verhältnis) |
 | `iconify` | Iconify-Tokens (z. B. `mdi:home`) inline als Icon |
+
+#### HTML-Breite
+
+![](./assets/json-tabelle/html-breite.png)
 
 ### Titel & Icon
 

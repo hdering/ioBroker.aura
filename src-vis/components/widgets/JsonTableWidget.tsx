@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from 'react';
+import { useMemo, useState, useRef, useEffect, useLayoutEffect } from 'react';
 import { Table2, Search, X, ArrowUp, ArrowDown } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { useDatapoint } from '../../hooks/useDatapoint';
@@ -14,9 +14,14 @@ export interface JsonColumnDef {
     label?: string; // display name override
     hidden?: boolean;
     html?: boolean; // render as HTML
-    /** Stretch the rendered HTML to the full column width (a top-level table/div/img/svg
-     *  gets width:100% instead of shrinking to its content, like ioBroker.vis does). */
+    /** Legacy switch for the HTML width, superseded by htmlWidth: true = "fill". */
     htmlFill?: boolean;
+    /** How the rendered HTML uses the column width. "auto" (default) leaves it at its own
+     *  width, so a bar built from table cells stays as long as its content says. "fill"
+     *  stretches the outermost table/div/img/svg to the whole column, like ioBroker.vis
+     *  does. "scale" scales the whole column: the widest cell fills the column, every
+     *  other cell keeps its ratio to it — a bar chart stays readable and comparable. */
+    htmlWidth?: 'auto' | 'fill' | 'scale';
     image?: boolean; // render as <img> (value = url, data: URI, or ioBroker path)
     imageSize?: number;
     /** Optional prefix prepended to relative image paths in this column.
@@ -35,6 +40,11 @@ export interface JsonColumnDef {
     /** Horizontal alignment of header + cells. Default 'left'. */
     align?: 'left' | 'center' | 'right';
     order?: number; // lower = further left
+}
+
+/** Width mode of an HTML column — the old boolean stays readable as "fill". */
+function htmlWidthOf(col: JsonColumnDef): 'auto' | 'fill' | 'scale' {
+    return col.htmlWidth ?? (col.htmlFill ? 'fill' : 'auto');
 }
 
 /** Compare two raw cell values: numeric when both look like numbers, else a
@@ -291,6 +301,42 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
             return null;
         });
     };
+
+    // HTML column in "scale" mode (#677): the widest cell of the column fills the
+    // column, every other cell keeps its ratio to it. A bar built from table cells
+    // then uses the configured width without losing the length that carries the
+    // information. Only measurable after layout — the natural width is read with the
+    // stretch off and written back as a percentage, so a resized column just follows.
+    // No dependency list: every render re-measures, and the early exit keeps tables
+    // without such a column out of it entirely.
+    useLayoutEffect(() => {
+        const root = contentRef.current;
+        if (!root) return;
+        const cells = [...root.querySelectorAll<HTMLElement>('[data-aura-html-scale]')];
+        if (!cells.length) return;
+        // Read first, write second: max-content gives the natural width even in a
+        // column that is narrower than the content.
+        for (const el of cells) {
+            el.classList.remove('aura-html-fill');
+            el.style.display = 'block';
+            el.style.width = 'max-content';
+        }
+        const byColumn = new Map<string, { el: HTMLElement; natural: number }[]>();
+        for (const el of cells) {
+            const key = el.dataset.auraHtmlScale ?? '';
+            const list = byColumn.get(key) ?? [];
+            list.push({ el, natural: el.getBoundingClientRect().width });
+            byColumn.set(key, list);
+        }
+        for (const list of byColumn.values()) {
+            const widest = Math.max(...list.map((c) => c.natural));
+            for (const { el, natural } of list) {
+                el.classList.add('aura-html-fill');
+                el.style.display = '';
+                el.style.width = widest > 0 ? `${Math.min(100, (natural / widest) * 100)}%` : '';
+            }
+        }
+    });
 
     // Auto-height: measure content and update gridPos.h when data changes.
     // We compare against config.gridPos.h (not a ref) and include it in deps so
@@ -637,7 +683,14 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                     )
                                                 ) : isHtml ? (
                                                     <span
-                                                        className={col.htmlFill ? 'aura-html-fill' : undefined}
+                                                        className={
+                                                            htmlWidthOf(col) === 'auto'
+                                                                ? 'aura-html-cell'
+                                                                : 'aura-html-cell aura-html-fill'
+                                                        }
+                                                        data-aura-html-scale={
+                                                            htmlWidthOf(col) === 'scale' ? col.key : undefined
+                                                        }
                                                         dangerouslySetInnerHTML={{
                                                             __html: resolveHtmlAssets(decorated),
                                                         }}

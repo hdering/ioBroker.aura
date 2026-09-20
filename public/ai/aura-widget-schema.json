@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.65.0",
+    "auraVersion": "0.65.1",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -4552,7 +4552,16 @@
         },
         "htmlFill": {
           "type": "boolean",
-          "description": "Stretch the rendered HTML to the full column width (a top-level table/div/img/svg gets width:100% instead of shrinking to its content, like ioBroker.vis does)."
+          "description": "Legacy switch for the HTML width, superseded by htmlWidth: true = \"fill\"."
+        },
+        "htmlWidth": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "fill",
+            "scale"
+          ],
+          "description": "How the rendered HTML uses the column width. \"auto\" (default) leaves it at its own width, so a bar built from table cells stays as long as its content says. \"fill\" stretches the outermost table/div/img/svg to the whole column, like ioBroker.vis does. \"scale\" scales the whole column: the widest cell fills the column, every other cell keeps its ratio to it — a bar chart stays readable and comparable."
         },
         "image": {
           "type": "boolean",

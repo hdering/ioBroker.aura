@@ -612,18 +612,27 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                 </>
                             )}
                             {col.html && (
-                                <label
-                                    className="flex items-center gap-1.5 cursor-pointer"
-                                    title="Äußerstes Element des HTML auf die Spaltenbreite strecken (wie in ioBroker.vis)"
-                                >
-                                    <Toggle
-                                        value={col.htmlFill ?? false}
-                                        onToggle={() => updateCol(idx, { htmlFill: !(col.htmlFill ?? false) })}
-                                    />
-                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                        Breite füllen
-                                    </span>
-                                </label>
+                                <div className="flex items-center gap-2">
+                                    <label className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                        HTML-Breite
+                                    </label>
+                                    <select
+                                        value={col.htmlWidth ?? (col.htmlFill ? 'fill' : 'auto')}
+                                        onChange={(e) =>
+                                            updateCol(idx, {
+                                                htmlWidth: e.target.value as JsonColumnDef['htmlWidth'],
+                                                htmlFill: undefined,
+                                            })
+                                        }
+                                        className={`${jCls} flex-1`}
+                                        style={jSty}
+                                        title="Wie das HTML die Spaltenbreite nutzt"
+                                    >
+                                        <option value="auto">Inhalt (eigene Breite)</option>
+                                        <option value="fill">Spalte füllen</option>
+                                        <option value="scale">Proportional (längster Wert füllt)</option>
+                                    </select>
+                                </div>
                             )}
                             {col.html && (
                                 <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>

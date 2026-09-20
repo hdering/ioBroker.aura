@@ -11,6 +11,10 @@
 //    what ioBroker.vis paints and what makes the bar readable at all.
 //  * the stretch must not depend on the number of cells: a 5-step row and an
 //    8-step row have to end at the same x, otherwise the gradient lies.
+//  * "scale" is the middle ground: the longest bar of the column fills it, the
+//    others keep their ratio — the length still carries the information.
+//  * the cells keep the spacing the markup asks for: Tailwind collapses every
+//    table, which drops cellspacing and makes the classic vis bar too short.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -106,6 +110,11 @@ const bars = (sel) =>
                 content: Math.round(content),
                 bar: inner ? Math.round(inner.getBoundingClientRect().width) : null,
                 cells: inner ? inner.querySelectorAll('td').length : 0,
+                collapse: inner ? getComputedStyle(inner).borderCollapse : null,
+                spacing: inner ? getComputedStyle(inner).borderSpacing : null,
+                steps: inner
+                    ? [...inner.querySelectorAll('td')].map((c) => Math.round(c.getBoundingClientRect().width))
+                    : [],
                 monat: tr.children[0].textContent,
             };
         });
@@ -146,6 +155,50 @@ check(
 );
 eq('the step count is untouched', filled[0].cells, 5);
 
+// ── 2a. The markup's own spacing survives (cellspacing, #677) ────────────────
+// Tailwind's preflight collapses every table; the classic vis bar is built from
+// cells separated by 1 px, and without them it comes out visibly shorter.
+eq('a table with cellspacing is not collapsed', plain[0].collapse, 'separate');
+eq('and keeps the 1 px the markup asks for', plain[0].spacing, '1px');
+check(
+    'so the bar is wider than its steps alone',
+    plain[0].bar > plain[0].steps.reduce((a, b) => a + b, 0),
+    `bar ${plain[0].bar} px, steps ${plain[0].steps.join('+')}`,
+);
+
+// ── 2b. htmlWidth: the old boolean still reads as "fill" ─────────────────────
+const explicitFill = await show({ htmlWidth: 'fill' });
+check(
+    'htmlWidth "fill" does what htmlFill did',
+    Math.abs(explicitFill[0].bar - filled[0].bar) <= 1,
+    `htmlFill ${filled[0].bar} px, htmlWidth ${explicitFill[0].bar} px`,
+);
+const explicitAuto = await show({ htmlFill: true, htmlWidth: 'auto' });
+check(
+    'and htmlWidth wins over the legacy flag',
+    Math.abs(explicitAuto[0].bar - plain[0].bar) <= 1,
+    `bar ${explicitAuto[0].bar} px, unset ${plain[0].bar} px`,
+);
+
+// ── 2c. htmlWidth "scale": the longest bar fills, the rest keeps its ratio ───
+const scaled = await show({ htmlWidth: 'scale' });
+check(
+    'the longest bar of the column fills the column',
+    Math.abs(scaled[1].bar - scaled[1].content) <= 2,
+    `8 steps ${scaled[1].bar} px, column content ${scaled[1].content} px`,
+);
+check(
+    'the shorter bar keeps its ratio to it',
+    Math.abs(scaled[0].bar / scaled[1].bar - plain[0].bar / plain[1].bar) < 0.05,
+    `scaled ${(scaled[0].bar / scaled[1].bar).toFixed(3)}, natural ${(plain[0].bar / plain[1].bar).toFixed(3)}`,
+);
+check(
+    'and it is still much wider than the unscaled bar',
+    scaled[0].bar > plain[0].bar * 2,
+    `plain ${plain[0].bar} px -> scaled ${scaled[0].bar} px`,
+);
+eq('the step count is untouched here too', scaled[0].cells, 5);
+
 // ── 3. The column layout itself does not move ────────────────────────────────
 // The widths stay hints for the auto table layout (a 100 %-wide table hands out
 // the slack) — the option must not shift that, only the content inside the cell.
@@ -156,6 +209,9 @@ check(
 );
 
 // ── 4. The class is the documented hook, not an inline style ─────────────────
+// Back to "fill" first: SEL still points at the last table shown, and in "scale"
+// mode the percentage on the cell is the whole point.
+await show({ htmlWidth: 'fill' });
 const hook = await page.evaluate((sel) => {
     const span = document.querySelector(`${sel} .aura-html-fill`);
     return { found: !!span, inlineWidth: span ? span.style.width : null };
