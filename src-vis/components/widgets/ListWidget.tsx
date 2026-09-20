@@ -945,13 +945,23 @@ export function ListWidget({ config, editMode }: WidgetProps) {
     // Everything a filter rule / the free-text search may look at for one row: the
     // main value plus the second line's extra datapoints - which the old three modes
     // could not reach at all, since they only asked "is the main value truthy?".
+    // The timestamps ride along because a sort rule may compare them instead of the
+    // value ("letzte Änderung", issue #687) - they cost no extra subscription.
     const filterRow = (entry: StaticListEntry): ListFilterRow => ({
         id: entry.id,
         label: getLabel(entry),
         value: states[entry.id]?.val ?? null,
+        ts: states[entry.id]?.ts,
+        lc: states[entry.id]?.lc,
         subs: (entry.subDps ?? [])
             .filter((s) => !!s?.id)
-            .map((s) => ({ id: s.id, label: s.label, value: subValues[s.id] ?? null })),
+            .map((s) => ({
+                id: s.id,
+                label: s.label,
+                value: subValues[s.id] ?? null,
+                ts: subStates[s.id]?.ts,
+                lc: subStates[s.id]?.lc,
+            })),
     });
 
     // In editMode the Aura admin view honors a separate backendValueFilter so

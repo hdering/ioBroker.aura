@@ -11,8 +11,9 @@
  * A sort rule fixes that the same way a filter preset fixed the three fixed filter
  * modes (utils/listFilter): the admin writes a CHAIN of rules, each naming what it
  * reads (main value / row name / one datapoint of the second line), how it compares
- * (automatic, number, text, active first, or an order the admin types out) and where
- * rows without a value go.
+ * (automatic, number, text, active first, an order the admin types out, or the
+ * datapoint's last change / last update instead of its value — issue #687) and
+ * where rows without a value go.
  *
  * The two old option pairs stay readable: effectiveSortRules() maps them onto the
  * same chain, so stored dashboards sort exactly as before and both widgets have a
@@ -31,8 +32,14 @@ import type { ioBrokerState } from '../types';
 /** Which value of a row a sort rule reads. */
 export type ListSortSource = 'value' | 'name' | 'sub';
 
-/** How the two values of a rule are compared. */
-export type ListSortMode = 'auto' | 'number' | 'text' | 'active' | 'custom';
+/**
+ * How the two values of a rule are compared.
+ *
+ * 'lastChange' / 'lastUpdate' do not read the value at all but the TIMESTAMP of the
+ * datapoint the rule's source names (issue #687) — the same two stamps the second
+ * line can already print (utils/subDpStamp).
+ */
+export type ListSortMode = 'auto' | 'number' | 'text' | 'active' | 'custom' | 'lastChange' | 'lastUpdate';
 
 export interface ListSortRule {
     /** Default 'value' — the row's main datapoint. */
@@ -44,9 +51,15 @@ export interface ListSortRule {
      * Empty = the first extra datapoint of the row.
      */
     subKey?: string;
-    /** Default 'asc'. */
+    /** Default 'asc'. With mode 'lastChange' / 'lastUpdate': oldest first. */
     order?: 'asc' | 'desc';
-    /** Default 'auto': numbers numerically, booleans false→true, everything else as text. */
+    /**
+     * Default 'auto': numbers numerically, booleans false→true, everything else as
+     * text. 'number' / 'text' force one of the two, 'active' puts on / > 0 first,
+     * 'custom' follows `values`. 'lastChange' / 'lastUpdate' ignore the value and
+     * compare the datapoint's timestamp instead — `lc` resp. `ts` of whatever
+     * `source` names, so with 'sub' the timestamp of that second-line datapoint.
+     */
     mode?: ListSortMode;
     /** mode 'custom': the value order, first entry first. Values not listed follow behind. */
     values?: string[];
@@ -76,10 +89,26 @@ export const SORT_MODES: { value: ListSortMode; label: string; hint: string }[] 
     { value: 'text', label: 'Als Text', hint: 'Rein alphabetisch — „10“ steht damit vor „9“' },
     { value: 'active', label: 'Aktiv / Inaktiv', hint: 'An / > 0 zuerst, Rest danach' },
     { value: 'custom', label: 'Eigene Reihenfolge', hint: 'Werte in der Reihenfolge, in der sie unten stehen' },
+    {
+        value: 'lastChange',
+        label: 'Letzte Änderung',
+        hint: 'Nicht der Wert, sondern wann er sich zuletzt geändert hat (lc)',
+    },
+    {
+        value: 'lastUpdate',
+        label: 'Letzte Aktualisierung',
+        hint: 'Wann der Adapter zuletzt geschrieben hat (ts) — auch ohne Wertänderung',
+    },
 ];
+
+/** True for the two modes that read a timestamp instead of the value. */
+export function isStampMode(mode: ListSortMode | undefined): boolean {
+    return mode === 'lastChange' || mode === 'lastUpdate';
+}
 
 /** Direction labels — they only read right once the mode is known. */
 export function orderLabels(mode: ListSortMode | undefined): { asc: string; desc: string } {
+    if (isStampMode(mode)) return { asc: 'Älteste zuerst', desc: 'Neueste zuerst' };
     if (mode === 'active') return { asc: 'Aktive zuerst', desc: 'Inaktive zuerst' };
     if (mode === 'custom') return { asc: 'Wie aufgelistet', desc: 'Umgekehrt' };
     if (mode === 'text') return { asc: 'A → Z', desc: 'Z → A' };
@@ -121,22 +150,46 @@ export function hasSorting(o: ListSortOptions | undefined): boolean {
     return effectiveSortRules(o).length > 0;
 }
 
-/** Value one rule reads from a row. */
-export function ruleValue(rule: ListSortRule, row: ListFilterRow): unknown {
-    const source = rule.source ?? 'value';
-    if (source === 'name') return row.label ?? '';
-    if (source === 'value') return row.value ?? null;
+/** The extra datapoint of the second line a 'sub' rule points at, or undefined. */
+function subOf(rule: ListSortRule, row: ListFilterRow): ListFilterCandidate | undefined {
     const subs: ListFilterCandidate[] = row.subs ?? [];
     const key = (rule.subKey ?? '').trim();
     // No key = "the datapoint of the second line", which is what a list with exactly
     // one extra datapoint per row means. `find` with an empty key matches the first.
-    const hit = subs.find((s) => subMatchesKey(s, key));
+    return subs.find((s) => subMatchesKey(s, key));
+}
+
+/**
+ * The timestamp a stamp rule reads, or 0 when the datapoint has none yet.
+ *
+ * Which datapoint is still the rule's `source`: 'sub' reads the extra datapoint of
+ * the second line, everything else (including 'name', which has no stamp of its
+ * own) the row's own one. 'lastChange' falls back to `ts` for the same reason
+ * utils/subDpStamp does — some adapters leave `lc` at 0 until the first change,
+ * and that must not read as "this device never reported".
+ */
+function ruleStamp(rule: ListSortRule, row: ListFilterRow): number {
+    const src = rule.source === 'sub' ? subOf(rule, row) : row;
+    if (!src) return 0;
+    if (rule.mode === 'lastUpdate') return src.ts || 0;
+    return src.lc || src.ts || 0;
+}
+
+/** Value one rule reads from a row — a timestamp in the two stamp modes. */
+export function ruleValue(rule: ListSortRule, row: ListFilterRow): unknown {
+    if (isStampMode(rule.mode)) return ruleStamp(rule, row) || null;
+    const source = rule.source ?? 'value';
+    if (source === 'name') return row.label ?? '';
+    if (source === 'value') return row.value ?? null;
+    const hit = subOf(rule, row);
     return hit ? (hit.value ?? null) : null;
 }
 
 /** true = there is nothing to compare, so the rule's `empty` decides the position. */
 function isMissing(val: unknown, mode: ListSortMode): boolean {
     if (val === null || val === undefined || val === '') return true;
+    // A datapoint that never reported has stamp 0 - that is "no value", not "1970".
+    if (isStampMode(mode)) return !Number(val);
     // In number mode a non-numeric value has no place on the scale either.
     return mode === 'number' && !isFinite(Number(val));
 }
@@ -185,7 +238,7 @@ export function compareByRule(rule: ListSortRule, a: ListFilterRow, b: ListFilte
         return ma === last ? 1 : -1;
     }
     let cmp: number;
-    if (mode === 'number') cmp = Number(va) - Number(vb);
+    if (mode === 'number' || isStampMode(mode)) cmp = Number(va) - Number(vb);
     else if (mode === 'text') cmp = textOf(va).localeCompare(textOf(vb), undefined, { sensitivity: 'base' });
     else if (mode === 'active')
         cmp = (isActiveVal(va as ioBrokerState['val']) ? 0 : 1) - (isActiveVal(vb as ioBrokerState['val']) ? 0 : 1);
@@ -239,6 +292,13 @@ export function sortRuleLabel(rule: ListSortRule): string {
         source === 'sub' ? `2. Zeile: ${(rule.subKey ?? '').trim() || 'erster DP'}` : SORT_SOURCE_LABELS[source];
     const dir = (rule.order ?? 'asc') === 'desc' ? '↓' : '↑';
     const mode = rule.mode ?? 'auto';
+    if (isStampMode(mode)) {
+        // The stamp is the criterion, so it replaces 'Wert' instead of qualifying it -
+        // only a second-line rule still has to say WHICH datapoint it watches.
+        const stamp = mode === 'lastUpdate' ? 'Letzte Aktualisierung' : 'Letzte Änderung';
+        const of = source === 'sub' ? ` (${(rule.subKey ?? '').trim() || 'erster DP'})` : '';
+        return `${stamp}${of} ${(rule.order ?? 'asc') === 'desc' ? 'neueste zuerst' : 'älteste zuerst'}`;
+    }
     if (mode === 'active') return `${what} (${(rule.order ?? 'asc') === 'desc' ? 'inaktive' : 'aktive'} zuerst)`;
     if (mode === 'custom')
         return `${what} (eigene Reihenfolge${(rule.order ?? 'asc') === 'desc' ? ', umgekehrt' : ''})`;

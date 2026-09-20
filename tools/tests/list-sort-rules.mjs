@@ -20,7 +20,7 @@ await build({
         contents: [
             'export { effectiveSortRules, hasSorting, isUsableRule, compareByRule, compareByRules,',
             '  makeSortComparator, ruleValue, sortPreview, sortSummary, sortRuleLabel, collectSortValues,',
-            '  orderLabels, SORT_MODES, SORT_SOURCE_LABELS }',
+            '  orderLabels, isStampMode, SORT_MODES, SORT_SOURCE_LABELS }',
             "  from './src-vis/utils/listSort.ts';",
         ].join('\n'),
         resolveDir: process.cwd(),
@@ -44,6 +44,7 @@ const {
     sortRuleLabel,
     collectSortValues,
     orderLabels,
+    isStampMode,
     SORT_MODES,
     SORT_SOURCE_LABELS,
 } = await import(pathToFileURL(bundle).href);
@@ -106,22 +107,18 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
 // ── a chain: the first criterion decides, the next only on ties ──────────────
 {
     const rows = [row('Alpha', 1), row('Beta', 0), row('Gamma', 1), row('Delta', 0)];
-    eq(
-        'chain: value desc, then name',
-        order([{ source: 'value', order: 'desc' }, { source: 'name' }], rows),
-        ['Alpha', 'Gamma', 'Beta', 'Delta'],
-    );
+    eq('chain: value desc, then name', order([{ source: 'value', order: 'desc' }, { source: 'name' }], rows), [
+        'Alpha',
+        'Gamma',
+        'Beta',
+        'Delta',
+    ]);
     eq(
         'chain: swapping the order of the criteria swaps the result',
         order([{ source: 'name' }, { source: 'value', order: 'desc' }], rows),
         ['Alpha', 'Beta', 'Delta', 'Gamma'],
     );
-    eq('chain: an empty chain keeps the configured order', order([], rows), [
-        'Alpha',
-        'Beta',
-        'Gamma',
-        'Delta',
-    ]);
+    eq('chain: an empty chain keeps the configured order', order([], rows), ['Alpha', 'Beta', 'Gamma', 'Delta']);
 }
 
 // ── a datapoint of the second line ──────────────────────────────────────────
@@ -131,21 +128,9 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
         row('Beta', 1, [sub('hm.Beta.BATTERY', 12, 'Akku'), sub('hm.Beta.RSSI', -90)]),
         row('Gamma', 1, [sub('hm.Gamma.BATTERY', 45, 'Akku'), sub('hm.Gamma.RSSI', -60)]),
     ];
-    eq('sub: by label, ascending', order([{ source: 'sub', subKey: 'Akku' }], rows), [
-        'Beta',
-        'Gamma',
-        'Alpha',
-    ]);
-    eq('sub: by the last id segment', order([{ source: 'sub', subKey: 'BATTERY' }], rows), [
-        'Beta',
-        'Gamma',
-        'Alpha',
-    ]);
-    eq('sub: descending', order([{ source: 'sub', subKey: 'RSSI', order: 'desc' }], rows), [
-        'Alpha',
-        'Gamma',
-        'Beta',
-    ]);
+    eq('sub: by label, ascending', order([{ source: 'sub', subKey: 'Akku' }], rows), ['Beta', 'Gamma', 'Alpha']);
+    eq('sub: by the last id segment', order([{ source: 'sub', subKey: 'BATTERY' }], rows), ['Beta', 'Gamma', 'Alpha']);
+    eq('sub: descending', order([{ source: 'sub', subKey: 'RSSI', order: 'desc' }], rows), ['Alpha', 'Gamma', 'Beta']);
     // The static list's own second-line datapoints differ per row; an empty key then
     // means "whatever this row has first", which is what a one-datapoint list wants.
     eq('sub: an empty key reads the first extra datapoint', order([{ source: 'sub' }], rows), [
@@ -171,11 +156,7 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
         'Beta',
         'NoBat',
     ]);
-    eq('empty: first puts them in front', order([{ ...rule, empty: 'first' }], rows), [
-        'NoBat',
-        'Beta',
-        'Alpha',
-    ]);
+    eq('empty: first puts them in front', order([{ ...rule, empty: 'first' }], rows), ['NoBat', 'Beta', 'Alpha']);
     eq('empty: an empty string counts as no value', order([{ source: 'value' }], [row('A', ''), row('B', 3)]), [
         'B',
         'A',
@@ -185,11 +166,7 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
 // ── how the values are compared ─────────────────────────────────────────────
 {
     const nums = [row('A', '9'), row('B', '10'), row('C', '80')];
-    eq('mode auto: numbers inside text still sort numerically', order([{ source: 'value' }], nums), [
-        'A',
-        'B',
-        'C',
-    ]);
+    eq('mode auto: numbers inside text still sort numerically', order([{ source: 'value' }], nums), ['A', 'B', 'C']);
     eq('mode text: purely alphabetical, so 10 comes before 9', order([{ source: 'value', mode: 'text' }], nums), [
         'B',
         'C',
@@ -246,21 +223,18 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
         isUsableRule({ source: 'value', mode: 'custom', values: ['', ' '] }) === false,
     );
     check('usable: an ordinary rule is', isUsableRule({ source: 'value' }) === true);
-    eq(
-        'custom editor: the values currently present are offered',
-        collectSortValues(rule, rows),
-        ['ERROR', 'OK', 'unbekannt', 'WARN'],
-    );
+    eq('custom editor: the values currently present are offered', collectSortValues(rule, rows), [
+        'ERROR',
+        'OK',
+        'unbekannt',
+        'WARN',
+    ]);
 }
 
 // ── the row name ────────────────────────────────────────────────────────────
 {
     const rows = [row('Küche', 1), row('Bad 10', 1), row('Bad 9', 1)];
-    eq('name: sorted with numbers read as numbers', order([{ source: 'name' }], rows), [
-        'Bad 9',
-        'Bad 10',
-        'Küche',
-    ]);
+    eq('name: sorted with numbers read as numbers', order([{ source: 'name' }], rows), ['Bad 9', 'Bad 10', 'Küche']);
     eq('name: descending', order([{ source: 'name', order: 'desc' }], rows), ['Küche', 'Bad 10', 'Bad 9']);
 }
 
@@ -281,7 +255,11 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
     );
     eq('comparator: the row is built once per entry, not per comparison', built, 3);
     check('comparator: null without a criterion', makeSortComparator([], toRow) === null);
-    eq('comparator: two equal rows keep their order', compareByRules([{ source: 'value' }], row('A', 1), row('B', 1)), 0);
+    eq(
+        'comparator: two equal rows keep their order',
+        compareByRules([{ source: 'value' }], row('A', 1), row('B', 1)),
+        0,
+    );
 }
 
 // ── what the panel says the list sorts by ───────────────────────────────────
@@ -290,16 +268,116 @@ const order = (rules, rows) => sortPreview(rules, rows).map((r) => r.label);
     eq('summary: the legacy pair reads as a chain', sortSummary({ sortBy: 'label', sortOrder: 'desc' }), 'Name ↓');
     eq(
         'summary: several criteria',
-        sortSummary({ sortRules: [{ source: 'sub', subKey: 'Akku' }, { source: 'name', order: 'desc' }] }),
+        sortSummary({
+            sortRules: [
+                { source: 'sub', subKey: 'Akku' },
+                { source: 'name', order: 'desc' },
+            ],
+        }),
         '2. Zeile: Akku ↑ · dann Name ↓',
     );
-    eq('summary: the active mode is spelled out', sortRuleLabel({ source: 'value', mode: 'active' }), 'Wert (aktive zuerst)');
+    eq(
+        'summary: the active mode is spelled out',
+        sortRuleLabel({ source: 'value', mode: 'active' }),
+        'Wert (aktive zuerst)',
+    );
     eq('summary: an empty sub key names the fallback', sortRuleLabel({ source: 'sub' }), '2. Zeile: erster DP ↑');
     eq('tables: the sources the editor renders', Object.keys(SORT_SOURCE_LABELS), ['value', 'name', 'sub']);
     eq(
         'tables: the modes the editor renders',
         SORT_MODES.map((m) => m.value),
-        ['auto', 'number', 'text', 'active', 'custom'],
+        ['auto', 'number', 'text', 'active', 'custom', 'lastChange', 'lastUpdate'],
+    );
+    eq(
+        'summary: a stamp rule names the timestamp, not the value',
+        sortRuleLabel({ source: 'value', mode: 'lastChange', order: 'desc' }),
+        'Letzte Änderung neueste zuerst',
+    );
+    eq(
+        'summary: a stamp rule on the second line still names the datapoint',
+        sortRuleLabel({ source: 'sub', subKey: 'Akku', mode: 'lastUpdate' }),
+        'Letzte Aktualisierung (Akku) älteste zuerst',
+    );
+    eq('labels: the direction of a stamp rule reads as age', orderLabels('lastChange'), {
+        asc: 'Älteste zuerst',
+        desc: 'Neueste zuerst',
+    });
+    check('stamp modes: recognised', isStampMode('lastChange') && isStampMode('lastUpdate'));
+    check('stamp modes: the value modes are not', !isStampMode('auto') && !isStampMode(undefined));
+}
+
+// ── sorting by the timestamp instead of the value (#687) ─────────────────
+{
+    // Same value everywhere: only the stamps may decide the order.
+    const stamped = (label, lc, ts, subs = []) => ({ ...row(label, 'on', subs), lc, ts });
+    const rows = [stamped('A', 3000, 3000), stamped('B', 1000, 9000), stamped('C', 2000, 2000)];
+
+    eq('stamp: oldest change first', order([{ source: 'value', mode: 'lastChange' }], rows), ['B', 'C', 'A']);
+    eq('stamp: newest change first', order([{ source: 'value', mode: 'lastChange', order: 'desc' }], rows), [
+        'A',
+        'C',
+        'B',
+    ]);
+    eq(
+        'stamp: lastUpdate reads ts, which a hanging sensor orders differently',
+        order([{ source: 'value', mode: 'lastUpdate' }], rows),
+        ['C', 'A', 'B'],
+    );
+    eq(
+        'stamp: the name source has no stamp of its own, so it reads the row datapoint',
+        order([{ source: 'name', mode: 'lastChange' }], rows),
+        ['B', 'C', 'A'],
+    );
+    eq('stamp: ruleValue hands out the epoch', ruleValue({ source: 'value', mode: 'lastChange' }, rows[0]), 3000);
+
+    // lc 0 = never changed since the adapter started; ts is what that row really has.
+    const fresh = { ...row('D', 'on'), lc: 0, ts: 5000 };
+    eq('stamp: lastChange falls back to ts', ruleValue({ source: 'value', mode: 'lastChange' }, fresh), 5000);
+
+    // A row that never reported is "without a value" - placed by `empty`, not by 1970.
+    const silent = { ...row('Z', 'on'), lc: 0, ts: 0 };
+    eq(
+        'stamp: a row without any timestamp lands at the end in both directions',
+        order([{ source: 'value', mode: 'lastChange' }], [silent, ...rows]),
+        ['B', 'C', 'A', 'Z'],
+    );
+    eq(
+        'stamp: ... also descending',
+        order([{ source: 'value', mode: 'lastChange', order: 'desc' }], [silent, ...rows]),
+        ['A', 'C', 'B', 'Z'],
+    );
+    eq(
+        'stamp: empty first pulls it up',
+        order([{ source: 'value', mode: 'lastChange', empty: 'first' }], [...rows, silent]),
+        ['Z', 'B', 'C', 'A'],
+    );
+
+    // The second line: the stamp of the datapoint the rule names, not of the row.
+    const withSub = (label, lc, subLc) => ({
+        ...row(label, 'on', [{ id: `demo.${label}.BATTERY`, label: 'Akku', value: 50, lc: subLc, ts: subLc }]),
+        lc,
+        ts: lc,
+    });
+    const subRows = [withSub('A', 9000, 3000), withSub('B', 1000, 1000), withSub('C', 5000, 2000)];
+    eq(
+        'stamp: the second line brings its own timestamp',
+        order([{ source: 'sub', subKey: 'Akku', mode: 'lastChange' }], subRows),
+        ['B', 'C', 'A'],
+    );
+    eq(
+        'stamp: an unknown sub key leaves the row without a timestamp',
+        order([{ source: 'sub', subKey: 'gibtsnicht', mode: 'lastChange' }], subRows),
+        ['A', 'B', 'C'],
+    );
+
+    // A stamp rule as the tie-breaker is the point of the chain: same value, newest first.
+    eq(
+        'stamp: breaks a tie behind an ordinary criterion',
+        order(
+            [{ source: 'value' }, { source: 'value', mode: 'lastChange', order: 'desc' }],
+            [stamped('A', 1000, 1000), stamped('B', 3000, 3000), stamped('C', 2000, 2000)],
+        ),
+        ['B', 'C', 'A'],
     );
 }
 

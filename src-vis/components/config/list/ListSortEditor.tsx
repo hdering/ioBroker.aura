@@ -13,12 +13,13 @@
  */
 import { useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
-import { useTemplateValues } from '../../../hooks/useTemplateValues';
+import { useTemplateStates } from '../../../hooks/useTemplateValues';
 import { collectSubKeyOptions, type ListFilterRow } from '../../../utils/listFilter';
 import {
     SORT_MODES,
     SORT_SOURCE_LABELS,
     collectSortValues,
+    isStampMode,
     newSortRule,
     orderLabels,
     ruleValue,
@@ -86,6 +87,27 @@ function valueText(val: unknown): string {
     return String(val);
 }
 
+/**
+ * Headline of a collapsed card. A stamp rule is ABOUT the timestamp, so saying
+ * „Wert“ there would name the one thing it does not compare.
+ */
+function sourceTitle(rule: ListSortRule): string {
+    const source = rule.source ?? 'value';
+    const of = source === 'sub' ? `2. Zeile: ${(rule.subKey ?? '').trim() || 'erster DP'}` : SORT_SOURCE_LABELS[source];
+    if (!isStampMode(rule.mode)) return of;
+    const stamp = rule.mode === 'lastUpdate' ? 'Letzte Aktualisierung' : 'Letzte Änderung';
+    return source === 'sub' ? `${stamp} · ${of}` : stamp;
+}
+
+/** What the preview prints for the first rule — a stamp rule reads epoch ms. */
+function previewText(rule: ListSortRule | undefined, row: ListFilterRow): string {
+    const val = ruleValue(rule as ListSortRule, row);
+    if (!isStampMode(rule?.mode)) return valueText(val);
+    const ms = Number(val);
+    if (!ms) return '—';
+    return new Date(ms).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' });
+}
+
 export function ListSortEditor({
     rules,
     rows,
@@ -106,17 +128,27 @@ export function ListSortEditor({
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [previewRows.map((r) => `${r.id}|${r.subs.map((s) => s.id).join('+')}`).join(',')],
     );
-    const values = useTemplateValues(refs);
+    // States, not bare values: the two stamp modes sort by `lc` / `ts`, and the
+    // preview has to order the rows by the very same numbers the widget will.
+    const states = useTemplateStates(refs);
     const liveRows = useMemo<ListFilterRow[]>(
         () =>
             previewRows.map((r) => ({
                 id: r.id,
                 label: r.label,
-                value: values[r.id] ?? null,
-                subs: r.subs.map((s) => ({ id: s.id, label: s.label, value: values[s.id] ?? null })),
+                value: states[r.id]?.val ?? null,
+                ts: states[r.id]?.ts,
+                lc: states[r.id]?.lc,
+                subs: r.subs.map((s) => ({
+                    id: s.id,
+                    label: s.label,
+                    value: states[s.id]?.val ?? null,
+                    ts: states[s.id]?.ts,
+                    lc: states[s.id]?.lc,
+                })),
             })),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [refs, values],
+        [refs, states],
     );
     const subKeys = useMemo(() => collectSubKeyOptions(liveRows), [liveRows]);
 
@@ -143,7 +175,8 @@ export function ListSortEditor({
         <div className="space-y-2">
             <p className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                 Kriterien von oben nach unten: das erste entscheidet, die folgenden nur bei Gleichstand. Jedes liest den
-                Namen, den Wert der Zeile – oder einen der weiteren Datenpunkte der zweiten Zeile.
+                Namen, den Wert der Zeile – oder einen der weiteren Datenpunkte der zweiten Zeile; statt des Werts auch
+                dessen letzte Änderung.
             </p>
             {hint}
 
@@ -183,9 +216,7 @@ export function ListSortEditor({
                                     {idx === 0 ? '1.' : `dann ${idx + 1}.`}
                                 </span>
                                 <span className="text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>
-                                    {source === 'sub'
-                                        ? `2. Zeile: ${(rule.subKey ?? '').trim() || 'erster DP'}`
-                                        : SORT_SOURCE_LABELS[source]}
+                                    {sourceTitle(rule)}
                                 </span>
                                 <span className="text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>
                                     {order === 'desc' ? labels.desc : labels.asc}
@@ -249,6 +280,13 @@ export function ListSortEditor({
                                         </button>
                                     ))}
                                 </div>
+
+                                {isStampMode(mode) && (
+                                    <p className="text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.75 }}>
+                                        Verglichen wird der Zeitstempel des Datenpunkts der Zeile – bei
+                                        {' „2. Zeile“'} der des dort gewählten.
+                                    </p>
+                                )}
 
                                 {source === 'sub' && (
                                     <div className="flex items-center gap-1">
@@ -413,7 +451,7 @@ export function ListSortEditor({
                                         className="ml-auto shrink-0 tabular-nums font-mono"
                                         style={{ color: 'var(--text-secondary)' }}
                                     >
-                                        {valueText(ruleValue(firstRule, row))}
+                                        {previewText(firstRule, row)}
                                     </span>
                                 )}
                             </li>

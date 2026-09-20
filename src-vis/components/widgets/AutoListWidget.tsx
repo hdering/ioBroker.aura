@@ -1460,14 +1460,20 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     // Everything a filter rule / the free-text search may look at for one row: the main
     // value plus the second line's extra datapoints - per entry or resolved from the
     // list-wide template, exactly as they are rendered.
+    // The timestamps ride along because a sort rule may compare them instead of the
+    // value ("letzte Änderung", issue #687) - they cost no extra subscription.
     const filterRow = (entry: AutoListEntry): ListFilterRow => ({
         id: entry.id,
         label: getLabel(entry),
         value: states[entry.id]?.val ?? null,
+        ts: states[entry.id]?.ts,
+        lc: states[entry.id]?.lc,
         subs: (entrySubDps.get(entry.id) ?? []).map((s) => ({
             id: s.id,
             label: s.label,
             value: subValues[s.id] ?? null,
+            ts: subStates[s.id]?.ts,
+            lc: subStates[s.id]?.lc,
         })),
     });
 

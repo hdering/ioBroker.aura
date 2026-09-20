@@ -61,6 +61,10 @@ export interface ListFilterCandidate {
     id: string;
     label?: string;
     value: unknown;
+    /** Last update, epoch ms — sorting by a timestamp reads it (utils/listSort). */
+    ts?: number;
+    /** Last change, epoch ms. */
+    lc?: number;
 }
 
 /** Everything a filter may look at for one list row. */
@@ -70,6 +74,10 @@ export interface ListFilterRow {
     label?: string;
     /** Value of the row's main datapoint. */
     value: unknown;
+    /** Last update of the main datapoint, epoch ms. */
+    ts?: number;
+    /** Last change of the main datapoint, epoch ms. */
+    lc?: number;
     /** Extra datapoints of the second line (resolved, i.e. no template tokens left). */
     subs?: ListFilterCandidate[];
 }

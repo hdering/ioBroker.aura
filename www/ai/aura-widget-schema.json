@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.64.1",
+    "auraVersion": "0.65.0",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1996,12 +1996,12 @@
             "asc",
             "desc"
           ],
-          "description": "Default 'asc'."
+          "description": "Default 'asc'. With mode 'lastChange' / 'lastUpdate': oldest first."
         },
         "mode": {
           "type": "string",
           "ref": "ListSortMode",
-          "description": "Default 'auto': numbers numerically, booleans false→true, everything else as text."
+          "description": "Default 'auto': numbers numerically, booleans false→true, everything else as text. 'number' / 'text' force one of the two, 'active' puts on / > 0 first, 'custom' follows `values`. 'lastChange' / 'lastUpdate' ignore the value and compare the datapoint's timestamp instead — `lc` resp. `ts` of whatever `source` names, so with 'sub' the timestamp of that second-line datapoint."
         },
         "values": {
           "type": "array",
@@ -2035,7 +2035,9 @@
         "number",
         "text",
         "active",
-        "custom"
+        "custom",
+        "lastChange",
+        "lastUpdate"
       ]
     },
     "ListSortKey": {

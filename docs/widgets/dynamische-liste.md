@@ -314,6 +314,9 @@ Panel **Filter & Sortierung** → **Sortierung**. Kriterien-Kette und Optionen (
 [statischen Liste](./liste#sortierung) — inklusive `mode: custom` für eine eigene Werte-Reihenfolge und
 `empty` für Zeilen ohne Wert. Der Dialog zeigt live die entstehende Reihenfolge.
 
+`mode: lastChange` / `lastUpdate` sortieren nach dem **Zeitstempel** statt nach dem Wert — bei
+`source: sub` nach dem der zweiten Zeile. `asc` = älteste zuerst, `desc` = neueste zuerst.
+
 Ein Kriterium mit `source: sub` liest die Datenpunkte der zweiten Zeile — auch die per
 [Vorlage](#zweite-zeile-zusatzliche-datenpunkte) aufgelösten. `subKey` trifft dann die Bezeichnung oder
 die DP-Endung (`{{parent}}.BATTERY` → `BATTERY`), leer = erster weiterer DP der Zeile.

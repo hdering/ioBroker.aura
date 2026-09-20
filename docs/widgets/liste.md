@@ -571,7 +571,7 @@ folgenden nur bei Gleichstand. Der Dialog zeigt live die daraus entstehende Reih
 | `source`      | `value`  | `value` (Wert) · `name` (angezeigter Zeilenname) · `sub` (Datenpunkt der 2. Zeile)     |
 | `subKey`      | —        | bei `sub`: Bezeichnung oder DP-Endung (`BATTERY`); leer = erster weiterer DP der Zeile |
 | `order`       | `asc`    | `asc` · `desc`                                                                         |
-| `mode`        | `auto`   | `auto` · `number` · `text` · `active` · `custom`                                       |
+| `mode`        | `auto`   | `auto` · `number` · `text` · `active` · `custom` · `lastChange` · `lastUpdate`             |
 | `values[]`    | —        | bei `mode: custom`: Werte in gewünschter Reihenfolge                                   |
 | `empty`       | `last`   | `last` · `first` — wohin Zeilen ohne Wert kommen                                       |
 
@@ -582,6 +582,13 @@ folgenden nur bei Gleichstand. Der Dialog zeigt live die daraus entstehende Reih
 | `text`   | rein alphabetisch — `10` steht damit vor `9`                 |
 | `active` | aktive (an / > 0) zuerst, `desc` dreht es                    |
 | `custom` | Reihenfolge aus `values[]`, nicht aufgeführte Werte dahinter |
+| `lastChange` | nicht der Wert, sondern wann er sich zuletzt geändert hat (`lc`) |
+| `lastUpdate` | wann der Adapter zuletzt geschrieben hat (`ts`) — auch ohne Wertänderung |
+
+`lastChange` / `lastUpdate` vergleichen den **Zeitstempel** statt des Werts. Welcher Datenpunkt gemeint
+ist, sagt weiterhin `source`: bei `sub` der in `subKey` gewählte Datenpunkt der zweiten Zeile, sonst der
+Datenpunkt der Zeile selbst. `asc` = älteste zuerst, `desc` = neueste zuerst. Zeilen, die noch nie
+gemeldet haben, gelten als **ohne Wert** und folgen `empty`.
 
 Der Schlüssel in `subKey` ist die **Bezeichnung** des Datenpunkts oder das letzte Segment seiner ID —
 dieselbe Konvention wie bei den [eigenen Filtern](#eigene-filter). Ein Vorlagen-Eintrag
