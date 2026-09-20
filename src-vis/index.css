@@ -917,3 +917,44 @@ input[type='range']::-moz-range-thumb {
     text-overflow: ellipsis;
     min-width: 0;
 }
+
+/* ── Admin scope trees (Frontend-Design, Layouts) ──────────────────────────
+   Children hang under the parent's icon centre on thin lines, so the tree reads
+   like the chain Global → Layout → Bereich. `--tree-indent` is that centre
+   (row padding 10 + half icon box 12 = 22 px; the Layouts page adds its grip). */
+.aura-tree-kids {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-left: var(--tree-indent, 22px);
+}
+.aura-tree-kids > * {
+    position: relative;
+    padding-left: 10px;
+}
+.aura-tree-kids > *::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 17px;
+    width: 8px;
+    height: 1px;
+    background: var(--app-border);
+}
+.aura-tree-kids > *::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -4px;
+    bottom: 0;
+    width: 1px;
+    background: var(--app-border);
+}
+.aura-tree-kids > *:last-child::after {
+    bottom: calc(100% - 17px);
+}
+.aura-tree-node {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}

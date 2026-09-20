@@ -1,6 +1,6 @@
 # Layouts & Theme
 
-Jedes Layout hat eigene Tabs und Widgets — ideal für verschiedene Tablets oder Räume. Darunter Theme- und Darstellungs-Einstellungen, wahlweise global oder pro Layout (Geltungsbereich links).
+Jedes Layout hat eigene Tabs und Widgets — ideal für verschiedene Tablets oder Räume. Darunter die Gruppen der Seite **Frontend-Design**: global, pro Layout oder pro Bereich, so weit die Kette der Gruppe reicht (siehe [Geltungsbereich](#geltungsbereich)).
 
 ## Layouts
 
@@ -35,6 +35,30 @@ Links der Baum aus Layouts und ihren Bereichen, rechts das gewählte Element. Di
 | Tab suchen         | Filtert die Liste nach Name oder Slug                                                   |
 | Neuer Tab          | Legt einen leeren Tab im Bereich an                                                      |
 
+## Geltungsbereich
+
+Links der Baum **Global → Layout → Bereich**, rechts drei Zeilen mit den Gruppen. Der Name einer Zeile ist die Kette, entlang der ihre Gruppen abweichen dürfen; die Leiste darüber sagt, was gerade bearbeitet wird.
+
+![](./assets/design-layout.png)
+
+| Zeile                     | Gruppen                                                                    | Abweichen dürfen      |
+| ------------------------- | -------------------------------------------------------------------------- | --------------------- |
+| Global                    | Werte & Formatierung, Hell/Dunkel-Kopplung, Meine Themes, Verhalten        | niemand               |
+| Global → Layout           | Header, Bereichs-Menü, Icons                                               | Layouts               |
+| Global → Layout → Bereich | Tab-Leiste, Theme & CSS-Vars, Typografie & Spacing, Grid & Mobile, Hilfslinien & Auflösung, Navigation | Layouts und Bereiche |
+
+| Element                  |                                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Baum (links)             | Wählt den Geltungsbereich; orange Zahl = eigene Werte auf dieser Ebene                                 |
+| Leiste „Du bearbeitest …“ | Wo die Änderung landet und für wen sie gilt                                                            |
+| Gesperrte Zeile          | Kette endet über dem gewählten Bereich; Klick auf den Tab erklärt es, „unter … bearbeiten“ springt hoch |
+| Orange Zahl am Tab       | Eigene Werte der Gruppe auf dieser Ebene                                                                |
+| Orange Einstellung       | Eigener Wert hier · ✕ entfernt ihn, der Wert erbt wieder                                                |
+| „geerbt von …“           | Woher der gezeigte Wert kommt                                                                           |
+| „abweichend in …“        | Layouts/Bereiche unterhalb, die diese Einstellung selbst setzen                                         |
+| Ebenen                   | Eine Einstellung über alle Layouts und Bereiche; fremde Überschreibungen dort entfernen                 |
+| Auf Standard / Auf Global zurücksetzen | Global: Auslieferungswerte der Gruppe; Layout/Bereich: eigene Werte der Gruppe entfernen |
+
 ## Theme & CSS-Vars
 
 Preset wählen (Dark, Hell, Lovelace, AMOLED, Glass, Material 3, Catppuccin, Liquid Glass …) und einzelne CSS-Variablen feinjustieren (App, Widget-Karte, Text, Akzentfarben).
@@ -53,6 +77,8 @@ das, was ohnehin angezeigt würde, wird der Datenpunkt geleert und die Automatik
 
 ### Hell und Dunkel getrennt einstellen
 
+Eigene Gruppe **Hell/Dunkel-Kopplung** in der Zeile „Global“.
+
 Sobald „Theme folgt Browser" aktiv ist (oder `themeMode.frontend` einen Modus setzt), zeigt dieselbe Installation zwei Designs. Preset-Raster und Variablen-Editor bekommen dann oben rechts einen Umschalter.
 
 | Reiter    |                                                                          |
@@ -64,6 +90,8 @@ Sobald „Theme folgt Browser" aktiv ist (oder `themeMode.frontend` einen Modus 
 Im Preset-Raster bestimmt der Reiter, welche Hälfte des Paares das angeklickte Design wird. Im Variablen-Editor überschreiben die Werte auf „Hell"/„Dunkel" den gemeinsamen Wert; das Feld zeigt den geerbten Wert als Platzhalter. Ein Punkt am Reiter markiert Hälften, die etwas enthalten.
 
 ### Meine Themes
+
+Eigene Gruppe **Meine Themes** in der Zeile „Global“.
 
 Eigene Themes sind ein eingebautes Preset plus die angepassten Variablen. Gespeicherte Themes stehen überall zur Auswahl: im Preset-Raster, als Hell- oder Dunkel-Hälfte von „Theme folgt Browser" und in jeder Layout- oder Bereichs-Überschreibung.
 
@@ -92,7 +120,15 @@ Schriftart, Schriftgrößen und Abstände.
 | Mobile-Breakpoint          | Breite, ab der die mobile Einspaltenansicht greift   |
 | Tablet-Breakpoint          | Fensterbreite, unter der Widgets in Tablet-Spalten fließen (Aus = Desktop-Raster, ggf. mit Scrollbalken); das Bereichs-Menü hat dort seine eigene „Platzierung auf Tablets“ |
 | Tablet-Spalten             | Spaltenzahl im Tablet-Bereich (1–4); breite Widgets belegen anteilig mehrere Spalten |
-| Wizard Max-Datenpunkte     | Obergrenze der im Assistenten gescannten Datenpunkte |
+
+## Verhalten
+
+Nur in der Zeile **Global**.
+
+| Option                              |                                                                   |
+| ----------------------------------- | ----------------------------------------------------------------- |
+| Sofortige Rückmeldung beim Schalten | Geschalteten Wert sofort anzeigen, ohne ioBroker-Echo abzuwarten  |
+| Wizard Max-Datenpunkte              | Obergrenze der im Assistenten gescannten Datenpunkte              |
 
 ## Hilfslinien
 
@@ -187,7 +223,7 @@ Woher die Geräte eines Layouts ihre Icons beziehen. Global oder pro Layout eins
 
 ## Werte & Formatierung
 
-Nur im Geltungsbereich **Global** — gilt für alle Layouts und Widgets.
+Nur in der Zeile **Global** — gilt für alle Layouts und Widgets.
 
 | Option                  |                                                                                                                                |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------ |

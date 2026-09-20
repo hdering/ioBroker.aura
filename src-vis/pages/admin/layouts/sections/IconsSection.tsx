@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Download, RefreshCw } from 'lucide-react';
 import { useT } from '../../../../i18n';
 import { ToggleRow } from '../shared/SettingControls';
+import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { useDashboardStore, type LayoutSettings } from '../../../../store/dashboardStore';
@@ -46,7 +47,7 @@ async function fetchCacheStatus(ids: readonly string[]): Promise<CacheStatus> {
 export function IconsSection({ contextId }: { contextId: string | null }) {
     const t = useT();
     const { eff, set, resetKeys, isDirty, level, layoutId } = useLayoutSetting(contextId);
-    const [enabled] = eff('iconsOffline');
+    const [enabled, enabledOv] = eff('iconsOffline');
 
     const layouts = useDashboardStore((s) => s.layouts);
     const tabBar = useConfigStore((s) => s.frontend.tabBar);
@@ -131,6 +132,14 @@ export function IconsSection({ contextId }: { contextId: string | null }) {
                 hint={t('settings.frontend.iconsOfflineHint')}
                 value={enabled ?? false}
                 onChange={(v) => set('iconsOffline', v)}
+                isOverridden={enabledOv}
+                info={
+                    <OverrideState
+                        contextId={contextId}
+                        keys={['iconsOffline']}
+                        label={t('settings.frontend.iconsOffline')}
+                    />
+                }
             />
 
             {/* ── Inventory vs. adapter cache ─────────────────────────────── */}

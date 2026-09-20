@@ -3,6 +3,7 @@
 // pieces can live on different admin pages without duplicating the markup.
 
 import { useRef, useEffect } from 'react';
+import { OVERRIDE_COLOR, OVERRIDE_TINT } from './scopeBands';
 
 export function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
     return (
@@ -23,16 +24,34 @@ export function ToggleRow({
     hint,
     value,
     onChange,
+    isOverridden,
+    info,
 }: {
     label: string;
     hint?: string;
     value: boolean;
     onChange: (v: boolean) => void;
+    /** This scope sets its own value — the row gets the orange override bar. */
+    isOverridden?: boolean;
+    /** Override state line (usually an <OverrideState>) shown under the label. */
+    info?: React.ReactNode;
 }) {
     return (
         <div
             className="flex items-center justify-between gap-3 py-2 border-b last:border-b-0"
-            style={{ borderColor: 'var(--app-border)' }}
+            style={{
+                borderColor: 'var(--app-border)',
+                ...(isOverridden
+                    ? {
+                          boxShadow: `inset 3px 0 0 ${OVERRIDE_COLOR}`,
+                          paddingLeft: 12,
+                          marginLeft: -12,
+                          background: `linear-gradient(90deg, ${OVERRIDE_TINT}, transparent 45%)`,
+                          borderRadius: '0 8px 8px 0',
+                      }
+                    : {}),
+            }}
+            data-overridden={isOverridden ? 'true' : undefined}
         >
             <div className="min-w-0">
                 <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
@@ -43,6 +62,7 @@ export function ToggleRow({
                         {hint}
                     </p>
                 )}
+                {info && <div className="mt-1">{info}</div>}
             </div>
             <Toggle value={value} onChange={onChange} />
         </div>

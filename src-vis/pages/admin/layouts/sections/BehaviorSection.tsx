@@ -2,8 +2,8 @@ import { useConfigStore } from '../../../../store/configStore';
 import { useT } from '../../../../i18n';
 import { Card, ToggleRow } from '../shared/SettingControls';
 
-// Global frontend behavior toggles. Rendered as a card on the Settings page.
-// (Idle-return lives in Design → Navigation; this card keeps optimistic updates.)
+// Global frontend behavior toggles — the „Verhalten“ group of the Design page's
+// global band (idle-return lives in Design → Navigation, it is per layout/section).
 export function BehaviorSection() {
     const t = useT();
     const { frontend, updateFrontend } = useConfigStore();

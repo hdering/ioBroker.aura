@@ -1,7 +1,8 @@
 // Left rail of the Layouts page: every layout with its sections, in the same
-// row style as the Design page's scope tree. Layouts can be reordered by their
-// grip; sections are reordered in the layout detail (their list mirrors the
-// frontend's section menu).
+// row style as the Design page's scope tree — sections hang under their layout
+// on thin tree lines, like the chain Layout → Bereich. Layouts can be reordered
+// by their grip; sections are reordered in the layout detail (their list mirrors
+// the frontend's section menu).
 
 import { GripVertical, Layers, LayoutDashboard } from 'lucide-react';
 import { Icon } from '@iconify/react';
@@ -27,6 +28,10 @@ interface LayoutTreeProps {
     selectedId: string | null;
     onSelect: (id: string) => void;
 }
+
+// Grip (16) + gap (2) + row padding (10) + half icon box (12): the sections'
+// tree line starts under the layout icon's centre.
+const SECTION_INDENT = { '--tree-indent': '40px' } as React.CSSProperties;
 
 export function LayoutTree({ layouts, selectedId, onSelect }: LayoutTreeProps) {
     const t = useT();
@@ -79,22 +84,27 @@ export function LayoutTree({ layouts, selectedId, onSelect }: LayoutTreeProps) {
                                 }}
                             />
                         </div>
-                        {l.sections.map((sec) => (
-                            <div key={sec.id} style={{ paddingLeft: 34 }} data-testid={`tree-section-${sec.id}`}>
-                                <ScopeRow
-                                    active={selectedId === sec.id}
-                                    onClick={() => onSelect(sec.id)}
-                                    label={sec.name}
-                                    iconNode={sectionIconNode(sec)}
-                                    trailing={
-                                        sec.tabs.length === 1
-                                            ? t('layouts.tabsCountOne')
-                                            : t('layouts.tabsCount', { count: String(sec.tabs.length) })
-                                    }
-                                    buttonProps={sec.hidden ? { style: { opacity: 0.55 } } : undefined}
-                                />
-                            </div>
-                        ))}
+                        <div className="aura-tree-kids" style={SECTION_INDENT}>
+                            {l.sections.map((sec) => (
+                                <div key={sec.id} data-testid={`tree-section-${sec.id}`}>
+                                    <ScopeRow
+                                        active={selectedId === sec.id}
+                                        onClick={() => onSelect(sec.id)}
+                                        label={sec.name}
+                                        iconNode={sectionIconNode(sec)}
+                                        trailing={
+                                            sec.tabs.length === 1
+                                                ? t('layouts.tabsCountOne')
+                                                : t('layouts.tabsCount', { count: String(sec.tabs.length) })
+                                        }
+                                        buttonProps={{
+                                            title: t('design.tree.section', { layout: l.name }),
+                                            ...(sec.hidden ? { style: { opacity: 0.55 } } : {}),
+                                        }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 );
             })}

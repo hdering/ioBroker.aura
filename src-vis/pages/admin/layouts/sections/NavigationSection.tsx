@@ -1,5 +1,6 @@
 import { useT } from '../../../../i18n';
 import { ToggleRow } from '../shared/SettingControls';
+import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import type { LayoutSettings } from '../../../../store/dashboardStore';
@@ -11,7 +12,7 @@ const NAV_KEYS: (keyof LayoutSettings)[] = ['idleReturnEnabled', 'idleReturnDela
 export function NavigationSection({ contextId }: { contextId: string | null }) {
     const t = useT();
     const { eff, set, resetKeys, isDirty, level } = useLayoutSetting(contextId);
-    const [enabled] = eff('idleReturnEnabled');
+    const [enabled, enabledOv] = eff('idleReturnEnabled');
     const [delay] = eff('idleReturnDelay');
 
     return (
@@ -37,6 +38,14 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
                 label={t('settings.frontend.idleReturn')}
                 value={enabled ?? false}
                 onChange={(v) => set('idleReturnEnabled', v)}
+                isOverridden={enabledOv}
+                info={
+                    <OverrideState
+                        contextId={contextId}
+                        keys={['idleReturnEnabled']}
+                        label={t('settings.frontend.idleReturn')}
+                    />
+                }
             />
             {enabled && (
                 <div className="pt-1 space-y-2">
@@ -61,6 +70,12 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
                             {t('common.seconds')}
                         </span>
                     </div>
+                    <OverrideState
+                        contextId={contextId}
+                        keys={['idleReturnDelay']}
+                        label={t('settings.frontend.idleReturnDelay')}
+                        format={(_, v) => `${v} s`}
+                    />
                     <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                         {t('settings.frontend.idleReturnHint')}
                     </p>

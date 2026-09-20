@@ -37,7 +37,6 @@ import {
 } from 'lucide-react';
 import { useT, type TranslationKey } from '../../i18n';
 import { NS } from '../../utils/namespace';
-import { BehaviorSection } from './layouts/sections/BehaviorSection';
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
 
@@ -1224,11 +1223,6 @@ export function AdminSettings() {
             {/* Row 2: Admin Base URL */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <AdminBaseUrlCard />
-            </div>
-
-            {/* Row 2b: Frontend behavior (idle-return, optimistic updates) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <BehaviorSection />
             </div>
 
             {/* Row 3: Clients + Backup (both list-heavy, equal height) */}

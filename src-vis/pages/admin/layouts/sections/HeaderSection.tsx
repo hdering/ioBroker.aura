@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useT } from '../../../../i18n';
 import { ToggleRow, SubGroup } from '../shared/SettingControls';
+import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { MenuItemRow, menuItemTypeLabelKey } from '../shared/MenuItemFields';
@@ -35,11 +36,11 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
     // type, and adding one is always the start of configuring it.
     const [addedId, setAddedId] = useState<string>();
 
-    const [showHeader] = eff('showHeader');
+    const [showHeader, showHeaderOv] = eff('showHeader');
     const [headerTitle] = eff('headerTitle');
-    const [showConnectionBadge] = eff('showConnectionBadge');
-    const [showAdminLink] = eff('showAdminLink');
-    const [showMessageBell] = eff('showMessageBell');
+    const [showConnectionBadge, showConnectionBadgeOv] = eff('showConnectionBadge');
+    const [showAdminLink, showAdminLinkOv] = eff('showAdminLink');
+    const [showMessageBell, showMessageBellOv] = eff('showMessageBell');
     const [headerItemsRaw] = eff('headerItems');
     const [headerClockEnabled] = eff('headerClockEnabled');
     const [headerClockDisplay] = eff('headerClockDisplay');
@@ -90,6 +91,14 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                 label={t('settings.frontend.showHeader')}
                 value={showHeader ?? true}
                 onChange={(v) => set('showHeader', v)}
+                isOverridden={showHeaderOv}
+                info={
+                    <OverrideState
+                        contextId={contextId}
+                        keys={['showHeader']}
+                        label={t('settings.frontend.showHeader')}
+                    />
+                }
             />
             {showHeader && (
                 <SubGroup>
@@ -107,21 +116,52 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                                 border: '1px solid var(--app-border)',
                             }}
                         />
+                        <div className="mt-1.5">
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['headerTitle']}
+                                label={t('settings.frontend.dashboardTitle')}
+                            />
+                        </div>
                     </div>
                     <ToggleRow
                         label={t('settings.frontend.connectionBadge')}
                         value={showConnectionBadge ?? true}
                         onChange={(v) => set('showConnectionBadge', v)}
+                        isOverridden={showConnectionBadgeOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['showConnectionBadge']}
+                                label={t('settings.frontend.connectionBadge')}
+                            />
+                        }
                     />
                     <ToggleRow
                         label={t('settings.frontend.showAdminLink')}
                         value={showAdminLink ?? false}
                         onChange={(v) => set('showAdminLink', v)}
+                        isOverridden={showAdminLinkOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['showAdminLink']}
+                                label={t('settings.frontend.showAdminLink')}
+                            />
+                        }
                     />
                     <ToggleRow
                         label={t('settings.frontend.showMessageBell')}
                         value={showMessageBell ?? false}
                         onChange={(v) => set('showMessageBell', v)}
+                        isOverridden={showMessageBellOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['showMessageBell']}
+                                label={t('settings.frontend.showMessageBell')}
+                            />
+                        }
                     />
 
                     <div className="pt-2">

@@ -10,84 +10,177 @@ import {
     Compass,
     Hash,
     Shapes,
+    Globe2,
+    Layers,
+    Lock,
+    SunMoon,
+    SwatchBook,
+    MousePointerClick,
+    ArrowUpLeft,
 } from 'lucide-react';
-import { useT } from '../../../../i18n';
+import { useT, type TranslationKey } from '../../../../i18n';
+import {
+    BAND_ORDER,
+    BAND_TABS,
+    BAND_INDEX,
+    OVERRIDE_COLOR,
+    type Band,
+    type ScopeLevel,
+    type SubTab,
+} from '../shared/scopeBands';
 
-export type SubTab =
-    | 'theme'
-    | 'typo'
-    | 'grid'
-    | 'guidelines'
-    | 'tabbar'
-    | 'header'
-    | 'menu'
-    | 'nav'
-    | 'icons'
-    | 'values';
+export type { SubTab };
 
-// Frame tabs (whole-layout chrome) come first and are visually set apart from the
-// per-scope content tabs that follow.
-const FRAME_IDS: SubTab[] = ['header', 'menu', 'icons'];
-const isFrame = (id: SubTab) => FRAME_IDS.includes(id);
+export const TAB_LABEL_KEY: Record<SubTab, TranslationKey> = {
+    values: 'layouts.subtab.values',
+    sync: 'layouts.subtab.sync',
+    mythemes: 'layouts.subtab.mythemes',
+    behavior: 'layouts.subtab.behavior',
+    header: 'layouts.subtab.header',
+    menu: 'layouts.subtab.menu',
+    icons: 'layouts.subtab.icons',
+    tabbar: 'layouts.subtab.tabbar',
+    theme: 'layouts.subtab.theme',
+    typo: 'layouts.subtab.typo',
+    grid: 'layouts.subtab.grid',
+    guidelines: 'layouts.subtab.guidelines',
+    nav: 'layouts.subtab.nav',
+};
 
-const ALL_TABS: { id: SubTab; labelKey: string; icon: React.ElementType }[] = [
-    { id: 'header', labelKey: 'layouts.subtab.header', icon: PanelTop },
-    { id: 'menu', labelKey: 'layouts.subtab.menu', icon: Menu },
-    { id: 'icons', labelKey: 'layouts.subtab.icons', icon: Shapes },
-    { id: 'tabbar', labelKey: 'layouts.subtab.tabbar', icon: AlignJustify },
-    { id: 'nav', labelKey: 'layouts.subtab.nav', icon: Compass },
-    { id: 'theme', labelKey: 'layouts.subtab.theme', icon: Palette },
-    { id: 'typo', labelKey: 'layouts.subtab.typo', icon: Type },
-    { id: 'grid', labelKey: 'layouts.subtab.grid', icon: LayoutGrid },
-    { id: 'guidelines', labelKey: 'layouts.subtab.guidelines', icon: SlidersHorizontal },
-    { id: 'values', labelKey: 'layouts.subtab.values', icon: Hash },
-];
+const TAB_ICON: Record<SubTab, React.ElementType> = {
+    values: Hash,
+    sync: SunMoon,
+    mythemes: SwatchBook,
+    behavior: MousePointerClick,
+    header: PanelTop,
+    menu: Menu,
+    icons: Shapes,
+    tabbar: AlignJustify,
+    theme: Palette,
+    typo: Type,
+    grid: LayoutGrid,
+    guidelines: SlidersHorizontal,
+    nav: Compass,
+};
+
+const BAND_ICON: Record<Band, React.ElementType> = { global: Globe2, layout: PanelTop, section: Layers };
+const BAND_LABEL: Record<Band, TranslationKey> = {
+    global: 'design.band.global',
+    layout: 'design.band.layout',
+    section: 'design.band.section',
+};
+const BAND_HINT: Record<Band, TranslationKey> = {
+    global: 'design.band.globalHint',
+    layout: 'design.band.layoutHint',
+    section: 'design.band.sectionHint',
+};
 
 interface SubTabsNavProps {
     active: SubTab;
     onChange: (tab: SubTab) => void;
-    /** Restrict which tabs are shown (e.g. section scope hides frame tabs). */
-    allowed?: SubTab[];
+    /** Scope selected in the tree — decides which bands are locked here. */
+    level: ScopeLevel;
+    /** Own values per group at the selected scope (orange counters). */
+    ownCounts?: Partial<Record<SubTab, number>>;
+    /** Where a locked band is edited: the jump shown at the end of its row. */
+    jumpTarget: (band: Band) => { label: string; onClick: () => void } | null;
 }
 
-export function SubTabsNav({ active, onChange, allowed }: SubTabsNavProps) {
+/**
+ * Three rows, one per band, named after the chain each group may be overridden
+ * along: Global · Global → Layout · Global → Layout → Bereich. Every tab stays
+ * visible at every scope; a row whose chain ends above the selected scope is
+ * locked and points back up.
+ */
+export function SubTabsNav({ active, onChange, level, ownCounts = {}, jumpTarget }: SubTabsNavProps) {
     const t = useT();
-    const tabs = allowed ? ALL_TABS.filter((tab) => allowed.includes(tab.id)) : ALL_TABS;
-
     return (
-        <div className="flex gap-1 flex-wrap mt-2 items-center">
-            {tabs.map(({ id, labelKey, icon: Icon }, i) => {
-                const isActive = active === id;
-                const frame = isFrame(id);
-                // Divider between the leading frame group and the content tabs.
-                const showDivider = i > 0 && isFrame(tabs[i - 1].id) && !frame;
+        <div
+            className="rounded-xl px-4 py-1"
+            style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+            data-testid="design-bands"
+        >
+            {BAND_ORDER.map((band, bi) => {
+                const locked = BAND_INDEX[level] > BAND_INDEX[band];
+                const BandIcon = BAND_ICON[band];
+                const jump = locked ? jumpTarget(band) : null;
                 return (
-                    <Fragment key={id}>
-                        {showDivider && (
-                            <span className="mx-1 self-stretch w-px" style={{ background: 'var(--app-border)' }} />
-                        )}
-                        <button
-                            onClick={() => onChange(id)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-colors"
+                    <Fragment key={band}>
+                        <div
+                            className="grid gap-3 items-center py-2"
                             style={{
-                                background: isActive
-                                    ? 'color-mix(in srgb, var(--accent) 15%, transparent)'
-                                    : frame
-                                      ? 'color-mix(in srgb, var(--accent) 8%, transparent)'
-                                      : 'transparent',
-                                color: isActive || frame ? 'var(--accent)' : 'var(--text-secondary)',
-                                border: `1px solid ${
-                                    isActive
-                                        ? 'var(--accent)'
-                                        : frame
-                                          ? 'color-mix(in srgb, var(--accent) 35%, transparent)'
-                                          : 'transparent'
-                                }`,
+                                gridTemplateColumns: '240px 1fr',
+                                borderBottom: bi < BAND_ORDER.length - 1 ? '1px dashed var(--app-border)' : undefined,
+                                opacity: 1,
                             }}
+                            data-testid={`design-band-${band}`}
+                            data-locked={locked ? 'true' : undefined}
                         >
-                            <Icon size={13} />
-                            {t(labelKey as never)}
-                        </button>
+                            <div className="flex flex-col gap-0.5" style={{ opacity: locked ? 0.6 : 1 }}>
+                                <span
+                                    className="flex items-center gap-1.5 text-[10px] uppercase tracking-widest font-bold"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    <BandIcon size={12} />
+                                    {t(BAND_LABEL[band])}
+                                </span>
+                                <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t(BAND_HINT[band])}
+                                </span>
+                            </div>
+                            <div className="flex gap-1 flex-wrap items-center">
+                                {BAND_TABS[band].map((id) => {
+                                    const isActive = active === id;
+                                    const Icon = TAB_ICON[id];
+                                    const n = ownCounts[id] ?? 0;
+                                    return (
+                                        <button
+                                            key={id}
+                                            onClick={() => onChange(id)}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-colors"
+                                            style={{
+                                                background: isActive
+                                                    ? 'color-mix(in srgb, var(--accent) 15%, transparent)'
+                                                    : 'transparent',
+                                                color: isActive ? 'var(--accent)' : 'var(--text-secondary)',
+                                                border: `1px ${locked && isActive ? 'dashed' : 'solid'} ${isActive ? 'var(--accent)' : 'transparent'}`,
+                                                opacity: locked ? (isActive ? 0.85 : 0.5) : 1,
+                                            }}
+                                            title={n ? t('design.tab.ownTitle', { count: String(n) }) : undefined}
+                                            data-testid={`design-tab-${id}`}
+                                        >
+                                            <Icon size={13} />
+                                            {t(TAB_LABEL_KEY[id])}
+                                            {n > 0 && (
+                                                <span
+                                                    className="text-[10px] leading-[14px] px-1.5 rounded-full font-semibold"
+                                                    style={{ background: OVERRIDE_COLOR, color: '#fff' }}
+                                                    data-testid={`design-tab-own-${id}`}
+                                                >
+                                                    {n}
+                                                </span>
+                                            )}
+                                            {locked && <Lock size={10} />}
+                                        </button>
+                                    );
+                                })}
+                                {jump && (
+                                    <button
+                                        onClick={jump.onClick}
+                                        className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] hover:opacity-80"
+                                        style={{
+                                            background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                                            color: 'var(--accent)',
+                                            border: '1px solid var(--accent)',
+                                        }}
+                                        data-testid={`design-band-jump-${band}`}
+                                    >
+                                        <ArrowUpLeft size={11} />
+                                        {t('design.band.editAt', { scope: jump.label })}
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </Fragment>
                 );
             })}

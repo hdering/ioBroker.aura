@@ -213,6 +213,9 @@ check(
 // ── Own themes ───────────────────────────────────────────────────────────────
 // Gespeichert wird die Hälfte, die bearbeitet wird — NICHT die, die der Admin-
 // Browser gerade zeigt (dieser Kontext ist hell, bearbeitet wird dunkel).
+// "Meine Themes" is a group of its own now (first band, Global) - switch the tab.
+await page.locator('[data-testid="design-tab-mythemes"]').click();
+await page.waitForTimeout(400);
 const mine = page.locator('[data-aura-my-themes]');
 check(
     'the card says which half it would save',
@@ -227,6 +230,11 @@ const own = (s.userThemes ?? [])[0] ?? {};
 check('saving takes the edited half, not the admin browser', own.dark === true, JSON.stringify(own));
 check('it carries the variables that were on screen', own.vars?.['--accent'] === '#88ccff', JSON.stringify(own.vars));
 check('and remembers the preset it is built on', own.baseId === 'amoled', String(own.baseId));
+
+// Back to the presets for the checks below.
+await page.locator('[data-testid="design-tab-theme"]').click();
+await varsCard.waitFor({ state: 'visible', timeout: 10000 });
+await page.waitForTimeout(300);
 
 // The point of the issue: the own theme can now be picked as one of the halves.
 await presets.locator(`[data-aura-brightness="${own.dark ? 'dark' : 'light'}"]`).click();
@@ -245,6 +253,8 @@ check(
 );
 
 // Deleting the theme in use must not leave the dashboard pointing at nothing.
+await page.locator('[data-testid="design-tab-mythemes"]').click();
+await page.waitForTimeout(400);
 await mine.locator('[data-aura-delete-theme]').first().click();
 await mine.locator('[data-aura-confirm-delete-theme]').first().click();
 await page.waitForTimeout(400);

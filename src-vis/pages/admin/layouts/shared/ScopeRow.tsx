@@ -1,5 +1,7 @@
-// One row of a scope tree (Design: Global → Layout ▸ Sections; Layouts: Layout ▸
-// Sections). Shared so both admin pages render the same left rail.
+// One row of a scope tree (Design: Global → Layout → Bereich; Layouts: Layout →
+// Bereich). Shared so both admin pages render the same left rail.
+
+import { OVERRIDE_COLOR } from './scopeBands';
 
 interface ScopeRowProps {
     active: boolean;
@@ -9,11 +11,13 @@ interface ScopeRowProps {
     iconNode: React.ReactNode;
     /** Small trailing text (e.g. a tab count). */
     trailing?: string;
-    /** Extra props for the outer button (drag handles, test hooks). */
+    /** Own values this scope carries — shown as an orange counter (0 hides it). */
+    badge?: number;
+    /** Extra props for the outer button (drag handles, test hooks, tooltips). */
     buttonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
 }
 
-export function ScopeRow({ active, onClick, label, sub, iconNode, trailing, buttonProps }: ScopeRowProps) {
+export function ScopeRow({ active, onClick, label, sub, iconNode, trailing, badge, buttonProps }: ScopeRowProps) {
     return (
         <button
             {...buttonProps}
@@ -43,6 +47,15 @@ export function ScopeRow({ active, onClick, label, sub, iconNode, trailing, butt
                     </span>
                 )}
             </span>
+            {badge ? (
+                <span
+                    className="text-[10px] leading-[14px] px-1.5 rounded-full font-semibold shrink-0 tabular-nums"
+                    style={{ background: OVERRIDE_COLOR, color: '#fff' }}
+                    data-testid="scope-own-count"
+                >
+                    {badge}
+                </span>
+            ) : null}
             {trailing && (
                 <span
                     className="text-[10px] shrink-0 tabular-nums"

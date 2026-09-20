@@ -101,15 +101,31 @@ await shotPage('layouts');
 await go(`admin/layouts?ctx=${LAYOUTS[0].sections[0].id}`);
 await shotPage('layouts-bereich');
 
-// ── 6. Design (global-frame sections + scoped appearance sub-tabs) ────────────
-for (const frame of ['header', 'menu', 'nav']) {
-    await go(`admin/design?frame=${frame}`);
-    await shotPage(`design-${frame}`);
-}
-for (const tab of ['theme', 'typo', 'grid', 'guidelines', 'tabbar']) {
-    await go(`admin/design?tab=${tab}`);
+// ── 6. Design: three bands (Global · Global → Layout · Global → Layout → Bereich) ──
+for (const tab of [
+    'values',
+    'sync',
+    'mythemes',
+    'behavior',
+    'header',
+    'menu',
+    'icons',
+    'tabbar',
+    'theme',
+    'typo',
+    'grid',
+    'guidelines',
+    'nav',
+]) {
+    await go(`admin/design?ctx=global&tab=${tab}`);
     await shotPage(`design-${tab}`);
 }
+// The same page with a layout and with a section selected: locked bands, own-value
+// counters and the per-setting override line.
+await go(`admin/design?ctx=${LAYOUTS[0].id}&tab=typo`);
+await shotPage('design-layout');
+await go(`admin/design?ctx=${LAYOUTS[0].sections[0].id}&tab=header`);
+await shotPage('design-bereich');
 
 // ── 7. CSS & JS (2 tabs) ─────────────────────────────────────────────────────
 for (const tab of ['css', 'js']) {

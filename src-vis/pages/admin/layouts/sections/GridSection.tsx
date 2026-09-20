@@ -1,5 +1,6 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
+import { OverrideState } from '../shared/OverrideState';
 import { ToggleRow } from '../shared/SettingControls';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useDashboardStore } from '../../../../store/dashboardStore';
@@ -23,7 +24,7 @@ const GRID_KEYS = [
 export function GridSection({ contextId }: GridSectionProps) {
     const t = useT();
     const rescaleAllWidgetsX = useDashboardStore((s) => s.rescaleAllWidgetsX);
-    const { eff, set, clear, resetKeys, isDirty, level, frontend } = useLayoutSetting(contextId);
+    const { eff, set, resetKeys, isDirty, level, frontend } = useLayoutSetting(contextId);
 
     const MARGIN = (frontend.gridGap ?? 10) as number;
 
@@ -75,7 +76,14 @@ export function GridSection({ contextId }: GridSectionProps) {
                     unit=" px"
                     onChange={(v) => set('gridRowHeight', v)}
                     isOverridden={rowHOv}
-                    onClearOverride={() => clear('gridRowHeight')}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['gridRowHeight']}
+                            label={t('settings.grid.rowHeight')}
+                            format={(_, v) => `${v} px`}
+                        />
+                    }
                     presets={[
                         { label: '20', value: 20 },
                         { label: '40', value: 40 },
@@ -98,7 +106,14 @@ export function GridSection({ contextId }: GridSectionProps) {
                         set('gridSnapX', v);
                     }}
                     isOverridden={snapXOv}
-                    onClearOverride={() => clear('gridSnapX')}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['gridSnapX']}
+                            label={t('settings.grid.snapX')}
+                            format={(_, v) => `${v} px`}
+                        />
+                    }
                     presets={[
                         { label: '20', value: 20 },
                         { label: '40', value: 40 },
@@ -116,7 +131,14 @@ export function GridSection({ contextId }: GridSectionProps) {
                     unit=" px"
                     onChange={(v) => set('mobileBreakpoint', v)}
                     isOverridden={mobOv}
-                    onClearOverride={() => clear('mobileBreakpoint')}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['mobileBreakpoint']}
+                            label={t('settings.grid.mobileBreak')}
+                            format={(_, v) => `${v} px`}
+                        />
+                    }
                     presets={[
                         { label: '480', value: 480 },
                         { label: '600', value: 600 },
@@ -136,7 +158,14 @@ export function GridSection({ contextId }: GridSectionProps) {
                     unit=" px"
                     onChange={(v) => set('tabletBreakpoint', v)}
                     isOverridden={tabOv}
-                    onClearOverride={() => clear('tabletBreakpoint')}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['tabletBreakpoint']}
+                            label={t('settings.grid.tabletBreak')}
+                            format={(_, v) => `${v} px`}
+                        />
+                    }
                     presets={[
                         { label: '768', value: 768 },
                         { label: '1024', value: 1024 },
@@ -152,7 +181,14 @@ export function GridSection({ contextId }: GridSectionProps) {
                     step={1}
                     onChange={(v) => set('tabletCols', v)}
                     isOverridden={tabColsOv}
-                    onClearOverride={() => clear('tabletCols')}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['tabletCols']}
+                            label={t('settings.grid.tabletCols')}
+                            format={(_, v) => String(v)}
+                        />
+                    }
                     presets={[
                         { label: '2', value: 2 },
                         { label: '3', value: 3 },
@@ -160,26 +196,20 @@ export function GridSection({ contextId }: GridSectionProps) {
                     ]}
                 />
             </div>
-            <div className="flex items-start gap-2">
-                <div className="flex-1">
-                    <ToggleRow
+            <ToggleRow
+                label={t('settings.grid.hideScrollbar')}
+                hint={t('settings.grid.hideScrollbarHint')}
+                value={(hideScroll ?? false) as boolean}
+                onChange={(v) => set('hideGridScrollbar', v)}
+                isOverridden={hideScrollOv}
+                info={
+                    <OverrideState
+                        contextId={contextId}
+                        keys={['hideGridScrollbar']}
                         label={t('settings.grid.hideScrollbar')}
-                        hint={t('settings.grid.hideScrollbarHint')}
-                        value={(hideScroll ?? false) as boolean}
-                        onChange={(v) => set('hideGridScrollbar', v)}
                     />
-                </div>
-                {hideScrollOv && (
-                    <button
-                        onClick={() => clear('hideGridScrollbar')}
-                        className="mt-2 text-[10px] px-2 py-0.5 rounded-full hover:opacity-80 shrink-0"
-                        style={{ color: 'var(--accent)', border: '1px solid var(--accent)' }}
-                        title={t('layouts.scope.resetHint')}
-                    >
-                        {t('layouts.scope.reset')}
-                    </button>
-                )}
-            </div>
+                }
+            />
         </div>
     );
 }

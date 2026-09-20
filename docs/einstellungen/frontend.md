@@ -6,11 +6,11 @@ Anzeige-Verhalten des Frontends (gilt für alle Layouts).
 
 | Option | |
 | --- | --- |
-| Theme folgt Browser | Hell/Dunkel automatisch nach System-Einstellung; beide Hälften sind getrennt einstellbar, siehe [Theme & CSS-Vars](./layouts#theme-css-vars) |
+| Theme folgt Browser | Hell/Dunkel automatisch nach System-Einstellung; beide Hälften sind getrennt einstellbar — Gruppe Hell/Dunkel-Kopplung, siehe [Theme & CSS-Vars](./layouts#theme-css-vars) |
 | Layout-Menü (Hamburger) | Layout-Wechsel über Menü statt Leiste (nur sichtbar ab 2 definierten Layouts) |
 | Automatisch zum Standard-Tab zurückkehren | Nach Inaktivität zum Standard-Tab springen — pro Bereich, Tab und Gerät steuerbar, siehe [Navigation](./layouts#navigation) |
 | Icons für Offline-Geräte vorladen | Alle Icons des Layouts direkt nach dem Start laden und nur Aura fragen — pro Layout einstellbar, siehe [Icons](./layouts#icons) |
-| Sofortige Rückmeldung beim Schalten | Geschalteten Wert sofort anzeigen, ohne ioBroker-Echo abzuwarten |
+| Sofortige Rückmeldung beim Schalten | Geschalteten Wert sofort anzeigen, ohne ioBroker-Echo abzuwarten — unter Frontend-Design → [Verhalten](./layouts#verhalten) |
 | Header anzeigen | Kopfzeile ein-/ausblenden |
 | Dashboard-Titel | Text in der Kopfzeile |
 | Verbindungsstatus | ioBroker-Verbindung im Header anzeigen |

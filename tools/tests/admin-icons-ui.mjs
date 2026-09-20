@@ -145,7 +145,7 @@ const row = section
     .locator('div.justify-between')
     .filter({ hasText: /Icons für Offline-Geräte vorladen|Preload icons for offline devices/ })
     .first();
-const toggle = row.locator('button').first();
+const toggle = row.locator('button.w-9.h-5').first();
 // The toggle has no aria state; its knob slides (translate-x-4) when on.
 const knobOn = () => toggle.locator('span').evaluate((el) => el.className.includes('translate-x-4'));
 check(!(await knobOn()), 'the switch starts off');

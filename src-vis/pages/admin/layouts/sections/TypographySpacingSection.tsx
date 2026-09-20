@@ -1,5 +1,7 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
+import { OVERRIDE_COLOR } from '../shared/scopeBands';
+import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useT } from '../../../../i18n';
 import type { LayoutSettings } from '../../../../store/dashboardStore';
@@ -38,6 +40,8 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
     const effectiveFontScale = (fontScale ?? 1) as number;
     const effectiveGridGap = (gridGap ?? 10) as number;
     const effectiveWidgetPad = (widgetPad ?? 16) as number;
+    const fontScaleOv = contextId !== null && ls?.fontScale !== undefined;
+    const fontAccent = fontScaleOv ? OVERRIDE_COLOR : 'var(--accent)';
 
     return (
         <div
@@ -73,7 +77,7 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                                     className="text-[10px] px-1.5 py-0.5 rounded font-medium"
                                     style={{
                                         background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
-                                        color: 'var(--accent)',
+                                        color: fontAccent,
                                     }}
                                 >
                                     Layout
@@ -94,7 +98,7 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                                 className="text-sm font-mono font-bold px-2.5 py-1 rounded-lg"
                                 style={{
                                     background: 'var(--app-bg)',
-                                    color: 'var(--accent)',
+                                    color: fontAccent,
                                     border: '1px solid var(--app-border)',
                                 }}
                             >
@@ -109,7 +113,8 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                         step={0.05}
                         value={effectiveFontScale}
                         onChange={(e) => set('fontScale', Number(e.target.value))}
-                        className="w-full accent-[var(--accent)] mb-3"
+                        className="w-full mb-3"
+                        style={{ accentColor: fontAccent }}
                     />
                     <div className="flex gap-1.5 flex-wrap">
                         {FONT_SCALE_PRESETS.map(({ label, value }) => {
@@ -120,15 +125,23 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                                     onClick={() => set('fontScale', value)}
                                     className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
                                     style={{
-                                        background: active ? 'var(--accent)' : 'var(--app-bg)',
+                                        background: active ? fontAccent : 'var(--app-bg)',
                                         color: active ? '#fff' : 'var(--text-secondary)',
-                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                        border: `1px solid ${active ? fontAccent : 'var(--app-border)'}`,
                                     }}
                                 >
                                     {label} · {Math.round(value * 100)}%
                                 </button>
                             );
                         })}
+                    </div>
+                    <div className="mt-2">
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['fontScale']}
+                            label={t('theme.typography.fontSize')}
+                            format={(_, v) => `${Math.round(Number(v) * 100)} %`}
+                        />
                     </div>
                     {effectiveFontScale !== 1 && (
                         <button
@@ -159,7 +172,14 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                         { label: '24', value: 24 },
                     ]}
                     isOverridden={contextId !== null && ls?.gridGap !== undefined}
-                    onClearOverride={() => clear('gridGap')}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['gridGap']}
+                            label={t('theme.layout.gap')}
+                            format={(_, v) => `${v} px`}
+                        />
+                    }
                 />
 
                 {/* Padding */}
@@ -179,7 +199,14 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                         { label: '24', value: 24 },
                     ]}
                     isOverridden={contextId !== null && ls?.widgetPadding !== undefined}
-                    onClearOverride={() => clear('widgetPadding')}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['widgetPadding']}
+                            label={t('theme.layout.padding')}
+                            format={(_, v) => `${v} px`}
+                        />
+                    }
                 />
             </div>
 
