@@ -1068,12 +1068,14 @@
     },
     {
       "id": "akku-status",
-      "title": "Akku mit Lade- und Verbindungsanzeige",
-      "when": "Ein Gerät meldet neben dem Ladestand auch, ob es gerade lädt und ob es erreichbar ist — Handy, HmIP-Sensor, PV-Speicher.",
+      "title": "Akku mit Lade-, Entlade- und Verbindungsanzeige",
+      "when": "Ein Gerät meldet neben dem Ladestand auch, ob es gerade lädt oder entlädt und ob es erreichbar ist — Handy, HmIP-Sensor, PV-Speicher.",
       "instead": "einer Füllstandsanzeige in einer transparenten Gruppe, daneben zwei weitere Kacheln für Laden und Verbindung",
       "notes": [
-        "chargeDatapoint und connectedDatapoint werden nur gelesen. Leeres Feld = die Anzeige bleibt genau wie vorher.",
+        "chargeDatapoint, dischargeDatapoint und connectedDatapoint werden nur gelesen. Leeres Feld = die Anzeige bleibt genau wie vorher.",
         "chargeCondition sagt, was der Wert bedeutet: true für ein Flag, gt0 für eine Ladeleistung, lt0 für eine Einspeisung.",
+        "Eine vorzeichenbehaftete Leistung (packPower) deckt beides ab: denselben Datenpunkt in chargeDatapoint mit gt0 und in dischargeDatapoint mit lt0 — lt0 ist dort ohnehin der Standard.",
+        "dischargeColor ist Orange (#f97316) statt des Lade-Grüns; dischargeEffect kennt dieselben drei Effekte. Lädt und entlädt zugleich, gewinnt das Laden den Effekt.",
         "Ein UNREACH-Datenpunkt meldet die Störung, nicht die Verbindung — dort connectedCondition auf \"false\" setzen, sonst steht das Gerät dauerhaft auf getrennt.",
         "chargeEffect \"blink\" lässt die Füllung pulsieren, \"scan\" schickt ein Lauflicht über den gefüllten Teil; das Blitz-Icon zeigt den Zustand auch ohne Effekt.",
         "Ohne Wert gilt ein Datenpunkt weder als ladend noch als getrennt — nach einem Reload graut nichts aus, bevor die Werte da sind."
@@ -1102,6 +1104,10 @@
             "chargeCondition": "true",
             "chargeEffect": "blink",
             "showChargeIcon": true,
+            "dischargeDatapoint": "%dp.akku.leistung%",
+            "dischargeCondition": "lt0",
+            "dischargeEffect": "blink",
+            "showDischargeIcon": true,
             "connectedDatapoint": "%dp.akku.unreach%",
             "connectedCondition": "false",
             "showOfflineIcon": true,

@@ -147,14 +147,14 @@ Der Füllstand begrenzt auf `maxValue` — voll und übergelaufen sehen gleich a
 
 Verglichen wird der **ungekappte** Wert, sonst wäre ein Überlauf nicht von „genau voll" zu unterscheiden.
 
-### Status: Laden und Verbindung
+### Status: Laden, Entladen und Verbindung
 
-Zwei optionale Datenpunkte neben dem Füllstand — beide werden nur gelesen. Leeres Feld = kein Status.
+Drei optionale Datenpunkte neben dem Füllstand — alle werden nur gelesen. Leeres Feld = kein Status.
 Im Custom-Layout gibt es keine Statusanzeige.
 
-| Laden aktiv | Verbindung getrennt |
-| --- | --- |
-| ![](./assets/fuellstandsanzeige/status-laden.png) | ![](./assets/fuellstandsanzeige/status-getrennt.png) |
+| Laden aktiv | Entladen aktiv | Verbindung getrennt |
+| --- | --- | --- |
+| ![](./assets/fuellstandsanzeige/status-laden.png) | ![](./assets/fuellstandsanzeige/status-entladen.png) | ![](./assets/fuellstandsanzeige/status-getrennt.png) |
 
 | Option | Standard | |
 | --- | --- | --- |
@@ -164,6 +164,12 @@ Im Custom-Layout gibt es keine Statusanzeige.
 | `showChargeIcon` | `true` | Icon unten rechts im Balken |
 | `chargeIcon` | `mdi:flash` | frei wählbar (Icon-Auswahl im Editor) |
 | `chargeColor` | `#22c55e` | Farbe von Blitz-Icon und Lauflicht |
+| `dischargeDatapoint` | — | Datenpunkt „entlädt gerade" (eigenes Flag oder derselbe wie oben) |
+| `dischargeCondition` | `lt0` | wie oben; `lt0` passt zur negativen Entladeleistung |
+| `dischargeEffect` | `none` | `none` · `blink` · `scan` (Lauflicht in der Entladefarbe) |
+| `showDischargeIcon` | `true` | Icon unten rechts im Balken |
+| `dischargeIcon` | `mdi:battery-arrow-down` | frei wählbar (Icon-Auswahl im Editor) |
+| `dischargeColor` | `#f97316` | Farbe von Entlade-Icon und Lauflicht |
 | `connectedDatapoint` | — | Datenpunkt der Verbindung |
 | `connectedCondition` | `true` | wie oben; für `UNREACH` gilt `false` = verbunden |
 | `showOfflineIcon` | `true` | Icon bei fehlender Verbindung |
@@ -171,9 +177,12 @@ Im Custom-Layout gibt es keine Statusanzeige.
 | `offlineColor` | `#ef4444` | Farbe dieses Icons |
 | `offlineDim` | `true` | Anzeige ausgrauen; das Icon bleibt farbig |
 
-::: tip Ladeleistung statt Flag
-`gt0` macht aus einer Lade-/Entladeleistung ein Ladesignal, `lt0` aus einer Einspeisung. Ein Datenpunkt ohne
-Wert gilt nie als „lädt" und nie als „getrennt" — nach einem Reload graut also nichts aus, bevor die Werte da sind.
+::: tip Ein Datenpunkt für beide Richtungen
+Eine vorzeichenbehaftete Leistung (`packPower`) deckt Laden und Entladen ab: denselben Datenpunkt oben mit
+`gt0` und unten mit `lt0` eintragen. Der Editor bietet dafür „Denselben Datenpunkt wie beim Laden übernehmen"
+an. Ein Datenpunkt ohne Wert gilt nie als „lädt", nie als „entlädt" und nie als „getrennt" — nach einem Reload
+graut also nichts aus, bevor die Werte da sind.
 :::
 
-Beide Effekte pausieren, wenn das Betriebssystem reduzierte Bewegung meldet.
+Lädt und entlädt zugleich (zwei getrennte Flags), gewinnt das Laden den Effekt; beide Icons bleiben stehen.
+Alle Effekte pausieren, wenn das Betriebssystem reduzierte Bewegung meldet.

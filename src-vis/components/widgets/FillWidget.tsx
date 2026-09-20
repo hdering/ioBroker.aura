@@ -32,6 +32,8 @@ export interface ColorZone {
 export const OVER_COLOR = '#ef4444';
 /** Default colours of the status badges (#671). */
 export const CHARGE_COLOR = '#22c55e';
+/** Default colour of the discharge badge and its sweep (#691) — orange against the green. */
+export const DISCHARGE_COLOR = '#f97316';
 export const OFFLINE_COLOR = '#ef4444';
 
 type Orientation = 'vertical' | 'horizontal';
@@ -1401,25 +1403,32 @@ export function FillWidget({ config }: WidgetProps) {
         writeLimit(id, at);
     };
 
-    // ── Status datapoints (#671) ───────────────────────────────────────────────
-    // Two optional flags next to the level: "is it charging" and "is it still
-    // reachable" — an HmIP battery brings both, a PV storage brings a charge power.
-    // Both are read-only, and an unconfigured datapoint leaves the widget untouched.
+    // ── Status datapoints (#671, #691) ─────────────────────────────────────────
+    // Three optional flags next to the level: "is it charging", "is it discharging"
+    // and "is it still reachable" — an HmIP battery brings the first and the last, a
+    // PV storage answers the first two from one signed power (gt0 here, lt0 there).
+    // All are read-only, and an unconfigured datapoint leaves the widget untouched.
     const chargeDp = ((opts.chargeDatapoint as string) ?? '').trim();
+    const dischargeDp = ((opts.dischargeDatapoint as string) ?? '').trim();
     const connectedDp = ((opts.connectedDatapoint as string) ?? '').trim();
     const { value: chargeVal } = useDatapoint(chargeDp);
+    const { value: dischargeVal } = useDatapoint(dischargeDp);
     const { value: connectedVal } = useDatapoint(connectedDp);
     const status = resolveFillStatus(
         {
             chargeDatapoint: chargeDp,
             chargeCondition: opts.chargeCondition as FillCondition | undefined,
             chargeEffect: opts.chargeEffect as FillChargeEffect | undefined,
+            dischargeDatapoint: dischargeDp,
+            dischargeCondition: opts.dischargeCondition as FillCondition | undefined,
+            dischargeEffect: opts.dischargeEffect as FillChargeEffect | undefined,
             connectedDatapoint: connectedDp,
             connectedCondition: opts.connectedCondition as FillCondition | undefined,
         },
-        { [chargeDp]: chargeVal, [connectedDp]: connectedVal },
+        { [chargeDp]: chargeVal, [dischargeDp]: dischargeVal, [connectedDp]: connectedVal },
     );
     const chargeColor = (opts.chargeColor as string) || CHARGE_COLOR;
+    const dischargeColor = (opts.dischargeColor as string) || DISCHARGE_COLOR;
     const offlineColor = (opts.offlineColor as string) || OFFLINE_COLOR;
     const dimOffline = status.offline && opts.offlineDim !== false;
     /**
@@ -1441,10 +1450,13 @@ export function FillWidget({ config }: WidgetProps) {
             fillFrac={pct / 100}
             status={status}
             showChargeIcon={opts.showChargeIcon !== false}
+            showDischargeIcon={opts.showDischargeIcon !== false}
             showOfflineIcon={opts.showOfflineIcon !== false}
             chargeIcon={opts.chargeIcon as string | undefined}
+            dischargeIcon={opts.dischargeIcon as string | undefined}
             offlineIcon={opts.offlineIcon as string | undefined}
             chargeColor={chargeColor}
+            dischargeColor={dischargeColor}
             offlineColor={offlineColor}
         />
     );

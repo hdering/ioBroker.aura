@@ -1,14 +1,15 @@
-// Verifies the status datapoints of the fill widget (issue #671).
+// Verifies the status datapoints of the fill widget (issues #671, #691).
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/fill-status.mjs
 //
-// "Charging" and "connected" are two optional datapoints next to the level. Checked
-// here: the bolt appears only while the condition holds (flag, inverted flag, charge
-// power), the lost connection greys out the picture but never its own icon, both
-// effects run on the fill (blink) or over the lit part (Knight Rider sweep), a widget
-// without these datapoints gets no overlay at all — and the editor panel writes the
-// options it shows.
+// "Charging", "discharging" and "connected" are three optional datapoints next to the
+// level. Checked here: the bolt appears only while the condition holds (flag, inverted
+// flag, charge power), one signed power drives both directions with its own icon and
+// its own sweep colour (#691), the lost connection greys out the picture but never its
+// own icon, both effects run on the fill (blink) or over the lit part (Knight Rider
+// sweep), a widget without these datapoints gets no overlay at all — and the editor
+// panel writes the options it shows.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -21,6 +22,7 @@ const check = (name, ok, detail = '') => {
 
 const SOC = 'demo.status.soc';
 const CHARGE = 'demo.status.charge';
+const POWER = 'demo.status.power';
 const CONN = 'demo.status.conn';
 
 const browser = await chromium.launch();
@@ -84,9 +86,15 @@ const state = () =>
         return {
             layer: !!layer,
             charging: layer?.getAttribute('data-aura-fill-charging') ?? null,
+            discharging: layer?.getAttribute('data-aura-fill-discharging') ?? null,
             connected: layer?.getAttribute('data-aura-fill-connected') ?? null,
             bolt: badgeBox('charge'),
             boltSvg: !!document.querySelector('[data-aura-fill-badge="charge"] svg'),
+            down: badgeBox('discharge'),
+            downColor: document.querySelector('[data-aura-fill-badge="discharge"]')
+                ? getComputedStyle(document.querySelector('[data-aura-fill-badge="discharge"]')).color
+                : null,
+            bandBg: band ? getComputedStyle(band).backgroundImage : null,
             offlineIcon: badgeBox('offline'),
             hostClass: host?.className ?? '',
             vizOpacity: viz ? Number(getComputedStyle(viz).opacity) : null,
@@ -180,7 +188,76 @@ const state = () =>
     check('scan: horizontal sweeps along x', r.bandAnim === 'aura-fill-scan-x', String(r.bandAnim));
 }
 
-// ── 4. The connection ───────────────────────────────────────────────────────
+// ── 4. Discharging (#691) ───────────────────────────────────────────────────
+{
+    // The reporter's case: one signed packPower, gt0 above and lt0 below.
+    const both = {
+        chargeDatapoint: POWER,
+        chargeCondition: 'gt0',
+        chargeEffect: 'scan',
+        dischargeDatapoint: POWER,
+        dischargeEffect: 'scan',
+    };
+    await show(widget(both), { [SOC]: 60, [POWER]: -900 }, '[data-aura-fill-badge="discharge"]');
+    let r = await state();
+    check('a negative power shows the discharge icon', !!r.down, String(r.discharging));
+    check(
+        'and flags the widget as discharging, not charging',
+        r.discharging === '1' && r.charging === '0',
+        `${r.charging}/${r.discharging}`,
+    );
+    check('the bolt stays away', r.bolt === null, String(r.charging));
+    // Orange by default, so the user tells the two directions apart at a glance.
+    check('the icon is the discharge colour', r.downColor === 'rgb(249, 115, 22)', String(r.downColor));
+    check('the sweep runs in the discharge colour', (r.bandBg ?? '').includes('rgb(249, 115, 22)'), String(r.bandBg));
+
+    await show(widget(both), { [SOC]: 60, [POWER]: 2400 }, '[data-aura-fill-badge="charge"]');
+    r = await state();
+    check(
+        'the same datapoint shows the bolt while charging',
+        !!r.bolt && r.down === null,
+        `${r.charging}/${r.discharging}`,
+    );
+    check(
+        'and the sweep goes back to the charge colour',
+        (r.bandBg ?? '').includes('rgb(34, 197, 94)'),
+        String(r.bandBg),
+    );
+
+    // Standing still is neither — the state an inverted charge flag could not express.
+    await show(widget(both), { [SOC]: 60, [POWER]: 0 });
+    r = await state();
+    check('a resting battery shows neither icon', r.bolt === null && r.down === null, `${r.charging}/${r.discharging}`);
+    check('and nothing sweeps', r.bandAnim === null, String(r.bandAnim));
+
+    // The discharge side has its own effect, icon and colour.
+    await show(
+        widget({ dischargeDatapoint: POWER, dischargeEffect: 'blink', dischargeColor: '#ff0000' }),
+        { [SOC]: 60, [POWER]: -900 },
+        '[data-aura-fill-badge="discharge"]',
+    );
+    r = await state();
+    check('discharging can blink the fill', r.fillAnim === 'aura-fill-blink', String(r.fillAnim));
+    check('and its colour is configurable', r.downColor === 'rgb(255, 0, 0)', String(r.downColor));
+
+    await show(widget({ dischargeDatapoint: POWER, showDischargeIcon: false, dischargeEffect: 'blink' }), {
+        [SOC]: 60,
+        [POWER]: -900,
+    });
+    r = await state();
+    check('the discharge icon can be switched off', r.down === null, String(r.discharging));
+    check('while its blink keeps running', r.fillAnim === 'aura-fill-blink', String(r.fillAnim));
+
+    // A positive power is not a discharge, and a silent datapoint claims nothing.
+    await show(widget({ dischargeDatapoint: POWER }), { [SOC]: 60, [POWER]: 900 });
+    r = await state();
+    check('a positive power is no discharge', r.down === null, String(r.discharging));
+    await show(widget({ dischargeDatapoint: 'demo.status.missing2' }), { [SOC]: 60 });
+    r = await state();
+    check('a silent discharge datapoint adds no overlay', r.layer === false, String(r.layer));
+}
+
+// ── 5. The connection ───────────────────────────────────────────────────────
 {
     // An UNREACH datapoint: true means gone, so "connected" is the false case.
     await show(widget({ connectedDatapoint: CONN, connectedCondition: 'false' }), { [SOC]: 60, [CONN]: false });
@@ -217,7 +294,7 @@ const state = () =>
     );
 }
 
-// ── 5. Other layouts carry the badges too ───────────────────────────────────
+// ── 6. Other layouts carry the badges too ───────────────────────────────────
 for (const layout of ['default', 'bar', 'segments', 'wave']) {
     await show(
         widget({ chargeDatapoint: CHARGE }, { layout }),
@@ -228,7 +305,7 @@ for (const layout of ['default', 'bar', 'segments', 'wave']) {
     check(`layout ${layout} shows the bolt`, !!r.bolt, String(r.charging));
 }
 
-// ── 6. The editor panel writes the options ──────────────────────────────────
+// ── 7. The editor panel writes the options ──────────────────────────────────
 async function openPanel() {
     await page.evaluate(() => window.__auraShot.setEditMode(true));
     await page.locator('.aura-edit-chrome button').first().click();
@@ -257,6 +334,33 @@ async function openPanel() {
     await page.waitForTimeout(400);
     o = await page.evaluate(() => window.__auraShot.widgetOptions('w-status-cfg'));
     check('the select writes chargeEffect', o?.chargeEffect === 'scan', String(o?.chargeEffect));
+
+    // #691: the discharge row, and the shortcut that copies the charge datapoint over.
+    const copy = page.locator('button:text-is("Denselben Datenpunkt wie beim Laden übernehmen")');
+    check('the panel offers to reuse the charge datapoint', (await copy.count()) === 1, `${await copy.count()}`);
+    await copy.click();
+    await page.waitForTimeout(400);
+    o = await page.evaluate(() => window.__auraShot.widgetOptions('w-status-cfg'));
+    check('the shortcut writes dischargeDatapoint', o?.dischargeDatapoint === CHARGE, String(o?.dischargeDatapoint));
+
+    const dCond = page.locator('label:text-is("Entlädt, wenn der Wert …")').locator('xpath=following-sibling::select');
+    check('the discharge condition appears with it', (await dCond.count()) === 1, `${await dCond.count()}`);
+    check('and defaults to "kleiner 0"', (await dCond.inputValue()) === 'lt0', await dCond.inputValue());
+
+    const dEffect = page
+        .locator('label:text-is("Effekt während des Entladens")')
+        .locator('xpath=following-sibling::select');
+    await dEffect.selectOption('blink');
+    await page.waitForTimeout(400);
+    o = await page.evaluate(() => window.__auraShot.widgetOptions('w-status-cfg'));
+    check('the select writes dischargeEffect', o?.dischargeEffect === 'blink', String(o?.dischargeEffect));
+
+    const dIcon = page.locator('label:text-is("Icon beim Entladen")').locator('xpath=following-sibling::button');
+    check(
+        'the discharge row names its default icon',
+        (await dIcon.first().textContent())?.includes('mdi:battery-arrow-down'),
+        (await dIcon.first().textContent()) ?? '',
+    );
 
     const conn = page
         .locator('label:text-is("Verbunden aus Datenpunkt")')

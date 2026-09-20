@@ -1,5 +1,5 @@
-// Verifies how the fill widget reads its two optional status datapoints (#671):
-// "is it charging" and "is it still connected".
+// Verifies how the fill widget reads its optional status datapoints (#671, #691):
+// "is it charging", "is it discharging" and "is it still connected".
 //
 //   node tools/tests/fill-status-logic.mjs
 //
@@ -76,36 +76,40 @@ const UN = 'hm.0.dev.UNREACH';
 
 eq('without datapoints nothing is claimed', resolveFillStatus({}, {}), {
     charging: false,
+    discharging: false,
     connected: null,
     offline: false,
     effect: 'none',
+    effectSource: null,
 });
 eq(
     'a charging battery with the blink effect',
     resolveFillStatus({ chargeDatapoint: CH, chargeEffect: 'blink' }, { [CH]: true }),
-    { charging: true, connected: null, offline: false, effect: 'blink' },
+    { charging: true, discharging: false, connected: null, offline: false, effect: 'blink', effectSource: 'charge' },
 );
 eq(
     'the effect stops as soon as the charging stops',
     resolveFillStatus({ chargeDatapoint: CH, chargeEffect: 'scan' }, { [CH]: false }),
-    { charging: false, connected: null, offline: false, effect: 'none' },
+    { charging: false, discharging: false, connected: null, offline: false, effect: 'none', effectSource: null },
 );
 eq(
     'an UNREACH datapoint read as "false = connected"',
     resolveFillStatus({ connectedDatapoint: UN, connectedCondition: 'false' }, { [UN]: false }),
-    { charging: false, connected: true, offline: false, effect: 'none' },
+    { charging: false, discharging: false, connected: true, offline: false, effect: 'none', effectSource: null },
 );
 eq(
     'and the same datapoint when the device is gone',
     resolveFillStatus({ connectedDatapoint: UN, connectedCondition: 'false' }, { [UN]: true }),
-    { charging: false, connected: false, offline: true, effect: 'none' },
+    { charging: false, discharging: false, connected: false, offline: true, effect: 'none', effectSource: null },
 );
 // A reload must not grey out every battery for the seconds before the states arrive.
 eq('a connection datapoint without a value yet is not "offline"', resolveFillStatus({ connectedDatapoint: UN }, {}), {
     charging: false,
+    discharging: false,
     connected: null,
     offline: false,
     effect: 'none',
+    effectSource: null,
 });
 eq(
     'both at once: a PV storage charging while reachable',
@@ -119,12 +123,74 @@ eq(
         },
         { [CH]: 2400, [UN]: false },
     ),
-    { charging: true, connected: true, offline: false, effect: 'scan' },
+    { charging: true, discharging: false, connected: true, offline: false, effect: 'scan', effectSource: 'charge' },
 );
 eq(
     'a datapoint of a different widget in the map changes nothing',
     resolveFillStatus({ chargeDatapoint: CH }, { 'other.dp': true }),
-    { charging: false, connected: null, offline: false, effect: 'none' },
+    { charging: false, discharging: false, connected: null, offline: false, effect: 'none', effectSource: null },
+);
+
+// ── discharging (#691) ─────────────────────────────────────────────────
+// The reporter's case: one signed packPower feeds both rows, gt0 above and lt0 below.
+const PW = 'pv.0.battery.packPower';
+const both = { chargeDatapoint: PW, chargeCondition: 'gt0', chargeEffect: 'scan', dischargeDatapoint: PW };
+eq('a signed power while charging', resolveFillStatus({ ...both, dischargeEffect: 'blink' }, { [PW]: 2400 }), {
+    charging: true,
+    discharging: false,
+    connected: null,
+    offline: false,
+    effect: 'scan',
+    effectSource: 'charge',
+});
+eq('the same power while discharging', resolveFillStatus({ ...both, dischargeEffect: 'blink' }, { [PW]: -900 }), {
+    charging: false,
+    discharging: true,
+    connected: null,
+    offline: false,
+    effect: 'blink',
+    effectSource: 'discharge',
+});
+// Standing still is neither — the state an inverted charge flag could never express.
+eq('and standing still is neither', resolveFillStatus({ ...both, dischargeEffect: 'blink' }, { [PW]: 0 }), {
+    charging: false,
+    discharging: false,
+    connected: null,
+    offline: false,
+    effect: 'none',
+    effectSource: null,
+});
+check(
+    'the discharge condition defaults to lt0',
+    resolveFillStatus({ dischargeDatapoint: PW }, { [PW]: -900 }).discharging === true &&
+        resolveFillStatus({ dischargeDatapoint: PW }, { [PW]: 900 }).discharging === false,
+);
+check(
+    'a discharge flag can be read as a plain boolean too',
+    resolveFillStatus({ dischargeDatapoint: PW, dischargeCondition: 'true' }, { [PW]: true }).discharging === true,
+);
+check(
+    'a silent discharge datapoint claims nothing',
+    resolveFillStatus({ dischargeDatapoint: PW }, {}).discharging === false,
+);
+// Two separate flags can both be set. One animation at a time: charging owns the fill.
+eq(
+    'both flags at once: charging wins the effect',
+    resolveFillStatus(
+        {
+            chargeDatapoint: CH,
+            chargeEffect: 'scan',
+            dischargeDatapoint: 'hm.0.dev.DISCHARGING',
+            dischargeCondition: 'true',
+            dischargeEffect: 'blink',
+        },
+        { [CH]: true, 'hm.0.dev.DISCHARGING': true },
+    ),
+    { charging: true, discharging: true, connected: null, offline: false, effect: 'scan', effectSource: 'charge' },
+);
+check(
+    'an unconfigured discharge datapoint leaves the charge effect alone',
+    resolveFillStatus({ chargeDatapoint: CH, chargeEffect: 'blink' }, { [CH]: true }).effectSource === 'charge',
 );
 
 console.log(failed === 0 ? '\nAll fill-status checks passed.' : `\n${failed} check(s) failed.`);

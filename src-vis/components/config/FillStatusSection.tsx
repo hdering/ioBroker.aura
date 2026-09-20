@@ -1,11 +1,12 @@
 /**
- * FillStatusSection — the two optional status datapoints of the fill widget (#671).
+ * FillStatusSection — the optional status datapoints of the fill widget (#671, #691).
  *
- * "Charging" and "connected" are statements about the device, not about the level, so
- * they get their own block below the colours. Each row is a datapoint plus the rule that
- * turns its value into a yes/no: an HmIP flag is a boolean, an `UNREACH` is an inverted
- * one, and a PV storage reports a charge power that is positive while charging and
- * negative while feeding back.
+ * "Charging", "discharging" and "connected" are statements about the device, not about
+ * the level, so they get their own block below the colours. Each row is a datapoint plus
+ * the rule that turns its value into a yes/no: an HmIP flag is a boolean, an `UNREACH` is
+ * an inverted one, and a PV storage reports a pack power that is positive while charging
+ * and negative while feeding back — that one id fills both rows, with `gt0` above and
+ * `lt0` below, which is why the discharge field offers to copy it over.
  *
  * Everything below only shows up once the datapoint above it is filled — an empty field
  * means the widget looks exactly as it always did.
@@ -15,8 +16,13 @@ import { Database } from 'lucide-react';
 import { ColorPicker } from '../common/ColorPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { DEFAULT_CHARGE_ICON, DEFAULT_OFFLINE_ICON } from '../widgets/FillStatus';
-import { FILL_CONDITIONS, type FillCondition, type FillChargeEffect } from '../../utils/fillStatus';
+import { DEFAULT_CHARGE_ICON, DEFAULT_DISCHARGE_ICON, DEFAULT_OFFLINE_ICON } from '../widgets/FillStatus';
+import {
+    FILL_CONDITIONS,
+    DEFAULT_DISCHARGE_CONDITION,
+    type FillCondition,
+    type FillChargeEffect,
+} from '../../utils/fillStatus';
 
 const CONDITION_LABEL: Record<FillCondition, string> = {
     true: 'wahr / 1',
@@ -31,16 +37,37 @@ const EFFECT_LABEL: Record<FillChargeEffect, string> = {
     scan: 'Lauflicht',
 };
 
+/** Which row a datapoint picker / icon picker was opened for. */
+type DpKey = 'charge' | 'discharge' | 'connected';
+type IconKey = 'charge' | 'discharge' | 'offline';
+
+const DP_OPTION: Record<DpKey, string> = {
+    charge: 'chargeDatapoint',
+    discharge: 'dischargeDatapoint',
+    connected: 'connectedDatapoint',
+};
+const ICON_OPTION: Record<IconKey, string> = {
+    charge: 'chargeIcon',
+    discharge: 'dischargeIcon',
+    offline: 'offlineIcon',
+};
+const ICON_DEFAULT: Record<IconKey, string> = {
+    charge: DEFAULT_CHARGE_ICON,
+    discharge: DEFAULT_DISCHARGE_ICON,
+    offline: DEFAULT_OFFLINE_ICON,
+};
+
 export interface FillStatusSectionProps {
     options: Record<string, unknown>;
     set: (patch: Record<string, unknown>) => void;
     /** Opens the panel's datapoint picker for that row. */
-    onPick: (which: 'charge' | 'connected') => void;
+    onPick: (which: DpKey) => void;
     /** Panel input classes / styling (fCls / fSty). */
     inputClassName: string;
     inputStyle?: React.CSSProperties;
-    /** Default colours of the two badges. */
+    /** Default colours of the three badges. */
     chargeColor: string;
+    dischargeColor: string;
     offlineColor: string;
 }
 
@@ -51,11 +78,13 @@ export function FillStatusSection({
     inputClassName,
     inputStyle,
     chargeColor,
+    dischargeColor,
     offlineColor,
 }: FillStatusSectionProps) {
     const chargeDp = (o.chargeDatapoint as string) ?? '';
+    const dischargeDp = (o.dischargeDatapoint as string) ?? '';
     const connectedDp = (o.connectedDatapoint as string) ?? '';
-    const [iconPicker, setIconPicker] = useState<'charge' | 'offline' | null>(null);
+    const [iconPicker, setIconPicker] = useState<IconKey | null>(null);
 
     const label = (text: string) => (
         <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
@@ -63,20 +92,14 @@ export function FillStatusSection({
         </label>
     );
 
-    const dpRow = (which: 'charge' | 'connected', value: string, text: string, placeholder: string) => (
+    const dpRow = (which: DpKey, value: string, text: string, placeholder: string) => (
         <div>
             {label(text)}
             <div className="flex gap-1">
                 <input
                     type="text"
                     value={value}
-                    onChange={(e) =>
-                        set(
-                            which === 'charge'
-                                ? { chargeDatapoint: e.target.value }
-                                : { connectedDatapoint: e.target.value },
-                        )
-                    }
+                    onChange={(e) => set({ [DP_OPTION[which]]: e.target.value })}
                     placeholder={placeholder}
                     className={`${inputClassName} font-mono flex-1 min-w-0`}
                     style={inputStyle}
@@ -98,11 +121,15 @@ export function FillStatusSection({
         </div>
     );
 
-    const conditionRow = (key: 'chargeCondition' | 'connectedCondition', text: string) => (
+    const conditionRow = (
+        key: 'chargeCondition' | 'dischargeCondition' | 'connectedCondition',
+        text: string,
+        def: FillCondition = 'true',
+    ) => (
         <div>
             {label(text)}
             <select
-                value={(o[key] as FillCondition) ?? 'true'}
+                value={(o[key] as FillCondition) ?? def}
                 onChange={(e) => set({ [key]: e.target.value })}
                 className={inputClassName}
                 style={inputStyle}
@@ -137,10 +164,29 @@ export function FillStatusSection({
         );
     };
 
+    /** The fill effect while the state holds. Same three choices for both directions. */
+    const effectRow = (key: 'chargeEffect' | 'dischargeEffect', text: string) => (
+        <div>
+            {label(text)}
+            <select
+                value={(o[key] as FillChargeEffect) ?? 'none'}
+                onChange={(e) => set({ [key]: e.target.value })}
+                className={inputClassName}
+                style={inputStyle}
+            >
+                {(['none', 'blink', 'scan'] as FillChargeEffect[]).map((e) => (
+                    <option key={e} value={e}>
+                        {EFFECT_LABEL[e]}
+                    </option>
+                ))}
+            </select>
+        </div>
+    );
+
     /** Icon button + name, like the limits editor. Empty stored value = the default icon. */
-    const iconRow = (which: 'charge' | 'offline', text: string) => {
-        const key = which === 'charge' ? 'chargeIcon' : 'offlineIcon';
-        const fallback = which === 'charge' ? DEFAULT_CHARGE_ICON : DEFAULT_OFFLINE_ICON;
+    const iconRow = (which: IconKey, text: string) => {
+        const key = ICON_OPTION[which];
+        const fallback = ICON_DEFAULT[which];
         const name = (o[key] as string) || '';
         const Icon = getWidgetIcon(name || fallback, null);
         return (
@@ -160,7 +206,7 @@ export function FillStatusSection({
         );
     };
 
-    const colorRow = (key: 'chargeColor' | 'offlineColor', text: string, fallback: string) => (
+    const colorRow = (key: 'chargeColor' | 'dischargeColor' | 'offlineColor', text: string, fallback: string) => (
         <div className="flex items-center justify-between">
             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                 {text}
@@ -187,24 +233,32 @@ export function FillStatusSection({
             {chargeDp.trim() !== '' && (
                 <>
                     {conditionRow('chargeCondition', 'Lädt, wenn der Wert …')}
-                    <div>
-                        {label('Effekt während des Ladens')}
-                        <select
-                            value={(o.chargeEffect as FillChargeEffect) ?? 'none'}
-                            onChange={(e) => set({ chargeEffect: e.target.value })}
-                            className={inputClassName}
-                            style={inputStyle}
-                        >
-                            {(['none', 'blink', 'scan'] as FillChargeEffect[]).map((e) => (
-                                <option key={e} value={e}>
-                                    {EFFECT_LABEL[e]}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    {effectRow('chargeEffect', 'Effekt während des Ladens')}
                     {toggle('showChargeIcon', 'Icon anzeigen')}
                     {(o.showChargeIcon ?? true) !== false && iconRow('charge', 'Icon beim Laden')}
                     {colorRow('chargeColor', 'Farbe (Icon und Lauflicht)', chargeColor)}
+                </>
+            )}
+
+            {dpRow('discharge', dischargeDp, 'Entladen aus Datenpunkt', 'z. B. …packPower (leer = aus)')}
+            {/* A signed power answers both questions. One click saves typing the id twice. */}
+            {dischargeDp.trim() === '' && chargeDp.trim() !== '' && (
+                <button
+                    type="button"
+                    onClick={() => set({ dischargeDatapoint: chargeDp })}
+                    className="text-[10px] text-left underline underline-offset-2 hover:opacity-80 -mt-1"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    Denselben Datenpunkt wie beim Laden übernehmen
+                </button>
+            )}
+            {dischargeDp.trim() !== '' && (
+                <>
+                    {conditionRow('dischargeCondition', 'Entlädt, wenn der Wert …', DEFAULT_DISCHARGE_CONDITION)}
+                    {effectRow('dischargeEffect', 'Effekt während des Entladens')}
+                    {toggle('showDischargeIcon', 'Icon anzeigen')}
+                    {(o.showDischargeIcon ?? true) !== false && iconRow('discharge', 'Icon beim Entladen')}
+                    {colorRow('dischargeColor', 'Farbe (Icon und Lauflicht)', dischargeColor)}
                 </>
             )}
 
@@ -220,15 +274,16 @@ export function FillStatusSection({
             )}
 
             <p className="text-[10px] leading-snug" style={{ color: 'var(--text-secondary)' }}>
-                Beide Datenpunkte werden nur gelesen. Ein <code>UNREACH</code>-Datenpunkt meldet die Störung, nicht die
+                Alle drei Datenpunkte werden nur gelesen. Eine vorzeichenbehaftete Leistung deckt Laden und Entladen ab
+                — oben „größer 0“, unten „kleiner 0“. Ein <code>UNREACH</code>-Datenpunkt meldet die Störung, nicht die
                 Verbindung — dort „falsch / 0“ wählen. Das Custom-Layout zeigt keinen Status.
             </p>
 
             {iconPicker && (
                 <IconPickerModal
-                    current={(o[iconPicker === 'charge' ? 'chargeIcon' : 'offlineIcon'] as string) ?? ''}
+                    current={(o[ICON_OPTION[iconPicker]] as string) ?? ''}
                     onSelect={(name) => {
-                        set({ [iconPicker === 'charge' ? 'chargeIcon' : 'offlineIcon']: name || undefined });
+                        set({ [ICON_OPTION[iconPicker]]: name || undefined });
                         setIconPicker(null);
                     }}
                     onClose={() => setIconPicker(null)}

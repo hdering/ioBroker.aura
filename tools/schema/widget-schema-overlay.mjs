@@ -361,6 +361,29 @@ export const WIDGET_OPTION_NOTES = {
                 'Icon, solange geladen wird — beliebiges Iconify-Icon (z. B. mdi:flash) oder Lucide-Name. Leer = mdi:flash.',
         },
         chargeColor: { description: 'Farbe von Blitz-Icon und Lauflicht.' },
+        dischargeDatapoint: {
+            description:
+                'Datenpunkt „entlädt gerade“ (#691) — eigenes Flag oder dieselbe vorzeichenbehaftete Leistung ' +
+                'wie chargeDatapoint (dann oben gt0, hier lt0). Wird nur gelesen. Leer = keine Entladeanzeige. ' +
+                'Zeigt ein eigenes Icon unten rechts im Balken und kann einen eigenen Effekt auslösen ' +
+                '(dischargeEffect). Lädt und entlädt zugleich: das Laden gewinnt den Effekt, beide Icons bleiben.',
+        },
+        dischargeCondition: {
+            description:
+                'Wann der Entladewert „entlädt“ bedeutet: lt0 = kleiner 0 (Standard, Entladeleistung), gt0, ' +
+                'true = wahr/1, false = falsch/0. Ein Wert, der noch nicht da ist, gilt nie als Entladen.',
+        },
+        dischargeEffect: {
+            description:
+                'Effekt auf der Füllung, solange entladen wird: none (Standard), blink = die Füllung pulsiert, ' +
+                'scan = Lauflicht in der Entladefarbe. Bei reduzierter Bewegung (Systemeinstellung) läuft keiner.',
+        },
+        showDischargeIcon: { description: 'Icon anzeigen, solange entladen wird.' },
+        dischargeIcon: {
+            description:
+                'Icon, solange entladen wird — beliebiges Iconify-Icon oder Lucide-Name. Leer = mdi:battery-arrow-down.',
+        },
+        dischargeColor: { description: 'Farbe von Entlade-Icon und Lauflicht. Standard ist Orange (#f97316).' },
         connectedDatapoint: {
             description:
                 'Datenpunkt „Verbindung" (#671). Wird nur gelesen. Leer = keine Verbindungsanzeige. Ein ' +

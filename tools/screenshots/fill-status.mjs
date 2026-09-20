@@ -1,11 +1,12 @@
-// Screenshots of the fill widget's status datapoints (#671).
-// Output: docs/widgets/assets/fuellstandsanzeige/status-laden.png and status-getrennt.png
+// Screenshots of the fill widget's status datapoints (#671, #691).
+// Output: docs/widgets/assets/fuellstandsanzeige/status-laden.png, status-entladen.png
+// and status-getrennt.png
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/screenshots/fill-status.mjs
 //
 // Its own script rather than a `shots` list in widgets-meta.mjs: that list replaces the
-// page's runtime.png, and these two images are additions to it, not a replacement.
+// page's runtime.png, and these images are additions to it, not a replacement.
 import { chromium } from 'playwright';
 import { mkdirSync } from 'node:fs';
 
@@ -16,6 +17,7 @@ mkdirSync(OUT, { recursive: true });
 
 const SOC = 'demo.fillstatus.soc';
 const CHARGE = 'demo.fillstatus.charge';
+const POWER = 'demo.fillstatus.power';
 const CONN = 'demo.fillstatus.conn';
 
 const browser = await chromium.launch();
@@ -59,6 +61,7 @@ async function shot(options, mocks, file) {
 }
 
 await shot({ chargeDatapoint: CHARGE }, { [SOC]: 64, [CHARGE]: true }, 'status-laden.png');
+await shot({ dischargeDatapoint: POWER }, { [SOC]: 64, [POWER]: -900 }, 'status-entladen.png');
 await shot(
     { connectedDatapoint: CONN, connectedCondition: 'false' },
     { [SOC]: 64, [CONN]: true },

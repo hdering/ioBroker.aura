@@ -116,6 +116,7 @@ import { DEFAULT_KNOB_GRID } from '../widgets/KnobWidget';
 import {
     OVER_COLOR as FILL_OVER_COLOR,
     CHARGE_COLOR as FILL_CHARGE_COLOR,
+    DISCHARGE_COLOR as FILL_DISCHARGE_COLOR,
     OFFLINE_COLOR as FILL_OFFLINE_COLOR,
 } from '../widgets/FillWidget';
 import { DatapointPicker } from '../config/DatapointPicker';
@@ -6509,6 +6510,7 @@ function WidgetFrameInner({
         | 'scale_minDp'
         | 'scale_maxDp'
         | 'fill_chargeDp'
+        | 'fill_dischargeDp'
         | 'fill_connectedDp'
         | 'windowcontact_batteryDp'
         | 'wc_lockDp'
@@ -13367,18 +13369,15 @@ function WidgetFrameInner({
                                             </>
                                         )}
 
-                                        {/* Laden / Verbindung als eigene Datenpunkte (#671). */}
+                                        {/* Laden / Entladen / Verbindung als eigene Datenpunkte (#671, #691). */}
                                         <FillStatusSection
                                             options={o}
                                             set={set}
-                                            onPick={(which) =>
-                                                setPickerTarget(
-                                                    which === 'charge' ? 'fill_chargeDp' : 'fill_connectedDp',
-                                                )
-                                            }
+                                            onPick={(which) => setPickerTarget(`fill_${which}Dp`)}
                                             inputClassName={fCls}
                                             inputStyle={fSty}
                                             chargeColor={FILL_CHARGE_COLOR}
+                                            dischargeColor={FILL_DISCHARGE_COLOR}
                                             offlineColor={FILL_OFFLINE_COLOR}
                                         />
                                     </>
@@ -19493,6 +19492,8 @@ function WidgetFrameInner({
                             onConfigChange({ ...config, options: { ...config.options, maxDatapoint: id } });
                         } else if (pickerTarget === 'fill_chargeDp') {
                             onConfigChange({ ...config, options: { ...config.options, chargeDatapoint: id } });
+                        } else if (pickerTarget === 'fill_dischargeDp') {
+                            onConfigChange({ ...config, options: { ...config.options, dischargeDatapoint: id } });
                         } else if (pickerTarget === 'fill_connectedDp') {
                             onConfigChange({ ...config, options: { ...config.options, connectedDatapoint: id } });
                         } else if (pickerTarget === 'gauge_pointer2Dp') {

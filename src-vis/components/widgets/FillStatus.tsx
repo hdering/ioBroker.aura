@@ -1,5 +1,5 @@
 /**
- * Charging / connection badges and the charging effect of the fill widget (#671).
+ * Charging / discharging / connection badges and their effects (#671, #691).
  *
  * Drawn as an HTML overlay on top of whichever renderer is on screen, for the same
  * reason the limits are (see FillLimits): every layout has its own viewBox and its own
@@ -12,7 +12,7 @@
  * Only the sweep ("Knight Rider") needs geometry, and that is what this layer has.
  */
 import type { RefObject } from 'react';
-import { Zap, WifiOff } from 'lucide-react';
+import { Zap, BatteryLow, WifiOff } from 'lucide-react';
 import { useTrackBox } from './FillLimits';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { FillStatus } from '../../utils/fillStatus';
@@ -31,18 +31,24 @@ export interface FillStatusLayerProps {
     fillFrac: number;
     status: FillStatus;
     showChargeIcon: boolean;
+    showDischargeIcon: boolean;
     showOfflineIcon: boolean;
     /** Freely chosen icons (Iconify id or legacy Lucide name); empty = the defaults. */
     chargeIcon?: string;
+    dischargeIcon?: string;
     offlineIcon?: string;
     chargeColor: string;
+    dischargeColor: string;
     offlineColor: string;
 }
+
+type BadgeKind = 'charge' | 'discharge' | 'offline';
 
 /** Below this share of the bar there is nothing to sweep over — use the whole track. */
 const MIN_SWEEP_FRAC = 0.08;
 /** Icons when nothing is picked. Filled shapes — a stroked outline vanishes at badge size. */
 export const DEFAULT_CHARGE_ICON = 'mdi:flash';
+export const DEFAULT_DISCHARGE_ICON = 'mdi:battery-arrow-down';
 export const DEFAULT_OFFLINE_ICON = 'mdi:wifi-off';
 
 export function FillStatusLayer({
@@ -52,19 +58,25 @@ export function FillStatusLayer({
     fillFrac,
     status,
     showChargeIcon,
+    showDischargeIcon,
     showOfflineIcon,
     chargeIcon,
+    dischargeIcon,
     offlineIcon,
     chargeColor,
+    dischargeColor,
     offlineColor,
 }: FillStatusLayerProps) {
     // No track ref: measure the host against itself, which yields its own box at 0/0.
     const box = useTrackBox(hostRef, trackRef ?? hostRef);
     const badges = [
         status.charging && showChargeIcon ? ('charge' as const) : null,
+        status.discharging && showDischargeIcon ? ('discharge' as const) : null,
         status.offline && showOfflineIcon ? ('offline' as const) : null,
-    ].filter(Boolean) as ('charge' | 'offline')[];
+    ].filter(Boolean) as BadgeKind[];
     const sweep = status.effect === 'scan';
+    // The sweep is painted in the colour of whichever state started it (#691).
+    const sweepColor = status.effectSource === 'discharge' ? dischargeColor : chargeColor;
     if (!box || (!badges.length && !sweep)) return null;
 
     const vertical = orientation === 'vertical';
@@ -87,10 +99,24 @@ export function FillStatusLayer({
           }
         : { left: box.left, top: box.top, width: litLen * box.width, height: box.height };
 
+    /** Icon, Lucide fallback and colour per badge — three kinds, one lookup each. */
+    const badgeIcon: Record<BadgeKind, string> = {
+        charge: chargeIcon || DEFAULT_CHARGE_ICON,
+        discharge: dischargeIcon || DEFAULT_DISCHARGE_ICON,
+        offline: offlineIcon || DEFAULT_OFFLINE_ICON,
+    };
+    const badgeFallback = { charge: Zap, discharge: BatteryLow, offline: WifiOff };
+    const badgeColor: Record<BadgeKind, string> = {
+        charge: chargeColor,
+        discharge: dischargeColor,
+        offline: offlineColor,
+    };
+
     return (
         <div
             data-aura-fill-status=""
             data-aura-fill-charging={status.charging ? '1' : '0'}
+            data-aura-fill-discharging={status.discharging ? '1' : '0'}
             data-aura-fill-connected={status.connected === null ? '' : status.connected ? '1' : '0'}
             style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 3 }}
         >
@@ -111,7 +137,7 @@ export function FillStatusLayer({
                             ...(vertical
                                 ? { left: 0, right: 0, top: 0, height: '45%' }
                                 : { top: 0, bottom: 0, left: 0, width: '45%' }),
-                            background: `linear-gradient(${vertical ? '180deg' : '90deg'}, transparent, ${chargeColor}, transparent)`,
+                            background: `linear-gradient(${vertical ? '180deg' : '90deg'}, transparent, ${sweepColor}, transparent)`,
                             opacity: 0.65,
                         }}
                     />
@@ -142,10 +168,7 @@ export function FillStatusLayer({
                         // `style.color` rather than a `color` prop: that is the one channel
                         // both shapes of icon component understand (an Iconify icon paints
                         // with currentColor, a Lucide one strokes with it).
-                        const Icon =
-                            kind === 'charge'
-                                ? getWidgetIcon(chargeIcon || DEFAULT_CHARGE_ICON, Zap)
-                                : getWidgetIcon(offlineIcon || DEFAULT_OFFLINE_ICON, WifiOff);
+                        const Icon = getWidgetIcon(badgeIcon[kind], badgeFallback[kind]);
                         return (
                             <span
                                 key={kind}
@@ -153,7 +176,7 @@ export function FillStatusLayer({
                                 style={{
                                     display: 'inline-flex',
                                     flexShrink: 0,
-                                    color: kind === 'charge' ? chargeColor : offlineColor,
+                                    color: badgeColor[kind],
                                 }}
                             >
                                 <Icon size={size} />

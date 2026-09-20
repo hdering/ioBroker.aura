@@ -1,14 +1,19 @@
 /**
- * Optional status datapoints of the fill widget (#671).
+ * Optional status datapoints of the fill widget (#671, #691).
  *
  * A battery is more than its level: HmIP-style devices carry a second datapoint for
- * "is it charging" and a third for "is it still reachable". Both are optional, both
- * only report — nothing here is ever written back.
+ * "is it charging" and a third for "is it still reachable". All of them are optional,
+ * all of them only report — nothing here is ever written back.
  *
  * The comparison is configurable because the same statement comes in four shapes in
  * the wild: a boolean `CHARGING`, an inverted `UNREACH` (true means *gone*), and a
  * charge/discharge power that is positive while charging and negative while feeding
  * back. `true`/`false` read a flag, `gt0`/`lt0` read a number.
+ *
+ * Discharging (#691) is the same rule a second time, and deliberately its own datapoint
+ * rather than "charging, inverted": a signed `packPower` answers both questions from one
+ * id (`gt0` here, `lt0` there), while a device with two separate flags keeps them apart.
+ * Standing still is then neither — which is exactly what an inverted flag could not say.
  */
 
 export type FillCondition = 'true' | 'false' | 'gt0' | 'lt0';
@@ -66,12 +71,20 @@ export function conditionMet(raw: unknown, cond: FillCondition = 'true'): boolea
     }
 }
 
+/** The default rule for the discharge datapoint — the signed-power case is the common one. */
+export const DEFAULT_DISCHARGE_CONDITION: FillCondition = 'lt0';
+
 export interface FillStatusOptions {
     chargeDatapoint?: string;
     chargeCondition?: FillCondition;
     chargeEffect?: FillChargeEffect;
     showChargeIcon?: boolean;
     chargeColor?: string;
+    dischargeDatapoint?: string;
+    dischargeCondition?: FillCondition;
+    dischargeEffect?: FillChargeEffect;
+    showDischargeIcon?: boolean;
+    dischargeColor?: string;
     connectedDatapoint?: string;
     connectedCondition?: FillCondition;
     showOfflineIcon?: boolean;
@@ -82,12 +95,16 @@ export interface FillStatusOptions {
 export interface FillStatus {
     /** A charge datapoint is configured and its condition is met. */
     charging: boolean;
+    /** A discharge datapoint is configured and its condition is met (#691). */
+    discharging: boolean;
     /** true/false once a connection datapoint is configured, null when there is none. */
     connected: boolean | null;
     /** Short for `connected === false` — the only state that changes the picture. */
     offline: boolean;
-    /** The effect to run on the fill while charging; 'none' unless it is actually charging. */
+    /** The effect to run on the fill; 'none' unless it is actually charging or discharging. */
     effect: FillChargeEffect;
+    /** Which of the two the running effect belongs to — it decides its colour. */
+    effectSource: 'charge' | 'discharge' | null;
 }
 
 /**
@@ -99,8 +116,11 @@ export interface FillStatus {
  */
 export function resolveFillStatus(opts: FillStatusOptions, values: Record<string, unknown>): FillStatus {
     const chargeDp = opts.chargeDatapoint?.trim() ?? '';
+    const dischargeDp = opts.dischargeDatapoint?.trim() ?? '';
     const connDp = opts.connectedDatapoint?.trim() ?? '';
     const charging = !!chargeDp && conditionMet(values[chargeDp], opts.chargeCondition ?? 'true');
+    const discharging =
+        !!dischargeDp && conditionMet(values[dischargeDp], opts.dischargeCondition ?? DEFAULT_DISCHARGE_CONDITION);
     // A configured datapoint whose value has not arrived yet stays `null`, not `false`:
     // declaring a device offline for the first seconds after a reload would grey out
     // every battery on the dashboard on every page load.
@@ -108,6 +128,9 @@ export function resolveFillStatus(opts: FillStatusOptions, values: Record<string
         connDp && hasUsableValue(values[connDp])
             ? conditionMet(values[connDp], opts.connectedCondition ?? 'true')
             : null;
-    const effect = charging ? (opts.chargeEffect ?? 'none') : 'none';
-    return { charging, connected, offline: connected === false, effect };
+    // Two separate flags can both be set at once (a badly behaved device, or a bench
+    // test). Charging wins the fill — one animation at a time — while both badges show.
+    const effect = charging ? (opts.chargeEffect ?? 'none') : discharging ? (opts.dischargeEffect ?? 'none') : 'none';
+    const effectSource = effect === 'none' ? null : charging ? 'charge' : 'discharge';
+    return { charging, discharging, connected, offline: connected === false, effect, effectSource };
 }

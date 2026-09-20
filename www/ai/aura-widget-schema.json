@@ -8813,6 +8813,31 @@
           "description": "Datenpunkt „Verbindung\" (#671). Wird nur gelesen. Leer = keine Verbindungsanzeige. Ein UNREACH-Datenpunkt meldet die Störung, nicht die Verbindung — dann connectedCondition auf false setzen.",
           "datapoint": true
         },
+        "dischargeColor": {
+          "type": "string",
+          "description": "Farbe von Entlade-Icon und Lauflicht. Standard ist Orange (#f97316).",
+          "color": true
+        },
+        "dischargeCondition": {
+          "type": "string",
+          "ref": "FillCondition",
+          "description": "Wann der Entladewert „entlädt“ bedeutet: lt0 = kleiner 0 (Standard, Entladeleistung), gt0, true = wahr/1, false = falsch/0. Ein Wert, der noch nicht da ist, gilt nie als Entladen."
+        },
+        "dischargeDatapoint": {
+          "type": "string",
+          "default": "",
+          "description": "Datenpunkt „entlädt gerade“ (#691) — eigenes Flag oder dieselbe vorzeichenbehaftete Leistung wie chargeDatapoint (dann oben gt0, hier lt0). Wird nur gelesen. Leer = keine Entladeanzeige. Zeigt ein eigenes Icon unten rechts im Balken und kann einen eigenen Effekt auslösen (dischargeEffect). Lädt und entlädt zugleich: das Laden gewinnt den Effekt, beide Icons bleiben.",
+          "datapoint": true
+        },
+        "dischargeEffect": {
+          "type": "string",
+          "ref": "FillChargeEffect",
+          "description": "Effekt auf der Füllung, solange entladen wird: none (Standard), blink = die Füllung pulsiert, scan = Lauflicht in der Entladefarbe. Bei reduzierter Bewegung (Systemeinstellung) läuft keiner."
+        },
+        "dischargeIcon": {
+          "type": "string",
+          "description": "Icon, solange entladen wird — beliebiges Iconify-Icon oder Lucide-Name. Leer = mdi:battery-arrow-down."
+        },
         "limitClampNeighbours": {
           "type": "boolean",
           "default": true,
@@ -8895,6 +8920,11 @@
           "type": "boolean",
           "default": true,
           "description": "Icon anzeigen, solange geladen wird."
+        },
+        "showDischargeIcon": {
+          "type": "boolean",
+          "default": true,
+          "description": "Icon anzeigen, solange entladen wird."
         },
         "showOfflineIcon": {
           "type": "boolean",
