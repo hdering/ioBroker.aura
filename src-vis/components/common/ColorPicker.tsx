@@ -1,18 +1,22 @@
 /**
  * ColorPicker — a drop-in replacement for the raw `<input type="color">` used
- * throughout the widget configs, with an added 0–100% transparency (alpha)
- * control that the native picker cannot provide.
+ * throughout the widget configs, with three things the native picker cannot do:
+ * a 0–100% transparency (alpha) control, the theme's own colours, and one colour
+ * per brightness.
  *
  * The trigger is a color swatch (same footprint as the old inputs, so it slots
  * into existing tight config rows via `className`/`style`). Clicking it opens a
  * small popover — portaled (usePortalTarget) so it is not clipped by scrolling
- * config panels — containing the native RGB picker, a hex text field and an
- * alpha slider.
+ * config panels.
  *
- * Emitted value stays backward-compatible: `#RRGGBB` while fully opaque, and
- * `#RRGGBBAA` (valid CSS, accepted by chart libs and `startsWith('#')` checks)
- * only once alpha < 100. Non-hex inputs (CSS vars, rgb()) are parsed when
- * possible and otherwise fall back to `fallback` at 100% opacity.
+ * Emitted value stays backward-compatible and is always a single string:
+ *   `#RRGGBB`                      fully opaque
+ *   `#RRGGBBAA`                    once alpha < 100 (valid CSS, chart libs take it)
+ *   `var(--accent)`                a theme colour — follows light/dark by itself
+ *   `light-dark(#111, #eee)`       one colour per brightness (#689)
+ *
+ * The last two are resolved before they reach a widget (utils/dualColor.ts,
+ * utils/cssColor.ts), so nothing downstream has to know about them.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -20,16 +24,24 @@ import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useOverlayZ } from '../../contexts/OverlayZContext';
 import { createThrottle } from '../../utils/throttleCommit';
 import { useEscapeLayer } from '../../utils/escapeStack';
+import { makeDual, splitDual } from '../../utils/dualColor';
+import { PICKER_TOKENS } from '../../themes';
 
 interface Props {
-    /** Current color: `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()/rgba()` or a CSS var. */
+    /** Current color: `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()/rgba()`, a CSS var or a light/dark pair. */
     value: string;
-    /** Called with the new color string (`#rrggbb` or `#rrggbbaa`). */
+    /** Called with the new color string. */
     onChange: (value: string) => void;
     /** Hex used when `value` is not a parseable colour (default `#888888`). */
     fallback?: string;
     /** Enable the transparency slider (default true). */
     alpha?: boolean;
+    /**
+     * Offer a separate colour per brightness (default true). Off where a pair
+     * would be nonsense — the theme editor already has its own light/dark halves
+     * (#640), so a pair inside one of them would be a second, conflicting switch.
+     */
+    dual?: boolean;
     /**
      * Nothing is configured — paint the "no colour" glyph instead of `value`.
      * A field that falls back to a theme colour would otherwise show that fallback
@@ -85,6 +97,12 @@ function normalizeHex6(hex: string): string {
     return `#${h.toLowerCase()}`;
 }
 
+/** A reference to a theme colour — kept as written instead of being flattened to hex. */
+const TOKEN_RE = /^var\(\s*--[\w-]+\s*\)$/;
+export function isThemeToken(value: string): boolean {
+    return TOKEN_RE.test((value ?? '').trim());
+}
+
 /** Parse any supported colour string into a 6-digit hex + alpha percent. */
 export function parseColor(value: string, fallback = '#888888'): { hex6: string; alpha: number } {
     const v = (value ?? '').trim();
@@ -133,7 +151,15 @@ function isCompleteColor(raw: string): boolean {
     const v = (raw ?? '').trim();
     if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(v)) return true;
     if (/^rgba?\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*(,\s*[\d.]+\s*)?\)$/i.test(v)) return true;
+    if (isThemeToken(v)) return true;
     return false;
+}
+
+/** What a half of the value looks like painted — a token paints itself. */
+function cssOf(part: string, alphaEnabled: boolean, fallback: string): string {
+    if (isThemeToken(part)) return part;
+    const { hex6, alpha } = parseColor(part, fallback);
+    return combineColor(hex6, alphaEnabled ? alpha : 100);
 }
 
 /**
@@ -147,6 +173,7 @@ export function ColorPicker({
     onChange,
     fallback = '#888888',
     alpha: alphaEnabled = true,
+    dual = true,
     unset,
     title,
     className,
@@ -202,11 +229,18 @@ export function ColorPicker({
         setOpen(true);
     };
 
-    const { hex6, alpha } = parseColor(live ?? value, fallback);
+    const current = live ?? value;
+    const parts = splitDual(current);
     // A colour picked in this session is a colour, whatever the parent still says.
     const showUnset = unset && live === null;
 
-    const swatchColor = combineColor(hex6, alphaEnabled ? alpha : 100);
+    // A pair is shown split along the diagonal: light half top-left, dark half
+    // bottom-right — the same reading order as the two tabs in the popover.
+    const lightCss = cssOf(parts.light, alphaEnabled, fallback);
+    const darkCss = cssOf(parts.dark, alphaEnabled, fallback);
+    const swatchStyle: React.CSSProperties = parts.isPair
+        ? { backgroundImage: `linear-gradient(to bottom right, ${lightCss} 0 50%, ${darkCss} 50% 100%)` }
+        : { background: lightCss };
 
     return (
         <>
@@ -233,16 +267,17 @@ export function ColorPicker({
                         width: '100%',
                         height: '100%',
                         borderRadius: 'inherit',
-                        ...(showUnset ? NO_COLOR : { background: swatchColor }),
+                        ...(showUnset ? NO_COLOR : swatchStyle),
                     }}
                 />
             </button>
             {open && (
                 <ColorPopover
                     anchorRef={anchorRef}
-                    hex6={hex6}
-                    alpha={alpha}
+                    value={current}
+                    fallback={fallback}
                     alphaEnabled={alphaEnabled}
+                    dualEnabled={dual}
                     onChange={(v) => {
                         setLive(v);
                         push(v);
@@ -258,19 +293,28 @@ export function ColorPicker({
     );
 }
 
+/** The two halves, as tabs. Labels are what the user sees on the sun/moon button. */
+const SIDES: { key: 'light' | 'dark'; label: string }[] = [
+    { key: 'light', label: 'Hell' },
+    { key: 'dark', label: 'Dunkel' },
+];
+
 function ColorPopover({
     anchorRef,
-    hex6,
-    alpha,
+    value,
+    fallback,
     alphaEnabled,
+    dualEnabled,
     onChange,
     onSettle,
     onClose,
 }: {
     anchorRef: React.RefObject<HTMLButtonElement>;
-    hex6: string;
-    alpha: number;
+    /** The whole stored value, pair included. */
+    value: string;
+    fallback: string;
     alphaEnabled: boolean;
+    dualEnabled: boolean;
     /** Throttled on its way to the config - fine to call on every pointer move. */
     onChange: (value: string) => void;
     /** End of an interaction (pointer released, field left): deliver the last value now. */
@@ -331,34 +375,75 @@ function ColorPopover({
     // Escape belongs to the popover, not to the config dialog underneath it.
     useEscapeLayer(onClose);
 
-    const [hexText, setHexText] = useState(alphaEnabled && alpha < 100 ? combineColor(hex6, alpha) : hex6);
+    const parts = splitDual(value);
+    /**
+     * Pair mode is UI state, not derived from the value: makeDual collapses two
+     * equal halves back into one colour (a pair of identical colours is noise in
+     * the config), so deriving it would throw the user out of the mode the moment
+     * they set both sides alike while still editing.
+     */
+    const [pairMode, setPairMode] = useState(parts.isPair);
+    const [side, setSide] = useState<'light' | 'dark'>('light');
+    const active = pairMode ? (side === 'dark' ? parts.dark : parts.light) : parts.light;
+    const token = isThemeToken(active);
+    const { hex6, alpha } = parseColor(active, fallback);
+
+    /** Write one half back, keeping the other — or the plain value when unpaired. */
+    const emit = (part: string) => {
+        if (!pairMode) {
+            onChange(part);
+            return;
+        }
+        onChange(side === 'dark' ? makeDual(parts.light, part) : makeDual(part, parts.dark));
+    };
+    const emitHexAlpha = (h: string, a: number) => emit(combineColor(h, alphaEnabled ? a : 100));
+
+    const [hexText, setHexText] = useState(active);
     // While the user is typing in the text field, never overwrite it with the
     // normalized value — otherwise `#ef4` gets rewritten to `#eeff44` mid-word.
     // The colour is still applied live (commitHex on each keystroke) so the
     // swatch/preview reflects it; the field only re-normalizes on blur.
     const editingRef = useRef(false);
-    // Keep the text field in sync when the colour changes from the swatch/slider.
+    // Keep the text field in sync when the colour changes from the swatch, the
+    // slider, a theme colour or a switch to the other half.
     useEffect(() => {
         if (editingRef.current) return;
-        setHexText(alphaEnabled && alpha < 100 ? combineColor(hex6, alpha) : hex6);
-    }, [hex6, alpha, alphaEnabled]);
+        if (isThemeToken(active)) setHexText(active);
+        else setHexText(alphaEnabled && alpha < 100 ? combineColor(hex6, alpha) : hex6);
+    }, [active, hex6, alpha, alphaEnabled]);
 
     const commitHex = (raw: string) => {
-        const parsed = parseColor(raw, hex6);
-        onChange(combineColor(parsed.hex6, alphaEnabled ? parsed.alpha : 100));
+        const v = (raw ?? '').trim();
+        // A token is a colour in its own right — flattening it to hex would throw
+        // away exactly the thing that makes it follow the theme.
+        if (isThemeToken(v)) {
+            emit(v);
+            return;
+        }
+        const parsed = parseColor(v, hex6);
+        emitHexAlpha(parsed.hex6, parsed.alpha);
     };
+
+    const tabStyle = (on: boolean): React.CSSProperties => ({
+        flex: 1,
+        padding: '3px 0',
+        borderRadius: 4,
+        background: on ? 'var(--app-surface)' : 'transparent',
+        color: on ? 'var(--text-primary)' : 'var(--text-secondary)',
+        border: on ? '1px solid var(--app-border)' : '1px solid transparent',
+    });
 
     return createPortal(
         <div
             ref={panelRef}
-            className="nodrag fixed rounded-lg shadow-2xl p-3"
+            className="nodrag aura-color-popover fixed rounded-lg shadow-2xl p-3"
             style={{
                 // Tier comes from the surrounding overlay - inside a ConfigModal the
                 // popover has to clear that dialog's backdrop (see OverlayZContext).
                 zIndex: overlayZ,
                 top: -9999,
                 left: -9999,
-                width: 220,
+                width: 232,
                 background: 'var(--app-surface)',
                 color: 'var(--text-primary)',
                 border: '1px solid var(--app-border)',
@@ -366,11 +451,68 @@ function ColorPopover({
             }}
             onMouseDown={(e) => e.stopPropagation()}
         >
+            {dualEnabled && (
+                <div
+                    className="flex gap-1 text-[11px] mb-2 rounded p-0.5"
+                    style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                >
+                    <button type="button" style={tabStyle(!pairMode)} onClick={() => setPairMode(false)}>
+                        Einheitlich
+                    </button>
+                    <button
+                        type="button"
+                        style={tabStyle(pairMode)}
+                        title="Eigene Farbe für helles und dunkles Theme"
+                        onClick={() => {
+                            // Both halves start on the current colour, so switching
+                            // here never changes what is on screen.
+                            setPairMode(true);
+                            setSide('light');
+                        }}
+                    >
+                        Hell / Dunkel
+                    </button>
+                </div>
+            )}
+            {dualEnabled && pairMode && (
+                <div className="flex gap-1 text-[11px] mb-2">
+                    {SIDES.map((s) => (
+                        <button
+                            key={s.key}
+                            type="button"
+                            style={{
+                                ...tabStyle(side === s.key),
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 5,
+                            }}
+                            onClick={() => setSide(s.key)}
+                        >
+                            <span
+                                aria-hidden
+                                style={{
+                                    width: 10,
+                                    height: 10,
+                                    borderRadius: 2,
+                                    border: '1px solid var(--app-border)',
+                                    background: cssOf(
+                                        s.key === 'dark' ? parts.dark : parts.light,
+                                        alphaEnabled,
+                                        fallback,
+                                    ),
+                                }}
+                            />
+                            {s.label}
+                        </button>
+                    ))}
+                </div>
+            )}
             <div className="flex items-center gap-2">
                 <input
                     type="color"
                     value={hex6}
-                    onChange={(e) => onChange(combineColor(e.target.value, alphaEnabled ? alpha : 100))}
+                    onChange={(e) => emitHexAlpha(e.target.value, alpha)}
                     onBlur={onSettle}
                     className="cursor-pointer rounded"
                     style={{ width: 40, height: 32, border: '1px solid var(--app-border)', padding: 1 }}
@@ -407,7 +549,9 @@ function ColorPopover({
                     }}
                 />
             </div>
-            {alphaEnabled && (
+            {/* A theme colour has no hex to fade: mixing in an alpha would turn the
+                token into a fixed colour and undo the reason it was picked. */}
+            {alphaEnabled && !token && (
                 <div className="mt-3">
                     <div className="flex items-center justify-between mb-1">
                         <span className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
@@ -439,7 +583,7 @@ function ColorPopover({
                             min={0}
                             max={100}
                             value={alpha}
-                            onChange={(e) => onChange(combineColor(hex6, Number(e.target.value)))}
+                            onChange={(e) => emitHexAlpha(hex6, Number(e.target.value))}
                             onPointerUp={onSettle}
                             onKeyUp={onSettle}
                             onBlur={onSettle}
@@ -449,6 +593,38 @@ function ColorPopover({
                     </div>
                 </div>
             )}
+            {/* Theme colours. Picking one is the OTHER answer to #689: a token is
+                already different in a light and a dark design, so it needs no pair. */}
+            <div className="mt-3">
+                <div className="text-[11px] mb-1" style={{ color: 'var(--text-secondary)' }}>
+                    Theme-Farben
+                </div>
+                <div className="flex flex-wrap gap-1">
+                    {PICKER_TOKENS.map(({ token: t, label }) => {
+                        const on = active.trim() === `var(${t})`;
+                        return (
+                            <button
+                                key={t}
+                                type="button"
+                                title={`${label} — var(${t})`}
+                                onClick={() => {
+                                    emit(`var(${t})`);
+                                    onSettle();
+                                }}
+                                style={{
+                                    width: 20,
+                                    height: 20,
+                                    borderRadius: 4,
+                                    background: `var(${t})`,
+                                    border: on ? '2px solid var(--text-primary)' : '1px solid var(--app-border)',
+                                    cursor: 'pointer',
+                                    padding: 0,
+                                }}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
         </div>,
         portalTarget,
     );

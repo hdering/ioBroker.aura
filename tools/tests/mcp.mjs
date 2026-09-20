@@ -3673,11 +3673,29 @@ check('no recipe teaches a hard-coded colour where a token works', () => {
     // chart resolves its colours itself now, so the rule holds for every type.
     for (const recipe of RECIPES) {
         for (const w of recipe.widgets) {
-            const json = JSON.stringify(w);
+            // Inside a light-dark() pair a fixed colour is the POINT (#689): the
+            // recipe that teaches it has to show two real colours, and a token
+            // cannot express "this blue here, that one there". Everywhere else the
+            // rule stands, pair or not.
+            const json = JSON.stringify(w).replace(/light-dark\([^)]*\)/g, '');
             const hex = json.match(/#[0-9a-fA-F]{6}/g);
             assert.deepEqual(hex, null, `${recipe.id}/${w.id}: ${hex && hex.join(', ')}`);
         }
     }
+    // ... and only the one recipe that is about it may spend a pair at all, so a
+    // later example cannot quietly go back to hard-coded colours through the gap.
+    for (const recipe of RECIPES) {
+        if (recipe.id === 'farbe-hell-dunkel') continue;
+        assert.ok(
+            !JSON.stringify(recipe.widgets).includes('light-dark('),
+            `${recipe.id}: a pair belongs in the recipe about pairs, a token belongs here`,
+        );
+    }
+    assert.match(
+        findRecipe('farbe-hell-dunkel').notes.join(' '),
+        /Erste Wahl ist ein Theme-Token/,
+        'the pair recipe has to send the reader to the token first',
+    );
     // The chart series carry tokens like everything else now, and the recipe says
     // that the widget resolves them.
     for (const recipe of RECIPES) {

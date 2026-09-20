@@ -496,6 +496,53 @@ const DP_KEY = /(?:Dp|DpId|Datapoint|DatapointId)$|^(dp|datapoint(Id)?)$/;
  *
  * @param types the collected named types, edited in place
  */
+/**
+ * Keys that hold a CSS colour.
+ *
+ * The flag exists so the one sentence about what a colour value may be — a
+ * theme token, a light/dark pair (#689) — is stated ONCE in the notes instead of
+ * being repeated in eighty descriptions that would drift apart. Suffix-based
+ * like DP_KEY, plus the handful that spell it differently.
+ */
+const COLOR_KEY = /(?:Colors?|Colour|Bg)$|^(colors?|bg)$/;
+
+/**
+ * Same flag, both in widget options and inside the named types (a cell's
+ * `trueColor`, an entry's `iconColor`, a series' `color`).
+ *
+ * Only string-valued keys: `colorThresholds` is a LIST of rules, `colorMode`
+ * picks a datapoint layout, and marking either as "a colour goes here" would
+ * invite a model to write `#ff0000` into an array.
+ *
+ * @param fields the collected option/field map, edited in place
+ */
+function markColorKeys(fields) {
+    let marked = 0;
+    for (const [key, field] of Object.entries(fields || {})) {
+        if (field && field.type === 'string' && !field.enum && COLOR_KEY.test(key)) {
+            field.color = true;
+            marked++;
+        }
+    }
+    return marked;
+}
+
+/**
+ * The colour flag inside the named types, mirroring markDatapointFields.
+ *
+ * @param types the collected named types, edited in place
+ */
+function markColorFields(types) {
+    let marked = 0;
+    for (const t of Object.values(types)) {
+        marked += markColorKeys(t.fields);
+        for (const v of t.variants || []) {
+            marked += markColorKeys(v.fields);
+        }
+    }
+    return marked;
+}
+
 function markDatapointFields(types) {
     let marked = 0;
     const mark = (fields) => {
@@ -585,6 +632,7 @@ function collectWidgetOptions(type, file, index, types, otherWidgetFiles) {
         }
     }
 
+    markColorKeys(options);
     return { options: markDatapointKeys(options), stale };
 }
 
@@ -751,6 +799,13 @@ async function build() {
                 'An option marked "datapoint": true must be an existing ioBroker state id — never invent one.',
                 'Names referenced as "ref" are defined under types.',
                 'A missing "description" means the key is only documented by its name, type and default.',
+                'An option marked "color": true takes any CSS colour — "#rrggbb", "#rrggbbaa", "rgb(...)" — or ' +
+                    'a theme token like "var(--accent)", which follows the light or dark design by itself ' +
+                    'and is the better answer whenever no exact colour is required.',
+                'A colour option may also carry ONE COLOUR PER BRIGHTNESS: "light-dark(<hell>, <dunkel>)", e.g. ' +
+                    '"light-dark(#1e3a8a, #93c5fd)". The frontend picks the half that matches the theme being ' +
+                    'rendered. Use it when a fixed colour would vanish on one of the two designs; a pair whose ' +
+                    'halves are equal is pointless — write the single colour instead.',
             ],
         },
         widgetConfig: {
@@ -792,6 +847,7 @@ async function build() {
     };
 
     const dpFields = markDatapointFields(types);
+    markColorFields(types);
 
     // A sentence about the whole type, where the shape alone leaves the reader's
     // real question open (ClickAction: "and which one writes a datapoint?").

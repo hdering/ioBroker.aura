@@ -57,6 +57,20 @@ Element-Tokens verfeinern einzelne Bauteile. Sie sind **nicht** pro Theme gesetz
 
 Nutzer können eigene Themes anlegen (Admin → Design → Meine Themes): ein mitgeliefertes Preset als Basis plus überschriebene Tokens. Sie tragen die id `user-<n>` und erscheinen überall dort, wo ein Theme gewählt wird. Ebenso lassen sich Tokens getrennt für helle und dunkle Designs setzen — ein Token kann auf derselben Installation also zwei Werte haben. Feste Farbwerte in Widget-Konfigurationen sind deshalb noch weniger haltbar als zuvor; immer `var(--token)` schreiben.
 
+## Farbe je Helligkeit
+
+Jedes Farbfeld (Farbwähler-Popover) kennt drei Wege:
+
+| Wahl | Gespeicherter Wert | Wann |
+| --- | --- | --- |
+| Theme-Farben | `var(--accent)` | Standardfall — folgt jedem Theme von allein |
+| Einheitlich | `#3b82f6`, `#3b82f6cc` | eine feste Farbe für beide Helligkeiten |
+| Hell / Dunkel | `light-dark(#1e3a8a, #93c5fd)` | eine bestimmte Farbe je Design |
+
+`light-dark(<hell>, <dunkel>)` gilt für jede Farboption, auch in Zellen, Zeilen, Schwellenwerten und Diagramm-Serien. Die Hälften dürfen selbst Tokens sein (`light-dark(var(--accent), #93c5fd)`) und eigene Transparenz tragen (`#rrggbbaa`). Sind beide gleich, wird die einzelne Farbe gespeichert.
+
+Die Helligkeit ist die des gerade gerenderten Themes — ein Layout mit hellem Design auf einer dunklen Installation nimmt die helle Hälfte.
+
 ## Raster
 
 Widgets liegen auf einem feinen Grid. Die Zellgröße ist pro Layout konfigurierbar (`gridRowHeight`, `gridSnapX`, `gridGap`); in den Doku-Screenshots gilt `gridRowHeight = 20`, `gridGap = 10`. Widget-Größen (`gridPos.w`/`gridPos.h`) sind Vielfache dieser Zelleinheiten.

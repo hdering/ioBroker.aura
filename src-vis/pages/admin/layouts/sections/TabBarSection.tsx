@@ -54,6 +54,7 @@ function ColorInput({
             <div className="flex items-center gap-1.5">
                 <ColorPicker
                     value={isHex ? value : '#888888'}
+                    dual={false}
                     onChange={(v) => onChange(v)}
                     className="w-8 h-7 rounded cursor-pointer border-0 p-0.5 shrink-0"
                     style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}

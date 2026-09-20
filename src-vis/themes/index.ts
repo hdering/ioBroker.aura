@@ -581,3 +581,28 @@ export const ADMIN_DARK_THEME: Theme = {
         '--accent-red': '#f46e6e',
     },
 };
+
+/**
+ * The theme colours the colour picker offers directly (#689).
+ *
+ * A colour picked as `var(--accent)` follows the theme, so it is automatically
+ * right on both a light and a dark design — which is what most reports about
+ * "the icon disappears in dark mode" actually want. Before this list there was no
+ * way to choose one: a token had to be typed by hand into the hex field.
+ *
+ * Deliberately short. These are the semantic ones a user can reason about; the
+ * full set of ~60 element variables belongs in the layout's theme editor, not in
+ * a popover attached to a single option.
+ */
+export const PICKER_TOKENS: { token: keyof ThemeVars; label: string }[] = [
+    { token: '--text-primary', label: 'Text' },
+    { token: '--text-secondary', label: 'Text, zurückhaltend' },
+    { token: '--accent', label: 'Akzent' },
+    { token: '--accent-green', label: 'Grün' },
+    { token: '--accent-yellow', label: 'Gelb' },
+    { token: '--accent-red', label: 'Rot' },
+    { token: '--widget-bg', label: 'Kachel' },
+    { token: '--app-bg', label: 'Hintergrund' },
+    { token: '--app-surface', label: 'Fläche' },
+    { token: '--app-border', label: 'Rahmen' },
+];

@@ -162,6 +162,8 @@ import {
 import { useConditionStyle, notifyHiddenState } from '../../hooks/useConditionStyle';
 import { widgetSourceCtx } from '../../utils/conditionSources';
 import { applyConditionSet, stripRenderOverrides } from '../../utils/conditionSet';
+import { resolveDualDeep, restoreDualDeep } from '../../utils/dualColor';
+import { useIsDarkTheme } from '../../contexts/BrightnessContext';
 import {
     getSources,
     extractCalNames,
@@ -4377,20 +4379,21 @@ function CwColorField({
     resetTitle: string;
     onChange: (v: string | undefined) => void;
 }) {
-    const hex = value && /^#[0-9a-fA-F]{6}$/.test(value) ? value : swatchFallback;
     return (
         <div>
             <label className="text-[11px] mb-1 block truncate" style={{ color: 'var(--text-secondary)' }}>
                 {label}
             </label>
             <div className="flex items-center gap-1">
-                <input
-                    type="color"
-                    value={hex}
-                    onChange={(e) => onChange(e.target.value)}
-                    className="w-8 h-8 rounded shrink-0 cursor-pointer bg-transparent p-0 border"
-                    style={{ borderColor: 'var(--app-border)' }}
+                {/* The shared picker, not a native input: this is where transparency,
+                    the theme colours and the light/dark pair come from (#689). */}
+                <ColorPicker
+                    value={value || swatchFallback}
+                    unset={!value}
+                    onChange={(v) => onChange(v)}
                     title={label}
+                    className="w-8 h-8 rounded shrink-0 cursor-pointer p-0"
+                    style={{ width: 32, height: 32, border: '1px solid var(--app-border)' }}
                 />
                 <input
                     type="text"
@@ -6728,15 +6731,24 @@ function WidgetFrameInner({
     // A condition's title override goes in first, so it may carry live tokens too.
     const resolvedTitle = useResolvedTitle(conditionResult.set.title ?? config.title);
     // The body renders from a derived config: resolved title plus whatever the
-    // matching rules override (icon, size, value text — issue #96). Everything the
-    // body writes back is stripped of those again, so a rule that currently paints a
-    // different icon can never persist it into the layout.
+    // matching rules override (icon, size, value text — issue #96), and every
+    // light/dark colour pair collapsed to the half that applies now (#689) —
+    // which is why all ~80 colour options and every nested cell, threshold and
+    // series get the pair for free. Everything the body writes back is stripped
+    // of those again, so a rule that currently paints a different icon can never
+    // persist it into the layout.
+    const dark = useIsDarkTheme();
     const renderConfig = useMemo(
-        () => applyConditionSet(config, resolvedTitle, conditionResult.set),
-        [config, resolvedTitle, conditionResult.set],
+        () => resolveDualDeep(applyConditionSet(config, resolvedTitle, conditionResult.set), dark),
+        [config, resolvedTitle, conditionResult.set, dark],
     );
     const onBodyConfigChange = useCallback(
-        (next: WidgetConfig) => onConfigChange(stripRenderOverrides(next, config, renderConfig)),
+        // restoreDualDeep first: the body spreads the config it was HANDED, so
+        // without it a cell drag would write today's half back over the pair and
+        // lose the other colour. Only on this path — the config panel edits the
+        // raw value, where collapsing a pair on purpose has to stick.
+        (next: WidgetConfig) =>
+            onConfigChange(stripRenderOverrides(restoreDualDeep(next, config), config, renderConfig)),
         [onConfigChange, config, renderConfig],
     );
     // Which override slots this widget type honours — the editor offers only these.

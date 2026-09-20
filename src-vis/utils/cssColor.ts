@@ -15,9 +15,24 @@
  * Pure: element in, string out. The re-reading on a theme switch is the hook's
  * job (hooks/useResolvedColors.ts).
  */
+import { isDualColor, parseDual } from './dualColor';
+import { brightnessFromColorScheme } from './iframeColorScheme';
 
 /** A token reference, with the optional CSS fallback after the comma. */
 const VAR_CALL = /^var\(\s*(--[\w-]+)\s*(?:,([\s\S]*))?\)$/;
+
+/**
+ * Light/dark pairs (#689) are normally collapsed long before a colour reaches a
+ * canvas — WidgetFrame resolves them into the config it hands the widget. This is
+ * the safety net for a value that arrives from somewhere else (a chart preset, a
+ * colour built at runtime): `cs` knows the brightness, because `color-scheme` is
+ * exactly what ThemeProvider and the scoped layout theme write.
+ */
+function darkAt(cs: CSSStyleDeclaration): boolean {
+    const scheme = brightnessFromColorScheme(cs.colorScheme);
+    if (scheme) return scheme === 'dark';
+    return typeof document !== 'undefined' && document.documentElement.classList.contains('dark');
+}
 
 /**
  * The value `color` really has at `cs`, or undefined when it cannot be resolved.
@@ -33,6 +48,9 @@ export function resolveCssColor(color: string | undefined | null, cs: CSSStyleDe
     // `currentColor` is the element's own text colour — the one CSS keyword a
     // canvas cannot look up either.
     if (/^currentcolor$/i.test(raw)) return cs.color || undefined;
+    const pair = parseDual(raw);
+    // Either half may itself be a token, so it goes through this same resolution.
+    if (pair) return resolveCssColor(darkAt(cs) ? pair.dark : pair.light, cs);
     const m = raw.match(VAR_CALL);
     if (!m) return raw;
     const value = cs.getPropertyValue(m[1]).trim();
@@ -44,5 +62,5 @@ export function resolveCssColor(color: string | undefined | null, cs: CSSStyleDe
 
 /** True for a value that only CSS can read — the ones worth resolving at all. */
 export function needsCssResolve(color: string | undefined | null): boolean {
-    return typeof color === 'string' && /var\(\s*--|^\s*currentcolor\s*$/i.test(color);
+    return typeof color === 'string' && (/var\(\s*--|^\s*currentcolor\s*$/i.test(color) || isDualColor(color));
 }

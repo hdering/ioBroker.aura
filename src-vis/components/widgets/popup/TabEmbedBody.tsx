@@ -6,6 +6,7 @@ import { useEffectiveSettings } from '../../../hooks/useEffectiveSettings';
 import { useConditionStyle, type ConditionResult } from '../../../hooks/useConditionStyle';
 import { widgetSourceCtx } from '../../../utils/conditionSources';
 import { getWidgetMap } from '../widgetMap';
+import { useDualResolved } from '../../../hooks/useDualResolved';
 import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { PopupAutoHeightContext } from '../../../contexts/PopupAutoHeightContext';
 import { buildPopupSubMap, popupMainDp, substituteWidget } from '../../../utils/popupPlaceholders';
@@ -235,7 +236,10 @@ function PopupWidgetCell({
     // against the pre-substitution original (see the caller), so the resolved value
     // never leaks back into the stored view.
     const resolvedTitle = useResolvedTitle(w.title);
-    const rendered = resolvedTitle === w.title ? w : { ...w, title: resolvedTitle };
+    // Light/dark colour pairs are collapsed here for the same reason: this cell
+    // renders the widget without a WidgetFrame, which is where that normally
+    // happens (#689).
+    const rendered = useDualResolved(resolvedTitle === w.title ? w : { ...w, title: resolvedTitle });
 
     const effectClass =
         cond.effect === 'pulse'

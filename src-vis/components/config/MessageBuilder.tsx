@@ -4,6 +4,7 @@ import { DatapointPicker } from './DatapointPicker';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { usePopupConfigStore } from '../../store/popupConfigStore';
 import { substituteItemVars } from '../../utils/nameFilter';
+import { ColorPicker } from '../common/ColorPicker';
 import type {
     MessageAlign,
     MessageAppearance,
@@ -241,13 +242,15 @@ function DpField({
 function ColorField({ value, onChange }: { value: string; onChange: (v: string) => void }) {
     return (
         <div className="flex items-center gap-1">
-            <input
-                type="color"
-                value={/^#[0-9a-f]{6}$/i.test(value) ? value : '#ef4444'}
-                onChange={(e) => onChange(e.target.value)}
-                className="w-7 h-7 rounded shrink-0 cursor-pointer"
-                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+            {/* The shared picker, not a native input: transparency, the theme
+                colours and the light/dark pair all live in it (#689). */}
+            <ColorPicker
+                value={value || '#ef4444'}
+                unset={!value}
+                onChange={(v) => onChange(v)}
                 title="Farbe wählen"
+                className="w-7 h-7 rounded shrink-0 cursor-pointer"
+                style={{ width: 28, height: 28, background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
             />
             <input
                 value={value}

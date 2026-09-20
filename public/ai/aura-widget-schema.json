@@ -11,7 +11,9 @@
       "layout must be one of widgets.<type>.layouts; omit it for \"default\".",
       "An option marked \"datapoint\": true must be an existing ioBroker state id — never invent one.",
       "Names referenced as \"ref\" are defined under types.",
-      "A missing \"description\" means the key is only documented by its name, type and default."
+      "A missing \"description\" means the key is only documented by its name, type and default.",
+      "An option marked \"color\": true takes any CSS colour — \"#rrggbb\", \"#rrggbbaa\", \"rgb(...)\" — or a theme token like \"var(--accent)\", which follows the light or dark design by itself and is the better answer whenever no exact colour is required.",
+      "A colour option may also carry ONE COLOUR PER BRIGHTNESS: \"light-dark(<hell>, <dunkel>)\", e.g. \"light-dark(#1e3a8a, #93c5fd)\". The frontend picks the half that matches the theme being rendered. Use it when a fixed colour would vanish on one of the two designs; a pair whose halves are equal is pointless — write the single colour instead."
     ]
   },
   "widgetConfig": {
@@ -434,14 +436,16 @@
       "fields": {
         "ringColor": {
           "type": "string",
-          "description": "Colour of the pulsing ring — only read by the effect `border`."
+          "description": "Colour of the pulsing ring — only read by the effect `border`.",
+          "color": true
         },
         "accent": {
           "type": "string"
         },
         "bg": {
           "type": "string",
-          "description": "--widget-bg"
+          "description": "--widget-bg",
+          "color": true
         },
         "border": {
           "type": "string",
@@ -494,7 +498,8 @@
         },
         "color": {
           "type": "string",
-          "description": "Appearance. Travels as a class + variable on the frame root, read by the .aura-cond-* rules in index.css against the class every widget puts on its title/icon/value — so it needs no wiring per widget type. `bold`/`italic` and `fontSize` are meaningless on the icon and not offered there (the icon has `iconSize` instead)."
+          "description": "Appearance. Travels as a class + variable on the frame root, read by the .aura-cond-* rules in index.css against the class every widget puts on its title/icon/value — so it needs no wiring per widget type. `bold`/`italic` and `fontSize` are meaningless on the icon and not offered there (the icon has `iconSize` instead).",
+          "color": true
         },
         "bold": {
           "type": "boolean"
@@ -623,7 +628,8 @@
         },
         "color": {
           "type": "string",
-          "required": true
+          "required": true,
+          "color": true
         },
         "background": {
           "type": "string",
@@ -631,7 +637,8 @@
         },
         "textColor": {
           "type": "string",
-          "required": true
+          "required": true,
+          "color": true
         },
         "ackDp": {
           "type": "string",
@@ -714,7 +721,8 @@
         },
         "color": {
           "type": "string",
-          "description": "dot/pill colour (CSS); falls back to var(--accent)"
+          "description": "dot/pill colour (CSS); falls back to var(--accent)",
+          "color": true
         },
         "size": {
           "type": [
@@ -1100,7 +1108,8 @@
         },
         "color": {
           "type": "string",
-          "description": "CSS color; '' / undefined = theme default"
+          "description": "CSS color; '' / undefined = theme default",
+          "color": true
         },
         "conditions": {
           "type": "array",
@@ -1220,11 +1229,13 @@
         },
         "trueColor": {
           "type": "string",
-          "description": "'state-icon' / 'switch' (icon mode): color for truthy value"
+          "description": "'state-icon' / 'switch' (icon mode): color for truthy value",
+          "color": true
         },
         "falseColor": {
           "type": "string",
-          "description": "'state-icon' / 'switch' (icon mode): color for falsy value"
+          "description": "'state-icon' / 'switch' (icon mode): color for falsy value",
+          "color": true
         },
         "stateMode": {
           "type": "string",
@@ -1260,23 +1271,28 @@
         },
         "buttonTextColor": {
           "type": "string",
-          "description": "'switch' cell (button mode): label text color (default #fff)"
+          "description": "'switch' cell (button mode): label text color (default #fff)",
+          "color": true
         },
         "buttonTrueColor": {
           "type": "string",
-          "description": "'switch' cell (button mode): background for truthy value (falls back to color)"
+          "description": "'switch' cell (button mode): background for truthy value (falls back to color)",
+          "color": true
         },
         "buttonFalseColor": {
           "type": "string",
-          "description": "'switch' cell (button mode): background for falsy value (falls back to color)"
+          "description": "'switch' cell (button mode): background for falsy value (falls back to color)",
+          "color": true
         },
         "buttonTrueTextColor": {
           "type": "string",
-          "description": "'switch' cell (button mode): label color for truthy value (falls back to buttonTextColor)"
+          "description": "'switch' cell (button mode): label color for truthy value (falls back to buttonTextColor)",
+          "color": true
         },
         "buttonFalseTextColor": {
           "type": "string",
-          "description": "'switch' cell (button mode): label color for falsy value (falls back to buttonTextColor)"
+          "description": "'switch' cell (button mode): label color for falsy value (falls back to buttonTextColor)",
+          "color": true
         },
         "buttonSize": {
           "type": "number",
@@ -1560,11 +1576,13 @@
         },
         "color": {
           "type": "string",
-          "description": "text / icon color — and the fill of a progress or bar-style slider cell"
+          "description": "text / icon color — and the fill of a progress or bar-style slider cell",
+          "color": true
         },
         "bg": {
           "type": "string",
-          "description": "element background (the whole cell / row, never the bar of a progress cell)"
+          "description": "element background (the whole cell / row, never the bar of a progress cell)",
+          "color": true
         },
         "bold": {
           "type": "boolean"
@@ -1578,7 +1596,8 @@
         },
         "iconColor": {
           "type": "string",
-          "description": "icon colour, when it should differ from the text colour"
+          "description": "icon colour, when it should differ from the text colour",
+          "color": true
         },
         "iconSize": {
           "type": "number",
@@ -1692,7 +1711,8 @@
         },
         "color": {
           "type": "string",
-          "required": true
+          "required": true,
+          "color": true
         }
       }
     },
@@ -1737,7 +1757,8 @@
         },
         "color": {
           "type": "string",
-          "description": "The line/bar colour: a theme token (`var(--accent-green)`) like everywhere else, or a fixed value (`#3b82f6`, `rgb(...)`, `red`). A canvas cannot read CSS, so the widget resolves the token at its own element before handing the option to eCharts (hooks/useResolvedColors.ts) — which is what lets a chart follow the theme, a design picked per section and the widget's own `styleOverride`. A token no theme defines resolves to nothing and leaves the built-in palette in charge, which is also what an unset colour does."
+          "description": "The line/bar colour: a theme token (`var(--accent-green)`) like everywhere else, or a fixed value (`#3b82f6`, `rgb(...)`, `red`). A canvas cannot read CSS, so the widget resolves the token at its own element before handing the option to eCharts (hooks/useResolvedColors.ts) — which is what lets a chart follow the theme, a design picked per section and the widget's own `styleOverride`. A token no theme defines resolves to nothing and leaves the built-in palette in charge, which is also what an unset colour does.",
+          "color": true
         },
         "historyInstance": {
           "type": "string"
@@ -2277,7 +2298,8 @@
         },
         "sliderColor": {
           "type": "string",
-          "description": "Fill and thumb colour. Unset = the theme accent."
+          "description": "Fill and thumb colour. Unset = the theme accent.",
+          "color": true
         },
         "sliderBarStyle": {
           "type": "boolean",
@@ -2640,19 +2662,23 @@
         },
         "activeColor": {
           "type": "string",
-          "description": "Per-DP text color when on/true/>0. Overrides global activeColor."
+          "description": "Per-DP text color when on/true/>0. Overrides global activeColor.",
+          "color": true
         },
         "inactiveColor": {
           "type": "string",
-          "description": "Per-DP text color when off/false/0. Overrides global inactiveColor."
+          "description": "Per-DP text color when off/false/0. Overrides global inactiveColor.",
+          "color": true
         },
         "activeBg": {
           "type": "string",
-          "description": "Per-DP entry background (row/card/pill) when on/true/>0. Overrides global activeBg."
+          "description": "Per-DP entry background (row/card/pill) when on/true/>0. Overrides global activeBg.",
+          "color": true
         },
         "inactiveBg": {
           "type": "string",
-          "description": "Per-DP entry background when off/false/0. Overrides global inactiveBg."
+          "description": "Per-DP entry background when off/false/0. Overrides global inactiveBg.",
+          "color": true
         },
         "fontSize": {
           "type": "number",
@@ -2713,7 +2739,8 @@
         },
         "dividerColor": {
           "type": "string",
-          "description": "Heading colour. Default --text-secondary."
+          "description": "Heading colour. Default --text-secondary.",
+          "color": true
         },
         "dividerLine": {
           "type": "boolean",
@@ -2759,7 +2786,8 @@
           "description": "Look of the button — the same per-entry options the Auswahl widget offers: text (default), an icon, an image or sanitised HTML."
         },
         "color": {
-          "type": "string"
+          "type": "string",
+          "color": true
         },
         "icon": {
           "type": "string"
@@ -2807,7 +2835,8 @@
           "type": "string"
         },
         "color": {
-          "type": "string"
+          "type": "string",
+          "color": true
         },
         "image": {
           "type": "string",
@@ -2912,7 +2941,8 @@
         },
         "color": {
           "type": "string",
-          "description": "Text colour. Default --text-secondary."
+          "description": "Text colour. Default --text-secondary.",
+          "color": true
         },
         "states": {
           "type": "array",
@@ -2965,11 +2995,13 @@
         },
         "color": {
           "type": "string",
-          "description": "text / icon color — and the fill of a progress or bar-style slider cell"
+          "description": "text / icon color — and the fill of a progress or bar-style slider cell",
+          "color": true
         },
         "bg": {
           "type": "string",
-          "description": "element background (the whole cell / row, never the bar of a progress cell)"
+          "description": "element background (the whole cell / row, never the bar of a progress cell)",
+          "color": true
         },
         "bold": {
           "type": "boolean"
@@ -2983,7 +3015,8 @@
         },
         "iconColor": {
           "type": "string",
-          "description": "icon colour, when it should differ from the text colour"
+          "description": "icon colour, when it should differ from the text colour",
+          "color": true
         },
         "iconSize": {
           "type": "number",
@@ -3325,7 +3358,8 @@
         },
         "sliderColor": {
           "type": "string",
-          "description": "Fill and thumb colour. Unset = the theme accent."
+          "description": "Fill and thumb colour. Unset = the theme accent.",
+          "color": true
         },
         "sliderBarStyle": {
           "type": "boolean",
@@ -3692,19 +3726,23 @@
         },
         "activeColor": {
           "type": "string",
-          "description": "Per-DP text color when on/true/>0. Overrides global activeColor."
+          "description": "Per-DP text color when on/true/>0. Overrides global activeColor.",
+          "color": true
         },
         "inactiveColor": {
           "type": "string",
-          "description": "Per-DP text color when off/false/0. Overrides global inactiveColor."
+          "description": "Per-DP text color when off/false/0. Overrides global inactiveColor.",
+          "color": true
         },
         "activeBg": {
           "type": "string",
-          "description": "Per-DP entry background when on/true/>0. Overrides global activeBg."
+          "description": "Per-DP entry background when on/true/>0. Overrides global activeBg.",
+          "color": true
         },
         "inactiveBg": {
           "type": "string",
-          "description": "Per-DP entry background when off/false/0. Overrides global inactiveBg."
+          "description": "Per-DP entry background when off/false/0. Overrides global inactiveBg.",
+          "color": true
         },
         "clickAction": {
           "tsType": "RowClickSetting",
@@ -3981,7 +4019,8 @@
         },
         "sliderColor": {
           "type": "string",
-          "description": "Fill and thumb colour. Unset = the theme accent."
+          "description": "Fill and thumb colour. Unset = the theme accent.",
+          "color": true
         },
         "sliderBarStyle": {
           "type": "boolean",
@@ -4427,7 +4466,8 @@
         },
         "color": {
           "type": "string",
-          "required": true
+          "required": true,
+          "color": true
         },
         "datapoint": {
           "type": "string",
@@ -4475,7 +4515,8 @@
         },
         "color": {
           "type": "string",
-          "description": "Marker/handle colour. Empty = `--accent`."
+          "description": "Marker/handle colour. Empty = `--accent`.",
+          "color": true
         },
         "icon": {
           "type": "string",
@@ -4495,11 +4536,13 @@
         },
         "reachedColor": {
           "type": "string",
-          "description": "Fill colour once the live value reaches this limit."
+          "description": "Fill colour once the live value reaches this limit.",
+          "color": true
         },
         "bandColor": {
           "type": "string",
-          "description": "Colour of the section ABOVE this limit."
+          "description": "Colour of the section ABOVE this limit.",
+          "color": true
         }
       }
     },
@@ -4671,7 +4714,8 @@
           ]
         },
         "bg": {
-          "type": "string"
+          "type": "string",
+          "color": true
         },
         "fg": {
           "type": "string"
@@ -4721,7 +4765,8 @@
         },
         "color": {
           "type": "string",
-          "description": "Optional preview color (hex) for the chip"
+          "description": "Optional preview color (hex) for the chip",
+          "color": true
         }
       }
     },
@@ -4970,7 +5015,8 @@
           "type": "string"
         },
         "color": {
-          "type": "string"
+          "type": "string",
+          "color": true
         }
       }
     },
@@ -5055,7 +5101,8 @@
           "type": "string"
         },
         "color": {
-          "type": "string"
+          "type": "string",
+          "color": true
         },
         "filled": {
           "type": "boolean",
@@ -5122,7 +5169,8 @@
         },
         "restColor": {
           "type": "string",
-          "description": "Colour of the remainder segment. Default REST_COLOR."
+          "description": "Colour of the remainder segment. Default REST_COLOR.",
+          "color": true
         },
         "showRest": {
           "type": "boolean",
@@ -5138,7 +5186,8 @@
         },
         "overColor": {
           "type": "string",
-          "description": "Warning colour of the entries past the threshold. Default OVER_COLOR."
+          "description": "Warning colour of the entries past the threshold. Default OVER_COLOR.",
+          "color": true
         }
       }
     },
@@ -5161,7 +5210,8 @@
           "type": "string"
         },
         "color": {
-          "type": "string"
+          "type": "string",
+          "color": true
         },
         "unit": {
           "type": "string"
@@ -5262,11 +5312,13 @@
         },
         "bgColor": {
           "type": "string",
-          "description": "Background color while the item is active (DP matches activeValue / value)."
+          "description": "Background color while the item is active (DP matches activeValue / value).",
+          "color": true
         },
         "textColor": {
           "type": "string",
-          "description": "Text color while the item is active."
+          "description": "Text color while the item is active.",
+          "color": true
         },
         "bgColorInactive": {
           "type": "string",
@@ -5902,12 +5954,14 @@
       "options": {
         "activeBg": {
           "type": "string",
-          "description": "Global entry background when on. Per-DP activeBg overrides."
+          "description": "Global entry background when on. Per-DP activeBg overrides.",
+          "color": true
         },
         "activeColor": {
           "type": "string",
           "description": "Global text color when on. Per-DP activeColor overrides. Default: green.",
-          "default": "var(--accent-green)"
+          "default": "var(--accent-green)",
+          "color": true
         },
         "backendValueFilter": {
           "type": "string",
@@ -5940,7 +5994,8 @@
         "entryIconColor": {
           "type": "string",
           "description": "Farbe des Zeilen-Icons.",
-          "default": "var(--text-secondary)"
+          "default": "var(--text-secondary)",
+          "color": true
         },
         "entryIconSize": {
           "type": "number",
@@ -6104,12 +6159,14 @@
         },
         "inactiveBg": {
           "type": "string",
-          "description": "Global entry background when off. Per-DP inactiveBg overrides."
+          "description": "Global entry background when off. Per-DP inactiveBg overrides.",
+          "color": true
         },
         "inactiveColor": {
           "type": "string",
           "description": "Global text color when off. Per-DP inactiveColor overrides.",
-          "default": "var(--text-secondary)"
+          "default": "var(--text-secondary)",
+          "color": true
         },
         "labelMinPercent": {
           "type": "number",
@@ -6148,11 +6205,13 @@
         },
         "roomHeaderBg": {
           "type": "string",
-          "description": "Hintergrundfarbe der Raumüberschrift."
+          "description": "Hintergrundfarbe der Raumüberschrift.",
+          "color": true
         },
         "roomHeaderColor": {
           "type": "string",
-          "description": "Textfarbe der Raumüberschrift."
+          "description": "Textfarbe der Raumüberschrift.",
+          "color": true
         },
         "roomHeaderFontSize": {
           "type": "number",
@@ -6515,7 +6574,8 @@
         "buttonColor": {
           "type": "string",
           "default": "var(--button-text, var(--accent))",
-          "description": "Farbe der Beschriftung."
+          "description": "Farbe der Beschriftung.",
+          "color": true
         },
         "buttonLabel": {
           "type": "string",
@@ -6626,7 +6686,8 @@
         "highlightColor": {
           "type": "string",
           "default": "#f59e0b",
-          "description": "Farbe der Hervorhebung."
+          "description": "Farbe der Hervorhebung.",
+          "color": true
         },
         "highlightEnabled": {
           "type": "boolean",
@@ -6920,7 +6981,8 @@
         },
         "chipBgColor": {
           "type": "string",
-          "description": "Hintergrundfarbe der Chips."
+          "description": "Hintergrundfarbe der Chips.",
+          "color": true
         },
         "chipRadius": {
           "type": "number",
@@ -6940,7 +7002,8 @@
         },
         "chipTextColor": {
           "type": "string",
-          "description": "Textfarbe der Chips."
+          "description": "Textfarbe der Chips.",
+          "color": true
         },
         "gap": {
           "type": "number",
@@ -7047,7 +7110,8 @@
         },
         "avgColor": {
           "type": "string",
-          "description": "Farbe der Mittelwertlinie."
+          "description": "Farbe der Mittelwertlinie.",
+          "color": true
         },
         "historyInstance": {
           "type": "string",
@@ -7076,7 +7140,8 @@
         "lineColor": {
           "type": "string",
           "default": "var(--accent)",
-          "description": "Farbe der Linie."
+          "description": "Farbe der Linie.",
+          "color": true
         },
         "lockRange": {
           "type": "boolean",
@@ -7110,7 +7175,8 @@
         },
         "unitColor": {
           "type": "string",
-          "default": "var(--text-primary)"
+          "default": "var(--text-primary)",
+          "color": true
         },
         "valueFactor": {
           "type": "number",
@@ -7176,7 +7242,8 @@
         },
         "chipBgColor": {
           "type": "string",
-          "description": "Hintergrundfarbe der Chips."
+          "description": "Hintergrundfarbe der Chips.",
+          "color": true
         },
         "chipRadius": {
           "type": "number",
@@ -7196,7 +7263,8 @@
         },
         "chipTextColor": {
           "type": "string",
-          "description": "Textfarbe der Chips."
+          "description": "Textfarbe der Chips.",
+          "color": true
         },
         "chips": {
           "type": "array",
@@ -7290,7 +7358,8 @@
       "options": {
         "avgColor": {
           "type": "string",
-          "description": "Farbe der Mittelwertlinie."
+          "description": "Farbe der Mittelwertlinie.",
+          "color": true
         },
         "historyInstance": {
           "type": "string",
@@ -7332,7 +7401,8 @@
         "lineColor": {
           "type": "string",
           "default": "var(--accent)",
-          "description": "Farbe der Linie."
+          "description": "Farbe der Linie.",
+          "color": true
         },
         "lockRange": {
           "type": "boolean",
@@ -7818,7 +7888,8 @@
         "offColor": {
           "type": "string",
           "default": "var(--text-secondary)",
-          "description": "Farbe im ausgeschalteten Zustand."
+          "description": "Farbe im ausgeschalteten Zustand.",
+          "color": true
         },
         "offIcon": {
           "type": "string",
@@ -7831,7 +7902,8 @@
         "onColor": {
           "type": "string",
           "default": "var(--accent-green)",
-          "description": "Farbe im eingeschalteten Zustand."
+          "description": "Farbe im eingeschalteten Zustand.",
+          "color": true
         },
         "onIcon": {
           "type": "string",
@@ -8694,7 +8766,8 @@
         },
         "baseBandColor": {
           "type": "string",
-          "description": "Farbe des untersten Abschnitts. Leer = normale Füllfarbe."
+          "description": "Farbe des untersten Abschnitts. Leer = normale Füllfarbe.",
+          "color": true
         },
         "baseIcon": {
           "type": "string",
@@ -8702,7 +8775,8 @@
         },
         "chargeColor": {
           "type": "string",
-          "description": "Farbe von Blitz-Icon und Lauflicht."
+          "description": "Farbe von Blitz-Icon und Lauflicht.",
+          "color": true
         },
         "chargeCondition": {
           "type": "string",
@@ -8784,7 +8858,8 @@
         },
         "offlineColor": {
           "type": "string",
-          "description": "Farbe des Verbindungs-Icons."
+          "description": "Farbe des Verbindungs-Icons.",
+          "color": true
         },
         "offlineDim": {
           "type": "boolean",
@@ -8808,7 +8883,8 @@
         },
         "overColor": {
           "type": "string",
-          "description": "Farbe der Füllung ab der Schwelle. Überschreibt Füllfarbe und Farbzonen."
+          "description": "Farbe der Füllung ab der Schwelle. Überschreibt Füllfarbe und Farbzonen.",
+          "color": true
         },
         "overThreshold": {
           "type": "number",
@@ -8920,7 +8996,8 @@
         "pointer1Color": {
           "type": "string",
           "default": "var(--gauge-arc, var(--accent))",
-          "description": "Farbe des ersten Zeigers."
+          "description": "Farbe des ersten Zeigers.",
+          "color": true
         },
         "pointer1Label": {
           "type": "string",
@@ -8934,7 +9011,8 @@
         "pointer2Color": {
           "type": "string",
           "default": "#f97316",
-          "description": "Farbe des zweiten Zeigers."
+          "description": "Farbe des zweiten Zeigers.",
+          "color": true
         },
         "pointer2Datapoint": {
           "type": "string",
@@ -8954,7 +9032,8 @@
         "pointer3Color": {
           "type": "string",
           "default": "#8b5cf6",
-          "description": "Farbe des dritten Zeigers."
+          "description": "Farbe des dritten Zeigers.",
+          "color": true
         },
         "pointer3Datapoint": {
           "type": "string",
@@ -8998,7 +9077,8 @@
         "zone1Color": {
           "type": "string",
           "default": "#10b981",
-          "description": "Farbe der ersten Zone."
+          "description": "Farbe der ersten Zone.",
+          "color": true
         },
         "zone1Max": {
           "type": "number",
@@ -9007,7 +9087,8 @@
         "zone2Color": {
           "type": "string",
           "default": "#f59e0b",
-          "description": "Farbe der zweiten Zone."
+          "description": "Farbe der zweiten Zone.",
+          "color": true
         },
         "zone2Max": {
           "type": "number",
@@ -9016,7 +9097,8 @@
         "zone3Color": {
           "type": "string",
           "default": "#ef4444",
-          "description": "Farbe oberhalb von zone2Max."
+          "description": "Farbe oberhalb von zone2Max.",
+          "color": true
         },
         "zones": {
           "type": "array",
@@ -9190,7 +9272,8 @@
       "options": {
         "accentColor": {
           "type": "string",
-          "description": "Farbe des Strichs. Leer = --header-accent aus dem Theme."
+          "description": "Farbe des Strichs. Leer = --header-accent aus dem Theme.",
+          "color": true
         },
         "showAccent": {
           "type": "boolean",
@@ -9209,7 +9292,8 @@
         },
         "subtitleColor": {
           "type": "string",
-          "description": "Farbe des Untertitels. Leer = --text-secondary aus dem Theme."
+          "description": "Farbe des Untertitels. Leer = --text-secondary aus dem Theme.",
+          "color": true
         },
         "subtitleSize": {
           "type": "number",
@@ -9217,7 +9301,8 @@
         },
         "titleColor": {
           "type": "string",
-          "description": "Farbe von Titel und Icon. Leer = --header-text aus dem Theme."
+          "description": "Farbe von Titel und Icon. Leer = --header-text aus dem Theme.",
+          "color": true
         },
         "titleSize": {
           "type": "number",
@@ -9344,7 +9429,8 @@
         },
         "buttonColor": {
           "type": "string",
-          "default": "var(--accent)"
+          "default": "var(--accent)",
+          "color": true
         },
         "buttonLabel": {
           "type": "string"
@@ -9748,11 +9834,13 @@
         },
         "firstColBg": {
           "type": "string",
-          "default": "var(--app-bg)"
+          "default": "var(--app-bg)",
+          "color": true
         },
         "firstColColor": {
           "type": "string",
-          "default": "var(--text-secondary)"
+          "default": "var(--text-secondary)",
+          "color": true
         },
         "firstColHeader": {
           "type": "boolean",
@@ -9765,10 +9853,12 @@
         },
         "headerBg": {
           "type": "string",
-          "default": "var(--accent)"
+          "default": "var(--accent)",
+          "color": true
         },
         "headerColor": {
-          "type": "string"
+          "type": "string",
+          "color": true
         },
         "maxRows": {
           "type": "number",
@@ -9840,7 +9930,8 @@
         "color": {
           "type": "string",
           "default": "#1da7e0",
-          "description": "Farbe des Bedienelements (CSS-Farbe oder var())."
+          "description": "Farbe des Bedienelements (CSS-Farbe oder var()).",
+          "color": true
         },
         "dialStyle": {
           "type": "string",
@@ -10163,12 +10254,14 @@
       "options": {
         "activeBg": {
           "type": "string",
-          "description": "Global entry background when on. Per-DP activeBg overrides."
+          "description": "Global entry background when on. Per-DP activeBg overrides.",
+          "color": true
         },
         "activeColor": {
           "type": "string",
           "description": "Global text color when on. Per-DP activeColor overrides. Default: green.",
-          "default": "var(--accent-green)"
+          "default": "var(--accent-green)",
+          "color": true
         },
         "backendValueFilter": {
           "type": "string",
@@ -10292,12 +10385,14 @@
         },
         "inactiveBg": {
           "type": "string",
-          "description": "Global entry background when off. Per-DP inactiveBg overrides."
+          "description": "Global entry background when off. Per-DP inactiveBg overrides.",
+          "color": true
         },
         "inactiveColor": {
           "type": "string",
           "description": "Global text color when off. Per-DP inactiveColor overrides.",
-          "default": "var(--text-secondary)"
+          "default": "var(--text-secondary)",
+          "color": true
         },
         "labelMinPercent": {
           "type": "number",
@@ -11728,7 +11823,8 @@
         "color": {
           "type": "string",
           "default": "var(--slider-fill, var(--accent))",
-          "description": "Farbe des Bedienelements (CSS-Farbe oder var())."
+          "description": "Farbe des Bedienelements (CSS-Farbe oder var()).",
+          "color": true
         },
         "commitOnRelease": {
           "type": "boolean",
@@ -11862,7 +11958,8 @@
         "falseColor": {
           "type": "string",
           "default": "#6b7280",
-          "description": "Farbe für den falschen Zustand."
+          "description": "Farbe für den falschen Zustand.",
+          "color": true
         },
         "falseIcon": {
           "type": "string",
@@ -11919,7 +12016,8 @@
         "trueColor": {
           "type": "string",
           "default": "#22c55e",
-          "description": "Farbe für den wahren Zustand."
+          "description": "Farbe für den wahren Zustand.",
+          "color": true
         },
         "trueIcon": {
           "type": "string",
@@ -12302,7 +12400,8 @@
         "offColor": {
           "type": "string",
           "default": "var(--text-secondary)",
-          "description": "Farbe im ausgeschalteten Zustand."
+          "description": "Farbe im ausgeschalteten Zustand.",
+          "color": true
         },
         "offIcon": {
           "type": "string",
@@ -12318,7 +12417,8 @@
         "onColor": {
           "type": "string",
           "default": "var(--accent-green)",
-          "description": "Farbe im eingeschalteten Zustand (CSS-Farbe oder var())."
+          "description": "Farbe im eingeschalteten Zustand (CSS-Farbe oder var()).",
+          "color": true
         },
         "onIcon": {
           "type": "string",
@@ -12430,7 +12530,8 @@
           "datapoint": true
         },
         "dialColor": {
-          "type": "string"
+          "type": "string",
+          "color": true
         },
         "dialColorThresholds": {
           "type": "array",
@@ -12445,7 +12546,8 @@
         },
         "dialTrackColor": {
           "type": "string",
-          "default": "color-mix(in srgb, var(--text-secondary) 28%, transparent)"
+          "default": "color-mix(in srgb, var(--text-secondary) 28%, transparent)",
+          "color": true
         },
         "maxTemp": {
           "type": "number",

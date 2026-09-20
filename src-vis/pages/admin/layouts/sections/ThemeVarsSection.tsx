@@ -297,6 +297,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                                             {isColor(current) && (
                                                 <ColorPicker
                                                     value={current.startsWith('#') ? current : '#000000'}
+                                                    dual={false}
                                                     onChange={(v) => setThemeVar(key, v)}
                                                     className="w-8 h-8 rounded-lg cursor-pointer border-0 p-0.5 shrink-0"
                                                     style={{

@@ -127,6 +127,7 @@ export function ThemeSelector() {
                                             {isColorVal && (
                                                 <ColorPicker
                                                     value={currentVal.startsWith('#') ? currentVal : '#3b82f6'}
+                                                    dual={false}
                                                     onChange={(v) => setCustomVar(key, v)}
                                                     className="w-7 h-7 rounded cursor-pointer border-0 p-0"
                                                     style={{ background: 'none' }}

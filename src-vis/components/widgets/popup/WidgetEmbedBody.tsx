@@ -8,6 +8,8 @@ import { useConfigStore } from '../../../store/configStore';
 import { useWidgetRefreshNonce } from '../../../store/widgetRefreshStore';
 import { useResolvedTitle } from '../DynamicTitle';
 import { DEFAULT_POPUP_PADDING } from '../../../store/popupConfigStore';
+import { resolveDualDeep, restoreDualDeep } from '../../../utils/dualColor';
+import { useIsDarkTheme } from '../../../contexts/BrightnessContext';
 
 interface Props {
     widget: WidgetConfig;
@@ -29,6 +31,10 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
     // Follows the *source* widget's reload rules — this is the same widget, embedded.
     // Read before the early returns below so the hook order stays stable (issue #537).
     const refreshNonce = useWidgetRefreshNonce(target.id);
+    // Light/dark colour pairs (#689): the embed renders the widget without a
+    // WidgetFrame, which is where they are normally collapsed. Also read before
+    // the early returns, for the same hook-order reason.
+    const dark = useIsDarkTheme();
 
     if (targetId && !allWidgets.find((w) => w.id === targetId)) {
         return (
@@ -58,11 +64,14 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
         );
     }
 
-    const embedConfig: WidgetConfig = {
-        ...target,
-        title: resolvedTitle,
-        gridPos: { x: 0, y: 0, w: 6, h: 6 },
-    };
+    const embedConfig: WidgetConfig = resolveDualDeep(
+        {
+            ...target,
+            title: resolvedTitle,
+            gridPos: { x: 0, y: 0, w: 6, h: 6 },
+        },
+        dark,
+    );
 
     // Honour the click-action's configured popup size so the embedded widget fills
     // the popup instead of collapsing to the 500px default. The outer popup shell
@@ -121,8 +130,10 @@ export function WidgetEmbedBody({ widget, action, allWidgets, padding = DEFAULT_
                     onConfigChange={(next) => {
                         // Persist only options — embedConfig overrides gridPos for the
                         // popup layout, so writing the whole config back would clobber
-                        // the widget's real dashboard position.
-                        updateWidget(target.id, { options: next.options });
+                        // the widget's real dashboard position. restoreDualDeep puts
+                        // the light/dark pairs back: the body spreads the RESOLVED
+                        // config, so without it the other half would be lost (#689).
+                        updateWidget(target.id, { options: restoreDualDeep(next, target).options });
                     }}
                 />
             </Suspense>
