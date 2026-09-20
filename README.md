@@ -122,6 +122,13 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.66.0 (2026-09-20)
+- JSON table - HTML columns get a width mode: own width, fill the column, or proportional (the longest value fills the column, shorter ones keep their ratio); bars built with `cellspacing` keep their gaps again ([#677](https://github.com/hdering/ioBroker.aura/issues/677))
+- Select field - in the editor the entry list's value column now grows with the longest value, so text values stay readable instead of being cut off; the same applies to the Universal widget's select cell ([#679](https://github.com/hdering/ioBroker.aura/issues/679))
+- 🌟 **New feature:** Colors - every color field now offers the theme colors and can hold one color per brightness, so an icon tuned for the light design no longer disappears on the dark one ([#689](https://github.com/hdering/ioBroker.aura/issues/689))
+- 🌟 **New feature:** Fill level - a second status datapoint for discharging, with its own condition, effect, icon and color (orange by default), so a signed battery power can show charging in green and discharging in orange from the same datapoint ([#691](https://github.com/hdering/ioBroker.aura/issues/691))
+
+
 ### 0.65.1 (2026-09-20)
 - 🌟 **New feature:** List / Dynamic list - sort criteria can now compare a datapoint's last change or last update instead of its value, including the datapoint chosen for the second line; the "own value order" sort mode was dropped ([#687](https://github.com/hdering/ioBroker.aura/issues/687))
 
@@ -260,12 +267,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Theme - the light/dark choice above and below the theme editor is one choice now, and saving an own theme captures the half you are editing instead of the one your admin browser happens to show ([#640](https://github.com/hdering/ioBroker.aura/issues/640))
 
 
-### 0.59.2 (2026-09-13)
-- 🌟 **New feature:** Slider - optional scale showing the step values, min and max along the track; available in the Slider widget, list rows and the universal widget's slider cell ([#643](https://github.com/hdering/ioBroker.aura/issues/643))
-- iFrame and HTML widgets - on phones the frame keeps its dashboard aspect ratio instead of the full row height, so the embedded page no longer sits in a tall empty box ([#645](https://github.com/hdering/ioBroker.aura/issues/645))
-- 🌟 **New feature:** Static and dynamic list - a datapoint in the second line can show when it last changed (or was last written) instead of its value; relative by default, with time and date formats available, and an empty datapoint id means the row own datapoint ([#646](https://github.com/hdering/ioBroker.aura/issues/646))
-
-
 ## License
 
 MIT License
@@ -277,6 +278,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
