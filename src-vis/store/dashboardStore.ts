@@ -190,6 +190,7 @@ export interface LayoutSettings {
     layoutDrawerAutoHide?: boolean;
     layoutDrawerPlacement?: 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
     layoutDrawerMobilePlacement?: 'auto' | 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
+    layoutDrawerTabletPlacement?: 'auto' | 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
     layoutDrawerWidth?: number;
     layoutDrawerTopOffset?: number;
     layoutDrawerBottomOffset?: number;

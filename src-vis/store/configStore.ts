@@ -73,6 +73,12 @@ export interface FrontendSettings {
      * keep its bar-less look; any other value forces that placement on mobile.
      */
     layoutDrawerMobilePlacement: 'auto' | 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
+    /**
+     * Placement in the tablet band (between mobileBreakpoint and tabletBreakpoint,
+     * #413). Same choices and the same 'auto' rule as on mobile: the docked sidebar
+     * becomes a hamburger so the column flow gets the width, everything else stays.
+     */
+    layoutDrawerTabletPlacement: 'auto' | 'floating' | 'tabbar' | 'sidebar' | 'top' | 'bottom';
     /** Width in px of the docked sidebar (placement='sidebar'). */
     layoutDrawerWidth: number;
     /** Top offset in px of the docked sidebar menu content (placement='sidebar'). */
@@ -209,6 +215,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     layoutDrawerAutoHide: false,
     layoutDrawerPlacement: 'floating',
     layoutDrawerMobilePlacement: 'auto',
+    layoutDrawerTabletPlacement: 'auto',
     layoutDrawerWidth: 240,
     layoutDrawerTopOffset: 0,
     layoutDrawerBottomOffset: 0,

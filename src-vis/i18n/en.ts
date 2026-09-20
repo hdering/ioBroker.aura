@@ -143,6 +143,9 @@ export const en: Record<TranslationKey, string> = {
     'settings.frontend.layoutDrawerMobilePlacementAuto': 'Automatic',
     'settings.frontend.layoutDrawerMobilePlacementHint':
         'Applies below the mobile breakpoint. "Automatic" only replaces the docked sidebar: the hamburger moves into the tab bar when that bar is visible anyway — otherwise it floats, so a bar with just one tab stays hidden.',
+    'settings.frontend.layoutDrawerTabletPlacement': 'Placement on tablets',
+    'settings.frontend.layoutDrawerTabletPlacementHint':
+        'Applies between the mobile and tablet breakpoints (Grid & Mobile), i.e. only with tablet mode switched on. "Automatic" behaves like on mobile: the docked sidebar becomes a hamburger so the column flow gets the full width — "Docked sidebar" keeps it.',
     'settings.frontend.layoutDrawerWidth': 'Sidebar width',
     'settings.frontend.layoutDrawerTopOffset': 'Top offset',
     'settings.frontend.layoutDrawerBottomOffset': 'Bottom offset',

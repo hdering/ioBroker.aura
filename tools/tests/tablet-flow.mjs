@@ -68,6 +68,48 @@ async function show(page, { settings, orders, editMode = false }) {
     await page.waitForTimeout(400);
 }
 
+/** Layout mit zwei Bereichen (damit das Bereichs-Menue erscheint) und fester Seitenleiste
+ *  (240 px) links vom Dashboard; `tabletPlacement` ist die Menue-Platzierung im Tablet-Band. */
+async function showWithSidebar(page, { settings, tabletPlacement = 'auto' }) {
+    await page.evaluate(
+        ([settings, widgets, tabletPlacement]) => {
+            window.__auraShot.mock({ 'demo.t1': 21.5 });
+            window.__auraShot.mockServerState({ 'demo.t1': 21.5 });
+            window.__auraShot.setFrontend({
+                mobileBreakpoint: 600,
+                tabletBreakpoint: 0,
+                tabletCols: 2,
+                layoutDrawerEnabled: true,
+                layoutDrawerPlacement: 'sidebar',
+                layoutDrawerWidth: 240,
+                layoutDrawerTabletPlacement: tabletPlacement,
+                ...settings,
+            });
+            const tab = (id, ws) => ({ id, name: id, slug: id, widgets: ws });
+            window.__auraShot.seed({
+                layouts: [
+                    {
+                        id: 'l1',
+                        name: 'L',
+                        slug: 'l',
+                        activeSectionId: 's1',
+                        sections: [
+                            { id: 's1', name: 'Eins', slug: 'eins', activeTabId: 't1', tabs: [tab('t1', widgets)] },
+                            { id: 's2', name: 'Zwei', slug: 'zwei', activeTabId: 't2', tabs: [tab('t2', [])] },
+                        ],
+                    },
+                ],
+                activeLayoutId: 'l1',
+            });
+        },
+        [settings, widgetDefs(), tabletPlacement],
+    );
+    await page.waitForSelector('[data-aura-widget="A"]', { timeout: 10000 });
+    await page.waitForTimeout(400);
+}
+/** Die feste Seitenleiste ist ein <aside>; der Hamburger-Ersatz ist ein Knopf. */
+const sidebarVisible = (page) => page.evaluate(() => !!document.querySelector('aside'));
+
 /** Zweig + Geometrie: Raster (RGL) oder Fluss (Spaltenzahl), Boxen je Widget, Ueberlauf. */
 const geometry = (page) =>
     page.evaluate(() => {
@@ -251,6 +293,49 @@ const approx = (a, b, tol = 2) => Math.abs(a - b) <= tol;
     await show(page, { settings: { tabletBreakpoint: 1024, tabletCols: 2 }, editMode: true });
     const g = await geometry(page);
     check('Editor bei 900px: Raster statt Tablet-Fluss', g.mode === 'grid', g.mode);
+    await ctx.close();
+}
+
+// ── Fensterbreite zaehlt, nicht die Dashboard-Breite: die feste Seitenleiste (240 px) ────
+// verschiebt den Umbruch nicht (Nutzerbericht: "768 eingestellt, schaltet schon bei 1024").
+{
+    const { ctx, page } = await open(1024);
+    await showWithSidebar(page, { settings: { tabletBreakpoint: 768 }, tabletPlacement: 'sidebar' });
+    let g = await geometry(page);
+    check('1024px Fenster + Seitenleiste, Breakpoint 768: Raster', g.mode === 'grid', g.mode);
+    check('Seitenleiste steht (Desktop)', await sidebarVisible(page));
+
+    await showWithSidebar(page, { settings: { tabletBreakpoint: 1100 }, tabletPlacement: 'sidebar' });
+    g = await geometry(page);
+    const keep = await sidebarVisible(page);
+    check(
+        'Breakpoint 1100, Platzierung "Seitenleiste": Fluss, Menue bleibt',
+        g.mode === 'flow' && keep,
+        `${g.mode}, aside ${keep}`,
+    );
+    check(
+        'Fluss neben dem Menue ist schmaler als das Fenster',
+        g.flowWidth > 0 && g.flowWidth < 1024 - 240,
+        `${g.flowWidth}`,
+    );
+
+    await showWithSidebar(page, { settings: { tabletBreakpoint: 1100 }, tabletPlacement: 'auto' });
+    g = await geometry(page);
+    const gone = !(await sidebarVisible(page));
+    check(
+        'Breakpoint 1100, "Automatisch": Seitenleiste weicht dem Fluss',
+        g.mode === 'flow' && gone,
+        `${g.mode}, aside weg ${gone}`,
+    );
+    check('Fluss nutzt die volle Fensterbreite', g.flowWidth > 900, `${g.flowWidth}`);
+
+    await showWithSidebar(page, { settings: { tabletBreakpoint: 0 }, tabletPlacement: 'auto' });
+    g = await geometry(page);
+    check(
+        'Tablet-Modus aus: Raster und Seitenleiste wie bisher',
+        g.mode === 'grid' && (await sidebarVisible(page)),
+        g.mode,
+    );
     await ctx.close();
 }
 

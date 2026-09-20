@@ -90,7 +90,7 @@ Schriftart, Schriftgrößen und Abstände.
 | -------------------------- | ---------------------------------------------------- |
 | Rastergröße (Zeile/Spalte) | Zellgröße in px                                      |
 | Mobile-Breakpoint          | Breite, ab der die mobile Einspaltenansicht greift   |
-| Tablet-Breakpoint          | Breite, unter der Widgets in Tablet-Spalten fließen (Aus = Desktop-Raster, ggf. mit Scrollbalken) |
+| Tablet-Breakpoint          | Fensterbreite, unter der Widgets in Tablet-Spalten fließen (Aus = Desktop-Raster, ggf. mit Scrollbalken); das Bereichs-Menü hat dort seine eigene „Platzierung auf Tablets“ |
 | Tablet-Spalten             | Spaltenzahl im Tablet-Bereich (1–4); breite Widgets belegen anteilig mehrere Spalten |
 | Wizard Max-Datenpunkte     | Obergrenze der im Assistenten gescannten Datenpunkte |
 

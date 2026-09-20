@@ -142,6 +142,9 @@ export const de = {
     'settings.frontend.layoutDrawerMobilePlacementAuto': 'Automatisch',
     'settings.frontend.layoutDrawerMobilePlacementHint':
         'Gilt unterhalb des Mobil-Umbruchpunkts. „Automatisch“ ersetzt nur die feste Seitenleiste: der Hamburger wandert in die Tab-Leiste, wenn diese ohnehin sichtbar ist – sonst schwebt er, damit eine Leiste mit nur einem Tab ausgeblendet bleibt.',
+    'settings.frontend.layoutDrawerTabletPlacement': 'Platzierung auf Tablets',
+    'settings.frontend.layoutDrawerTabletPlacementHint':
+        'Gilt zwischen Mobile- und Tablet-Breakpoint (Grid & Mobil), also nur bei eingeschaltetem Tablet-Modus. „Automatisch“ verhält sich wie auf Mobilgeräten: die feste Seitenleiste wird zum Hamburger, damit der Spaltenfluss die volle Breite bekommt – „Feste Seitenleiste“ lässt sie stehen.',
     'settings.frontend.layoutDrawerWidth': 'Breite der Seitenleiste',
     'settings.frontend.layoutDrawerTopOffset': 'Abstand nach oben',
     'settings.frontend.layoutDrawerBottomOffset': 'Abstand nach unten',

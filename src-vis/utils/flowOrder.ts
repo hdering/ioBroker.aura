@@ -55,20 +55,35 @@ export function flowSpan(w: Pick<WidgetConfig, 'gridPos'>, tabExtent: number, co
 }
 
 /**
- * Which flow (if any) a container width falls into. The tablet band exists only
- * when its breakpoint lies above the mobile one; 0 switches it off. In the editor
- * the tablet band is skipped — the tablet layout is derived, its order is arranged
- * in a side panel, and the editor's preview column is narrower than the window, so
- * a 1024 px breakpoint would otherwise turn most editors into a non-draggable flow.
+ * Is a viewport inside the tablet band? The band exists only when the tablet
+ * breakpoint lies above the mobile one; 0 switches it off. It is measured against
+ * the VIEWPORT, not the dashboard's own box: the number a user configures is the
+ * device width they read off the resolution overlay, and a docked section menu
+ * must not shift it — 240 px of menu plus padding turned "768" into "switches at
+ * 1024" (#413). The section menu decides its tablet placement by the same rule.
+ */
+export function tabletBandActive(
+    viewportWidth: number,
+    opts: { mobileBreakpoint: number; tabletBreakpoint: number },
+): boolean {
+    return viewportWidth > 0 && opts.tabletBreakpoint > opts.mobileBreakpoint && viewportWidth < opts.tabletBreakpoint;
+}
+
+/**
+ * Which flow (if any) the dashboard renders. Mobile is decided by the dashboard's
+ * container width, as it always was — a docked menu that leaves only phone width
+ * gets the phone stack. The tablet band is decided by the viewport, see
+ * tabletBandActive. In the editor the tablet band is skipped — the tablet layout
+ * is derived, its order is arranged in a side panel, and the editor's preview
+ * column is narrower than the window, so a 1024 px breakpoint would otherwise
+ * turn most editors into a non-draggable flow.
  */
 export function flowModeFor(
-    width: number,
+    widths: { container: number; viewport: number },
     opts: { mobileBreakpoint: number; tabletBreakpoint: number; editMode?: boolean },
 ): FlowMode | null {
-    if (!(width > 0)) return null;
-    if (width < opts.mobileBreakpoint) return 'mobile';
-    if (!opts.editMode && opts.tabletBreakpoint > opts.mobileBreakpoint && width < opts.tabletBreakpoint) {
-        return 'tablet';
-    }
+    if (!(widths.container > 0)) return null;
+    if (widths.container < opts.mobileBreakpoint) return 'mobile';
+    if (!opts.editMode && tabletBandActive(widths.viewport, opts)) return 'tablet';
     return null;
 }

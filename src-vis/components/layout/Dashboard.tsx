@@ -34,6 +34,7 @@ import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } fr
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
 import { flowModeFor, flowSpan, sortForFlow, tabExtentOf } from '../../utils/flowOrder';
+import { useViewportWidth } from '../../hooks/useViewportWidth';
 import { reportMetric } from '../../utils/perfMetrics';
 import { measureRenderedWidgets, reportSignature, sendRenderReport } from '../../utils/renderReport';
 
@@ -165,6 +166,9 @@ export function Dashboard({
     // Tablet band (#413): 0 = off, and a value at/below the mobile breakpoint is off too.
     const tabletBreakpoint = settings.tabletBreakpoint ?? 0;
     const tabletCols = Math.min(4, Math.max(1, Math.round(settings.tabletCols ?? 2)));
+    // The tablet band is measured on the window, not on this component's box — see
+    // flowModeFor. The box (containerWidth, below) still decides the phone stack.
+    const viewportWidth = useViewportWidth();
     const hideGridScrollbar = settings.hideGridScrollbar ?? false;
     const guidelinesEnabled = settings.guidelinesEnabled ?? false;
     const guidelinesWidth = settings.guidelinesWidth ?? 1280;
@@ -555,7 +559,10 @@ export function Dashboard({
     // RGL in either — a stray drag can never touch the desktop gridPos. Groups
     // and media players see the mobile context in both: a tablet column is a
     // phone-width column, and their stacked form already knows how to size itself.
-    const flowMode = flowModeFor(containerWidth, { mobileBreakpoint, tabletBreakpoint, editMode });
+    const flowMode = flowModeFor(
+        { container: containerWidth, viewport: viewportWidth },
+        { mobileBreakpoint, tabletBreakpoint, editMode },
+    );
     if (flowMode) {
         const flowCols = flowMode === 'tablet' ? tabletCols : 1;
         return (

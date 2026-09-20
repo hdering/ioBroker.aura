@@ -48,6 +48,7 @@ const LAYOUT_ONLY_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = [
     'layoutDrawerAutoHide',
     'layoutDrawerPlacement',
     'layoutDrawerMobilePlacement',
+    'layoutDrawerTabletPlacement',
     'layoutDrawerWidth',
     'layoutDrawerTopOffset',
     'layoutDrawerBottomOffset',

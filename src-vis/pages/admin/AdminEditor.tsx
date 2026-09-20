@@ -33,7 +33,7 @@ import {
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
-import { flowOrderField, sortForFlow, type FlowMode } from '../../utils/flowOrder';
+import { flowOrderField, sortForFlow, tabletBandActive, type FlowMode } from '../../utils/flowOrder';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
 import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
 import { KEEP_PIN } from '../../utils/pinLock';
@@ -2430,6 +2430,12 @@ export function AdminEditor() {
         };
     }, []);
     const isMobileViewport = viewportWidth > 0 && viewportWidth < (editorSettings.mobileBreakpoint ?? 600);
+    const isTabletViewport =
+        !isMobileViewport &&
+        tabletBandActive(viewportWidth, {
+            mobileBreakpoint: editorSettings.mobileBreakpoint ?? 600,
+            tabletBreakpoint: editorSettings.tabletBreakpoint ?? 0,
+        });
 
     // Docked-sidebar layout menu: mirror the frontend so the editor preview reserves
     // the same horizontal space the menu occupies in the frontend. Without this the
@@ -2441,6 +2447,8 @@ export function AdminEditor() {
         // On a narrow editor window the frontend only keeps the docked sidebar when the
         // mobile placement explicitly says so — otherwise it becomes a hamburger there.
         (!isMobileViewport || (editorSettings.layoutDrawerMobilePlacement ?? 'auto') === 'sidebar') &&
+        // Same for the tablet band (#413): the frontend keeps the sidebar there only on request.
+        (!isTabletViewport || (editorSettings.layoutDrawerTabletPlacement ?? 'auto') === 'sidebar') &&
         activeSectionForEditor &&
         ((useDashboardStore
             .getState()

@@ -47,6 +47,7 @@ import { useEffectiveThemeId, useEffectiveCustomVars, useEffectiveSettings } fro
 import { useIconPreload } from './hooks/useIconPreload';
 import { useT } from './i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from './utils/tabBarVisible';
+import { tabletBandActive } from './utils/flowOrder';
 import { deriveHeaderItems } from './utils/menuItems';
 import type { Tab } from './store/dashboardStore';
 
@@ -397,6 +398,13 @@ export default function App() {
     }, []);
     const mobileBreakpoint = effectiveSettings.mobileBreakpoint ?? 600;
     const isMobileViewport = viewportWidth > 0 && viewportWidth < mobileBreakpoint;
+    // Tablet band (#413) — the same viewport rule the dashboard uses for its column flow.
+    const isTabletViewport =
+        !isMobileViewport &&
+        tabletBandActive(viewportWidth, {
+            mobileBreakpoint,
+            tabletBreakpoint: effectiveSettings.tabletBreakpoint ?? 0,
+        });
 
     // ── Prefetch (silent, background) ────────────────────────────────────────
     // Warm the state cache for the active tab before widgets mount so they render
@@ -1160,20 +1168,27 @@ export default function App() {
     // there): into the tab bar when that bar is visible anyway, otherwise as a
     // floating hamburger — so a single-tab section keeps its clean, bar-less look.
     // Every other desktop placement passes through unchanged.
+    // The tablet band (#413) has its own placement with the same choices: the
+    // dashboard flows into columns there to gain width, so 'auto' gives the docked
+    // sidebar up the same way; 'sidebar' keeps it standing next to the flow.
     const desktopPlacement = effectiveSettings.layoutDrawerPlacement ?? 'floating';
     const mobilePlacement = effectiveSettings.layoutDrawerMobilePlacement ?? 'auto';
-    const autoMobilePlacement =
+    const tabletPlacement = effectiveSettings.layoutDrawerTabletPlacement ?? 'auto';
+    const autoNarrowPlacement =
         desktopPlacement === 'sidebar'
             ? tabBarShowsOnOwn(visibleTabCount(tabs), tabBarResolved)
                 ? 'tabbar'
                 : 'floating'
             : desktopPlacement;
-    const mobileChoice = mobilePlacement === 'auto' ? autoMobilePlacement : mobilePlacement;
-    const drawerPlacement = isMobileViewport ? mobileChoice : desktopPlacement;
-    // A mobile placement that deliberately differs from the desktop one — explicitly
-    // configured, or the auto-rewritten sidebar — is the chosen host even when a
-    // header is shown; the header rules below only guard the pass-through case.
-    const mobileRelocated = isMobileViewport && (mobilePlacement !== 'auto' || mobileChoice !== desktopPlacement);
+    const mobileChoice = mobilePlacement === 'auto' ? autoNarrowPlacement : mobilePlacement;
+    const tabletChoice = tabletPlacement === 'auto' ? autoNarrowPlacement : tabletPlacement;
+    const drawerPlacement = isMobileViewport ? mobileChoice : isTabletViewport ? tabletChoice : desktopPlacement;
+    // A narrow-screen placement that deliberately differs from the desktop one —
+    // explicitly configured, or the auto-rewritten sidebar — is the chosen host even
+    // when a header is shown; the header rules below only guard the pass-through case.
+    const mobileRelocated =
+        (isMobileViewport && (mobilePlacement !== 'auto' || mobileChoice !== desktopPlacement)) ||
+        (isTabletViewport && (tabletPlacement !== 'auto' || tabletChoice !== desktopPlacement));
     // Docked sidebar: always-visible left menu, works with or without header — overrides overlay placements.
     const drawerSidebar = drawerEnabled && drawerPlacement === 'sidebar';
     const drawerWidth = effectiveSettings.layoutDrawerWidth ?? 240;
