@@ -15,6 +15,8 @@ export interface WidgetConfig {
     options?: Record<string, unknown>; // Widget-spezifische Optionen
     mobileOrder?: number; // Sortierung in der mobilen Ansicht (einzelne Spalte)
     tabletOrder?: number; // Sortierung in der Tablet-Ansicht (N Spalten); fehlt sie, gilt mobileOrder
+    tabletCol?: number; // Spalte im Tablet-Fluss (0-basiert); fehlt sie, füllt das Widget die Spalte mit den wenigsten Widgets
+    tabletWide?: boolean; // true = volle Breite über alle Tablet-Spalten (eigenes Band); fehlt sie, entscheidet die Desktop-Breite
 }
 
 /**

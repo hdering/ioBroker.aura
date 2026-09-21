@@ -34,7 +34,7 @@ import { useT } from '../../i18n';
 import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } from '../../utils/dragBridge';
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
-import { flowModeFor, flowSpan, sortForFlow, tabExtentOf } from '../../utils/flowOrder';
+import { flowBands, flowModeFor } from '../../utils/flowOrder';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
 import { reportMetric } from '../../utils/perfMetrics';
 import { measureRenderedWidgets, reportSignature, sendRenderReport } from '../../utils/renderReport';
@@ -625,11 +625,111 @@ export function Dashboard({
                                                 !reflowHiddenIds.has(w.id) &&
                                                 !(fillTabWidget && w.id === fillTabWidget.id),
                                         );
-                                        const sorted = sortForFlow(tabWidgets, flowMode);
-                                        // Column shares are measured against the width the tab really
-                                        // uses on the desktop, not the grid's column count — a tab
-                                        // that fills only the left half still gets a full-width flow.
-                                        const tabExtent = tabExtentOf(tabWidgets);
+                                        const bands = flowBands(tabWidgets, flowMode, flowCols);
+                                        // One box per widget — the same height rules whether it sits in the phone
+                                        // stack, a tablet column or a full-width band; `span` only feeds the test hook.
+                                        const renderBox = (w: WidgetConfig, span: number) => {
+                                            // A mirror renders its SOURCE inside, so the auto-height
+                                            // decision must follow the source's type/layout — otherwise a
+                                            // mirror of a group gets a fixed gridPos.h box on mobile and
+                                            // its stacked children only scroll instead of showing in full
+                                            // (issue #513). Same source resolution as the desktop branch.
+                                            const mirrorSrc =
+                                                w.type === 'mirror'
+                                                    ? widgetById.get(
+                                                          (w.options?.targetWidgetId as string | undefined) ?? '',
+                                                      )
+                                                    : undefined;
+                                            const ew = mirrorSrc ?? w;
+                                            const wl = ew.layout ?? 'default';
+                                            // Weather's stacking layouts (default/card) top-align their
+                                            // content and let a responsive scale fill the height. On the
+                                            // wide desktop grid that scale grows to fill the box, but in the
+                                            // narrow mobile column the scale is width-bound and stays small,
+                                            // so a fixed gridPos.h box would show a tall empty gap below the
+                                            // card. Size to content instead (like group/mediaplayer). Custom
+                                            // grid needs a definite height (CustomGridView is height:100%);
+                                            // minimal/compact already center, so they keep a fixed height.
+                                            const autoHeight =
+                                                frameCollapsedNow(w, ew) ||
+                                                ew.type === 'group' ||
+                                                ew.type === 'mediaplayer' ||
+                                                (ew.type === 'weather' &&
+                                                    wl !== 'custom' &&
+                                                    wl !== 'minimal' &&
+                                                    wl !== 'compact') ||
+                                                usesContentAutoHeight(ew);
+                                            // The section title draws no card and clips nothing, so with a
+                                            // small row count its text sticks out of the box above and below
+                                            // (centered). On the desktop grid that overflow is simply
+                                            // visible; the mobile stack lives in a scroller, so the topmost
+                                            // widget loses everything above the scroll box — the title looked
+                                            // cut off by the tab bar. Grow the box to the text instead
+                                            // of shrinking a deliberately tall header: minHeight, not height.
+                                            //
+                                            // Not `height + min-height: fit-content` any more: the header's
+                                            // row is h-full, and as a GRID item the percentage resolves
+                                            // against the specified 20 px while the intrinsic size is being
+                                            // computed — so "fit-content" was 20 px and the text stuck out
+                                            // again (the flex stack treated the percentage as auto). The box
+                                            // is therefore its own single-cell grid with only a min-height:
+                                            // its height is the taller of grid rows and content, the frame
+                                            // is stretched to it, and inside a stretched grid item h-full is
+                                            // definite again, so a deliberately tall header stays centred.
+                                            const growToContent = ew.type === 'header';
+                                            const boxHeight = w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN;
+                                            // An embedded page fills the frame's width and keeps its own
+                                            // proportions, so a frame drawn wide on the desktop grid but
+                                            // stacked into the narrow mobile column showed the content
+                                            // small and centred in a tall empty box (issue #645). Hand the
+                                            // box the desktop aspect ratio instead of the raw row count:
+                                            // maxHeight keeps it from ever growing past the stored height,
+                                            // minHeight catches the wide-and-flat case.
+                                            const keepsAspect = EMBED_TYPES.has(ew.type);
+                                            const desktopWidth = Math.max(
+                                                1,
+                                                w.gridPos.w * snapX + (w.gridPos.w - 1) * MARGIN,
+                                            );
+                                            const boxStyle = autoHeight
+                                                ? undefined
+                                                : growToContent
+                                                  ? {
+                                                        display: 'grid',
+                                                        minHeight: boxHeight,
+                                                    }
+                                                  : keepsAspect
+                                                    ? {
+                                                          aspectRatio: `${desktopWidth} / ${boxHeight}`,
+                                                          maxHeight: boxHeight,
+                                                          minHeight: Math.min(boxHeight, EMBED_MOBILE_MIN_H),
+                                                      }
+                                                    : {
+                                                          // 'panels' is a fixed-viewport carousel: its
+                                                          // slide track is absolutely positioned, so with
+                                                          // auto height the flex-1 viewport collapses to 0
+                                                          // (only title + dots show). It needs a definite
+                                                          // height like a normal widget — unlike group/
+                                                          // mediaplayer which size to their stacked content.
+                                                          height: boxHeight,
+                                                      };
+                                            return (
+                                                <div
+                                                    key={w.id}
+                                                    data-aura-widget={w.id}
+                                                    data-aura-widget-type={w.type}
+                                                    data-aura-widget-rows={w.gridPos.h}
+                                                    data-aura-flow-span={span}
+                                                    style={boxStyle}
+                                                >
+                                                    <WidgetFrame
+                                                        config={w}
+                                                        editMode={editMode}
+                                                        onRemove={removeWidget}
+                                                        onConfigChange={handleConfigChange}
+                                                    />
+                                                </div>
+                                            );
+                                        };
                                         return (
                                             <div
                                                 key={tab.id}
@@ -648,138 +748,36 @@ export function Dashboard({
                                                 ) : (
                                                     <div
                                                         data-aura-flow-cols={flowCols}
-                                                        style={{
-                                                            display: 'grid',
-                                                            gridTemplateColumns: `repeat(${flowCols}, minmax(0, 1fr))`,
-                                                            gap: MARGIN,
-                                                            // start, not stretch: stretch would override the
-                                                            // aspect-ratio box of an embedded page (#645) and
-                                                            // pull auto-height cards down to their neighbour.
-                                                            alignItems: 'start',
-                                                            // dense: a widget that no longer fits the current row
-                                                            // leaves a hole, and the next one that fits takes it —
-                                                            // no gaps, and the arranged order still decides who
-                                                            // comes first. Meaningless in one column.
-                                                            gridAutoFlow: flowCols > 1 ? 'row dense' : undefined,
-                                                        }}
+                                                        className="flex flex-col"
+                                                        style={{ gap: MARGIN }}
                                                     >
-                                                        {sorted.map((w) => {
-                                                            // A mirror renders its SOURCE inside, so the auto-height
-                                                            // decision must follow the source's type/layout — otherwise a
-                                                            // mirror of a group gets a fixed gridPos.h box on mobile and
-                                                            // its stacked children only scroll instead of showing in full
-                                                            // (issue #513). Same source resolution as the desktop branch.
-                                                            const mirrorSrc =
-                                                                w.type === 'mirror'
-                                                                    ? widgetById.get(
-                                                                          (w.options?.targetWidgetId as
-                                                                              | string
-                                                                              | undefined) ?? '',
-                                                                      )
-                                                                    : undefined;
-                                                            const ew = mirrorSrc ?? w;
-                                                            const wl = ew.layout ?? 'default';
-                                                            // Weather's stacking layouts (default/card) top-align their
-                                                            // content and let a responsive scale fill the height. On the
-                                                            // wide desktop grid that scale grows to fill the box, but in the
-                                                            // narrow mobile column the scale is width-bound and stays small,
-                                                            // so a fixed gridPos.h box would show a tall empty gap below the
-                                                            // card. Size to content instead (like group/mediaplayer). Custom
-                                                            // grid needs a definite height (CustomGridView is height:100%);
-                                                            // minimal/compact already center, so they keep a fixed height.
-                                                            const autoHeight =
-                                                                frameCollapsedNow(w, ew) ||
-                                                                ew.type === 'group' ||
-                                                                ew.type === 'mediaplayer' ||
-                                                                (ew.type === 'weather' &&
-                                                                    wl !== 'custom' &&
-                                                                    wl !== 'minimal' &&
-                                                                    wl !== 'compact') ||
-                                                                usesContentAutoHeight(ew);
-                                                            // The section title draws no card and clips nothing, so with a
-                                                            // small row count its text sticks out of the box above and below
-                                                            // (centered). On the desktop grid that overflow is simply
-                                                            // visible; the mobile stack lives in a scroller, so the topmost
-                                                            // widget loses everything above the scroll box — the title looked
-                                                            // cut off by the tab bar. Grow the box to the text instead
-                                                            // of shrinking a deliberately tall header: minHeight, not height.
-                                                            //
-                                                            // Not `height + min-height: fit-content` any more: the header's
-                                                            // row is h-full, and as a GRID item the percentage resolves
-                                                            // against the specified 20 px while the intrinsic size is being
-                                                            // computed — so "fit-content" was 20 px and the text stuck out
-                                                            // again (the flex stack treated the percentage as auto). The box
-                                                            // is therefore its own single-cell grid with only a min-height:
-                                                            // its height is the taller of grid rows and content, the frame
-                                                            // is stretched to it, and inside a stretched grid item h-full is
-                                                            // definite again, so a deliberately tall header stays centred.
-                                                            const growToContent = ew.type === 'header';
-                                                            const boxHeight =
-                                                                w.gridPos.h * cellSize + (w.gridPos.h - 1) * MARGIN;
-                                                            // An embedded page fills the frame's width and keeps its own
-                                                            // proportions, so a frame drawn wide on the desktop grid but
-                                                            // stacked into the narrow mobile column showed the content
-                                                            // small and centred in a tall empty box (issue #645). Hand the
-                                                            // box the desktop aspect ratio instead of the raw row count:
-                                                            // maxHeight keeps it from ever growing past the stored height,
-                                                            // minHeight catches the wide-and-flat case.
-                                                            const keepsAspect = EMBED_TYPES.has(ew.type);
-                                                            const desktopWidth = Math.max(
-                                                                1,
-                                                                w.gridPos.w * snapX + (w.gridPos.w - 1) * MARGIN,
-                                                            );
-                                                            const boxStyle = autoHeight
-                                                                ? undefined
-                                                                : growToContent
-                                                                  ? {
-                                                                        display: 'grid',
-                                                                        minHeight: boxHeight,
-                                                                    }
-                                                                  : keepsAspect
-                                                                    ? {
-                                                                          aspectRatio: `${desktopWidth} / ${boxHeight}`,
-                                                                          maxHeight: boxHeight,
-                                                                          minHeight: Math.min(
-                                                                              boxHeight,
-                                                                              EMBED_MOBILE_MIN_H,
-                                                                          ),
-                                                                      }
-                                                                    : {
-                                                                          // 'panels' is a fixed-viewport carousel: its
-                                                                          // slide track is absolutely positioned, so with
-                                                                          // auto height the flex-1 viewport collapses to 0
-                                                                          // (only title + dots show). It needs a definite
-                                                                          // height like a normal widget — unlike group/
-                                                                          // mediaplayer which size to their stacked content.
-                                                                          height: boxHeight,
-                                                                      };
-                                                            // Tablet flow: a wide desktop widget takes several columns.
-                                                            const span = flowSpan(w, tabExtent, flowCols);
-                                                            return (
+                                                        {bands.map((band, bi) =>
+                                                            band.kind === 'full' ? (
+                                                                renderBox(band.widget, flowCols)
+                                                            ) : (
                                                                 <div
-                                                                    key={w.id}
-                                                                    data-aura-widget={w.id}
-                                                                    data-aura-widget-type={w.type}
-                                                                    data-aura-widget-rows={w.gridPos.h}
-                                                                    data-aura-flow-span={span}
-                                                                    style={
-                                                                        span > 1
-                                                                            ? {
-                                                                                  ...boxStyle,
-                                                                                  gridColumn: `span ${span}`,
-                                                                              }
-                                                                            : boxStyle
-                                                                    }
+                                                                    key={`band-${bi}`}
+                                                                    data-aura-flow-band={bi}
+                                                                    style={{
+                                                                        display: 'grid',
+                                                                        gridTemplateColumns: `repeat(${flowCols}, minmax(0, 1fr))`,
+                                                                        gap: MARGIN,
+                                                                        alignItems: 'start',
+                                                                    }}
                                                                 >
-                                                                    <WidgetFrame
-                                                                        config={w}
-                                                                        editMode={editMode}
-                                                                        onRemove={removeWidget}
-                                                                        onConfigChange={handleConfigChange}
-                                                                    />
+                                                                    {band.columns.map((col, ci) => (
+                                                                        <div
+                                                                            key={ci}
+                                                                            data-aura-flow-col={ci}
+                                                                            className="flex flex-col min-w-0"
+                                                                            style={{ gap: MARGIN }}
+                                                                        >
+                                                                            {col.map((w) => renderBox(w, 1))}
+                                                                        </div>
+                                                                    ))}
                                                                 </div>
-                                                            );
-                                                        })}
+                                                            ),
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>

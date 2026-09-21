@@ -7,8 +7,9 @@
 //
 // Geprueft wird im Browser, nicht an der Formel: Lage und Breite der Widget-Boxen,
 // der Zweig (Raster oder Fluss), der waagerechte Ueberlauf des Scrollers und die
-// Reihenfolge - inklusive Rueckfall der Tablet- auf die Mobile-Reihenfolge und der
-// dichten Packung (ein spaeteres Widget rueckt in eine Luecke vor).
+// Reihenfolge - inklusive Rueckfall der Tablet- auf die Mobile-Reihenfolge, der
+// Baender (ein Widget in voller Breite unterbricht die Spalten) und der festen
+// Zuordnung aus dem Panel (tabletCol / tabletWide).
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5173';
@@ -214,7 +215,7 @@ const approx = (a, b, tol = 2) => Math.abs(a - b) <= tol;
     await ctx.close();
 }
 
-// ── Dichte Packung: ein spaeteres schmales Widget fuellt die Luecke neben A ──────────
+// ── Baender: ein Widget in voller Breite beendet den Spaltenblock, darunter beginnt ein neuer ──
 {
     const { ctx, page } = await open(900);
     await show(page, {
@@ -228,9 +229,61 @@ const approx = (a, b, tol = 2) => Math.abs(a - b) <= tol;
         },
     });
     const g = await geometry(page);
-    const { A, C, D } = g.boxes;
-    check('D rueckt in die Luecke neben A', sameRow(A, D) && D.left > A.left, `A ${A.top} D ${D.left}/${D.top}`);
-    check('C (volle Breite) darunter', C.top > A.top, `C ${C.top} A ${A.top}`);
+    const { A, B, C, D, E } = g.boxes;
+    check(
+        'A allein im ersten Block, links',
+        A.left < g.flowWidth / 4 && C.top > A.top + A.height - 1,
+        `A ${A.left}/${A.top} C ${C.top}`,
+    );
+    check(
+        'C als Band ueber die volle Breite',
+        C.span === 2 && approx(C.width, g.flowWidth),
+        `${C.width} von ${g.flowWidth}`,
+    );
+    check(
+        'D links und B rechts im Block unter dem Band',
+        D.top > C.top && sameRow(D, B) && approx(D.left, A.left) && B.left > D.left,
+        `D ${D.left}/${D.top} B ${B.left}/${B.top}`,
+    );
+    check('E stapelt unter D in derselben Spalte', approx(E.left, D.left) && E.top > D.top, `E ${E.left}/${E.top}`);
+    await ctx.close();
+}
+
+// ── Feste Zuordnung aus dem Panel: tabletCol setzt die Spalte, tabletWide das Band ──────
+{
+    const { ctx, page } = await open(900);
+    await show(page, {
+        settings: { tabletBreakpoint: 1024, tabletCols: 2 },
+        orders: {
+            A: { tabletCol: 1 },
+            B: { tabletCol: 0 },
+            C: { tabletWide: false },
+            D: { tabletWide: true },
+        },
+    });
+    const g = await geometry(page);
+    const { A, B, C, D, E } = g.boxes;
+    check(
+        'tabletCol: B links, A rechts (Rasterreihenfolge waere umgekehrt)',
+        sameRow(A, B) && B.left < A.left,
+        `B ${B.left} A ${A.left}`,
+    );
+    check(
+        'tabletWide=false: C bleibt trotz voller Desktop-Breite eine Spalte',
+        C.span === 1 && approx(C.left, B.left) && C.top > B.top,
+        `C ${C.left}/${C.top} span ${C.span}`,
+    );
+    check(
+        'tabletWide=true: D wird zum Band',
+        D.span === 2 && approx(D.width, g.flowWidth) && D.top > C.top,
+        `${D.width} von ${g.flowWidth}`,
+    );
+    check(
+        'E ohne Zuordnung: neuer Block unter dem Band, linke Spalte',
+        E.top > D.top && approx(E.left, B.left),
+        `E ${E.left}/${E.top}`,
+    );
+    check('kein Ueberlauf', g.overflowX !== null && g.overflowX <= 0, `${g.overflowX}px`);
     await ctx.close();
 }
 

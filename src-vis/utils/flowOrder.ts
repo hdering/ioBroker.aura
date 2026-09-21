@@ -87,3 +87,93 @@ export function flowModeFor(
     if (!opts.editMode && tabletBandActive(widths.viewport, opts)) return 'tablet';
     return null;
 }
+
+// ── Column stacks ─────────────────────────────────────────────────────────────
+// The tablet flow is a stack of BANDS: a column block (N independent columns, each
+// stacking its widgets top-down — no gaps under short cards, unlike a row grid) or
+// one widget spanning the full width, which ends the block above and starts a new
+// one below. The editor panel shows exactly this structure and writes it back with
+// three fields per widget: tabletOrder (bands top-down, a block row by row),
+// tabletCol (the column a card was put in) and tabletWide (a full-width band).
+
+export type FlowWidget = Pick<
+    WidgetConfig,
+    'id' | 'gridPos' | 'mobileOrder' | 'tabletOrder' | 'tabletCol' | 'tabletWide'
+>;
+
+export type FlowBand<W> = { kind: 'full'; widget: W } | { kind: 'columns'; columns: W[][] };
+
+/** Does a widget take the whole tablet width? An explicit `tabletWide` wins; otherwise
+ *  a widget that covers the tab's used width on the desktop (rounded to columns) does. */
+export function isWideInFlow(w: FlowWidget, tabExtent: number, cols: number): boolean {
+    if (typeof w.tabletWide === 'boolean') return w.tabletWide;
+    return cols > 1 && flowSpan(w, tabExtent, cols) === cols;
+}
+
+/** Column with the fewest widgets, leftmost on a tie — plain round-robin while nothing is pinned. */
+export function emptiestColumn(columns: readonly (readonly unknown[])[]): number {
+    let best = 0;
+    for (let i = 1; i < columns.length; i++) if (columns[i].length < columns[best].length) best = i;
+    return best;
+}
+
+/**
+ * Build the bands for a tab. Mobile (or one column) is a single block with one
+ * column in the mobile order — the phone stack as it always was. The tablet walks
+ * the widgets in tablet order: a wide one becomes a band, every other one goes into
+ * the current block, into its pinned `tabletCol` (clamped to the column count, so
+ * dropping from 3 to 2 columns folds the third into the last) or, unpinned, into
+ * the emptiest column.
+ */
+export function flowBands<W extends FlowWidget>(widgets: readonly W[], mode: FlowMode, cols: number): FlowBand<W>[] {
+    const sorted = sortForFlow(widgets, mode);
+    if (mode === 'mobile' || cols <= 1) {
+        return sorted.length ? [{ kind: 'columns', columns: [sorted] }] : [];
+    }
+    const tabExtent = tabExtentOf(widgets);
+    const bands: FlowBand<W>[] = [];
+    let block: W[][] | null = null;
+    for (const w of sorted) {
+        if (isWideInFlow(w, tabExtent, cols)) {
+            block = null;
+            bands.push({ kind: 'full', widget: w });
+            continue;
+        }
+        if (!block) {
+            block = Array.from({ length: cols }, () => [] as W[]);
+            bands.push({ kind: 'columns', columns: block });
+        }
+        const pinned = typeof w.tabletCol === 'number' && Number.isFinite(w.tabletCol);
+        const col = pinned ? Math.min(cols - 1, Math.max(0, Math.round(w.tabletCol as number))) : emptiestColumn(block);
+        block[col].push(w);
+    }
+    return bands;
+}
+
+/**
+ * The order the panel writes back: bands top-down, a column block row by row (the
+ * first card of every column, then the second …). Written to `tabletOrder`, with
+ * `tabletCol` for every column card and `tabletWide` for every band, flowBands()
+ * rebuilds exactly the structure the user arranged — and a widget added later
+ * (no pin) lands in the emptiest column of the block its order falls into.
+ */
+export function linearizeBands<W extends FlowWidget>(
+    bands: readonly FlowBand<W>[],
+): { widget: W; order: number; col: number | null; wide: boolean }[] {
+    const out: { widget: W; order: number; col: number | null; wide: boolean }[] = [];
+    let order = 0;
+    for (const band of bands) {
+        if (band.kind === 'full') {
+            out.push({ widget: band.widget, order: order++, col: null, wide: true });
+            continue;
+        }
+        const rows = Math.max(0, ...band.columns.map((c) => c.length));
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < band.columns.length; c++) {
+                const w = band.columns[c][r];
+                if (w) out.push({ widget: w, order: order++, col: c, wide: false });
+            }
+        }
+    }
+    return out;
+}

@@ -34,6 +34,7 @@ import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { flowOrderField, sortForFlow, tabletBandActive, type FlowMode } from '../../utils/flowOrder';
+import { TabletOrderPanel } from './editor/TabletOrderPanel';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
 import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
 import { KEEP_PIN } from '../../utils/pinLock';
@@ -2673,7 +2674,13 @@ export function AdminEditor() {
                         <Dashboard editMode={true} />
                     </FocusedWidgetContext.Provider>
                 </div>
-                {orderPanel && <OrderPanel layoutId={activeLayoutId} mode={orderPanel} />}
+                {orderPanel === 'mobile' && <OrderPanel layoutId={activeLayoutId} mode="mobile" />}
+                {orderPanel === 'tablet' && (
+                    <TabletOrderPanel
+                        layoutId={activeLayoutId}
+                        cols={Math.min(4, Math.max(1, Math.round(editorSettings.tabletCols ?? 2)))}
+                    />
+                )}
             </div>
 
             {showManual && <ManualWidgetDialog onAdd={addWidget} onClose={() => setShowManual(false)} />}

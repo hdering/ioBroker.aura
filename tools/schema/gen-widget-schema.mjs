@@ -845,6 +845,18 @@ async function build() {
                     'Reihenfolge im mehrspaltigen Tablet-Fluss (Einstellung tabletBreakpoint/tabletCols). ' +
                     'Fehlt sie, gilt mobileOrder, sonst die Rasterposition.',
             },
+            tabletCol: {
+                type: 'number',
+                description:
+                    'Spalte im Tablet-Fluss, 0-basiert, auf die Spaltenzahl gekappt. ' +
+                    'Fehlt sie, füllt das Widget die Spalte mit den wenigsten Widgets (ohne Zuordnung: abwechselnd).',
+            },
+            tabletWide: {
+                type: 'boolean',
+                description:
+                    'true = volle Breite über alle Tablet-Spalten, als eigenes Band zwischen den Spaltenblöcken; ' +
+                    'false = eine Spalte. Fehlt sie, entscheidet die Desktop-Breite (füllt das Widget den Tab, ist es breit).',
+            },
         },
         groups: reg.WIDGET_GROUPS,
         commonOptions,
