@@ -1288,6 +1288,19 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                     {t('pin.hint')}
                                 </p>
                             )}
+                            {sectionHasPin && (
+                                <PinSwitch
+                                    className="aura-pin-showlock"
+                                    label={t('pin.showLock')}
+                                    hint={t('pin.showLockHint')}
+                                    on={openSection.pinHideLock !== true}
+                                    onToggle={() =>
+                                        updateSection(openSection.id, {
+                                            pinHideLock: openSection.pinHideLock ? undefined : true,
+                                        })
+                                    }
+                                />
+                            )}
                             {sectionHasPin && <McpReleaseToggle vaultKey={`section:${openSection.id}`} />}
                             {sectionHasPin && (
                                 <PinRemoveButton
@@ -1297,6 +1310,7 @@ const SectionSwitcher = memo(function SectionSwitcher() {
                                         updateSection(openSection.id, {
                                             pin: undefined,
                                             pinRelock: undefined,
+                                            pinHideLock: undefined,
                                             pinProtected: undefined,
                                             pinLength: undefined,
                                         })
@@ -1978,6 +1992,19 @@ const TabBar = memo(function TabBar() {
                                         {t('pin.hint')}
                                     </p>
                                 )}
+                                {tabHasPin && (
+                                    <PinSwitch
+                                        className="aura-pin-showlock"
+                                        label={t('pin.showLock')}
+                                        hint={t('pin.showLockHint')}
+                                        on={settingsTab.pinHideLock !== true}
+                                        onToggle={() =>
+                                            updateTab(settingsTabId, {
+                                                pinHideLock: settingsTab.pinHideLock ? undefined : true,
+                                            })
+                                        }
+                                    />
+                                )}
                                 {tabHasPin && <McpReleaseToggle vaultKey={tabVaultKey} />}
                                 {tabHasPin && (
                                     <PinRemoveButton
@@ -1987,6 +2014,7 @@ const TabBar = memo(function TabBar() {
                                             updateTab(settingsTabId, {
                                                 pin: undefined,
                                                 pinRelock: undefined,
+                                                pinHideLock: undefined,
                                                 pinProtected: undefined,
                                                 pinLength: undefined,
                                             })
@@ -2267,6 +2295,47 @@ function PinRemoveButton({ vaultKey, stored, onRemove }: { vaultKey: string; sto
                 </p>
             )}
         </>
+    );
+}
+
+/**
+ * One labelled switch inside a PIN panel. The PIN panels of a section and of a tab
+ * show the same rows, so the markup lives once.
+ */
+function PinSwitch({
+    label,
+    hint,
+    on,
+    onToggle,
+    className,
+}: {
+    label: string;
+    hint: string;
+    on: boolean;
+    onToggle: () => void;
+    className?: string;
+}) {
+    return (
+        <div className={`flex items-center justify-between mt-2 ${className ?? ''}`}>
+            <div>
+                <p className="text-[11px] font-medium" style={{ color: 'var(--text-primary)' }}>
+                    {label}
+                </p>
+                <p className="text-[9px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
+                    {hint}
+                </p>
+            </div>
+            <button
+                onClick={onToggle}
+                className="relative w-9 h-5 rounded-full transition-colors shrink-0"
+                style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+            >
+                <span
+                    className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                    style={{ left: on ? '18px' : '2px' }}
+                />
+            </button>
+        </div>
     );
 }
 

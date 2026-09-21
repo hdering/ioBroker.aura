@@ -35,6 +35,12 @@ export interface PinProtected {
     /** Digit count of the PIN, so the keypad shows the right dots without the code. */
     pinLength?: number;
     pinRelock?: PinRelock;
+    /**
+     * Do not draw the padlock next to the menu / tab-bar entry (#692). The gate
+     * itself is unchanged — the entry still leads to the PIN prompt, it just no
+     * longer advertises that it is locked.
+     */
+    pinHideLock?: boolean;
 }
 
 export type PinScope = 'section' | 'tab';
@@ -54,6 +60,15 @@ export function normalizePin(raw: unknown): string {
 
 export function hasPin(item?: PinProtected | null): boolean {
     return item?.pinProtected === true || normalizePin(item?.pin).length > 0;
+}
+
+/**
+ * `true` when the padlock badge may be drawn on a locked entry. Purely cosmetic:
+ * whoever hides it still meets the PIN prompt, they just do not see beforehand
+ * which entries are gated.
+ */
+export function showsPinLock(item?: PinProtected | null): boolean {
+    return item?.pinHideLock !== true;
 }
 
 export function relockMode(item?: PinProtected | null): PinRelock {

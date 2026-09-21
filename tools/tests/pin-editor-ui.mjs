@@ -133,6 +133,7 @@ await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 40000 })
 const input = page.locator('.aura-pin-input');
 const mcp = page.locator('.aura-pin-mcp');
 const remove = page.locator('.aura-pin-remove');
+const showLock = page.locator('.aura-pin-showlock');
 const visible = async (loc) =>
     loc
         .first()
@@ -169,6 +170,20 @@ try {
     await page.waitForTimeout(200);
     eq('typing a PIN shows the MCP release right away', await visible(mcp), true);
     eq('… and the remove button', await visible(remove), true);
+    // ── the padlock switch (#692) ────────────────────────────────────────────
+    eq('typing a PIN also offers the padlock switch', await visible(showLock), true);
+    eq(
+        'it starts on — a locked entry shows its padlock by default',
+        await tabState('tFree').then((t) => t.pinHideLock),
+        undefined,
+    );
+    await showLock.locator('button').first().click();
+    await page.waitForTimeout(200);
+    eq('switching it off sets pinHideLock', await tabState('tFree').then((t) => t.pinHideLock), true);
+    await showLock.locator('button').first().click();
+    await page.waitForTimeout(200);
+    eq('switching it back on clears the flag again', await tabState('tFree').then((t) => t.pinHideLock), undefined);
+
     check(
         'the MCP hint text is the one the panel promises',
         (await mcp.first().innerText()).includes('Über MCP bearbeitbar'),
@@ -195,6 +210,7 @@ try {
     eq('remove clears the PIN', await input.first().inputValue(), '');
     eq('… hides the MCP release', await visible(mcp), false);
     eq('… and its own button', await visible(remove), false);
+    eq('… and the padlock switch', await visible(showLock), false);
     eq(
         '… and drops the parked release with it',
         await page.evaluate(() => Object.keys(window.__auraShot.mcpPending?.() ?? {})),

@@ -17,7 +17,7 @@ import { IconPickerModal } from '../config/IconPickerModal';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import { useT } from '../../i18n';
 import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
-import { hasPin, tabPinKey } from '../../utils/pinLock';
+import { hasPin, showsPinLock, tabPinKey } from '../../utils/pinLock';
 import { usePinStore } from '../../store/pinStore';
 import { useTabConditionStyle } from '../../hooks/useTabConditionStyle';
 import { useBadges, useTabBadgeAggregate } from '../../hooks/useBadges';
@@ -193,9 +193,11 @@ export function TabBar({
     const activeTabId = viewActiveTabId ?? section.activeTabId;
     // A PIN-protected tab wears a padlock until it was unlocked, so the viewer sees
     // why the tab does not simply open. In the editor the padlock always shows.
+    // `pinHideLock` drops the badge for viewers only (#692) - in the editor it has to
+    // stay, otherwise a protected tab looks exactly like a free one while editing.
     const unlockedPins = usePinStore((s) => s.unlocked);
     const tabLocked = (tab: Tab): boolean =>
-        hasPin(tab) && (!readonly || !(tabPinKey(section.id, tab.id) in unlockedPins));
+        hasPin(tab) && (!readonly || (showsPinLock(tab) && !(tabPinKey(section.id, tab.id) in unlockedPins)));
     const globalTabBar = useConfigStore((s) => s.frontend.tabBar);
     // Tab-bar settings cascade global → layout → section (section wins).
     const tbSettings = resolveTabBarSettings(
@@ -437,7 +439,13 @@ export function TabBar({
                                 </span>
                             )}
 
-                            {tabLocked(tab) && <Lock size={tabIconSize} style={{ flexShrink: 0, opacity: 0.8 }} />}
+                            {tabLocked(tab) && (
+                                <Lock
+                                    data-aura-pin-lock="tab"
+                                    size={tabIconSize}
+                                    style={{ flexShrink: 0, opacity: 0.8 }}
+                                />
+                            )}
 
                             {tab.icon && (
                                 <span

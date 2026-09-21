@@ -251,6 +251,7 @@ export interface Tab {
     pinProtected?: boolean; // adapter marker on a redacted stub — content lives server-side
     pinLength?: number; // digit count of the PIN (keypad hint), never the PIN itself
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
+    pinHideLock?: boolean; // no padlock on the tab button - the gate stays, only the badge goes (#692)
     idleReturnExempt?: boolean; // never left automatically by the idle-return timer (#638)
 }
 
@@ -274,6 +275,7 @@ export interface Section {
     pinProtected?: boolean; // adapter marker on a redacted stub — content lives server-side
     pinLength?: number; // digit count of the PIN (keypad hint), never the PIN itself
     pinRelock?: PinRelock; // 'leave' (default) re-locks on navigating away, 'session' until reload
+    pinHideLock?: boolean; // no padlock on the section menu entry - the gate stays, only the badge goes (#692)
     settings?: LayoutSettings; // per-section content overrides (undefined = inherit)
 }
 
@@ -502,6 +504,7 @@ interface DashboardState {
                 | 'conditions'
                 | 'pin'
                 | 'pinRelock'
+                | 'pinHideLock'
                 // Cleared together with `pin` when the protection is removed — a
                 // leftover stub flag would keep the view locked with no PIN.
                 | 'pinProtected'

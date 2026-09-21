@@ -81,10 +81,11 @@ Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach E
 | --- | --- |
 | PIN | Beliebiger Code; leer = kein Schutz. Bereich im Zahnrad des Bereichs-Chips, Tab im Zahnrad des Tabs |
 | Offen lassen | Aus (Standard): sperrt beim Verlassen sofort wieder. An: bleibt bis zum Neuladen der Seite offen |
+| Schloss-Symbol zeigen | An (Standard): gesperrte Einträge tragen ein Schloss im Bereichs-Menü bzw. in der Tab-Leiste. Aus: kein Symbol – die PIN wird trotzdem abgefragt |
 | Über MCP bearbeitbar | Aus (Standard): der [KI-Zugriff](./mcp#pin-geschützte-bereiche-und-tabs) sieht nur die Struktur und darf nicht schreiben. An: liest und ändert den Inhalt. Erscheint, sobald eine PIN im Feld steht; vor dem ersten Speichern wird die Freigabe vorgemerkt |
 | PIN entfernen | Hebt den Schutz auf. Der Adapter schreibt den Inhalt zurück in die Konfiguration und löscht den Tresor-Eintrag — in einem Schritt, ohne Speichern und ohne die PIN |
 
-Ein gesperrter Bereich blendet auch seine Tabs aus der Tab-Leiste aus. Gesperrte Einträge tragen ein Schloss-Symbol. Eine Bereichs-PIN schützt den ganzen Bereich; eine eigene PIN an einem Tab darin entfällt.
+Ein gesperrter Bereich blendet auch seine Tabs aus der Tab-Leiste aus. Gesperrte Einträge tragen ein Schloss-Symbol, solange **Schloss-Symbol zeigen** an ist. Eine Bereichs-PIN schützt den ganzen Bereich; eine eigene PIN an einem Tab darin entfällt.
 
 Die Prüfung läuft **serverseitig** im Adapter: PIN und geschützte Inhalte verlassen den Server erst, wenn der Code stimmt (scrypt-Hash, Rate-Limit gegen Durchprobieren). Im Editor zeigt ein geschützter Bereich „PIN gesetzt" — eine neue PIN eintippen ändert sie, **PIN entfernen** hebt den Schutz auf. Das Feld selbst bleibt leer, weil der Editor die PIN nie zurückbekommt.
 

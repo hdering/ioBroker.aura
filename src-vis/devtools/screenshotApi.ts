@@ -295,13 +295,21 @@ function installScreenshotApi(): void {
 
         /** PIN state of one tab, as the editor holds it — what „PIN entfernen“ has
          *  to leave behind: no code, no stub marker, widgets intact. */
-        tabPin(sectionId: string, tabId: string): { pin?: string; pinProtected?: boolean; widgets: number } {
+        tabPin(
+            sectionId: string,
+            tabId: string,
+        ): { pin?: string; pinProtected?: boolean; pinHideLock?: boolean; widgets: number } {
             const tab = useDashboardStore
                 .getState()
                 .layouts.flatMap((l) => l.sections)
                 .find((sec) => sec.id === sectionId)
                 ?.tabs.find((t) => t.id === tabId);
-            return { pin: tab?.pin, pinProtected: tab?.pinProtected, widgets: tab?.widgets.length ?? 0 };
+            return {
+                pin: tab?.pin,
+                pinProtected: tab?.pinProtected,
+                pinHideLock: tab?.pinHideLock,
+                widgets: tab?.widgets.length ?? 0,
+            };
         },
 
         /** „Über MCP bearbeitbar“ flipped for a view the vault does not know yet. */

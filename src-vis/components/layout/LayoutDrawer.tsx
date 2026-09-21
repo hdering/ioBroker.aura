@@ -9,7 +9,7 @@ import { useConfigStore } from '../../store/configStore';
 import { ScrollRow } from './ScrollRow';
 import { MenuItemView } from './MenuItemView';
 import { useT } from '../../i18n';
-import { hasPin, sectionPinKey } from '../../utils/pinLock';
+import { hasPin, showsPinLock, sectionPinKey } from '../../utils/pinLock';
 import { usePinStore } from '../../store/pinStore';
 import { useBadges, useTabBadgeAggregate, type ResolvedBadge } from '../../hooks/useBadges';
 import { Badge } from '../common/Badge';
@@ -281,10 +281,11 @@ export function LayoutDrawer({
     const sections = activeLayout?.sections ?? [];
     const activeSection = sections.find((sec) => sec.id === activeSectionId) ?? sections[0];
     // Padlock on every PIN-protected section that is still locked — the entry stays
-    // clickable, it just leads to the unlock prompt instead of the content.
+    // clickable, it just leads to the unlock prompt instead of the content. Sections
+    // with `pinHideLock` keep the gate but drop the badge (#692).
     const unlockedPins = usePinStore((s) => s.unlocked);
     const sectionLocked = (section: Section): boolean =>
-        hasPin(section) && !(sectionPinKey(section.id) in unlockedPins);
+        hasPin(section) && showsPinLock(section) && !(sectionPinKey(section.id) in unlockedPins);
 
     const goToSection = (section: Section) => {
         setOpen(false);
@@ -362,7 +363,11 @@ export function LayoutDrawer({
                             </span>
                         )}
                         {sectionLocked(section) && (
-                            <Lock size={Math.round(fontSize * 0.85)} className="shrink-0 opacity-70" />
+                            <Lock
+                                data-aura-pin-lock="section"
+                                size={Math.round(fontSize * 0.85)}
+                                className="shrink-0 opacity-70"
+                            />
                         )}
                         <SectionBadges section={section} />
                     </button>
@@ -458,7 +463,11 @@ export function LayoutDrawer({
                         </span>
                     )}
                     {sectionLocked(section) && (
-                        <Lock size={Math.round(fontSize * 0.85)} className="shrink-0 opacity-70" />
+                        <Lock
+                            data-aura-pin-lock="section"
+                            size={Math.round(fontSize * 0.85)}
+                            className="shrink-0 opacity-70"
+                        />
                     )}
                     <SectionBadges section={section} />
                 </button>

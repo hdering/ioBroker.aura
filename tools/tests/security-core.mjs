@@ -115,6 +115,7 @@ const fullConfig = () => ({
                             name: 'Secret',
                             slug: 'secret',
                             pin: '9999',
+                            pinHideLock: true,
                             widgets: [{ id: 'wHidden', type: 'camera' }],
                             conditions: [{ dp: 'some.dp' }],
                         },
@@ -313,6 +314,21 @@ const fullConfig = () => ({
     ok(stub.layouts[0].sections[2].tabs[1].badges === undefined, 'decoration missing from the payload is dropped');
 
     ok(vault.restoreView(publicConfig, 'tab:sTabLock:gone', { widgets: [] }) === false, 'unknown key → false');
+
+    // #692: the padlock switch is menu decoration, not content — the frontend only
+    // sees the redacted stub, so the flag has to ride along on it. Removing the PIN
+    // takes it with the rest of the markers.
+    const withFlag = vault.splitDashboard(fullConfig()).publicConfig;
+    ok(
+        withFlag.layouts[0].sections[2].tabs[1].pinHideLock === true,
+        'pinHideLock survives the redaction on the public stub',
+    );
+    ok(
+        withFlag.layouts[0].sections[2].tabs[0].pinHideLock === undefined,
+        'an unprotected tab gets no flag out of nowhere',
+    );
+    vault.restoreView(withFlag, 'tab:sTabLock:tPin', byKey['tab:sTabLock:tPin'].content);
+    ok(withFlag.layouts[0].sections[2].tabs[1].pinHideLock === undefined, 'removing the PIN drops the flag too');
 }
 
 console.log(`security-core: ${pass} checks passed`);

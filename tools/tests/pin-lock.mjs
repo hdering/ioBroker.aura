@@ -33,6 +33,7 @@ const {
     normalizePin,
     hasPin,
     relockMode,
+    showsPinLock,
     pinMatches,
     sectionPinKey,
     tabPinKey,
@@ -103,6 +104,14 @@ check('a padded entry still opens', pinMatches({ pin: '1234' }, ' 1234 ') === tr
 eq('relock defaults to leave', relockMode({ pin: '1' }), 'leave');
 eq('relock session is kept', relockMode({ pin: '1', pinRelock: 'session' }), 'session');
 eq('an unknown relock value falls back to leave', relockMode({ pin: '1', pinRelock: 'forever' }), 'leave');
+check('the padlock shows by default', showsPinLock({ pin: '1' }) === true);
+check('pinHideLock drops the padlock', showsPinLock({ pin: '1', pinHideLock: true }) === false);
+check('pinHideLock false still shows it', showsPinLock({ pin: '1', pinHideLock: false }) === true);
+// Cosmetics only: hiding the badge must never open the gate.
+check(
+    'a hidden padlock still gates the view',
+    pendingPinTarget({ id: 's', name: 'S', pin: '1234', pinHideLock: true }, null, () => false)?.scope === 'section',
+);
 
 // ── keys ──────────────────────────────────────────────────────────────────────
 console.log('\n── unlock keys ──');

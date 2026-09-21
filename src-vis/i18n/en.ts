@@ -586,6 +586,9 @@ export const en: Record<TranslationKey, string> = {
     'pin.keepUnlocked': 'Stay unlocked',
     'pin.keepUnlockedHint':
         'Stay open after unlocking until the page is reloaded. Off: locks again as soon as you navigate away.',
+    'pin.showLock': 'Show padlock',
+    'pin.showLockHint':
+        'On (default): locked entries carry a padlock in the menu or the tab bar. Off: no icon – the PIN is still asked for.',
     'pin.mcpWrite': 'Editable via MCP',
     'pin.mcpWriteHint':
         'Lets the AI server (MCP) read and change the protected content. Off: structure only (id, type, size), ' +

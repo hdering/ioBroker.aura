@@ -39,7 +39,8 @@ const LAYOUT = {
     name: 'Pin',
     slug: 'pin',
     activeSectionId: 'sec-free',
-    settings: { layoutDrawerEnabled: true, layoutDrawerShowSingle: true },
+    // Docked sidebar: the section menu is on screen without a tap, so the padlock checks can read it.
+    settings: { layoutDrawerEnabled: true, layoutDrawerShowSingle: true, layoutDrawerPlacement: 'sidebar' },
     sections: [
         {
             id: 'sec-free',
@@ -54,6 +55,7 @@ const LAYOUT = {
             slug: 'buero',
             activeTabId: 't-office',
             pin: '1234',
+            pinLength: 4,
             // Two tabs: with a single tab the bar hides anyway, which would make the
             // "tabs disappear while locked" checks pass for the wrong reason.
             tabs: [
@@ -67,7 +69,17 @@ const LAYOUT = {
             slug: 'werkstatt',
             activeTabId: 't-same',
             pin: '55',
-            tabs: [{ id: 't-same', name: 'Bank', slug: 'bank', pin: '55', widgets: [widget('w-same', 'WERK')] }],
+            pinLength: 2,
+            tabs: [
+                {
+                    id: 't-same',
+                    name: 'Bank',
+                    slug: 'bank',
+                    pin: '55',
+                    pinLength: 2,
+                    widgets: [widget('w-same', 'WERK')],
+                },
+            ],
         },
         {
             id: 'sec-diff',
@@ -75,7 +87,28 @@ const LAYOUT = {
             slug: 'tresor',
             activeTabId: 't-diff',
             pin: '11',
-            tabs: [{ id: 't-diff', name: 'Fach', slug: 'fach', pin: '22', widgets: [widget('w-diff', 'TRESOR')] }],
+            pinLength: 2,
+            tabs: [
+                {
+                    id: 't-diff',
+                    name: 'Fach',
+                    slug: 'fach',
+                    pin: '22',
+                    pinLength: 2,
+                    widgets: [widget('w-diff', 'TRESOR')],
+                },
+            ],
+        },
+        {
+            // Same gate, no badge: the entry stays gated but wears no padlock (#692).
+            id: 'sec-quiet',
+            name: 'Diskret',
+            slug: 'diskret',
+            activeTabId: 't-quiet',
+            pin: '33',
+            pinLength: 2,
+            pinHideLock: true,
+            tabs: [{ id: 't-quiet', name: 'Still', slug: 'still', widgets: [widget('w-quiet', 'STILL')] }],
         },
         {
             id: 'sec-cellar',
@@ -89,7 +122,17 @@ const LAYOUT = {
                     name: 'Heizung',
                     slug: 'heizung',
                     pin: '77',
+                    pinLength: 2,
                     widgets: [widget('w-heat', 'HEIZUNG')],
+                },
+                {
+                    id: 't-hush',
+                    name: 'Leise',
+                    slug: 'leise',
+                    pin: '88',
+                    pinLength: 2,
+                    pinHideLock: true,
+                    widgets: [widget('w-hush', 'LEISE')],
                 },
             ],
         },
@@ -207,6 +250,37 @@ await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 })
 await page.evaluate((layout) => window.__auraShot.seed({ layouts: [layout] }), LAYOUT);
 await goto('/view/pin/s/keller/tab/heizung');
 eq('a reload re-locks', await state(), { prompt: true, scope: 'tab' });
+
+// ── the padlock badge (#692) ─────────────────────────────
+// Cosmetics: hiding the badge must leave the gate exactly where it was.
+console.log('\n── padlock ──');
+const locks = (scope) => page.locator(`[data-aura-pin-lock="${scope}"]`).count();
+// A fresh load so nothing from the checks above is still unlocked.
+await page.reload({ waitUntil: 'domcontentloaded' });
+await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+await page.evaluate((layout) => window.__auraShot.seed({ layouts: [layout] }), LAYOUT);
+await goto('/view/pin/s/wohnen/tab/uebersicht');
+check('locked sections wear a padlock in the menu', (await locks('section')) > 0);
+const badgedSections = await page
+    .locator('[data-aura-pin-lock="section"]')
+    .evaluateAll((els) => els.map((el) => el.closest('button')?.textContent ?? ''));
+check(
+    'the section with pinHideLock wears none',
+    !badgedSections.some((txt) => txt.includes('Diskret')),
+    badgedSections.join(' | '),
+);
+await goto('/view/pin/s/diskret/tab/still');
+eq('it is gated all the same', await state(), { prompt: true, scope: 'section' });
+await typeCode('33');
+check('and opens with its code', await visible('.aura-widget-w-quiet'));
+
+await goto('/view/pin/s/keller/tab/wasser');
+check('the locked tab wears a padlock', (await locks('tab')) === 1, String(await locks('tab')));
+check('the tab with pinHideLock is still listed', (await page.getByText('Leise').count()) > 0);
+await goto('/view/pin/s/keller/tab/leise');
+eq('that tab is gated all the same', await state(), { prompt: true, scope: 'tab' });
+await typeCode('88');
+check('and opens with its code', await visible('.aura-widget-w-hush'));
 
 check('no page errors', pageErrors.length === 0, pageErrors.join(' | '));
 

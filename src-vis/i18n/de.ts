@@ -591,6 +591,9 @@ export const de = {
     'pin.keepUnlocked': 'Offen lassen',
     'pin.keepUnlockedHint':
         'Nach dem Entsperren bis zum Neuladen der Seite offen bleiben. Aus: sperrt beim Verlassen sofort wieder.',
+    'pin.showLock': 'Schloss-Symbol zeigen',
+    'pin.showLockHint':
+        'An (Standard): gesperrte Einträge tragen ein Schloss im Menü bzw. in der Tab-Leiste. Aus: kein Symbol – die PIN wird trotzdem abgefragt.',
     'pin.mcpWrite': 'Über MCP bearbeitbar',
     'pin.mcpWriteHint':
         'Der KI-Server (MCP) darf den geschützten Inhalt lesen und ändern. Aus: nur Struktur (Id, Typ, Größe), ' +
