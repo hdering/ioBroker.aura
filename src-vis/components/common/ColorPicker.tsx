@@ -185,6 +185,23 @@ export function ColorPicker({
     const idRef = useRef(0);
     if (idRef.current === 0) idRef.current = ++pickerSeq;
 
+    /**
+     * What the OTHER mode last held. The stored value can only ever carry one of
+     * the two — a pair or a single colour — so switching to "Einheitlich" would
+     * otherwise throw the light/dark halves away for good, and switching back
+     * would hand out two copies of the uniform colour instead of the pair the
+     * user had set up (#689).
+     *
+     * Lives on the picker, not on the popover, so it survives closing and
+     * reopening the popover; it is gone once the config panel itself unmounts —
+     * a longer memory would need a key per option, which the ~80 call sites do
+     * not have.
+     */
+    const stashRef = useRef<{ pair: { light: string; dark: string } | null; solid: string | null }>({
+        pair: null,
+        solid: null,
+    });
+
     // What the swatch and the popover render while a drag is in flight: the parent
     // only learns the throttled value, so the UI would lag a whole window behind it.
     const [live, setLive] = useState<string | null>(null);
@@ -278,6 +295,7 @@ export function ColorPicker({
                     fallback={fallback}
                     alphaEnabled={alphaEnabled}
                     dualEnabled={dual}
+                    stash={stashRef.current}
                     onChange={(v) => {
                         setLive(v);
                         push(v);
@@ -305,6 +323,7 @@ function ColorPopover({
     fallback,
     alphaEnabled,
     dualEnabled,
+    stash,
     onChange,
     onSettle,
     onClose,
@@ -315,6 +334,8 @@ function ColorPopover({
     fallback: string;
     alphaEnabled: boolean;
     dualEnabled: boolean;
+    /** The colours of the mode that is currently NOT stored — see ColorPicker. */
+    stash: { pair: { light: string; dark: string } | null; solid: string | null };
     /** Throttled on its way to the config - fine to call on every pointer move. */
     onChange: (value: string) => void;
     /** End of an interaction (pointer released, field left): deliver the last value now. */
@@ -391,10 +412,14 @@ function ColorPopover({
     /** Write one half back, keeping the other — or the plain value when unpaired. */
     const emit = (part: string) => {
         if (!pairMode) {
+            stash.solid = part;
             onChange(part);
             return;
         }
-        onChange(side === 'dark' ? makeDual(parts.light, part) : makeDual(part, parts.dark));
+        const light = side === 'dark' ? parts.light : part;
+        const dark = side === 'dark' ? part : parts.dark;
+        stash.pair = { light, dark };
+        onChange(makeDual(light, dark));
     };
     const emitHexAlpha = (h: string, a: number) => emit(combineColor(h, alphaEnabled ? a : 100));
 
@@ -456,7 +481,20 @@ function ColorPopover({
                     className="flex gap-1 text-[11px] mb-2 rounded p-0.5"
                     style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
                 >
-                    <button type="button" style={tabStyle(!pairMode)} onClick={() => setPairMode(false)}>
+                    <button
+                        type="button"
+                        style={tabStyle(!pairMode)}
+                        onClick={() => {
+                            if (!pairMode) return;
+                            // Keep the pair for the way back BEFORE collapsing it,
+                            // and hand out the single colour this picker had last —
+                            // the visible half only when there is none yet.
+                            stash.pair = { light: parts.light, dark: parts.dark };
+                            setPairMode(false);
+                            const next = stash.solid ?? active;
+                            if (next !== value) onChange(next);
+                        }}
+                    >
                         Einheitlich
                     </button>
                     <button
@@ -464,10 +502,18 @@ function ColorPopover({
                         style={tabStyle(pairMode)}
                         title="Eigene Farbe für helles und dunkles Theme"
                         onClick={() => {
-                            // Both halves start on the current colour, so switching
-                            // here never changes what is on screen.
+                            if (pairMode) return;
+                            stash.solid = parts.light;
                             setPairMode(true);
                             setSide('light');
+                            // Back to the halves the user set earlier; without a
+                            // remembered pair both start on the current colour, so
+                            // the first switch changes nothing on screen.
+                            const back = stash.pair;
+                            if (back) {
+                                const next = makeDual(back.light, back.dark);
+                                if (next !== value) onChange(next);
+                            }
                         }}
                     >
                         Hell / Dunkel

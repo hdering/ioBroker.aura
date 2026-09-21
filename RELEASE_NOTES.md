@@ -6,3 +6,4 @@
 #   Settings - <what changed>               e.g.  Settings - add hex color mode for RGB lights
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
+- Colors - switching a color field between "Uniform" and "Light / dark" now keeps the colors of the other mode, so picking one uniform color no longer discards the light/dark pair (#689)

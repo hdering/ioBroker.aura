@@ -69,6 +69,8 @@ Jedes Farbfeld (Farbwähler-Popover) kennt drei Wege:
 
 `light-dark(<hell>, <dunkel>)` gilt für jede Farboption, auch in Zellen, Zeilen, Schwellenwerten und Diagramm-Serien. Die Hälften dürfen selbst Tokens sein (`light-dark(var(--accent), #93c5fd)`) und eigene Transparenz tragen (`#rrggbbaa`). Sind beide gleich, wird die einzelne Farbe gespeichert.
 
+Der Wechsel zwischen *Einheitlich* und *Hell / Dunkel* merkt sich die Farben des jeweils anderen Modus, solange die Konfiguration offen bleibt.
+
 Die Helligkeit ist die des gerade gerenderten Themes — ein Layout mit hellem Design auf einer dunklen Installation nimmt die helle Hälfte.
 
 ## Raster

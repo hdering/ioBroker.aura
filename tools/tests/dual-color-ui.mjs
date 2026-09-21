@@ -10,6 +10,9 @@
 //   * dass der Wechsel ohne Reload durchschlaegt (themeEpoch),
 //   * dass der Farbwaehler ein Paar schreibt und es beim naechsten Oeffnen
 //     wiederfindet,
+//   * dass ein Umschalten auf "Einheitlich" das Paar nur aus dem WERT nimmt,
+//     nicht aus dem Gedaechtnis: zurueck auf "Hell / Dunkel" kommen beide
+//     Haelften wieder,
 //   * und die eine Regression, die stumm Daten kostet: eine andere Option
 //     aendern darf das Paar nicht auf die sichtbare Halfte eindampfen.
 import { chromium } from 'playwright';
@@ -151,6 +154,55 @@ if (panelOpen) {
             'der Waehler speichert ein Paar',
             typeof stored === 'string' && stored.startsWith('light-dark(') && stored.includes(DARK),
             String(stored),
+        );
+
+        // Hin und zurueck: "Einheitlich" dampft den WERT auf eine Farbe ein,
+        // darf die beiden Haelften aber nicht vergessen.
+        await popover.getByText('Einheitlich').click();
+        await page.waitForTimeout(300);
+        const collapsed = await page.evaluate(() => window.__auraShot.widgetOptions('dc')?.titleColor);
+        check(
+            'Einheitlich speichert eine einzelne Farbe',
+            typeof collapsed === 'string' && !collapsed.startsWith('light-dark('),
+            String(collapsed),
+        );
+
+        const solo = popover.locator('input[type="text"]').first();
+        await solo.fill('#00ff00');
+        await solo.press('Enter');
+        await page.waitForTimeout(400);
+        const soloStored = await page.evaluate(() => window.__auraShot.widgetOptions('dc')?.titleColor);
+        check('eine einheitliche Farbe laesst sich danach setzen', soloStored === '#00ff00', String(soloStored));
+
+        await popover.getByText('Hell / Dunkel').click();
+        await page.waitForTimeout(400);
+        const backAgain = await page.evaluate(() => window.__auraShot.widgetOptions('dc')?.titleColor);
+        check(
+            'zurueck auf Hell / Dunkel kommt das gemerkte Paar wieder',
+            typeof backAgain === 'string' && backAgain.startsWith('light-dark(') && backAgain.includes(DARK),
+            String(backAgain),
+        );
+
+        // Und der Weg zurueck merkt sich auch die einheitliche Farbe.
+        await popover.getByText('Einheitlich').click();
+        await page.waitForTimeout(400);
+        const soloBack = await page.evaluate(() => window.__auraShot.widgetOptions('dc')?.titleColor);
+        check('und die einheitliche Farbe ist auch noch da', soloBack === '#00ff00', String(soloBack));
+
+        // Das Gedaechtnis haengt am Farbfeld, nicht am offenen Waehler: zu,
+        // wieder auf, und das Paar ist weiter da. (Zugleich das Paar im Wert
+        // fuer die folgende Regression.)
+        await page.keyboard.press('Escape');
+        await page.waitForTimeout(200);
+        await swatch.click();
+        await page.waitForTimeout(300);
+        await page.locator('.aura-color-popover').getByText('Hell / Dunkel').click();
+        await page.waitForTimeout(400);
+        const afterReopen = await page.evaluate(() => window.__auraShot.widgetOptions('dc')?.titleColor);
+        check(
+            'das Paar ueberlebt auch ein Schliessen des Waehlers',
+            typeof afterReopen === 'string' && afterReopen.includes(DARK),
+            String(afterReopen),
         );
 
         // Die Regression, die stumm Daten kostet: irgendeine ANDERE Option
