@@ -7,6 +7,9 @@ hero:
   tagline: Widget- und Einstellungsdokumentation
   actions:
     - theme: brand
+      text: Erste Schritte
+      link: /start/
+    - theme: alt
       text: Widgets
       link: /widgets/
     - theme: alt
@@ -14,6 +17,9 @@ hero:
       link: /einstellungen/
 
 features:
+  - title: Erste Schritte
+    details: Erstkonfiguration in der richtigen Reihenfolge – Zielgerät, Grundeinstellungen, Hilfslinien, Breakpoints, Layouts, Widgets.
+    link: /start/
   - title: Widgets
     details: Beschreibung aller Widgets mit Layouts, Einstellungen und Screenshots.
     link: /widgets/

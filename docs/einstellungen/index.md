@@ -1,6 +1,6 @@
 # Adminbereich
 
-Der Adminbereich liegt unter `/#/admin` und konfiguriert das gesamte Dashboard. Login per Admin-PIN (siehe [Einstellungen](./settings#admin-pin)).
+Der Adminbereich liegt unter `/#/admin` und konfiguriert das gesamte Dashboard. Login per Admin-PIN (siehe [Einstellungen](./settings#admin-pin)). Neu hier? [Erste Schritte](../start/) führt in der richtigen Reihenfolge durch die Erstkonfiguration.
 
 | Bereich | Zweck |
 | --- | --- |
@@ -25,6 +25,7 @@ Status und Statistiken zum Dashboard sowie zwei Diagnose-Bereiche.
 
 | Bereich | |
 | --- | --- |
+| Erste Schritte | Reihenfolge der Erstkonfiguration mit Sprung auf die jeweilige Seite und Link auf die [Anleitung](../start/); **Ausblenden** entfernt die Karte in diesem Browser |
 | Verwaiste DPs | `aura.0.timers.*` / `aura.0.lists.*` ohne zugehöriges Widget — per Knopf bereinigbar |
 | Widget-DP-Referenzen | Widgets, die auf in ioBroker fehlende Datenpunkte zeigen |
 | Statistik | Anzahl Layouts, Tabs, Widgets und ioBroker-Verbindungsstatus |

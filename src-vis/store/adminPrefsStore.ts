@@ -15,10 +15,14 @@ interface AdminPrefs {
     /** Editor control lock: widgets are inert while designing (issue #655).
      *  On by default — clicking a switch in the editor used to flip the real lamp. */
     lockWidgets: boolean;
+    /** The "Getting started" card on the admin overview was dismissed in this
+     *  browser. Plain preference, never part of the dashboard config. */
+    gettingStartedDismissed: boolean;
     setAutoSave: (v: boolean) => void;
     setAutoSaveDelay: (v: number) => void;
     setBackupCount: (v: number) => void;
     setLockWidgets: (v: boolean) => void;
+    setGettingStartedDismissed: (v: boolean) => void;
 }
 
 export const useAdminPrefsStore = create<AdminPrefs>()(
@@ -28,10 +32,12 @@ export const useAdminPrefsStore = create<AdminPrefs>()(
             autoSaveDelay: 30,
             backupCount: 20,
             lockWidgets: true,
+            gettingStartedDismissed: false,
             setAutoSave: (autoSave) => set({ autoSave }),
             setAutoSaveDelay: (autoSaveDelay) => set({ autoSaveDelay }),
             setBackupCount: (backupCount) => set({ backupCount: Math.max(1, Math.min(MAX_BACKUP_COUNT, backupCount)) }),
             setLockWidgets: (lockWidgets) => set({ lockWidgets }),
+            setGettingStartedDismissed: (gettingStartedDismissed) => set({ gettingStartedDismissed }),
         }),
         // Plain localStorage — not managed by persistManager, never marks dashboard dirty
         { name: 'aura-admin-prefs', storage: createJSONStorage(() => localStorage) },

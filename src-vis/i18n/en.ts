@@ -434,6 +434,18 @@ export const en: Record<TranslationKey, string> = {
     'dashboard.mcp.mode.delete': 'Write, rename & delete',
     'dashboard.mcp.showGuide': 'Setup guide',
     'dashboard.mcp.hideGuide': 'Hide guide',
+    'dashboard.start.title': 'Getting started',
+    'dashboard.start.description':
+        'Set up Aura in the right order – from the target device to the first widget. The guide in the documentation walks through every step.',
+    'dashboard.start.step1': 'Open the frontend on the target device and note the resolution shown (width × height).',
+    'dashboard.start.step2': 'Set the global basics: language, theme, typography, values & formatting.',
+    'dashboard.start.step3': 'Set the guidelines to the resolution of the target device.',
+    'dashboard.start.step4': 'Grid & mobile: set the breakpoints for phone and tablet.',
+    'dashboard.start.step5': 'Create layouts and sections – one layout per device or room.',
+    'dashboard.start.step6': 'Place the first widgets in the dashboard editor and save.',
+    'dashboard.start.open': 'Open',
+    'dashboard.start.docs': 'Guide in the documentation',
+    'dashboard.start.dismiss': 'Dismiss',
 
     'dashboard.nav.title': 'Tablet Navigation via ioBroker',
     'dashboard.nav.description':
@@ -1374,6 +1386,8 @@ export const en: Record<TranslationKey, string> = {
     // ── Frontend Dashboard ────────────────────────────────────────────────────────
     'frontend.noWidgets': 'No widgets configured.',
     'frontend.addWidgets': 'No widgets yet – add via "+ Devices".',
+    'frontend.emptyAdmin': 'Open admin area',
+    'frontend.emptyDocs': 'Guide: Getting started',
 
     // ── DatapointPicker ───────────────────────────────────────────────────────────
     'dp.picker.title': 'Select Datapoint',

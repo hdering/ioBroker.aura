@@ -16,9 +16,13 @@ import {
     Trash2,
     Bot,
     ExternalLink,
+    BookOpen,
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useT } from '../../i18n';
+import { useAdminPrefsStore } from '../../store/adminPrefsStore';
+import { docsUrl } from '../../utils/docsUrl';
 import { copyToClipboard } from '../../utils/clipboard';
 import { useTimerOrphans, type OrphanItem } from '../../hooks/useTimerOrphans';
 import { useBrokenDpRefs, type BrokenRef } from '../../hooks/useBrokenDpRefs';
@@ -414,6 +418,95 @@ function BrokenDpRefsSection() {
     );
 }
 
+/** Admin page each getting-started step points at; null = the step happens on
+ *  the device itself. Mirrors the order of the docs page `start/`. */
+const START_STEPS: { key: 1 | 2 | 3 | 4 | 5 | 6; to: string | null }[] = [
+    { key: 1, to: null },
+    { key: 2, to: '/admin/design?ctx=global&tab=theme' },
+    { key: 3, to: '/admin/design?ctx=global&tab=guidelines' },
+    { key: 4, to: '/admin/design?ctx=global&tab=grid' },
+    { key: 5, to: '/admin/layouts' },
+    { key: 6, to: '/admin/editor' },
+];
+
+/** First-start pointer to the "Erste Schritte" guide. Stays until dismissed —
+ *  the flag lives in the browser's admin prefs, so an existing installation
+ *  sees it once after the update and is rid of it with one click. */
+function GettingStartedSection() {
+    const t = useT();
+    const dismissed = useAdminPrefsStore((s) => s.gettingStartedDismissed);
+    const setDismissed = useAdminPrefsStore((s) => s.setGettingStartedDismissed);
+    if (dismissed) return null;
+
+    return (
+        <div
+            className="rounded-xl p-5 space-y-3"
+            style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+            data-aura-start-card
+        >
+            <div className="flex items-center gap-2 flex-wrap">
+                <BookOpen size={16} style={{ color: 'var(--accent)' }} />
+                <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
+                    {t('dashboard.start.title')}
+                </h2>
+                <div className="ml-auto">
+                    <GhostButton onClick={() => setDismissed(true)} testId="start-dismiss">
+                        <X size={12} />
+                        {t('dashboard.start.dismiss')}
+                    </GhostButton>
+                </div>
+            </div>
+
+            <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                {t('dashboard.start.description')}
+            </p>
+
+            <ol className="space-y-1.5" data-aura-start-steps>
+                {START_STEPS.map(({ key, to }) => (
+                    <li
+                        key={key}
+                        className="flex items-baseline gap-2 text-xs"
+                        style={{ color: 'var(--text-primary)' }}
+                    >
+                        <span
+                            className="inline-flex items-center justify-center shrink-0 text-[10px] font-bold rounded-full w-5 h-5"
+                            style={{
+                                background: 'color-mix(in srgb, var(--accent) 18%, transparent)',
+                                color: 'var(--accent)',
+                            }}
+                        >
+                            {key}
+                        </span>
+                        <span>
+                            {t(`dashboard.start.step${key}`)}
+                            {to && (
+                                <>
+                                    {' '}
+                                    <Link to={to} className="hover:underline" style={{ color: 'var(--accent)' }}>
+                                        {t('dashboard.start.open')}
+                                    </Link>
+                                </>
+                            )}
+                        </span>
+                    </li>
+                ))}
+            </ol>
+
+            <a
+                href={docsUrl('start/')}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-xs hover:underline"
+                style={{ color: 'var(--accent)' }}
+                data-aura-start-docs
+            >
+                {t('dashboard.start.docs')}
+                <ExternalLink size={12} />
+            </a>
+        </div>
+    );
+}
+
 function McpSection() {
     const t = useT();
     const { enabled, mode } = useMcpStatus();
@@ -433,7 +526,7 @@ function McpSection() {
 
     const docsLink = (
         <a
-            href="https://hdering.github.io/ioBroker.aura/einstellungen/mcp"
+            href={docsUrl('einstellungen/mcp')}
             target="_blank"
             rel="noreferrer"
             className="inline-flex items-center gap-1.5 text-xs hover:underline"
@@ -557,6 +650,7 @@ export function AdminDashboard() {
 
             {/* Onboarding before status: the health cards below grow with the damage,
                 so anything placed after them can be pushed off screen entirely. */}
+            <GettingStartedSection />
             <McpSection />
 
             <TimerOrphansSection />

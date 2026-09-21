@@ -25,11 +25,31 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Start', link: '/' },
+      { text: 'Erste Schritte', link: '/start/' },
       { text: 'Widgets', link: '/widgets/' },
       { text: 'Einstellungen', link: '/einstellungen/' },
     ],
 
     sidebar: {
+      '/start/': [
+        {
+          text: 'Erste Schritte',
+          items: [
+            { text: 'Überblick', link: '/start/' },
+            { text: 'Aufrufen und Admin-PIN', link: '/start/#aufrufen-und-admin-pin' },
+            { text: 'Bildschirm vermessen', link: '/start/#bildschirm-vermessen' },
+            { text: 'Grundeinstellungen', link: '/start/#grundeinstellungen' },
+            { text: 'Hilfslinien', link: '/start/#hilfslinien' },
+            { text: 'Grid und Breakpoints', link: '/start/#grid-und-breakpoints' },
+            { text: 'Layouts und Bereiche', link: '/start/#layouts-und-bereiche' },
+            { text: 'Erste Widgets', link: '/start/#erste-widgets' },
+            { text: 'Auf Handy und Tablet testen', link: '/start/#auf-handy-und-tablet-testen' },
+            { text: 'Tablets und Handys zuordnen', link: '/start/#tablets-und-handys-zuordnen' },
+            { text: 'Sichern', link: '/start/#sichern' },
+            { text: 'Weiter', link: '/start/#weiter' },
+          ],
+        },
+      ],
       '/widgets/': widgetsSidebar,
       '/einstellungen/': [
         {

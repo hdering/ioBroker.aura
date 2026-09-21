@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useConfigSync } from '../../hooks/useConfigSync';
 import { version as appVersion } from '../../../package.json';
 import { FEATURES } from '../../featureFlags';
+import { DOCS_URL } from '../../utils/docsUrl';
 import { PortalTargetContext, PortalThemeContext } from '../../contexts/PortalTargetContext';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
 import {
@@ -591,7 +592,7 @@ export function AdminLayout() {
                                 <ExternalLink size={17} /> {t('admin.nav.openFrontend')}
                             </a>
                             <a
-                                href="https://hdering.github.io/ioBroker.aura/"
+                                href={DOCS_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium opacity-60 hover:opacity-100 transition-opacity"

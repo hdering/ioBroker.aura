@@ -3,6 +3,7 @@ import ReactGridLayout from 'react-grid-layout/legacy';
 import { X, Monitor } from 'lucide-react';
 import { useDashboardStore, useActiveLayout, resolveTabBarSettings } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
+import { docsUrl } from '../../utils/docsUrl';
 import { guidelinesTopInset, insetKeyFor, readMeasuredInset, storeMeasuredInset } from '../../utils/guidelinesInset';
 import { tabBarShowsOnOwn, visibleTabCount } from '../../utils/tabBarVisible';
 import { useIsProbe } from '../../utils/probeContext';
@@ -85,7 +86,6 @@ export function Dashboard({
     layoutId,
     sectionId,
 }: DashboardProps) {
-    const t = useT();
     const activeLayout = useActiveLayout();
     const { updateWidget, updateLayouts, removeWidget, addWidgetToLayoutTab } = useDashboardStore();
     // One stable callback for every frame — an inline arrow would defeat WidgetFrame's memo.
@@ -643,11 +643,7 @@ export function Dashboard({
                                                         className="flex flex-col items-center justify-center flex-1 h-64 space-y-2"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        <p>
-                                                            {readonly
-                                                                ? t('frontend.noWidgets')
-                                                                : t('frontend.addWidgets')}
-                                                        </p>
+                                                        <EmptyTabNotice readonly={readonly} />
                                                     </div>
                                                 ) : (
                                                     <div
@@ -1158,9 +1154,7 @@ export function Dashboard({
                                                     className={`aura-tab aura-tab-${tab.slug} flex flex-col items-center justify-center flex-1 h-64 space-y-2`}
                                                     style={{ color: 'var(--text-secondary)' }}
                                                 >
-                                                    <p>
-                                                        {readonly ? t('frontend.noWidgets') : t('frontend.addWidgets')}
-                                                    </p>
+                                                    <EmptyTabNotice readonly={readonly} />
                                                 </div>
                                             );
                                         }
@@ -1443,6 +1437,35 @@ function ResolutionBadge() {
                 {size.w} × {size.h}
             </span>
         </div>
+    );
+}
+
+/** Body of a tab without widgets. The frontend (`readonly`) is what a fresh
+ *  installation shows first, so it points at the admin and the getting-started
+ *  guide; the editor keeps its own hint. */
+function EmptyTabNotice({ readonly }: { readonly: boolean }) {
+    const t = useT();
+    return (
+        <>
+            <p>{readonly ? t('frontend.noWidgets') : t('frontend.addWidgets')}</p>
+            {readonly && (
+                <p className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm" data-aura-empty-links>
+                    <a href="#/admin" className="hover:underline" style={{ color: 'var(--accent)' }}>
+                        {t('frontend.emptyAdmin')}
+                    </a>
+                    <a
+                        href={docsUrl('start/')}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:underline"
+                        style={{ color: 'var(--accent)' }}
+                        data-aura-empty-docs
+                    >
+                        {t('frontend.emptyDocs')}
+                    </a>
+                </p>
+            )}
+        </>
     );
 }
 

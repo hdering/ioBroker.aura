@@ -435,6 +435,19 @@ export const de = {
     'dashboard.mcp.mode.delete': 'Schreiben, umbenennen & löschen',
     'dashboard.mcp.showGuide': 'Anleitung',
     'dashboard.mcp.hideGuide': 'Anleitung ausblenden',
+    'dashboard.start.title': 'Erste Schritte',
+    'dashboard.start.description':
+        'Aura in der richtigen Reihenfolge einrichten – vom Zielgerät bis zum ersten Widget. Die Anleitung in der Dokumentation führt durch jeden Schritt.',
+    'dashboard.start.step1':
+        'Frontend auf dem Zielgerät öffnen und die eingeblendete Auflösung (Breite × Höhe) notieren.',
+    'dashboard.start.step2': 'Grundeinstellungen global festlegen: Sprache, Theme, Typografie, Werte & Formatierung.',
+    'dashboard.start.step3': 'Hilfslinien auf die Auflösung des Zielgeräts setzen.',
+    'dashboard.start.step4': 'Grid & Mobile: Breakpoints für Handy und Tablet festlegen.',
+    'dashboard.start.step5': 'Layouts und Bereiche anlegen – ein Layout je Gerät oder Raum.',
+    'dashboard.start.step6': 'Erste Widgets im Dashboard-Editor platzieren und speichern.',
+    'dashboard.start.open': 'Öffnen',
+    'dashboard.start.docs': 'Anleitung in der Dokumentation',
+    'dashboard.start.dismiss': 'Ausblenden',
 
     'dashboard.nav.title': 'Tablet-Navigation via ioBroker',
     'dashboard.nav.description':
@@ -1384,6 +1397,8 @@ export const de = {
     // ── Frontend Dashboard ────────────────────────────────────────────────────────
     'frontend.noWidgets': 'Keine Widgets konfiguriert.',
     'frontend.addWidgets': 'Noch keine Widgets – über "+ Geräte" hinzufügen.',
+    'frontend.emptyAdmin': 'Adminbereich öffnen',
+    'frontend.emptyDocs': 'Anleitung: Erste Schritte',
 
     // ── DatapointPicker ───────────────────────────────────────────────────────────
     'dp.picker.title': 'Datenpunkt wählen',

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, CheckCheck, Search, Send, Trash2, X } from 'lucide-react';
+import { docsUrl } from '../../utils/docsUrl';
 import { getStateDirect, setStateDirect, setStateDirectAsync } from '../../hooks/useIoBroker';
 import {
     discardPendingKey,
@@ -620,7 +621,7 @@ function DatapointsSection() {
                     Empfänger lassen sich auch im Payload angeben (<code>target</code>) — das hat Vorrang vor dem
                     Datenpunkt, über den die Meldung hereinkam. Vollständiges Format:{' '}
                     <a
-                        href="https://hdering.github.io/ioBroker.aura/einstellungen/meldungen"
+                        href={docsUrl('einstellungen/meldungen')}
                         target="_blank"
                         rel="noreferrer"
                         style={{ color: 'var(--accent)' }}
