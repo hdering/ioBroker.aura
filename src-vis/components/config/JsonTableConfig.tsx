@@ -168,9 +168,10 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                 <>
                     <div className="flex items-center gap-2">
                         <ColorPicker
-                            value={
-                                (o.headerBg as string | undefined)?.startsWith('#') ? (o.headerBg as string) : '#6366f1'
-                            }
+                            // The whole value: the picker takes a theme token and a
+                            // light/dark pair, and handing it a default instead would
+                            // write that default back over the pair (#689).
+                            value={(o.headerBg as string) || '#6366f1'}
                             onChange={(v) => set({ headerBg: v })}
                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}
@@ -191,11 +192,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                     </div>
                     <div className="flex items-center gap-2">
                         <ColorPicker
-                            value={
-                                (o.headerColor as string | undefined)?.startsWith('#')
-                                    ? (o.headerColor as string)
-                                    : '#ffffff'
-                            }
+                            value={(o.headerColor as string) || '#ffffff'}
                             onChange={(v) => set({ headerColor: v })}
                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}
@@ -233,11 +230,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                 <>
                     <div className="flex items-center gap-2">
                         <ColorPicker
-                            value={
-                                (o.firstColBg as string | undefined)?.startsWith('#')
-                                    ? (o.firstColBg as string)
-                                    : '#1e1e2e'
-                            }
+                            value={(o.firstColBg as string) || '#1e1e2e'}
                             onChange={(v) => set({ firstColBg: v })}
                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}
@@ -258,11 +251,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                     </div>
                     <div className="flex items-center gap-2">
                         <ColorPicker
-                            value={
-                                (o.firstColColor as string | undefined)?.startsWith('#')
-                                    ? (o.firstColColor as string)
-                                    : '#8b8b9e'
-                            }
+                            value={(o.firstColColor as string) || '#8b8b9e'}
                             onChange={(v) => set({ firstColColor: v })}
                             className="w-8 h-7 rounded cursor-pointer shrink-0"
                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}

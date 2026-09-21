@@ -51,7 +51,9 @@ export function EntryThresholdsFields({
                             ×
                         </button>
                         <ColorPicker
-                            value={color.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#22c55e'}
+                            // The whole value, not the first hex in it: half a
+                            // `light-dark()` pair loses the other half (#689).
+                            value={color || '#22c55e'}
                             onChange={(v) => {
                                 const n = [...list];
                                 n[i] = [thresh, v];

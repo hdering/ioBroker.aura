@@ -120,7 +120,13 @@ export function ColorField({
             </label>
             <div className="flex items-center gap-1">
                 <ColorPicker
-                    value={value?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? fallback}
+                    // The whole value, not the first hex code in it: this field used
+                    // to feed a native <input type="color">, which understands
+                    // nothing but `#rrggbb`. The shared picker takes a theme token,
+                    // an alpha channel and a light/dark pair — and fishing the first
+                    // hex out of `light-dark(a, b)` handed it half a pair, which the
+                    // next edit then wrote back over the other half (#689).
+                    value={value ?? fallback}
                     unset={!value}
                     onChange={(v) => onChange(v)}
                     className="w-7 h-6 rounded cursor-pointer shrink-0"

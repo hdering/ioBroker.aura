@@ -16,7 +16,7 @@
 //     one failure mode that would silently destroy the other colour.
 import { build } from 'esbuild';
 import { pathToFileURL } from 'node:url';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 import { mkdirSync, rmSync } from 'node:fs';
 
 const cache = join(process.cwd(), 'node_modules', '.cache');
@@ -175,6 +175,44 @@ check(
 // A config key that is new in `next` has no counterpart in `raw` — must not throw.
 const withNew = { ...dark, options: { ...dark.options, brandNew: 'light-dark(#1, #2)' } };
 check('a key unknown to raw survives', restoreDualDeep(withNew, config).options.brandNew === 'light-dark(#1, #2)');
+
+// ── Was der Farbwaehler ueberhaupt zu sehen bekommt ───────────────────────
+// Der Weg, auf dem ein Paar auch ohne Fehler in dualColor.ts verloren geht: ein
+// Konfigurationsfeld reicht dem Waehler nur den Hex-Anteil seines Wertes durch
+// (noetig, solange dort ein <input type="color"> stand, das nichts anderes
+// versteht). Aus `light-dark(a, b)` wird dann `a`, und der naechste Klick im
+// Waehler schreibt diese halbe Paarung ueber die andere Haelfte (#689).
+const { readdirSync, readFileSync, statSync } = await import('node:fs');
+
+const tsxFiles = [];
+(function walk(dir) {
+    for (const name of readdirSync(dir)) {
+        const full = join(dir, name);
+        if (statSync(full).isDirectory()) walk(full);
+        else if (name.endsWith('.tsx')) tsxFiles.push(full);
+    }
+})(join(process.cwd(), 'src-vis'));
+
+const stripped = [];
+for (const file of tsxFiles) {
+    const src = readFileSync(file, 'utf8');
+    for (let at = src.indexOf('<ColorPicker'); at >= 0; at = src.indexOf('<ColorPicker', at + 1)) {
+        const end = src.indexOf('/>', at);
+        const block = src.slice(at, end < 0 ? at + 800 : end);
+        // dual={false}: das Feld kann gar kein Paar halten - eine Theme-Variable
+        // gehoert zu genau einer Helligkeit. Dort darf gefiltert werden.
+        if (block.includes('dual={false}')) continue;
+        if (block.includes("startsWith('#')") || block.includes('match(/#')) {
+            stripped.push(
+                file
+                    .slice(process.cwd().length + 1)
+                    .split(sep)
+                    .join('/'),
+            );
+        }
+    }
+}
+check('kein Farbfeld reicht dem Waehler nur den Hex-Anteil seines Wertes', stripped.length === 0, stripped.join(', '));
 
 console.log(failed === 0 ? '\nAll dual-colour checks passed.' : `\n${failed} check(s) failed.`);
 process.exit(failed ? 1 : 0);

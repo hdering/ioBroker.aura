@@ -18,6 +18,8 @@ import { ImagePathHint } from '../config/ImagePathHint';
 import { ValueTransformButton } from '../config/ValueTransformButton';
 import { ValueFormatRow } from '../config/ValueFormatRow';
 import { getObjectDirect } from '../../hooks/useIoBroker';
+import { useIsDarkTheme } from '../../contexts/BrightnessContext';
+import { pickDual } from '../../utils/dualColor';
 import type { EnumJsonKeys } from '../../utils/enumEntriesJson';
 import { ColorPicker } from '../common/ColorPicker';
 
@@ -634,6 +636,11 @@ export function CustomCellEditor({
     onOpenImagePicker,
     onOpenConditions,
 }: CustomCellEditorProps) {
+    // Only for the small previews in this panel: a colour may be a light/dark
+    // pair (#689), and a preview has to show the half that applies right now.
+    const dark = useIsDarkTheme();
+    const preview = (v: string | undefined, fallback: string) => (v ? pickDual(v, dark) : fallback);
+
     const [entryIconPicker, setEntryIconPicker] = useState<number | null>(null);
     const [importStatus, setImportStatus] = useState<string | null>(null);
     const [importing, setImporting] = useState(false);
@@ -1181,8 +1188,8 @@ export function CustomCellEditor({
                     const FalsePrev = cell.falseIcon
                         ? getWidgetIcon(cell.falseIcon, (() => null) as unknown as LucideIcon)
                         : null;
-                    const trueCol = cell.trueColor && cell.trueColor.startsWith('#') ? cell.trueColor : '#22c55e';
-                    const falseCol = cell.falseColor && cell.falseColor.startsWith('#') ? cell.falseColor : '#6b7280';
+                    const trueCol = preview(cell.trueColor, '#22c55e');
+                    const falseCol = preview(cell.falseColor, '#6b7280');
                     const pickBtn = (
                         slot: 'trueIcon' | 'falseIcon',
                         Preview: LucideIcon | null,
@@ -1213,9 +1220,8 @@ export function CustomCellEditor({
                     );
                     // Button mode colours: per-state keys, falling back to the older
                     // state-independent color/buttonTextColor of existing configs.
-                    const baseBg = cell.color && cell.color.startsWith('#') ? cell.color : '#3b82f6';
-                    const baseFg =
-                        cell.buttonTextColor && cell.buttonTextColor.startsWith('#') ? cell.buttonTextColor : '#ffffff';
+                    const baseBg = preview(cell.color, '#3b82f6');
+                    const baseFg = preview(cell.buttonTextColor, '#ffffff');
                     return (
                         <>
                             <div>
@@ -1277,11 +1283,11 @@ export function CustomCellEditor({
                                                 Farbe AN
                                             </label>
                                             <ColorPicker
-                                                value={
-                                                    cell.trueColor && cell.trueColor.startsWith('#')
-                                                        ? cell.trueColor
-                                                        : '#22c55e'
-                                                }
+                                                // The whole value, not just a hex: the
+                                                // picker takes a theme colour and a
+                                                // light/dark pair, and a stripped value
+                                                // would be written back over the pair (#689).
+                                                value={cell.trueColor || '#22c55e'}
                                                 onChange={(v) => onChange({ trueColor: v })}
                                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                             />
@@ -1294,11 +1300,7 @@ export function CustomCellEditor({
                                                 Farbe AUS
                                             </label>
                                             <ColorPicker
-                                                value={
-                                                    cell.falseColor && cell.falseColor.startsWith('#')
-                                                        ? cell.falseColor
-                                                        : '#6b7280'
-                                                }
+                                                value={cell.falseColor || '#6b7280'}
                                                 onChange={(v) => onChange({ falseColor: v })}
                                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                             />
@@ -1959,11 +1961,7 @@ export function CustomCellEditor({
                                         Farbe an
                                     </label>
                                     <ColorPicker
-                                        value={
-                                            cell.trueColor && cell.trueColor.startsWith('#')
-                                                ? cell.trueColor
-                                                : '#22c55e'
-                                        }
+                                        value={cell.trueColor || '#22c55e'}
                                         onChange={(v) => onChange({ trueColor: v })}
                                         className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                     />
@@ -1976,11 +1974,7 @@ export function CustomCellEditor({
                                         Farbe aus
                                     </label>
                                     <ColorPicker
-                                        value={
-                                            cell.falseColor && cell.falseColor.startsWith('#')
-                                                ? cell.falseColor
-                                                : '#64748b'
-                                        }
+                                        value={cell.falseColor || '#64748b'}
                                         onChange={(v) => onChange({ falseColor: v })}
                                         className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                     />
@@ -2416,7 +2410,7 @@ export function CustomCellEditor({
                                 Farbe an
                             </label>
                             <ColorPicker
-                                value={cell.trueColor && cell.trueColor.startsWith('#') ? cell.trueColor : '#22c55e'}
+                                value={cell.trueColor || '#22c55e'}
                                 onChange={(v) => onChange({ trueColor: v })}
                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                             />
@@ -2426,7 +2420,7 @@ export function CustomCellEditor({
                                 Farbe aus
                             </label>
                             <ColorPicker
-                                value={cell.falseColor && cell.falseColor.startsWith('#') ? cell.falseColor : '#64748b'}
+                                value={cell.falseColor || '#64748b'}
                                 onChange={(v) => onChange({ falseColor: v })}
                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                             />
@@ -2580,7 +2574,7 @@ export function CustomCellEditor({
                                                         style={inputSty}
                                                     />
                                                     <ColorPicker
-                                                        value={e.color && e.color.startsWith('#') ? e.color : '#ffffff'}
+                                                        value={e.color || '#ffffff'}
                                                         onChange={(v) => patchEntry(i, { color: v })}
                                                         title="Farbe (optional)"
                                                         className="h-7 w-7 rounded cursor-pointer border-0 p-0 shrink-0"
@@ -3167,7 +3161,7 @@ export function CustomCellEditor({
                             Farbe
                         </label>
                         <ColorPicker
-                            value={cell.color && cell.color.startsWith('#') ? cell.color : '#ffffff'}
+                            value={cell.color || '#ffffff'}
                             onChange={(v) => onChange({ color: v })}
                             className="w-8 h-7 rounded cursor-pointer border-0 p-0"
                             style={{ background: 'none' }}

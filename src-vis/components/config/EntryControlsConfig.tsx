@@ -769,7 +769,9 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                         <Label>Farbe</Label>
                         <div className="flex gap-1 items-center">
                             <ColorPicker
-                                value={entry.sliderColor?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#3b82f6'}
+                                // The whole value: half a `light-dark()` pair would be
+                                // written back over the other half on the next edit (#689).
+                                value={entry.sliderColor || '#3b82f6'}
                                 onChange={(v) => onUpdate({ sliderColor: v })}
                                 className="w-7 h-6 rounded cursor-pointer shrink-0"
                                 style={{ border: '1px solid var(--app-border)', padding: '1px' }}
@@ -1542,7 +1544,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                             onChange={(e) => setPreset(i, { label: e.target.value || undefined })}
                                         />
                                         <ColorPicker
-                                            value={p.color?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#94a3b8'}
+                                            value={p.color || '#94a3b8'}
                                             onChange={(v) => setPreset(i, { color: v })}
                                             className="w-7 h-6 rounded cursor-pointer shrink-0"
                                             style={{ border: '1px solid var(--app-border)', padding: '1px' }}
@@ -1795,7 +1797,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                     onChange={(e) => setStateMap(i, { label: e.target.value || undefined })}
                                 />
                                 <ColorPicker
-                                    value={s.color?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? '#94a3b8'}
+                                    value={s.color || '#94a3b8'}
                                     onChange={(v) => setStateMap(i, { color: v })}
                                     className="w-7 h-6 rounded cursor-pointer shrink-0"
                                     style={{ border: '1px solid var(--app-border)', padding: '1px' }}
@@ -1956,7 +1958,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                     onChange={(e) => setContactAppearance(st, { label: e.target.value || undefined })}
                                 />
                                 <ColorPicker
-                                    value={ov?.color?.match(/#[0-9a-fA-F]{6}/)?.[0] ?? fb.color}
+                                    value={ov?.color || fb.color}
                                     onChange={(v) => setContactAppearance(st, { color: v })}
                                     className="w-7 h-6 rounded cursor-pointer shrink-0"
                                     style={{ border: '1px solid var(--app-border)', padding: '1px' }}

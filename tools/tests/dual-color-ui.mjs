@@ -13,6 +13,8 @@
 //   * dass ein Umschalten auf "Einheitlich" das Paar nur aus dem WERT nimmt,
 //     nicht aus dem Gedaechtnis: zurueck auf "Hell / Dunkel" kommen beide
 //     Haelften wieder,
+//   * dass eine Haelfte allein auf einem Feld OHNE Farbe trotzdem ein Paar
+//     ergibt - sonst gilt die eben gesetzte Farbe stumm in beiden Themes,
 //   * und die eine Regression, die stumm Daten kostet: eine andere Option
 //     aendern darf das Paar nicht auf die sichtbare Halfte eindampfen.
 import { chromium } from 'playwright';
@@ -219,6 +221,61 @@ if (panelOpen) {
         const after = await page.evaluate(() => window.__auraShot.widgetOptions('dc')?.titleColor);
         check('eine andere Option zu aendern laesst das Paar stehen', after === before, `${before} -> ${after}`);
     }
+}
+
+// ── 5. Die dunkle Haelfte zuerst, auf einem Feld ohne Farbe ───────────────
+// Der Fall aus der Rueckmeldung zu 0.67.1: wer zuerst die dunkle Seite setzt,
+// hat keine helle - und makeDual dampft ein Paar mit leerer Haelfte auf EINE
+// Farbe ein, die dann auch im hellen Theme gilt. Aus Sicht des Nutzers wird
+// "der helle Wert ueberschrieben, sobald man einen dunklen eintraegt".
+await page.keyboard.press('Escape');
+await page.waitForTimeout(150);
+await page.keyboard.press('Escape');
+await page.waitForTimeout(200);
+await show('light', { titleColor: '' });
+await page.evaluate(() => window.__auraShot.setEditMode(true));
+await page.waitForTimeout(300);
+await page.locator('.aura-edit-chrome button').first().click();
+await page.locator('button:text-is("Bearbeiten")').click();
+const emptyPanel = await page
+    .locator('.aura-widget-edit-modal')
+    .first()
+    .waitFor({ timeout: 10000 })
+    .then(() => true)
+    .catch(() => false);
+
+if (emptyPanel) {
+    const swatch = page
+        .locator('.aura-widget-edit-modal')
+        .locator('button[title*="itelfarbe"], button[title*="Titel"]')
+        .first();
+    await swatch.click();
+    await page.waitForTimeout(300);
+    const popover = page.locator('.aura-color-popover');
+    await popover.getByText('Hell / Dunkel').click();
+    await page.waitForTimeout(150);
+    await popover.getByText('Dunkel', { exact: true }).click();
+    await page.waitForTimeout(150);
+    const field = popover.locator('input[type="text"]').first();
+    await field.fill(DARK);
+    await field.press('Enter');
+    await page.waitForTimeout(400);
+
+    const onlyDark = await page.evaluate(() => window.__auraShot.widgetOptions('dc')?.titleColor);
+    check(
+        'nur die dunkle Haelfte gesetzt ergibt trotzdem ein Paar',
+        typeof onlyDark === 'string' &&
+            onlyDark.startsWith('light-dark(') &&
+            !onlyDark.startsWith(`light-dark(${DARK}`),
+        String(onlyDark),
+    );
+
+    // Und die helle Seite zeigt weiter ihre eigene Farbe, nicht die eben
+    // eingetragene dunkle.
+    await popover.getByText('Hell', { exact: true }).click();
+    await page.waitForTimeout(250);
+    const lightShown = await popover.locator('input[type="text"]').first().inputValue();
+    check('die helle Seite hat die dunkle Farbe nicht uebernommen', lightShown.toLowerCase() !== DARK, lightShown);
 }
 
 check('keine JS-Fehler auf der Seite', pageErrors.length === 0, pageErrors.join(' | '));

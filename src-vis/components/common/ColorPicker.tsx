@@ -416,8 +416,14 @@ function ColorPopover({
             onChange(part);
             return;
         }
-        const light = side === 'dark' ? parts.light : part;
-        const dark = side === 'dark' ? part : parts.dark;
+        // An option that has no colour yet has no OTHER half either, and makeDual
+        // collapses a pair with an empty side back into one colour — the half just
+        // set would then paint both themes, and the next keystroke would read that
+        // colour back as the other half (#689). The empty side shows the fallback
+        // right now, so that is the colour it keeps.
+        const other = (side === 'dark' ? parts.light : parts.dark).trim() || fallback;
+        const light = side === 'dark' ? other : part;
+        const dark = side === 'dark' ? part : other;
         stash.pair = { light, dark };
         onChange(makeDual(light, dark));
     };
@@ -491,7 +497,11 @@ function ColorPopover({
                             // the visible half only when there is none yet.
                             stash.pair = { light: parts.light, dark: parts.dark };
                             setPairMode(false);
-                            const next = stash.solid ?? active;
+                            // `||`, not `??`: a picker that started out without a
+                            // colour remembers an EMPTY uniform value — handing that
+                            // back would clear the colour instead of keeping the one
+                            // on screen.
+                            const next = stash.solid || active;
                             if (next !== value) onChange(next);
                         }}
                     >
