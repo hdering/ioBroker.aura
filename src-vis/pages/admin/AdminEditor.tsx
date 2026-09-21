@@ -10,7 +10,9 @@ import {
     Check,
     Database,
     Smartphone,
-    Tablet,
+    Columns2,
+    Columns3,
+    Columns4,
     GripVertical,
     Upload,
     Settings,
@@ -2556,6 +2558,11 @@ export function AdminEditor() {
                 </button>
                 {(['mobile', 'tablet'] as const).map((mode) => {
                     const active = orderPanel === mode;
+                    // A phone next to a tablet is two rounded rectangles of nearly the same
+                    // shape — indistinguishable at 15 px. The tablet button shows the
+                    // columns instead, as many as the tablet band is configured with.
+                    const tabletCols = Math.min(4, Math.max(1, Math.round(editorSettings.tabletCols ?? 2)));
+                    const TabletIcon = tabletCols >= 4 ? Columns4 : tabletCols === 3 ? Columns3 : Columns2;
                     return (
                         <button
                             key={mode}
@@ -2571,7 +2578,7 @@ export function AdminEditor() {
                             }}
                             title={t(mode === 'tablet' ? 'editor.tablet.title' : 'editor.mobile.title')}
                         >
-                            {mode === 'tablet' ? <Tablet size={15} /> : <Smartphone size={15} />}
+                            {mode === 'tablet' ? <TabletIcon size={15} /> : <Smartphone size={15} />}
                         </button>
                     );
                 })}
