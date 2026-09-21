@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.67.2",
+    "version": "0.67.3",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.67.3": {
+        "en": "Colors - a light/dark colour pair now survives the entry, cell and table colour fields, and setting only the dark half no longer paints both themes (#689)",
+        "de": "Farben – ein helles/dunkles Farbpaar überlebt jetzt die Farbfelder für den Eintrag, die Zelle und die Tabelle, und wenn nur die dunkle Hälfte festgelegt wird, werden nicht mehr beide Themen dargestellt (#689)",
+        "ru": "Цвета — пара светлых/темных цветов теперь сохраняется в полях ввода, ячейки и таблицы, а установка только темной половины больше не окрашивает обе темы (#689).",
+        "pt": "Cores - um par de cores claras/escuras agora sobrevive aos campos de entrada, células e cores da tabela, e definir apenas a metade escura não pinta mais ambos os temas (#689)",
+        "nl": "Kleuren - een licht/donker kleurenpaar overleeft nu de invoer-, cel- en tabelkleurvelden, en het instellen van alleen de donkere helft schildert niet langer beide thema's (#689)",
+        "fr": "Couleurs - une paire de couleurs claire/foncée survit désormais aux champs de couleur d'entrée, de cellule et de tableau, et définir uniquement la moitié sombre ne peint plus les deux thèmes (#689)",
+        "it": "Colori: una coppia di colori chiaro/scuro ora sopravvive nei campi colore di ingresso, cella e tabella e l'impostazione solo della metà scura non dipinge più entrambi i temi (#689).",
+        "es": "Colores: un par de colores claro/oscuro ahora sobrevive a los campos de color de entrada, celda y tabla, y configurar solo la mitad oscura ya no pinta ambos temas (#689)",
+        "pl": "Kolory — para kolorów jasny/ciemny zachowuje teraz pola kolorów wpisu, komórki i tabeli, a ustawienie tylko ciemnej połowy nie powoduje już malowania obu motywów (#689)",
+        "uk": "Кольори — пара світлий/темний колір тепер зберігає значення для полів кольору введення, клітинок і таблиці, а налаштування лише темної половини більше не забарвлює обидві теми (#689)",
+        "zh-cn": "颜色 - 浅色/深色对现在在条目、单元格和表格颜色字段中保留下来，并且仅设置深色一半不再绘制两个主题 (#689)"
+      },
       "0.67.2": {
         "en": "🌟 New feature: PIN protection - the padlock on a locked section or tab can now be hidden (#692)",
         "de": "🌟 Neue Funktion: PIN-Schutz – das Vorhängeschloss an einem gesperrten Abschnitt oder Tab kann jetzt ausgeblendet werden (#692)",
@@ -184,19 +197,6 @@
         "pl": "Selektor punktów danych — drzewo wyświetla podfoldery przed punktami danych folderu (#686)\nSelektor punktów danych — filtr „Z historią” obejmuje teraz każdy adapter rejestrowania (historia, influxdb, sql, ...) i nie oznacza już punktów danych, które zawierają tylko niestandardowy wpis iot/Alexa (nr 686) (#686)\nGrupa — widżet podrzędny jest teraz co najmniej tak wysoki w grupie, jak ten sam widżet na karcie, więc jego zawartość nie jest już obcięta; istniejące grupy powiększają się o około jeden wiersz na pięć wierszy podrzędnych (#680)\nGrupa — edytor pozwala ponownie przeciągnąć grupę wyżej niż jej dzieci; dodatkowy pokój jest dzielony równomiernie między nimi, a frontend ma tę samą wysokość (#680)\n🌟 Nowa funkcja: Układy - nowy przełącznik „Wstępne ładowanie ikon dla urządzeń offline” (globalny lub według układu): urządzenie ładuje każdą ikonę układu zaraz po uruchomieniu, przechowuje ją lokalnie i nie pyta już publicznych hostów Iconify; Projekt frontendu → Ikony pokazują, które ikony już posiada adapter i wstępnie ładują brakujące (#290)\nAdapter — `info.iconCache` wyświetla listę ikon, które adapter udostępnia z własnej pamięci podręcznej, a każda nowo umieszczona w pamięci podręcznej ikona jest rejestrowana (#290)\nGrupowe – dziecko można wciągnąć z powrotem na klapkę poprzez kliknięcie na jej rączce; upuszczenie go w dowolnym miejscu w obszarze wolnych kart również działa, a upuszczenie go z powrotem do własnej grupy nie powoduje już jego utraty",
         "uk": "Засіб вибору точок даних — дерево містить список вкладених папок перед точками даних папки (#686)\nЗасіб вибору точок даних — фільтр «З історією» тепер охоплює кожен адаптер журналювання (історія, influxdb, sql, ...) і більше не позначає точки даних, які містять лише спеціальний запис iot/Alexa (#686)\nГрупа – дочірній віджет тепер має принаймні таку ж висоту всередині групи, як той самий віджет на вкладці, тому його вміст більше не обрізається; наявні групи збільшуються приблизно на один рядок на кожні п’ять дочірніх рядків (#680)\nГрупа – редактор дозволяє знову перетягнути групу вище за своїх дітей; додаткова кімната розподіляється рівномірно між ними, і інтерфейс показує однакову висоту (#680)\n🌟 Нова функція: макети — новий перемикач «Попереднє завантаження значків для офлайн-пристроїв» (глобальний або для кожного макета): пристрій завантажує кожну піктограму макета одразу після запуску, зберігає його локально та більше не запитує загальнодоступні хости Iconify; Дизайн інтерфейсу → Піктограми показують, які піктограми вже містить адаптер, і попередньо завантажують відсутні (#290)\nАдаптер - `info.iconCache` містить список піктограм, які адаптер обслуговує з власного кешу, і кожна нова кешована іконка реєструється (#290)\nГрупова – дитину можна потягнути назад на вкладку, клацнувши її ручкою; скидання його в будь-якому місці вільної області вкладок також працює, а скидання його назад у власну групу більше не втрачає його",
         "zh-cn": "数据点选择器 - 树在文件夹的数据点之前列出子文件夹 (#686)\n数据点选择器 - “With History”过滤器现在涵盖每个日志记录适配器（历史记录、influxdb、sql...），并且不再标记仅携带 iot/Alexa 自定义条目的数据点 (#686)\n组 - 现在，组内的子小部件至少与选项卡上的同一小部件​​一样高，因此其内容不再被切断；现有组每五个子行增长约一行 (#680)\n组 - 编辑器再次将组拖到比其子项更高的位置；额外的空间在它们之间平均共享，并且前端显示相同的高度(#680)\n🌟 新功能：布局 - 新的“为离线设备预加载图标”开关（全局或每个布局）：设备在启动后立即加载布局的每个图标，将其保存在本地，不再询问公共 Iconify 主机；前端设计 → 图标显示适配器已保存哪些图标并预加载丢失的图标 (#290)\n适配器 - `info.iconCache` 列出适配器从其自己的缓存中提供的图标，并且记录每个新缓存的图标 (#290)\n分组——点击手柄即可将孩子拉回到拉环上；将其放在空闲选项卡区域中的任何位置也可以，并且将其放回其自己的组中不再丢失它"
-      },
-      "0.64.1": {
-        "en": "🌟 New feature: Slider, dial, dimmer and number input can convert their datapoint's unit - the value is converted for display and converted back on write, so a seconds datapoint can be operated in minutes or a 0-255 dimmer in percent (#682)",
-        "de": "🌟 Neue Funktion: Schieberegler, Drehregler, Dimmer und Zahleneingabe können die Einheit ihres Datenpunkts umwandeln – der Wert wird für die Anzeige umgewandelt und beim Schreiben wieder zurückkonvertiert, sodass ein Sekunden-Datenpunkt in Minuten oder ein 0-255-Dimmer in Prozent betrieben werden kann (#682)",
-        "ru": "🌟 Новая функция: ползунок, диск, диммер и ввод чисел могут конвертировать единицы измерения точки данных — значение преобразуется для отображения и преобразуется обратно при записи, поэтому точку данных секунд можно использовать в минутах или диммер 0–255 в процентах (#682).",
-        "pt": "🌟 Novo recurso: controle deslizante, dial, dimmer e entrada numérica podem converter a unidade de seu ponto de dados - o valor é convertido para exibição e convertido novamente na gravação, para que um ponto de dados de segundos possa ser operado em minutos ou um dimmer de 0-255 em porcentagem (#682)",
-        "nl": "🌟 Nieuwe functie: schuifregelaar, draaiknop, dimmer en getalinvoer kunnen de eenheid van hun datapunt omzetten - de waarde wordt geconverteerd voor weergave en weer geconverteerd bij schrijven, zodat een datapunt van een seconde in minuten kan worden bediend of een dimmer van 0-255 in procenten (#682)",
-        "fr": "🌟 Nouvelle fonctionnalité : le curseur, le cadran, le gradateur et la saisie numérique peuvent convertir l'unité de leur point de données - la valeur est convertie pour l'affichage et reconvertie lors de l'écriture, de sorte qu'un point de données de secondes peut être utilisé en minutes ou un gradateur 0-255 en pourcentage (#682)",
-        "it": "🌟 Nuova funzionalità: cursore, quadrante, dimmer e input numerico possono convertire l'unità del loro punto dati: il valore viene convertito per la visualizzazione e riconvertito in scrittura, quindi un punto dati dei secondi può essere utilizzato in minuti o un dimmer 0-255 in percentuale (#682)",
-        "es": "🌟 Nueva característica: el control deslizante, el dial, el atenuador y la entrada de números pueden convertir la unidad de su punto de datos: el valor se convierte para su visualización y se vuelve a convertir al escribir, por lo que un punto de datos de segundos se puede operar en minutos o un atenuador de 0 a 255 en porcentaje (#682)",
-        "pl": "🌟 Nowa funkcja: suwak, pokrętło, ściemniacz i wprowadzanie liczb mogą konwertować jednostkę punktu danych - wartość jest konwertowana do wyświetlania i konwertowana z powrotem podczas zapisu, dzięki czemu punkt danych w sekundach może być obsługiwany w minutach lub dimmer 0-255 w procentach (#682)",
-        "uk": "🌟 Нова функція: повзунок, циферблат, димер і введення цифр можуть конвертувати одиниці вимірювання точки даних - значення перетворюється для відображення та перетворюється назад під час запису, тому точкою даних у секундах можна керувати хвилинами, а димером 0-255 у відсотках (#682)",
-        "zh-cn": "🌟 新功能：滑块、刻度盘、调光器和数字输入可以转换其数据点的单位 - 值会被转换以供显示并在写入时转换回来，因此可以在几分钟内操作秒数据点或以百分比表示 0-255 调光器(#682)"
       }
     }
   },
