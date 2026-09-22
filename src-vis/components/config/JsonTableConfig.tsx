@@ -3,7 +3,7 @@ import { Plus, Trash2, ChevronUp, ChevronDown, RefreshCw, AlignLeft, AlignCenter
 import { parseJson, type JsonColumnDef } from '../widgets/JsonTableWidget';
 import { ColorPicker } from '../common/ColorPicker';
 import { ImagePathHint } from './ImagePathHint';
-import { ValueTransformButton } from './ValueTransformButton';
+import { ValueTransformFields } from './ValueTransformFields';
 import { getStateDirect } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 
@@ -373,22 +373,6 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                 >
                                     {col.key}
                                 </span>
-                                {/* Image and HTML cells hold a path / markup — nothing a value
-                                    conversion could sensibly touch, so the button stays away. */}
-                                {!col.image && !col.html && (
-                                    <ValueTransformButton
-                                        factor={col.valueFactor}
-                                        offset={col.valueOffset}
-                                        presetId={col.valueTransform}
-                                        timeFormat={col.valueTimeFormat}
-                                        timePattern={col.valueTimePattern}
-                                        allowTimeFormat
-                                        previewSource={{ value: sampleRow?.[col.key] }}
-                                        onPatch={(patch) => updateCol(idx, patch)}
-                                        size={11}
-                                        className="py-0.5"
-                                    />
-                                )}
                                 <button
                                     onClick={() => moveCol(idx, -1)}
                                     disabled={idx === 0}
@@ -502,34 +486,6 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                         px
                                     </span>
                                 </div>
-                                {!col.image && !col.html && (
-                                    <div className="flex items-center gap-1">
-                                        <label
-                                            className="text-[10px]"
-                                            style={{ color: 'var(--text-secondary)' }}
-                                            title="Nachkommastellen für Zahlenwerte (leer = unverändert)"
-                                        >
-                                            Nachkommast.
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            max={10}
-                                            value={col.decimals ?? ''}
-                                            onChange={(e) =>
-                                                updateCol(idx, {
-                                                    decimals:
-                                                        e.target.value === ''
-                                                            ? undefined
-                                                            : Math.max(0, Math.min(10, Number(e.target.value))),
-                                                })
-                                            }
-                                            placeholder="–"
-                                            className="text-xs rounded-lg px-2 py-1 focus:outline-none w-14"
-                                            style={jSty}
-                                        />
-                                    </div>
-                                )}
                                 <div className="flex items-center gap-0.5">
                                     {(
                                         [
@@ -600,6 +556,56 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                             onChange={(e) => updateCol(idx, { suffix: e.target.value || undefined })}
                                             placeholder="z.B. °C"
                                             className={jCls}
+                                            style={jSty}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                            {/* Row 3.7: display format — image and HTML cells hold a path / markup,
+                                nothing a value conversion could sensibly touch. */}
+                            {!col.image && !col.html && (
+                                <div
+                                    className="rounded-lg p-1.5 flex flex-col gap-1.5"
+                                    style={{ border: '1px solid var(--app-border)' }}
+                                >
+                                    <label
+                                        className="text-[10px] font-medium"
+                                        style={{ color: 'var(--text-secondary)' }}
+                                    >
+                                        Wert-Format
+                                    </label>
+                                    <ValueTransformFields
+                                        compact
+                                        allowTimeFormat
+                                        factor={col.valueFactor}
+                                        offset={col.valueOffset}
+                                        presetId={col.valueTransform}
+                                        timeFormat={col.valueTimeFormat}
+                                        timePattern={col.valueTimePattern}
+                                        previewSource={{ value: sampleRow?.[col.key] }}
+                                        onPatch={(patch) => updateCol(idx, patch)}
+                                        inputClassName="w-full text-xs rounded-lg px-2 py-1 focus:outline-none"
+                                        inputStyle={jSty}
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                            Nachkommastellen
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={10}
+                                            value={col.decimals ?? ''}
+                                            onChange={(e) =>
+                                                updateCol(idx, {
+                                                    decimals:
+                                                        e.target.value === ''
+                                                            ? undefined
+                                                            : Math.max(0, Math.min(10, Number(e.target.value))),
+                                                })
+                                            }
+                                            placeholder="unverändert"
+                                            className="text-xs rounded-lg px-2 py-1 focus:outline-none w-24"
                                             style={jSty}
                                         />
                                     </div>

@@ -36,6 +36,7 @@ export function ValueTransformFields({
     timePattern,
     allowTimeFormat = false,
     writable = false,
+    compact = false,
     dpId,
     previewSource,
     onPatch,
@@ -57,6 +58,12 @@ export function ValueTransformFields({
     /** The target also WRITES its datapoint (slider, knob, dimmer, number input): the
      *  conversion then runs both ways and the wording says so (issue #682). */
     writable?: boolean;
+    /**
+     * Side by side instead of stacked, without the explanatory paragraphs — for a place
+     * that shows the fields inline among other settings rather than in a popover of
+     * their own (the JSON table's column card).
+     */
+    compact?: boolean;
     /** Datapoint reference of the edited target; drives the live preview. */
     dpId?: string;
     /**
@@ -126,26 +133,134 @@ export function ValueTransformFields({
         return formatted ?? 'Wert ist keine Zeit';
     })();
 
-    return (
-        <div className="flex flex-col gap-2">
-            <div>
-                <label className="text-[11px] mb-1 block" style={labelSty}>
-                    {writable ? 'Umrechnung (Anzeige & Eingabe)' : 'Umrechnung (nur Anzeige)'}
+    const labelCls = compact ? 'text-[10px] mb-0.5 block' : 'text-[11px] mb-1 block';
+
+    const transformField = (
+        <div className={compact ? 'flex-1 min-w-0' : undefined}>
+            <label className={labelCls} style={labelSty}>
+                {compact ? 'Umrechnung' : writable ? 'Umrechnung (Anzeige & Eingabe)' : 'Umrechnung (nur Anzeige)'}
+            </label>
+            <select value={selected} onChange={(e) => choose(e.target.value)} className={inputClassName} style={sty}>
+                {VALUE_TRANSFORM_PRESETS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                        {p.label}
+                    </option>
+                ))}
+                <option value="custom">Eigene…</option>
+            </select>
+        </div>
+    );
+
+    const timeField = allowTimeFormat ? (
+        <div className={compact ? 'flex-1 min-w-0' : undefined}>
+            <label className={labelCls} style={labelSty}>
+                {compact ? 'Als Zeit anzeigen' : 'Zeit-Formatierung'}
+            </label>
+            <select
+                value={selectedTime}
+                onChange={(e) => chooseTime(e.target.value)}
+                className={inputClassName}
+                style={sty}
+            >
+                {TIME_DISPLAY_PRESETS.map((p) => (
+                    <option key={p.id} value={p.id}>
+                        {p.label}
+                    </option>
+                ))}
+                <option value="custom">Eigenes Format…</option>
+            </select>
+        </div>
+    ) : null;
+
+    const factorFields = selected === 'custom' && (
+        <div className="flex gap-2">
+            <div className="flex-1">
+                <label className={labelCls} style={labelSty}>
+                    Anzeigefaktor
                 </label>
-                <select
-                    value={selected}
-                    onChange={(e) => choose(e.target.value)}
+                <input
+                    type="number"
+                    step="any"
+                    value={factor ?? 1}
+                    onChange={(e) =>
+                        onPatch({
+                            valueTransform: 'custom',
+                            valueFactor: e.target.value === '' ? undefined : Number(e.target.value),
+                            valueOffset: offset,
+                        })
+                    }
                     className={inputClassName}
                     style={sty}
-                >
-                    {VALUE_TRANSFORM_PRESETS.map((p) => (
-                        <option key={p.id} value={p.id}>
-                            {p.label}
-                        </option>
-                    ))}
-                    <option value="custom">Eigene…</option>
-                </select>
+                />
             </div>
+            <div className="flex-1">
+                <label className={labelCls} style={labelSty}>
+                    Anzeige-Offset
+                </label>
+                <input
+                    type="number"
+                    step="any"
+                    value={offset ?? 0}
+                    onChange={(e) =>
+                        onPatch({
+                            valueTransform: 'custom',
+                            valueFactor: factor,
+                            valueOffset: e.target.value === '' ? undefined : Number(e.target.value),
+                        })
+                    }
+                    className={inputClassName}
+                    style={sty}
+                />
+            </div>
+        </div>
+    );
+
+    const patternField = selectedTime === 'custom' && (
+        <div>
+            <input
+                type="text"
+                value={timePattern ?? ''}
+                onChange={(e) =>
+                    onPatch({
+                        valueTimeFormat: 'custom',
+                        valueTimePattern: e.target.value || undefined,
+                    })
+                }
+                placeholder="dd.MM.yyyy HH:mm"
+                className={`${inputClassName} font-mono`}
+                style={sty}
+            />
+            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
+                Tokens: HH mm ss · dd MM yyyy yy · EEEE (Wochentag) · EE · MMMM (Monat) · ww (KW)
+            </p>
+        </div>
+    );
+
+    const previewLine = previewText && (
+        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+            Vorschau: <span style={{ color: 'var(--text-primary)' }}>{previewText}</span>
+        </p>
+    );
+
+    // Inline among other settings: the two dropdowns sit next to each other and the
+    // explanatory paragraphs stay out - the surrounding panel has no room for them.
+    if (compact) {
+        return (
+            <div className="flex flex-col gap-1.5">
+                <div className="flex gap-2">
+                    {transformField}
+                    {timeField}
+                </div>
+                {factorFields}
+                {patternField}
+                {previewLine}
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex flex-col gap-2">
+            {transformField}
             {/* Drawing below the zero line is a chart idea (#594) — on a control it would only
                 mean "scale runs backwards", which "Eigene…" with a negative factor already says. */}
             {!writable && (
@@ -154,48 +269,7 @@ export function ValueTransformFields({
                     Negativ darstellen (× −1)
                 </label>
             )}
-            {selected === 'custom' && (
-                <div className="flex gap-2">
-                    <div className="flex-1">
-                        <label className="text-[11px] mb-1 block" style={labelSty}>
-                            Anzeigefaktor
-                        </label>
-                        <input
-                            type="number"
-                            step="any"
-                            value={factor ?? 1}
-                            onChange={(e) =>
-                                onPatch({
-                                    valueTransform: 'custom',
-                                    valueFactor: e.target.value === '' ? undefined : Number(e.target.value),
-                                    valueOffset: offset,
-                                })
-                            }
-                            className={inputClassName}
-                            style={sty}
-                        />
-                    </div>
-                    <div className="flex-1">
-                        <label className="text-[11px] mb-1 block" style={labelSty}>
-                            Anzeige-Offset
-                        </label>
-                        <input
-                            type="number"
-                            step="any"
-                            value={offset ?? 0}
-                            onChange={(e) =>
-                                onPatch({
-                                    valueTransform: 'custom',
-                                    valueFactor: factor,
-                                    valueOffset: e.target.value === '' ? undefined : Number(e.target.value),
-                                })
-                            }
-                            className={inputClassName}
-                            style={sty}
-                        />
-                    </div>
-                </div>
-            )}
+            {factorFields}
             <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                 {writable
                     ? 'Anzeige = Wert × Faktor + Offset. Min/Max/Schritt und der angezeigte Wert gelten in der umgerechneten Einheit; beim Schreiben wird zurückgerechnet.'
@@ -203,49 +277,9 @@ export function ValueTransformFields({
             </p>
             {allowTimeFormat && (
                 <div className="flex flex-col gap-2 pt-2" style={{ borderTop: '1px solid var(--app-border)' }}>
-                    <div>
-                        <label className="text-[11px] mb-1 block" style={labelSty}>
-                            Zeit-Formatierung
-                        </label>
-                        <select
-                            value={selectedTime}
-                            onChange={(e) => chooseTime(e.target.value)}
-                            className={inputClassName}
-                            style={sty}
-                        >
-                            {TIME_DISPLAY_PRESETS.map((p) => (
-                                <option key={p.id} value={p.id}>
-                                    {p.label}
-                                </option>
-                            ))}
-                            <option value="custom">Eigenes Format…</option>
-                        </select>
-                    </div>
-                    {selectedTime === 'custom' && (
-                        <div>
-                            <input
-                                type="text"
-                                value={timePattern ?? ''}
-                                onChange={(e) =>
-                                    onPatch({
-                                        valueTimeFormat: 'custom',
-                                        valueTimePattern: e.target.value || undefined,
-                                    })
-                                }
-                                placeholder="dd.MM.yyyy HH:mm"
-                                className={`${inputClassName} font-mono`}
-                                style={sty}
-                            />
-                            <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
-                                Tokens: HH mm ss · dd MM yyyy yy · EEEE (Wochentag) · EE · MMMM (Monat) · ww (KW)
-                            </p>
-                        </div>
-                    )}
-                    {previewText && (
-                        <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                            Vorschau: <span style={{ color: 'var(--text-primary)' }}>{previewText}</span>
-                        </p>
-                    )}
+                    {timeField}
+                    {patternField}
+                    {previewLine}
                     <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.6 }}>
                         Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und HH:mm werden automatisch erkannt.
                     </p>

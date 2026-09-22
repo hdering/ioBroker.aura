@@ -147,18 +147,17 @@ const bodyText = (sel) =>
     const dlg = page.locator('.aura-widget-edit-modal');
     await dlg.waitFor({ timeout: 10000 });
 
-    const fx = dlg.locator('button[title*="Umrechnung"]');
-    check('every text column offers the f(x) button', (await fx.count()) === 2, `${await fx.count()}`);
+    // The format sits inline in the column card, not behind a button (follow-up to #697).
+    const blocks = dlg.locator('div:has(> label:text-is("Wert-Format"))');
+    check('every text column shows the format block', (await blocks.count()) === 2, `${await blocks.count()}`);
 
-    await fx.nth(1).click();
-    const pop = page.locator('div:has(> div > span:text-is("Wert-Umrechnung / Zeit"))').last();
-    await pop.waitFor({ timeout: 5000 });
-    const timeSel = pop.locator('select').last();
-    await timeSel.selectOption('date');
+    const tsBlock = blocks.nth(1);
+    check('it offers conversion and time side by side', (await tsBlock.locator('select').count()) === 2);
+    await tsBlock.locator('select').nth(1).selectOption('date');
     await page.waitForTimeout(250);
 
-    const preview = (await pop.locator('p:has-text("Vorschau:")').first().textContent()) ?? '';
-    check('the popover previews the sample cell', preview.includes('10.07.2024'), preview.trim());
+    const preview = (await tsBlock.locator('p:has-text("Vorschau:")').first().textContent()) ?? '';
+    check('the block previews the sample cell', preview.includes('10.07.2024'), preview.trim());
 
     const stored = await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]);
     check('the pick lands on the column', stored?.valueTimeFormat === 'date', JSON.stringify(stored));
