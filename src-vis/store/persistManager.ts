@@ -8,6 +8,7 @@ import {
     getStateFromCache,
 } from '../hooks/useIoBroker';
 import { NS } from '../utils/namespace';
+import { version as appVersion } from '../../package.json';
 import { MAX_BACKUP_COUNT } from './adminPrefsStore';
 import { recordChange, resyncHistoryKey, historyGroup } from './editHistory';
 
@@ -53,6 +54,15 @@ const BACKUP_FILE_SUFFIX_GZ = '.json.gz';
 // single settings-page visit would otherwise pull one ~60 KB gzip blob per kept
 // backup over the same socket that the config writes share.
 const BACKUP_META_SUFFIX = '.meta.json';
+// Aura version that wrote the backup, appended to the filename after the
+// timestamp (`backup-<ts>-v0.66.0.json.gz`) so a restore after an update can be
+// picked by release, not just by date. Legacy backups have no suffix — the
+// timestamp stays a fixed-width prefix, so the lexical sort order is unchanged.
+const BACKUP_VERSION_MARK = '-v';
+/** Filename-safe form of a semver string (`0.66.0-beta.1` survives as-is). */
+function versionForFilename(v: string): string {
+    return v.replace(/[^0-9A-Za-z.\-_]/g, '-');
+}
 
 // ── gzip helpers (browser-native CompressionStream, base64 transport) ──────────
 async function gzipToBase64(text: string): Promise<string> {
@@ -97,6 +107,9 @@ export const BACKUP_CHANGED_KEY = '_changed';
 // Structured, human-readable change descriptors (e.g. a moved widget). Only
 // populated when a before-value is available (RAM original, same session).
 export const BACKUP_DETAILS_KEY = '_details';
+// Aura version that produced the backup. Missing on backups written before this
+// field existed → the UI shows no version for them.
+export const BACKUP_VERSION_KEY = '_version';
 
 // One semantic change in a save. `label` is filled when exactly one entity of
 // this kind changed; `count` when several were aggregated. The UI translates
@@ -108,12 +121,32 @@ export interface BackupChangeDetail {
     count?: number;
 }
 
-function tsToFilename(ts: string): string {
-    return `${BACKUP_FILE_PREFIX}${ts.replace(/[:.]/g, '-')}${BACKUP_FILE_SUFFIX_GZ}`;
+/** `2026-09-21T14:34:07.891Z` + `0.66.0` → `backup-2026-09-21T14-34-07-891Z-v0.66.0`. */
+function backupStem(ts: string, version: string): string {
+    const stamp = ts.replace(/[:.]/g, '-');
+    return version
+        ? `${BACKUP_FILE_PREFIX}${stamp}${BACKUP_VERSION_MARK}${versionForFilename(version)}`
+        : `${BACKUP_FILE_PREFIX}${stamp}`;
 }
 
-function tsToMetaFilename(ts: string): string {
-    return `${BACKUP_FILE_PREFIX}${ts.replace(/[:.]/g, '-')}${BACKUP_META_SUFFIX}`;
+function tsToFilename(ts: string, version: string): string {
+    return `${backupStem(ts, version)}${BACKUP_FILE_SUFFIX_GZ}`;
+}
+
+function tsToMetaFilename(ts: string, version: string): string {
+    return `${backupStem(ts, version)}${BACKUP_META_SUFFIX}`;
+}
+
+/** Split a backup filename (without its suffix) back into timestamp and version.
+ *  The version is optional: old files carry none, and a hand-renamed file may
+ *  parse as neither. */
+function parseBackupStem(stemWithPrefix: string): { ts: string; version: string } {
+    const stem = stemWithPrefix.startsWith(BACKUP_FILE_PREFIX)
+        ? stemWithPrefix.slice(BACKUP_FILE_PREFIX.length)
+        : stemWithPrefix;
+    const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z(?:-v(.+))?$/.exec(stem);
+    if (!m) return { ts: stem, version: '' };
+    return { ts: `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}.${m[7]}Z`, version: m[8] || '' };
 }
 
 /** The sidecar belonging to a backup payload filename. */
@@ -463,7 +496,10 @@ function getRaw(key: SyncStoreKey): string | null {
 }
 
 function buildBackupEntry(): Record<string, unknown> {
-    const entry: Record<string, unknown> = { [BACKUP_TS_KEY]: new Date().toISOString() };
+    const entry: Record<string, unknown> = {
+        [BACKUP_TS_KEY]: new Date().toISOString(),
+        [BACKUP_VERSION_KEY]: appVersion,
+    };
     SYNC_STORE_KEYS.forEach((key) => {
         const val = getRaw(key);
         if (val !== null) entry[key] = val;
@@ -733,7 +769,7 @@ async function writeBackup(changedKeys: SyncStoreKey[] = [], details: BackupChan
         entry[BACKUP_CHANGED_KEY] = changedKeys;
         entry[BACKUP_DETAILS_KEY] = details;
         const ts = String(entry[BACKUP_TS_KEY]);
-        const filename = tsToFilename(ts);
+        const filename = tsToFilename(ts, appVersion);
         const payload = JSON.stringify(entry);
         // Gzip+base64 before writing — a raw ~1 MB writeFile exceeds the socket.io
         // frame limit and drops the connection without acknowledging the write.
@@ -748,9 +784,10 @@ async function writeBackup(changedKeys: SyncStoreKey[] = [], details: BackupChan
         try {
             await writeFileDirect(
                 BACKUP_NAMESPACE,
-                tsToMetaFilename(ts),
+                tsToMetaFilename(ts, appVersion),
                 JSON.stringify({
                     [BACKUP_TS_KEY]: ts,
+                    [BACKUP_VERSION_KEY]: appVersion,
                     [BACKUP_CHANGED_KEY]: changedKeys,
                     [BACKUP_DETAILS_KEY]: details,
                 }),
@@ -777,6 +814,9 @@ export interface BackupFileEntry {
     ts: string;
     filename: string;
     size: number;
+    // Aura version that wrote the backup. Empty for backups from before the
+    // version was recorded.
+    version: string;
     // Sync-store keys written in the save that produced this backup. Empty for
     // backups created before the field existed (→ UI shows nothing extra).
     changed: string[];
@@ -803,18 +843,16 @@ export async function listBackupFiles(): Promise<BackupFileEntry[]> {
     return Promise.all(
         backupFiles.map(async (f) => {
             const suffix = f.file.endsWith(BACKUP_FILE_SUFFIX_GZ) ? BACKUP_FILE_SUFFIX_GZ : BACKUP_FILE_SUFFIX;
-            const stem = f.file.slice(BACKUP_FILE_PREFIX.length, -suffix.length);
-            // Reverse tsToFilename: 2026-05-17T14-23-11-456Z → 2026-05-17T14:23:11.456Z
-            const ts = stem.replace(
-                /^(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z$/,
-                '$1-$2-$3T$4:$5:$6.$7Z',
-            );
+            // Reverse tsToFilename: backup-2026-05-17T14-23-11-456Z-v0.66.0 →
+            // ts 2026-05-17T14:23:11.456Z, version 0.66.0.
+            const { ts, version: nameVersion } = parseBackupStem(f.file.slice(0, -suffix.length));
             const metaName = metaFilenameFor(f.file);
             const useSidecar = sidecars.has(metaName);
             const legacyAllowed = !useSidecar && legacyBudget > 0;
             if (legacyAllowed) legacyBudget--;
             let changed: string[] = [];
             let details: BackupChangeDetail[] = [];
+            let version = nameVersion;
             try {
                 const raw = useSidecar
                     ? await readFileDirect(BACKUP_NAMESPACE, metaName)
@@ -832,11 +870,13 @@ export async function listBackupFiles(): Promise<BackupFileEntry[]> {
                                 !!x && typeof x === 'object' && typeof (x as BackupChangeDetail).kind === 'string',
                         );
                     }
+                    const v = parsed[BACKUP_VERSION_KEY];
+                    if (typeof v === 'string' && v) version = v;
                 }
             } catch {
                 /* unreadable/old backup — leave changed/details empty */
             }
-            return { ts, filename: f.file, size: f.size, changed, details };
+            return { ts, filename: f.file, size: f.size, version, changed, details };
         }),
     );
 }

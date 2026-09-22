@@ -16,7 +16,7 @@ Allgemeine Einstellungen: Frontend, Grid, Sicherheit und Backup.
 | Super-Admin-Schlüssel | Schützt Standard-Views vor Löschen; aktiviert über `/admin/popups?key=…` |
 | Admin-Basis-URL | Relative Bildpfade in JSON-Tabellen-Widgets auflösen |
 | Verbundene Geräte | Liste der Clients; umbenennen, feste ID vergeben, entfernen |
-| Backup & Restore | Manuelles Backup laden/importieren; Auto-Backups (Anzahl, Wiederherstellen). Schreibt ein Skript oder ein anderes Werkzeug einen `aura.0.config.*`-Datenpunkt ohne `ack`, sichert der Adapter den vorherigen Stand automatisch in dieselbe Liste („Fremder Schreibzugriff von …“, höchstens alle 30 s je Datenpunkt) |
+| Backup & Restore | Manuelles Backup laden/importieren; Auto-Backups (Anzahl, Wiederherstellen). Jeder Eintrag nennt neben Datum und Uhrzeit die Aura-Version, die ihn geschrieben hat, und trägt sie auch im Dateinamen (`backup-2026-09-21T14-34-07-891Z-v0.66.0.json.gz`). Schreibt ein Skript oder ein anderes Werkzeug einen `aura.0.config.*`-Datenpunkt ohne `ack`, sichert der Adapter den vorherigen Stand automatisch in dieselbe Liste („Fremder Schreibzugriff von …“, höchstens alle 30 s je Datenpunkt) |
 | Alles zurücksetzen | Löscht Dashboards, Widgets, Themes und Einstellungen — nicht rückgängig |
 
 ## Client-ID

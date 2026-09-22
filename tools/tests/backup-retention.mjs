@@ -127,6 +127,14 @@ const metaBody = (i) =>
 {
     const { mod } = await boot();
     check('payload is a backup file', mod.isBackupFile('backup-2026-08-20T10-00-00-000Z.json.gz') === true);
+    check(
+        'versioned payload is a backup file',
+        mod.isBackupFile('backup-2026-08-20T10-00-00-000Z-v0.66.0.json.gz') === true,
+    );
+    check(
+        'versioned sidecar is NOT a backup file',
+        mod.isBackupFile('backup-2026-08-20T10-00-00-000Z-v0.66.0.meta.json') === false,
+    );
     check('legacy plain payload is a backup file', mod.isBackupFile('backup-2026-08-20T10-00-00-000Z.json') === true);
     check('sidecar is NOT a backup file', mod.isBackupFile('backup-2026-08-20T10-00-00-000Z.meta.json') === false);
 }
@@ -155,6 +163,7 @@ const metaBody = (i) =>
     eq('exactly 100 sidecars were read', reads.filter((n) => n.endsWith('.meta.json')).length, 100);
     check('summary came through', list[0].details[0]?.kind === 'widget-moved', JSON.stringify(list[0].details));
     check('changed list came through', list[0].changed[0] === 'aura-dashboard');
+    eq('a pre-version backup reports no version', list[0].version, '');
     // Newest first, and the timestamp is decoded back from the filename.
     eq('newest sorts first', list[0].ts, tsOf(99));
     check('timestamp parses as a date', !Number.isNaN(Date.parse(list[0].ts)), list[0].ts);
@@ -205,11 +214,42 @@ const metaBody = (i) =>
         'the sidecar holds the change summary',
         !!newMeta && JSON.parse(files.get(newMeta))._changed.includes('aura-dashboard'),
     );
+    // #694: the writing Aura version rides along in the filename AND the sidecar,
+    // so a post-update restore can be picked by release, not just by date.
+    check('the filename carries the version', /-v\d[0-9A-Za-z.\-_]*\.json\.gz$/.test(newPayload || ''), newPayload);
+    check(
+        'the sidecar carries the version',
+        !!newMeta &&
+            typeof JSON.parse(files.get(newMeta))._version === 'string' &&
+            !!JSON.parse(files.get(newMeta))._version,
+        newMeta,
+    );
 
     // Ring of 3 + the new one -> the oldest pair is pruned.
     check('the oldest payload was pruned', deletes.includes(nameOf(0)), JSON.stringify(deletes));
     check('its sidecar was pruned too', deletes.includes(metaOf(0)), JSON.stringify(deletes));
     check('no orphan sidecar left behind', ![...files.keys()].some((n) => n === metaOf(0)));
+}
+
+// ── 6. Versioned filenames still decode to timestamp + version ───────────────
+// The version suffix sits behind a fixed-width timestamp, so sorting is unchanged
+// and both halves come back out of the name even without a sidecar.
+{
+    const { mod } = await boot();
+    const { files } = mod.fake;
+    const vName = (i, v) => `backup-${tsOf(i).replace(/[:.]/g, '-')}-v${v}.json.gz`;
+    files.set(nameOf(0), FAKE_PAYLOAD); // legacy, oldest
+    files.set(vName(1, '0.65.2'), FAKE_PAYLOAD);
+    files.set(vName(2, '0.66.0'), FAKE_PAYLOAD);
+    files.set(`backup-${tsOf(2).replace(/[:.]/g, '-')}-v0.66.0.meta.json`, metaBody(2));
+    const list = await mod.listBackupFiles();
+
+    eq('all three are listed', list.length, 3);
+    eq('newest first is the versioned one', list[0].version, '0.66.0');
+    eq('its timestamp decoded past the version suffix', list[0].ts, tsOf(2));
+    eq('the version is read from the filename alone', list[1].version, '0.65.2');
+    eq('and its timestamp too', list[1].ts, tsOf(1));
+    eq('the legacy entry stays version-less', list[2].version, '');
 }
 
 // ── 5. The configured ceiling is the shared constant ─────────────────────────

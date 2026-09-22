@@ -10,3 +10,4 @@
 - JSON table - a column can now format its value: show a timestamp as date/time, convert it by factor/offset, and set its decimal places (#697)
 - Date picker - clearing the field now clears the datapoint, in the widget, in a Universal cell and in a list row (#695)
 - Date picker - the input fields now take a font size and a text colour; in a Universal cell the cell's colour and bold/italic reach them too (#696)
+- Settings - each auto-backup now shows the Aura version that wrote it, and carries that version in its file name (#694)

@@ -37,6 +37,7 @@ import {
 } from 'lucide-react';
 import { useT, type TranslationKey } from '../../i18n';
 import { NS } from '../../utils/namespace';
+import { version as appVersion } from '../../../package.json';
 
 // ── Shared primitives ──────────────────────────────────────────────────────────
 
@@ -88,6 +89,7 @@ interface BackupEntry {
     ts: string;
     filename: string;
     size: number;
+    version: string;
     changed: string[];
     details: BackupChangeDetail[];
 }
@@ -122,8 +124,9 @@ function BackupCard() {
             setBackups([
                 {
                     ts: '2026-06-17T13:54:02.000Z',
-                    filename: 'backup-2026-06-17T13-54-02-000Z.json.gz',
+                    filename: 'backup-2026-06-17T13-54-02-000Z-v0.66.0.json.gz',
                     size: 61234,
+                    version: '0.66.0',
                     changed: ['aura-dashboard'],
                     details: [{ store: 'aura-dashboard', kind: 'widget-added', label: 'CO₂' }],
                 },
@@ -139,6 +142,7 @@ function BackupCard() {
                     ts: f.ts,
                     filename: f.filename,
                     size: f.size,
+                    version: f.version,
                     changed: f.changed,
                     details: f.details,
                 })),
@@ -214,7 +218,9 @@ function BackupCard() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `aura-backup-${Date.now()}.json`;
+        // Same version marker as the ring's files, so a downloaded backup still
+        // says which release wrote it once it sits in a download folder.
+        a.download = `aura-backup-${Date.now()}-v${appVersion}.json`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -368,6 +374,14 @@ function BackupCard() {
                                         style={{ color: 'var(--text-primary)' }}
                                     >
                                         {formatTimestamp(b.ts)}
+                                        {b.version && (
+                                            <span
+                                                className="ml-1.5 font-normal"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                v{b.version}
+                                            </span>
+                                        )}
                                     </p>
                                     {i === 0 && (
                                         <p className="text-[10px]" style={{ color: 'var(--accent)' }}>

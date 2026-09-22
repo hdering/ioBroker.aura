@@ -87,10 +87,16 @@ const now = () => clock;
     ]);
     const meta = JSON.parse(adapter.files.get(name.replace('.json.gz', '.meta.json')));
     eq('sidecar carries the same details', meta._details, payload._details);
+    // #694: the filename is <ts>-v<aura version>, and the sidecar repeats both.
+    const stem = name.slice('backup-'.length, -'.json.gz'.length);
     check(
         'sidecar timestamp matches the file',
-        meta._ts.replace(/[:.]/g, '-') === name.slice('backup-'.length, -'.json.gz'.length),
+        stem.startsWith(meta._ts.replace(/[:.]/g, '-')),
+        `${stem} / ${meta._ts}`,
     );
+    check('the filename carries the aura version', stem.endsWith(`-v${meta._version}`), stem);
+    check('the sidecar names a version', typeof meta._version === 'string' && !!meta._version, meta._version);
+    eq('the payload names the same version', payload._version, meta._version);
     eq(
         'the new value is now the remembered one',
         guard.cachedValue('config.dashboard'),
