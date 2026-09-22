@@ -147,17 +147,43 @@ const bodyText = (sel) =>
     const dlg = page.locator('.aura-widget-edit-modal');
     await dlg.waitFor({ timeout: 10000 });
 
-    // The format sits inline in the column card, not behind a button (follow-up to #697).
-    const blocks = dlg.locator('div:has(> label:text-is("Wert-Format"))');
-    check('every text column shows the format block', (await blocks.count()) === 2, `${await blocks.count()}`);
+    // Two switches next to Bild/HTML/Icons, each revealing its own fields (follow-up to #697).
+    const cards = dlg.locator('div:has(> div > label > span:text-is("Datum/Zeit"))');
+    check('every text column offers the two switches', (await cards.count()) === 2, `${await cards.count()}`);
 
-    const tsBlock = blocks.nth(1);
-    check('it offers conversion and time side by side', (await tsBlock.locator('select').count()) === 2);
-    await tsBlock.locator('select').nth(1).selectOption('date');
+    const tsCard = cards.nth(1);
+    check('nothing is shown while both switches are off', (await tsCard.locator('select').count()) === 0);
+
+    await tsCard.locator('label:has(span:text-is("Datum/Zeit"))').click();
     await page.waitForTimeout(250);
+    check('the switch reveals the time formats', (await tsCard.locator('select').count()) === 1);
+    check(
+        'and picks a default right away',
+        (await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]?.valueTimeFormat)) ===
+            'datetime',
+    );
 
-    const preview = (await tsBlock.locator('p:has-text("Vorschau:")').first().textContent()) ?? '';
-    check('the block previews the sample cell', preview.includes('10.07.2024'), preview.trim());
+    await tsCard.locator('select').first().selectOption('date');
+    await page.waitForTimeout(250);
+    const preview = (await tsCard.locator('p:has-text("Vorschau:")').first().textContent()) ?? '';
+    check('the section previews the sample cell', preview.includes('10.07.2024'), preview.trim());
+
+    // The conversion is a switch of its own, and switching it off clears what it held.
+    await tsCard.locator('label:has(span:text-is("Umrechnung"))').click();
+    await page.waitForTimeout(250);
+    check('the conversion switch adds its own fields', (await tsCard.locator('select').count()) === 2);
+    await tsCard.locator('input[placeholder="unverändert"]').fill('2');
+    await page.waitForTimeout(300);
+    check(
+        'the decimal places land on the column',
+        (await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]?.decimals)) === 2,
+    );
+    await tsCard.locator('label:has(span:text-is("Umrechnung"))').click();
+    await page.waitForTimeout(300);
+    check(
+        'switching it off drops them again',
+        (await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]?.decimals)) === undefined,
+    );
 
     const stored = await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]);
     check('the pick lands on the column', stored?.valueTimeFormat === 'date', JSON.stringify(stored));

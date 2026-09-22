@@ -22,8 +22,6 @@ interface ValueTransformButtonProps {
     writable?: boolean;
     /** Datapoint reference of the edited target; drives the live preview. */
     dpId?: string;
-    /** Preview sample for targets without a datapoint of their own (JSON-table column). */
-    previewSource?: { value: unknown };
     onPatch: (patch: ValueTransformPatch) => void;
     /** When true, selecting a preset also fills the `unit` field. */
     fillUnit?: boolean;
@@ -50,7 +48,6 @@ export function ValueTransformButton({
     allowTimeFormat = false,
     writable = false,
     dpId,
-    previewSource,
     onPatch,
     fillUnit = false,
     explicitNone = false,
@@ -151,7 +148,6 @@ export function ValueTransformButton({
                             allowTimeFormat={allowTimeFormat}
                             writable={writable}
                             dpId={dpId}
-                            previewSource={previewSource}
                             onPatch={onPatch}
                             fillUnit={fillUnit}
                             explicitNone={explicitNone}

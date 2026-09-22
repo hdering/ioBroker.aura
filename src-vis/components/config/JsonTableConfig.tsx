@@ -3,9 +3,16 @@ import { Plus, Trash2, ChevronUp, ChevronDown, RefreshCw, AlignLeft, AlignCenter
 import { parseJson, type JsonColumnDef } from '../widgets/JsonTableWidget';
 import { ColorPicker } from '../common/ColorPicker';
 import { ImagePathHint } from './ImagePathHint';
-import { ValueTransformFields } from './ValueTransformFields';
 import { getStateDirect } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
+import { useT } from '../../i18n';
+import {
+    VALUE_TRANSFORM_PRESETS,
+    applyValueTransform,
+    chooseTransformPreset,
+    selectedTransformPreset,
+} from '../../utils/valueTransform';
+import { TIME_DISPLAY_PRESETS, formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
 
 interface Props {
     datapoint: string;
@@ -14,6 +21,10 @@ interface Props {
 }
 
 const jCls = 'w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none';
+/** Tighter field, for the format sections nested inside a column card. */
+const fmtCls = 'w-full text-xs rounded-lg px-2 py-1 focus:outline-none';
+const fmtMonoCls = `${fmtCls} font-mono`;
+const hintSty: React.CSSProperties = { color: 'var(--text-secondary)', opacity: 0.7 };
 const jSty: React.CSSProperties = {
     background: 'var(--app-bg)',
     color: 'var(--text-primary)',
@@ -73,11 +84,36 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
 
     const [newKey, setNewKey] = useState('');
     const [loading, setLoading] = useState(false);
+    const t = useT();
 
-    // First row of the live data — the format popover previews against it, so
+    // First row of the live data — the format section previews against it, so
     // "Millisekunden-Stempel wird zu 10.07.2024" is verifiable before saving.
     const { value: liveValue } = useDatapoint(datapoint);
     const sampleRow = useMemo(() => parseJson(liveValue)?.rows[0], [liveValue]);
+
+    // The two format switches work like the Bild/HTML ones, but they have no flag of
+    // their own — they stand for a group of values. So the switch reads those values,
+    // and a switch turned on before anything is picked is remembered here until then.
+    const [formatOpen, setFormatOpen] = useState<Record<string, { time?: boolean; convert?: boolean }>>({});
+    const timeShown = (c: JsonColumnDef) => formatOpen[c.key]?.time ?? hasTimeDisplay(c.valueTimeFormat);
+    const convertShown = (c: JsonColumnDef) =>
+        formatOpen[c.key]?.convert ??
+        (c.valueTransform !== undefined ||
+            c.valueFactor !== undefined ||
+            c.valueOffset !== undefined ||
+            c.decimals !== undefined);
+    const setFormatFlag = (key: string, flag: 'time' | 'convert', on: boolean) =>
+        setFormatOpen((prev) => ({ ...prev, [key]: { ...prev[key], [flag]: on } }));
+
+    /** What the first row's cell will look like - also says when a value is no time at all. */
+    const previewFormat = (col: JsonColumnDef, sample: unknown): string => {
+        if (sample === null || sample === undefined || sample === '') return 'Kein Beispielwert';
+        const value = applyValueTransform(sample, col.valueFactor, col.valueOffset);
+        return (
+            formatTimeDisplay(value, col.valueTimeFormat ?? 'datetime', t, col.valueTimePattern) ??
+            'Wert ist keine Zeit'
+        );
+    };
 
     function boolOpt(key: string, def: boolean): boolean {
         return (o[key] as boolean) ?? def;
@@ -124,6 +160,32 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
     function updateCol(idx: number, patch: Partial<JsonColumnDef>) {
         const updated = colDefs.map((c, i) => (i === idx ? { ...c, ...patch } : c));
         setColDefs(updated);
+    }
+
+    /** Datum/Zeit switch: on picks a default so the column changes right away, off clears it. */
+    function toggleTimeFormat(idx: number, col: JsonColumnDef) {
+        const on = !timeShown(col);
+        setFormatFlag(col.key, 'time', on);
+        updateCol(
+            idx,
+            on
+                ? { valueTimeFormat: col.valueTimeFormat ?? 'datetime' }
+                : { valueTimeFormat: undefined, valueTimePattern: undefined },
+        );
+    }
+
+    /** Umrechnung switch: off takes factor, offset and the decimal places with it. */
+    function toggleConvert(idx: number, col: JsonColumnDef) {
+        const on = !convertShown(col);
+        setFormatFlag(col.key, 'convert', on);
+        if (!on) {
+            updateCol(idx, {
+                valueTransform: undefined,
+                valueFactor: undefined,
+                valueOffset: undefined,
+                decimals: undefined,
+            });
+        }
     }
 
     function removeCol(idx: number) {
@@ -465,6 +527,36 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                         Ausblenden
                                     </span>
                                 </label>
+                                {/* A path or markup is nothing a value format could sensibly touch,
+                                    so these two only show up for plain text columns. */}
+                                {!col.image && !col.html && (
+                                    <>
+                                        <label
+                                            className="flex items-center gap-1.5 cursor-pointer"
+                                            title="Zeitstempel als Datum / Uhrzeit anzeigen"
+                                        >
+                                            <Toggle
+                                                value={timeShown(col)}
+                                                onToggle={() => toggleTimeFormat(idx, col)}
+                                            />
+                                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Datum/Zeit
+                                            </span>
+                                        </label>
+                                        <label
+                                            className="flex items-center gap-1.5 cursor-pointer"
+                                            title="Zahlenwerte umrechnen und runden"
+                                        >
+                                            <Toggle
+                                                value={convertShown(col)}
+                                                onToggle={() => toggleConvert(idx, col)}
+                                            />
+                                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                Umrechnung
+                                            </span>
+                                        </label>
+                                    </>
+                                )}
                             </div>
                             {/* Row 3.5: width / alignment / wrap */}
                             <div className="flex items-center gap-2 flex-wrap">
@@ -561,32 +653,140 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                     </div>
                                 </div>
                             )}
-                            {/* Row 3.7: display format — image and HTML cells hold a path / markup,
-                                nothing a value conversion could sensibly touch. */}
-                            {!col.image && !col.html && (
+                            {/* Row 3.7: Datum/Zeit — the switch above decides whether this shows. */}
+                            {!col.image && !col.html && timeShown(col) && (
                                 <div
                                     className="rounded-lg p-1.5 flex flex-col gap-1.5"
                                     style={{ border: '1px solid var(--app-border)' }}
                                 >
-                                    <label
-                                        className="text-[10px] font-medium"
-                                        style={{ color: 'var(--text-secondary)' }}
+                                    <select
+                                        value={col.valueTimeFormat ?? 'datetime'}
+                                        onChange={(e) =>
+                                            updateCol(idx, {
+                                                valueTimeFormat: e.target.value,
+                                                valueTimePattern:
+                                                    e.target.value === 'custom'
+                                                        ? (col.valueTimePattern ?? 'dd.MM.yyyy HH:mm')
+                                                        : undefined,
+                                            })
+                                        }
+                                        className={fmtCls}
+                                        style={jSty}
                                     >
-                                        Wert-Format
-                                    </label>
-                                    <ValueTransformFields
-                                        compact
-                                        allowTimeFormat
-                                        factor={col.valueFactor}
-                                        offset={col.valueOffset}
-                                        presetId={col.valueTransform}
-                                        timeFormat={col.valueTimeFormat}
-                                        timePattern={col.valueTimePattern}
-                                        previewSource={{ value: sampleRow?.[col.key] }}
-                                        onPatch={(patch) => updateCol(idx, patch)}
-                                        inputClassName="w-full text-xs rounded-lg px-2 py-1 focus:outline-none"
-                                        inputStyle={jSty}
-                                    />
+                                        {TIME_DISPLAY_PRESETS.filter((pr) => pr.id !== 'none').map((pr) => (
+                                            <option key={pr.id} value={pr.id}>
+                                                {pr.label}
+                                            </option>
+                                        ))}
+                                        <option value="custom">Eigenes Format…</option>
+                                    </select>
+                                    {col.valueTimeFormat === 'custom' && (
+                                        <div>
+                                            <input
+                                                type="text"
+                                                value={col.valueTimePattern ?? ''}
+                                                onChange={(e) =>
+                                                    updateCol(idx, { valueTimePattern: e.target.value || undefined })
+                                                }
+                                                placeholder="dd.MM.yyyy HH:mm"
+                                                className={fmtMonoCls}
+                                                style={jSty}
+                                            />
+                                            <p className="text-[9px] mt-1" style={hintSty}>
+                                                Tokens: HH mm ss · dd MM yyyy yy · EEEE (Wochentag) · EE · MMMM (Monat)
+                                                · ww (KW)
+                                            </p>
+                                        </div>
+                                    )}
+                                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        Vorschau:{' '}
+                                        <span style={{ color: 'var(--text-primary)' }}>
+                                            {previewFormat(col, sampleRow?.[col.key])}
+                                        </span>
+                                    </p>
+                                    <p className="text-[9px]" style={hintSty}>
+                                        Zeitstempel (Sekunden/Millisekunden), ISO-Zeitangaben und HH:mm werden
+                                        automatisch erkannt.
+                                    </p>
+                                </div>
+                            )}
+                            {/* Row 3.8: Umrechnung — factor/offset plus the decimal places, which are
+                                what keeps a converted number readable. */}
+                            {!col.image && !col.html && convertShown(col) && (
+                                <div
+                                    className="rounded-lg p-1.5 flex flex-col gap-1.5"
+                                    style={{ border: '1px solid var(--app-border)' }}
+                                >
+                                    <select
+                                        value={selectedTransformPreset(
+                                            col.valueTransform,
+                                            col.valueFactor,
+                                            col.valueOffset,
+                                        )}
+                                        onChange={(e) => {
+                                            const { unit: _unit, ...patch } = chooseTransformPreset(e.target.value, {
+                                                factor: col.valueFactor,
+                                                offset: col.valueOffset,
+                                            });
+                                            updateCol(idx, patch);
+                                        }}
+                                        className={fmtCls}
+                                        style={jSty}
+                                    >
+                                        {VALUE_TRANSFORM_PRESETS.map((pr) => (
+                                            <option key={pr.id} value={pr.id}>
+                                                {pr.label}
+                                            </option>
+                                        ))}
+                                        <option value="custom">Eigene…</option>
+                                    </select>
+                                    {selectedTransformPreset(col.valueTransform, col.valueFactor, col.valueOffset) ===
+                                        'custom' && (
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1">
+                                                <label className="text-[9px] block mb-0.5" style={hintSty}>
+                                                    Faktor
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    step="any"
+                                                    value={col.valueFactor ?? 1}
+                                                    onChange={(e) =>
+                                                        updateCol(idx, {
+                                                            valueTransform: 'custom',
+                                                            valueFactor:
+                                                                e.target.value === ''
+                                                                    ? undefined
+                                                                    : Number(e.target.value),
+                                                        })
+                                                    }
+                                                    className={fmtCls}
+                                                    style={jSty}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label className="text-[9px] block mb-0.5" style={hintSty}>
+                                                    Offset
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    step="any"
+                                                    value={col.valueOffset ?? 0}
+                                                    onChange={(e) =>
+                                                        updateCol(idx, {
+                                                            valueTransform: 'custom',
+                                                            valueOffset:
+                                                                e.target.value === ''
+                                                                    ? undefined
+                                                                    : Number(e.target.value),
+                                                        })
+                                                    }
+                                                    className={fmtCls}
+                                                    style={jSty}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-2">
                                         <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                                             Nachkommastellen
@@ -609,6 +809,9 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                             style={jSty}
                                         />
                                     </div>
+                                    <p className="text-[9px]" style={hintSty}>
+                                        Nur für die Anzeige. Anzeige = Wert × Faktor + Offset
+                                    </p>
                                 </div>
                             )}
                             {/* Row 4: image size (only if image enabled) */}

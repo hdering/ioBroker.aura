@@ -70,7 +70,7 @@ Liste in `columns` (leer = alle Spalten automatisch aus den JSON-Daten). Pro Spa
 
 #### Wert-Format
 
-Abschnitt **Wert-Format** in den Einstellungen der Spalte. Nur bei Text-Spalten (nicht Bild/HTML); ändert nur die Anzeige, nicht die JSON-Daten. Reihenfolge: Umrechnung → Zeit-Format → Nachkommastellen.
+Zwei Schalter in der Spalte, neben Bild/HTML/Icons: **Datum/Zeit** und **Umrechnung**. Jeder blendet seine Felder ein, wenn er an ist. Nur bei Text-Spalten (nicht Bild/HTML); ändert nur die Anzeige, nicht die JSON-Daten. Reihenfolge: Umrechnung → Zeit-Format → Nachkommastellen.
 
 | Feld | |
 | --- | --- |
