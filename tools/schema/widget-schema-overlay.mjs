@@ -619,6 +619,8 @@ export const WIDGET_OPTION_NOTES = {
         inputPattern: { description: 'Eigene Lesevorlage, wenn inputFormat "custom" ist.' },
         outputFormat: { description: 'Format, in dem geschrieben wird.' },
         outputPattern: { description: 'Eigene Schreibvorlage, wenn outputFormat "custom" ist.' },
+        fontSize: { type: 'number', default: 12, description: 'Schriftgröße der Eingabefelder in px. Leer = 12.' },
+        textColor: { description: 'Textfarbe der Eingabefelder. Leer = Themefarbe.' },
     },
     messages: {
         severities: { description: 'Welche Dringlichkeitsstufen die Liste zeigt.' },

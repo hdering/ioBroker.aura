@@ -746,6 +746,10 @@ const MIN_NOTES = {
             'Laufzeit — mit maxRows steht die Zeilenzahl fest und aura_measure rechnet genau: siehe ' +
             'counted.statusoverview',
     ],
+    datepicker: [
+        'gemessen mit der Standard-Schriftgröße der Eingabefelder (fontSize leer = 12 px). Eine größere ' +
+            'fontSize macht die Felder höher — die Höhe dann am Ergebnis prüfen',
+    ],
     carousel: ['gemessen mit vier Einträgen. Das Karussell rollt waagerecht, die Höhe hängt nicht an der Anzahl'],
 };
 

@@ -1588,13 +1588,17 @@ function DatePickerCellView({
         outputFormat: (cell.dateFormat as DateOutputFormat) ?? 'timestamp_ms',
         outputPattern: cell.datePattern,
     };
+    // Colour/bold/italic are offered for every cell type, so the field has to
+    // honour them here too — only the size did before (#696).
     const inputSty: React.CSSProperties = {
         background: 'var(--app-bg)',
-        color: 'var(--text-primary)',
+        color: cell.color || 'var(--text-primary)',
         border: '1px solid var(--app-border)',
         borderRadius: 8,
         padding: '4px 6px',
         fontSize: cell.fontSize ? `${cell.fontSize}px` : 12,
+        fontWeight: cell.bold ? 'bold' : undefined,
+        fontStyle: cell.italic ? 'italic' : undefined,
         colorScheme: 'dark' as never,
         flexShrink: 0,
         minWidth: 0,

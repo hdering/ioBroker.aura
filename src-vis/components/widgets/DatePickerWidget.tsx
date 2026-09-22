@@ -32,13 +32,16 @@ export function DatePickerWidget({ config }: WidgetProps) {
     const { value } = useDatapoint(config.datapoint);
     const { setState } = useIoBroker();
 
+    // Field text size/colour are configurable (#696) — the custom-layout datepicker
+    // cell always had them, the widget was stuck at the 12px default.
+    const fieldFontSize = Number(o.fontSize) > 0 ? Number(o.fontSize) : 12;
     const inputSty: React.CSSProperties = {
         background: 'var(--app-bg)',
-        color: 'var(--text-primary)',
+        color: (o.textColor as string) || 'var(--text-primary)',
         border: '1px solid var(--app-border)',
         borderRadius: 8,
         padding: '5px 8px',
-        fontSize: 12,
+        fontSize: fieldFontSize,
         colorScheme: 'dark' as never,
         flexShrink: 0,
     };

@@ -7809,6 +7809,11 @@
         "unreachDp"
       ],
       "options": {
+        "fontSize": {
+          "description": "Schriftgröße der Eingabefelder in px. Leer = 12.",
+          "type": "number",
+          "default": 12
+        },
         "inputFormat": {
           "description": "Format, in dem der Datenpunkt gelesen wird."
         },
@@ -7835,6 +7840,12 @@
           "type": "boolean",
           "default": false,
           "description": "Zusätzlich zur Datumsauswahl eine Uhrzeit abfragen."
+        },
+        "textColor": {
+          "type": "string",
+          "default": "var(--text-primary)",
+          "description": "Textfarbe der Eingabefelder. Leer = Themefarbe.",
+          "color": true
         },
         "timeOnly": {
           "type": "boolean",

@@ -18584,6 +18584,61 @@ function WidgetFrameInner({
                                                 </p>
                                             </div>
                                         )}
+                                        {/* Schrift der Eingabefelder (#696) */}
+                                        <div className="flex items-end gap-2">
+                                            <div style={{ flex: '1 1 0%', minWidth: 0 }}>
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Schriftgröße (px)
+                                                </label>
+                                                <input
+                                                    type="number"
+                                                    min={8}
+                                                    max={96}
+                                                    value={(o.fontSize as number) ?? ''}
+                                                    onChange={(e) =>
+                                                        set({
+                                                            fontSize: e.target.value
+                                                                ? Math.max(1, Number(e.target.value) || 0)
+                                                                : undefined,
+                                                        })
+                                                    }
+                                                    placeholder="12"
+                                                    className={inputCls2}
+                                                    style={inputSty2}
+                                                />
+                                            </div>
+                                            <div className="shrink-0">
+                                                <label
+                                                    className="text-[11px] mb-1 block"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                >
+                                                    Textfarbe
+                                                </label>
+                                                <div className="flex items-center gap-1.5">
+                                                    <ColorPicker
+                                                        value={(o.textColor as string) || 'var(--text-primary)'}
+                                                        unset={!o.textColor}
+                                                        onChange={(v) => set({ textColor: v })}
+                                                        className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                                                        style={{ background: 'none' }}
+                                                    />
+                                                    <button
+                                                        onClick={() => set({ textColor: undefined })}
+                                                        className="text-[10px] px-2 py-1 rounded"
+                                                        style={{
+                                                            background: 'var(--app-bg)',
+                                                            color: 'var(--text-secondary)',
+                                                            border: '1px solid var(--app-border)',
+                                                        }}
+                                                    >
+                                                        Theme
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </>
                                 );
                             })()}

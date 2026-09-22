@@ -966,6 +966,9 @@
     "datepicker": {
       "minPx": 100,
       "minRowsDefaultGrid": 4,
+      "notIncluded": [
+        "gemessen mit der Standard-Schriftgröße der Eingabefelder (fontSize leer = 12 px). Eine größere fontSize macht die Felder höher — die Höhe dann am Ergebnis prüfen"
+      ],
       "fontScalePx": 20,
       "atWidthPx": 200
     },

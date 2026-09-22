@@ -69,3 +69,5 @@ Nicht genannte Bestandteile behalten ihren gespeicherten Wert — `MM.yyyy` vers
 | `icon` | modusabhängig | [Lucide-Icon](https://lucide.dev) (`CalendarDays` / `CalendarClock` / `Clock`) |
 | `iconSize` | `20` | px |
 | `titleAlign` | `left` | `left` · `center` · `right` |
+| `fontSize` | `12` | Schriftgröße der Eingabefelder in px |
+| `textColor` | Themefarbe | Textfarbe der Eingabefelder |
