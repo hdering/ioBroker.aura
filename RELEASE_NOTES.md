@@ -8,3 +8,4 @@
 # release turns it into a changelog link. release.ps1 also asks per entry.
 
 - JSON table - a column can now format its value: show a timestamp as date/time, convert it by factor/offset, and set its decimal places (#697)
+- Date picker - clearing the field now clears the datapoint, in the widget, in a Universal cell and in a list row (#695)

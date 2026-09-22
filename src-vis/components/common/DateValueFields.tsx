@@ -15,10 +15,12 @@ import { PatternInput } from './PatternInput';
 import { PICKER_BTN_SPACE } from './PickerPopover';
 import {
     DEFAULT_DATE_PATTERN,
+    emptyDateValue,
     formatCustom,
     formatDate,
     fromInputValue,
     inputKindFor,
+    isEmptyDateValue,
     parseCustom,
     parseValue,
     toDateInputValue,
@@ -123,12 +125,15 @@ export function useDateValueFields({
     const { timeOnly, showTime, outputFmt, outPattern, customInput, inPattern } = resolve(settings);
     const currentDate = dateValueOf(value, settings);
 
+    const isEmpty = isEmptyDateValue(value);
+
     const [dateVal, setDateVal] = useState(() => (currentDate ? toDateInputValue(currentDate) : ''));
     const [timeVal, setTimeVal] = useState(() => {
         if (currentDate) return toTimeInputValue(currentDate);
         // timeOnly: the value may be a plain "HH:mm" / "HH:mm:ss" string.
         if (timeOnly && typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) return value.slice(0, 5);
-        return '00:00';
+        // An empty time-only datapoint shows an empty field, not a made-up midnight.
+        return timeOnly && isEmpty ? '' : '00:00';
     });
     // Custom input: the pattern picks the matching native field (month picker for
     // `MM.yyyy`, …); patterns no native field covers fall back to free text.
@@ -146,8 +151,14 @@ export function useDateValueFields({
             return;
         }
         if (timeOnly) {
-            if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) setTimeVal(value.slice(0, 5));
+            if (isEmpty) setTimeVal('');
+            else if (typeof value === 'string' && /^\d{2}:\d{2}/.test(value)) setTimeVal(value.slice(0, 5));
             else if (currentDate) setTimeVal(toTimeInputValue(currentDate));
+            return;
+        }
+        if (isEmpty) {
+            setDateVal('');
+            setTimeVal('00:00');
             return;
         }
         if (!currentDate) return;
@@ -157,18 +168,35 @@ export function useDateValueFields({
 
     const write = (d: Date) => onWrite(formatDate(d, outputFmt, outPattern));
 
+    /**
+     * The user emptied the field — every picker has a way to do that (the native
+     * panels bring their own "Leeren", a free-text field can simply be deleted),
+     * and it has to reach the datapoint instead of only blanking the input
+     * (issue #695).
+     */
+    const clear = () => {
+        setDateVal('');
+        setTimeVal(timeOnly ? '' : '00:00');
+        setCustomVal('');
+        setTextErr(false);
+        if (!isEmpty) onWrite(emptyDateValue(outputFmt, value));
+    };
+
     const writeValue = (date: string, time: string) => {
         if (timeOnly) {
             // Write the time alone — the date part is irrelevant for the output.
-            if (!time) return;
+            if (!time) return clear();
             const [h, mi] = time.split(':').map(Number);
             write(new Date(1970, 0, 1, h ?? 0, mi ?? 0));
             return;
         }
-        if (!date) return;
+        if (!date) return clear();
         const [y, mo, d] = date.split('-').map(Number);
+        // A cleared time next to a date is midnight, not NaN — `??` would let it through.
         const [h, mi] = time.split(':').map(Number);
-        const dt = showTime ? new Date(y, mo - 1, d, h ?? 0, mi ?? 0) : new Date(y, mo - 1, d, 0, 0, 0, 0);
+        const hh = Number.isFinite(h) ? h : 0;
+        const mm = Number.isFinite(mi) ? mi : 0;
+        const dt = showTime ? new Date(y, mo - 1, d, hh, mm) : new Date(y, mo - 1, d, 0, 0, 0, 0);
         if (isNaN(dt.getTime())) return;
         write(dt);
     };
@@ -176,13 +204,14 @@ export function useDateValueFields({
     /** Custom input, native field: write straight away, like the standard pickers. */
     const handleCustomNative = (raw: string) => {
         setCustomVal(raw);
+        if (!raw) return clear();
         const dt = fromInputValue(inputKind, raw, currentDate);
         if (dt) write(dt);
     };
     /** Custom input, free text: parse against the pattern, write only when valid. */
     const commitText = (raw: string) => {
         if (!raw.trim()) {
-            setTextErr(false);
+            clear();
             return;
         }
         const dt = parseCustom(raw, inPattern, currentDate);

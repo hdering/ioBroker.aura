@@ -140,11 +140,31 @@ export function parseCustom(str: string, pattern: string, base?: Date | null): D
 }
 
 /**
+ * A datapoint that holds no point in time — what emptying a date field leaves
+ * behind. `0` counts: a number datapoint cannot hold '', so that is the only
+ * "cleared" a timestamp can be, and nobody picks 1970-01-01T00:00Z on purpose.
+ */
+export function isEmptyDateValue(val: unknown): boolean {
+    return val == null || val === '' || val === 0;
+}
+
+/**
+ * What to write when the user empties the field. Keeps the datapoint's own type
+ * — a number datapoint cannot hold '' — and falls back to what the output format
+ * produces when the datapoint carries no value to go by.
+ */
+export function emptyDateValue(fmt: DateOutputFormat, current: unknown): string | number {
+    if (typeof current === 'number') return 0;
+    if (typeof current === 'string') return '';
+    return fmt === 'timestamp_ms' || fmt === 'timestamp_s' ? 0 : '';
+}
+
+/**
  * Parse any supported format back to a local Date. When `pattern` is given it is
  * tried first, so values written with a custom output format read back correctly.
  */
 export function parseValue(val: unknown, pattern?: string): Date | null {
-    if (val == null || val === '') return null;
+    if (isEmptyDateValue(val)) return null;
     if (typeof val === 'number') {
         const d = new Date(val > 1e10 ? val : val * 1000);
         return isNaN(d.getTime()) ? null : d;

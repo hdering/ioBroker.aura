@@ -199,6 +199,7 @@
     "test:list-stepper-color": "node tools/tests/list-stepper-color.mjs",
     "test:color-thresholds": "node tools/tests/color-thresholds.mjs",
     "test:datepicker": "node tools/tests/datepicker-picker.mjs",
+    "test:datepicker-clear": "node tools/tests/datepicker-clear.mjs",
     "test:shutter-tilt": "node tools/tests/shutter-tilt.mjs",
     "test:chart-delta": "node tools/tests/chart-delta-reset.mjs",
     "test:chart-day-picker": "node tools/tests/chart-day-picker.mjs",
