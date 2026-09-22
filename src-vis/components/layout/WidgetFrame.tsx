@@ -105,6 +105,7 @@ import type {
     WidgetConfig,
     WidgetCondition,
     BadgeDef,
+    ClimateMetric,
     CustomCell,
     CustomGridDef,
     WidgetType,
@@ -208,6 +209,9 @@ import { TimerConfig } from '../config/TimerConfig';
 import { CountdownConfig } from '../config/CountdownConfig';
 import { NumberListInput } from '../config/NumberListInput';
 import { IconPickerModal } from '../config/IconPickerModal';
+import { ConfigModal } from '../config/ConfigModal';
+import { ClimateMetricsEditor } from '../config/ClimateMetricsEditor';
+import { CLIMATE_METRIC_TEMPLATES, metricFromTemplate } from '../../utils/climateMetrics';
 import { ClickActionEditor, defaultActionForConfig } from '../config/ClickActionEditor';
 import { WidgetClickPopup } from '../widgets/popup/WidgetClickPopup';
 import { useResolvedTitle } from '../widgets/DynamicTitle';
@@ -1468,6 +1472,7 @@ function ClimateConfig({
 }) {
     const [humidityIconPickerOpen, setHumidityIconPickerOpen] = useState(false);
     const [pressureIconPickerOpen, setPressureIconPickerOpen] = useState(false);
+    const [metricsOpen, setMetricsOpen] = useState(false);
 
     const o = config.options ?? {};
     const set = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
@@ -1492,6 +1497,8 @@ function ClimateConfig({
     const PressureIconPreview = pressureIconName
         ? getWidgetIcon(pressureIconName, (() => null) as unknown as LucideIcon)
         : null;
+
+    const climateMetrics = (o.metrics as ClimateMetric[] | undefined) ?? [];
 
     const autoFill = async () => {
         if (!config.datapoint) return;
@@ -1529,6 +1536,23 @@ function ClimateConfig({
             'occupied_heating_setpoint',
         );
         if (tv) patch.targetDatapoint = tv;
+
+        // Alles andere, was der Sensor noch meldet, wandert als fertiger Eintrag in
+        // die Werteliste (#698) — je Vorlage höchstens einer, vorhandene bleiben.
+        const metrics = [...((o.metrics as ClimateMetric[] | undefined) ?? [])];
+        const taken = new Set(metrics.map((m) => m.datapoint).filter(Boolean));
+        for (const tpl of CLIMATE_METRIC_TEMPLATES) {
+            if (!tpl.siblingNames?.length) continue;
+            if (metrics.some((m) => m.id === tpl.key || m.id.startsWith(`${tpl.key}`))) continue;
+            const dp = find(...tpl.siblingNames);
+            if (!dp || taken.has(dp)) continue;
+            // Gefunden heißt: der Sensor liefert den Wert selbst — auch bei einer
+            // Vorlage, die ihn sonst rechnen würde (Taupunkt, Behaglichkeit).
+            metrics.push({ ...metricFromTemplate(tpl.key, metrics), source: 'datapoint', datapoint: dp });
+            taken.add(dp);
+        }
+        if (metrics.length !== ((o.metrics as ClimateMetric[] | undefined) ?? []).length) patch.metrics = metrics;
+
         if (Object.keys(patch).length) set(patch);
     };
 
@@ -1742,6 +1766,74 @@ function ClimateConfig({
                     />
                 )}
             </div>
+
+            {/* Weitere Werte — CO₂, VOC, Taupunkt … (#698) */}
+            <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />
+            <p className="text-[11px] font-semibold mb-1.5" style={{ color: 'var(--text-secondary)' }}>
+                Weitere Werte
+            </p>
+            <button
+                onClick={() => setMetricsOpen(true)}
+                className="w-full text-xs px-2.5 py-2 rounded-lg text-left flex items-center justify-between hover:opacity-80"
+                style={inputStyle}
+            >
+                <span style={{ color: 'var(--text-primary)' }}>
+                    {climateMetrics.length
+                        ? `${climateMetrics.length} ${climateMetrics.length === 1 ? 'Wert' : 'Werte'} bearbeiten…`
+                        : 'CO₂, VOC, Taupunkt … hinzufügen'}
+                </span>
+                <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                    ›
+                </span>
+            </button>
+            {climateMetrics.length > 0 && (
+                <p className="text-[10px] mt-1 mb-2 truncate" style={{ color: 'var(--text-secondary)' }}>
+                    {climateMetrics.map((m) => m.label || m.id).join(' · ')}
+                </p>
+            )}
+            <div className="flex gap-2 mt-2 mb-2">
+                <div className="flex-1">
+                    <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                        Spalten im Raster
+                    </label>
+                    <select
+                        value={(o.metricColumns as number | undefined) ?? 0}
+                        onChange={(e) => set({ metricColumns: parseInt(e.target.value, 10) || undefined })}
+                        className="w-full text-xs rounded-lg px-2.5 py-2 focus:outline-none"
+                        style={inputStyle}
+                    >
+                        <option value={0}>Automatisch (umbrechend)</option>
+                        <option value={1}>1</option>
+                        <option value={2}>2</option>
+                        <option value={3}>3</option>
+                        <option value={4}>4</option>
+                    </select>
+                </div>
+                <div className="flex-1 flex items-end pb-1.5">
+                    <label className="flex items-center gap-2 text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                        <input
+                            type="checkbox"
+                            checked={o.showMetricLabels !== false}
+                            onChange={(e) => set({ showMetricLabels: e.target.checked ? undefined : false })}
+                        />
+                        Beschriftungen
+                    </label>
+                </div>
+            </div>
+            {metricsOpen && (
+                <ConfigModal
+                    title="Weitere Werte"
+                    maxWidth={520}
+                    padded
+                    storageKey="aura.climateMetrics"
+                    onClose={() => setMetricsOpen(false)}
+                >
+                    <ClimateMetricsEditor
+                        metrics={climateMetrics}
+                        onChange={(next) => set({ metrics: next.length ? next : undefined })}
+                    />
+                </ConfigModal>
+            )}
 
             {/* Einheiten */}
             <div className="h-px my-1" style={{ background: 'var(--app-border)' }} />

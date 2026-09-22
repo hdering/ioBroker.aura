@@ -224,6 +224,18 @@ const listWithDividers = (n, d, heading) => {
     return out;
 };
 const chipItems = (n) => Array.from({ length: n }, (_, i) => ({ id: DP_BOOL, label: `Chip ${i + 1}` }));
+/** `n` weitere Raumklima-Werte, alle im Raster — die Zeilen, die sie kosten (#698). */
+const climateMetrics = (n) =>
+    Array.from({ length: n }, (_, i) => ({
+        id: `m${i + 1}`,
+        source: 'datapoint',
+        datapoint: DP,
+        label: `Wert ${i + 1}`,
+        icon: 'Wind',
+        unit: 'ppm',
+        decimals: 0,
+        slot: 'grid',
+    }));
 /** `n` energy bars, two entries each — the shape a real balance sheet has. */
 const energyBars = (n) =>
     Array.from({ length: n }, (_, i) => ({
@@ -300,6 +312,24 @@ Object.assign(MOCK, contactStates());
  * sized from here.
  */
 const COUNTED = [
+    {
+        // Die weiteren Werte des Raumklima-Widgets stehen in einem Raster unter den
+        // Hauptwerten (#698) — jeder kostet eine Zeile. Gemessen mit einer Spalte,
+        // weil das die Zeile ist; mehrere Spalten packen mehrere Werte hinein und
+        // aura_measure teilt die Zahl selbst durch metricColumns.
+        type: 'climate',
+        item: 'Zusatzwert-Zeile',
+        counts: [0, 2, 4, 6],
+        build: (n) => ({ options: { metricColumns: 1, metrics: climateMetrics(n) } }),
+        notIncluded: [
+            'gezählt werden nur die Werte mit slot "grid" (die Vorgabe). Ohne metricColumns brechen sie um — ' +
+                'die Rechnung nimmt dann eine Zeile je Wert an und liegt eher zu hoch als zu niedrig',
+            'Werte mit slot "secondary" stapeln sich in der rechten Spalte, slot "primary" steht neben der ' +
+                'Temperatur — beide sind hier nicht mitgezählt',
+            'das Verlaufsdiagramm (showChart mit historyInstance) füllt den Rest der Karte und braucht ' +
+                'zusätzliche Höhe',
+        ],
+    },
     {
         type: 'list',
         item: 'Zeile',

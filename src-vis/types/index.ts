@@ -1,4 +1,5 @@
 import type { NumberFormat } from '../utils/formatValue';
+import type { ColorThreshold } from '../utils/colorThresholds';
 
 export interface WidgetConfig {
     id: string;
@@ -851,6 +852,76 @@ export interface CellConditionRule {
 
 /** The list code's name for the same rule — see the comment above. */
 export type ElementConditionRule = CellConditionRule;
+
+// ── Raumklima: weitere Werte ────────────────────────────────────────────────
+// A room sensor reports far more than temperature, humidity and pressure (CO₂,
+// VOC, dew point, brightness, presence …). Those three have their own options
+// for historical reasons; everything else is one entry in `metrics`, so a new
+// reading needs no new option. The three legacy keys are translated into the
+// same shape when the widget reads them (utils/climateMetrics.ts) — the stored
+// config of an existing widget is never rewritten.
+
+/** Where a metric's number comes from. */
+export type ClimateMetricSource = 'datapoint' | 'dewpoint' | 'absoluteHumidity' | 'comfort';
+
+/** How a metric is drawn. */
+export type ClimateMetricDisplay = 'value' | 'badge' | 'dot' | 'text';
+
+/** Where a metric sits in the card. */
+export type ClimateMetricSlot = 'primary' | 'secondary' | 'grid';
+
+/** One value → one label, for readings that are really an enumeration. */
+export interface ClimateValueMapEntry {
+    /** The datapoint value this row matches (compared loosely: 1, '1' and true are the same row). */
+    v: number | string | boolean;
+    /** Text shown instead of the number. */
+    label: string;
+    /** Colour of the text/pill for this row; empty = the metric's colour. */
+    color?: string;
+}
+
+export interface ClimateMetric {
+    /** Stable key — also the React key and the chart series id. */
+    id: string;
+    /** 'datapoint' reads `datapoint`; every other value is computed from temperature and humidity. */
+    source?: ClimateMetricSource;
+    /** ioBroker datapoint, only for source 'datapoint'. */
+    datapoint?: string;
+    /** Caption in front of the value; empty = only icon and value. */
+    label?: string;
+    /** Lucide icon name, e.g. 'Wind'. Empty = no icon. */
+    icon?: string;
+    /** Unit appended to the value, e.g. 'ppm'. */
+    unit?: string;
+    /** Decimal places; unset = the widget's `decimals`. */
+    decimals?: number;
+    /** Colour token like everywhere else, e.g. 'var(--accent-green)'. A matching threshold wins over it. */
+    color?: string;
+    /** 'value' plain, 'badge' as a pill, 'dot' as a coloured point (on/off), 'text' without a unit. */
+    display?: ClimateMetricDisplay;
+    /** 'grid' = tile below (default), 'secondary' = right-hand column, 'primary' = big, next to the temperature. */
+    slot?: ClimateMetricSlot;
+    /** Font size in px at scale 1; unset = the size of the slot. */
+    fontSize?: number;
+    /** Number → text, for readings like comfort (0/1/2) or a school grade. */
+    valueMap?: ClimateValueMapEntry[];
+    /** Colour bands [upperBound, colour] — the first band the value stays below wins. */
+    thresholds?: ColorThreshold[];
+    /** Display conversion: shown = raw × factor + offset. */
+    valueFactor?: number;
+    /** Added after the factor. */
+    valueOffset?: number;
+    /** Draw this reading in the chart as its own series. */
+    inChart?: boolean;
+    /** Which y axis the series is scaled against — 'right' for a reading in a different order of magnitude. */
+    chartAxis?: 'left' | 'right';
+    /** Shape of the series. */
+    chartType?: 'line' | 'area';
+    /** History instance for this series; unset = the widget's `historyInstance`. */
+    historyInstance?: string;
+    /** Hide without deleting. */
+    hidden?: boolean;
+}
 
 // ── Badges ──────────────────────────────────────────────────────────────────
 // Small overlay indicators that sit on the edge/corner of a widget, group or

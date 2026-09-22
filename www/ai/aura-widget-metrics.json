@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-09-18",
+    "measured": "2026-09-22",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -910,6 +910,40 @@
       ],
       "freeLayouts": [
         "count"
+      ]
+    },
+    "climate": {
+      "item": "Zusatzwert-Zeile",
+      "basePx": 70,
+      "perItemPx": 20.3,
+      "offLinePx": 1,
+      "fontScalePx": {
+        "basePx": 6.7,
+        "perItemPx": -1
+      },
+      "atWidthPx": 200,
+      "measured": [
+        {
+          "n": 0,
+          "px": 70
+        },
+        {
+          "n": 2,
+          "px": 112
+        },
+        {
+          "n": 4,
+          "px": 152
+        },
+        {
+          "n": 6,
+          "px": 192
+        }
+      ],
+      "notIncluded": [
+        "gezählt werden nur die Werte mit slot \"grid\" (die Vorgabe). Ohne metricColumns brechen sie um — die Rechnung nimmt dann eine Zeile je Wert an und liegt eher zu hoch als zu niedrig",
+        "Werte mit slot \"secondary\" stapeln sich in der rechten Spalte, slot \"primary\" steht neben der Temperatur — beide sind hier nicht mitgezählt",
+        "das Verlaufsdiagramm (showChart mit historyInstance) füllt den Rest der Karte und braucht zusätzliche Höhe"
       ]
     }
   },

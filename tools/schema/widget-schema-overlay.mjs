@@ -551,8 +551,35 @@ export const WIDGET_OPTION_NOTES = {
         humidityDatapoint: { description: 'Datenpunkt der Luftfeuchte.' },
         pressureDatapoint: { description: 'Datenpunkt des Luftdrucks.' },
         pressureDecimals: { description: 'Nachkommastellen des Luftdrucks.' },
+        showTargetTemp: { description: 'Soll-Temperatur als Pille rechts oben anzeigen (nur mit targetDatapoint).' },
+        showHumidity: { description: 'Zeile mit der Luftfeuchte anzeigen.' },
+        showPressure: { description: 'Zeile mit dem Luftdruck anzeigen (nur mit pressureDatapoint).' },
+        humidityUnit: { description: 'Einheit hinter der Luftfeuchte.' },
+        pressureUnit: { description: 'Einheit hinter dem Luftdruck.' },
+        humidityIcon: { description: 'Icon vor der Luftfeuchte (Lucide-Name), Vorgabe "Droplets".' },
+        pressureIcon: { description: 'Icon vor dem Luftdruck (Lucide-Name), Vorgabe "Gauge".' },
         showComfort: { description: 'Komfortbereich hervorheben.' },
         showChart: { description: 'Verlaufsdiagramm anzeigen.' },
+        metrics: {
+            description:
+                'Weitere Messwerte der Kachel — CO₂, VOC, Taupunkt, Luftqualität, Helligkeit, Bewegung … (Issue #698). ' +
+                'Jeder Eintrag bringt Datenpunkt, Beschriftung, Einheit, Farben und Diagramm-Reihe selbst mit, ' +
+                'deshalb braucht ein neuer Messwert KEINE neue Option. Temperatur (datapoint), Soll-Temperatur, ' +
+                'Luftfeuchte und Luftdruck bleiben in ihren eigenen Schlüsseln und gehören NICHT hier hinein. ' +
+                'source "dewpoint", "absoluteHumidity" und "comfort" rechnen aus Ist-Temperatur und Luftfeuchte ' +
+                'und brauchen keinen Datenpunkt; nur source "datapoint" kann mit inChart in den Verlauf.',
+        },
+        metricColumns: {
+            description:
+                'Spalten des Rasters unter den Hauptwerten, in dem die Einträge mit slot "grid" stehen. ' +
+                '0 = eine umbrechende Reihe.',
+        },
+        showMetricLabels: {
+            description: 'Beschriftung (label) vor dem Wert der weiteren Werte anzeigen. Aus = nur Icon und Zahl.',
+        },
+        showChartLegend: {
+            description: 'Legende unter dem Diagramm, sobald ein weiterer Wert mit inChart gezeichnet wird.',
+        },
     },
     camera: {
         streamUrlMode: { description: 'Woher die Stream-Adresse kommt: fest oder aus einem Datenpunkt.' },
@@ -1193,6 +1220,11 @@ export const DROP_KEYS = {};
  * cannot, and the widget has to be a different one.
  */
 export const TYPE_NOTES = {
+    ClimateMetric:
+        'Ein weiterer Messwert des Raumklima-Widgets. `id` ist frei wählbar, muss aber innerhalb des Widgets ' +
+        'eindeutig sein (sie ist auch der Reihen-Schlüssel im Diagramm). Ohne `slot` steht der Wert im Raster ' +
+        'unter den Hauptwerten. Ampelfarben über `thresholds`, Zahl-zu-Text über `valueMap` — passt eine ' +
+        'Zuordnung, gewinnt sie über die Schwelle und die Einheit entfällt.',
     ClickAction:
         'Was ein Klick auf das Widget (oder auf eine Listenzeile) auslöst: ein Popup öffnen oder irgendwohin ' +
         'springen. Es gibt bewusst KEINE Variante, die einen Datenpunkt schreibt — wer eine Taste braucht, ' +

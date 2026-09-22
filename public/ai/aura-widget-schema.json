@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.67.3",
+    "auraVersion": "0.67.4",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -1740,6 +1740,164 @@
         "total",
         "custom"
       ]
+    },
+    "ClimateMetric": {
+      "type": "object",
+      "fields": {
+        "id": {
+          "type": "string",
+          "required": true,
+          "description": "Stable key — also the React key and the chart series id."
+        },
+        "source": {
+          "type": "string",
+          "ref": "ClimateMetricSource",
+          "description": "'datapoint' reads `datapoint`; every other value is computed from temperature and humidity."
+        },
+        "datapoint": {
+          "type": "string",
+          "description": "ioBroker datapoint, only for source 'datapoint'.",
+          "datapoint": true
+        },
+        "label": {
+          "type": "string",
+          "description": "Caption in front of the value; empty = only icon and value."
+        },
+        "icon": {
+          "type": "string",
+          "description": "Lucide icon name, e.g. 'Wind'. Empty = no icon."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Unit appended to the value, e.g. 'ppm'."
+        },
+        "decimals": {
+          "type": "number",
+          "description": "Decimal places; unset = the widget's `decimals`."
+        },
+        "color": {
+          "type": "string",
+          "description": "Colour token like everywhere else, e.g. 'var(--accent-green)'. A matching threshold wins over it.",
+          "color": true
+        },
+        "display": {
+          "type": "string",
+          "ref": "ClimateMetricDisplay",
+          "description": "'value' plain, 'badge' as a pill, 'dot' as a coloured point (on/off), 'text' without a unit."
+        },
+        "slot": {
+          "type": "string",
+          "ref": "ClimateMetricSlot",
+          "description": "'grid' = tile below (default), 'secondary' = right-hand column, 'primary' = big, next to the temperature."
+        },
+        "fontSize": {
+          "type": "number",
+          "description": "Font size in px at scale 1; unset = the size of the slot."
+        },
+        "valueMap": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "ClimateValueMapEntry"
+          },
+          "description": "Number → text, for readings like comfort (0/1/2) or a school grade."
+        },
+        "thresholds": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "ref": "ColorThreshold"
+          },
+          "description": "Colour bands [upperBound, colour] — the first band the value stays below wins."
+        },
+        "valueFactor": {
+          "type": "number",
+          "description": "Display conversion: shown = raw × factor + offset."
+        },
+        "valueOffset": {
+          "type": "number",
+          "description": "Added after the factor."
+        },
+        "inChart": {
+          "type": "boolean",
+          "description": "Draw this reading in the chart as its own series."
+        },
+        "chartAxis": {
+          "type": "string",
+          "enum": [
+            "left",
+            "right"
+          ],
+          "description": "Which y axis the series is scaled against — 'right' for a reading in a different order of magnitude."
+        },
+        "chartType": {
+          "type": "string",
+          "enum": [
+            "line",
+            "area"
+          ],
+          "description": "Shape of the series."
+        },
+        "historyInstance": {
+          "type": "string",
+          "description": "History instance for this series; unset = the widget's `historyInstance`."
+        },
+        "hidden": {
+          "type": "boolean",
+          "description": "Hide without deleting."
+        }
+      },
+      "description": "Ein weiterer Messwert des Raumklima-Widgets. `id` ist frei wählbar, muss aber innerhalb des Widgets eindeutig sein (sie ist auch der Reihen-Schlüssel im Diagramm). Ohne `slot` steht der Wert im Raster unter den Hauptwerten. Ampelfarben über `thresholds`, Zahl-zu-Text über `valueMap` — passt eine Zuordnung, gewinnt sie über die Schwelle und die Einheit entfällt."
+    },
+    "ClimateMetricSource": {
+      "type": "string",
+      "enum": [
+        "datapoint",
+        "dewpoint",
+        "absoluteHumidity",
+        "comfort"
+      ]
+    },
+    "ClimateMetricDisplay": {
+      "type": "string",
+      "enum": [
+        "value",
+        "badge",
+        "dot",
+        "text"
+      ]
+    },
+    "ClimateMetricSlot": {
+      "type": "string",
+      "enum": [
+        "primary",
+        "secondary",
+        "grid"
+      ]
+    },
+    "ClimateValueMapEntry": {
+      "type": "object",
+      "fields": {
+        "v": {
+          "type": [
+            "number",
+            "string",
+            "boolean"
+          ],
+          "required": true,
+          "description": "The datapoint value this row matches (compared loosely: 1, '1' and true are the same row)."
+        },
+        "label": {
+          "type": "string",
+          "required": true,
+          "description": "Text shown instead of the number."
+        },
+        "color": {
+          "type": "string",
+          "description": "Colour of the text/pill for this row; empty = the metric's colour.",
+          "color": true
+        }
+      }
     },
     "EChartSeriesConfig": {
       "type": "object",
@@ -7428,11 +7586,13 @@
           "datapoint": true
         },
         "humidityIcon": {
-          "type": "string"
+          "type": "string",
+          "description": "Icon vor der Luftfeuchte (Lucide-Name), Vorgabe \"Droplets\"."
         },
         "humidityUnit": {
           "type": "string",
-          "default": "%"
+          "default": "%",
+          "description": "Einheit hinter der Luftfeuchte."
         },
         "lineColor": {
           "type": "string",
@@ -7444,6 +7604,19 @@
           "type": "boolean",
           "default": false,
           "description": "Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten."
+        },
+        "metricColumns": {
+          "type": "number",
+          "default": 0,
+          "description": "Spalten des Rasters unter den Hauptwerten, in dem die Einträge mit slot \"grid\" stehen. 0 = eine umbrechende Reihe."
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "ClimateMetric"
+          },
+          "description": "Weitere Messwerte der Kachel — CO₂, VOC, Taupunkt, Luftqualität, Helligkeit, Bewegung … (Issue #698). Jeder Eintrag bringt Datenpunkt, Beschriftung, Einheit, Farben und Diagramm-Reihe selbst mit, deshalb braucht ein neuer Messwert KEINE neue Option. Temperatur (datapoint), Soll-Temperatur, Luftfeuchte und Luftdruck bleiben in ihren eigenen Schlüsseln und gehören NICHT hier hinein. source \"dewpoint\", \"absoluteHumidity\" und \"comfort\" rechnen aus Ist-Temperatur und Luftfeuchte und brauchen keinen Datenpunkt; nur source \"datapoint\" kann mit inChart in den Verlauf."
         },
         "pressureDatapoint": {
           "type": "string",
@@ -7457,11 +7630,13 @@
           "description": "Nachkommastellen des Luftdrucks."
         },
         "pressureIcon": {
-          "type": "string"
+          "type": "string",
+          "description": "Icon vor dem Luftdruck (Lucide-Name), Vorgabe \"Gauge\"."
         },
         "pressureUnit": {
           "type": "string",
-          "default": "hPa"
+          "default": "hPa",
+          "description": "Einheit hinter dem Luftdruck."
         },
         "showActualTemp": {
           "type": "boolean",
@@ -7483,6 +7658,11 @@
           "default": true,
           "description": "Verlaufsdiagramm anzeigen."
         },
+        "showChartLegend": {
+          "type": "boolean",
+          "default": true,
+          "description": "Legende unter dem Diagramm, sobald ein weiterer Wert mit inChart gezeichnet wird."
+        },
         "showComfort": {
           "type": "boolean",
           "default": false,
@@ -7495,15 +7675,23 @@
         },
         "showHumidity": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Zeile mit der Luftfeuchte anzeigen."
+        },
+        "showMetricLabels": {
+          "type": "boolean",
+          "default": true,
+          "description": "Beschriftung (label) vor dem Wert der weiteren Werte anzeigen. Aus = nur Icon und Zahl."
         },
         "showPressure": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Zeile mit dem Luftdruck anzeigen (nur mit pressureDatapoint)."
         },
         "showTargetTemp": {
           "type": "boolean",
-          "default": true
+          "default": true,
+          "description": "Soll-Temperatur als Pille rechts oben anzeigen (nur mit targetDatapoint)."
         },
         "showYAxis": {
           "type": "boolean",

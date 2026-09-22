@@ -48,9 +48,13 @@ export function useTemplateStates(refs: string[]): Record<string, TemplateState>
 
     useEffect(() => {
         const list = key ? key.split('\u0000') : [];
-        if (!list.length || !connected) return;
+        if (!list.length) return;
 
         // Seed from the prefetch cache so the template renders real values immediately.
+        // Deliberately BEFORE the `connected` guard: the cache may already hold the
+        // value (prefetch, another consumer, the screenshot harness), and waiting for
+        // the socket would show a placeholder for a value that is right there — the
+        // same order useDatapoint has always used.
         setStates((prev) => {
             const next = { ...prev };
             for (const ref of list) {
@@ -60,6 +64,8 @@ export function useTemplateStates(refs: string[]): Record<string, TemplateState>
             }
             return next;
         });
+
+        if (!connected) return;
 
         const unsubs = list.map((ref) => {
             const { id, path } = splitDpRef(ref);
