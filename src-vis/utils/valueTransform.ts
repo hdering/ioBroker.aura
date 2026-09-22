@@ -224,6 +224,15 @@ function tidy(n: number, digits: number): number {
     return Object.is(r, -0) ? 0 : r;
 }
 
+/**
+ * Trims the binary-float noise a conversion leaves behind (300 s x 1/60 = 5.000000000000001)
+ * without rounding the value itself away. For display paths that have no decimal-places
+ * setting of their own to fall back on.
+ */
+export function tidyDisplayNumber(n: number): number {
+    return tidy(n, DISPLAY_DIGITS);
+}
+
 /** Inverse of {@link applyValueTransform} — a display value back in datapoint units. */
 export function invertValueTransform(value: number, factor?: number, offset?: number): number {
     const f = typeof factor === 'number' && Number.isFinite(factor) && factor !== 0 ? factor : 1;

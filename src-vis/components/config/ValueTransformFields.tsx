@@ -37,6 +37,7 @@ export function ValueTransformFields({
     allowTimeFormat = false,
     writable = false,
     dpId,
+    previewSource,
     onPatch,
     fillUnit = false,
     explicitNone = false,
@@ -58,6 +59,13 @@ export function ValueTransformFields({
     writable?: boolean;
     /** Datapoint reference of the edited target; drives the live preview. */
     dpId?: string;
+    /**
+     * Preview source for targets that are not a datapoint of their own — a JSON-table
+     * column, where the sample is a cell of the current data. Passing the wrapper at all
+     * switches the preview over to it, so an empty column still previews as "no sample"
+     * instead of silently falling back to `dpId`.
+     */
+    previewSource?: { value: unknown };
     onPatch: (patch: ValueTransformPatch) => void;
     /** When true, selecting a preset also fills the `unit` field. */
     fillUnit?: boolean;
@@ -71,7 +79,8 @@ export function ValueTransformFields({
     const t = useT();
     // Live value of the edited datapoint so the automatic time detection is verifiable
     // right here. Passing an empty ref is a no-op in the hook.
-    const { value: previewVal } = useDatapoint(allowTimeFormat ? (dpId ?? '') : '');
+    const { value: dpPreviewVal } = useDatapoint(allowTimeFormat && !previewSource ? (dpId ?? '') : '');
+    const previewVal = previewSource ? previewSource.value : dpPreviewVal;
     // "Draw as negative" is the SIGN of the factor, not a flag of its own — see `transformSign`.
     // The dropdown picks the conversion, the checkbox flips it below the zero line (issue #594).
     const inverted = transformSign(factor) === -1;
@@ -107,7 +116,11 @@ export function ValueTransformFields({
     // Preview runs the same order as the renderers: factor/offset first, then time format.
     const previewText = (() => {
         if (!allowTimeFormat || selectedTime === 'none') return null;
-        if (!dpId?.trim()) return 'Kein Datenpunkt gewählt';
+        if (previewSource) {
+            if (previewVal === null || previewVal === undefined || previewVal === '') return 'Kein Beispielwert';
+        } else if (!dpId?.trim()) {
+            return 'Kein Datenpunkt gewählt';
+        }
         const transformed = applyValueTransform(previewVal, factor, offset);
         const formatted = formatTimeDisplay(transformed, selectedTime, t, timePattern);
         return formatted ?? 'Wert ist keine Zeit';

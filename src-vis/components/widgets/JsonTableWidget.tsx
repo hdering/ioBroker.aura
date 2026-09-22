@@ -4,8 +4,11 @@ import { Icon } from '@iconify/react';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useDashboardStore } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
+import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { cellText, formatCellValue, hasCellFormat } from '../../utils/jsonTableFormat';
 import { resolveAssetUrl, proxifyIfMixed, resolveHtmlAssets, resolveImageSource } from '../../utils/assetUrl';
 
 // ── Column definition (stored in options.columns) ─────────────────────────────
@@ -39,6 +42,15 @@ export interface JsonColumnDef {
     wrap?: boolean;
     /** Horizontal alignment of header + cells. Default 'left'. */
     align?: 'left' | 'center' | 'right';
+    /** Display-only conversion of the cell value: preset id from VALUE_TRANSFORM_PRESETS, or 'custom'. */
+    valueTransform?: string;
+    valueFactor?: number; // display-only multiplier, applied before the time format
+    valueOffset?: number; // display-only summand, applied before the time format
+    /** Render the cell as time/date (see TIME_DISPLAY_PRESETS); a millisecond timestamp then reads as a date. */
+    valueTimeFormat?: string;
+    valueTimePattern?: string; // token pattern, only used when valueTimeFormat is 'custom'
+    /** Decimal places for numeric cells. Unset = print the number as it comes. */
+    decimals?: number;
     order?: number; // lower = further left
 }
 
@@ -153,12 +165,13 @@ function TableImage({ src, fallback, size }: { src: string; fallback: string; si
 }
 
 // ── Raw table shape after parsing ─────────────────────────────────────────────
-interface TableData {
+export interface TableData {
     headers: string[];
     rows: Record<string, unknown>[];
 }
 
-function parseJson(raw: unknown): TableData | null {
+/** Exported so the config panel can pull a sample row for its format preview. */
+export function parseJson(raw: unknown): TableData | null {
     let data: unknown;
     if (typeof raw === 'string') {
         try {
@@ -202,12 +215,6 @@ function parseJson(raw: unknown): TableData | null {
     return null;
 }
 
-function cellText(v: unknown): string {
-    if (v === null || v === undefined) return '–';
-    if (typeof v === 'boolean') return v ? '✓' : '✗';
-    return String(v);
-}
-
 // ── Main widget ────────────────────────────────────────────────────────────────
 export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const opts = config.options ?? {};
@@ -235,6 +242,8 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const titleAlign = (opts.titleAlign as string) ?? 'left';
     const WidgetIcon = getWidgetIcon(opts.icon as string | undefined, Table2);
     const adminBaseUrl = useConfigStore((s) => effectiveAdminBaseUrl(s.frontend.adminBaseUrl));
+    const numFmt = useGlobalSettingsStore((s) => s.numberFormat);
+    const t = useT();
     const [query, setQuery] = useState('');
     const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
 
@@ -267,13 +276,18 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         return all.filter((c) => !c.hidden).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }, [tableData, opts.columns]);
 
-    // Filter rows by search query (searches all visible column values)
+    // Filter rows by search query (searches all visible column values). A formatted
+    // column is searchable by both texts — the date on screen and the timestamp behind it.
     const filteredRows = useMemo(() => {
         if (!tableData) return [];
         if (!query.trim()) return tableData.rows;
         const q = query.toLowerCase();
-        return tableData.rows.filter((row) => columns.some((col) => cellText(row[col.key]).toLowerCase().includes(q)));
-    }, [tableData, columns, query]);
+        const haystack = (col: JsonColumnDef, raw: unknown) =>
+            hasCellFormat(col) ? `${cellText(raw)} ${formatCellValue(col, raw, t, numFmt)}` : cellText(raw);
+        return tableData.rows.filter((row) =>
+            columns.some((col) => haystack(col, row[col.key]).toLowerCase().includes(q)),
+        );
+    }, [tableData, columns, query, t, numFmt]);
 
     // Sort by the clicked column header (only when sorting is enabled and the
     // referenced column is still present).
@@ -648,10 +662,14 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                         // Prefix/suffix decorate real values only — the "–" placeholder
                                         // for empty cells stays bare. Not applied to image cells.
                                         const hasValue = raw !== null && raw !== undefined && raw !== '';
+                                        // Image and HTML cells carry a path / markup, not a value — the
+                                        // display conversion only ever touches plain text cells.
+                                        const text =
+                                            isImage || isHtml ? cellText(raw) : formatCellValue(col, raw, t, numFmt);
                                         const decorated =
                                             hasValue && (col.prefix || col.suffix)
-                                                ? `${col.prefix ?? ''}${cellText(raw)}${col.suffix ?? ''}`
-                                                : cellText(raw);
+                                                ? `${col.prefix ?? ''}${text}${col.suffix ?? ''}`
+                                                : text;
                                         return (
                                             <td
                                                 key={col.key}

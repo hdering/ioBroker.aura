@@ -63,6 +63,24 @@ Liste in `columns` (leer = alle Spalten automatisch aus den JSON-Daten). Pro Spa
 | `html` | Wert als HTML rendern |
 | `htmlWidth` | HTML-Breite: `auto` (eigene Breite) · `fill` (Spalte füllen) · `scale` (längster Wert der Spalte füllt, kürzere im gleichen Verhältnis) |
 | `iconify` | Iconify-Tokens (z. B. `mdi:home`) inline als Icon |
+| `width` | feste Spaltenbreite in px (leer = automatisch) |
+| `align` | Ausrichtung: `left` · `center` · `right` |
+| `wrap` | Zeilenumbruch erlauben (sonst einzeilig mit …) |
+| `prefix` / `suffix` | Text vor / hinter dem Wert (z. B. `€`, ` °C`) |
+
+#### Wert-Format
+
+Knopf **f(x)** in der Spaltenzeile. Nur für Text-Spalten (nicht Bild/HTML); ändert nur die Anzeige, nicht die JSON-Daten. Reihenfolge: Umrechnung → Zeit-Format → Nachkommastellen.
+
+| Feld | |
+| --- | --- |
+| `valueTransform` | Umrechnungs-Vorlage (z. B. `wh-kwh`, `s-min`) oder `custom` |
+| `valueFactor` / `valueOffset` | Anzeige = Wert × Faktor + Offset |
+| `valueTimeFormat` | Wert als Zeit: `relative` · `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom` |
+| `valueTimePattern` | Token-Muster bei `valueTimeFormat: custom`, z. B. `dd.MM.yyyy HH:mm` |
+| `decimals` | Nachkommastellen für Zahlen (leer = unverändert) |
+
+Zeitstempel in Sekunden und Millisekunden, ISO-Zeitangaben und `HH:mm` werden automatisch erkannt: `1720562400000` mit `valueTimeFormat: date` ergibt `10.07.2024`.
 
 #### HTML-Breite
 

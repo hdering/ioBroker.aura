@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, RefreshCw, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
-import type { JsonColumnDef } from '../widgets/JsonTableWidget';
+import { parseJson, type JsonColumnDef } from '../widgets/JsonTableWidget';
 import { ColorPicker } from '../common/ColorPicker';
 import { ImagePathHint } from './ImagePathHint';
+import { ValueTransformButton } from './ValueTransformButton';
 import { getStateDirect } from '../../hooks/useIoBroker';
+import { useDatapoint } from '../../hooks/useDatapoint';
 
 interface Props {
     datapoint: string;
@@ -71,6 +73,11 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
 
     const [newKey, setNewKey] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // First row of the live data — the format popover previews against it, so
+    // "Millisekunden-Stempel wird zu 10.07.2024" is verifiable before saving.
+    const { value: liveValue } = useDatapoint(datapoint);
+    const sampleRow = useMemo(() => parseJson(liveValue)?.rows[0], [liveValue]);
 
     function boolOpt(key: string, def: boolean): boolean {
         return (o[key] as boolean) ?? def;
@@ -366,6 +373,22 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                 >
                                     {col.key}
                                 </span>
+                                {/* Image and HTML cells hold a path / markup — nothing a value
+                                    conversion could sensibly touch, so the button stays away. */}
+                                {!col.image && !col.html && (
+                                    <ValueTransformButton
+                                        factor={col.valueFactor}
+                                        offset={col.valueOffset}
+                                        presetId={col.valueTransform}
+                                        timeFormat={col.valueTimeFormat}
+                                        timePattern={col.valueTimePattern}
+                                        allowTimeFormat
+                                        previewSource={{ value: sampleRow?.[col.key] }}
+                                        onPatch={(patch) => updateCol(idx, patch)}
+                                        size={11}
+                                        className="py-0.5"
+                                    />
+                                )}
                                 <button
                                     onClick={() => moveCol(idx, -1)}
                                     disabled={idx === 0}
@@ -479,6 +502,34 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                         px
                                     </span>
                                 </div>
+                                {!col.image && !col.html && (
+                                    <div className="flex items-center gap-1">
+                                        <label
+                                            className="text-[10px]"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                            title="Nachkommastellen für Zahlenwerte (leer = unverändert)"
+                                        >
+                                            Nachkommast.
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            max={10}
+                                            value={col.decimals ?? ''}
+                                            onChange={(e) =>
+                                                updateCol(idx, {
+                                                    decimals:
+                                                        e.target.value === ''
+                                                            ? undefined
+                                                            : Math.max(0, Math.min(10, Number(e.target.value))),
+                                                })
+                                            }
+                                            placeholder="–"
+                                            className="text-xs rounded-lg px-2 py-1 focus:outline-none w-14"
+                                            style={jSty}
+                                        />
+                                    </div>
+                                )}
                                 <div className="flex items-center gap-0.5">
                                     {(
                                         [

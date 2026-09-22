@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.67.2",
+    "auraVersion": "0.67.3",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -4657,6 +4657,30 @@
             "right"
           ],
           "description": "Horizontal alignment of header + cells. Default 'left'."
+        },
+        "valueTransform": {
+          "type": "string",
+          "description": "Display-only conversion of the cell value: preset id from VALUE_TRANSFORM_PRESETS, or 'custom'."
+        },
+        "valueFactor": {
+          "type": "number",
+          "description": "display-only multiplier, applied before the time format"
+        },
+        "valueOffset": {
+          "type": "number",
+          "description": "display-only summand, applied before the time format"
+        },
+        "valueTimeFormat": {
+          "type": "string",
+          "description": "Render the cell as time/date (see TIME_DISPLAY_PRESETS); a millisecond timestamp then reads as a date."
+        },
+        "valueTimePattern": {
+          "type": "string",
+          "description": "token pattern, only used when valueTimeFormat is 'custom'"
+        },
+        "decimals": {
+          "type": "number",
+          "description": "Decimal places for numeric cells. Unset = print the number as it comes."
         },
         "order": {
           "type": "number",
@@ -9872,7 +9896,8 @@
           "items": {
             "type": "object",
             "ref": "JsonColumnDef"
-          }
+          },
+          "description": "Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen."
         },
         "firstColBg": {
           "type": "string",

@@ -1,0 +1,64 @@
+/**
+ * Cell text of the JSON table.
+ *
+ * A JSON datapoint often carries a value the table should not print verbatim — a
+ * millisecond timestamp that belongs on screen as "10.07.2024" (issue #697), Wh that
+ * read better as kWh, a measurement with six digits behind the comma. The table has no
+ * datapoint per column to hang a conversion on, so each column carries the same option
+ * keys the lists use and this module applies them in the same order the list widgets do:
+ * factor/offset first, then the time format, then the decimal places.
+ *
+ * The data itself is never modified — this only changes what is displayed.
+ */
+
+import { formatNum, type NumberFormat } from './formatValue';
+import { applyValueTransform, tidyDisplayNumber } from './valueTransform';
+import { formatTimeDisplay, hasTimeDisplay, TIME_DASH } from './timeDisplay';
+
+type TFn = Parameters<typeof formatTimeDisplay>[2];
+
+/** The display options a single table column may carry. */
+export interface JsonCellFormat {
+    /** Display-only conversion: preset id from VALUE_TRANSFORM_PRESETS, or 'custom'. */
+    valueTransform?: string;
+    valueFactor?: number;
+    valueOffset?: number;
+    /** Render the value as time/date (see TIME_DISPLAY_PRESETS). */
+    valueTimeFormat?: string;
+    valueTimePattern?: string;
+    /** Decimal places for numeric cells. Unset = print the number as it comes. */
+    decimals?: number;
+}
+
+/** Raw JSON value as plain text — the fallback whenever no format applies. */
+export function cellText(v: unknown): string {
+    if (v === null || v === undefined) return TIME_DASH;
+    if (typeof v === 'boolean') return v ? '✓' : '✗';
+    return String(v);
+}
+
+/** False while a column prints its values verbatim — lets callers keep the untouched path. */
+export function hasCellFormat(col: JsonCellFormat): boolean {
+    return (
+        col.valueFactor !== undefined ||
+        col.valueOffset !== undefined ||
+        hasTimeDisplay(col.valueTimeFormat) ||
+        typeof col.decimals === 'number'
+    );
+}
+
+/** The text one cell shows. Empty cells stay bare, so the "–" placeholder is never formatted. */
+export function formatCellValue(col: JsonCellFormat, raw: unknown, t: TFn, numFmt?: NumberFormat): string {
+    if (raw === null || raw === undefined || raw === '') return cellText(raw);
+    const value = applyValueTransform(raw, col.valueFactor, col.valueOffset);
+    if (hasTimeDisplay(col.valueTimeFormat)) {
+        return formatTimeDisplay(value, col.valueTimeFormat, t, col.valueTimePattern) ?? TIME_DASH;
+    }
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        if (typeof col.decimals === 'number' && col.decimals >= 0) return formatNum(value, col.decimals, numFmt);
+        // A conversion without a decimal setting would otherwise print its float noise
+        // (1234 × 0.001 = 1.2340000000000002); the value itself is kept.
+        if (value !== raw) return String(tidyDisplayNumber(value));
+    }
+    return cellText(value);
+}

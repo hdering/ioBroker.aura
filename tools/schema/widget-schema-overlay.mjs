@@ -171,6 +171,12 @@ export const KEY_DESCRIPTIONS = {
 
 /** Per-widget prose for a key the generator already found. */
 export const WIDGET_OPTION_NOTES = {
+    jsontable: {
+        columns: {
+            description:
+                'Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen.',
+        },
+    },
     switch: {
         onValue: { description: 'Wert, der beim Einschalten geschrieben wird. Leer = true.' },
         offValue: { description: 'Wert, der beim Ausschalten geschrieben wird. Leer = false.' },
