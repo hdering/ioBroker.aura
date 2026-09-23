@@ -101,8 +101,8 @@ const measure = (page) =>
         return {
             slot: Math.round(slot?.getBoundingClientRect().width ?? -1),
             host: hostFramed ? Math.round(host.getBoundingClientRect().width) : null,
-            // The dashed preview area around the column — as wide as the editor.
-            editor: Math.round(slot?.closest('.rounded-lg.p-4')?.getBoundingClientRect().width ?? -1),
+            // The dashed preview window around the slot.
+            window: Math.round(slot?.closest('.rounded-lg.p-4')?.getBoundingClientRect().width ?? -1),
         };
     });
 
@@ -112,7 +112,8 @@ const measure = (page) =>
     const m = await measure(page);
     check('Seitenleiste: Rahmen so breit wie der Platz im Menü', m.host === 167, JSON.stringify(m));
     check('Seitenleiste: Widget füllt die Spalte, nicht den Editor', m.slot === 167, JSON.stringify(m));
-    check('Seitenleiste: der Editor ist deutlich breiter', m.editor > 300, JSON.stringify(m));
+    // 167 + 2x16 Innenabstand + 2x1 Rand = so breit wie die Leiste selbst.
+    check('Seitenleiste: das Vorschaufenster ist so breit wie das Menü', m.window === 201, JSON.stringify(m));
 
     // Erst schmaler ziehen, dann weit über den Spaltenrand hinaus: endet am Rand.
     const handle = page.locator('[data-aura-menu-size-handle]').first();
@@ -138,6 +139,7 @@ const measure = (page) =>
     const { ctx, page } = await open({ layoutDrawerPlacement: 'floating' });
     const m = await measure(page);
     check('Schwebend: Rahmen = Drawer-Breite minus Innenabstand', m.host === 287, JSON.stringify(m));
+    check('Schwebend: das Vorschaufenster ist so breit wie der Drawer', m.window === 321, JSON.stringify(m));
     await ctx.close();
 }
 
@@ -147,6 +149,7 @@ const measure = (page) =>
     const m = await measure(page);
     check('Leiste oben: kein Spaltenrahmen', m.host === null, JSON.stringify(m));
     check('Leiste oben: Slot hat die Balken-Standardbreite', m.slot === 120, JSON.stringify(m));
+    check('Leiste oben: das Vorschaufenster umschließt nur den Slot', m.window < 200, JSON.stringify(m));
     await ctx.close();
 }
 

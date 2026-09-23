@@ -123,7 +123,8 @@ function WidgetSizeBox({
     const commit = useRef(createThrottle<Partial<MenuItemContent>>((p) => latest.current(p), 60)).current;
 
     // A block slot cannot grow past its column — the menu clips it there.
-    const maxW = variant === 'block' && hostWidth ? hostWidth : MENU_WIDGET_MAX_W;
+    const inColumn = variant === 'block' && !!hostWidth;
+    const maxW = inColumn && hostWidth ? hostWidth : MENU_WIDGET_MAX_W;
     const clamp = (v: number, max: number) => Math.max(MENU_WIDGET_MIN_PX, Math.min(max, Math.round(v)));
 
     const startDrag = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -170,24 +171,23 @@ function WidgetSizeBox({
             <FieldLabel>{t('menuItem.widget.preview')}</FieldLabel>
             <div
                 className="rounded-lg p-4 flex items-start"
-                style={{ background: 'var(--app-bg)', border: '1px dashed var(--app-border)', overflow: 'auto' }}
+                style={{
+                    // The window hugs the slot instead of spanning the editor. In a
+                    // column host it stands in for the menu itself: its px-4 is the
+                    // item group's, so the window is as wide as the menu.
+                    width: 'fit-content',
+                    maxWidth: '100%',
+                    background: inColumn ? 'var(--app-surface)' : 'var(--app-bg)',
+                    border: '1px dashed var(--app-border)',
+                    overflow: 'auto',
+                }}
             >
                 {/* A block slot is drawn inside a column as wide as the menu's, not
                     across the whole editor — otherwise a widget that looks slim here
                     comes out far too big in the frontend. */}
                 <div
                     data-aura-menu-host=""
-                    style={
-                        variant === 'block' && hostWidth
-                            ? {
-                                  width: hostWidth,
-                                  flexShrink: 0,
-                                  background: 'var(--app-surface)',
-                                  outline: '1px dashed var(--app-border)',
-                                  outlineOffset: 4,
-                              }
-                            : { display: 'contents' }
-                    }
+                    style={inColumn ? { width: hostWidth, flexShrink: 0 } : { display: 'contents' }}
                 >
                     <div
                         ref={boxRef}
