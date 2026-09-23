@@ -232,6 +232,31 @@ const renderPlain = (tpl) =>
     );
 }
 
+// ── 8b. Caller-supplied variables head an operation chain ────────────────────
+// A header item hands in its list aggregates (sum, count …) as rawVars; only those
+// names are accepted, and only at the head of a chain — declarations stay strict.
+{
+    const extra = (tpl) =>
+        renderTemplate(tpl, {
+            vars: { sum: '1234.5' },
+            rawVars: { sum: 1234.5 },
+            resolve: () => '–',
+            resolveRaw: () => null,
+            ops: { formatNum: (n, d) => n.toFixed(d), decimals: 2, t: (k) => k },
+        });
+    eq('extra var: chain', extra('{sum;round(0)}'), '1235');
+    eq('extra var: plain token', extra('{sum} W'), '1234.5 W');
+    eq('extra var: a name nobody supplied stays verbatim', extra('{avg;round(0)}'), '{avg;round(0)}');
+    eq('extra var: not a declaration source', extra('{x:sum;x * 2}'), '{x:sum;x * 2}');
+    eq('extra var: CSS untouched', extra('{sum:red;background:blue}'), '{sum:red;background:blue}');
+    // Without a compute context there is no chain at all — the var stays verbatim.
+    eq(
+        'extra var: no compute context, no chain',
+        renderTemplate('{sum;round(0)}', { vars: { sum: '1' }, resolve: () => '–' }),
+        '{sum;round(0)}',
+    );
+}
+
 // ── 9. CSS regression list — none of these may change ─────────────────────────
 {
     const untouched = [

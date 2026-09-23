@@ -175,10 +175,10 @@ const render = (text) =>
         ops: { formatNum: fmt.formatNum, decimals: 2, t: (k) => k },
     });
 eq('list variable', render('Σ {sum} W'), 'Σ 100 W');
-// Operation chains stay limited to the reserved variables (the CSS guard of the
-// engine), so a list variable takes no `;op` — the text renders verbatim instead of
-// guessing. Expressions do see it.
-eq('no operation chain on a list variable', render('{sum;round(0)}'), '{sum;round(0)}');
+// A list variable may head an operation chain — the caller hands its value in, so
+// the engine accepts it there. A word nobody supplied stays verbatim.
+eq('list variable through an operation', render('{sum;round(0)}'), '100');
+eq('unknown variable in a chain stays verbatim', render('{foo;round(0)}'), '{foo;round(0)}');
 eq('own value', render('{dp} °C'), '21,5 °C');
 eq('datapoint', render('PV {x.0.pv} W'), 'PV 1234 W');
 ok('expression over a list variable', render('{{ sum / count }}').startsWith('33.33'), render('{{ sum / count }}'));

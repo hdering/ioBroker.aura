@@ -151,7 +151,7 @@ Ohne Punkt im Namen ist ein Bezeichner eine Variable. Aura kennt diese:
 | `view` | Name des gerade angezeigten Tabs |
 | `wid` | ID des Widgets |
 | `wname` | Titel des Widgets |
-| `sum` `avg` `min` `max` `count` `active` | Summe, Durchschnitt, Minimum, Maximum, Anzahl und Anzahl aktiver Einträge der Liste (nur Kopfzeilen-Text der statischen und dynamischen Liste; ohne Operations-Kette, im Ausdruck ja) |
+| `sum` `avg` `min` `max` `count` `active` | Summe, Durchschnitt, Minimum, Maximum, Anzahl und Anzahl aktiver Einträge der Liste (nur Kopfzeilen-Text der statischen und dynamischen Liste; auch mit Operations-Kette, z. B. `{sum;round(0)}`) |
 
 Dazu alles, was das Binding selbst mit `name:datenpunkt` deklariert:
 

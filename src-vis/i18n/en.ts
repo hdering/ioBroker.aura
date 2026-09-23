@@ -2573,7 +2573,7 @@ export const en: Record<TranslationKey, string> = {
     'hdr.textPlaceholder': 'e.g. PV {0_userdata.0.pv;round(0)} W',
     'hdr.textHint': 'Placeholders as for markers: {id}, {id;round(1)}, {dp} = own value, {{ a + b }}.',
     'hdr.textHintList':
-        "Placeholders as for markers: {id}, {id;round(1)}, {{ a + b }} — plus the list's {sum} {avg} {min} {max} {count} {active}.",
+        "Placeholders as for markers: {id}, {id;round(1)}, {{ a + b }} — plus the list's {sum} {avg} {min} {max} {count} {active}, also as {sum;round(0)}.",
     'hdr.icon': 'Icon',
     'hdr.color': 'Colour',
     'hdr.cond': 'Only show when …',

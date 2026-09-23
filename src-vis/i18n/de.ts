@@ -2593,7 +2593,7 @@ export const de = {
     'hdr.textPlaceholder': 'z. B. PV {0_userdata.0.pv;round(0)} W',
     'hdr.textHint': 'Platzhalter wie bei Markern: {id}, {id;round(1)}, {dp} = eigener Wert, {{ a + b }}.',
     'hdr.textHintList':
-        'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste.',
+        'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste, auch als {sum;round(0)}.',
     'hdr.icon': 'Symbol',
     'hdr.color': 'Farbe',
     'hdr.cond': 'Nur anzeigen, wenn …',

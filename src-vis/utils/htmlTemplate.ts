@@ -174,12 +174,19 @@ function splitParts(inner: string): string[] {
  * Read one `;`-part as a value source: a state id (optionally with a JSON path and a
  * `.ts` / `.lc` suffix) or a reserved variable. Anything else — a CSS value, prose —
  * is rejected, which is what keeps stylesheets out of the binding machinery.
+ *
+ * `extraVars` are further variable names the CALLER supplies values for (the list
+ * aggregates `sum`, `count` … of a header item). Only the head of an operation
+ * chain takes them: a word the caller did not hand in stays rejected, so the CSS
+ * guard is exactly as strict as before for every other template.
  */
-function parseSource(text: string): Source | null {
+function parseSource(text: string, extraVars: readonly string[] = []): Source | null {
     const token = parseToken(text, undefined);
     if (!token) return null;
     if (token.varName !== null) {
-        return RESERVED_VARS.includes(token.varName) ? { varName: token.varName, ref: null, field: 'val' } : null;
+        return RESERVED_VARS.includes(token.varName) || extraVars.includes(token.varName)
+            ? { varName: token.varName, ref: null, field: 'val' }
+            : null;
     }
 
     const { id, path } = splitDpRef(token.ref as string);
@@ -212,18 +219,18 @@ const BINDING_CACHE_MAX = 500;
  * token; with more parts it is either a chain of operations or a set of variable
  * declarations followed by an expression. `null` means "leave this text alone".
  */
-function parseBinding(inner: string, suffix: string | undefined): Binding | null {
-    const key = `${inner}\u0001${suffix ?? ''}`;
+function parseBinding(inner: string, suffix: string | undefined, extraVars: readonly string[] = []): Binding | null {
+    const key = `${inner}\u0001${suffix ?? ''}\u0001${extraVars.join(',')}`;
     const cached = BINDING_CACHE.get(key);
     if (cached !== undefined) return cached;
 
-    const binding = classifyBinding(inner, suffix);
+    const binding = classifyBinding(inner, suffix, extraVars);
     if (BINDING_CACHE.size >= BINDING_CACHE_MAX) BINDING_CACHE.clear();
     BINDING_CACHE.set(key, binding);
     return binding;
 }
 
-function classifyBinding(inner: string, suffix: string | undefined): Binding | null {
+function classifyBinding(inner: string, suffix: string | undefined, extraVars: readonly string[]): Binding | null {
     const parts = splitParts(inner);
     // vis escapes a literal colon as `::`. Classification runs on the raw text so an
     // escaped colon can never look like a declaration; only what is handed to the
@@ -255,7 +262,7 @@ function classifyBinding(inner: string, suffix: string | undefined): Binding | n
         return parseExpr(src) ? { kind: 'expr', src, decls } : null;
     }
 
-    const source = parseSource(parts[0]);
+    const source = parseSource(parts[0], extraVars);
     if (!source) return null;
     const ops = parseOpChain(parts.slice(1).map(unescape));
     return ops ? { kind: 'chain', source, ops } : null;
@@ -340,6 +347,9 @@ export function renderTemplate(template: string, ctx: TemplateContext): string {
               ops: ctx.ops as OpsContext,
           }
         : null;
+    // Caller-supplied variables beyond the reserved ones may head an operation chain
+    // (`{sum;round(0)}`) — only when the chain can be computed at all.
+    const extraVars = canCompute ? Object.keys(ctx.rawVars ?? {}).filter((n) => !RESERVED_VARS.includes(n)) : [];
 
     return template.replace(TEMPLATE_RE, (full, exprBody, inner, suffix) => {
         // ── {{ expression }} ──
@@ -350,7 +360,7 @@ export function renderTemplate(template: string, ctx: TemplateContext): string {
             return value === undefined ? full : exprToString(value);
         }
 
-        const binding = parseBinding(String(inner), suffix as string | undefined);
+        const binding = parseBinding(String(inner), suffix as string | undefined, extraVars);
         if (!binding) return full;
         // A `#…` tail we did not use as a path stays part of the output.
         const tail = (suffix as string | undefined) ?? '';
