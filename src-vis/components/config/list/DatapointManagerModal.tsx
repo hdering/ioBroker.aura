@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { ChevronDown } from 'lucide-react';
 import { ConfigModal } from '../ConfigModal';
-import { EntryMasterList } from './EntryMasterList';
+import { EntryMasterList, entryDisplayName } from './EntryMasterList';
 import type { ManagedEntry } from './EntryListItem';
 
 /** Handed to the detail renderer so it can retarget the selection. */
@@ -15,6 +16,27 @@ export interface TabApi extends DetailApi {
 }
 
 const TAB_ENTRIES = 'entries';
+/** Below this width the entry list no longer fits beside the detail - it moves on top and folds away. */
+const NARROW_PX = 640;
+
+/** Width of the dialog body, so a narrow window (phone, or a dialog dragged small) stacks the panes. */
+function useIsNarrow() {
+    const ref = useRef<HTMLDivElement>(null);
+    const [narrow, setNarrow] = useState(false);
+    useLayoutEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const measure = () => {
+            const w = el.getBoundingClientRect().width;
+            if (w > 0) setNarrow(w < NARROW_PX);
+        };
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(el);
+        return () => ro.disconnect();
+    }, []);
+    return [ref, narrow] as const;
+}
 
 /**
  * "Datenpunkte verwalten" - the dialog both list widgets open from their config panel.
@@ -87,6 +109,13 @@ export function DatapointManagerModal({
         entries.length === 0 && entriesTabIndex > 0 ? tabs[0].key : TAB_ENTRIES,
     );
     const selected = entries.find((e) => e.id === selectedId) ?? null;
+    const [bodyRef, narrow] = useIsNarrow();
+    // Narrow: the list is folded while an entry is open, so the detail gets the screen.
+    const [listOpen, setListOpen] = useState(() => !selectedId);
+    const selectEntry = (id: string | null) => {
+        setSelectedId(id);
+        if (id) setListOpen(false);
+    };
 
     const removeEntry = (id: string) => {
         if (id === selectedId) {
@@ -111,7 +140,7 @@ export function DatapointManagerModal({
 
     return (
         <ConfigModal title={title} maxWidth={1280} storageKey={storageKey} onClose={onClose}>
-            <div className="flex flex-col h-full min-h-0">
+            <div ref={bodyRef} className="flex flex-col h-full min-h-0">
                 {header && (
                     <div className="px-3 pt-2.5 pb-2 shrink-0" style={{ borderBottom: '1px solid var(--app-border)' }}>
                         {header}
@@ -119,14 +148,14 @@ export function DatapointManagerModal({
                 )}
                 {allTabs.length > 1 && (
                     <div
-                        className="aura-config-modal-tabs flex items-center gap-1 px-3 pt-2.5 pb-2 shrink-0"
+                        className="aura-config-modal-tabs flex flex-wrap items-center gap-1 px-3 pt-2.5 pb-2 shrink-0"
                         style={{ borderBottom: '1px solid var(--app-border)' }}
                     >
                         {allTabs.map((tab) => (
                             <button
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
-                                className="text-xs rounded-lg px-3 py-1.5 transition-colors"
+                                className="text-xs rounded-lg px-3 py-1.5 transition-colors whitespace-nowrap"
                                 style={{
                                     background: activeTab === tab.key ? 'var(--accent)' : 'var(--app-bg)',
                                     color: activeTab === tab.key ? '#fff' : 'var(--text-secondary)',
@@ -140,13 +169,48 @@ export function DatapointManagerModal({
                 )}
 
                 {/* Entries tab */}
-                <div className={`flex-1 min-h-0 flex gap-3 p-3 ${activeTab === TAB_ENTRIES ? '' : 'hidden'}`}>
-                    <div className="w-[300px] shrink-0 min-h-0">
+                <div
+                    className={`flex-1 min-h-0 flex gap-3 p-3 ${narrow ? 'flex-col' : ''} ${activeTab === TAB_ENTRIES ? '' : 'hidden'}`}
+                >
+                    {narrow && (
+                        <button
+                            onClick={() => setListOpen((v) => !v)}
+                            aria-expanded={listOpen}
+                            data-testid="dp-manager-list-toggle"
+                            className="shrink-0 flex items-center gap-2 rounded-lg px-3 py-2 text-xs text-left"
+                            style={{
+                                background: 'var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                                color: 'var(--text-primary)',
+                            }}
+                        >
+                            <span className="shrink-0" style={{ color: 'var(--text-secondary)' }}>
+                                {entriesTabLabel ?? 'Einträge'} ({entries.filter((e) => !e.divider).length})
+                            </span>
+                            {selected && !listOpen && (
+                                <span className="font-medium truncate min-w-0">
+                                    {entryDisplayName(selected, resolvedNames)}
+                                </span>
+                            )}
+                            <ChevronDown
+                                size={14}
+                                className="ml-auto shrink-0 transition-transform"
+                                style={{ transform: listOpen ? 'rotate(180deg)' : undefined }}
+                            />
+                        </button>
+                    )}
+                    <div
+                        className={
+                            narrow
+                                ? `min-h-0 ${listOpen ? 'flex-1 max-h-[60%]' : 'hidden'}`
+                                : 'w-[300px] shrink-0 min-h-0'
+                        }
+                    >
                         <EntryMasterList
                             entries={entries}
                             resolvedNames={resolvedNames}
                             selectedId={selectedId}
-                            onSelect={setSelectedId}
+                            onSelect={selectEntry}
                             onRemove={removeEntry}
                             onRemoveAll={removeAll}
                             onAdd={onAdd}
@@ -188,7 +252,7 @@ export function DatapointManagerModal({
                         }`}
                     >
                         {typeof tab.node === 'function'
-                            ? tab.node({ select: setSelectedId, goToEntries: () => setActiveTab(TAB_ENTRIES) })
+                            ? tab.node({ select: selectEntry, goToEntries: () => setActiveTab(TAB_ENTRIES) })
                             : tab.node}
                     </div>
                 ))}

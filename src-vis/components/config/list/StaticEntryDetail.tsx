@@ -212,8 +212,8 @@ export function StaticEntryDetail({
                         />
                     </div>
                 </div>
-                <div className="flex items-end gap-1.5">
-                    <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-end gap-1.5">
+                    <div className="flex-[2_1_220px] min-w-0">
                         <ValueFormatRow
                             unit={entry.unit}
                             unitPlaceholder="°C"
@@ -226,7 +226,7 @@ export function StaticEntryDetail({
                             compact
                         />
                     </div>
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-[1_1_90px] min-w-0">
                         <label className="text-[9px] block mb-0.5" style={{ color: 'var(--text-secondary)' }}>
                             Schriftgröße (px)
                         </label>

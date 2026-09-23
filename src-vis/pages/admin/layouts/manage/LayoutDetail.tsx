@@ -111,7 +111,7 @@ export function LayoutDetail({ layout, isFirst, isOnly, onSelect }: LayoutDetail
         <div className="space-y-4" data-testid="layout-detail">
             {/* Head */}
             <div
-                className="rounded-xl px-5 py-4 flex items-center gap-4"
+                className="rounded-xl px-4 sm:px-5 py-4 flex flex-wrap items-center gap-4"
                 style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
             >
                 <button
@@ -122,7 +122,7 @@ export function LayoutDetail({ layout, isFirst, isOnly, onSelect }: LayoutDetail
                 >
                     {layoutIconNode(layout, 22)}
                 </button>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-[160px]">
                     <h2
                         className="text-base font-bold flex items-center min-w-0"
                         style={{ color: 'var(--text-primary)' }}
@@ -165,7 +165,7 @@ export function LayoutDetail({ layout, isFirst, isOnly, onSelect }: LayoutDetail
                         </Chip>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2">
                     <a
                         href={hash}
                         target="_blank"
@@ -540,7 +540,7 @@ function SectionRow({
             style={{ borderColor: 'var(--app-border)', ...drag.rowStyle(index) }}
             {...drag.targetProps(index)}
         >
-            <div className="flex items-center gap-3 px-4 py-2.5">
+            <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5">
                 <span
                     {...drag.handleProps(index)}
                     title={t('layouts.dragToReorder')}
@@ -573,7 +573,10 @@ function SectionRow({
                         /s/{section.slug}
                     </span>
                 </button>
-                <span className="text-xs shrink-0 tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+                <span
+                    className="hidden sm:inline text-xs shrink-0 tabular-nums"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
                     {section.tabs.length === 1
                         ? t('layouts.tabsCountOne')
                         : t('layouts.tabsCount', { count: String(section.tabs.length) })}
@@ -599,7 +602,7 @@ function SectionRow({
                     onClick={() => onSelect(section.id)}
                     data-testid={`section-open-${section.id}`}
                 >
-                    {t('layouts.edit')} <ChevronRight size={12} />
+                    <span className="hidden sm:inline">{t('layouts.edit')}</span> <ChevronRight size={12} />
                 </Btn>
                 <ActionMenu items={menu} title={t('layouts.moreActions')} testId={`section-menu-${section.id}`} />
             </div>

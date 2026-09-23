@@ -36,7 +36,7 @@ export function ScopeBar({ level, layoutName = '', sectionName = '', iconNode, o
     return (
         <div
             data-testid="design-scope-bar"
-            className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm"
+            className="flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-xl px-3.5 py-2.5 text-sm"
             style={{
                 background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
                 border: '1px solid color-mix(in srgb, var(--accent) 35%, transparent)',
@@ -47,7 +47,7 @@ export function ScopeBar({ level, layoutName = '', sectionName = '', iconNode, o
             <span className="shrink-0 flex items-center" style={{ color: 'var(--accent)' }}>
                 {level === 'global' ? <Globe2 size={14} /> : iconNode}
             </span>
-            <span className="min-w-0">
+            <span className="min-w-0 flex-1 basis-[200px]">
                 {t('design.scope.editing')} {level !== 'global' && <>{word} </>}
                 <b className="font-bold" style={{ color: 'var(--accent)' }}>
                     {level === 'global' ? t('layouts.scope.global') : name}

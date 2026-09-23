@@ -119,7 +119,7 @@ export function Card({
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
         >
             <div
-                className={`flex items-center justify-between gap-3 px-4 py-3 ${padded ? '' : 'border-b'}`}
+                className={`flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 ${padded ? '' : 'border-b'}`}
                 style={{ borderColor: 'var(--app-border)' }}
             >
                 <p
@@ -128,7 +128,7 @@ export function Card({
                 >
                     {title}
                 </p>
-                {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
+                {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
             </div>
             <div className={padded ? 'px-4 pb-4 space-y-3' : ''}>{children}</div>
             {footer && (

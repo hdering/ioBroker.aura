@@ -157,7 +157,7 @@ export function SectionDetail({ layout, section, isFirstLayout, onSelect }: Sect
         <div className="space-y-4" data-testid="section-detail">
             {/* Head */}
             <div
-                className="rounded-xl px-5 py-4 flex items-center gap-4"
+                className="rounded-xl px-4 sm:px-5 py-4 flex flex-wrap items-center gap-4"
                 style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
             >
                 <button
@@ -168,7 +168,7 @@ export function SectionDetail({ layout, section, isFirstLayout, onSelect }: Sect
                 >
                     {sectionIconNode(section, 22)}
                 </button>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-[160px]">
                     <h2
                         className="text-base font-bold flex items-center gap-1.5 min-w-0"
                         style={{ color: 'var(--text-primary)' }}
@@ -223,7 +223,7 @@ export function SectionDetail({ layout, section, isFirstLayout, onSelect }: Sect
                         </Chip>
                     </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
+                <div className="flex flex-wrap items-center gap-2">
                     <Btn variant="primary" onClick={openInEditor} data-testid="section-open-editor">
                         <PenSquare size={14} /> {t('sections.openEditor')}
                     </Btn>
@@ -483,7 +483,7 @@ function TabList({ layout, section }: { layout: DashboardLayout; section: Sectio
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder={t('tabs.search')}
                             data-testid="tab-search"
-                            className="bg-transparent focus:outline-none w-36"
+                            className="bg-transparent focus:outline-none w-24 sm:w-36"
                             style={{ color: 'var(--text-primary)' }}
                         />
                     </label>
@@ -516,7 +516,7 @@ function TabList({ layout, section }: { layout: DashboardLayout; section: Sectio
                         <div
                             key={tab.id}
                             data-testid={`tab-row-${tab.id}`}
-                            className="flex items-center gap-3 px-4 py-2.5 border-t"
+                            className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 border-t"
                             style={{ borderColor: 'var(--app-border)', ...(filtering ? {} : drag.rowStyle(index)) }}
                             {...(filtering ? {} : drag.targetProps(index))}
                         >
@@ -554,7 +554,10 @@ function TabList({ layout, section }: { layout: DashboardLayout; section: Sectio
                                     /tab/{tab.slug}
                                 </span>
                             </div>
-                            <span className="text-xs shrink-0 tabular-nums" style={{ color: 'var(--text-secondary)' }}>
+                            <span
+                                className="hidden sm:inline text-xs shrink-0 tabular-nums"
+                                style={{ color: 'var(--text-secondary)' }}
+                            >
                                 {tab.widgets.length === 1
                                     ? t('layouts.widgetsCountOne')
                                     : t('layouts.widgetsCount', { count: String(tab.widgets.length) })}
@@ -600,7 +603,8 @@ function TabList({ layout, section }: { layout: DashboardLayout; section: Sectio
                                 onClick={() => openTabInEditor(tab)}
                                 data-testid={`tab-editor-${tab.id}`}
                             >
-                                {t('tabs.openEditor')} <ChevronRight size={12} />
+                                <span className="hidden sm:inline">{t('tabs.openEditor')}</span>{' '}
+                                <ChevronRight size={12} />
                             </Btn>
                         </div>
                     );

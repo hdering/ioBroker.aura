@@ -224,7 +224,7 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                         return (
                             <div
                                 key={cls}
-                                className="flex items-center gap-4 px-4 py-2.5"
+                                className="flex flex-wrap items-center gap-x-4 gap-y-1 px-4 py-2.5"
                                 style={{
                                     background: i % 2 === 0 ? 'var(--app-bg)' : 'var(--app-surface)',
                                     borderBottom:

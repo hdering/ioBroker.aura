@@ -96,7 +96,7 @@ export function SubTabsNav({ active, onChange, level, ownCounts = {}, jumpTarget
     const t = useT();
     return (
         <div
-            className="rounded-xl px-4 py-1"
+            className="rounded-xl px-3 sm:px-4 py-1"
             style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
             data-testid="design-bands"
         >
@@ -107,9 +107,8 @@ export function SubTabsNav({ active, onChange, level, ownCounts = {}, jumpTarget
                 return (
                     <Fragment key={band}>
                         <div
-                            className="grid gap-3 items-center py-2"
+                            className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-2 lg:gap-3 items-center py-2"
                             style={{
-                                gridTemplateColumns: '240px 1fr',
                                 borderBottom: bi < BAND_ORDER.length - 1 ? '1px dashed var(--app-border)' : undefined,
                                 opacity: 1,
                             }}
@@ -167,7 +166,7 @@ export function SubTabsNav({ active, onChange, level, ownCounts = {}, jumpTarget
                                 {jump && (
                                     <button
                                         onClick={jump.onClick}
-                                        className="ml-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] hover:opacity-80"
+                                        className="lg:ml-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] hover:opacity-80"
                                         style={{
                                             background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
                                             color: 'var(--accent)',

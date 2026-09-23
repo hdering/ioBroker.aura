@@ -93,6 +93,7 @@
     "test:mirror-types": "node tools/tests/mirror-all-types.mjs",
     "test:menu-overview": "node tools/tests/menu-overview.mjs",
     "test:admin-layouts-ui": "node tools/tests/admin-layouts-ui.mjs",
+    "test:dp-manager-narrow": "node tools/tests/dp-manager-narrow.mjs",
     "test:messages": "node test/messages.test.js",
     "test:update-check": "node test/update-check.test.js",
     "test:messages-ui": "node tools/tests/messages.mjs",
