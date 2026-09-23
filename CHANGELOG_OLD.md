@@ -1,5 +1,8 @@
 # Changelog (older entries)
 
+## 0.60.3 (2026-09-16)
+- Diagnostics - the `?diag=1` report now also measures what the page is doing: repaint rate, DOM changes, blocked main thread, socket messages and reconnects ([#636](https://github.com/hdering/ioBroker.aura/issues/636))
+
 ## 0.60.2 (2026-09-15)
 - Custom CSS - the tab button in the tab bar is now `.aura-tab-btn`; `.aura-tab` again matches only a tab's content area ([#648](https://github.com/hdering/ioBroker.aura/issues/648))
 - Documentation - new reference page listing every CSS class, data attribute and variable custom CSS can target ([#648](https://github.com/hdering/ioBroker.aura/issues/648))
