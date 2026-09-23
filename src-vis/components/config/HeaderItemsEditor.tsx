@@ -45,7 +45,7 @@ function itemSummary(item: WidgetHeaderItem, t: ReturnType<typeof useT>, config:
     if (item.source === 'text') return item.text || t('hdr.src.text');
     if (item.source === 'action') return t('hdr.src.action');
     const opt = widgetValueOptions(config).find((o) => o.key === item.widgetValue);
-    return opt ? t(opt.labelKey) : t('hdr.src.widget');
+    return opt ? (opt.detail ? `${t(opt.labelKey)} ${opt.detail}` : t(opt.labelKey)) : t('hdr.src.widget');
 }
 
 function ItemRow({
@@ -225,7 +225,7 @@ function ItemRow({
                         <option value="">{t('hdr.valuePick')}</option>
                         {valueOptions.map((o) => (
                             <option key={o.key} value={o.key}>
-                                {t(o.labelKey)}
+                                {o.detail ? `${t(o.labelKey)} ${o.detail}` : t(o.labelKey)}
                             </option>
                         ))}
                     </select>

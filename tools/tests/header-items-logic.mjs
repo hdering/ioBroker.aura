@@ -199,6 +199,77 @@ ok('row two when used', m.hasSecondRow([{ slot: 'r2-center' }]));
 ok('no row two otherwise', !m.hasSecondRow([{ slot: 'r1-center' }, { slot: 'r1-right' }]));
 eq('five slots', [...m.HEADER_SLOTS], ['r1-center', 'r1-right', 'r2-left', 'r2-center', 'r2-right']);
 
+// ── 9a. Extra values: thermostat, room climate, custom cells ──
+const thermo = {
+    id: 't',
+    type: 'thermostat',
+    title: 'T',
+    datapoint: 'x.0.set',
+    gridPos: {},
+    options: { actualDatapoint: 'x.0.act' },
+};
+eq(
+    'thermostat offers target (main) and actual',
+    m.widgetValueOptions(thermo).map((o) => `${o.key}:${o.labelKey}`),
+    ['main:hdr.val.target', 'thermo:actual:hdr.val.actual'],
+);
+eq('thermostat main value gets °C', m.ownValue(thermo, 21.5, fmt).unit, '°C');
+const climate = {
+    id: 'c',
+    type: 'climate',
+    title: 'K',
+    datapoint: 'x.0.temp',
+    gridPos: {},
+    options: {
+        humidityDatapoint: 'x.0.hum',
+        metrics: [
+            { id: 'co2', source: 'datapoint', datapoint: 'x.0.co2', label: 'CO2', unit: 'ppm', decimals: 0 },
+            { id: 'dew', source: 'dewpoint' },
+        ],
+    },
+};
+eq(
+    'climate offers humidity and datapoint readings, not computed ones',
+    m.widgetValueOptions(climate).map((o) => o.key),
+    ['main', 'climate:humidity', 'metric:co2'],
+);
+const co2 = item({ source: 'widget', widgetValue: 'metric:co2' });
+eq('reading subscribes its datapoint', m.headerItemRefs([co2], climate), ['x.0.co2']);
+eq(
+    'reading text with its unit and decimals',
+    m.extraValueText(co2, m.extraValueFor(co2, climate), 812.4, fmt),
+    '812 ppm',
+);
+const custom = {
+    id: 'g',
+    type: 'value',
+    title: 'G',
+    datapoint: '',
+    layout: 'custom',
+    gridPos: {},
+    options: {
+        customGrid: {
+            cols: 2,
+            rows: 2,
+            cells: [
+                { type: 'title' },
+                { type: 'dp', dpId: 'x.0.power', suffix: 'kW', valueFactor: 0.001, decimals: 1, prefix: 'PV' },
+                null,
+                { type: 'dp', dpId: 'x.0.soc' },
+            ],
+        },
+    },
+};
+eq(
+    'custom layout offers every cell with a datapoint',
+    m.widgetValueOptions(custom).map((o) => `${o.key}|${o.detail}`),
+    ['cell:1|1/2 · PV', 'cell:3|2/2 · soc'],
+);
+const cell = item({ source: 'widget', widgetValue: 'cell:1' });
+eq('cell value as the cell shows it', m.extraValueText(cell, m.extraValueFor(cell, custom), 2345, fmt), '2,3 kW');
+eq('cell item unit wins', m.extraValueText({ ...cell, unit: 'W' }, m.extraValueFor(cell, custom), 2345, fmt), '2,3 W');
+eq('not a custom layout: no cells', m.extraWidgetValues({ ...custom, layout: 'default' }), []);
+
 // ── 9b. Conditions ──
 const vctx = m.headerSourceCtx(value);
 const lctx = m.headerSourceCtx(list);

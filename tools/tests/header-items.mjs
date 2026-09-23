@@ -26,6 +26,8 @@ const VALUES = {
     'demo.l1': { val: 100 },
     'demo.l2': { val: 250 },
     'demo.l3': { val: 0 },
+    'demo.set': { val: 21 },
+    'demo.act': { val: 19.5 },
 };
 
 const browser = await chromium.launch();
@@ -223,6 +225,38 @@ check('switch card: item in the fallback strip', await inStrip(id, 'sc'));
 // Without items the body keeps the frame as its direct parent (no wrapper).
 id = await show('value', { defaultCollapsed: false });
 check('no items: no header host wrapper', (await card(id).locator('[data-header-host]').count()) === 0);
+
+// ── 4e. Extra widget values ──────────────────────────────────────────────────
+id = await show(
+    'thermostat',
+    {
+        headerItems: [{ id: 'ta', source: 'widget', widgetValue: 'thermo:actual', slot: 'r1-right' }],
+        actualDatapoint: 'demo.act',
+    },
+    { datapoint: 'demo.set' },
+);
+check(
+    'thermostat: actual temperature in the header',
+    (await slotText(id, 'r1-right')) === '19.5 °C',
+    await slotText(id, 'r1-right'),
+);
+id = await show(
+    'value',
+    {
+        customGrid: {
+            cols: 2,
+            rows: 1,
+            cells: [{ type: 'title' }, { type: 'dp', dpId: 'demo.pv', suffix: 'kW', valueFactor: 0.001, decimals: 1 }],
+        },
+        headerItems: [{ id: 'cc', source: 'widget', widgetValue: 'cell:1', slot: 'r1-right' }],
+    },
+    { layout: 'custom' },
+);
+check(
+    'custom layout: cell value in the header',
+    (await slotText(id, 'r1-right')) === '1.2 kW',
+    await slotText(id, 'r1-right'),
+);
 
 // ── 4d. Conditions (step 4) ──────────────────────────────────────────────────
 id = await show('value', {

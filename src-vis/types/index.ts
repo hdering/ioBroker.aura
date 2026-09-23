@@ -943,8 +943,10 @@ export interface WidgetHeaderItem {
     decimals?: number; // source 'dp' / 'widget': fixed decimals; unset = global default (main value: the widget's own)
     unit?: string; // source 'dp' / 'widget': appended after a space; 'widget' falls back to the widget's unit
     /** source 'widget': 'main' (the widget's own datapoint, with its unit, decimals and
-     *  value factor) or, for the static/dynamic list, 'list:sum' | 'list:avg' |
-     *  'list:min' | 'list:max' | 'list:count' | 'list:active' over all entries. */
+     *  value factor); static/dynamic list: 'list:sum' | 'list:avg' | 'list:min' | 'list:max' |
+     *  'list:count' | 'list:active' over all entries; thermostat: 'thermo:actual'; room climate:
+     *  'climate:target' | 'climate:humidity' | 'climate:pressure' | 'metric:<metrics[].id>'
+     *  (readings with a datapoint); layout 'custom': 'cell:<index>' (row-major cell with dpId). */
     widgetValue?: string;
     /** source 'text': free text with the same bindings as a marker label — '{0_userdata.0.pv;round(0)} W',
      *  '{dp}' for the widget's own value, '{{ a + b }}'; list widgets also offer {sum} {avg} {min} {max}

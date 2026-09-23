@@ -14,6 +14,8 @@ import {
     LIST_VAR,
     conditionValues,
     dpItemTemplate,
+    extraValueFor,
+    extraValueText,
     headerConditionRefs,
     headerItemPasses,
     headerSourceCtx,
@@ -133,7 +135,12 @@ export function useHeaderItems(
             let text = '';
             if (item.source === 'dp') text = render(dpItemTemplate(item));
             else if (item.source === 'text') text = item.text ? render(item.text) : '';
-            else text = widgetItemText(item, own, list, fmt);
+            else {
+                const extra = extraValueFor(item, config);
+                text = extra
+                    ? extraValueText(item, extra, states[extra.dp]?.val ?? null, fmt)
+                    : widgetItemText(item, own, list, fmt);
+            }
             // An item with nothing to say takes no room — no empty gap in the row.
             if (!text.trim() && !item.icon) continue;
             out.push({ id: item.id, slot: item.slot, text, icon: item.icon, color: item.color });

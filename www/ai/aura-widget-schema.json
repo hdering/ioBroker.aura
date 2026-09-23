@@ -1073,7 +1073,7 @@
         },
         "widgetValue": {
           "type": "string",
-          "description": "source 'widget': 'main' (the widget's own datapoint, with its unit, decimals and value factor) or, for the static/dynamic list, 'list:sum' | 'list:avg' | 'list:min' | 'list:max' | 'list:count' | 'list:active' over all entries."
+          "description": "source 'widget': 'main' (the widget's own datapoint, with its unit, decimals and value factor); static/dynamic list: 'list:sum' | 'list:avg' | 'list:min' | 'list:max' | 'list:count' | 'list:active' over all entries; thermostat: 'thermo:actual'; room climate: 'climate:target' | 'climate:humidity' | 'climate:pressure' | 'metric:<metrics[].id>' (readings with a datapoint); layout 'custom': 'cell:<index>' (row-major cell with dpId)."
         },
         "text": {
           "type": "string",

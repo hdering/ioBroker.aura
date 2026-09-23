@@ -88,6 +88,114 @@ export const LIST_VAR: Record<ListValueKey, string> = {
 export interface WidgetValueOption {
     key: string;
     labelKey: TranslationKey;
+    /** Free text shown after the translated label (a custom-layout cell's position and datapoint). */
+    detail?: string;
+}
+
+/**
+ * A value the widget reads from a datapoint of its own beyond the main one: the
+ * thermostat's actual temperature, the room climate's target / humidity / pressure
+ * and its extra readings, a custom-layout cell. Formatted like the widget does.
+ */
+export interface ExtraValue extends WidgetValueOption {
+    dp: string;
+    unit?: string;
+    decimals?: number;
+    factor?: number;
+    offset?: number;
+}
+
+const TEMP_TYPES = new Set(['thermostat', 'climate']);
+
+interface CellLike {
+    type?: string;
+    dpId?: string;
+    prefix?: string;
+    suffix?: string;
+    decimals?: number;
+    valueFactor?: number;
+    valueOffset?: number;
+}
+
+/** The cells of a custom layout, whichever of the two stored shapes it has. */
+function customCells(options: Record<string, unknown> | undefined): { cells: CellLike[]; cols: number } {
+    const raw = options?.customGrid as unknown;
+    if (Array.isArray(raw)) return { cells: raw as CellLike[], cols: 3 };
+    if (raw && typeof raw === 'object' && Array.isArray((raw as { cells?: unknown }).cells)) {
+        const def = raw as { cells: CellLike[]; cols?: number };
+        return { cells: def.cells, cols: Math.max(1, def.cols || 3) };
+    }
+    return { cells: [], cols: 3 };
+}
+
+function lastSegment(id: string): string {
+    const parts = id.split('.');
+    return parts[parts.length - 1] || id;
+}
+
+/** Every extra value this widget offers, keyed like `widgetValue`. */
+export function extraWidgetValues(config: WidgetConfig): ExtraValue[] {
+    const o = config.options ?? {};
+    const out: ExtraValue[] = [];
+    const str = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+    const tempUnit = str(o.unit) || '°C';
+    const decimals = typeof o.decimals === 'number' ? o.decimals : undefined;
+    if (config.type === 'thermostat') {
+        const actual = str(o.actualDatapoint);
+        if (actual)
+            out.push({ key: 'thermo:actual', labelKey: 'hdr.val.actual', dp: actual, unit: tempUnit, decimals });
+    }
+    if (config.type === 'climate') {
+        const target = str(o.targetDatapoint);
+        const humidity = str(o.humidityDatapoint);
+        const pressure = str(o.pressureDatapoint);
+        if (target)
+            out.push({ key: 'climate:target', labelKey: 'hdr.val.target', dp: target, unit: tempUnit, decimals });
+        if (humidity)
+            out.push({ key: 'climate:humidity', labelKey: 'hdr.val.humidity', dp: humidity, unit: '%', decimals: 0 });
+        if (pressure)
+            out.push({ key: 'climate:pressure', labelKey: 'hdr.val.pressure', dp: pressure, unit: 'hPa', decimals: 0 });
+        const metrics = Array.isArray(o.metrics) ? (o.metrics as Array<Record<string, unknown>>) : [];
+        for (const m of metrics) {
+            // Only readings with a datapoint of their own; dew point, absolute humidity and
+            // comfort are computed by the widget and not repeated here.
+            const dp = str(m.datapoint);
+            if ((m.source ?? 'datapoint') !== 'datapoint' || !dp || typeof m.id !== 'string') continue;
+            out.push({
+                key: `metric:${m.id}`,
+                labelKey: 'hdr.val.metric',
+                detail: str(m.label) || lastSegment(dp),
+                dp,
+                unit: str(m.unit) || undefined,
+                decimals: typeof m.decimals === 'number' ? m.decimals : decimals,
+            });
+        }
+    }
+    if (config.layout === 'custom') {
+        const { cells, cols } = customCells(o);
+        cells.forEach((c, i) => {
+            const dp = str(c?.dpId);
+            if (!dp) return;
+            out.push({
+                key: `cell:${i}`,
+                labelKey: 'hdr.val.cell',
+                detail: `${Math.floor(i / cols) + 1}/${(i % cols) + 1} · ${str(c.prefix) || lastSegment(dp)}`,
+                dp,
+                unit: str(c.suffix) || undefined,
+                decimals: c.decimals,
+                factor: c.valueFactor,
+                offset: c.valueOffset,
+            });
+        });
+    }
+    return out;
+}
+
+/** The main value's label: what the main datapoint means for this type. */
+function mainLabel(type: string): TranslationKey {
+    if (type === 'thermostat') return 'hdr.val.target';
+    if (type === 'climate') return 'hdr.val.temperature';
+    return 'hdr.val.main';
 }
 
 function isListType(type: string): boolean {
@@ -110,12 +218,13 @@ export function listEntries(config: WidgetConfig): EntryLike[] {
 /** What the 'widget' source can pick for this widget. Empty = the source is unavailable. */
 export function widgetValueOptions(config: WidgetConfig): WidgetValueOption[] {
     const out: WidgetValueOption[] = [];
-    if (config.datapoint?.trim()) out.push({ key: 'main', labelKey: 'hdr.val.main' });
+    if (config.datapoint?.trim()) out.push({ key: 'main', labelKey: mainLabel(config.type) });
     if (isListType(config.type)) {
         for (const key of LIST_VALUE_KEYS) {
             out.push({ key, labelKey: `hdr.val.${LIST_VAR[key]}` as TranslationKey });
         }
     }
+    for (const x of extraWidgetValues(config)) out.push({ key: x.key, labelKey: x.labelKey, detail: x.detail });
     return out;
 }
 
@@ -138,6 +247,20 @@ export function itemUsesOwn(item: WidgetHeaderItem): boolean {
     return false;
 }
 
+/** The extra value a 'widget' item points at, if it points at one. */
+export function extraValueFor(item: WidgetHeaderItem, config: WidgetConfig): ExtraValue | null {
+    if (item.source !== 'widget' || !item.widgetValue) return null;
+    return extraWidgetValues(config).find((x) => x.key === item.widgetValue) ?? null;
+}
+
+/** Text of an extra value: the widget's own factor, decimals and unit; the item's win. */
+export function extraValueText(item: WidgetHeaderItem, extra: ExtraValue, val: unknown, fmt: ValueFormat): string {
+    const raw = applyValueTransform(val, Number(extra.factor ?? 1), Number(extra.offset ?? 0));
+    const text = fmtNumber(raw, fmt, typeof item.decimals === 'number' ? item.decimals : extra.decimals);
+    const unit = item.unit ?? extra.unit;
+    return unit ? `${text} ${unit}` : text;
+}
+
 /** Template text of a 'dp' item: the datapoint, rounded when asked to, then the unit. */
 export function dpItemTemplate(item: WidgetHeaderItem): string {
     const ref = item.dp?.trim();
@@ -155,6 +278,8 @@ export function headerItemRefs(items: WidgetHeaderItem[], config: WidgetConfig):
         if (item.source === 'text') for (const r of extractTemplateDpRefs(item.text)) refs.add(r);
         if (own && itemUsesOwn(item)) refs.add(own);
         if (itemUsesList(item)) for (const e of listEntries(config)) refs.add(e.id);
+        const extra = extraValueFor(item, config);
+        if (extra) refs.add(extra.dp);
     }
     return [...refs];
 }
@@ -189,7 +314,8 @@ export function ownValue(config: WidgetConfig, val: unknown, fmt: ValueFormat, d
     const o = config.options ?? {};
     const raw = applyValueTransform(val, Number(o.valueFactor ?? 1), Number(o.valueOffset ?? 0));
     const d = typeof decimals === 'number' ? decimals : typeof o.decimals === 'number' ? o.decimals : undefined;
-    const unit = typeof o.unit === 'string' && o.unit ? o.unit : undefined;
+    // Thermostat and room climate show °C without a stored unit.
+    const unit = typeof o.unit === 'string' && o.unit ? o.unit : TEMP_TYPES.has(config.type) ? '°C' : undefined;
     return { raw, text: fmtNumber(raw, fmt, d), unit };
 }
 

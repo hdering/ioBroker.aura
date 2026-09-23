@@ -103,7 +103,7 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 | Quelle | |
 | --- | --- |
 | Datenpunkt | beliebiger Datenpunkt, optional Nachkommastellen und Einheit |
-| Widget-Wert | `Hauptwert` (Einheit, Nachkommastellen und Faktor des Widgets); bei statischer und dynamischer Liste `Summe`, `Durchschnitt`, `Minimum`, `Maximum`, `Anzahl`, `Anzahl aktiv` |
+| Widget-Wert | `Hauptwert` (Einheit, Nachkommastellen und Faktor des Widgets); bei statischer und dynamischer Liste `Summe`, `Durchschnitt`, `Minimum`, `Maximum`, `Anzahl`, `Anzahl aktiv`; Thermostat `Soll`/`Ist`; Raumklima `Temperatur`, `Soll`, `Luftfeuchte`, `Luftdruck` und Zusatzwerte mit Datenpunkt; Layout `Custom` jede Zelle mit Datenpunkt (wie in der Zelle formatiert) |
 | Text | Text mit [Bindings](../widgets/bindings), z. B. `PV {0_userdata.0.pv;round(0)} W`, `{dp}`, bei Listen `{active} von {count} an` |
 | Klick-Aktion | Symbol der [Klick-Aktion](#klick-aktions-symbol) auf diesem Platz statt in der Kartenecke |
 
