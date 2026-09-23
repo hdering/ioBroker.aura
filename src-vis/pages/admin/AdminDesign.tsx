@@ -18,6 +18,7 @@ import {
 } from './layouts/shared/scopeBands';
 import { ScopeRow } from './layouts/shared/ScopeRow';
 import { ScopeBar } from './layouts/shared/ScopeBar';
+import { CollapsibleRail } from './layouts/shared/CollapsibleRail';
 import { LockedTabNotice } from './layouts/shared/LockedTabNotice';
 import { useStartBrightness } from './layouts/shared/BrightnessTabs';
 
@@ -173,10 +174,19 @@ export function AdminDesign() {
 
             <div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-4">
                 {/* Left rail: the chain as a tree — Global → Layout → Bereich */}
-                <aside
-                    className="md:sticky md:top-0 self-start rounded-xl p-2 space-y-1"
-                    style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
-                    data-testid="design-scope-tree"
+                <CollapsibleRail
+                    testId="design-scope-tree"
+                    title={t('layouts.scope.title')}
+                    current={
+                        <>
+                            {section ? sectionIcon(section) : layout ? layoutIcon(layout) : <Globe2 size={13} />}
+                            <span className="truncate">
+                                {section && layout
+                                    ? `${layout.name} › ${section.name}`
+                                    : (layout?.name ?? t('layouts.scope.global'))}
+                            </span>
+                        </>
+                    }
                 >
                     <p
                         className="text-[10px] uppercase tracking-widest px-2 py-1.5 font-semibold"
@@ -237,7 +247,7 @@ export function AdminDesign() {
                         </span>
                         {t('design.tree.ownLegend')}
                     </p>
-                </aside>
+                </CollapsibleRail>
 
                 {/* Right pane: scope bar, the three band rows, the selected card */}
                 <div className="min-w-0 space-y-3">

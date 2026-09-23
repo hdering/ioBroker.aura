@@ -9,6 +9,7 @@ import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout, type Section } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 import { ScopeRow } from '../shared/ScopeRow';
+import { CollapsibleRail } from '../shared/CollapsibleRail';
 import { useListDrag } from './pieces';
 
 export function layoutIconNode(layout: DashboardLayout, size = 13) {
@@ -37,12 +38,23 @@ export function LayoutTree({ layouts, selectedId, onSelect }: LayoutTreeProps) {
     const t = useT();
     const reorderLayouts = useDashboardStore((s) => s.reorderLayouts);
     const drag = useListDrag(reorderLayouts);
+    const currentLayout = layouts.find((l) => l.id === selectedId || l.sections.some((s) => s.id === selectedId));
+    const currentSection = currentLayout?.sections.find((s) => s.id === selectedId);
 
     return (
-        <aside
-            data-testid="layout-tree"
-            className="md:sticky md:top-0 self-start rounded-xl p-2 space-y-1"
-            style={{ background: 'var(--app-surface)', border: '1px solid var(--app-border)' }}
+        <CollapsibleRail
+            testId="layout-tree"
+            title={t('layouts.title')}
+            current={
+                currentLayout && (
+                    <>
+                        {currentSection ? sectionIconNode(currentSection) : layoutIconNode(currentLayout)}
+                        <span className="truncate">
+                            {currentSection ? `${currentLayout.name} › ${currentSection.name}` : currentLayout.name}
+                        </span>
+                    </>
+                )
+            }
         >
             <p
                 className="text-[10px] uppercase tracking-widest px-2 py-1.5 font-semibold"
@@ -108,6 +120,6 @@ export function LayoutTree({ layouts, selectedId, onSelect }: LayoutTreeProps) {
                     </div>
                 );
             })}
-        </aside>
+        </CollapsibleRail>
     );
 }

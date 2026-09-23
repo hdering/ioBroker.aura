@@ -258,6 +258,33 @@ check(
     'slug derived from the name',
 );
 
+// ── 11. Phone: the tree folds into a bar above the detail ────────────────────
+console.log('\n11. phone');
+await page.setViewportSize({ width: 390, height: 844 });
+const phoneRail = async (hash, tree, row) => {
+    await open(hash);
+    const toggle = page.getByTestId(`${tree}-toggle`);
+    check(await toggle.isVisible(), `${tree}: folds into a bar`);
+    check(!(await page.getByTestId(row).isVisible()), `${tree}: rows are out of the way`);
+    await toggle.click();
+    await page.waitForTimeout(200);
+    check(await page.getByTestId(row).isVisible(), `${tree}: the bar unfolds the tree`);
+    await page.getByTestId(row).locator('button').first().click();
+    await page.waitForTimeout(300);
+    check(!(await page.getByTestId(row).isVisible()), `${tree}: picking a row folds it again`);
+    return toggle;
+};
+const lt = await phoneRail('admin/layouts', 'layout-tree', 'tree-section-server');
+check((await hashOf()).includes('ctx=server'), 'layouts: the pick selects the section', await hashOf());
+check((await lt.innerText()).includes('Tablet Wohnzimmer › Server'), 'layouts: the bar names it', await lt.innerText());
+const dt = await phoneRail('admin/design', 'design-scope-tree', 'design-scope-layout-layout-handy');
+check((await hashOf()).includes('ctx=layout-handy'), 'design: the pick selects the layout', await hashOf());
+check((await dt.innerText()).includes('Handy'), 'design: the bar names it', await dt.innerText());
+check((await page.evaluate(() => document.documentElement.scrollWidth)) <= 390, 'no horizontal overflow');
+await page.setViewportSize({ width: 1500, height: 1000 });
+await open('admin/layouts');
+check(!(await page.getByTestId('layout-tree-toggle').isVisible()), 'desktop: no bar beside the detail');
+
 await browser.close();
 console.log(`\n${passed}/${passed + failed} checks passed`);
 process.exit(failed ? 1 : 0);
