@@ -111,6 +111,7 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 | --- | --- |
 | Anzeigen | `immer` (Standard), `nur eingeklappt`, `nur aufgeklappt` |
 | Symbol, Farbe | je Element |
+| Nur anzeigen, wenn … | Bedingung wie bei [Markern](#marker-sichtbarkeit): leerer Datenpunkt = eigener Wert, bei Listen auch `Liste: Anzahl aktiv` usw. Ist sie nicht erfüllt, verschwindet das Element (eine leere Zeile 2 mit) |
 
 Mehrere Elemente auf einem Platz stehen nebeneinander, Reihenfolge per Pfeil. Zu lange Werte werden gekürzt, der Titel zuerst. Ein Tipp auf einen Platz in der Übersicht legt dort ein neues Element an. In Layouts ohne eigene Titelzeile (z. B. `Kompakt`, `Kachel`, `Minimal`, `Custom`) stehen die Werte auf der Höhe des Titels, Zeile 2 unter dem Inhalt.
 

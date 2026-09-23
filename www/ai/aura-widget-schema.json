@@ -277,7 +277,7 @@
         "type": "object",
         "ref": "WidgetHeaderItem"
       },
-      "description": "Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source \"dp\" = freier Datenpunkt, \"widget\" = Wert, den das Widget schon hat, z. B. \"main\" oder bei Listen \"list:sum\", \"text\" = Text mit Bindings wie bei Markern, \"action\" = das Klick-Aktions-Symbol auf diesem Platz statt in der Kartenecke) und ein Platz (slot): \"r1-center\"/\"r1-right\" neben dem Titel, \"r2-left\"/\"r2-center\"/\"r2-right\" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. Mehrere Elemente je Platz stehen nebeneinander. show: \"always\" (Standard), \"collapsed\" (nur eingeklappt, defaultCollapsed), \"expanded\". Aufgeklappt stehen die Elemente in der Titelzeile des Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. Eine belegte Zeile 2 kostet eine Kopfzeile Höhe (aura_measure rechnet sie als Zuschlag \"headerRow2\"). Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen."
+      "description": "Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source \"dp\" = freier Datenpunkt, \"widget\" = Wert, den das Widget schon hat, z. B. \"main\" oder bei Listen \"list:sum\", \"text\" = Text mit Bindings wie bei Markern, \"action\" = das Klick-Aktions-Symbol auf diesem Platz statt in der Kartenecke) und ein Platz (slot): \"r1-center\"/\"r1-right\" neben dem Titel, \"r2-left\"/\"r2-center\"/\"r2-right\" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. Mehrere Elemente je Platz stehen nebeneinander. show: \"always\" (Standard), \"collapsed\" (nur eingeklappt, defaultCollapsed), \"expanded\". Aufgeklappt stehen die Elemente in der Titelzeile des Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. Eine belegte Zeile 2 kostet eine Kopfzeile Höhe (aura_measure rechnet sie als Zuschlag \"headerRow2\"). clauses (+ logic) blenden ein Element nur ein, solange die Bedingung gilt — gleiche Klauseln wie bei Markern, leerer datapoint = eigener Wert, bei Listen auch \"{list:active}\" usw. Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen."
     },
     "collapseInEditor": {
       "type": "boolean",
@@ -1087,6 +1087,22 @@
           "type": "string",
           "description": "text colour (CSS, var(--token), light-dark pair); default var(--text-primary)",
           "color": true
+        },
+        "logic": {
+          "type": "string",
+          "enum": [
+            "AND",
+            "OR"
+          ],
+          "description": "combine clauses; default 'AND'"
+        },
+        "clauses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "ref": "ConditionClause"
+          },
+          "description": "Only show the item while these hold (same shape as marker conditions). Empty/absent = no condition. An empty clause datapoint means the widget's own datapoint; list widgets also take '{list:count}', '{list:active}', '{list:sum}' … and '{list:any|all|none}'."
         }
       }
     },

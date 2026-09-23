@@ -20,6 +20,13 @@ import { extractTemplateDpRefs } from './htmlTemplate';
 import { computeListStats } from './listStats';
 import { isActiveVal } from './groupTargets';
 import { applyValueTransform } from './valueTransform';
+import {
+    applySourceValues,
+    clauseSourceRefs,
+    evaluateConditionWithSource,
+    widgetSourceCtx,
+    type DpSourceCtx,
+} from './conditionSources';
 import type { ValueTransformSettings } from './valueTransform';
 
 export const HEADER_SLOTS: readonly WidgetHeaderSlot[] = ['r1-center', 'r1-right', 'r2-left', 'r2-center', 'r2-right'];
@@ -234,6 +241,48 @@ export function widgetItemText(
         return unit ? `${text} ${unit}` : text;
     }
     return '';
+}
+
+// ── Conditions ────────────────────────────────────────────────────────────────
+
+/** True when the item carries a condition of its own. */
+export function hasItemCondition(item: WidgetHeaderItem): boolean {
+    return Array.isArray(item.clauses) && item.clauses.length > 0;
+}
+
+/** The value sources a clause may name — the same ones markers and conditions offer. */
+export function headerSourceCtx(config: WidgetConfig): DpSourceCtx {
+    return widgetSourceCtx(config);
+}
+
+/** Datapoints the conditions of these items read. */
+export function headerConditionRefs(items: WidgetHeaderItem[], ctx: DpSourceCtx): string[] {
+    const refs = new Set<string>();
+    for (const item of items) {
+        if (!hasItemCondition(item)) continue;
+        for (const clause of item.clauses ?? []) for (const r of clauseSourceRefs(clause, ctx)) if (r) refs.add(r);
+    }
+    return [...refs];
+}
+
+/**
+ * The value map the clause evaluation reads: every subscribed value by its ref,
+ * plus the derived tokens (own datapoint, list count / active / sum …).
+ */
+export function conditionValues(
+    states: Record<string, { val?: unknown } | undefined>,
+    ctx: DpSourceCtx,
+): Map<string, unknown> {
+    const values = new Map<string, unknown>();
+    for (const [ref, st] of Object.entries(states)) values.set(ref, st?.val ?? null);
+    applySourceValues(values, ctx);
+    return values;
+}
+
+/** Whether the item's condition currently holds; an item without one always passes. */
+export function headerItemPasses(item: WidgetHeaderItem, values: Map<string, unknown>, ctx: DpSourceCtx): boolean {
+    if (!hasItemCondition(item)) return true;
+    return evaluateConditionWithSource({ logic: item.logic ?? 'AND', clauses: item.clauses ?? [] }, values, ctx);
 }
 
 // ── Layout ────────────────────────────────────────────────────────────────────

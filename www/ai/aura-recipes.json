@@ -1360,7 +1360,8 @@
         "source \"dp\" zeigt einen beliebigen Datenpunkt; source \"text\" einen Text mit Bindings ({id}, {id;round(1)}, {dp}, {{ a + b }}, bei Listen auch {sum} {count} {active} …).",
         "slot \"r1-center\"/\"r1-right\" steht neben dem Titel; ein Element auf \"r2-*\" erzeugt eine zweite Zeile und macht die eingeklappte Karte eine Kopfzeile höher.",
         "show \"collapsed\" zeigt ein Element nur im eingeklappten Zustand; ohne show steht es auch aufgeklappt in der Titelzeile.",
-        "source \"action\" setzt das Klick-Aktions-Symbol auf einen Platz (braucht eine clickAction)."
+        "source \"action\" setzt das Klick-Aktions-Symbol auf einen Platz (braucht eine clickAction).",
+        "clauses blendet ein Element nur bei erfüllter Bedingung ein — hier „2 von 3 an“ nur, solange etwas läuft."
       ],
       "widgets": [
         {
@@ -1410,7 +1411,14 @@
                 "id": "hi-aktiv",
                 "source": "text",
                 "text": "{active} von {count} an",
-                "slot": "r2-right"
+                "slot": "r2-right",
+                "clauses": [
+                  {
+                    "datapoint": "{list:active}",
+                    "operator": ">",
+                    "value": "0"
+                  }
+                ]
               }
             ]
           }

@@ -12,7 +12,11 @@ import { formatNum } from '../utils/formatValue';
 import { renderTemplate } from '../utils/htmlTemplate';
 import {
     LIST_VAR,
+    conditionValues,
     dpItemTemplate,
+    headerConditionRefs,
+    headerItemPasses,
+    headerSourceCtx,
     fmtNumber,
     headerItemRefs,
     headerItemVisible,
@@ -63,10 +67,17 @@ export function useHeaderItems(
         [stored, collapsed, active],
     );
     const entries = config.options?.entries;
-    const refs = useMemo(
-        () => (items.length ? headerItemRefs(items, config) : []),
+    // Conditions (step 4) read the same sources as markers: own datapoint, list tokens.
+    const ctx = useMemo(
+        () => headerSourceCtx(config),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [items, config.datapoint, config.type, entries],
+        [config.datapoint, config.type, entries],
+    );
+    const refs = useMemo(
+        () =>
+            items.length ? [...new Set([...headerItemRefs(items, config), ...headerConditionRefs(items, ctx)])] : [],
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [items, config.datapoint, config.type, entries, ctx],
     );
     const states = useTemplateStates(refs);
 
@@ -103,8 +114,11 @@ export function useHeaderItems(
                 ops: { formatNum: fmt.formatNum, decimals: defaultDecimals, t },
             });
 
+        const values = items.some((i) => i.clauses?.length) ? conditionValues(states, ctx) : null;
         const out: ResolvedHeaderItem[] = [];
         for (const item of items) {
+            // A condition that does not hold takes the item out entirely — no gap.
+            if (values && !headerItemPasses(item, values, ctx)) continue;
             if (item.source === 'action') {
                 out.push({
                     id: item.id,
@@ -126,5 +140,5 @@ export function useHeaderItems(
         }
         return out;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [items, states, defaultDecimals, numberFormat, t, config.datapoint, config.options, actionIcon]);
+    }, [items, states, defaultDecimals, numberFormat, t, config.datapoint, config.options, actionIcon, ctx]);
 }

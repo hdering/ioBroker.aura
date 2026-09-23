@@ -952,6 +952,11 @@ export interface WidgetHeaderItem {
     text?: string;
     icon?: string; // optional Iconify id / Lucide name before the text
     color?: string; // text colour (CSS, var(--token), light-dark pair); default var(--text-primary)
+    logic?: 'AND' | 'OR'; // combine clauses; default 'AND'
+    /** Only show the item while these hold (same shape as marker conditions). Empty/absent =
+     *  no condition. An empty clause datapoint means the widget's own datapoint; list widgets
+     *  also take '{list:count}', '{list:active}', '{list:sum}' … and '{list:any|all|none}'. */
+    clauses?: ConditionClause[];
 }
 
 // ── Badges ──────────────────────────────────────────────────────────────────

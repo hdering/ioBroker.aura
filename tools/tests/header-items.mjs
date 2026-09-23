@@ -224,6 +224,75 @@ check('switch card: item in the fallback strip', await inStrip(id, 'sc'));
 id = await show('value', { defaultCollapsed: false });
 check('no items: no header host wrapper', (await card(id).locator('[data-header-host]').count()) === 0);
 
+// ── 4d. Conditions (step 4) ──────────────────────────────────────────────────
+id = await show('value', {
+    defaultCollapsed: false,
+    headerItems: [
+        {
+            id: 'con',
+            source: 'text',
+            text: 'COND-ON',
+            slot: 'r1-right',
+            clauses: [{ datapoint: '', operator: '>', value: '20' }],
+        },
+        {
+            id: 'coff',
+            source: 'text',
+            text: 'COND-OFF',
+            slot: 'r1-right',
+            clauses: [{ datapoint: '', operator: '>', value: '30' }],
+        },
+    ],
+});
+check('condition met: item shown', (await card(id).locator('[data-header-item="con"]').count()) === 1);
+check('condition not met: item gone', (await card(id).locator('[data-header-item="coff"]').count()) === 0);
+
+// A row-2 item whose condition fails takes the whole second row with it — the folded
+// card stays one header row high.
+const condPlain = await show('list', { entries: [{ id: 'demo.l3' }] }, { datapoint: '' });
+const condPlainH = await height(condPlain);
+id = await show(
+    'list',
+    {
+        entries: [{ id: 'demo.l3' }],
+        headerItems: [
+            {
+                id: 'act0',
+                source: 'text',
+                text: '{active} an',
+                slot: 'r2-right',
+                clauses: [{ datapoint: '{list:active}', operator: '>', value: '0' }],
+            },
+        ],
+    },
+    { datapoint: '' },
+);
+check('list token: nothing on → item hidden', (await card(id).locator('[data-header-item="act0"]').count()) === 0);
+check('…no second row, same folded height', (await height(id)) === condPlainH, `${await height(id)} vs ${condPlainH}`);
+id = await show(
+    'list',
+    {
+        entries: [{ id: 'demo.l1' }, { id: 'demo.l3' }],
+        headerItems: [
+            {
+                id: 'act1',
+                source: 'text',
+                text: '{active} an',
+                slot: 'r2-right',
+                clauses: [{ datapoint: '{list:active}', operator: '>', value: '0' }],
+            },
+        ],
+    },
+    { datapoint: '' },
+);
+check(
+    'list token: one on → item shown',
+    (await card(id)
+        .locator('[data-header-item="act1"]')
+        .innerText()
+        .catch(() => '')) === '1 an',
+);
+
 // ── 4c. Click action as an item ──────────────────────────────────────────────
 const CLICK = { kind: 'popup-html', html: '<b>HDR-ACTION-OK</b>' };
 const actionPopup = () =>
@@ -313,6 +382,14 @@ check(
     'source and text are written',
     opts?.headerItems?.[0]?.source === 'text' && opts.headerItems[0].text === 'PV {demo.pv}',
 );
+await editor.locator('[data-header-item-cond]').first().check();
+await page.waitForTimeout(300);
+opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);
+check('the condition switch adds a clause list', Array.isArray(opts?.headerItems?.[0]?.clauses));
+await editor.locator('[data-header-item-cond]').first().uncheck();
+await page.waitForTimeout(300);
+opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);
+check('…and removes it again', opts?.headerItems?.[0]?.clauses === undefined);
 await editor.locator('[data-header-item-delete]').first().click();
 await page.waitForTimeout(300);
 opts = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), editId);

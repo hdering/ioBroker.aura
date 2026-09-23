@@ -2590,6 +2590,7 @@ export const de = {
         'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste.',
     'hdr.icon': 'Symbol',
     'hdr.color': 'Farbe',
+    'hdr.cond': 'Nur anzeigen, wenn …',
     'hdr.moveUp': 'Nach oben',
     'hdr.moveDown': 'Nach unten',
 } as const;

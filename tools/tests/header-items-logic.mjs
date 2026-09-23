@@ -199,12 +199,66 @@ ok('row two when used', m.hasSecondRow([{ slot: 'r2-center' }]));
 ok('no row two otherwise', !m.hasSecondRow([{ slot: 'r1-center' }, { slot: 'r1-right' }]));
 eq('five slots', [...m.HEADER_SLOTS], ['r1-center', 'r1-right', 'r2-left', 'r2-center', 'r2-right']);
 
+// ── 9b. Conditions ──
+const vctx = m.headerSourceCtx(value);
+const lctx = m.headerSourceCtx(list);
+const cond = (clauses, logic) => item({ source: 'text', text: 'x', clauses, logic });
+const vals = (states, ctx) => m.conditionValues(states, ctx);
+ok('no condition always passes', m.headerItemPasses(item({}), vals({}, vctx), vctx));
+ok('empty clause list passes', m.headerItemPasses(cond([]), vals({}, vctx), vctx));
+ok(
+    'empty clause datapoint = own value (true)',
+    m.headerItemPasses(
+        cond([{ datapoint: '', operator: '>', value: '20' }]),
+        vals({ 'x.0.temp': { val: 21.5 } }, vctx),
+        vctx,
+    ),
+);
+ok(
+    '…and false below',
+    !m.headerItemPasses(
+        cond([{ datapoint: '', operator: '>', value: '20' }]),
+        vals({ 'x.0.temp': { val: 19 } }, vctx),
+        vctx,
+    ),
+);
+const someOn = vals({ 'x.0.a': { val: 100 }, 'x.0.b': { val: 0 }, 'x.0.c': { val: false } }, lctx);
+const allOff = vals({ 'x.0.a': { val: 0 }, 'x.0.b': { val: 0 }, 'x.0.c': { val: false } }, lctx);
+const activeGt0 = [{ datapoint: '{list:active}', operator: '>', value: '0' }];
+ok('list: active > 0 while one is on', m.headerItemPasses(cond(activeGt0), someOn, lctx));
+ok('list: hidden while all are off', !m.headerItemPasses(cond(activeGt0), allOff, lctx));
+ok(
+    'OR joins clauses',
+    m.headerItemPasses(
+        cond(
+            [
+                { datapoint: '{list:active}', operator: '>', value: '5' },
+                { datapoint: '{list:count}', operator: '==', value: '3' },
+            ],
+            'OR',
+        ),
+        allOff,
+        lctx,
+    ),
+);
+eq(
+    'condition refs: own datapoint and every list entry',
+    m.headerConditionRefs([cond([{ datapoint: '', operator: 'true', value: '' }])], vctx),
+    ['x.0.temp'],
+);
+eq('condition refs: list token reads the entries', m.headerConditionRefs([cond(activeGt0)], lctx), [
+    'x.0.a',
+    'x.0.b',
+    'x.0.c',
+]);
+eq('no condition, no refs', m.headerConditionRefs([item({})], vctx), []);
+
 // ── 10. The schema tells a model about it ──
 const schema = JSON.parse(readFileSync('public/ai/aura-widget-schema.json', 'utf8'));
 ok('headerItems is described', !!schema.commonOptions?.headerItems?.description);
 eq('…as a list of WidgetHeaderItem', schema.commonOptions?.headerItems?.items?.ref, 'WidgetHeaderItem');
 const fields = schema.types?.WidgetHeaderItem?.fields ?? {};
-for (const key of ['source', 'slot', 'show', 'dp', 'widgetValue', 'text']) {
+for (const key of ['source', 'slot', 'show', 'dp', 'widgetValue', 'text', 'clauses']) {
     ok(`WidgetHeaderItem.${key} is described`, !!fields[key]?.description || key === 'id');
 }
 

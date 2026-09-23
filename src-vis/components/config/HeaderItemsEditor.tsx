@@ -8,11 +8,12 @@ import { ArrowDown, ArrowUp, Database, Plus, Trash2 } from 'lucide-react';
 import { Icon } from '@iconify/react';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
-import { ColorField } from './ConditionEditor';
+import { ClauseList, ColorField } from './ConditionEditor';
 import {
     DEFAULT_HEADER_SLOT,
     HEADER_SLOTS,
     groupBySlot,
+    headerSourceCtx,
     newHeaderItem,
     widgetValueOptions,
 } from '../../utils/headerItems';
@@ -295,6 +296,50 @@ function ItemRow({
                 </div>
                 <ColorField label={t('hdr.color')} value={item.color} onChange={(v) => update({ color: v })} />
             </div>
+
+            {/* Condition (step 4): the item only shows while its clauses hold — same
+                clause editor and value sources as markers (own datapoint, list tokens). */}
+            {(() => {
+                const condOn = Array.isArray(item.clauses);
+                const sourceCtx = headerSourceCtx(config);
+                return (
+                    <div className="space-y-1.5">
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={condOn}
+                                onChange={(e) =>
+                                    update(
+                                        e.target.checked
+                                            ? { clauses: [], logic: item.logic }
+                                            : { clauses: undefined, logic: undefined },
+                                    )
+                                }
+                                data-header-item-cond=""
+                            />
+                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                {t('hdr.cond')}
+                            </span>
+                        </label>
+                        {condOn && (
+                            <div
+                                className="space-y-1.5 pl-3 border-l-2"
+                                style={{ borderColor: 'color-mix(in srgb, var(--accent) 27%, transparent)' }}
+                            >
+                                <p className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {sourceCtx.ownDp ? t('badge.visConditionHint') : t('badge.visConditionHintNoMain')}
+                                </p>
+                                <ClauseList
+                                    clauses={item.clauses ?? []}
+                                    logic={item.logic ?? 'AND'}
+                                    onChange={(next) => update({ clauses: next })}
+                                    sourceCtx={sourceCtx}
+                                />
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
 
             {pickerFor && (
                 <DatapointPicker

@@ -1210,6 +1210,8 @@ export const UNIVERSAL_OPTIONS = {
             'eingeklappt, defaultCollapsed), "expanded". Aufgeklappt stehen die Elemente in der Titelzeile des ' +
             'Widgets; in Layouts ohne eigene Titelzeile (compact, card, minimal, custom) legt der Rahmen Zeile 1 auf die Höhe des Titels und Zeile 2 unter den Inhalt. ' +
             'Eine belegte Zeile 2 kostet eine Kopfzeile Höhe (aura_measure rechnet sie als Zuschlag "headerRow2"). ' +
+            'clauses (+ logic) blenden ein Element nur ein, solange die Bedingung gilt — gleiche Klauseln wie bei ' +
+            'Markern, leerer datapoint = eigener Wert, bei Listen auch "{list:active}" usw. ' +
             'Typische Nutzung: den wichtigsten Wert neben den Titel stellen, statt eine zweite Kachel zu bauen.',
     },
     collapseInEditor: {

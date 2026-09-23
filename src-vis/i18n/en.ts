@@ -2570,6 +2570,7 @@ export const en: Record<TranslationKey, string> = {
         "Placeholders as for markers: {id}, {id;round(1)}, {{ a + b }} — plus the list's {sum} {avg} {min} {max} {count} {active}.",
     'hdr.icon': 'Icon',
     'hdr.color': 'Colour',
+    'hdr.cond': 'Only show when …',
     'hdr.moveUp': 'Move up',
     'hdr.moveDown': 'Move down',
 };

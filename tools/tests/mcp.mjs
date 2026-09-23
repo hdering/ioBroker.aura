@@ -3597,8 +3597,14 @@ check('every recipe validates against the real widget schema', () => {
 check('a recipe carries no datapoint id that could pass for a real one', () => {
     // A plausible id gets written verbatim and produces a widget that silently
     // shows nothing — the exact failure the instructions warn about. Every id in a
-    // recipe must be a placeholder, empty, or a per-row template.
-    const ok = (v) => v === '' || /^%[^%\s]+%$/.test(v) || v.startsWith('{{') || v.startsWith('divider:');
+    // recipe must be a placeholder, empty, a per-row template, or a source token
+    // ('{list:active}', '{dp}') that names a value of the widget itself.
+    const ok = (v) =>
+        v === '' ||
+        /^%[^%\s]+%$/.test(v) ||
+        v.startsWith('{{') ||
+        v.startsWith('divider:') ||
+        /^\{(list(:\w+)?|dp)\}$/.test(v);
     const walk = (node, where) => {
         if (Array.isArray(node)) {
             node.forEach((n) => walk(n, where));
