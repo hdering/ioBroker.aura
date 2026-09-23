@@ -10,6 +10,8 @@ import { useConfigStore } from '../../../../store/configStore';
 import { useT } from '../../../../i18n';
 import { ColorPicker } from '../../../../components/common/ColorPicker';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
+import { OVERRIDE_ROW_STYLE } from '../shared/SettingControls';
+import { OVERRIDE_COLOR } from '../shared/scopeBands';
 import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
 import { makeMenuItem } from '../../../../utils/menuItems';
 import { MenuItemFields, menuItemTypeLabelKey } from '../shared/MenuItemFields';
@@ -24,7 +26,7 @@ function OverrideDot({ show, title }: { show: boolean; title: string }) {
             aria-hidden
             title={title}
             className="inline-block w-1.5 h-1.5 rounded-full shrink-0"
-            style={{ background: 'var(--accent)' }}
+            style={{ background: OVERRIDE_COLOR }}
         />
     );
 }
@@ -46,7 +48,7 @@ function ColorInput({
 }) {
     const isHex = /^#[0-9a-fA-F]{3,8}$/.test(value);
     return (
-        <div>
+        <div style={overridden ? OVERRIDE_ROW_STYLE : undefined} data-overridden={overridden ? 'true' : undefined}>
             <label className="text-xs mb-1 flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
                 {label}
                 <OverrideDot show={overridden} title={overrideTitle} />
@@ -245,6 +247,9 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
     // True when the given field is overridden at this scope.
     const ov = (key: keyof TabBarSettings) => !isGlobal && ownTb?.[key] !== undefined;
     const ovTitle = t('layouts.scope.layoutHint');
+    // Orange override bar on the field's block, same marking as the other groups.
+    const ovRow = (key: keyof TabBarSettings) =>
+        ov(key) ? { style: OVERRIDE_ROW_STYLE, 'data-overridden': 'true' } : {};
 
     const update = (patch: Partial<TabBarSettings>) => {
         if (isGlobal) updateFrontend({ tabBar: { ...globalTb, ...patch } });
@@ -316,7 +321,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                 {/* Col 1: Height + Style + Font + Alignment */}
                 <div className="space-y-4">
-                    <div>
+                    <div {...ovRow('height')}>
                         <div className="flex items-center justify-between mb-1">
                             <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                                 {t('settings.tabBar.height')}
@@ -384,7 +389,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         </div>
                     </div>
 
-                    <div>
+                    <div {...ovRow('indicatorStyle')}>
                         <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.style')}
                             <OverrideDot show={ov('indicatorStyle')} title={ovTitle} />
@@ -412,7 +417,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
 
                     {/* Only the underline style has an edge to choose. */}
                     {(tbs.indicatorStyle ?? 'underline') === 'underline' && (
-                        <div>
+                        <div {...ovRow('indicatorSide')}>
                             <p
                                 className="text-sm mb-2 flex items-center gap-1.5"
                                 style={{ color: 'var(--text-primary)' }}
@@ -445,7 +450,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         </div>
                     )}
 
-                    <div>
+                    <div {...ovRow('fontSize')}>
                         <div className="flex items-center justify-between mb-1">
                             <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                                 {t('settings.tabBar.fontSize')}
@@ -513,7 +518,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         </div>
                     </div>
 
-                    <div>
+                    <div {...ovRow('iconSize')}>
                         <div className="flex items-center justify-between mb-1">
                             <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                                 {t('settings.tabBar.iconSize')}
@@ -581,7 +586,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         </div>
                     </div>
 
-                    <div>
+                    <div {...ovRow('position')}>
                         <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.position')}
                             <OverrideDot show={ov('position')} title={ovTitle} />
@@ -611,7 +616,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         </div>
                     </div>
 
-                    <div>
+                    <div {...ovRow('tabsAlignment')}>
                         <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.tabsAlignment')}
                             <OverrideDot show={ov('tabsAlignment')} title={ovTitle} />
@@ -637,7 +642,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between" {...ovRow('hideMobileScrollbar')}>
                         <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.hideMobileScrollbar')}
                             <OverrideDot show={ov('hideMobileScrollbar')} title={ovTitle} />
@@ -654,7 +659,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                         </button>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between" {...ovRow('showSingle')}>
                         <p className="text-sm flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.tabBar.showSingle')}
                             <OverrideDot show={ov('showSingle')} title={ovTitle} />
@@ -698,7 +703,7 @@ export function TabBarSection({ contextId }: TabBarSectionProps) {
                 </div>
 
                 {/* Col 3: Items */}
-                <div>
+                <div {...ovRow('items')}>
                     <p className="text-sm mb-2 flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
                         {t('settings.tabBar.items')}
                         <OverrideDot show={ov('items')} title={ovTitle} />

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { useT } from '../../../../i18n';
-import { ToggleRow, SubGroup } from '../shared/SettingControls';
+import { ToggleRow, SubGroup, OverrideField } from '../shared/SettingControls';
 import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
@@ -26,22 +26,28 @@ const HEADER_KEYS: (keyof LayoutSettings)[] = [
     'headerItems',
 ];
 
+// The element list plus the legacy single slots it replaced (#634).
+const HEADER_ITEM_KEYS = HEADER_KEYS.filter(
+    (k) => k === 'headerItems' || k.startsWith('headerClock') || k.startsWith('headerDatapoint'),
+);
+
 // Frontend header configuration (title, connection badge, admin link, header
 // clock, header datapoint). Scope-aware: global or per layout
 // (contextId = null | layout id).
 export function HeaderSection({ contextId }: { contextId: string | null }) {
     const t = useT();
-    const { eff, set, resetKeys, isDirty, level } = useLayoutSetting(contextId);
+    const { eff, set, resetKeys, isDirty, level, ls } = useLayoutSetting(contextId);
     // The element just added opens itself: a collapsed row shows nothing but its
     // type, and adding one is always the start of configuring it.
     const [addedId, setAddedId] = useState<string>();
 
     const [showHeader, showHeaderOv] = eff('showHeader');
-    const [headerTitle] = eff('headerTitle');
+    const [headerTitle, headerTitleOv] = eff('headerTitle');
     const [showConnectionBadge, showConnectionBadgeOv] = eff('showConnectionBadge');
     const [showAdminLink, showAdminLinkOv] = eff('showAdminLink');
     const [showMessageBell, showMessageBellOv] = eff('showMessageBell');
     const [headerItemsRaw] = eff('headerItems');
+    const headerItemsOv = level !== 'global' && HEADER_ITEM_KEYS.some((k) => ls?.[k] !== undefined);
     const [headerClockEnabled] = eff('headerClockEnabled');
     const [headerClockDisplay] = eff('headerClockDisplay');
     const [headerClockShowSeconds] = eff('headerClockShowSeconds');
@@ -102,7 +108,17 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
             />
             {showHeader && (
                 <SubGroup>
-                    <div className="py-2 border-b" style={{ borderColor: 'var(--app-border)' }}>
+                    <OverrideField
+                        className="py-2 border-b"
+                        isOverridden={headerTitleOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['headerTitle']}
+                                label={t('settings.frontend.dashboardTitle')}
+                            />
+                        }
+                    >
                         <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
                             {t('settings.frontend.dashboardTitle')}
                         </p>
@@ -116,14 +132,7 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                                 border: '1px solid var(--app-border)',
                             }}
                         />
-                        <div className="mt-1.5">
-                            <OverrideState
-                                contextId={contextId}
-                                keys={['headerTitle']}
-                                label={t('settings.frontend.dashboardTitle')}
-                            />
-                        </div>
-                    </div>
+                    </OverrideField>
                     <ToggleRow
                         label={t('settings.frontend.connectionBadge')}
                         value={showConnectionBadge ?? true}
@@ -164,7 +173,17 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                         }
                     />
 
-                    <div className="pt-2">
+                    <OverrideField
+                        className="pt-2"
+                        isOverridden={headerItemsOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={HEADER_ITEM_KEYS}
+                                label={t('settings.header.items')}
+                            />
+                        }
+                    >
                         <div className="flex items-center justify-between mb-1">
                             <p className="text-xs font-medium" style={{ color: 'var(--text-primary)' }}>
                                 {t('settings.header.items')}
@@ -217,7 +236,7 @@ export function HeaderSection({ contextId }: { contextId: string | null }) {
                                 </button>
                             ))}
                         </div>
-                    </div>
+                    </OverrideField>
                 </SubGroup>
             )}
         </div>

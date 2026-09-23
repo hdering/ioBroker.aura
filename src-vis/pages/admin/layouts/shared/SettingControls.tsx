@@ -19,6 +19,43 @@ export function Toggle({ value, onChange }: { value: boolean; onChange: (v: bool
     );
 }
 
+/** The orange override bar + tint a control gets when this scope sets its own value. */
+export const OVERRIDE_ROW_STYLE: React.CSSProperties = {
+    boxShadow: `inset 3px 0 0 ${OVERRIDE_COLOR}`,
+    paddingLeft: 12,
+    marginLeft: -12,
+    background: `linear-gradient(90deg, ${OVERRIDE_TINT}, transparent 45%)`,
+    borderRadius: '0 8px 8px 0',
+};
+
+/**
+ * Any non-toggle control (buttons, inputs, lists) with the same override
+ * marking as ToggleRow: orange bar while overridden, the state line below.
+ */
+export function OverrideField({
+    isOverridden,
+    info,
+    className,
+    children,
+}: {
+    isOverridden?: boolean;
+    /** Override state line (usually an <OverrideState>) shown under the control. */
+    info?: React.ReactNode;
+    className?: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <div
+            className={`py-1 ${className ?? ''}`}
+            style={isOverridden ? OVERRIDE_ROW_STYLE : undefined}
+            data-overridden={isOverridden ? 'true' : undefined}
+        >
+            {children}
+            {info && <div className="mt-1.5">{info}</div>}
+        </div>
+    );
+}
+
 export function ToggleRow({
     label,
     hint,
@@ -39,18 +76,7 @@ export function ToggleRow({
     return (
         <div
             className="flex items-center justify-between gap-3 py-2 border-b last:border-b-0"
-            style={{
-                borderColor: 'var(--app-border)',
-                ...(isOverridden
-                    ? {
-                          boxShadow: `inset 3px 0 0 ${OVERRIDE_COLOR}`,
-                          paddingLeft: 12,
-                          marginLeft: -12,
-                          background: `linear-gradient(90deg, ${OVERRIDE_TINT}, transparent 45%)`,
-                          borderRadius: '0 8px 8px 0',
-                      }
-                    : {}),
-            }}
+            style={{ borderColor: 'var(--app-border)', ...(isOverridden ? OVERRIDE_ROW_STYLE : {}) }}
             data-overridden={isOverridden ? 'true' : undefined}
         >
             <div className="min-w-0">

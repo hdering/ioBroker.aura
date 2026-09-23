@@ -1,6 +1,8 @@
 import { useThemeStore } from '../../../../store/themeStore';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
+import { OVERRIDE_ROW_STYLE } from '../shared/SettingControls';
+import { OVERRIDE_COLOR, OVERRIDE_TINT } from '../shared/scopeBands';
 import { BrightnessTabs, useHasTwoBrightnesses } from '../shared/BrightnessTabs';
 import { useEditBrightness } from '../shared/editBrightness';
 import { getTheme, ELEMENT_VAR_FALLBACKS, type ThemeVars, type AllVars } from '../../../../themes';
@@ -274,7 +276,12 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                                 const varLabelKey = VAR_LABEL_KEYS[key];
                                 const isOv = isThemeOv(key);
                                 return (
-                                    <div key={key} className="flex items-center gap-2">
+                                    <div
+                                        key={key}
+                                        className="flex items-center gap-2"
+                                        style={isOv ? OVERRIDE_ROW_STYLE : undefined}
+                                        data-overridden={isOv ? 'true' : undefined}
+                                    >
                                         <label
                                             className="text-xs w-24 shrink-0 flex items-center gap-1"
                                             style={{ color: 'var(--text-secondary)' }}
@@ -283,11 +290,7 @@ export function ThemeVarsSection({ contextId }: ThemeVarsSectionProps) {
                                             {isOv && (
                                                 <span
                                                     className="text-[9px] px-1 py-0.5 rounded font-medium"
-                                                    style={{
-                                                        background:
-                                                            'color-mix(in srgb, var(--accent) 15%, transparent)',
-                                                        color: 'var(--accent)',
-                                                    }}
+                                                    style={{ background: OVERRIDE_TINT, color: OVERRIDE_COLOR }}
                                                 >
                                                     L
                                                 </span>

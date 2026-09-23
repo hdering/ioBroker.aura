@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useThemeStore } from '../../../../store/themeStore';
+import { OverrideField } from '../shared/SettingControls';
+import { OverrideState } from '../shared/OverrideState';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { InactiveNotice } from '../shared/InactiveNotice';
@@ -128,71 +130,87 @@ export function ThemePresetSection({ contextId }: ThemePresetSectionProps) {
                     onAction={clearMode}
                 />
             )}
-            <div
-                className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3"
-                style={scopedAndInert ? { opacity: 0.45, pointerEvents: 'none' } : undefined}
+            <OverrideField
+                isOverridden={!pairMode && contextId !== null && ls?.themeId !== undefined}
+                info={
+                    pairMode ? undefined : (
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['themeId']}
+                            label={t('theme.preset.title')}
+                            format={(_, v) => (typeof v === 'string' ? getTheme(v).name : '—')}
+                        />
+                    )
+                }
             >
-                {shown.map((theme) => (
-                    <button
-                        key={theme.id}
-                        data-aura-theme-preset={theme.id}
-                        disabled={scopedAndInert}
-                        onClick={() => pickTheme(theme.id)}
-                        className="rounded-xl p-3 text-left transition-opacity hover:opacity-80 space-y-2.5"
-                        style={{
-                            // Always use the (opaque) admin surface so the theme name stays
-                            // readable — transparent/glass theme surfaces rendered over the
-                            // dark admin background made the labels invisible (#307).
-                            background: 'var(--app-surface)',
-                            border: `2px solid ${effectiveThemeId === theme.id ? 'var(--accent)' : 'var(--app-border)'}`,
-                        }}
-                    >
-                        {/* Preview strip: the theme's own background + its palette dots */}
-                        <div
-                            className="flex items-center gap-1.5 rounded-lg px-2.5 h-9"
+                <div
+                    className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3"
+                    style={scopedAndInert ? { opacity: 0.45, pointerEvents: 'none' } : undefined}
+                >
+                    {shown.map((theme) => (
+                        <button
+                            key={theme.id}
+                            data-aura-theme-preset={theme.id}
+                            disabled={scopedAndInert}
+                            onClick={() => pickTheme(theme.id)}
+                            className="rounded-xl p-3 text-left transition-opacity hover:opacity-80 space-y-2.5"
                             style={{
-                                background: theme.vars['--app-bg'],
-                                border: `1px solid ${theme.vars['--app-border']}`,
+                                // Always use the (opaque) admin surface so the theme name stays
+                                // readable — transparent/glass theme surfaces rendered over the
+                                // dark admin background made the labels invisible (#307).
+                                background: 'var(--app-surface)',
+                                border: `2px solid ${effectiveThemeId === theme.id ? 'var(--accent)' : 'var(--app-border)'}`,
                             }}
                         >
-                            {(['--widget-bg', '--accent', '--accent-green', '--accent-yellow'] as const).map((k) => (
-                                <div
-                                    key={k}
-                                    className="w-3.5 h-3.5 rounded-full shrink-0"
-                                    style={{
-                                        background: theme.vars[k],
-                                        border: `1px solid ${theme.vars['--app-border']}`,
-                                    }}
-                                />
-                            ))}
-                        </div>
-                        <div>
-                            <p
-                                className="text-sm font-semibold flex items-center gap-1.5"
-                                style={{ color: 'var(--text-primary)' }}
+                            {/* Preview strip: the theme's own background + its palette dots */}
+                            <div
+                                className="flex items-center gap-1.5 rounded-lg px-2.5 h-9"
+                                style={{
+                                    background: theme.vars['--app-bg'],
+                                    border: `1px solid ${theme.vars['--app-border']}`,
+                                }}
                             >
-                                <span className="truncate">{theme.name}</span>
-                                {isUserThemeId(theme.id) && (
-                                    <span
-                                        className="text-[9px] px-1 py-0.5 rounded font-medium shrink-0"
-                                        style={{
-                                            background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
-                                            color: 'var(--accent)',
-                                        }}
-                                    >
-                                        {t('theme.user.badge')}
-                                    </span>
+                                {(['--widget-bg', '--accent', '--accent-green', '--accent-yellow'] as const).map(
+                                    (k) => (
+                                        <div
+                                            key={k}
+                                            className="w-3.5 h-3.5 rounded-full shrink-0"
+                                            style={{
+                                                background: theme.vars[k],
+                                                border: `1px solid ${theme.vars['--app-border']}`,
+                                            }}
+                                        />
+                                    ),
                                 )}
-                            </p>
-                            {effectiveThemeId === theme.id && (
-                                <p className="text-xs mt-0.5" style={{ color: 'var(--accent)' }}>
-                                    {t('theme.preset.active')}
+                            </div>
+                            <div>
+                                <p
+                                    className="text-sm font-semibold flex items-center gap-1.5"
+                                    style={{ color: 'var(--text-primary)' }}
+                                >
+                                    <span className="truncate">{theme.name}</span>
+                                    {isUserThemeId(theme.id) && (
+                                        <span
+                                            className="text-[9px] px-1 py-0.5 rounded font-medium shrink-0"
+                                            style={{
+                                                background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+                                                color: 'var(--accent)',
+                                            }}
+                                        >
+                                            {t('theme.user.badge')}
+                                        </span>
+                                    )}
                                 </p>
-                            )}
-                        </div>
-                    </button>
-                ))}
-            </div>
+                                {effectiveThemeId === theme.id && (
+                                    <p className="text-xs mt-0.5" style={{ color: 'var(--accent)' }}>
+                                        {t('theme.preset.active')}
+                                    </p>
+                                )}
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            </OverrideField>
         </div>
     );
 }

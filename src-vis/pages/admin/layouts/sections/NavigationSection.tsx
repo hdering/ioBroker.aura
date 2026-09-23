@@ -1,5 +1,5 @@
 import { useT } from '../../../../i18n';
-import { ToggleRow } from '../shared/SettingControls';
+import { ToggleRow, OVERRIDE_ROW_STYLE } from '../shared/SettingControls';
 import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
@@ -13,7 +13,7 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
     const t = useT();
     const { eff, set, resetKeys, isDirty, level } = useLayoutSetting(contextId);
     const [enabled, enabledOv] = eff('idleReturnEnabled');
-    const [delay] = eff('idleReturnDelay');
+    const [delay, delayOv] = eff('idleReturnDelay');
 
     return (
         <div
@@ -48,7 +48,11 @@ export function NavigationSection({ contextId }: { contextId: string | null }) {
                 }
             />
             {enabled && (
-                <div className="pt-1 space-y-2">
+                <div
+                    className="pt-1 space-y-2"
+                    style={delayOv ? OVERRIDE_ROW_STYLE : undefined}
+                    data-overridden={delayOv ? 'true' : undefined}
+                >
                     <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
                         {t('settings.frontend.idleReturnDelay')}
                     </p>

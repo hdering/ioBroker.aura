@@ -1,6 +1,7 @@
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { SliderSetting } from '../shared/SliderSetting';
-import { OVERRIDE_COLOR } from '../shared/scopeBands';
+import { OVERRIDE_COLOR, OVERRIDE_TINT } from '../shared/scopeBands';
+import { OVERRIDE_ROW_STYLE } from '../shared/SettingControls';
 import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useT } from '../../../../i18n';
@@ -66,7 +67,11 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Font Scale */}
-                <div className="lg:col-span-1">
+                <div
+                    className="lg:col-span-1"
+                    style={fontScaleOv ? OVERRIDE_ROW_STYLE : undefined}
+                    data-overridden={fontScaleOv ? 'true' : undefined}
+                >
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-1.5">
                             <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
@@ -76,7 +81,7 @@ export function TypographySpacingSection({ contextId }: TypographySpacingSection
                                 <span
                                     className="text-[10px] px-1.5 py-0.5 rounded font-medium"
                                     style={{
-                                        background: 'color-mix(in srgb, var(--accent) 15%, transparent)',
+                                        background: OVERRIDE_TINT,
                                         color: fontAccent,
                                     }}
                                 >

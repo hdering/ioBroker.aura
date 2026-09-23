@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Plus, X, ArrowUp, ArrowDown } from 'lucide-react';
 import type { LayoutMenuItem, LayoutSettings } from '../../../../store/dashboardStore';
-import { useT } from '../../../../i18n';
-import { ToggleRow, SubGroup } from '../shared/SettingControls';
+import { useT, type TranslationKey } from '../../../../i18n';
+import { ToggleRow, SubGroup, OverrideField } from '../shared/SettingControls';
+import { OverrideState } from '../shared/OverrideState';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
@@ -34,6 +35,8 @@ const DRAWER_KEYS: (keyof LayoutSettings)[] = [
     'layoutDrawerHideMobileScrollbar',
     'layoutDrawerItems',
 ];
+
+type DrawerKey = Parameters<ReturnType<typeof useLayoutSetting>['eff']>[0];
 
 // ── LayoutMenuItemRow ─────────────────────────────────────────────────────────
 // Editor row for one extra menu element (clock / datapoint / text). Mirrors the
@@ -221,6 +224,18 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
         showHeader: eff('showHeader')[0],
     };
     const updateFrontend = (patch: Partial<LayoutSettings>) => setPatch(patch);
+    // Orange override bar + state line for one setting, same as in Header.
+    const mark = (key: DrawerKey, labelKey: TranslationKey, px = false) => ({
+        isOverridden: eff(key)[1],
+        info: (
+            <OverrideState
+                contextId={contextId}
+                keys={[key]}
+                label={t(labelKey)}
+                format={px ? (_, v) => (v === undefined ? '—' : `${v} px`) : undefined}
+            />
+        ),
+    });
 
     const items = frontend.layoutDrawerItems ?? [];
     const itemHost = sectionMenuItemHost(frontend.layoutDrawerPlacement, frontend.layoutDrawerWidth);
@@ -262,6 +277,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
 
             <ToggleRow
                 label={t('settings.frontend.layoutDrawer')}
+                {...mark('layoutDrawerEnabled', 'settings.frontend.layoutDrawer')}
                 hint={t('settings.frontend.layoutDrawerHint')}
                 value={frontend.layoutDrawerEnabled ?? false}
                 onChange={(v) => updateFrontend({ layoutDrawerEnabled: v })}
@@ -270,18 +286,20 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                 <div className="space-y-3 pt-1">
                     <ToggleRow
                         label={t('settings.frontend.layoutDrawerShowSingle')}
+                        {...mark('layoutDrawerShowSingle', 'settings.frontend.layoutDrawerShowSingle')}
                         hint={t('settings.frontend.layoutDrawerShowSingleHint')}
                         value={frontend.layoutDrawerShowSingle ?? false}
                         onChange={(v) => updateFrontend({ layoutDrawerShowSingle: v })}
                     />
                     <ToggleRow
                         label={t('settings.frontend.layoutDrawerShowTitle')}
+                        {...mark('layoutDrawerShowTitle', 'settings.frontend.layoutDrawerShowTitle')}
                         value={frontend.layoutDrawerShowTitle ?? true}
                         onChange={(v) => updateFrontend({ layoutDrawerShowTitle: v })}
                     />
                     {(frontend.layoutDrawerShowTitle ?? true) && (
                         <SubGroup>
-                            <div>
+                            <OverrideField {...mark('layoutDrawerTitle', 'settings.frontend.layoutDrawerTitle')}>
                                 <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                     {t('settings.frontend.layoutDrawerTitle')}
                                 </p>
@@ -297,9 +315,15 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                         border: '1px solid var(--app-border)',
                                     }}
                                 />
-                            </div>
+                            </OverrideField>
                             <div className="grid grid-cols-2 gap-3">
-                                <div>
+                                <OverrideField
+                                    {...mark(
+                                        'layoutDrawerTitleMarginTop',
+                                        'settings.frontend.layoutDrawerItemMarginTop',
+                                        true,
+                                    )}
+                                >
                                     <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                         {t('settings.frontend.layoutDrawerItemMarginTop')}
                                     </p>
@@ -328,8 +352,14 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                             px
                                         </span>
                                     </div>
-                                </div>
-                                <div>
+                                </OverrideField>
+                                <OverrideField
+                                    {...mark(
+                                        'layoutDrawerTitleMarginBottom',
+                                        'settings.frontend.layoutDrawerItemMarginBottom',
+                                        true,
+                                    )}
+                                >
                                     <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                         {t('settings.frontend.layoutDrawerItemMarginBottom')}
                                     </p>
@@ -358,12 +388,12 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                             px
                                         </span>
                                     </div>
-                                </div>
+                                </OverrideField>
                             </div>
                         </SubGroup>
                     )}
                     {/* Placement decides the menu type first (floating / tab-bar / docked sidebar). */}
-                    <div>
+                    <OverrideField {...mark('layoutDrawerPlacement', 'settings.frontend.layoutDrawerPlacement')}>
                         <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.frontend.layoutDrawerPlacement')}
                         </p>
@@ -411,12 +441,14 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                         <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                             {t('settings.frontend.layoutDrawerPlacementHint')}
                         </p>
-                    </div>
+                    </OverrideField>
                     {/* Separate placement below the mobile breakpoint — a docked sidebar
                         would eat the whole screen width there, and everyone wants a
                         different substitute (hamburger in the bar, floating, bar at the
                         bottom). 'auto' keeps the tab bar hideable on single-tab sections. */}
-                    <div>
+                    <OverrideField
+                        {...mark('layoutDrawerMobilePlacement', 'settings.frontend.layoutDrawerMobilePlacement')}
+                    >
                         <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.frontend.layoutDrawerMobilePlacement')}
                         </p>
@@ -450,12 +482,14 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                         <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                             {t('settings.frontend.layoutDrawerMobilePlacementHint')}
                         </p>
-                    </div>
+                    </OverrideField>
                     {/* Tablet band (#413): between the mobile and tablet breakpoints the
                         dashboard flows into columns to gain width, so the docked sidebar
                         should normally give way there too. Same choices as on mobile;
                         only matters once a tablet breakpoint is set in Grid & Mobile. */}
-                    <div>
+                    <OverrideField
+                        {...mark('layoutDrawerTabletPlacement', 'settings.frontend.layoutDrawerTabletPlacement')}
+                    >
                         <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.frontend.layoutDrawerTabletPlacement')}
                         </p>
@@ -490,7 +524,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                         <p className="text-[10px] mt-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
                             {t('settings.frontend.layoutDrawerTabletPlacementHint')}
                         </p>
-                    </div>
+                    </OverrideField>
                     {/* Placement-dependent options as an indented sub-group directly under the
                         placement chooser — makes clear which settings depend on the chosen placement.
                         Docked bar placements (top / bottom) have no extra options, so the group is
@@ -507,7 +541,9 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                         >
                                             {t('settings.frontend.layoutDrawerHamburger')}
                                         </p>
-                                        <div>
+                                        <OverrideField
+                                            {...mark('layoutDrawerSize', 'settings.frontend.layoutDrawerSize')}
+                                        >
                                             <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                                 {t('settings.frontend.layoutDrawerSize')}
                                             </p>
@@ -535,9 +571,10 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                                     );
                                                 })}
                                             </div>
-                                        </div>
+                                        </OverrideField>
                                         <ToggleRow
                                             label={t('settings.frontend.layoutDrawerAutoHide')}
+                                            {...mark('layoutDrawerAutoHide', 'settings.frontend.layoutDrawerAutoHide')}
                                             value={frontend.layoutDrawerAutoHide ?? false}
                                             onChange={(v) => updateFrontend({ layoutDrawerAutoHide: v })}
                                         />
@@ -551,7 +588,9 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                 )}
                                 {frontend.layoutDrawerPlacement === 'sidebar' && (
                                     <div className="grid grid-cols-2 gap-3">
-                                        <div>
+                                        <OverrideField
+                                            {...mark('layoutDrawerWidth', 'settings.frontend.layoutDrawerWidth', true)}
+                                        >
                                             <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                                 {t('settings.frontend.layoutDrawerWidth')}
                                             </p>
@@ -579,8 +618,14 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                                     px
                                                 </span>
                                             </div>
-                                        </div>
-                                        <div>
+                                        </OverrideField>
+                                        <OverrideField
+                                            {...mark(
+                                                'layoutDrawerTopOffset',
+                                                'settings.frontend.layoutDrawerTopOffset',
+                                                true,
+                                            )}
+                                        >
                                             <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                                 {t('settings.frontend.layoutDrawerTopOffset')}
                                             </p>
@@ -608,8 +653,14 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                                     px
                                                 </span>
                                             </div>
-                                        </div>
-                                        <div>
+                                        </OverrideField>
+                                        <OverrideField
+                                            {...mark(
+                                                'layoutDrawerBottomOffset',
+                                                'settings.frontend.layoutDrawerBottomOffset',
+                                                true,
+                                            )}
+                                        >
                                             <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                                 {t('settings.frontend.layoutDrawerBottomOffset')}
                                             </p>
@@ -637,7 +688,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                                     px
                                                 </span>
                                             </div>
-                                        </div>
+                                        </OverrideField>
                                     </div>
                                 )}
                             </SubGroup>
@@ -647,7 +698,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                     {((frontend.layoutDrawerPlacement ?? 'floating') === 'top' ||
                         (frontend.layoutDrawerPlacement ?? 'floating') === 'bottom') && (
                         <SubGroup>
-                            <div>
+                            <OverrideField {...mark('layoutDrawerBarAlignment', 'settings.tabBar.tabsAlignment')}>
                                 <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                     {t('settings.tabBar.tabsAlignment')}
                                 </p>
@@ -676,15 +727,16 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                         );
                                     })}
                                 </div>
-                            </div>
+                            </OverrideField>
                             <ToggleRow
                                 label={t('settings.tabBar.hideMobileScrollbar')}
+                                {...mark('layoutDrawerHideMobileScrollbar', 'settings.tabBar.hideMobileScrollbar')}
                                 value={frontend.layoutDrawerHideMobileScrollbar ?? false}
                                 onChange={(v) => updateFrontend({ layoutDrawerHideMobileScrollbar: v })}
                             />
                         </SubGroup>
                     )}
-                    <div>
+                    <OverrideField {...mark('layoutDrawerEntryStyle', 'settings.frontend.layoutDrawerEntryStyle')}>
                         <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
                             {t('settings.frontend.layoutDrawerEntryStyle')}
                         </p>
@@ -713,8 +765,10 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                 );
                             })}
                         </div>
-                    </div>
-                    <div>
+                    </OverrideField>
+                    <OverrideField
+                        {...mark('layoutDrawerIndicatorStyle', 'settings.frontend.layoutDrawerIndicatorStyle')}
+                    >
                         <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                             {t('settings.frontend.layoutDrawerIndicatorStyle')}
                         </p>
@@ -743,10 +797,12 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                 );
                             })}
                         </div>
-                    </div>
+                    </OverrideField>
                     {/* Size fields side by side */}
                     <div className="grid grid-cols-3 gap-3">
-                        <div>
+                        <OverrideField
+                            {...mark('layoutDrawerFontSize', 'settings.frontend.layoutDrawerFontSize', true)}
+                        >
                             <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                 {t('settings.frontend.layoutDrawerFontSize')}
                             </p>
@@ -771,8 +827,10 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                     px
                                 </span>
                             </div>
-                        </div>
-                        <div>
+                        </OverrideField>
+                        <OverrideField
+                            {...mark('layoutDrawerIconSize', 'settings.frontend.layoutDrawerIconSize', true)}
+                        >
                             <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                 {t('settings.frontend.layoutDrawerIconSize')}
                             </p>
@@ -797,8 +855,10 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                     px
                                 </span>
                             </div>
-                        </div>
-                        <div>
+                        </OverrideField>
+                        <OverrideField
+                            {...mark('layoutDrawerEntryHeight', 'settings.frontend.layoutDrawerEntryHeight', true)}
+                        >
                             <p className="text-xs mb-1.5" style={{ color: 'var(--text-secondary)' }}>
                                 {t('settings.frontend.layoutDrawerEntryHeight')}
                             </p>
@@ -823,47 +883,49 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                     px
                                 </span>
                             </div>
-                        </div>
+                        </OverrideField>
                     </div>
                     <div className="border-t pt-3" style={{ borderColor: 'var(--app-border)' }}>
-                        <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
-                            {t('settings.frontend.layoutDrawerItems')}
-                        </p>
-                        <div className="space-y-1.5">
-                            {items.map((item) => (
-                                <LayoutMenuItemRow
-                                    key={item.id}
-                                    item={item}
-                                    onUpdate={(patch) => updateItem(item.id, patch)}
-                                    onRemove={() => removeItem(item.id)}
-                                    onMove={(dir) => moveItem(item.id, dir)}
-                                    canMoveUp={canMoveMenuItem(items, item.id, -1)}
-                                    canMoveDown={canMoveMenuItem(items, item.id, 1)}
-                                    host={itemHost}
-                                    defaultExpanded={item.id === addedId}
-                                    t={t}
-                                />
-                            ))}
-                        </div>
-                        <div className="flex gap-1.5 mt-2 flex-wrap">
-                            {(['clock', 'datapoint', 'text', 'widget', 'idleReturn'] as const).map((type) => {
-                                const label = t(menuItemTypeLabelKey(type));
-                                return (
-                                    <button
-                                        key={type}
-                                        onClick={() => addItem(type)}
-                                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
-                                        style={{
-                                            background: 'var(--app-bg)',
-                                            color: 'var(--text-secondary)',
-                                            border: '1px solid var(--app-border)',
-                                        }}
-                                    >
-                                        <Plus size={11} /> {label}
-                                    </button>
-                                );
-                            })}
-                        </div>
+                        <OverrideField {...mark('layoutDrawerItems', 'settings.frontend.layoutDrawerItems')}>
+                            <p className="text-sm mb-1.5" style={{ color: 'var(--text-primary)' }}>
+                                {t('settings.frontend.layoutDrawerItems')}
+                            </p>
+                            <div className="space-y-1.5">
+                                {items.map((item) => (
+                                    <LayoutMenuItemRow
+                                        key={item.id}
+                                        item={item}
+                                        onUpdate={(patch) => updateItem(item.id, patch)}
+                                        onRemove={() => removeItem(item.id)}
+                                        onMove={(dir) => moveItem(item.id, dir)}
+                                        canMoveUp={canMoveMenuItem(items, item.id, -1)}
+                                        canMoveDown={canMoveMenuItem(items, item.id, 1)}
+                                        host={itemHost}
+                                        defaultExpanded={item.id === addedId}
+                                        t={t}
+                                    />
+                                ))}
+                            </div>
+                            <div className="flex gap-1.5 mt-2 flex-wrap">
+                                {(['clock', 'datapoint', 'text', 'widget', 'idleReturn'] as const).map((type) => {
+                                    const label = t(menuItemTypeLabelKey(type));
+                                    return (
+                                        <button
+                                            key={type}
+                                            onClick={() => addItem(type)}
+                                            className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                                            style={{
+                                                background: 'var(--app-bg)',
+                                                color: 'var(--text-secondary)',
+                                                border: '1px solid var(--app-border)',
+                                            }}
+                                        >
+                                            <Plus size={11} /> {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </OverrideField>
                     </div>
                 </div>
             )}
