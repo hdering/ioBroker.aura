@@ -12,3 +12,4 @@
 - List - on a phone the "Manage datapoints" dialog folds the datapoint list into a bar above the editor, so the selected entry can be configured
 - Widgets with a click action now show a small icon that runs it, also in the folded header of a collapsed widget; it can be switched off, moved to another corner or given its own symbol under Appearance (#702)
 - A collapsed widget can now show values in its header: a datapoint, a value the widget already has (main value, list sum, average, count …) or a text with bindings, beside the title or in a second row; set up under Appearance → Header (#676)
+- Settings - a protected tab or section no longer shows up empty in the editor after an update, and "Remove PIN" works again: a login kept from an older version now asks for the admin password once (#704)

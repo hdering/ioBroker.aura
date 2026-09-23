@@ -70,16 +70,24 @@ export const useAuthStore = create<AuthState>()(
             partialize: (s) => ({ token: s.token, tokenExp: s.tokenExp, sessionActive: s.sessionActive }),
             // A token whose expiry has passed is no session — drop it while the app
             // boots, so the editor never renders as logged in behind a dead token.
-            onRehydrateStorage: () => (state) => {
-                if (!state) return;
-                if (typeof state.tokenExp === 'number' && state.tokenExp <= Date.now()) {
-                    useAuthStore.setState({
-                        token: null,
-                        tokenExp: null,
-                        sessionActive: false,
-                        sessionExpired: true,
-                    });
-                }
+            // In `merge`, not onRehydrateStorage: localStorage hydrates synchronously
+            // inside create(), where `useAuthStore` is not assigned yet — the setState
+            // there threw, zustand swallowed it and the dead session stayed (#704).
+            merge: (persisted, current) => {
+                const p = (persisted ?? {}) as Partial<AuthState>;
+                const token = typeof p.token === 'string' ? p.token : null;
+                const tokenExp = typeof p.tokenExp === 'number' ? p.tokenExp : null;
+                const sessionActive = p.sessionActive === true;
+                const expired = tokenExp !== null && tokenExp <= Date.now();
+                // A flag without a token is the pre-vault login, which persisted
+                // { pinHash, sessionActive } under this same key. It opened the editor
+                // after an update, but every admin call had nothing to send: a
+                // protected tab stayed empty and „PIN entfernen“ failed (#704). Dev
+                // keeps it — the test harness seeds exactly that as its fake login.
+                const tokenless = !DEV && sessionActive && !token;
+                if (sessionActive && (expired || tokenless))
+                    return { ...current, token: null, tokenExp: null, sessionActive: false, sessionExpired: true };
+                return { ...current, token, tokenExp, sessionActive };
             },
         },
     ),
@@ -162,8 +170,13 @@ export async function verifyAdminSession(): Promise<boolean> {
     const { token, tokenExp, sessionActive, apiAvailable } = useAuthStore.getState();
     if (!sessionActive) return false;
     if (DEV && !apiAvailable) return true; // no security API behind the dev server
-    // No token behind the flag: nothing to verify (dev/test fake) — leave it alone.
-    if (!token) return true;
+    // No token behind the flag: a dev/test fake — leave it alone. In production it
+    // can only be a login from before the vault, which no admin call accepts (#704).
+    if (!token) {
+        if (DEV) return true;
+        expireSession();
+        return false;
+    }
     if (typeof tokenExp === 'number' && tokenExp <= Date.now()) {
         expireSession();
         return false;
