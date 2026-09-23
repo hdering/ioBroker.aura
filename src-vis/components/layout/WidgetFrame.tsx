@@ -6377,6 +6377,21 @@ function activeSectionState(s: ReturnType<typeof useDashboardStore.getState>) {
     return l?.sections.find((sec) => sec.id === l.activeSectionId) ?? l?.sections[0];
 }
 
+/**
+ * True when `el` sits inside a filled surface of its own below `host` — a tile
+ * with a background colour or image (switch "card"). Header items cannot share such
+ * a title's line without landing on the tile, so the frame puts them above it.
+ */
+function inFilledTile(el: HTMLElement, host: HTMLElement): boolean {
+    for (let node = el.parentElement; node && node !== host; node = node.parentElement) {
+        const cs = getComputedStyle(node);
+        if (cs.backgroundImage && cs.backgroundImage !== 'none') return true;
+        const bg = cs.backgroundColor;
+        if (bg && bg !== 'transparent' && !/rgba\([^)]*,\s*0\)$/.test(bg)) return true;
+    }
+    return false;
+}
+
 function WidgetFrameInner({
     config,
     editMode,
@@ -7315,10 +7330,12 @@ function WidgetFrameInner({
     const stripRowTwo = hdrRows.r2 === 0 && hasSecondRow(expandedHeaderItems);
     const showCornerActionIcon = showCornerActionIconBase && !actionItemExpanded;
     // Row 1 in the fallback lies on the line of the widget's own title, wherever the
-    // layout puts it (top of a card, centred in a compact row or a tile): measured
-    // from the first visible title element, top of the body when there is none.
+    // layout puts it (top of a card, centred in a compact row): measured from the
+    // first visible title element, top of the body when there is none. A title inside
+    // a filled tile (switch "card") has no free line beside it — the value would sit
+    // on the tile or its edge — so there the row goes above the body instead.
     const headerBodyEl = useRef<HTMLDivElement>(null);
-    const [titleLine, setTitleLine] = useState<{ top: number; height: number } | null>(null);
+    const [titleLine, setTitleLine] = useState<{ top: number; height: number; tile: boolean } | null>(null);
     useLayoutEffect(() => {
         const host = headerBodyEl.current;
         if (!stripRowOne || !host) {
@@ -7327,11 +7344,22 @@ function WidgetFrameInner({
         }
         const measure = () => {
             const hostBox = host.getBoundingClientRect();
-            const title = [...host.querySelectorAll<HTMLElement>('.aura-widget-title')]
-                .map((el) => el.getBoundingClientRect())
-                .find((r) => r.width > 0 && r.height > 0);
-            const next = title ? { top: Math.round(title.top - hostBox.top), height: Math.round(title.height) } : null;
-            setTitleLine((prev) => (prev?.top === next?.top && prev?.height === next?.height ? prev : next));
+            const titleEl = [...host.querySelectorAll<HTMLElement>('.aura-widget-title')].find((el) => {
+                const r = el.getBoundingClientRect();
+                return r.width > 0 && r.height > 0;
+            });
+            let next: { top: number; height: number; tile: boolean } | null = null;
+            if (titleEl) {
+                const r = titleEl.getBoundingClientRect();
+                next = {
+                    top: Math.round(r.top - hostBox.top),
+                    height: Math.round(r.height),
+                    tile: inFilledTile(titleEl, host),
+                };
+            }
+            setTitleLine((prev) =>
+                prev?.top === next?.top && prev?.height === next?.height && prev?.tile === next?.tile ? prev : next,
+            );
         };
         measure();
         const ro = new ResizeObserver(measure);
@@ -7741,11 +7769,24 @@ function WidgetFrameInner({
                                     // cannot sit under a title the frame does not know.
                                     const stripStyle = { color: 'var(--text-secondary)' };
                                     const firstLinePx = Math.max(20, Number(config.options?.iconSize) || 20);
+                                    const rowOneAbove = stripRowOne && !!titleLine?.tile;
                                     return (
                                         <div className="flex flex-col h-full w-full min-h-0" data-header-host="">
+                                            {rowOneAbove && (
+                                                <div
+                                                    className="shrink-0 mb-2 min-w-0"
+                                                    style={stripStyle}
+                                                    data-header-strip="above"
+                                                >
+                                                    <HeaderRowOne
+                                                        items={expandedHeaderItems}
+                                                        onAction={onHeaderAction}
+                                                    />
+                                                </div>
+                                            )}
                                             <div ref={headerBodyEl} className="relative flex-1 min-h-0 w-full">
                                                 {body}
-                                                {stripRowOne && (
+                                                {stripRowOne && !rowOneAbove && (
                                                     <div
                                                         className="absolute left-0 right-0 flex items-center min-w-0 pointer-events-none"
                                                         style={{

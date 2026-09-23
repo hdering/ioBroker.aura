@@ -38,6 +38,7 @@ const ITEMS = [
 ];
 
 const strip = [];
+const above = [];
 const inline = [];
 let seq = 0;
 for (const [type, meta] of Object.entries(schema.widgets)) {
@@ -75,6 +76,7 @@ for (const [type, meta] of Object.entries(schema.widgets)) {
                         top: r.top,
                         bottom: r.bottom,
                         inStrip: !!el.closest('[data-header-strip]'),
+                        above: el.closest('[data-header-strip]')?.getAttribute('data-header-strip') === 'above',
                         inside: r.width > 0 && r.left >= cb.left - 1 && r.right <= cb.right + 1 && r.top >= cb.top - 1,
                         visible: r.width > 0 && r.height > 0,
                     };
@@ -114,13 +116,23 @@ for (const [type, meta] of Object.entries(schema.widgets)) {
         // Row 1 in the frame's fallback lies over the body's first line: it has to line
         // up with the widget's title, not sit on a line of its own above it.
         if (r1 && r1.inStrip && res.title) {
-            const mid = (r1.top + r1.bottom) / 2;
-            check(
-                `${label}: row 1 in line with the title`,
-                mid >= res.title.top - 4 && mid <= res.title.bottom + 4,
-                `item ${Math.round(r1.top)}–${Math.round(r1.bottom)}, title ${Math.round(res.title.top)}–${Math.round(res.title.bottom)}`,
-            );
+            if (r1.above) {
+                // A title inside a filled tile: the row sits above the body, clear of it.
+                check(
+                    `${label}: row 1 above the tiled title`,
+                    r1.bottom <= res.title.top + 2,
+                    `${Math.round(r1.bottom)} vs ${Math.round(res.title.top)}`,
+                );
+            } else {
+                const mid = (r1.top + r1.bottom) / 2;
+                check(
+                    `${label}: row 1 in line with the title`,
+                    mid >= res.title.top - 4 && mid <= res.title.bottom + 4,
+                    `item ${Math.round(r1.top)}–${Math.round(r1.bottom)}, title ${Math.round(res.title.top)}–${Math.round(res.title.bottom)}`,
+                );
+            }
         }
+        if (r1 && r1.above) above.push(label);
         const usesStrip = [...res.r1, ...res.r2].some((h) => h.inStrip);
         (usesStrip ? strip : inline).push(label);
     }
@@ -131,6 +143,7 @@ await browser.close();
 
 console.log(`\ninline (${inline.length}): ${inline.join(', ')}`);
 console.log(`\nfallback strip (${strip.length}): ${strip.join(', ')}`);
+console.log(`\nrow 1 above a tiled title (${above.length}): ${above.join(', ')}`);
 const failed = results.filter((r) => !r.ok);
 console.log(`\nheader-items-sweep: ${results.length - failed.length}/${results.length} passed`);
 process.exit(failed.length ? 1 : 0);
