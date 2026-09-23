@@ -51,6 +51,8 @@ const AXIS_GAP = 6;
 // containLabel does not know that the outermost y label sticks out half a line above and below
 // the grid, so top/bottom keep a line's worth of room — otherwise the "0" is cut off.
 const AXIS_GAP_V = 14;
+// Least distance of a value label from the left/right canvas edge.
+const LABEL_INSET = 2;
 
 const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d', '1y', 'total'];
 
@@ -274,10 +276,6 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             },
         };
     };
-    // Dense series would otherwise stamp a label on every single point; echarts drops the
-    // ones that would collide and keeps the rest readable.
-    const valueLabelLayout =
-        echartSeries.some((s) => seriesShowValues(s)) || echartShowStackPercent ? { hideOverlap: true } : undefined;
     /** Line labels hang on the symbols — echarts creates none while `showSymbol` is off. A
      *  percentage-only chart therefore needs them on the stacked series, and only there. */
     const labelSymbols = (s: EChartSeriesConfig) => seriesShowValues(s) || (echartShowStackPercent && !!s.stack);
@@ -405,6 +403,22 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         ro.observe(el);
         return () => ro.disconnect();
     }, []);
+
+    // Dense series would otherwise stamp a label on every single point; echarts drops the
+    // ones that would collide and keeps the rest readable.
+    // The label of a point on the plot edge is centred on it and half of it hangs over the canvas —
+    // the grid only reserves room for axis labels. It is pushed back inside instead (issue #703).
+    const valueLabelLayout =
+        echartSeries.some((s) => seriesShowValues(s)) || echartShowStackPercent
+            ? (p: { labelRect: { x: number; width: number } }) => {
+                  const width: number = chartRef.current?.getEchartsInstance?.()?.getWidth?.() ?? chartWidth;
+                  const r = p.labelRect;
+                  let dx = 0;
+                  if (r.x < LABEL_INSET) dx = LABEL_INSET - r.x;
+                  else if (width > 0 && r.x + r.width > width - LABEL_INSET) dx = width - LABEL_INSET - r.x - r.width;
+                  return { hideOverlap: true, dx };
+              }
+            : undefined;
 
     if (layout === 'custom') return <CustomGridView config={config} value="" />;
 
@@ -930,6 +944,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         const showJsonCurrent = echartShowCurrent && jsonCurrentValues.length > 0;
 
         const jsonLegendNames = jsonSeriesList.map((ser) => String(ser.name ?? ''));
+        const jsonBoundaryGap = echartSeries.some((s) => s.chartType === 'bar');
 
         const jsonOption: Record<string, unknown> = {
             backgroundColor: 'transparent',
@@ -993,8 +1008,16 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                       type: 'category',
                       data: categories,
                       show: echartShowXAxis,
-                      boundaryGap: echartSeries.some((s) => s.chartType === 'bar'),
-                      axisLabel: { show: echartShowXAxis, color: onCanvasMuted, fontSize: 10 },
+                      boundaryGap: jsonBoundaryGap,
+                      // Without the gap the outer categories sit on the plot edge, and their
+                      // centred labels hang over it — the legacy containLabel does not see that
+                      // (issue #703). Aligned inward they stay whole.
+                      axisLabel: {
+                          show: echartShowXAxis,
+                          color: onCanvasMuted,
+                          fontSize: 10,
+                          ...(jsonBoundaryGap ? {} : { alignMinLabel: 'left', alignMaxLabel: 'right' }),
+                      },
                       axisTick: { show: echartShowXAxis },
                       axisLine: { show: echartShowXAxis, lineStyle: { color: onCanvasLine } },
                       splitLine: { show: false },
