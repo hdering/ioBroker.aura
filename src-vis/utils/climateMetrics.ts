@@ -87,7 +87,7 @@ export interface ClimateMetricTemplate {
     label: string;
     /** Erklärung unter dem Namen. */
     hint?: string;
-    /** Datenpunkt-Namen, an denen „Auto-Erkennen" den Wert bei den Geschwistern findet. */
+    /** Datenpunkt-Namen, an denen „Auto-Erkennen“ den Wert bei den Geschwistern findet. */
     siblingNames?: string[];
     metric: Omit<ClimateMetric, 'id'>;
 }

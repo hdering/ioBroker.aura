@@ -205,7 +205,7 @@ export function ClimateWidget({ config }: WidgetProps) {
 
     const showChartSection = showChart && !!historyInstance;
 
-    // ── Diagramm: Temperatur plus jeder Wert mit „im Diagramm" ────────────────
+    // ── Diagramm: Temperatur plus jeder Wert mit „im Diagramm“ ────────────────
     const chartMetrics: ResolvedClimateMetric[] = useMemo(
         () => metrics.filter((m) => m.inChart && (m.source ?? 'datapoint') === 'datapoint' && !!m.datapoint),
         [metrics],
