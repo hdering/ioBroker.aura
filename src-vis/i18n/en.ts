@@ -417,7 +417,6 @@ export const en: Record<TranslationKey, string> = {
     'dashboard.aura.automation': 'Control and visualize ioBroker automations live',
 
     'dashboard.mcp.title': 'Control Aura with AI (MCP)',
-    'dashboard.mcp.badge': 'BETA',
     'dashboard.mcp.description':
         'Aura provides an MCP server. An AI assistant (Claude Desktop, Claude Code, …) reads the dashboard structure, looks up widget options and builds tabs — no hand-written JSON.',
     'dashboard.mcp.step1': 'ioBroker Admin → Instances → aura.0 → Configuration → enable "AI access (MCP)".',

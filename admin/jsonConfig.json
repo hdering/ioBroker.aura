@@ -483,8 +483,8 @@
     "_mcpHeader": {
       "type": "header",
       "text": {
-        "en": "AI access (MCP) — BETA",
-        "de": "KI-Zugriff (MCP) — BETA"
+        "en": "AI access (MCP)",
+        "de": "KI-Zugriff (MCP)"
       },
       "size": 2,
       "xs": 12,
@@ -496,8 +496,8 @@
     "mcpBetaNote": {
       "type": "staticText",
       "text": {
-        "en": "BETA — an AI assistant can change your dashboard through this endpoint. It can get things wrong: widgets in the wrong place, options that do not do what was intended, a tab overwritten. Every write is backed up to the instance backups (aura.0.backups) first, but check the result. Do not enable this on a system you cannot afford to have disturbed.",
-        "de": "BETA — über diesen Endpunkt kann ein KI-Assistent dein Dashboard verändern. Dabei kann einiges danebengehen: Widgets an der falschen Stelle, Optionen ohne die gewünschte Wirkung, ein überschriebener Tab. Vor jedem Schreibvorgang wird in den Sicherungen der Instanz (aura.0.backups) gesichert — sieh dir das Ergebnis trotzdem an. Nicht auf einem System aktivieren, dessen Störung du dir nicht leisten kannst."
+        "en": "An AI assistant can change your dashboard through this endpoint. It can get things wrong: widgets in the wrong place, options that do not do what was intended, a tab overwritten. Every write is backed up to the instance backups (aura.0.backups) first, but check the result. Do not enable this on a system you cannot afford to have disturbed.",
+        "de": "Über diesen Endpunkt kann ein KI-Assistent dein Dashboard verändern. Dabei kann einiges danebengehen: Widgets an der falschen Stelle, Optionen ohne die gewünschte Wirkung, ein überschriebener Tab. Vor jedem Schreibvorgang wird in den Sicherungen der Instanz (aura.0.backups) gesichert — sieh dir das Ergebnis trotzdem an. Nicht auf einem System aktivieren, dessen Störung du dir nicht leisten kannst."
       },
       "style": {
         "color": "#b45309",

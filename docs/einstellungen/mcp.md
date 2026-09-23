@@ -2,7 +2,7 @@
 
 Aura stellt unter `POST /mcp` einen MCP-Server bereit. Ein KI-Assistent (Claude Desktop, Claude Code, …) liest damit die Dashboard-Struktur, schlägt Widget-Optionen nach und baut Tabs — ohne dass jemand JSON von Hand schreibt.
 
-::: warning BETA
+::: warning
 Der Assistent verändert dein Dashboard. Widgets können an der falschen Stelle landen, Optionen ohne Wirkung bleiben, ein Tab überschrieben werden. Vor jedem Schreibvorgang sichert Aura nach `aura.0.backups` — das Ergebnis trotzdem ansehen. Nicht auf einem System aktivieren, dessen Störung du dir nicht leisten kannst.
 :::
 
@@ -30,7 +30,7 @@ Ohne den ioBroker-MCP weiß das Modell nicht, welche Geräte es gibt, und fängt
 
 ## Schritt 1 — Endpunkt aktivieren
 
-ioBroker-Admin → **Instanzen** → `aura.0` → Konfiguration (Schraubenschlüssel) → Abschnitt **„KI-Zugriff (MCP) — BETA“**.
+ioBroker-Admin → **Instanzen** → `aura.0` → Konfiguration (Schraubenschlüssel) → Abschnitt **„KI-Zugriff (MCP)“**.
 
 ![](./assets/mcp-config.png)
 

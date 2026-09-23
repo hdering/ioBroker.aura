@@ -553,15 +553,6 @@ function McpSection() {
                 <h2 className="font-semibold text-sm" style={{ color: 'var(--text-primary)' }}>
                     {enabled ? t('dashboard.mcp.titleActive') : t('dashboard.mcp.title')}
                 </h2>
-                <span
-                    className="text-[10px] font-bold px-1.5 py-0.5 rounded"
-                    style={{
-                        background: 'color-mix(in srgb, var(--accent-yellow) 22%, transparent)',
-                        color: 'var(--accent-yellow)',
-                    }}
-                >
-                    {t('dashboard.mcp.badge')}
-                </span>
                 {enabled && (
                     <span
                         className="text-[10px] font-medium px-1.5 py-0.5 rounded"

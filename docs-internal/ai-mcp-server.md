@@ -41,7 +41,7 @@ müssen — sonst baut das Modell ein Dashboard aus IDs, die hier nicht existier
 ## Einrichten
 
 Die Instanzkonfiguration führt durch die Schritte (Kurzanleitung im Abschnitt
-„KI-Zugriff (MCP) — BETA“; `staticText` rendert **kein** HTML, darum ein Eintrag
+„KI-Zugriff (MCP)“; `staticText` rendert **kein** HTML, darum ein Eintrag
 je Schritt statt einer `<ol>`):
 
 1. Haken bei „MCP-Endpunkt aktivieren“

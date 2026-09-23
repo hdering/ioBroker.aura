@@ -418,7 +418,6 @@ export const de = {
     'dashboard.aura.automation': 'ioBroker-Automatisierungen live steuern und visualisieren',
 
     'dashboard.mcp.title': 'Aura per KI steuern (MCP)',
-    'dashboard.mcp.badge': 'BETA',
     'dashboard.mcp.description':
         'Aura stellt einen MCP-Server bereit. Ein KI-Assistent (Claude Desktop, Claude Code, …) liest damit die Dashboard-Struktur, schlägt Widget-Optionen nach und baut Tabs — ohne JSON von Hand.',
     'dashboard.mcp.step1': 'ioBroker-Admin → Instanzen → aura.0 → Konfiguration → „KI-Zugriff (MCP)“ aktivieren.',

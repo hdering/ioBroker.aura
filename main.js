@@ -1878,7 +1878,7 @@ class Aura extends utils.Adapter {
             if (this.config.mcpEnabled) {
                 if (this.config.mcpToken) {
                     this.log.info(
-                        `aura: MCP endpoint available at /mcp on port ${port} — BETA, an AI assistant can ` +
+                        `aura: MCP endpoint available at /mcp on port ${port} — an AI assistant can ` +
                             `change your dashboard through it; every write is backed up to ${this.namespace}.backups`,
                     );
                 } else {
