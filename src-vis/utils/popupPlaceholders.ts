@@ -109,3 +109,78 @@ export function buildPopupSubMap(triggerWidget: WidgetConfig | undefined, mainDp
     );
     return Object.assign(map, dpVarMap(mainDp));
 }
+
+// ── History-instance inheritance ────────────────────────────────────────────────
+
+/** History adapter instance configured on the trigger widget — top-level (simple
+ *  chart) or on its first series (extended chart). Undefined if none is set. */
+function triggerHistoryInstance(w: WidgetConfig | undefined): string | undefined {
+    const o = w?.options;
+    if (!o) return undefined;
+    if (typeof o.historyInstance === 'string' && o.historyInstance) return o.historyInstance;
+    const series = o.echartSeries as Array<{ historyInstance?: string }> | undefined;
+    return series?.find((s) => s.historyInstance)?.historyInstance;
+}
+
+/** Popup chart/echart widgets inherit the trigger's history instance when they don't
+ *  carry one themselves — so a popup diagram pulls its history from the same adapter as
+ *  the widget that opened it. Explicit per-widget/per-series instances are preserved. */
+function inheritHistoryInstance(w: WidgetConfig, inst: string | undefined): WidgetConfig {
+    if (!inst) return w;
+    if (w.type === 'chart') {
+        const own = w.options?.historyInstance;
+        if (typeof own === 'string' && own) return w;
+        return { ...w, options: { ...w.options, historyInstance: inst } };
+    }
+    if (w.type === 'echart') {
+        const series = w.options?.echartSeries as Array<Record<string, unknown>> | undefined;
+        if (!Array.isArray(series) || series.length === 0 || !series.some((s) => !s.historyInstance)) return w;
+        return {
+            ...w,
+            options: {
+                ...w.options,
+                echartSeries: series.map((s) => (s.historyInstance ? s : { ...s, historyInstance: inst })),
+            },
+        };
+    }
+    return w;
+}
+
+/** Flag popup chart widgets whose history instance could not be determined — a template
+ *  datapoint ({{dp}}) was resolved at runtime but the trigger widget (e.g. a value display)
+ *  has no instance to inherit. The chart then auto-detects the DP's history adapter and, when
+ *  several exist, shows a selection field. `orig` is the pre-substitution widget so the
+ *  template check targets exactly the "opened from a value widget" case. */
+function markAutoHistory(w: WidgetConfig, orig: WidgetConfig): WidgetConfig {
+    if (w.type === 'chart') {
+        const isTpl = (orig.datapoint ?? '').includes('{{');
+        const inst = w.options?.historyInstance;
+        const hasInst = typeof inst === 'string' && inst.length > 0;
+        if (isTpl && !hasInst) return { ...w, options: { ...w.options, autoHistoryInstance: true } };
+    }
+    if (w.type === 'echart') {
+        const origSeries = (orig.options?.echartSeries as Array<{ datapointId?: string }> | undefined) ?? [];
+        const series = (w.options?.echartSeries as Array<{ historyInstance?: string }> | undefined) ?? [];
+        const anyUnresolvedTpl = origSeries.some(
+            (s, i) => (s.datapointId ?? '').includes('{{') && !series[i]?.historyInstance,
+        );
+        if (anyUnresolvedTpl) return { ...w, options: { ...w.options, autoHistoryInstance: true } };
+    }
+    return w;
+}
+
+/**
+ * One popup widget as the open popup renders it: `{{key}}` substituted, then the
+ * trigger's history instance inherited (or auto-detection flagged). Shared by the
+ * popup body and the popup-view editor's preview, so both show the same chart.
+ */
+export function resolvePopupWidget(
+    w: WidgetConfig,
+    subMap: Record<string, string>,
+    triggerWidget: WidgetConfig | undefined,
+): WidgetConfig {
+    return markAutoHistory(
+        inheritHistoryInstance(substituteWidget(w, subMap), triggerHistoryInstance(triggerWidget)),
+        w,
+    );
+}

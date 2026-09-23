@@ -96,6 +96,16 @@ Beim Klick auf eine Listenzeile ist der Haupt-Datenpunkt die geklickte Zeile —
 
 Ein Platzhalter im Namensfeld einer Listenzeile bleibt Text — nur das Feld `Datenpunkt-ID` der Zeile wird als Datenpunkt gelesen.
 
+### Vorschau im View-Editor
+
+`Vorschau mit` (Leiste unter der Toolbar) legt fest, wogegen die Platzhalter beim Bearbeiten aufgelöst werden. Gespeichert werden weiter die Platzhalter.
+
+| Auswahl | Diagramme zeigen |
+| --- | --- |
+| Widget, das die View öffnet (Standard: das erste gefundene) | echten Verlauf dieses Datenpunkts |
+| `Eigener Datenpunkt…` | echten Verlauf des gewählten Datenpunkts |
+| `Beispieldaten (Platzhalter)` | Beispielkurve mit Badge `Vorschau` |
+
 ## Klick-Aktion „Alle Datenpunkte des Geräts"
 
 Listet alle Datenpunkte, die unter demselben Elternobjekt, Kanal oder Gerät liegen wie der geklickte — als bedienbare Liste.

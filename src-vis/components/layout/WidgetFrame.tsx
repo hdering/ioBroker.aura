@@ -176,6 +176,7 @@ import { widgetSourceCtx } from '../../utils/conditionSources';
 import { applyConditionSet, stripRenderOverrides } from '../../utils/conditionSet';
 import { resolveDualDeep, restoreDualDeep } from '../../utils/dualColor';
 import { useIsDarkTheme } from '../../contexts/BrightnessContext';
+import { useRenderTransform } from '../../contexts/RenderTransformContext';
 import {
     getSources,
     extractCalNames,
@@ -6835,7 +6836,11 @@ function WidgetFrameInner({
     // type shows live values without wiring anything up itself. Only the rendered copy
     // is substituted — the edit dialog and every onConfigChange keep the raw title.
     // A condition's title override goes in first, so it may carry live tokens too.
-    const resolvedTitle = useResolvedTitle(conditionResult.set.title ?? config.title);
+    // Display-only rewrite from the surrounding editor (popup-view preview datapoint):
+    // it goes in before the condition set and comes off again with the other overrides.
+    const renderTransform = useRenderTransform();
+    const baseConfig = useMemo(() => (renderTransform ? renderTransform(config) : config), [config, renderTransform]);
+    const resolvedTitle = useResolvedTitle(conditionResult.set.title ?? baseConfig.title);
     // The body renders from a derived config: resolved title plus whatever the
     // matching rules override (icon, size, value text — issue #96), and every
     // light/dark colour pair collapsed to the half that applies now (#689) —
@@ -6845,8 +6850,8 @@ function WidgetFrameInner({
     // persist it into the layout.
     const dark = useIsDarkTheme();
     const renderConfig = useMemo(
-        () => resolveDualDeep(applyConditionSet(config, resolvedTitle, conditionResult.set), dark),
-        [config, resolvedTitle, conditionResult.set, dark],
+        () => resolveDualDeep(applyConditionSet(baseConfig, resolvedTitle, conditionResult.set), dark),
+        [baseConfig, resolvedTitle, conditionResult.set, dark],
     );
     const onBodyConfigChange = useCallback(
         // restoreDualDeep first: the body spreads the config it was HANDED, so

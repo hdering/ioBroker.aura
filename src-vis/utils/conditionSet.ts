@@ -82,6 +82,9 @@ export function stripRenderOverrides(next: WidgetConfig, raw: WidgetConfig, deri
 
     let out = next;
     if (derived.title !== raw.title && next.title === derived.title) out = { ...out, title: raw.title };
+    // A render transform (popup-view preview) may resolve the datapoint too.
+    if (derived.datapoint !== raw.datapoint && next.datapoint === derived.datapoint)
+        out = { ...out, datapoint: raw.datapoint };
 
     const dOpts = (derived.options ?? {}) as Record<string, unknown>;
     const rOpts = (raw.options ?? {}) as Record<string, unknown>;

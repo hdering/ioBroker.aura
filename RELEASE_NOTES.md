@@ -17,3 +17,4 @@
 - Settings - the overview no longer lists the mode-dependent datapoints of an air-conditioner widget (Daikin `{mode}`) as missing; they are only reported when no operation mode has them (#701)
 - Energy flow (evcc) - supports the new charge modes of evcc 0.316: Off · Smart · Now plus an "always charge" toggle; older evcc versions keep PV and Min+PV (#700)
 - AI access (MCP) - no longer marked as beta
+- Popups - charts in the popup view editor now show the real history of a widget that opens the view (or a datapoint of your choice) instead of a sample curve; the source is picked in the bar below the editor toolbar

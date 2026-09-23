@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import ReactGridLayout from 'react-grid-layout/legacy';
-import { ArrowLeft, Plus, Upload } from 'lucide-react';
+import { ArrowLeft, Database, Plus, Upload } from 'lucide-react';
 import {
     usePopupConfigStore,
     BUILTIN_VIEW_IDS,
@@ -16,6 +16,10 @@ import { WidgetFrame } from '../../components/layout/WidgetFrame';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { PopupBackgroundField } from '../../components/common/PopupBackgroundField';
 import { ActiveLayoutContext } from '../../contexts/ActiveLayoutContext';
+import { RenderTransformContext, type RenderTransform } from '../../contexts/RenderTransformContext';
+import { DatapointPicker } from '../../components/config/DatapointPicker';
+import { buildPopupSubMap, resolvePopupWidget } from '../../utils/popupPlaceholders';
+import { findPopupPreviewTriggers } from '../../utils/popupPreviewTriggers';
 import { WIDGET_REGISTRY, ALL_POPUP_PLACEHOLDER_KEYS } from '../../widgetRegistry';
 import { useSuperAdmin } from '../../hooks/useSuperAdmin';
 import type { WidgetConfig, WidgetType } from '../../types';
@@ -139,6 +143,23 @@ export function PopupViewEditor() {
     const [addType, setAddType] = useState<WidgetType>(SORTED_WIDGET_REGISTRY[0]?.type as WidgetType);
     const [showPlaceholders, setShowPlaceholders] = useState(false);
     const [showImport, setShowImport] = useState(false);
+
+    // Preview source for the {{dp}} placeholders: a widget that opens this view (default:
+    // the first one found), a datapoint picked by hand, or none (sample curves). Resolved
+    // only for the rendered copy — the stored view keeps its placeholders.
+    const previewTriggers = useMemo(() => (view ? findPopupPreviewTriggers(view) : []), [view]);
+    const [previewSel, setPreviewSel] = useState<string | null>(null);
+    const [customPreviewDp, setCustomPreviewDp] = useState('');
+    const [showPreviewPicker, setShowPreviewPicker] = useState(false);
+    const effPreviewSel = previewSel ?? (previewTriggers.length > 0 ? 't0' : '');
+    const previewTrigger = effPreviewSel.startsWith('t') ? previewTriggers[Number(effPreviewSel.slice(1))] : undefined;
+    const previewDp = previewTrigger?.dp ?? (effPreviewSel === 'custom' ? customPreviewDp.trim() : '');
+    const previewTriggerWidget = previewTrigger?.widget;
+    const renderTransform = useMemo<RenderTransform | null>(() => {
+        if (!previewDp) return null;
+        const subMap = buildPopupSubMap(previewTriggerWidget, previewDp);
+        return (w) => resolvePopupWidget(w, subMap, previewTriggerWidget);
+    }, [previewDp, previewTriggerWidget]);
 
     if (!viewId || !view) {
         return (
@@ -382,6 +403,62 @@ export function PopupViewEditor() {
                     </button>
                 </div>
 
+                {/* Preview datapoint — what {{dp}} resolves to while editing */}
+                <div
+                    className="flex items-center gap-2 px-4 py-2 shrink-0 text-[11px]"
+                    style={{
+                        borderBottom: '1px solid var(--app-border)',
+                        background: 'var(--app-surface)',
+                        color: 'var(--text-secondary)',
+                    }}
+                >
+                    <span title="Gegen diesen Datenpunkt werden die Platzhalter im Editor aufgelöst — Diagramme zeigen dann den echten Verlauf. Gespeichert werden weiter die Platzhalter.">
+                        Vorschau mit
+                    </span>
+                    <select
+                        value={effPreviewSel}
+                        onChange={(e) => setPreviewSel(e.target.value)}
+                        className="text-xs rounded-lg px-2 py-1 focus:outline-none max-w-[28rem]"
+                        style={{
+                            background: 'var(--app-bg)',
+                            color: 'var(--text-primary)',
+                            border: '1px solid var(--app-border)',
+                        }}
+                    >
+                        <option value="">Beispieldaten (Platzhalter)</option>
+                        {previewTriggers.map((t, i) => (
+                            <option key={`${t.widget.id}|${t.dp}`} value={`t${i}`}>
+                                {`${t.widget.title || t.widget.type} — ${t.dp}`}
+                            </option>
+                        ))}
+                        <option value="custom">Eigener Datenpunkt…</option>
+                    </select>
+                    {effPreviewSel === 'custom' && (
+                        <>
+                            <input
+                                type="text"
+                                value={customPreviewDp}
+                                onChange={(e) => setCustomPreviewDp(e.target.value)}
+                                placeholder="z. B. alias.0.Wohnzimmer.Temperatur"
+                                className="text-xs rounded-lg px-2 py-1 focus:outline-none font-mono w-72"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-primary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            />
+                            <button
+                                onClick={() => setShowPreviewPicker(true)}
+                                className="p-1.5 rounded-lg hover:opacity-80 transition-opacity"
+                                style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
+                                title="Datenpunkt auswählen"
+                            >
+                                <Database size={12} />
+                            </button>
+                        </>
+                    )}
+                </div>
+
                 {/* Placeholder reference — collapsible, structured */}
                 {showPlaceholders && (
                     <div
@@ -513,36 +590,48 @@ export function PopupViewEditor() {
                         </div>
                     ) : (
                         containerWidth > 0 && (
-                            <ReactGridLayout
-                                className="layout"
-                                layout={layout}
-                                cols={cols}
-                                rowHeight={cellSize}
-                                width={containerWidth}
-                                isDraggable
-                                isResizable
-                                draggableCancel=".nodrag"
-                                onDragStop={syncLayout}
-                                onResizeStop={syncLayout}
-                                margin={[MARGIN, MARGIN]}
-                                containerPadding={[0, 0]}
-                            >
-                                {widgets.map((w) => (
-                                    <div key={w.id}>
-                                        <WidgetFrame
-                                            config={w}
-                                            editMode
-                                            onRemove={(id) => removeWidgetFromView(viewId, id)}
-                                            onConfigChange={(cfg) => updateWidgetInView(viewId, cfg.id, cfg)}
-                                            onCopy={(copy) => addWidgetToView(viewId, copy)}
-                                        />
-                                    </div>
-                                ))}
-                            </ReactGridLayout>
+                            <RenderTransformContext.Provider value={renderTransform}>
+                                <ReactGridLayout
+                                    className="layout"
+                                    layout={layout}
+                                    cols={cols}
+                                    rowHeight={cellSize}
+                                    width={containerWidth}
+                                    isDraggable
+                                    isResizable
+                                    draggableCancel=".nodrag"
+                                    onDragStop={syncLayout}
+                                    onResizeStop={syncLayout}
+                                    margin={[MARGIN, MARGIN]}
+                                    containerPadding={[0, 0]}
+                                >
+                                    {widgets.map((w) => (
+                                        <div key={w.id}>
+                                            <WidgetFrame
+                                                config={w}
+                                                editMode
+                                                onRemove={(id) => removeWidgetFromView(viewId, id)}
+                                                onConfigChange={(cfg) => updateWidgetInView(viewId, cfg.id, cfg)}
+                                                onCopy={(copy) => addWidgetToView(viewId, copy)}
+                                            />
+                                        </div>
+                                    ))}
+                                </ReactGridLayout>
+                            </RenderTransformContext.Provider>
                         )
                     )}
                 </div>
             </div>
+            {showPreviewPicker && (
+                <DatapointPicker
+                    currentValue={customPreviewDp}
+                    onSelect={(id) => {
+                        setCustomPreviewDp(id);
+                        setShowPreviewPicker(false);
+                    }}
+                    onClose={() => setShowPreviewPicker(false)}
+                />
+            )}
             {showImport && (
                 <ImportWidgetDialog
                     datapointDefault="{{dp}}"

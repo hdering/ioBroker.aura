@@ -39,7 +39,7 @@ export interface BuiltinUsage {
  * would let every built-in vouch for itself and nothing would ever be removable.
  * A built-in the user edited is theirs again, so it counts.
  */
-function userWidgets(): WidgetConfig[] {
+export function userWidgets(): WidgetConfig[] {
     const out: WidgetConfig[] = [];
     for (const layout of useDashboardStore.getState().layouts) {
         for (const section of layout.sections) {
