@@ -63,6 +63,27 @@ export const MENU_WIDGET_DEFAULT_H = { bar: 32, block: 120 } as const;
 
 /** Limits of a menu slot — the drag handle and any stored value stay inside. */
 export const MENU_WIDGET_MIN_PX = 24;
+
+/** Width of the overlay section drawer (hamburger) — capped at 85vw on narrow screens. */
+export const SECTION_DRAWER_OVERLAY_W = 320;
+/** The drawer's right border plus the item group's `px-4` on both sides. */
+const SECTION_DRAWER_ITEM_INSET = 1 + 2 * 16;
+
+/**
+ * How an element of the section menu is laid out on desktop: the docked top /
+ * bottom bar hosts it inline like the tab bar does, every other placement stacks
+ * it in a column. `width` is the room the column leaves the element — what a
+ * block slot without its own width fills, and what the admin preview has to show
+ * instead of the full window width.
+ */
+export function sectionMenuItemHost(
+    placement: string | undefined,
+    drawerWidth: number | undefined,
+): { variant: 'bar' | 'block'; width?: number } {
+    if (placement === 'top' || placement === 'bottom') return { variant: 'bar' };
+    const outer = placement === 'sidebar' ? (drawerWidth ?? 240) : SECTION_DRAWER_OVERLAY_W;
+    return { variant: 'block', width: Math.max(MENU_WIDGET_MIN_PX, outer - SECTION_DRAWER_ITEM_INSET) };
+}
 export const MENU_WIDGET_MAX_W = 1200;
 export const MENU_WIDGET_MAX_H = 800;
 

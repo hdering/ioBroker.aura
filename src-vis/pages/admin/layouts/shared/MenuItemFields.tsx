@@ -99,6 +99,7 @@ function WidgetSizeBox({
     item,
     type,
     variant,
+    hostWidth,
     editMode,
     onUpdate,
 }: {
@@ -106,6 +107,8 @@ function WidgetSizeBox({
     /** Type of the widget on screen — the reset goes back to its default box. */
     type: WidgetType | undefined;
     variant: 'bar' | 'block';
+    /** Room the host column leaves a block slot — see sectionMenuItemHost. */
+    hostWidth?: number;
     editMode: boolean;
     onUpdate: (patch: Partial<MenuItemContent>) => void;
 }) {
@@ -119,6 +122,8 @@ function WidgetSizeBox({
     latest.current = onUpdate;
     const commit = useRef(createThrottle<Partial<MenuItemContent>>((p) => latest.current(p), 60)).current;
 
+    // A block slot cannot grow past its column — the menu clips it there.
+    const maxW = variant === 'block' && hostWidth ? hostWidth : MENU_WIDGET_MAX_W;
     const clamp = (v: number, max: number) => Math.max(MENU_WIDGET_MIN_PX, Math.min(max, Math.round(v)));
 
     const startDrag = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -136,7 +141,7 @@ function WidgetSizeBox({
 
         const move = (ev: PointerEvent) => {
             const next = {
-                w: clamp(start.w + ev.clientX - start.x, MENU_WIDGET_MAX_W),
+                w: clamp(start.w + ev.clientX - start.x, maxW),
                 h: clamp(start.h + ev.clientY - start.y, MENU_WIDGET_MAX_H),
             };
             setDrag(next);
@@ -157,7 +162,7 @@ function WidgetSizeBox({
     // Live size wins over the stored one so the box follows the pointer even
     // though the config only sees every 60ms.
     const shown = drag ? { ...item, widgetWidth: drag.w, widgetHeight: drag.h } : item;
-    const readW = drag?.w ?? item.widgetWidth ?? (variant === 'bar' ? MENU_WIDGET_DEFAULT_W.bar : undefined);
+    const readW = drag?.w ?? item.widgetWidth ?? (variant === 'bar' ? MENU_WIDGET_DEFAULT_W.bar : hostWidth);
     const readH = drag?.h ?? item.widgetHeight ?? MENU_WIDGET_DEFAULT_H[variant];
 
     return (
@@ -167,51 +172,71 @@ function WidgetSizeBox({
                 className="rounded-lg p-4 flex items-start"
                 style={{ background: 'var(--app-bg)', border: '1px dashed var(--app-border)', overflow: 'auto' }}
             >
+                {/* A block slot is drawn inside a column as wide as the menu's, not
+                    across the whole editor — otherwise a widget that looks slim here
+                    comes out far too big in the frontend. */}
                 <div
-                    ref={boxRef}
-                    style={{
-                        position: 'relative',
-                        display: variant === 'bar' ? 'inline-block' : 'block',
-                        width: variant === 'bar' ? undefined : '100%',
-                        flexShrink: 0,
-                    }}
+                    data-aura-menu-host=""
+                    style={
+                        variant === 'block' && hostWidth
+                            ? {
+                                  width: hostWidth,
+                                  flexShrink: 0,
+                                  background: 'var(--app-surface)',
+                                  outline: '1px dashed var(--app-border)',
+                                  outlineOffset: 4,
+                              }
+                            : { display: 'contents' }
+                    }
                 >
-                    {/* The element's own slot, not a lookalike, so the admin and
+                    <div
+                        ref={boxRef}
+                        style={{
+                            position: 'relative',
+                            display: variant === 'bar' ? 'inline-block' : 'block',
+                            width: variant === 'bar' ? undefined : (shown.widgetWidth ?? '100%'),
+                            maxWidth: variant === 'block' && hostWidth ? hostWidth : undefined,
+                            flexShrink: 0,
+                        }}
+                    >
+                        {/* The element's own slot, not a lookalike, so the admin and
                         the bar can never drift apart. In `own` mode it carries the
                         widget's edit chrome, so its options panel opens right
                         here. */}
-                    <ActiveLayoutContext.Provider value="">
-                        <MenuWidgetSlot
-                            item={shown}
-                            variant={variant}
-                            editMode={editMode}
-                            onWidgetChange={(w) => onUpdate({ widget: w })}
+                        <ActiveLayoutContext.Provider value="">
+                            <MenuWidgetSlot
+                                item={shown}
+                                variant={variant}
+                                editMode={editMode}
+                                onWidgetChange={(w) => onUpdate({ widget: w })}
+                            />
+                        </ActiveLayoutContext.Provider>
+                        <div
+                            onPointerDown={startDrag}
+                            title={t('menuItem.widget.sizeDrag')}
+                            className="aura-menu-size-handle"
+                            data-aura-menu-size-handle=""
+                            style={{
+                                position: 'absolute',
+                                right: -5,
+                                bottom: -5,
+                                width: 14,
+                                height: 14,
+                                borderRadius: 4,
+                                background: 'var(--accent)',
+                                border: '2px solid var(--app-bg)',
+                                cursor: 'nwse-resize',
+                                touchAction: 'none',
+                                zIndex: 2,
+                            }}
                         />
-                    </ActiveLayoutContext.Provider>
-                    <div
-                        onPointerDown={startDrag}
-                        title={t('menuItem.widget.sizeDrag')}
-                        className="aura-menu-size-handle"
-                        data-aura-menu-size-handle=""
-                        style={{
-                            position: 'absolute',
-                            right: -5,
-                            bottom: -5,
-                            width: 14,
-                            height: 14,
-                            borderRadius: 4,
-                            background: 'var(--accent)',
-                            border: '2px solid var(--app-bg)',
-                            cursor: 'nwse-resize',
-                            touchAction: 'none',
-                            zIndex: 2,
-                        }}
-                    />
+                    </div>
                 </div>
             </div>
             <div className="flex items-center justify-between gap-2 mt-1">
                 <span className="text-[10px] font-mono" style={{ color: 'var(--text-secondary)' }}>
                     {readW ?? t('menuItem.widget.sizeAuto')} × {readH} px
+                    {variant === 'block' && hostWidth ? ` · ${t('menuItem.widget.hostWidth', { w: hostWidth })}` : ''}
                 </span>
                 {(item.widgetWidth !== undefined || item.widgetHeight !== undefined) && (
                     <button
@@ -236,10 +261,12 @@ function WidgetFields({
     item,
     onUpdate,
     variant,
+    hostWidth,
 }: {
     item: MenuItemContent;
     onUpdate: (patch: Partial<MenuItemContent>) => void;
     variant: 'bar' | 'block';
+    hostWidth?: number;
 }) {
     const t = useT();
     const layouts = useDashboardStore((s) => s.layouts);
@@ -411,6 +438,7 @@ function WidgetFields({
                     item={item}
                     type={shownType}
                     variant={variant}
+                    hostWidth={hostWidth}
                     editMode={mode === 'own'}
                     onUpdate={onUpdate}
                 />
@@ -425,11 +453,14 @@ export function MenuItemFields({
     item,
     onUpdate,
     variant = 'bar',
+    hostWidth,
 }: {
     item: MenuItemContent;
     onUpdate: (patch: Partial<MenuItemContent>) => void;
     /** Shape of the host the item sits in — decides the widget slot defaults. */
     variant?: 'bar' | 'block';
+    /** Width a block host leaves the item; the widget preview is drawn that wide. */
+    hostWidth?: number;
 }) {
     const t = useT();
     const [pickerOpen, setPickerOpen] = useState(false);
@@ -547,7 +578,7 @@ export function MenuItemFields({
     }
 
     if (item.type === 'widget') {
-        return <WidgetFields item={item} onUpdate={onUpdate} variant={variant} />;
+        return <WidgetFields item={item} onUpdate={onUpdate} variant={variant} hostWidth={hostWidth} />;
     }
 
     if (item.type === 'idleReturn') {

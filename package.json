@@ -270,6 +270,7 @@
     "test:menu-item-order": "node tools/tests/menu-item-order.mjs",
     "test:menu-items": "node tools/tests/menu-items.mjs",
     "test:menu-widget-size": "node tools/tests/menu-widget-size.mjs",
+    "test:menu-widget-host-width": "node tools/tests/menu-widget-host-width.mjs",
     "test:tab-bar-hidden": "node tools/tests/tab-bar-hidden.mjs",
     "test:tab-bar-indicator": "node tools/tests/tab-bar-indicator.mjs",
     "test:nav-stretch": "node tools/tests/nav-stretch.mjs",

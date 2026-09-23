@@ -262,6 +262,7 @@ export const de = {
     'menuItem.widget.preview': 'Vorschau',
     'menuItem.widget.sizeDrag': 'Ecke ziehen, um Breite und Höhe zu ändern',
     'menuItem.widget.sizeAuto': 'volle Breite',
+    'menuItem.widget.hostWidth': 'Breite des Bereichs-Menüs ({w} px)',
     'menuItem.widget.sizeReset': 'Standardgröße',
     'menuItem.widget.previewHintOwn':
         'Genau die Box, die das Element im Menü bekommt — an der Ecke pixelgenau größer ziehen. Der Pfeil am Widget öffnet dessen eigene Einstellungen.',

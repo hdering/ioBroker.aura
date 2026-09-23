@@ -6,7 +6,7 @@ import { ToggleRow, SubGroup } from '../shared/SettingControls';
 import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useLayoutSetting } from '../shared/useLayoutSetting';
 import { canMoveMenuItem, moveMenuItem } from '../../../../utils/menuItemOrder';
-import { makeMenuItem } from '../../../../utils/menuItems';
+import { makeMenuItem, sectionMenuItemHost } from '../../../../utils/menuItems';
 import { MenuItemFields, menuItemTypeLabelKey } from '../shared/MenuItemFields';
 
 // layoutDrawer* keys reset together by the per-scope "reset" button.
@@ -46,10 +46,13 @@ function LayoutMenuItemRow({
     onMove,
     canMoveUp,
     canMoveDown,
+    host,
     defaultExpanded = false,
     t,
 }: {
     item: LayoutMenuItem;
+    /** How the menu lays the element out on desktop — see sectionMenuItemHost. */
+    host: ReturnType<typeof sectionMenuItemHost>;
     onUpdate: (patch: Partial<LayoutMenuItem>) => void;
     onRemove: () => void;
     onMove: (dir: -1 | 1) => void;
@@ -173,7 +176,7 @@ function LayoutMenuItemRow({
                             />
                         </div>
                     </div>
-                    <MenuItemFields item={item} onUpdate={onUpdate} variant="block" />
+                    <MenuItemFields item={item} onUpdate={onUpdate} variant={host.variant} hostWidth={host.width} />
                 </div>
             )}
         </div>
@@ -220,6 +223,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
     const updateFrontend = (patch: Partial<LayoutSettings>) => setPatch(patch);
 
     const items = frontend.layoutDrawerItems ?? [];
+    const itemHost = sectionMenuItemHost(frontend.layoutDrawerPlacement, frontend.layoutDrawerWidth);
     const updateItem = (id: string, patch: Partial<LayoutMenuItem>) => {
         updateFrontend({ layoutDrawerItems: items.map((it) => (it.id === id ? { ...it, ...patch } : it)) });
     };
@@ -835,6 +839,7 @@ export function LayoutMenuSection({ contextId }: { contextId: string | null }) {
                                     onMove={(dir) => moveItem(item.id, dir)}
                                     canMoveUp={canMoveMenuItem(items, item.id, -1)}
                                     canMoveDown={canMoveMenuItem(items, item.id, 1)}
+                                    host={itemHost}
                                     defaultExpanded={item.id === addedId}
                                     t={t}
                                 />

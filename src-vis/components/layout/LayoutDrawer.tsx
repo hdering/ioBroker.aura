@@ -15,6 +15,7 @@ import { useBadges, useTabBadgeAggregate, type ResolvedBadge } from '../../hooks
 import { Badge } from '../common/Badge';
 import type { BadgeSize } from '../../types';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
+import { SECTION_DRAWER_OVERLAY_W } from '../../utils/menuItems';
 
 export type LayoutDrawerSize = 'sm' | 'md' | 'lg';
 
@@ -655,7 +656,7 @@ export function LayoutDrawer({
                   <aside
                       className="fixed top-0 left-0 z-[1001] h-full flex flex-col"
                       style={{
-                          width: 'min(320px, 85vw)',
+                          width: `min(${SECTION_DRAWER_OVERLAY_W}px, 85vw)`,
                           background: 'var(--app-surface)',
                           borderRight: '1px solid var(--app-border)',
                           boxShadow: '0 0 30px rgba(0,0,0,0.3)',

@@ -261,6 +261,7 @@ export const en: Record<TranslationKey, string> = {
     'menuItem.widget.preview': 'Preview',
     'menuItem.widget.sizeDrag': 'Drag the corner to change width and height',
     'menuItem.widget.sizeAuto': 'full width',
+    'menuItem.widget.hostWidth': 'Section menu width ({w} px)',
     'menuItem.widget.sizeReset': 'Default size',
     'menuItem.widget.previewHintOwn':
         'Exactly the box the element gets in the menu — drag the corner to resize it to the pixel. The arrow on the widget opens its own settings.',
