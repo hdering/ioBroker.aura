@@ -2536,6 +2536,52 @@ export const de = {
     'countdown.cfg.ex.read': 'Zustand beobachten',
     'countdown.cfg.ex.blockly':
         'Blockly: Baustein „Steuere Datenpunkt“ auf …cmd mit einem Text-Wert wie start oder +300. Zeiten in Sekunden oder h:m:s.',
+
+    // Header items (issue #676)
+    'hdr.title': 'Kopfzeile',
+    'hdr.editEmpty': 'Werte hinzufügen…',
+    'hdr.editCount': 'Bearbeiten… ({n})',
+    'hdr.mapHint':
+        'Tipp auf einen Platz legt dort ein neues Element an. Mehrere Elemente je Platz stehen nebeneinander.',
+    'hdr.empty': 'Noch keine Elemente in der Kopfzeile.',
+    'hdr.add': 'Element hinzufügen',
+    'hdr.addHere': 'Neues Element auf diesem Platz',
+    'hdr.foldHint':
+        'Die Elemente erscheinen in der Kopfzeile des eingeklappten Widgets (Darstellung → Standardmäßig eingeklappt).',
+    'hdr.slot.title': 'Titel',
+    'hdr.slot.r1-center': 'Zeile 1 Mitte',
+    'hdr.slot.r1-right': 'Zeile 1 rechts',
+    'hdr.slot.r2-left': 'Zeile 2 links',
+    'hdr.slot.r2-center': 'Zeile 2 Mitte',
+    'hdr.slot.r2-right': 'Zeile 2 rechts',
+    'hdr.src.dp': 'Datenpunkt',
+    'hdr.src.widget': 'Widget-Wert',
+    'hdr.src.text': 'Text',
+    'hdr.show.always': 'immer',
+    'hdr.show.collapsed': 'nur eingeklappt',
+    'hdr.show.expanded': 'nur aufgeklappt',
+    'hdr.value': 'Wert',
+    'hdr.valuePick': '— Wert wählen —',
+    'hdr.val.main': 'Hauptwert',
+    'hdr.val.sum': 'Liste: Summe',
+    'hdr.val.avg': 'Liste: Durchschnitt',
+    'hdr.val.min': 'Liste: Minimum',
+    'hdr.val.max': 'Liste: Maximum',
+    'hdr.val.count': 'Liste: Anzahl',
+    'hdr.val.active': 'Liste: Anzahl aktiv',
+    'hdr.decimals': 'Nachkommastellen',
+    'hdr.decimalsAuto': 'Stellen',
+    'hdr.unit': 'Einheit',
+    'hdr.pickDp': 'Datenpunkt wählen',
+    'hdr.insertDp': 'Datenpunkt einfügen',
+    'hdr.textPlaceholder': 'z. B. PV {0_userdata.0.pv;round(0)} W',
+    'hdr.textHint': 'Platzhalter wie bei Markern: {id}, {id;round(1)}, {dp} = eigener Wert, {{ a + b }}.',
+    'hdr.textHintList':
+        'Platzhalter wie bei Markern: {id}, {id;round(1)}, {{ a + b }} — dazu {sum} {avg} {min} {max} {count} {active} der Liste.',
+    'hdr.icon': 'Symbol',
+    'hdr.color': 'Farbe',
+    'hdr.moveUp': 'Nach oben',
+    'hdr.moveDown': 'Nach unten',
 } as const;
 
 export type TranslationKey = keyof typeof de;

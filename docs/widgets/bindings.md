@@ -10,6 +10,7 @@ Gültig in:
 | [Wert-Anzeige](./wert-anzeige) | `htmlTemplate` |
 | [Marker](../einstellungen/editor#marker-text-mit-datenpunkten) (Widget, Bereich, Tab) | `Text` beim Stil `Label` |
 | [Abschnittstitel](./abschnittstitel) | `subtitle` (Untertitel) |
+| [Kopfzeile](../einstellungen/editor#kopfzeile) (alle Widgets) | Element mit Quelle `Text` |
 
 Bindings **lesen** nur. Um aus dem HTML heraus einen Datenpunkt zu **setzen**, gibt es `aura.setState` —
 siehe [HTML → Datenpunkte schreiben](./html#datenpunkte-schreiben).
@@ -150,6 +151,7 @@ Ohne Punkt im Namen ist ein Bezeichner eine Variable. Aura kennt diese:
 | `view` | Name des gerade angezeigten Tabs |
 | `wid` | ID des Widgets |
 | `wname` | Titel des Widgets |
+| `sum` `avg` `min` `max` `count` `active` | Summe, Durchschnitt, Minimum, Maximum, Anzahl und Anzahl aktiver Einträge der Liste (nur Kopfzeilen-Text der statischen und dynamischen Liste; ohne Operations-Kette, im Ausdruck ja) |
 
 Dazu alles, was das Binding selbst mit `name:datenpunkt` deklariert:
 

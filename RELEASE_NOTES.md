@@ -11,3 +11,4 @@
 - Settings - the Layouts and Frontend design pages no longer overflow or squeeze their buttons on a phone; their layout/scope tree folds into a bar above the detail
 - List - on a phone the "Manage datapoints" dialog folds the datapoint list into a bar above the editor, so the selected entry can be configured
 - Widgets with a click action now show a small icon that runs it, also in the folded header of a collapsed widget; it can be switched off, moved to another corner or given its own symbol under Appearance (#702)
+- A collapsed widget can now show values in its header: a datapoint, a value the widget already has (main value, list sum, average, count …) or a text with bindings, beside the title or in a second row; set up under Appearance → Header (#676)

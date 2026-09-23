@@ -2000,3 +2000,20 @@ Das Rezept `countdown` zeigt das Muster „für N Minuten einschalten“
 (`valueOnStart` true, `valueOnEnd` false). `npm run test:countdowns` prüft die
 Engine ohne js-controller, `npm run test:countdown-format` die Ziffern,
 `npm run test:countdown-ui` das Widget gegen den Dev-Server.
+
+## Kopfzeilen-Elemente: Werte ohne eigene Kachel
+
+`options.headerItems` (#676) setzt Werte in die Kopfzeile eines Widgets: je
+Element eine Quelle (`dp`, `widget`, `text`), ein Platz (`r1-center`, `r1-right`,
+`r2-left`, `r2-center`, `r2-right`) und `show` (`always`, `collapsed`,
+`expanded`). Derzeit zeichnet nur die **eingeklappte** Kopfzeile sie
+(`defaultCollapsed`). Der Rahmen berechnet die Werte selbst, weil der
+Widget-Inhalt eingeklappt gar nicht gemountet ist; Listen-Summen laufen deshalb
+über `options.entries`, wie die `{list:*}`-Tokens der Marker.
+
+Für ein Modell ist das der Ersatz für „zweite Kachel neben dem eingeklappten
+Widget“. Das Rezept `eingeklappt-mit-wert` zeigt Summe, freien Datenpunkt und
+Text. Eine belegte Zeile 2 macht die eingeklappte Karte eine Kopfzeile höher;
+die gespeicherte Höhe bleibt die des aufgeklappten Widgets.
+`npm run test:header-items-logic` prüft die Werte ohne Browser,
+`npm run test:header-items` die Kopfzeile gegen den Dev-Server.

@@ -1348,6 +1348,73 @@
           }
         }
       ]
+    },
+    {
+      "id": "eingeklappt-mit-wert",
+      "title": "Eingeklapptes Widget, das seinen wichtigsten Wert zeigt",
+      "when": "Ein Widget soll wenig Platz belegen (eingeklappt), der Kernwert aber ohne Aufklappen lesbar sein.",
+      "instead": "eine zweite value-Kachel neben dem eingeklappten Widget, oder der Wert als [[dp]] im Titel",
+      "notes": [
+        "defaultCollapsed klappt das Widget ein; die Kopfzeile zeigt dann Titel plus die headerItems.",
+        "source \"widget\" nimmt Werte, die das Widget schon hat: \"main\" = eigener Datenpunkt mit Einheit, Nachkommastellen und valueFactor; bei list/autolist \"list:sum\", \"list:avg\", \"list:min\", \"list:max\", \"list:count\", \"list:active\".",
+        "source \"dp\" zeigt einen beliebigen Datenpunkt; source \"text\" einen Text mit Bindings ({id}, {id;round(1)}, {dp}, {{ a + b }}, bei Listen auch {sum} {count} {active} …).",
+        "slot \"r1-center\"/\"r1-right\" steht neben dem Titel; ein Element auf \"r2-*\" erzeugt eine zweite Zeile und macht die eingeklappte Karte eine Kopfzeile höher.",
+        "show \"collapsed\" zeigt ein Element nur im eingeklappten Zustand."
+      ],
+      "widgets": [
+        {
+          "id": "w-verbraucher-eingeklappt",
+          "type": "list",
+          "title": "Verbraucher",
+          "datapoint": "",
+          "layout": "default",
+          "gridPos": {
+            "x": 0,
+            "y": 0,
+            "w": 6,
+            "h": 8
+          },
+          "options": {
+            "defaultCollapsed": true,
+            "entries": [
+              {
+                "id": "%dp.waschmaschine.leistung%",
+                "label": "Waschmaschine",
+                "unit": "W"
+              },
+              {
+                "id": "%dp.trockner.leistung%",
+                "label": "Trockner",
+                "unit": "W"
+              }
+            ],
+            "headerItems": [
+              {
+                "id": "hi-summe",
+                "source": "widget",
+                "widgetValue": "list:sum",
+                "slot": "r1-right"
+              },
+              {
+                "id": "hi-pv",
+                "source": "dp",
+                "dp": "%dp.pv.leistung%",
+                "decimals": 0,
+                "unit": "W",
+                "icon": "mdi:solar-power",
+                "slot": "r2-left",
+                "show": "collapsed"
+              },
+              {
+                "id": "hi-aktiv",
+                "source": "text",
+                "text": "{active} von {count} an",
+                "slot": "r2-right"
+              }
+            ]
+          }
+        }
+      ]
     }
   ]
 }

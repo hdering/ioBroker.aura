@@ -87,6 +87,30 @@ Eingeklappt ist die Karte so flach wie eine eingeklappte Gruppe (zwei Rasterzeil
 
 Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer an.
 
+## Kopfzeile
+
+`Bearbeiten` → **Darstellung** → `Kopfzeile` → `Werte hinzufügen…`. Zusätzliche Werte in der Kopfzeile des eingeklappten Widgets (`Standardmäßig eingeklappt`).
+
+![](./assets/kopfzeile-eingeklappt.png)
+
+| Platz | |
+| --- | --- |
+| Zeile 1 Mitte / rechts | neben dem Titel |
+| Zeile 2 links / Mitte / rechts | eigene Zeile, erscheint nur wenn belegt; die eingeklappte Karte wird eine Zeile höher |
+
+| Quelle | |
+| --- | --- |
+| Datenpunkt | beliebiger Datenpunkt, optional Nachkommastellen und Einheit |
+| Widget-Wert | `Hauptwert` (Einheit, Nachkommastellen und Faktor des Widgets); bei statischer und dynamischer Liste `Summe`, `Durchschnitt`, `Minimum`, `Maximum`, `Anzahl`, `Anzahl aktiv` |
+| Text | Text mit [Bindings](../widgets/bindings), z. B. `PV {0_userdata.0.pv;round(0)} W`, `{dp}`, bei Listen `{active} von {count} an` |
+
+| Option | |
+| --- | --- |
+| Anzeigen | `immer` (Standard), `nur eingeklappt`, `nur aufgeklappt` |
+| Symbol, Farbe | je Element |
+
+Mehrere Elemente auf einem Platz stehen nebeneinander, Reihenfolge per Pfeil. Zu lange Werte werden gekürzt, der Titel zuerst. Ein Tipp auf einen Platz in der Übersicht legt dort ein neues Element an.
+
 ## PIN-Schutz
 
 Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach Eingabe des Codes gerendert — egal ob über Menü, Tab-Leiste, Widget-Klickaktion oder direkte URL.

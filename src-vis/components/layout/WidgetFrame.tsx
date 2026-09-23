@@ -103,6 +103,10 @@ import {
     supportsCollapse,
 } from '../../utils/widgetCollapse';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
+import { useHeaderItems } from '../../hooks/useHeaderItems';
+import { HeaderRowOne, HeaderRowTwo } from './HeaderItemSlots';
+import { HeaderItemsEditor } from '../config/HeaderItemsEditor';
+import { headerItems } from '../../utils/headerItems';
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
@@ -6713,6 +6717,7 @@ function WidgetFrameInner({
     const [customCellCondOpen, setCustomCellCondOpen] = useState(false);
     const [draftIconSize, setDraftIconSize] = useState<number | null>(null);
     const [actionIconPickerOpen, setActionIconPickerOpen] = useState(false);
+    const [headerEditorOpen, setHeaderEditorOpen] = useState(false);
     const [draftTransparency, setDraftTransparency] = useState<number | null>(null);
 
     // ── Custom-cell copy/cut/paste helpers (used by context menu + keyboard shortcuts) ──
@@ -7262,6 +7267,8 @@ function WidgetFrameInner({
     const collapsedIconSize = (collapsedSource.options?.iconSize as number | undefined) || 20;
     const collapsedTitleAlign = ((collapsedSource.options?.titleAlign as string | undefined) ??
         'left') as React.CSSProperties['textAlign'];
+    // Header items (issue #676) of the folded card. A mirror shows its source's.
+    const collapsedHeaderItems = useHeaderItems(collapsedSource, true, isCollapsed);
 
     // A folded card always keeps a padding — the header row needs it — but a slim
     // one above and below (collapsedPadY, the group header's measure) so it fits the
@@ -7569,37 +7576,57 @@ function WidgetFrameInner({
                 >
                     <div
                         ref={collapsedHeaderEl}
-                        className="flex items-center gap-2 min-w-0 w-full"
+                        className="flex flex-col gap-1 min-w-0 w-full"
                         style={{ color: 'var(--text-secondary)' }}
                     >
-                        <ChevronDown size={16} className="shrink-0" style={{ transform: 'rotate(-90deg)' }} />
-                        {collapsedShowIcon && (
-                            <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
-                        )}
-                        <span
-                            className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
-                            style={{ textAlign: collapsedTitleAlign }}
-                        >
-                            {collapsedTitle}
-                        </span>
-                        {/* The click action stays reachable while folded (issue #702):
-                            a tap on the icon runs it, a tap anywhere else unfolds.
-                            20 px tall, so it never grows the measured header row. */}
-                        {actionIconOn && (
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    runClickAction();
-                                }}
-                                className="nodrag aura-click-action-btn shrink-0 w-5 h-5 -my-1 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
-                                style={{ color: 'var(--text-secondary)' }}
-                                title={t('wf.embedAction')}
-                                aria-label={t('wf.embedAction')}
-                                data-click-action-icon=""
-                            >
-                                <ActionIcon size={14} />
-                            </button>
-                        )}
+                        {/* Title row plus the header items (issue #676): r1 slots
+                            beside the title, a second row only when something sits
+                            there. The measured box is this column, so a second row
+                            folds the card to one row more. */}
+                        <HeaderRowOne
+                            items={collapsedHeaderItems}
+                            title={
+                                <>
+                                    <ChevronDown
+                                        size={16}
+                                        className="shrink-0"
+                                        style={{ transform: 'rotate(-90deg)' }}
+                                    />
+                                    {collapsedShowIcon && (
+                                        <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
+                                    )}
+                                    <span
+                                        className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
+                                        style={{ textAlign: collapsedTitleAlign }}
+                                    >
+                                        {collapsedTitle}
+                                    </span>
+                                </>
+                            }
+                            trailing={
+                                <>
+                                    {/* The click action stays reachable while folded (issue #702):
+                                a tap on the icon runs it, a tap anywhere else unfolds.
+                                20 px tall, so it never grows the measured header row. */}
+                                    {actionIconOn && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                runClickAction();
+                                            }}
+                                            className="nodrag aura-click-action-btn shrink-0 w-5 h-5 -my-1 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                            title={t('wf.embedAction')}
+                                            aria-label={t('wf.embedAction')}
+                                            data-click-action-icon=""
+                                        >
+                                            <ActionIcon size={14} />
+                                        </button>
+                                    )}
+                                </>
+                            }
+                        />
+                        <HeaderRowTwo items={collapsedHeaderItems} />
                     </div>
                 </div>
             ) : Widget ? (
@@ -9009,6 +9036,57 @@ function WidgetFrameInner({
                                             )}
                                         </>
                                     )}
+                                    {/* Header items (issue #676): extra values in the header row.
+                                        The editor is too large for this panel, so it opens as
+                                        its own popup. */}
+                                    {config.type !== 'mirror' &&
+                                        (() => {
+                                            const hdrCount = headerItems(o).length;
+                                            return (
+                                                <>
+                                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('hdr.title')}
+                                                        </label>
+                                                        <button
+                                                            onClick={() => setHeaderEditorOpen(true)}
+                                                            className="text-[11px] px-2.5 py-1 rounded-lg hover:opacity-80"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                border: '1px solid var(--app-border)',
+                                                                color: 'var(--text-primary)',
+                                                            }}
+                                                            data-header-items-open=""
+                                                        >
+                                                            {hdrCount
+                                                                ? t('hdr.editCount', { n: String(hdrCount) })
+                                                                : t('hdr.editEmpty')}
+                                                        </button>
+                                                    </div>
+                                                    {headerEditorOpen && (
+                                                        <CenteredModal
+                                                            title={t('hdr.title')}
+                                                            onClose={() => setHeaderEditorOpen(false)}
+                                                            wide
+                                                        >
+                                                            <HeaderItemsEditor
+                                                                items={headerItems(o)}
+                                                                config={config}
+                                                                onChange={(next) =>
+                                                                    setO({
+                                                                        headerItems: next.length ? next : undefined,
+                                                                    })
+                                                                }
+                                                            />
+                                                        </CenteredModal>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     {/* Click-action icon (issue #702). Always listed so it can be
                                         found; greyed out until a click action resolves. An iframe
                                         body always shows it (#527). */}

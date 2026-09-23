@@ -1198,6 +1198,18 @@ export const UNIVERSAL_OPTIONS = {
             'Eigenes Symbol (Iconify-Id wie "mdi:chart-line" oder Lucide-Name). Ohne: Pfeil für Sprünge, ' +
             'externer Link für URLs, Mauszeiger für Popups.',
     },
+    headerItems: {
+        ts: 'WidgetHeaderItem[]',
+        description:
+            'Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source "dp" = freier Datenpunkt, ' +
+            '"widget" = Wert, den das Widget schon hat, z. B. "main" oder bei Listen "list:sum", "text" = ' +
+            'Text mit Bindings wie bei Markern) und ein Platz (slot): "r1-center"/"r1-right" neben dem Titel, ' +
+            '"r2-left"/"r2-center"/"r2-right" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. ' +
+            'Mehrere Elemente je Platz stehen nebeneinander. show: "always" (Standard), "collapsed", "expanded". ' +
+            'Derzeit zeichnet nur die eingeklappte Kopfzeile (defaultCollapsed) die Elemente; eine belegte ' +
+            'Zeile 2 macht die eingeklappte Karte eine Kopfzeile höher. Typische Nutzung: den wichtigsten ' +
+            'Wert eines eingeklappten Widgets zeigen.',
+    },
     collapseInEditor: {
         ts: 'boolean',
         description:

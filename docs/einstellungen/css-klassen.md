@@ -55,6 +55,7 @@ Ein Tab mit dem Slug `active` bekäme über `.aura-tab-<slug>` ebenfalls `.aura-
 | `.aura-fullscreen-btn` | Vollbild-Knopf in der Kartenecke |
 | `.aura-collapse-btn` | Einklapp-Knopf in der Kartenecke (Option „Standardmäßig eingeklappt") |
 | `.aura-click-action-btn` | Klick-Aktions-Symbol in der Kartenecke bzw. rechts in der eingeklappten Kopfzeile |
+| `.aura-header-item` | Element der Kopfzeile (Einstellung „Kopfzeile“); Platz über `[data-header-slot="r1-right"]` usw. |
 | `.aura-collapsed-header` | eingeklappte Karte: die Zeile mit Icon und Titel |
 | `.aura-zoom-ctl` | Zoom-Tasten im iFrame-Widget (Option `iframeZoomControls`) |
 | `.aura-badge-corner` | Badge-Overlay in der Kartenecke |
