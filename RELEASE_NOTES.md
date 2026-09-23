@@ -14,3 +14,4 @@
 - A collapsed widget can now show values in its header: a datapoint, a value the widget already has (main value, list sum, average, count …) or a text with bindings, beside the title or in a second row; set up under Appearance → Header (#676)
 - Settings - a protected tab or section no longer shows up empty in the editor after an update, and "Remove PIN" works again: a login kept from an older version now asks for the admin password once (#704)
 - Chart (advanced) - the labels of the first and last point of a JSON chart are no longer cut off at the edge (#703)
+- Settings - the overview no longer lists the mode-dependent datapoints of an air-conditioner widget (Daikin `{mode}`) as missing; they are only reported when no operation mode has them (#701)

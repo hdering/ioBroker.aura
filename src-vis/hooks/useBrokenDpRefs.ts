@@ -7,6 +7,7 @@ import { healthChecksSuppressed } from './healthChecks';
 import { sendToDirect } from './useIoBroker';
 import { NS } from '../utils/namespace';
 import { baseDpId } from '../utils/dpRef';
+import { CLIMATE_PROFILES, MODE_PLACEHOLDER, applyModeSlug, getProfile } from '../utils/climateProfiles';
 import type { WidgetConfig } from '../types';
 
 export interface BrokenRef {
@@ -17,6 +18,24 @@ export interface BrokenRef {
     field: string; // e.g. "datapoint" or "options.targetDp"
     dp: string;
     routeTo?: string; // optional deep link to the widget's edit UI
+    /** Ids actually probed; the ref is broken only when ALL of them are missing. Defaults to [dp]. */
+    probe?: string[];
+}
+
+/** Every mode slug any climate profile knows — fallback when the widget names no profile. */
+const ALL_MODE_SLUGS = Array.from(new Set(CLIMATE_PROFILES.flatMap((p) => Object.values(p.modeSlugs ?? {}))));
+
+/**
+ * The air-control widget stores mode-dependent ids with a literal `{mode}` that it
+ * fills live (#701). Such an id never exists as written, so it is probed once per
+ * known mode slug. `null` = no slug known, the id cannot be checked at all.
+ */
+function modeProbeIds(widget: WidgetConfig, dp: string): string[] | null {
+    const profile = getProfile(widget.options?.deviceType as string | undefined);
+    const own = Object.values(profile?.modeSlugs ?? {});
+    const slugs = own.length > 0 ? own : ALL_MODE_SLUGS;
+    if (slugs.length === 0) return null;
+    return slugs.map((slug) => applyModeSlug(dp, slug));
 }
 
 /** Collect all DP-bearing string fields in a widget config. Picks up the
@@ -32,6 +51,12 @@ function collectRefs(widget: WidgetConfig, location: string, routeTo: string | u
         // resolved at render time — they are not real ioBroker IDs and would
         // always show up as "missing" if we checked them.
         if (trimmed.includes('{{') || trimmed.includes('}}')) return;
+        let probe: string[] | undefined;
+        if (trimmed.includes(MODE_PLACEHOLDER)) {
+            const ids = modeProbeIds(widget, trimmed);
+            if (!ids) return;
+            probe = ids;
+        }
         refs.push({
             widgetId: widget.id,
             widgetTitle: widget.title || '(ohne Titel)',
@@ -40,6 +65,7 @@ function collectRefs(widget: WidgetConfig, location: string, routeTo: string | u
             field,
             dp: trimmed,
             routeTo,
+            probe,
         });
     };
 
@@ -156,7 +182,8 @@ export function useBrokenDpRefs(): BrokenDpRefsState {
         try {
             const refs = collectAllRefs();
             // Existence is checked per bare state ID; the JSON-path suffix is a display detail.
-            const unique = Array.from(new Set(refs.map((r) => baseDpId(r.dp))));
+            const probeOf = (r: BrokenRef) => (r.probe ?? [r.dp]).map(baseDpId);
+            const unique = Array.from(new Set(refs.flatMap(probeOf)));
             if (unique.length === 0) {
                 setBroken([]);
                 return;
@@ -167,7 +194,7 @@ export function useBrokenDpRefs(): BrokenDpRefsState {
                     ? (r as { missing: string[] }).missing
                     : [],
             );
-            setBroken(refs.filter((ref) => missing.has(baseDpId(ref.dp))));
+            setBroken(refs.filter((ref) => probeOf(ref).every((id) => missing.has(id))));
         } finally {
             setLoading(false);
         }

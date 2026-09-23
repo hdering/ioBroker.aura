@@ -168,6 +168,7 @@
     "test:energy-sources": "node tools/tests/energy-sources.mjs",
     "test:boot-splash": "node tools/tests/boot-splash-offline.mjs",
     "test:overview": "node tools/tests/admin-overview-layout.mjs",
+    "test:broken-dps-mode": "node tools/tests/broken-dps-mode.mjs",
     "test:getting-started": "node tools/tests/admin-getting-started.mjs",
     "test:popup-prune": "node tools/tests/popup-builtin-prune.mjs",
     "test:backup-retention": "node tools/tests/backup-retention.mjs",
