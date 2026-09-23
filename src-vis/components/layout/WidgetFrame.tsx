@@ -9009,19 +9009,24 @@ function WidgetFrameInner({
                                             )}
                                         </>
                                     )}
-                                    {/* Click-action icon (issue #702). Only offered while a click
-                                        action resolves; an iframe body always shows it (#527). */}
-                                    {hasClickAction &&
-                                        (() => {
-                                            const embedForced = needsActionButton;
-                                            const aiOn =
-                                                embedForced ||
-                                                clickActionIconEnabled(o, { hasClickAction, embed: false });
-                                            const aiName = o.clickActionIconName as string | undefined;
-                                            const AiIcon = getWidgetIcon(aiName, DefaultActionIcon);
-                                            return (
-                                                <>
-                                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                    {/* Click-action icon (issue #702). Always listed so it can be
+                                        found; greyed out until a click action resolves. An iframe
+                                        body always shows it (#527). */}
+                                    {(() => {
+                                        const embedForced = needsActionButton;
+                                        const aiOn =
+                                            embedForced || clickActionIconEnabled(o, { hasClickAction, embed: false });
+                                        const aiName = o.clickActionIconName as string | undefined;
+                                        const AiIcon = getWidgetIcon(aiName, DefaultActionIcon);
+                                        return (
+                                            <>
+                                                <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                                <div
+                                                    className="space-y-2.5"
+                                                    style={hasClickAction ? undefined : { opacity: 0.5 }}
+                                                    data-click-action-icon-section=""
+                                                    aria-disabled={!hasClickAction}
+                                                >
                                                     <div className="flex items-center justify-between">
                                                         <label
                                                             className="text-[11px]"
@@ -9031,9 +9036,11 @@ function WidgetFrameInner({
                                                         </label>
                                                         <button
                                                             onClick={() =>
-                                                                !embedForced && setO({ clickActionIcon: !aiOn })
+                                                                hasClickAction &&
+                                                                !embedForced &&
+                                                                setO({ clickActionIcon: !aiOn })
                                                             }
-                                                            disabled={embedForced}
+                                                            disabled={embedForced || !hasClickAction}
                                                             className="relative w-9 h-5 rounded-full transition-colors disabled:opacity-60"
                                                             style={{
                                                                 background: aiOn
@@ -9129,15 +9136,18 @@ function WidgetFrameInner({
                                                         className="text-[10px]"
                                                         style={{ color: 'var(--text-secondary)' }}
                                                     >
-                                                        {embedForced
-                                                            ? t('wf.edit.clickActionIconEmbedHint')
-                                                            : hasOwnClickAction(o)
-                                                              ? t('wf.edit.clickActionIconHint')
-                                                              : t('wf.edit.clickActionIconTypeHint')}
+                                                        {!hasClickAction
+                                                            ? t('wf.edit.clickActionIconNoAction')
+                                                            : embedForced
+                                                              ? t('wf.edit.clickActionIconEmbedHint')
+                                                              : hasOwnClickAction(o)
+                                                                ? t('wf.edit.clickActionIconHint')
+                                                                : t('wf.edit.clickActionIconTypeHint')}
                                                     </p>
-                                                </>
-                                            );
-                                        })()}
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
                                     {/* Fullscreen button (issue #644). Excluded for the types that
                                         already carry their own — see utils/fullscreenButton. */}
                                     {supportsFullscreenButton(config.type) && (

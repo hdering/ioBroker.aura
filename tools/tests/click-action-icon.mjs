@@ -7,8 +7,9 @@
 // Checked in the browser: the icon appears for an own action and runs it, can be
 // switched off, stays away for a type-level default unless opted in, follows its
 // corner, steps aside for the fullscreen and fold buttons, is absent in the editor,
-// and while folded runs the action without unfolding (a tap beside it unfolds) and
-// does not make the folded card taller. The rules themselves are covered by
+// while folded runs the action without unfolding (a tap beside it unfolds) and does
+// not make the folded card taller, and that Appearance always lists the option
+// (greyed out without a click action). The rules themselves are covered by
 // click-action-icon-logic.mjs.
 import { chromium } from 'playwright';
 
@@ -141,6 +142,42 @@ id = await show('value', { clickAction: CLICK_ACTION });
 await page.evaluate(() => window.__auraShot.setEditMode(true));
 await settle();
 check('no icon in the editor', (await icon(id).count()) === 0);
+await page.evaluate(() => window.__auraShot.setEditMode(false));
+
+// ── 8. Appearance lists the option always, greyed out without an action ──────
+async function openAppearance(options) {
+    const wid = `cai-${++seq}`;
+    await page.evaluate(
+        ([w]) => {
+            window.__auraShot.showWidgets([w], { editMode: true });
+            window.__auraShot.setEditMode(true);
+        },
+        [widget(wid, 'value', options)],
+    );
+    await settle();
+    await card(wid).hover();
+    await page.locator('.aura-edit-chrome button').first().click();
+    await page.locator('button:text-is("Bearbeiten")').click();
+    const dlg = page.locator('.aura-widget-edit-modal');
+    await dlg.waitFor({ timeout: 10000 });
+    await dlg.locator('summary:has(span:text-is("Darstellung"))').first().click();
+    await page.waitForTimeout(300);
+    return dlg;
+}
+let dlg = await openAppearance({});
+const section = dlg.locator('[data-click-action-icon-section]');
+check('without an action the option is still listed', (await section.count()) === 1);
+check('…greyed out', (await section.getAttribute('aria-disabled')) === 'true');
+check('…and its switch is disabled', await dlg.locator('[data-click-action-icon-option]').isDisabled());
+await page.keyboard.press('Escape');
+await settle();
+dlg = await openAppearance({ clickAction: CLICK_ACTION });
+check('with an action the switch is enabled', !(await dlg.locator('[data-click-action-icon-option]').isDisabled()));
+check(
+    '…and the section is not greyed',
+    (await dlg.locator('[data-click-action-icon-section]').getAttribute('aria-disabled')) === 'false',
+);
+await page.keyboard.press('Escape');
 await page.evaluate(() => window.__auraShot.setEditMode(false));
 
 check('no page errors', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));

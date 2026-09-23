@@ -1142,6 +1142,8 @@ export const de = {
         'Die Klick-Aktion kommt aus dem Popup-Standard des Widget-Typs. Das Symbol ist dafür standardmäßig aus.',
     'wf.edit.clickActionIconEmbedHint':
         'Bei eingebetteten Seiten immer sichtbar: Ein Klick in die Seite erreicht die Aktion nicht.',
+    'wf.edit.clickActionIconNoAction':
+        'Keine Klick-Aktion eingerichtet. Im Widget-Menü unter „Klick-Aktion“ festlegen.',
     'wf.edit.fsPos.tr': 'rechts oben',
     'wf.edit.fsPos.tl': 'links oben',
     'wf.edit.fsPos.br': 'rechts unten',

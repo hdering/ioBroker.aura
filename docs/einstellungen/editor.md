@@ -75,7 +75,7 @@ Eingeklappt ist die Karte so flach wie eine eingeklappte Gruppe (zwei Rasterzeil
 
 ## Klick-Aktions-Symbol
 
-`Bearbeiten` → **Darstellung** → `Klick-Aktions-Symbol`. Nur sichtbar, wenn das Widget eine Klick-Aktion hat. Ein Tipp auf das Symbol führt die Aktion aus, eingeklappt auch ohne Aufklappen.
+`Bearbeiten` → **Darstellung** → `Klick-Aktions-Symbol`. Ohne Klick-Aktion ausgegraut. Ein Tipp auf das Symbol führt die Aktion aus, eingeklappt auch ohne Aufklappen.
 
 ![](./assets/klick-aktion-symbol.png)
 

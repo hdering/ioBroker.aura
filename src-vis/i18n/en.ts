@@ -1132,6 +1132,7 @@ export const en: Record<TranslationKey, string> = {
         'The click action comes from the popup default of the widget type. The icon is off by default for it.',
     'wf.edit.clickActionIconEmbedHint':
         'Always shown for embedded pages: a click inside the page never reaches the action.',
+    'wf.edit.clickActionIconNoAction': 'No click action set up. Choose one under "Click action" in the widget menu.',
     'wf.edit.fsPos.tr': 'top right',
     'wf.edit.fsPos.tl': 'top left',
     'wf.edit.fsPos.br': 'bottom right',
