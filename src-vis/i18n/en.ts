@@ -2167,6 +2167,7 @@ export const en: Record<TranslationKey, string> = {
     'evcc.vehicle': 'Vehicle',
     'evcc.charging': 'Charging',
     'evcc.heating': 'Heating',
+    'evcc.alwaysCharge': 'Always charge (Smart without pausing, at least at minimum current)',
     'evcc.targetSoc': 'Target:',
     'evcc.adjustTarget': 'Adjust target SoC',
     'evcc.noConnection': 'No connection',

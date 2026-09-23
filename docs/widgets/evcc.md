@@ -1,6 +1,6 @@
 # Energiefluss (evcc)
 
-PV-Erzeugung, Hausverbrauch, Netz und Hausbatterie als Energiefluss-Grafik. Die Werte kommen aus einer [evcc](https://evcc.io)-Instanz oder aus frei gewählten Datenpunkten — damit ist das Widget auch ohne evcc für jede PV-Anlage nutzbar. Mit evcc zusätzlich bis zu acht Ladepunkte, pro Ladepunkt Lademodus (`AUS` · `PV` · `MIN+PV` · `SOFORT`) und Ziel-SoC direkt umschaltbar.
+PV-Erzeugung, Hausverbrauch, Netz und Hausbatterie als Energiefluss-Grafik. Die Werte kommen aus einer [evcc](https://evcc.io)-Instanz oder aus frei gewählten Datenpunkten — damit ist das Widget auch ohne evcc für jede PV-Anlage nutzbar. Mit evcc zusätzlich bis zu acht Ladepunkte, pro Ladepunkt Lademodus und Ziel-SoC direkt umschaltbar.
 
 ## Datenquelle
 
@@ -30,6 +30,15 @@ Die Einheit der Leistungs-Datenpunkte wird aus `common.unit` gelesen: `W`, `kW` 
 Ohne eigenen Datenpunkt wird die Netzleistung automatisch aus der ersten passenden evcc-Quelle gelesen: `status.gridPower` · `status.grid` (JSON) · `status.Grid.power` (evcc-Adapter ≤ 0.2.8) · `status.Grid.Power` (evcc-Adapter ≥ 0.2.9).
 
 Die Ladepunkte gibt es nur mit evcc — sie liegen unter `loadpoint.N.*`, Pfade, die kein anderer Adapter hat.
+
+### Lademodus
+
+| evcc | Knöpfe |
+| --- | --- |
+| bis 0.315 | `AUS` · `PV` · `MIN+PV` · `SOFORT` |
+| ab 0.316 | `AUS` · `SMART` · `SOFORT` · `♾` (Immer laden) |
+
+Erkannt wird die Version an `status.mode = smart` bzw. am Datenpunkt `status.alwaysCharge`. Geschrieben wird immer `control.pvControl`: `♾` an = `2` (minpv), aus = `1` (pv) — beides schaltet auf Smart. Bei Heizstäben/Wärmepumpen (`chargerFeatureHeating`) fehlt `♾`.
 
 ## Layouts
 

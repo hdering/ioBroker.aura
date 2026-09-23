@@ -2185,6 +2185,7 @@ export const de = {
     'evcc.vehicle': 'Fahrzeug',
     'evcc.charging': 'Laden',
     'evcc.heating': 'Heizen',
+    'evcc.alwaysCharge': 'Immer laden (Smart ohne Pause, mindestens mit Mindeststrom)',
     'evcc.targetSoc': 'Ziel:',
     'evcc.adjustTarget': 'Ziel-SoC anpassen',
     'evcc.noConnection': 'Keine Verbindung',

@@ -15,3 +15,4 @@
 - Settings - a protected tab or section no longer shows up empty in the editor after an update, and "Remove PIN" works again: a login kept from an older version now asks for the admin password once (#704)
 - Chart (advanced) - the labels of the first and last point of a JSON chart are no longer cut off at the edge (#703)
 - Settings - the overview no longer lists the mode-dependent datapoints of an air-conditioner widget (Daikin `{mode}`) as missing; they are only reported when no operation mode has them (#701)
+- Energy flow (evcc) - supports the new charge modes of evcc 0.316: Off · Smart · Now plus an "always charge" toggle; older evcc versions keep PV and Min+PV (#700)

@@ -162,6 +162,7 @@
     "test:dp-picker-tree": "node tools/tests/dp-picker-tree.mjs",
     "test:escape-layers": "node tools/tests/editor-escape-layers.mjs",
     "test:evcc-scale": "node tools/tests/evcc-scale.mjs",
+    "test:evcc-modes": "node tools/tests/evcc-modes.mjs",
     "test:evcc-instance": "node tools/tests/evcc-instance.mjs",
     "test:evcc-dps": "node tools/tests/evcc-datapoints.mjs",
     "test:evcc-source": "node tools/tests/evcc-source-picker.mjs",

@@ -241,13 +241,34 @@ const CUSTOM_PREFIX = '__custom__';
 /** Sentinel for "I pick the datapoints myself". */
 const MANUAL_SOURCE = '__manual__';
 
+// `control.pvControl` of the ioBroker.evcc adapter: 0 off, 1 pv, 2 minpv, 3 now.
+// evcc 0.316 renamed pv to `smart` and turned minpv into the "always charge"
+// option of Smart, but still accepts the old values on the write path:
+// pv = Smart with always charge off, minpv = Smart with always charge on.
 const MODE_MAP: Record<string, number> = { off: 0, pv: 1, minpv: 2, now: 3 };
-const MODES: { key: string; label: string; activeColor: string }[] = [
+type ModeDef = { key: string; label: string; activeColor: string };
+const LEGACY_MODES: ModeDef[] = [
     { key: 'off', label: 'AUS', activeColor: '#6b7280' },
     { key: 'pv', label: 'PV', activeColor: '#f59e0b' },
     { key: 'minpv', label: 'MIN+PV', activeColor: '#f97316' },
     { key: 'now', label: 'SOFORT', activeColor: '#ef4444' },
 ];
+const SMART_MODES: ModeDef[] = [
+    { key: 'off', label: 'AUS', activeColor: '#6b7280' },
+    { key: 'smart', label: 'SMART', activeColor: '#f59e0b' },
+    { key: 'now', label: 'SOFORT', activeColor: '#ef4444' },
+];
+const ALWAYS_COLOR = '#f97316';
+
+/** evcc >= 0.316 reports `smart` and publishes `alwaysCharge` per loadpoint. */
+function usesSmartModes(lp: LoadpointState): boolean {
+    return lp.mode === 'smart' || lp.alwaysCharge !== '';
+}
+
+/** `once` lasts for the current session only, but charges the same way as `on`. */
+function isAlwaysCharge(value: string): boolean {
+    return value === 'on' || value === 'once';
+}
 
 // ── state types ───────────────────────────────────────────────────────────────
 
@@ -269,6 +290,8 @@ interface LoadpointState {
     charging: boolean;
     connected: boolean;
     mode: string;
+    /** evcc >= 0.316: off | on | once; empty while the datapoint does not exist. */
+    alwaysCharge: string;
     vehicleTitle: string;
     vehicleSoc: number;
     vehicleRange: number;
@@ -301,6 +324,7 @@ const DEFAULT_LP: LoadpointState = {
     charging: false,
     connected: false,
     mode: 'off',
+    alwaysCharge: '',
     vehicleTitle: '',
     vehicleSoc: 0,
     vehicleRange: 0,
@@ -377,6 +401,7 @@ function useEvccData(prefix: string, loadpointCount: number) {
                 ['charging', 'charging'],
                 ['connected', 'connected'],
                 ['mode', 'mode'],
+                ['alwaysCharge', 'alwaysCharge'],
                 ['vehicleTitle', 'vehicleTitle'],
                 ['vehicleSoc', 'vehicleSoc'],
                 ['vehicleRange', 'vehicleRange'],
@@ -1023,11 +1048,22 @@ function LoadpointCard({
     const { setState } = useIoBroker();
 
     const [pendingMode, setPendingMode] = useState<string | null>(null);
+    const [pendingAlways, setPendingAlways] = useState<boolean | null>(null);
     const [pendingLimitSoc, setPendingLimitSoc] = useState<number | null>(null);
 
     useEffect(() => {
         if (pendingMode !== null && lp.mode === pendingMode) setPendingMode(null);
     }, [lp.mode, pendingMode]);
+
+    useEffect(() => {
+        if (pendingAlways !== null && isAlwaysCharge(lp.alwaysCharge) === pendingAlways) setPendingAlways(null);
+    }, [lp.alwaysCharge, pendingAlways]);
+
+    useEffect(() => {
+        if (pendingAlways === null) return;
+        const id = setTimeout(() => setPendingAlways(null), 35000);
+        return () => clearTimeout(id);
+    }, [pendingAlways]);
 
     useEffect(() => {
         if (pendingLimitSoc !== null && lp.effectiveLimitSoc === pendingLimitSoc) setPendingLimitSoc(null);
@@ -1045,9 +1081,30 @@ function LoadpointCard({
         return () => clearTimeout(id);
     }, [pendingLimitSoc]);
 
+    const smartModes = usesSmartModes(lp);
+    const modes = smartModes ? SMART_MODES : LEGACY_MODES;
+    const alwaysCharge = isAlwaysCharge(lp.alwaysCharge);
+    const displayAlways = pendingAlways ?? alwaysCharge;
+    const pvControlId = `${prefix}.loadpoint.${idx + 1}.control.pvControl`;
+
     const setMode = (modeKey: string) => {
-        setPendingMode(modeKey);
-        setState(`${prefix}.loadpoint.${idx + 1}.control.pvControl`, MODE_MAP[modeKey]);
+        if (modeKey !== 'smart') {
+            setPendingMode(modeKey);
+            setState(pvControlId, MODE_MAP[modeKey]);
+            return;
+        }
+        // Writing pv would switch "always charge" off; already in Smart there is
+        // nothing to do, otherwise the old value that keeps the option is written.
+        if (lp.mode === 'smart') return;
+        setPendingMode('smart');
+        setState(pvControlId, alwaysCharge ? MODE_MAP.minpv : MODE_MAP.pv);
+    };
+    // Through the adapter only reachable together with Smart: minpv = on, pv = off.
+    const toggleAlways = () => {
+        const next = !displayAlways;
+        setPendingAlways(next);
+        if (lp.mode !== 'smart') setPendingMode('smart');
+        setState(pvControlId, next ? MODE_MAP.minpv : MODE_MAP.pv);
     };
     const setLimitSoc = (v: number) => {
         setPendingLimitSoc(v);
@@ -1098,7 +1155,8 @@ function LoadpointCard({
                             style={{ background: 'var(--text-secondary)', width: dot, height: dot }}
                         />
                     )}
-                    {MODES.find((m) => m.key === displayMode)?.label ?? displayMode}
+                    {modes.find((m) => m.key === displayMode)?.label ?? displayMode}
+                    {smartModes && displayMode === 'smart' && displayAlways && ' ♾'}
                 </span>
             </div>
         );
@@ -1209,7 +1267,7 @@ function LoadpointCard({
             )}
 
             <div className="flex" style={{ gap: 4 * scale }}>
-                {MODES.map((m) => {
+                {modes.map((m) => {
                     const active = displayMode === m.key;
                     const pending = active && pendingMode !== null;
                     return (
@@ -1236,6 +1294,37 @@ function LoadpointCard({
                         </button>
                     );
                 })}
+                {smartModes && !isHeating && (
+                    <button
+                        onClick={toggleAlways}
+                        title={t('evcc.alwaysCharge')}
+                        aria-label={t('evcc.alwaysCharge')}
+                        aria-pressed={displayAlways}
+                        className="font-medium rounded-md transition-all hover:opacity-90 active:scale-95 flex items-center justify-center gap-1"
+                        style={{
+                            minHeight: minBtnH,
+                            minWidth: minBtnH,
+                            paddingInline: 6 * scale,
+                            fontSize: modeFs * 1.3,
+                            background: displayAlways ? ALWAYS_COLOR : 'var(--app-bg)',
+                            color: displayAlways ? '#fff' : 'var(--text-secondary)',
+                            border: `1px solid ${displayAlways ? ALWAYS_COLOR : 'var(--app-border)'}`,
+                            opacity: pendingAlways !== null ? 0.75 : displayMode === 'smart' ? 1 : 0.6,
+                        }}
+                    >
+                        {pendingAlways !== null && (
+                            <span
+                                className="inline-block rounded-full animate-pulse"
+                                style={{
+                                    width: pendingDot,
+                                    height: pendingDot,
+                                    background: displayAlways ? '#fff' : 'var(--text-secondary)',
+                                }}
+                            />
+                        )}
+                        ♾
+                    </button>
+                )}
             </div>
         </div>
     );
