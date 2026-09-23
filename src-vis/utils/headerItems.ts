@@ -5,8 +5,9 @@
  *   [icon] Title           [r1-center]           [r1-right]
  *   [r2-left]              [r2-center]           [r2-right]     ← only when used
  *
- * The folded card draws them in its own header (WidgetFrame), so they have to work
- * without the widget body: that body is not even mounted while folded. Everything a
+ * The folded card draws them in its own header (WidgetFrame); expanded, the widget
+ * places them into its own title row (components/layout/HeaderSlotsContext). The
+ * values have to work without the widget body: it is not even mounted while folded. Everything a
  * value needs is therefore derived here from the stored config plus the live states
  * the frame subscribes to — the list aggregates run over `options.entries`, which the
  * dynamic list persists, exactly like the list tokens of markers and conditions.
@@ -23,7 +24,7 @@ import type { ValueTransformSettings } from './valueTransform';
 
 export const HEADER_SLOTS: readonly WidgetHeaderSlot[] = ['r1-center', 'r1-right', 'r2-left', 'r2-center', 'r2-right'];
 export const DEFAULT_HEADER_SLOT: WidgetHeaderSlot = 'r1-right';
-const SOURCES: readonly WidgetHeaderSource[] = ['dp', 'widget', 'text'];
+const SOURCES: readonly WidgetHeaderSource[] = ['dp', 'widget', 'text', 'action'];
 
 /** The stored items, with anything malformed dropped and an unknown slot moved right. */
 export function headerItems(options: Record<string, unknown> | undefined): WidgetHeaderItem[] {

@@ -28,6 +28,7 @@ import {
 } from '../utils/headerItems';
 import { useT } from '../i18n';
 import type { WidgetHeaderSlot, WidgetConfig } from '../types';
+import type { LucideIcon } from 'lucide-react';
 
 export interface ResolvedHeaderItem {
     id: string;
@@ -35,6 +36,9 @@ export interface ResolvedHeaderItem {
     text: string;
     icon?: string;
     color?: string;
+    /** Source 'action': the click-action icon, drawn as a button that runs the action. */
+    action?: boolean;
+    ActionIcon?: LucideIcon;
 }
 
 const NONE: ResolvedHeaderItem[] = [];
@@ -43,7 +47,12 @@ const NONE: ResolvedHeaderItem[] = [];
  * `active` false = the caller draws no header items right now; nothing is
  * subscribed then (the fold state decides which items are visible at all).
  */
-export function useHeaderItems(config: WidgetConfig, collapsed: boolean, active = true): ResolvedHeaderItem[] {
+export function useHeaderItems(
+    config: WidgetConfig,
+    collapsed: boolean,
+    active = true,
+    actionIcon?: LucideIcon,
+): ResolvedHeaderItem[] {
     const t = useT();
     const { defaultDecimals, numberFormat } = useGlobalSettingsStore();
     const stored = config.options?.headerItems;
@@ -96,6 +105,17 @@ export function useHeaderItems(config: WidgetConfig, collapsed: boolean, active 
 
         const out: ResolvedHeaderItem[] = [];
         for (const item of items) {
+            if (item.source === 'action') {
+                out.push({
+                    id: item.id,
+                    slot: item.slot,
+                    text: '',
+                    color: item.color,
+                    action: true,
+                    ActionIcon: actionIcon,
+                });
+                continue;
+            }
             let text = '';
             if (item.source === 'dp') text = render(dpItemTemplate(item));
             else if (item.source === 'text') text = item.text ? render(item.text) : '';
@@ -106,5 +126,5 @@ export function useHeaderItems(config: WidgetConfig, collapsed: boolean, active 
         }
         return out;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [items, states, defaultDecimals, numberFormat, t, config.datapoint, config.options]);
+    }, [items, states, defaultDecimals, numberFormat, t, config.datapoint, config.options, actionIcon]);
 }

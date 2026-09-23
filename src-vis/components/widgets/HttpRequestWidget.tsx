@@ -7,6 +7,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { contentPositionClass } from '../../utils/widgetUtils';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { CustomGridView } from './CustomGridView';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 type RequestStatus = 'idle' | 'loading' | 'ok' | 'error';
 
@@ -144,28 +145,32 @@ export function HttpRequestWidget({ config }: WidgetProps) {
     const posClass = contentPositionClass(o.contentPosition as string | undefined);
     return (
         <div className={`aura-widget-row flex flex-col h-full gap-3 ${posClass}`} style={{ position: 'relative' }}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: buttonColor, flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: buttonColor, flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             {btn}
             {showStatus && statusLabel && (
                 <span className="aura-widget-value text-xs" style={{ color: statusColor }}>

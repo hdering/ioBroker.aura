@@ -24,6 +24,7 @@ import { TimerEventModal } from './TimerEventModal';
 import { CustomGridView } from './CustomGridView';
 import { saveAll, saveToIoBroker } from '../../store/persistManager';
 import { NS } from '../../utils/namespace';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 /**
  * Flush the dashboard config to ioBroker immediately after a user edit.
@@ -679,21 +680,25 @@ export function TimerWidget({ config, editMode, onConfigChange }: WidgetProps) {
     return (
         <div className={`aura-widget-row flex flex-col h-full gap-1.5 ${posClass}`}>
             {/* Header */}
-            <div className="flex items-center gap-2">
-                {iconNode}
-                {showTitle && (
-                    <p
-                        className="aura-widget-title text-xs flex-1 truncate"
-                        style={{
-                            color: 'var(--text-primary)',
-                            textAlign: titleAlign as React.CSSProperties['textAlign'],
-                        }}
-                    >
-                        {config.title}
-                    </p>
-                )}
-                {showMaster && masterSwitch}
-            </div>
+            <HeaderGroup>
+                <div className="flex items-center gap-2">
+                    {iconNode}
+                    {showTitle && (
+                        <p
+                            className="aura-widget-title text-xs flex-1 truncate"
+                            style={{
+                                color: 'var(--text-primary)',
+                                textAlign: titleAlign as React.CSSProperties['textAlign'],
+                            }}
+                        >
+                            {config.title}
+                        </p>
+                    )}
+                    {showMaster && masterSwitch}
+                    <HeaderSlotsInline />
+                </div>
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
 
             {/* Status sub-line */}
             <p

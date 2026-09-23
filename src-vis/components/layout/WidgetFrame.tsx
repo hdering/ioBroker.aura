@@ -105,8 +105,9 @@ import {
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { useHeaderItems } from '../../hooks/useHeaderItems';
 import { HeaderRowOne, HeaderRowTwo } from './HeaderItemSlots';
+import { HeaderSlotsContext, type HeaderRow, type HeaderSlotsValue } from './HeaderSlotsContext';
 import { HeaderItemsEditor } from '../config/HeaderItemsEditor';
-import { headerItems } from '../../utils/headerItems';
+import { groupBySlot, hasSecondRow, headerItemVisible, headerItems } from '../../utils/headerItems';
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
@@ -7220,7 +7221,7 @@ function WidgetFrameInner({
     // Never in the editor (the corner belongs to the edit chrome) and never in a probe.
     const actionIconOn =
         !editMode && !isProbe && clickActionIconEnabled(config.options, { hasClickAction, embed: needsActionButton });
-    const showCornerActionIcon = actionIconOn && !isCollapsed;
+    const showCornerActionIconBase = actionIconOn && !isCollapsed;
     const actionIconPos = clickActionIconPosition(config.options);
     // The iframe widget's own fullscreen button sits top-right of the frame BODY,
     // i.e. below the title row — no collision while that row exists. With title and
@@ -7268,7 +7269,70 @@ function WidgetFrameInner({
     const collapsedTitleAlign = ((collapsedSource.options?.titleAlign as string | undefined) ??
         'left') as React.CSSProperties['textAlign'];
     // Header items (issue #676) of the folded card. A mirror shows its source's.
-    const collapsedHeaderItems = useHeaderItems(collapsedSource, true, isCollapsed);
+    const collapsedHeaderItems = useHeaderItems(collapsedSource, true, isCollapsed, ActionIcon);
+    // Expanded, the widget places the items into its own title row (HeaderSlotsContext);
+    // the mirror is left out — it draws its source's body, not a header of its own.
+    const expandedHeaderItems = useHeaderItems(
+        renderConfig,
+        false,
+        !isCollapsed && config.type !== 'mirror',
+        ActionIcon,
+    );
+    // Which rows the widget drew itself. A row nobody drew falls back to a strip above
+    // the body (see HeaderSlotsContext).
+    const [hdrRows, setHdrRows] = useState<Record<HeaderRow, number>>({ r1: 0, r2: 0 });
+    const registerHeaderRow = useCallback((row: HeaderRow) => {
+        setHdrRows((s) => ({ ...s, [row]: s[row] + 1 }));
+        return () => setHdrRows((s) => ({ ...s, [row]: s[row] - 1 }));
+    }, []);
+    // Stable handle on the (per-render) click action for the header buttons.
+    const runClickActionRef = useRef<() => void>(() => undefined);
+    runClickActionRef.current = runClickAction;
+    const headerActionEnabled = !editMode && !isProbe && hasClickAction;
+    const onHeaderAction = useMemo(
+        () => (headerActionEnabled ? () => runClickActionRef.current() : undefined),
+        [headerActionEnabled],
+    );
+    const headerSlots = useMemo<HeaderSlotsValue>(
+        () => ({ items: expandedHeaderItems, register: registerHeaderRow, onAction: onHeaderAction }),
+        [expandedHeaderItems, registerHeaderRow, onHeaderAction],
+    );
+    // An 'action' item puts the click-action icon on a slot; the corner button and the
+    // folded header's trailing icon step back for it in the state it shows in.
+    const storedHeaderItems = headerItems(config.options);
+    const actionItemIn = (collapsed: boolean) =>
+        headerActionEnabled && storedHeaderItems.some((i) => i.source === 'action' && headerItemVisible(i, collapsed));
+    const actionItemFolded = actionItemIn(true);
+    const actionItemExpanded = actionItemIn(false);
+    // Fallback strip: rows the widget did not draw.
+    const hdrSlots = groupBySlot(expandedHeaderItems);
+    const stripRowOne = hdrRows.r1 === 0 && (hdrSlots['r1-center'].length > 0 || hdrSlots['r1-right'].length > 0);
+    const stripRowTwo = hdrRows.r2 === 0 && hasSecondRow(expandedHeaderItems);
+    const showCornerActionIcon = showCornerActionIconBase && !actionItemExpanded;
+    // Row 1 in the fallback lies on the line of the widget's own title, wherever the
+    // layout puts it (top of a card, centred in a compact row or a tile): measured
+    // from the first visible title element, top of the body when there is none.
+    const headerBodyEl = useRef<HTMLDivElement>(null);
+    const [titleLine, setTitleLine] = useState<{ top: number; height: number } | null>(null);
+    useLayoutEffect(() => {
+        const host = headerBodyEl.current;
+        if (!stripRowOne || !host) {
+            setTitleLine(null);
+            return;
+        }
+        const measure = () => {
+            const hostBox = host.getBoundingClientRect();
+            const title = [...host.querySelectorAll<HTMLElement>('.aura-widget-title')]
+                .map((el) => el.getBoundingClientRect())
+                .find((r) => r.width > 0 && r.height > 0);
+            const next = title ? { top: Math.round(title.top - hostBox.top), height: Math.round(title.height) } : null;
+            setTitleLine((prev) => (prev?.top === next?.top && prev?.height === next?.height ? prev : next));
+        };
+        measure();
+        const ro = new ResizeObserver(measure);
+        ro.observe(host);
+        return () => ro.disconnect();
+    }, [stripRowOne, renderConfig]);
 
     // A folded card always keeps a padding — the header row needs it — but a slim
     // one above and below (collapsedPadY, the group header's measure) so it fits the
@@ -7585,6 +7649,7 @@ function WidgetFrameInner({
                             folds the card to one row more. */}
                         <HeaderRowOne
                             items={collapsedHeaderItems}
+                            onAction={onHeaderAction}
                             title={
                                 <>
                                     <ChevronDown
@@ -7608,7 +7673,7 @@ function WidgetFrameInner({
                                     {/* The click action stays reachable while folded (issue #702):
                                 a tap on the icon runs it, a tap anywhere else unfolds.
                                 20 px tall, so it never grows the measured header row. */}
-                                    {actionIconOn && (
+                                    {actionIconOn && !actionItemFolded && (
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
@@ -7626,7 +7691,7 @@ function WidgetFrameInner({
                                 </>
                             }
                         />
-                        <HeaderRowTwo items={collapsedHeaderItems} />
+                        <HeaderRowTwo items={collapsedHeaderItems} onAction={onHeaderAction} />
                     </div>
                 </div>
             ) : Widget ? (
@@ -7644,20 +7709,76 @@ function WidgetFrameInner({
                         }
                     >
                         <WidgetWriteLockContext.Provider value={editorLock}>
-                            <ProfiledWidget
-                                widgetKey={config.id}
-                                label={config.title ? `${config.type} · ${config.title}` : config.type}
-                                enabled={!editMode && isWidgetTrackingEnabled()}
-                            >
-                                <Widget
-                                    key={`r${refreshNonce}`}
-                                    config={renderConfig}
-                                    editMode={editMode}
-                                    onConfigChange={onBodyConfigChange}
-                                    onLastChange={setLastChangedTs}
-                                    onNeedsActionButton={requestActionButton}
-                                />
-                            </ProfiledWidget>
+                            <HeaderSlotsContext.Provider value={headerSlots}>
+                                {(() => {
+                                    const body = (
+                                        <ProfiledWidget
+                                            widgetKey={config.id}
+                                            label={config.title ? `${config.type} · ${config.title}` : config.type}
+                                            enabled={!editMode && isWidgetTrackingEnabled()}
+                                        >
+                                            <Widget
+                                                key={`r${refreshNonce}`}
+                                                config={renderConfig}
+                                                editMode={editMode}
+                                                onConfigChange={onBodyConfigChange}
+                                                onLastChange={setLastChangedTs}
+                                                onNeedsActionButton={requestActionButton}
+                                            />
+                                        </ProfiledWidget>
+                                    );
+                                    if (!expandedHeaderItems.length) return body;
+                                    // Header items (issue #676) in rows the widget did not
+                                    // draw itself. Row 1 lies over the FIRST line of the body,
+                                    // one title row high — in line with the widget's own title
+                                    // (custom grids, card layouts), instead of a line of its own
+                                    // that pushed the title down. Row 2 goes below the body: it
+                                    // cannot sit under a title the frame does not know.
+                                    const stripStyle = { color: 'var(--text-secondary)' };
+                                    const firstLinePx = Math.max(20, Number(config.options?.iconSize) || 20);
+                                    return (
+                                        <div className="flex flex-col h-full w-full min-h-0" data-header-host="">
+                                            <div ref={headerBodyEl} className="relative flex-1 min-h-0 w-full">
+                                                {body}
+                                                {stripRowOne && (
+                                                    <div
+                                                        className="absolute left-0 right-0 flex items-center min-w-0 pointer-events-none"
+                                                        style={{
+                                                            ...stripStyle,
+                                                            top: titleLine?.top ?? 0,
+                                                            height: Math.max(titleLine?.height ?? 0, firstLinePx),
+                                                            // Centre on the title's line when it is lower than the row.
+                                                            marginTop:
+                                                                titleLine && titleLine.height < firstLinePx
+                                                                    ? (titleLine.height - firstLinePx) / 2
+                                                                    : 0,
+                                                            zIndex: 3,
+                                                        }}
+                                                        data-header-strip=""
+                                                    >
+                                                        <HeaderRowOne
+                                                            items={expandedHeaderItems}
+                                                            onAction={onHeaderAction}
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
+                                            {stripRowTwo && (
+                                                <div
+                                                    className="shrink-0 mt-1 min-w-0"
+                                                    style={stripStyle}
+                                                    data-header-strip=""
+                                                >
+                                                    <HeaderRowTwo
+                                                        items={expandedHeaderItems}
+                                                        onAction={onHeaderAction}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+                            </HeaderSlotsContext.Provider>
                         </WidgetWriteLockContext.Provider>
                     </Suspense>
                 </div>
@@ -9076,6 +9197,7 @@ function WidgetFrameInner({
                                                             <HeaderItemsEditor
                                                                 items={headerItems(o)}
                                                                 config={config}
+                                                                hasClickAction={hasClickAction}
                                                                 onChange={(next) =>
                                                                     setO({
                                                                         headerItems: next.length ? next : undefined,

@@ -17,6 +17,7 @@ import {
     resolveContactState,
     getWcCfg,
 } from '../../utils/windowContact';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // The window-contact presets/helpers moved to utils/windowContact so the list
 // widgets can reuse them without importing this widget. Re-exported for the
@@ -247,24 +248,28 @@ export function WindowContactWidget({ config }: WidgetProps) {
 
     return (
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2">
-                    {showIcon && (
-                        <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} className="aura-widget-icon" />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2">
+                        {showIcon && (
+                            <StateDisplay cfg={cfg} fallback={fb.Icon} size={iconSize} className="aura-widget-icon" />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             {showLabel && (
                 <span className="aura-widget-value text-base font-semibold" style={{ color: cfg.color }}>
                     {stateLabel}

@@ -35,6 +35,7 @@ import {
     stateLabelKey,
     type ClimateEnumEntry,
 } from '../../utils/climateProfiles';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -333,47 +334,55 @@ export function AirControlWidget({ config }: WidgetProps) {
     return (
         <div className="aura-widget-row flex flex-col h-full gap-2 min-h-0" style={{ position: 'relative' }}>
             {/* Header */}
-            <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    {showIcon && (
-                        <Icon className="aura-widget-icon" size={iconSize} style={{ color: accent, flexShrink: 0 }} />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {displayTitle}
-                        </p>
-                    )}
+            <HeaderGroup>
+                <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        {showIcon && (
+                            <Icon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: accent, flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {displayTitle}
+                            </p>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {isOnline === false && <WifiOff size={13} style={{ color: 'var(--text-secondary)' }} />}
+                        {isOnline === true && <Wifi size={13} style={{ color: 'var(--accent)', opacity: 0.7 }} />}
+                        {hasError && <AlertTriangle size={13} style={{ color: 'var(--accent-red, #ef4444)' }} />}
+                        {powerDp && (
+                            <button
+                                className="aura-widget-action nodrag flex items-center justify-center rounded-lg active:scale-95 transition-all"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setState(powerDp, !isOn);
+                                }}
+                                style={{
+                                    width: 30,
+                                    height: 30,
+                                    background: isOn ? 'var(--accent)' : 'var(--app-border)',
+                                    color: isOn ? '#fff' : 'var(--text-secondary)',
+                                }}
+                                title={t('aircontrol.power')}
+                            >
+                                <Power size={16} />
+                            </button>
+                        )}
+                    </div>
+                    <HeaderSlotsInline />
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                    {isOnline === false && <WifiOff size={13} style={{ color: 'var(--text-secondary)' }} />}
-                    {isOnline === true && <Wifi size={13} style={{ color: 'var(--accent)', opacity: 0.7 }} />}
-                    {hasError && <AlertTriangle size={13} style={{ color: 'var(--accent-red, #ef4444)' }} />}
-                    {powerDp && (
-                        <button
-                            className="aura-widget-action nodrag flex items-center justify-center rounded-lg active:scale-95 transition-all"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setState(powerDp, !isOn);
-                            }}
-                            style={{
-                                width: 30,
-                                height: 30,
-                                background: isOn ? 'var(--accent)' : 'var(--app-border)',
-                                color: isOn ? '#fff' : 'var(--text-secondary)',
-                            }}
-                            title={t('aircontrol.power')}
-                        >
-                            <Power size={16} />
-                        </button>
-                    )}
-                </div>
-            </div>
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
 
             {/* Temperatures */}
             <div className="flex items-end justify-between gap-2">

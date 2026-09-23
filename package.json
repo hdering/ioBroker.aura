@@ -87,6 +87,7 @@
     "test:click-action-icon": "node tools/tests/click-action-icon.mjs",
     "test:header-items-logic": "node tools/tests/header-items-logic.mjs",
     "test:header-items": "node tools/tests/header-items.mjs",
+    "test:header-items-sweep": "node tools/tests/header-items-sweep.mjs",
     "test:widget-collapse": "node tools/tests/widget-collapse.mjs",
     "test:widget-collapse-logic": "node tools/tests/widget-collapse-logic.mjs",
     "test:widget-style": "node tools/tests/widget-style-copy.mjs",

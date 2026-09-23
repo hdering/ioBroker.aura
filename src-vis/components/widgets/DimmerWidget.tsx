@@ -11,6 +11,7 @@ import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { evaluateClause } from '../../utils/conditionEval';
 import { controlValueTransform } from '../../utils/valueTransform';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 function parseVal(raw: string | undefined, fallback: boolean): boolean | number | string {
     if (raw === undefined || raw === '') return fallback;
@@ -346,30 +347,36 @@ export function DimmerWidget({ config }: WidgetProps) {
     // --- DEFAULT ---
     return (
         <div className="aura-widget-row flex flex-col h-full justify-between" style={{ position: 'relative' }}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2">
-                    {showIcon && (
-                        <CompactIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)' }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                flex: '1',
-                                minWidth: 0,
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2">
+                        {showIcon && (
+                            <CompactIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{
+                                    color: isOn ? 'var(--light-on, var(--accent-yellow))' : 'var(--text-secondary)',
+                                }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    flex: '1',
+                                    minWidth: 0,
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div className="space-y-2">
                 {showValue && (
                     <div className="flex justify-between items-center">

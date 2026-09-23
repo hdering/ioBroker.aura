@@ -22,6 +22,7 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { formatYTick } from '../../utils/chartFormat';
 import { samplePreviewHistory } from '../../utils/sampleChartData';
 import { applyValueTransform } from '../../utils/valueTransform';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -395,45 +396,49 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     return (
         <div ref={containerRef} className="flex flex-col h-full" style={{ position: 'relative' }}>
             {previewBadge}
-            <div className="flex justify-between items-start mb-1">
-                {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 min-w-0 flex-1">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                strokeWidth={1.5}
-                                style={{ color: lineColor, flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                )}
-                {current !== null && (
-                    <div className="aura-widget-value flex flex-col items-end shrink-0 ml-2">
-                        <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
-                            {formatNum(current, decimals, numFmt)}
-                            {unit ? ` ${unit}` : ''}
-                        </span>
-                        {showAverageAsValue && avg !== null && (
-                            <span className="text-[10px] leading-tight" style={{ color: avgColor }}>
-                                Ø {formatNum(avg, decimals, numFmt)}
+            <HeaderGroup>
+                <div className="flex justify-between items-start mb-1">
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 min-w-0 flex-1">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    strokeWidth={1.5}
+                                    style={{ color: lineColor, flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    {current !== null && (
+                        <div className="aura-widget-value flex flex-col items-end shrink-0 ml-2">
+                            <span className="font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                                {formatNum(current, decimals, numFmt)}
                                 {unit ? ` ${unit}` : ''}
                             </span>
-                        )}
-                    </div>
-                )}
-            </div>
+                            {showAverageAsValue && avg !== null && (
+                                <span className="text-[10px] leading-tight" style={{ color: avgColor }}>
+                                    Ø {formatNum(avg, decimals, numFmt)}
+                                    {unit ? ` ${unit}` : ''}
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </div>
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             {(rangeSelector || adapterPicker) && (
                 <div className="mb-1 flex items-center gap-1 flex-wrap">
                     {rangeSelector}

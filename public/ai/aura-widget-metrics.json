@@ -2,7 +2,7 @@
   "$meta": {
     "name": "AURA widget height metrics",
     "generator": "tools/schema/measure-widget-metrics.mjs",
-    "measured": "2026-09-22",
+    "measured": "2026-09-23",
     "reference": {
       "fontScale": 1,
       "widgetPaddingPx": 16
@@ -36,6 +36,56 @@
     "note": "rows × rowHeight + (rows − 1) × gap = px. Row height and gap come from aura_dashboard."
   },
   "counted": {
+    "climate": {
+      "item": "Zusatzwert-Zeile",
+      "basePx": 70,
+      "perItemPx": 20.3,
+      "offLinePx": 1,
+      "fontScalePx": {
+        "basePx": 6.7,
+        "perItemPx": -1
+      },
+      "atWidthPx": 200,
+      "measured": [
+        {
+          "n": 0,
+          "px": 70
+        },
+        {
+          "n": 2,
+          "px": 112
+        },
+        {
+          "n": 4,
+          "px": 152
+        },
+        {
+          "n": 6,
+          "px": 192
+        }
+      ],
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": 13.3,
+            "perItemPx": 0
+          }
+        }
+      ],
+      "notIncluded": [
+        "gezählt werden nur die Werte mit slot \"grid\" (die Vorgabe). Ohne metricColumns brechen sie um — die Rechnung nimmt dann eine Zeile je Wert an und liegt eher zu hoch als zu niedrig",
+        "Werte mit slot \"secondary\" stapeln sich in der rechten Spalte, slot \"primary\" steht neben der Temperatur — beide sind hier nicht mitgezählt",
+        "das Verlaufsdiagramm (showChart mit historyInstance) füllt den Rest der Karte und braucht zusätzliche Höhe"
+      ]
+    },
     "list": {
       "item": "Zeile",
       "basePx": 66,
@@ -542,6 +592,20 @@
           },
           "basePx": 0,
           "perItemPx": 0
+        },
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": 20,
+            "perItemPx": 0
+          }
         }
       ],
       "rowTypes": {
@@ -668,6 +732,22 @@
           "n": 8,
           "px": 266
         }
+      ],
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": 13.3,
+            "perItemPx": 0
+          }
+        }
       ]
     },
     "weather": {
@@ -752,6 +832,20 @@
           },
           "basePx": 0,
           "perItemPx": 0
+        },
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": 23.3,
+            "perItemPx": 0
+          }
         }
       ],
       "notIncluded": [
@@ -890,6 +984,20 @@
           },
           "basePx": 0,
           "perItemPx": 0
+        },
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "perItemPx": 0,
+          "fontScalePx": {
+            "basePx": 10,
+            "perItemPx": 0
+          }
         }
       ],
       "notIncluded": [
@@ -911,40 +1019,6 @@
       "freeLayouts": [
         "count"
       ]
-    },
-    "climate": {
-      "item": "Zusatzwert-Zeile",
-      "basePx": 70,
-      "perItemPx": 20.3,
-      "offLinePx": 1,
-      "fontScalePx": {
-        "basePx": 6.7,
-        "perItemPx": -1
-      },
-      "atWidthPx": 200,
-      "measured": [
-        {
-          "n": 0,
-          "px": 70
-        },
-        {
-          "n": 2,
-          "px": 112
-        },
-        {
-          "n": 4,
-          "px": 152
-        },
-        {
-          "n": 6,
-          "px": 192
-        }
-      ],
-      "notIncluded": [
-        "gezählt werden nur die Werte mit slot \"grid\" (die Vorgabe). Ohne metricColumns brechen sie um — die Rechnung nimmt dann eine Zeile je Wert an und liegt eher zu hoch als zu niedrig",
-        "Werte mit slot \"secondary\" stapeln sich in der rechten Spalte, slot \"primary\" steht neben der Temperatur — beide sind hier nicht mitgezählt",
-        "das Verlaufsdiagramm (showChart mit historyInstance) füllt den Rest der Karte und braucht zusätzliche Höhe"
-      ]
     }
   },
   "minimum": {
@@ -952,13 +1026,38 @@
       "minPx": 68,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 26.7,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "button": {
       "minPx": 54,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 33.3,
-      "atWidthPx": 80
+      "atWidthPx": 80,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 0
+        }
+      ]
     },
     "carousel": {
       "minPx": 96,
@@ -967,7 +1066,21 @@
         "gemessen mit vier Einträgen. Das Karussell rollt waagerecht, die Höhe hängt nicht an der Anzahl"
       ],
       "fontScalePx": 6.7,
-      "atWidthPx": 120
+      "atWidthPx": 120,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "chart": {
       "minPx": 146,
@@ -983,19 +1096,61 @@
       "notIncluded": [
         "gemessen mit vier Chips in einer Reihe. Mehr Chips als in eine Reihe passen brechen um (wrapCols)"
       ],
-      "atWidthPx": 200
+      "atWidthPx": 200,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        }
+      ]
     },
     "climate": {
       "minPx": 70,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 6.7,
-      "atWidthPx": 200
+      "atWidthPx": 200,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "clock": {
       "minPx": 56,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 20,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        }
+      ]
     },
     "datepicker": {
       "minPx": 100,
@@ -1004,13 +1159,41 @@
         "gemessen mit der Standard-Schriftgröße der Eingabefelder (fontSize leer = 12 px). Eine größere fontSize macht die Felder höher — die Höhe dann am Ergebnis prüfen"
       ],
       "fontScalePx": 20,
-      "atWidthPx": 200
+      "atWidthPx": 200,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "dimmer": {
       "minPx": 88,
       "minRowsDefaultGrid": 4,
       "fontScalePx": 26.7,
-      "atWidthPx": 200
+      "atWidthPx": 200,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        }
+      ]
     },
     "echart": {
       "minPx": 58,
@@ -1018,7 +1201,18 @@
       "usablePx": 222,
       "usableRowsDefaultGrid": 8,
       "fontScalePx": 20,
-      "atWidthPx": 240
+      "atWidthPx": 240,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 0
+        }
+      ]
     },
     "energiebilanz": {
       "minPx": 224,
@@ -1028,7 +1222,21 @@
         "Zeitbereichs-Umschalter (visibleRanges) und eine umbrechende Legende kommen oben drauf"
       ],
       "fontScalePx": 20,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "enum": {
       "minPx": 74,
@@ -1053,18 +1261,58 @@
             "equals": "lg"
           },
           "basePx": 16
+        },
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
         }
       ]
     },
     "fill": {
       "minPx": 60,
       "minRowsDefaultGrid": 3,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "gauge": {
       "minPx": 162,
       "minRowsDefaultGrid": 6,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "header": {
       "minPx": 22,
@@ -1081,43 +1329,141 @@
           "hardWhy": "darunter rückt der Titel in den Rand der Karte, und ab der harten Grenze wächst die Karte über ihre Rasterhöhe hinaus",
           "fontScalePx": 20
         }
-      }
+      },
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        }
+      ]
     },
     "httpRequest": {
       "minPx": 96,
       "minRowsDefaultGrid": 4,
       "fontScalePx": 20,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "input": {
       "minPx": 76,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 20,
-      "atWidthPx": 200
+      "atWidthPx": 200,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        }
+      ]
     },
     "jsontable": {
       "minPx": 266,
       "minRowsDefaultGrid": 10,
       "fontScalePx": 6.7,
-      "atWidthPx": 240
+      "atWidthPx": 240,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "knob": {
       "minPx": 58,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 6.7,
-      "atWidthPx": 120
+      "atWidthPx": 120,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "light": {
       "minPx": 78,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 26.7,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "list": {
       "minPx": 198,
       "minRowsDefaultGrid": 7,
       "fontScalePx": 66.7,
-      "atWidthPx": 200
+      "atWidthPx": 200,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "mediaplayer": {
       "minPx": 142,
@@ -1126,13 +1472,38 @@
         "gemessen mit Titel, Interpret, Abspielzustand, Lautstärke und den vier Tasten. Cover, Chips und die Fortschrittsleiste ändern die Höhe"
       ],
       "fontScalePx": 66.7,
-      "atWidthPx": 280
+      "atWidthPx": 280,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 0
+        }
+      ]
     },
     "shutter": {
       "minPx": 120,
       "minRowsDefaultGrid": 5,
       "fontScalePx": 13.3,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        }
+      ]
     },
     "slider": {
       "minPx": 64,
@@ -1148,6 +1519,18 @@
             "equals": true
           },
           "basePx": 16
+        },
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
         }
       ]
     },
@@ -1155,31 +1538,101 @@
       "minPx": 96,
       "minRowsDefaultGrid": 4,
       "fontScalePx": 20,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        }
+      ]
     },
     "switch": {
       "minPx": 68,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 26.7,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "thermostat": {
       "minPx": 144,
       "minRowsDefaultGrid": 6,
       "fontScalePx": 20,
-      "atWidthPx": 200
+      "atWidthPx": 200,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "value": {
       "minPx": 72,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 26.7,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
+          }
+        }
+      ]
     },
     "windowcontact": {
       "minPx": 68,
       "minRowsDefaultGrid": 3,
       "fontScalePx": 26.7,
-      "atWidthPx": 160
+      "atWidthPx": 160,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "statusoverview": {
       "minPx": 194,
@@ -1188,7 +1641,21 @@
         "gemessen mit vier Zeilen EINER Kategorie (maxRows 4). Die Zeilen dieses Widgets entstehen erst zur Laufzeit — mit maxRows steht die Zeilenzahl fest und aura_measure rechnet genau: siehe counted.statusoverview"
       ],
       "fontScalePx": 186.7,
-      "atWidthPx": 120
+      "atWidthPx": 120,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "weather": {
       "minPx": 178,
@@ -1196,7 +1663,21 @@
       "notIncluded": [
         "gemessen mit fünf Vorhersagetagen (der Standard). Mit bekanntem forecastDays rechnet aura_measure genau: siehe counted.weather"
       ],
-      "atWidthPx": 200
+      "atWidthPx": 200,
+      "modifiers": [
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 13.3
+          }
+        }
+      ]
     },
     "countdown": {
       "minPx": 116,
@@ -1214,6 +1695,18 @@
           "basePx": 50,
           "fontScalePx": {
             "basePx": 113.3
+          }
+        },
+        {
+          "key": "headerRow2",
+          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "when": {
+            "path": "headerItems[].slot",
+            "startsWith": "r2-"
+          },
+          "basePx": 20,
+          "fontScalePx": {
+            "basePx": 20
           }
         }
       ]

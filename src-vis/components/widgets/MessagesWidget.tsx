@@ -8,6 +8,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { formatRelative } from '../../utils/parseTimeValue';
 import { useT } from '../../i18n';
 import type { AuraMessage, MessageSeverity, WidgetProps } from '../../types';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 const ALL_SEVERITIES: MessageSeverity[] = ['error', 'warning', 'success', 'info'];
 
@@ -144,36 +145,40 @@ export function MessagesWidget({ config }: WidgetProps) {
 
     return (
         <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden" data-aura-messages="list">
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2 shrink-0">
-                    {showIcon && (
-                        <Icon
-                            size={iconSize}
-                            style={{ color: 'var(--accent)' }}
-                            className="aura-widget-icon shrink-0"
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs flex-1 min-w-0 truncate"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title || t('messages.title')}
-                        </p>
-                    )}
-                    {counts.unread > 0 && (
-                        <span
-                            className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
-                            style={{ background: 'var(--accent)', color: '#fff' }}
-                        >
-                            {counts.unread}
-                        </span>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2 shrink-0">
+                        {showIcon && (
+                            <Icon
+                                size={iconSize}
+                                style={{ color: 'var(--accent)' }}
+                                className="aura-widget-icon shrink-0"
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs flex-1 min-w-0 truncate"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title || t('messages.title')}
+                            </p>
+                        )}
+                        {counts.unread > 0 && (
+                            <span
+                                className="shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-semibold"
+                                style={{ background: 'var(--accent)', color: '#fff' }}
+                            >
+                                {counts.unread}
+                            </span>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
 
             {showFilter && (
                 <div className="flex items-center gap-1 flex-wrap shrink-0">

@@ -27,6 +27,7 @@ import { publishCountdownConfig, countdownStateId, type CountdownConfigPayload }
 import { formatCountdown, formatPreset } from '../../utils/countdownFormat';
 import { CountdownDurationModal } from './CountdownDurationModal';
 import { CustomGridView } from './CustomGridView';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 type Phase = 'idle' | 'running' | 'paused' | 'ended' | 'unknown';
 
@@ -502,18 +503,22 @@ export function CountdownWidget({ config, editMode, onConfigChange }: WidgetProp
     // ── Default layout ─────────────────────────────────────────────────────────
     return (
         <div className={`aura-widget-row aura-countdown flex flex-col h-full gap-1.5 ${posClass}`} data-state={phase}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-1.5 shrink-0">
-                    {iconNode}
-                    {titleNode}
-                    <span
-                        className="aura-countdown-state text-[10px] shrink-0"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        {stateLabel}
-                    </span>
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {iconNode}
+                        {titleNode}
+                        <span
+                            className="aura-countdown-state text-[10px] shrink-0"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            {stateLabel}
+                        </span>
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             {digitsNode}
             {showProgress && progressNode}
             {showControls && controlsNode}

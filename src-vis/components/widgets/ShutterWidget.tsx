@@ -11,6 +11,7 @@ import { useStatusFields } from '../../hooks/useStatusFields';
 import { ShutterViz } from './ShutterViz';
 import { TILT_SLIDER_WIDTH, TiltButton, TiltPopover, TiltSlider, TiltStepButtons } from './TiltControls';
 import { clampPct, rawToTiltPct, tiltPctToRaw, tiltRange } from '../../utils/shutterTilt';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 function BtnRow({
     onUp,
@@ -653,37 +654,44 @@ export function ShutterWidget({ config }: WidgetProps) {
     // ── DEFAULT ───────────────────────────────────────────────────────────────
     return (
         <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
-            {(showTitle || (showIcon && CustomIcon)) && (
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                        {showIcon && CustomIcon && (
-                            <CustomIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ color: accentColor, flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs truncate"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                    flex: '1',
-                                    minWidth: 0,
-                                }}
+            <HeaderGroup>
+                {(showTitle || (showIcon && CustomIcon)) && (
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                            {showIcon && CustomIcon && (
+                                <CustomIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: accentColor, flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                        flex: '1',
+                                        minWidth: 0,
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                        </div>
+                        {isMoving && (
+                            <span
+                                className="text-[10px] animate-pulse shrink-0"
+                                style={{ color: 'var(--accent-yellow)' }}
                             >
-                                {config.title}
-                            </p>
+                                {movingDir === 'up' ? '▲' : movingDir === 'down' ? '▼' : '↕'}
+                            </span>
                         )}
+                        <HeaderSlotsInline />
                     </div>
-                    {isMoving && (
-                        <span className="text-[10px] animate-pulse shrink-0" style={{ color: 'var(--accent-yellow)' }}>
-                            {movingDir === 'up' ? '▲' : movingDir === 'down' ? '▼' : '↕'}
-                        </span>
-                    )}
-                </div>
-            )}
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div className="flex gap-2 flex-1 min-h-0">
                 {tiltSliderSide === 'left' && tiltColumn}
                 <ShutterViz

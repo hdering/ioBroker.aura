@@ -930,13 +930,13 @@ export interface ClimateMetric {
 
 /** Where a header item sits. Row 1 left belongs to the title; row 2 only appears when used. */
 export type WidgetHeaderSlot = 'r1-center' | 'r1-right' | 'r2-left' | 'r2-center' | 'r2-right';
-export type WidgetHeaderSource = 'dp' | 'widget' | 'text';
+export type WidgetHeaderSource = 'dp' | 'widget' | 'text' | 'action';
 /** 'always' (default), only while the widget is folded, or only while unfolded. */
 export type WidgetHeaderShow = 'always' | 'collapsed' | 'expanded';
 
 export interface WidgetHeaderItem {
     id: string;
-    source: WidgetHeaderSource; // 'dp' = datapoint below, 'widget' = widgetValue, 'text' = text with bindings
+    source: WidgetHeaderSource; // 'dp' = datapoint below, 'widget' = widgetValue, 'text' = text with bindings, 'action' = the click-action icon (replaces the corner button)
     slot: WidgetHeaderSlot; // 'r1-center' | 'r1-right' | 'r2-left' | 'r2-center' | 'r2-right'
     show?: WidgetHeaderShow; // default 'always'
     dp?: string; // source 'dp': state id, JSON path allowed ('0_userdata.0.x?soc')

@@ -9,6 +9,7 @@ import { SliderScale } from './SliderScale';
 import { StatusBadges } from './StatusBadges';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { controlValueTransform } from '../../utils/valueTransform';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 type SliderAction = {
     id: string;
@@ -318,38 +319,42 @@ export function SliderWidget({ config }: WidgetProps) {
 
     return (
         <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
-            {(showTitle || showIcon || showValue) && (
-                <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
+            <HeaderGroup>
+                {(showTitle || showIcon || showValue) && (
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                        </div>
+                        {showValue && (
                             <p
-                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
+                                className="aura-widget-value text-xl font-bold shrink-0"
+                                style={{ color: 'var(--text-primary)' }}
                             >
-                                {config.title}
+                                {valueStr}
                             </p>
                         )}
+                        <HeaderSlotsInline />
                     </div>
-                    {showValue && (
-                        <p
-                            className="aura-widget-value text-xl font-bold shrink-0"
-                            style={{ color: 'var(--text-primary)' }}
-                        >
-                            {valueStr}
-                        </p>
-                    )}
-                </div>
-            )}
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div className="flex-1 flex items-center gap-2 min-h-0">
                 {showMinMax && (
                     <span className="text-xs shrink-0" style={{ color: 'var(--text-secondary)' }}>

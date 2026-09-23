@@ -41,6 +41,7 @@ import { axisIsZeroBased, gridLineAxis } from '../../utils/chartAxis';
 import { legendGridTop, LEGEND_TOP } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -678,28 +679,32 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
         return (
             <div ref={containerRef} className="aura-widget-row flex flex-col w-full h-full">
-                {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                )}
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
                 <div className="flex-1 relative min-h-0">
                     {hasSize && (
                         <ReactECharts
@@ -800,28 +805,32 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
 
         return (
             <div ref={containerRef} className="aura-widget-row flex flex-col w-full h-full">
-                {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                )}
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
                 <div className="flex-1 relative min-h-0">
                     {(echartSeries.length === 0 || !hasData) && (
                         <div

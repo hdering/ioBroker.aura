@@ -1,5 +1,5 @@
-// Header items in the folded card (issue #676): extra values beside the title and in
-// an optional second row.
+// Header items (issue #676): extra values beside the title and in an optional second
+// row — in the folded card and in the expanded widget's own title row.
 //
 //   npm run dev            (or set AURA_BASE)
 //   node tools/tests/header-items.mjs
@@ -169,6 +169,100 @@ check(
 const itemBox = await card(id).locator('[data-header-item="long"]').boundingBox();
 const nb = await card(id).boundingBox();
 check('…and stays inside the card', !!itemBox && itemBox.x + itemBox.width <= nb.x + nb.width + 0.5);
+
+// ── 4b. Expanded: items in the widget's own title row ────────────────────────
+const overlapsVertically = (a, b) => !!a && !!b && a.y < b.y + b.height && b.y < a.y + a.height;
+const titleBox = (wid) => card(wid).locator('.aura-widget-title').first().boundingBox();
+const itemBoxOf = (wid, itemId) => card(wid).locator(`[data-header-item="${itemId}"]`).first().boundingBox();
+const inStrip = (wid, itemId) =>
+    card(wid)
+        .locator(`[data-header-strip] [data-header-item="${itemId}"]`)
+        .count()
+        .then((n) => n > 0);
+
+id = await show('value', {
+    defaultCollapsed: false,
+    headerItems: [
+        { id: 'e1', source: 'dp', dp: 'demo.pv', decimals: 0, unit: 'W', slot: 'r1-right' },
+        { id: 'e2', source: 'text', text: 'ZWEI', slot: 'r2-left' },
+        { id: 'e3', source: 'text', text: 'NUR-ZU', slot: 'r1-right', show: 'collapsed' },
+    ],
+});
+check('expanded: item beside the title', overlapsVertically(await itemBoxOf(id, 'e1'), await titleBox(id)));
+check('…in the widget, not the fallback strip', !(await inStrip(id, 'e1')));
+check('…right of the title', (await itemBoxOf(id, 'e1')).x > (await titleBox(id)).x);
+const e2 = await itemBoxOf(id, 'e2');
+check('expanded: row 2 below the title', !!e2 && e2.y >= (await titleBox(id)).y + (await titleBox(id)).height - 1);
+check(
+    'collapsed-only item stays out of the expanded header',
+    (await card(id).locator('[data-header-item="e3"]').count()) === 0,
+);
+
+// The list keeps its own header row: count, filter chip and master switch stay.
+id = await show(
+    'list',
+    {
+        defaultCollapsed: false,
+        entries: [{ id: 'demo.l1' }, { id: 'demo.l2' }],
+        headerItems: [{ id: 'ls', source: 'widget', widgetValue: 'list:sum', unit: 'W', slot: 'r1-right' }],
+    },
+    { datapoint: '' },
+);
+check('list: sum in its own header row', overlapsVertically(await itemBoxOf(id, 'ls'), await titleBox(id)));
+check('list: not in the fallback strip', !(await inStrip(id, 'ls')));
+check('list: value', (await card(id).locator('[data-header-item="ls"]').innerText()) === '350 W');
+
+// A layout without a title row gets the frame's strip above the body.
+id = await show(
+    'switch',
+    { defaultCollapsed: false, headerItems: [{ id: 'sc', source: 'text', text: 'STRIP', slot: 'r1-right' }] },
+    { layout: 'card' },
+);
+check('switch card: item in the fallback strip', await inStrip(id, 'sc'));
+
+// Without items the body keeps the frame as its direct parent (no wrapper).
+id = await show('value', { defaultCollapsed: false });
+check('no items: no header host wrapper', (await card(id).locator('[data-header-host]').count()) === 0);
+
+// ── 4c. Click action as an item ──────────────────────────────────────────────
+const CLICK = { kind: 'popup-html', html: '<b>HDR-ACTION-OK</b>' };
+const actionPopup = () =>
+    page
+        .locator('text=HDR-ACTION-OK')
+        .first()
+        .isVisible({ timeout: 800 })
+        .catch(() => false);
+id = await show('value', {
+    defaultCollapsed: false,
+    clickAction: CLICK,
+    headerItems: [{ id: 'act', source: 'action', slot: 'r1-center' }],
+});
+const actionButtons = card(id).locator('[data-click-action-icon]');
+check('action item replaces the corner button', (await actionButtons.count()) === 1);
+check('…and sits on its slot', (await card(id).locator('[data-header-item="act"]').count()) === 1);
+await card(id).locator('[data-header-item="act"]').click();
+await settle();
+check('…and runs the action', await actionPopup());
+await page.keyboard.press('Escape');
+await settle();
+
+id = await show('value', {
+    clickAction: CLICK,
+    headerItems: [{ id: 'actf', source: 'action', slot: 'r1-right' }],
+});
+check(
+    'folded: the action item replaces the trailing icon',
+    (await card(id).locator('[data-collapsed-header] [data-click-action-icon]').count()) === 1 &&
+        (await card(id).locator('[data-header-item="actf"]').count()) === 1,
+);
+id = await show('value', {
+    defaultCollapsed: false,
+    headerItems: [{ id: 'none', source: 'action', slot: 'r1-right' }],
+});
+check(
+    'action item without a click action draws nothing',
+    (await card(id).locator('[data-header-item="none"]').count()) === 0,
+);
 
 // ── 5. Editor: Darstellung → Kopfzeile ───────────────────────────────────────
 const editId = `hi-${++seq}`;

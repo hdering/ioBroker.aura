@@ -7,6 +7,7 @@ import { valueHidden, valueTextOverride } from '../../utils/conditionSet';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // Preset configurations per sensor sub-type
 export const BINARY_SENSOR_PRESETS: Record<
@@ -201,22 +202,28 @@ export function BinarySensorWidget({ config }: WidgetProps) {
 
     return (
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2">
-                    {showIcon && <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2">
+                        {showIcon && (
+                            <Icon className="aura-widget-icon" size={iconSize} style={{ color, flexShrink: 0 }} />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             {showLabel && (
                 <span className="aura-widget-value text-base font-semibold" style={{ color }}>
                     {label}

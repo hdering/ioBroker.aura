@@ -19,6 +19,7 @@ import { useDatapoint } from '../../hooks/useDatapoint';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useT, type TranslationKey } from '../../i18n';
 import type { WidgetProps, WidgetConfig, ioBrokerState } from '../../types';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── alarm state mapping (mirrors info.state_list of ioBroker.alarm) ──────────
 
@@ -387,28 +388,32 @@ export function AlarmWidget({ config }: WidgetProps) {
       `}</style>
 
             {/* Widget header (title + icon) */}
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2 shrink-0">
-                    {showIcon && (
-                        <WidgetIcon
-                            size={iconSize}
-                            style={{ color: triggered ? '#ef4444' : 'var(--accent)' }}
-                            className="aura-widget-icon shrink-0"
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs flex-1 min-w-0 truncate"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title || t('alarm.title')}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2 shrink-0">
+                        {showIcon && (
+                            <WidgetIcon
+                                size={iconSize}
+                                style={{ color: triggered ? '#ef4444' : 'var(--accent)' }}
+                                className="aura-widget-icon shrink-0"
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs flex-1 min-w-0 truncate"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title || t('alarm.title')}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
 
             {/* Status / state row */}
             {showHeader && (

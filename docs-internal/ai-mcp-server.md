@@ -2006,10 +2006,22 @@ Engine ohne js-controller, `npm run test:countdown-format` die Ziffern,
 `options.headerItems` (#676) setzt Werte in die Kopfzeile eines Widgets: je
 Element eine Quelle (`dp`, `widget`, `text`), ein Platz (`r1-center`, `r1-right`,
 `r2-left`, `r2-center`, `r2-right`) und `show` (`always`, `collapsed`,
-`expanded`). Derzeit zeichnet nur die **eingeklappte** Kopfzeile sie
-(`defaultCollapsed`). Der Rahmen berechnet die Werte selbst, weil der
-Widget-Inhalt eingeklappt gar nicht gemountet ist; Listen-Summen laufen deshalb
-über `options.entries`, wie die `{list:*}`-Tokens der Marker.
+`expanded`). Der Rahmen berechnet die Werte selbst, weil der Widget-Inhalt
+eingeklappt gar nicht gemountet ist; Listen-Summen laufen deshalb über
+`options.entries`, wie die `{list:*}`-Tokens der Marker.
+
+Eingeklappt zeichnet der Rahmen die Kopfzeile. Aufgeklappt gehört die Titelzeile
+dem Widget (Layout, Symbolfarbe, Bedienelement in derselben Zeile), deshalb setzt
+das Widget die Plätze selbst ein: `HeaderSlotsInline` / `HeaderSlotsRow2` in
+`HeaderGroup` (components/layout/HeaderSlotsContext). Eine Zeile, die kein Widget
+zeichnet, holt der Rahmen nach: Zeile 1 als Überlagerung auf der Höhe des
+gemessenen Titels (`.aura-widget-title`, sonst oben), Zeile 2 unter dem Inhalt. `npm run test:header-items-sweep` prüft alle
+Typen × Layouts: jedes Element genau einmal, in der Karte, Zeile 2 direkt unter
+Zeile 1. Neue Widgets mit Titelzeile bekommen dieselben drei Bausteine.
+
+Höhe: der gemeinsame Zuschlag `headerRow2` (Bedingung
+`headerItems[].slot startsWith "r2-"`, neuer Operator in `lib/mcp/measure.js`)
+steht an jedem Typ in aura-widget-metrics.json.
 
 Für ein Modell ist das der Ersatz für „zweite Kachel neben dem eingeklappten
 Widget“. Das Rezept `eingeklappt-mit-wert` zeigt Summe, freien Datenpunkt und

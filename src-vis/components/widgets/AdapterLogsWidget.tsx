@@ -3,6 +3,7 @@ import { ScrollText, Pause, Play, Trash2, ArrowDownToLine, Search } from 'lucide
 import { getObjectViewDirect, sendToDirect, useIoBroker, type LogEntry } from '../../hooks/useIoBroker';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -246,59 +247,63 @@ export function AdapterLogsWidget({ config }: WidgetProps) {
     return (
         <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden">
             {/* Header */}
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2 shrink-0">
-                    {showIcon && (
-                        <Icon
-                            size={iconSize}
-                            style={{ color: 'var(--accent)' }}
-                            className="aura-widget-icon shrink-0"
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs flex-1 min-w-0 truncate"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title || 'Adapter-Logs'}
-                        </p>
-                    )}
-                    {showControls && (
-                        <div className="flex items-center gap-1 shrink-0">
-                            <button
-                                onClick={() => setAutoScroll((v) => !v)}
-                                className="p-1 rounded transition-opacity"
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2 shrink-0">
+                        {showIcon && (
+                            <Icon
+                                size={iconSize}
+                                style={{ color: 'var(--accent)' }}
+                                className="aura-widget-icon shrink-0"
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs flex-1 min-w-0 truncate"
                                 style={{
-                                    color: autoScroll ? 'var(--accent)' : 'var(--text-secondary)',
-                                    opacity: autoScroll ? 1 : 0.6,
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
                                 }}
-                                title={autoScroll ? 'Auto-Scroll an' : 'Auto-Scroll aus'}
                             >
-                                <ArrowDownToLine size={14} />
-                            </button>
-                            <button
-                                onClick={() => setPaused((p) => !p)}
-                                className="p-1 rounded transition-opacity"
-                                style={{ color: paused ? '#f59e0b' : 'var(--text-secondary)' }}
-                                title={paused ? 'Anzeige fortsetzen' : 'Anzeige pausieren'}
-                            >
-                                {paused ? <Play size={14} /> : <Pause size={14} />}
-                            </button>
-                            <button
-                                onClick={clearBuffer}
-                                className="p-1 rounded transition-opacity"
-                                style={{ color: 'var(--text-secondary)' }}
-                                title="Puffer leeren"
-                            >
-                                <Trash2 size={14} />
-                            </button>
-                        </div>
-                    )}
-                </div>
-            )}
+                                {config.title || 'Adapter-Logs'}
+                            </p>
+                        )}
+                        {showControls && (
+                            <div className="flex items-center gap-1 shrink-0">
+                                <button
+                                    onClick={() => setAutoScroll((v) => !v)}
+                                    className="p-1 rounded transition-opacity"
+                                    style={{
+                                        color: autoScroll ? 'var(--accent)' : 'var(--text-secondary)',
+                                        opacity: autoScroll ? 1 : 0.6,
+                                    }}
+                                    title={autoScroll ? 'Auto-Scroll an' : 'Auto-Scroll aus'}
+                                >
+                                    <ArrowDownToLine size={14} />
+                                </button>
+                                <button
+                                    onClick={() => setPaused((p) => !p)}
+                                    className="p-1 rounded transition-opacity"
+                                    style={{ color: paused ? '#f59e0b' : 'var(--text-secondary)' }}
+                                    title={paused ? 'Anzeige fortsetzen' : 'Anzeige pausieren'}
+                                >
+                                    {paused ? <Play size={14} /> : <Pause size={14} />}
+                                </button>
+                                <button
+                                    onClick={clearBuffer}
+                                    className="p-1 rounded transition-opacity"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                    title="Puffer leeren"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </div>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
 
             {/* Filter pills */}
             {showFilter && (

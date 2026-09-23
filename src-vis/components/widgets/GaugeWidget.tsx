@@ -4,6 +4,7 @@ import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
     const rad = (angleDeg * Math.PI) / 180;
@@ -360,30 +361,34 @@ export function GaugeWidget({ config }: WidgetProps) {
 
     return (
         <div className="aura-widget-row flex flex-col h-full">
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-1.5 mb-1 min-w-0">
-                    {showIcon && (
-                        <GaugeIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                flex: '1',
-                                minWidth: 0,
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-1.5 mb-1 min-w-0">
+                        {showIcon && (
+                            <GaugeIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    flex: '1',
+                                    minWidth: 0,
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div className="aura-widget-value flex-1 flex items-center justify-center">
                 <GaugeSVG {...gaugeProps} scale={0.95} />
             </div>

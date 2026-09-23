@@ -22,6 +22,7 @@ import { formatLastChange } from '../../utils/formatLastChange';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { WidgetClickPopup } from './popup/WidgetClickPopup';
 import type { WidgetProps, ClickAction } from '../../types';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 export type CarouselItem = {
     id: string;
@@ -540,28 +541,32 @@ export function CarouselWidget({ config, editMode }: WidgetProps) {
 
     return (
         <div className="aura-widget-row relative w-full h-full flex flex-col gap-1.5">
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-1.5 shrink-0 min-w-0">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-1.5 shrink-0 min-w-0">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div
                 className="aura-widget-action nodrag flex-1 flex flex-col min-h-0"
                 style={{ justifyContent: valignJustify }}

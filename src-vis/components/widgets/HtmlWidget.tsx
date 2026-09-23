@@ -15,6 +15,7 @@ import { extractJsonPath } from '../../utils/dpRef';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import type { WidgetProps } from '../../types';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     const opts = config.options ?? {};
@@ -96,6 +97,46 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
     if (!html) {
         return (
             <div className="aura-widget-row flex flex-col h-full">
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
+                <div
+                    className="flex flex-col items-center justify-center flex-1 gap-2"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <WidgetIcon size={32} strokeWidth={1} />
+                    <span className="text-xs opacity-60">Kein HTML oder Datenpunkt konfiguriert</span>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="aura-widget-row flex flex-col h-full">
+            <HeaderGroup>
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
@@ -116,43 +157,11 @@ export function HtmlWidget({ config, onNeedsActionButton }: WidgetProps) {
                                 {config.title}
                             </p>
                         )}
+                        <HeaderSlotsInline />
                     </div>
                 )}
-                <div
-                    className="flex flex-col items-center justify-center flex-1 gap-2"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    <WidgetIcon size={32} strokeWidth={1} />
-                    <span className="text-xs opacity-60">Kein HTML oder Datenpunkt konfiguriert</span>
-                </div>
-            </div>
-        );
-    }
-
-    return (
-        <div className="aura-widget-row flex flex-col h-full">
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <iframe
                 ref={frameRef}
                 srcDoc={html}

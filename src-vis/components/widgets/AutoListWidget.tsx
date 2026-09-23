@@ -91,6 +91,7 @@ import {
 } from './entryControls';
 import type { ValueTransformSettings } from '../../utils/valueTransform';
 import { applyListDisplay } from '../../utils/listDisplayDefaults';
+import { HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -1688,73 +1689,77 @@ export function AutoListWidget({ config, editMode, onConfigChange }: WidgetProps
     const header =
         showTitle || showIcon || (opts.showSum && sumInfo) || masterSwitch ? (
             <div
-                className="shrink-0 py-1.5 flex items-center justify-between"
+                className="shrink-0 py-1.5 flex flex-col gap-1"
                 style={{ borderBottom: '1px solid var(--widget-border)' }}
             >
-                <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                    {showIcon && (
-                        <HeaderIcon
-                            size={iconSize}
-                            className="aura-widget-icon shrink-0"
-                            style={{ color: 'var(--text-secondary)' }}
-                        />
-                    )}
-                    <div className="flex-1 min-w-0">
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs font-semibold truncate"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title || 'Dynamische Liste'}
-                                {showCount && entries.length > 0 && (
-                                    <span className="ml-1 opacity-50">
-                                        ({valueFilter !== 'all' ? `${matchedEntries.length}/` : ''}
-                                        {entries.length})
-                                    </span>
-                                )}
-                            </p>
-                        )}
-                        {opts.showSum && sumInfo && (
-                            <StatLine
-                                stats={sumInfo}
-                                selected={opts.sumStats}
-                                labels={opts.statLabels}
-                                icons={opts.statIcons}
-                                sumLabel={opts.sumLabel}
-                                decimals={decimals}
-                                numFmt={numFmt}
-                                align={opts.sumAlign ?? 'left'}
-                                fontSize={opts.sumFontSize ?? 10}
+                <div className="flex items-center justify-between gap-1.5">
+                    <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                        {showIcon && (
+                            <HeaderIcon
+                                size={iconSize}
+                                className="aura-widget-icon shrink-0"
+                                style={{ color: 'var(--text-secondary)' }}
                             />
                         )}
+                        <div className="flex-1 min-w-0">
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs font-semibold truncate"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title || 'Dynamische Liste'}
+                                    {showCount && entries.length > 0 && (
+                                        <span className="ml-1 opacity-50">
+                                            ({valueFilter !== 'all' ? `${matchedEntries.length}/` : ''}
+                                            {entries.length})
+                                        </span>
+                                    )}
+                                </p>
+                            )}
+                            {opts.showSum && sumInfo && (
+                                <StatLine
+                                    stats={sumInfo}
+                                    selected={opts.sumStats}
+                                    labels={opts.statLabels}
+                                    icons={opts.statIcons}
+                                    sumLabel={opts.sumLabel}
+                                    decimals={decimals}
+                                    numFmt={numFmt}
+                                    align={opts.sumAlign ?? 'left'}
+                                    fontSize={opts.sumFontSize ?? 10}
+                                />
+                            )}
+                        </div>
+                    </div>
+                    <HeaderSlotsInline />
+                    <div className="flex items-center gap-1 shrink-0">
+                        {masterSwitch}
+                        {!opts.hideFilterButton && (
+                            <ListFilterChip
+                                choices={filterChoices}
+                                value={valueFilter}
+                                onChange={setViewFilter}
+                                search={searchTerm}
+                                onSearchChange={setSearchTerm}
+                                showSearch={!opts.hideFilterSearch}
+                                searchPlaceholder={opts.filterSearchPlaceholder}
+                                label={filterModeLabel(valueFilter, filterChoices)}
+                            />
+                        )}
+                        <button
+                            onClick={runSync}
+                            title="Jetzt synchronisieren"
+                            className="hover:opacity-70 transition-opacity p-0.5"
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <RefreshCw size={11} className={syncing ? 'animate-spin' : ''} />
+                        </button>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
-                    {masterSwitch}
-                    {!opts.hideFilterButton && (
-                        <ListFilterChip
-                            choices={filterChoices}
-                            value={valueFilter}
-                            onChange={setViewFilter}
-                            search={searchTerm}
-                            onSearchChange={setSearchTerm}
-                            showSearch={!opts.hideFilterSearch}
-                            searchPlaceholder={opts.filterSearchPlaceholder}
-                            label={filterModeLabel(valueFilter, filterChoices)}
-                        />
-                    )}
-                    <button
-                        onClick={runSync}
-                        title="Jetzt synchronisieren"
-                        className="hover:opacity-70 transition-opacity p-0.5"
-                        style={{ color: 'var(--text-secondary)' }}
-                    >
-                        <RefreshCw size={11} className={syncing ? 'animate-spin' : ''} />
-                    </button>
-                </div>
+                <HeaderSlotsRow2 />
             </div>
         ) : null;
 

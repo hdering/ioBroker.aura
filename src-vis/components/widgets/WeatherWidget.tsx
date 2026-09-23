@@ -7,6 +7,7 @@ import { useT, type Language } from '../../i18n';
 import { useConfigStore } from '../../store/configStore';
 import { CustomGridView } from './CustomGridView';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── Default 3×3 grid used when layout='custom' has no overrides ──────────────
 export const DEFAULT_WEATHER_GRID: CustomGrid = [
@@ -1025,29 +1026,33 @@ export function WeatherWidget({ config }: WidgetProps) {
             ref={containerRef}
             className={`aura-widget-row flex flex-col h-full gap-2 ${showWarnings ? 'overflow-hidden' : 'aura-scroll overflow-auto'}`}
         >
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize * scale}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                fontSize: fs(0.75),
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize * scale}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    fontSize: fs(0.75),
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             {/* ── Current weather header ── */}
             <div className="flex items-start gap-3 shrink-0">
                 <span style={{ fontSize: fs(2.2), lineHeight: 1 }}>{info.emoji}</span>

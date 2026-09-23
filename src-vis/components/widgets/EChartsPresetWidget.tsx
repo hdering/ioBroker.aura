@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { BarChart2, Maximize2, X } from 'lucide-react';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 function getIoBrokerBase(): string {
     const injected = (window as unknown as { __AURA_SOCKET_URL__?: string }).__AURA_SOCKET_URL__;
@@ -51,28 +52,32 @@ export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: W
     if (!presetId) {
         return (
             <div className="aura-widget-row flex flex-col h-full p-2">
-                {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                )}
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
                 <div
                     className="flex flex-col items-center justify-center flex-1 gap-2"
                     style={{ color: 'var(--text-secondary)' }}
@@ -90,28 +95,32 @@ export function EChartsPresetWidget({ config, editMode, onNeedsActionButton }: W
     return (
         <>
             <div className="aura-widget-row flex flex-col w-full h-full">
-                {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                )}
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
                 <div
                     className="aura-widget-value flex-1 overflow-hidden relative min-h-0"
                     style={{ borderRadius: 'inherit' }}

@@ -12,6 +12,7 @@ import { CustomGridView } from './CustomGridView';
 import { useStatusFields } from '../../hooks/useStatusFields';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -584,31 +585,35 @@ export function ThermostatWidget({ config }: WidgetProps) {
         <>
             <div className="aura-widget-row flex flex-col h-full gap-2" style={{ position: 'relative' }}>
                 {/* Title row */}
-                {(showTitle || showIcon) && (
-                    <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                            {showIcon && (
-                                <ThermoIcon
-                                    className="aura-widget-icon"
-                                    size={iconSize}
-                                    style={{ color: accentColor, flexShrink: 0 }}
-                                />
-                            )}
-                            {showTitle && (
-                                <p
-                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                    style={{
-                                        color: 'var(--text-secondary)',
-                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                    }}
-                                >
-                                    {displayTitle}
-                                </p>
-                            )}
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                                {showIcon && (
+                                    <ThermoIcon
+                                        className="aura-widget-icon"
+                                        size={iconSize}
+                                        style={{ color: accentColor, flexShrink: 0 }}
+                                    />
+                                )}
+                                {showTitle && (
+                                    <p
+                                        className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                        style={{
+                                            color: 'var(--text-secondary)',
+                                            textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                        }}
+                                    >
+                                        {displayTitle}
+                                    </p>
+                                )}
+                            </div>
+                            <StatusIcon />
+                            <HeaderSlotsInline />
                         </div>
-                        <StatusIcon />
-                    </div>
-                )}
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
 
                 {/* Temperature */}
                 <div className="flex items-center justify-between flex-1">

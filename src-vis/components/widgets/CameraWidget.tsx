@@ -15,6 +15,7 @@ import {
     resolveIframeInteractionMode,
     type IframeInteractionMode,
 } from '../../utils/iframeInteraction';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── Exported types (used by WidgetFrame config) ───────────────────────────────
 
@@ -1073,28 +1074,32 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                         >
                             {isReactivate ? <RefreshCw size={18} color="#ef4444" /> : <Camera size={20} color="#fff" />}
                         </div>
-                        {(showTitle || showIcon) && (
-                            <div className="flex items-center gap-1 min-w-0 max-w-[80%] justify-center">
-                                {showIcon && (
-                                    <WidgetIcon
-                                        className="aura-widget-icon"
-                                        size={iconSize}
-                                        style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                                    />
-                                )}
-                                {showTitle && (
-                                    <p
-                                        className="aura-widget-title text-xs truncate"
-                                        style={{
-                                            color: 'var(--text-secondary)',
-                                            textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                        }}
-                                    >
-                                        {config.title}
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                        <HeaderGroup>
+                            {(showTitle || showIcon) && (
+                                <div className="flex items-center gap-1 min-w-0 max-w-[80%] justify-center">
+                                    {showIcon && (
+                                        <WidgetIcon
+                                            className="aura-widget-icon"
+                                            size={iconSize}
+                                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                        />
+                                    )}
+                                    {showTitle && (
+                                        <p
+                                            className="aura-widget-title text-xs truncate"
+                                            style={{
+                                                color: 'var(--text-secondary)',
+                                                textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                            }}
+                                        >
+                                            {config.title}
+                                        </p>
+                                    )}
+                                    <HeaderSlotsInline />
+                                </div>
+                            )}
+                            <HeaderSlotsRow2 />
+                        </HeaderGroup>
                         {stopReason === 'timeout' && (
                             <p className="text-[10px]" style={{ color: '#ef4444' }}>
                                 Stream beendet
@@ -1216,28 +1221,35 @@ export function CameraWidget({ config, editMode, onNeedsActionButton }: WidgetPr
                             padding: '4px',
                         }}
                     >
-                        {(showTitle || showIcon) && (
-                            <div className="flex items-center gap-1 shrink-0 min-w-0" style={{ paddingBottom: '2px' }}>
-                                {showIcon && (
-                                    <WidgetIcon
-                                        className="aura-widget-icon"
-                                        size={iconSize}
-                                        style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                                    />
-                                )}
-                                {showTitle && (
-                                    <p
-                                        className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                        style={{
-                                            color: 'var(--text-secondary)',
-                                            textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                        }}
-                                    >
-                                        {config.title}
-                                    </p>
-                                )}
-                            </div>
-                        )}
+                        <HeaderGroup>
+                            {(showTitle || showIcon) && (
+                                <div
+                                    className="flex items-center gap-1 shrink-0 min-w-0"
+                                    style={{ paddingBottom: '2px' }}
+                                >
+                                    {showIcon && (
+                                        <WidgetIcon
+                                            className="aura-widget-icon"
+                                            size={iconSize}
+                                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                        />
+                                    )}
+                                    {showTitle && (
+                                        <p
+                                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                            style={{
+                                                color: 'var(--text-secondary)',
+                                                textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                            }}
+                                        >
+                                            {config.title}
+                                        </p>
+                                    )}
+                                    <HeaderSlotsInline />
+                                </div>
+                            )}
+                            <HeaderSlotsRow2 />
+                        </HeaderGroup>
                         {infoItems.length === 0 ? (
                             <p
                                 className="text-[10px] text-center opacity-40 m-auto"

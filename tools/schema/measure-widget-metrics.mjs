@@ -832,6 +832,18 @@ const MIN_VARIANTS = {
  * do. `when` is evaluated by aura_measure against the widget's options; `options`
  * is what the probe here renders with.
  */
+/**
+ * Header items on the second header row (issue #676) take a row of their own, in the
+ * widget's title area or in the frame's strip — for every type, so the modifier is
+ * common rather than listed per type. Measured with one plain text item on r2-left.
+ */
+const HEADER_ROW2_ITEM = { id: 'm-r2', source: 'text', text: 'Zweite Zeile', slot: 'r2-left' };
+const HEADER_ROW2_MODIFIER = {
+    key: 'headerRow2',
+    label: 'zweite Kopfzeile (headerItems auf r2-*)',
+    when: { path: 'headerItems[].slot', startsWith: 'r2-' },
+};
+
 const MIN_MODIFIERS = {
     // The Auswahlfeld's dropdown sets the height of the row it sits in (#679), so
     // a bigger control raises the whole widget's minimum. Two entries rather than
@@ -1353,6 +1365,21 @@ async function line(spec, { cols, counts, build, layout, fontScale }) {
  */
 const LINEAR_TOL = 3 * PX_PER_ROW;
 
+// The second header row applies to the counted types as well: their header is the
+// list's own, row 2 sits inside it (ListWidget / AutoListWidget).
+for (const spec of COUNTED) {
+    spec.modifiers = [
+        ...(spec.modifiers ?? []),
+        {
+            ...HEADER_ROW2_MODIFIER,
+            build: (n, d) => {
+                const base = spec.build(n, d);
+                return { ...base, options: { ...(base.options ?? {}), headerItems: [HEADER_ROW2_ITEM] } };
+            },
+        },
+    ];
+}
+
 for (const spec of COUNTED) {
     if (!wanted(spec.type)) {
         continue;
@@ -1595,7 +1622,10 @@ for (const type of Object.keys(schema.widgets)) {
     // Options that add to the minimum (MIN_MODIFIERS), each measured on its own
     // against the two walks above. Stored as the DELTA, so aura_measure can add
     // it to the type's number or to a layout variant alike.
-    for (const mod of MIN_MODIFIERS[type] ?? []) {
+    for (const mod of [
+        ...(MIN_MODIFIERS[type] ?? []),
+        { ...HEADER_ROW2_MODIFIER, options: { headerItems: [HEADER_ROW2_ITEM] } },
+    ]) {
         const opts = { ...(OPTIONS_FOR[type] ?? {}), ...mod.options };
         const on = await requiredPx(type, { cols, options: opts });
         const onHigh = await requiredPx(type, { cols, options: opts, fontScale: SCALE_HIGH });

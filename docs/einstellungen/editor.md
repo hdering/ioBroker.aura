@@ -89,7 +89,9 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 
 ## Kopfzeile
 
-`Bearbeiten` → **Darstellung** → `Kopfzeile` → `Werte hinzufügen…`. Zusätzliche Werte in der Kopfzeile des eingeklappten Widgets (`Standardmäßig eingeklappt`).
+`Bearbeiten` → **Darstellung** → `Kopfzeile` → `Werte hinzufügen…`. Zusätzliche Werte neben dem Titel, aufgeklappt in der Titelzeile des Widgets, eingeklappt in der Kopfzeile.
+
+![](./assets/kopfzeile-aufgeklappt.png)
 
 ![](./assets/kopfzeile-eingeklappt.png)
 
@@ -103,13 +105,14 @@ Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer a
 | Datenpunkt | beliebiger Datenpunkt, optional Nachkommastellen und Einheit |
 | Widget-Wert | `Hauptwert` (Einheit, Nachkommastellen und Faktor des Widgets); bei statischer und dynamischer Liste `Summe`, `Durchschnitt`, `Minimum`, `Maximum`, `Anzahl`, `Anzahl aktiv` |
 | Text | Text mit [Bindings](../widgets/bindings), z. B. `PV {0_userdata.0.pv;round(0)} W`, `{dp}`, bei Listen `{active} von {count} an` |
+| Klick-Aktion | Symbol der [Klick-Aktion](#klick-aktions-symbol) auf diesem Platz statt in der Kartenecke |
 
 | Option | |
 | --- | --- |
 | Anzeigen | `immer` (Standard), `nur eingeklappt`, `nur aufgeklappt` |
 | Symbol, Farbe | je Element |
 
-Mehrere Elemente auf einem Platz stehen nebeneinander, Reihenfolge per Pfeil. Zu lange Werte werden gekürzt, der Titel zuerst. Ein Tipp auf einen Platz in der Übersicht legt dort ein neues Element an.
+Mehrere Elemente auf einem Platz stehen nebeneinander, Reihenfolge per Pfeil. Zu lange Werte werden gekürzt, der Titel zuerst. Ein Tipp auf einen Platz in der Übersicht legt dort ein neues Element an. In Layouts ohne eigene Titelzeile (z. B. `Kompakt`, `Kachel`, `Minimal`, `Custom`) stehen die Werte auf der Höhe des Titels, Zeile 2 unter dem Inhalt.
 
 ## PIN-Schutz
 

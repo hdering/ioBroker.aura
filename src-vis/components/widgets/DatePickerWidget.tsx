@@ -7,6 +7,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { useDateValueFields, type DateValueSettings } from '../common/DateValueFields';
 import type { DateOutputFormat } from '../../utils/dateValue';
 import { StatusBadges } from './StatusBadges';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 export function DatePickerWidget({ config }: WidgetProps) {
     const o = config.options ?? {};
@@ -157,28 +158,32 @@ export function DatePickerWidget({ config }: WidgetProps) {
     const posClass = contentPositionClass(o.contentPosition as string | undefined);
     return (
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-1 shrink-0 min-w-0">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-1 shrink-0 min-w-0">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div className="flex flex-wrap gap-1.5">
                 {dateInput}
                 {timeInput}

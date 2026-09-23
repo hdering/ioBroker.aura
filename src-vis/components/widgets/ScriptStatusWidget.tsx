@@ -12,6 +12,7 @@ import { useWidgetWriteLock } from '../../hooks/widgetWriteLock';
 import type { WidgetProps, ioBrokerState, ioBrokerObject } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { NS } from '../../utils/namespace';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── Types ───────────────────────────────────────────────────────────────────
 
@@ -377,28 +378,32 @@ export function ScriptStatusWidget({ config }: WidgetProps) {
     return (
         <div className="aura-widget-row w-full h-full flex flex-col gap-2 overflow-hidden">
             {/* Header */}
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2 shrink-0">
-                    {showIcon && (
-                        <Icon
-                            size={iconSize}
-                            style={{ color: 'var(--accent)' }}
-                            className="aura-widget-icon shrink-0"
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs flex-1 min-w-0 truncate"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title || 'Skript-Status'}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2 shrink-0">
+                        {showIcon && (
+                            <Icon
+                                size={iconSize}
+                                style={{ color: 'var(--accent)' }}
+                                className="aura-widget-icon shrink-0"
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs flex-1 min-w-0 truncate"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title || 'Skript-Status'}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
 
             {/* Summary */}
             <div className="flex items-center gap-2 text-[10px] shrink-0" style={{ color: 'var(--text-secondary)' }}>

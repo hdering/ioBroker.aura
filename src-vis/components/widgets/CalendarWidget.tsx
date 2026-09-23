@@ -19,6 +19,7 @@ import { CustomGridView } from './CustomGridView';
 import { usePopupAutoHeight } from '../../contexts/PopupAutoHeightContext';
 import { useAutoHeightStore } from '../../store/autoHeightStore';
 import { NS } from '../../utils/namespace';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── CalendarSource ─────────────────────────────────────────────────────────
 
@@ -1028,28 +1029,32 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     if (sources.length === 0) {
         return (
             <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
-                {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                )}
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
                 <div
                     className={`flex flex-col items-center justify-center ${autoHeight ? 'py-4' : 'flex-1'} gap-2 text-center`}
                 >
@@ -1171,28 +1176,32 @@ export function CalendarWidget({ config, onLastChange }: WidgetProps) {
     if (layout === 'minimal') {
         return (
             <div ref={measureRef} className={`aura-widget-row flex flex-col ${rootHCls}`}>
-                {(showTitle || showIcon) && (
-                    <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                        {showIcon && (
-                            <WidgetIcon
-                                className="aura-widget-icon"
-                                size={iconSize}
-                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                            />
-                        )}
-                        {showTitle && (
-                            <p
-                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                                style={{
-                                    color: 'var(--text-secondary)',
-                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                }}
-                            >
-                                {config.title}
-                            </p>
-                        )}
-                    </div>
-                )}
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
                 <div className={`flex flex-col items-center justify-center ${autoHeight ? 'py-2' : 'flex-1'} gap-1`}>
                     <p
                         className="font-black tabular-nums leading-none"

@@ -36,6 +36,7 @@ import {
     type ResolvedClimateMetric,
 } from '../../utils/climateMetrics';
 import { ClimateMetricGrid, ClimateMetricPrimary, ClimateMetricValue } from './ClimateMetricChips';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -358,35 +359,39 @@ export function ClimateWidget({ config }: WidgetProps) {
     return (
         <div ref={containerRef} className="aura-widget-row flex flex-col h-full gap-1" style={{ position: 'relative' }}>
             {/* Title */}
-            {(showTitle || showIcon) && (
-                <div
-                    className="flex items-center gap-1 min-w-0 shrink-0"
-                    style={{
-                        justifyContent:
-                            titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start',
-                    }}
-                >
-                    {showIcon && (
-                        <TempIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            strokeWidth={1.5}
-                            style={{ color: lineColor, flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div
+                        className="flex items-center gap-1 min-w-0 shrink-0"
+                        style={{
+                            justifyContent:
+                                titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'flex-end' : 'flex-start',
+                        }}
+                    >
+                        {showIcon && (
+                            <TempIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                strokeWidth={1.5}
+                                style={{ color: lineColor, flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
 
             {/* Main values */}
             {(showActualTemp || primaryMetrics.length > 0 || secondaryMetrics.length > 0) && (

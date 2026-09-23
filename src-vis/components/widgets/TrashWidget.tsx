@@ -22,6 +22,7 @@ import { DatapointPicker } from '../config/DatapointPicker';
 import { ColorPicker } from '../common/ColorPicker';
 import type { WidgetProps, WidgetConfig } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── Icon registry ──────────────────────────────────────────────────────────
 
@@ -135,6 +136,48 @@ export function TrashWidget({ config }: WidgetProps) {
     if (bins.length === 0) {
         return (
             <div className="aura-widget-row flex flex-col h-full">
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
+                <div
+                    className="flex flex-col items-center justify-center flex-1 gap-2"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <Truck size={32} strokeWidth={1} />
+                    <span className="text-xs opacity-60">Keine Tonnen konfiguriert</span>
+                </div>
+            </div>
+        );
+    }
+
+    const binSize = bins.length <= 2 ? 72 : bins.length <= 4 ? 58 : 44;
+
+    return (
+        <div className="aura-widget-row flex flex-col h-full">
+            <HeaderGroup>
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
                         {showIcon && (
@@ -155,45 +198,11 @@ export function TrashWidget({ config }: WidgetProps) {
                                 {config.title}
                             </p>
                         )}
+                        <HeaderSlotsInline />
                     </div>
                 )}
-                <div
-                    className="flex flex-col items-center justify-center flex-1 gap-2"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    <Truck size={32} strokeWidth={1} />
-                    <span className="text-xs opacity-60">Keine Tonnen konfiguriert</span>
-                </div>
-            </div>
-        );
-    }
-
-    const binSize = bins.length <= 2 ? 72 : bins.length <= 4 ? 58 : 44;
-
-    return (
-        <div className="aura-widget-row flex flex-col h-full">
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div className="flex-1 flex flex-wrap items-center justify-center gap-4 content-center min-h-0">
                 {bins.map((bin) => (
                     <BinDisplay key={bin.id} bin={bin} size={binSize} />

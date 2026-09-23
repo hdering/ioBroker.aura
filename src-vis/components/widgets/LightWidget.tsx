@@ -6,6 +6,7 @@ import type { LightColorMode, LightEffect, LightTab, WidgetProps } from '../../t
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { StatusBadges } from './StatusBadges';
 import { CustomGridView } from './CustomGridView';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 // ── Color math helpers ────────────────────────────────────────────────────────
 
@@ -848,12 +849,16 @@ export function LightWidget({ config, onConfigChange }: WidgetProps) {
     return (
         <div className="aura-widget-row flex flex-col h-full" style={{ position: 'relative', gap: 8 }}>
             {/* Header */}
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2 shrink-0">
-                    {showIcon && iconEl}
-                    <div className="flex-1 min-w-0">{showTitle && titleEl}</div>
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2 shrink-0">
+                        {showIcon && iconEl}
+                        <div className="flex-1 min-w-0">{showTitle && titleEl}</div>
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
 
             {/* Status – between title and main control */}
             {showState && <div className="shrink-0">{statusEl}</div>}

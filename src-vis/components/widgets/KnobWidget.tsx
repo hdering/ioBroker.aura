@@ -8,6 +8,7 @@ import { formatNum, type NumberFormat } from '../../utils/formatValue';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { CustomGridView } from './CustomGridView';
 import { controlValueTransform } from '../../utils/valueTransform';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 export type KnobPointerStyle = 'line' | 'circle' | 'arrow';
 export type KnobDialStyle = 'bogen' | 'skala' | 'endless';
@@ -918,25 +919,29 @@ export function KnobWidget({ config }: WidgetProps) {
     const titleAlign = (o.titleAlign as React.CSSProperties['textAlign']) ?? 'left';
     return (
         <div className="aura-widget-row flex flex-col h-full gap-1" style={{ position: 'relative' }}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2 min-w-0">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{ color: 'var(--text-secondary)', textAlign: titleAlign }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2 min-w-0">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{ color: 'var(--text-secondary)', textAlign: titleAlign }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div className="flex-1 flex items-center justify-center min-h-0" style={{ position: 'relative' }}>
                 {dialEl}
             </div>

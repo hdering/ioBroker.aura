@@ -2548,7 +2548,7 @@ export const de = {
     'hdr.add': 'Element hinzufügen',
     'hdr.addHere': 'Neues Element auf diesem Platz',
     'hdr.foldHint':
-        'Die Elemente erscheinen in der Kopfzeile des eingeklappten Widgets (Darstellung → Standardmäßig eingeklappt).',
+        'Aufgeklappt stehen die Elemente in der Titelzeile des Widgets, eingeklappt in der Kopfzeile. In Layouts ohne eigene Titelzeile stehen sie auf der Höhe des Titels, Zeile 2 unter dem Inhalt.',
     'hdr.slot.title': 'Titel',
     'hdr.slot.r1-center': 'Zeile 1 Mitte',
     'hdr.slot.r1-right': 'Zeile 1 rechts',
@@ -2558,6 +2558,10 @@ export const de = {
     'hdr.src.dp': 'Datenpunkt',
     'hdr.src.widget': 'Widget-Wert',
     'hdr.src.text': 'Text',
+    'hdr.src.action': 'Klick-Aktion',
+    'hdr.actionHint':
+        'Das Symbol der Klick-Aktion steht auf diesem Platz statt in der Kartenecke; ein Tipp führt die Aktion aus.',
+    'hdr.actionNone': 'Keine Klick-Aktion eingerichtet — das Element bleibt unsichtbar.',
     'hdr.show.always': 'immer',
     'hdr.show.collapsed': 'nur eingeklappt',
     'hdr.show.expanded': 'nur aufgeklappt',

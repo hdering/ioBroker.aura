@@ -8,6 +8,7 @@ import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { CustomGridView } from './CustomGridView';
 import { ConfirmOverlay } from './ConfirmOverlay';
 import { controlValueTransform } from '../../utils/valueTransform';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 type SubmitMode = 'live' | 'submit';
 
@@ -288,6 +289,7 @@ export function InputWidget({ config }: WidgetProps) {
                                 {config.title}
                             </span>
                         )}
+                        <HeaderSlotsInline />
                     </div>
                 )}
                 {singleLineContent}
@@ -298,28 +300,32 @@ export function InputWidget({ config }: WidgetProps) {
 
     return (
         <div className="aura-widget-row flex flex-col h-full gap-1.5" style={{ position: 'relative' }}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2 shrink-0">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2 shrink-0">
+                        {showIcon && (
+                            <WidgetIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div className={`flex ${multiline ? 'flex-1 min-h-0' : 'items-center'} gap-2`}>
                 {multiline ? (
                     <>

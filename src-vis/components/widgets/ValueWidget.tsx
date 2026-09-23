@@ -19,6 +19,7 @@ import { valueTextOverride } from '../../utils/conditionSet';
 import { proxifyHtmlAssets, resolveHtmlAssets } from '../../utils/assetUrl';
 import { useTemplateStates } from '../../hooks/useTemplateValues';
 import { useTemplateSpecials } from '../../hooks/useTemplateSpecials';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 export function ValueWidget({ config }: WidgetProps) {
     const t = useT();
@@ -134,26 +135,34 @@ export function ValueWidget({ config }: WidgetProps) {
             <div className="aura-widget-row flex h-full gap-3" style={{ position: 'relative' }}>
                 <div className="w-1 rounded-full self-stretch" style={{ background: accentColor }} />
                 <div className="flex flex-col justify-between flex-1">
-                    {(showTitle || showIcon) && (
-                        <div className="flex items-center gap-2">
-                            {showIcon && (
-                                <CardIcon className="aura-widget-icon" size={iconSize} style={{ color: accentColor }} />
-                            )}
-                            {showTitle && (
-                                <p
-                                    className="aura-widget-title text-xs truncate"
-                                    style={{
-                                        color: 'var(--text-secondary)',
-                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                        flex: '1',
-                                        minWidth: 0,
-                                    }}
-                                >
-                                    {config.title}
-                                </p>
-                            )}
-                        </div>
-                    )}
+                    <HeaderGroup>
+                        {(showTitle || showIcon) && (
+                            <div className="flex items-center gap-2">
+                                {showIcon && (
+                                    <CardIcon
+                                        className="aura-widget-icon"
+                                        size={iconSize}
+                                        style={{ color: accentColor }}
+                                    />
+                                )}
+                                {showTitle && (
+                                    <p
+                                        className="aura-widget-title text-xs truncate"
+                                        style={{
+                                            color: 'var(--text-secondary)',
+                                            textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                            flex: '1',
+                                            minWidth: 0,
+                                        }}
+                                    >
+                                        {config.title}
+                                    </p>
+                                )}
+                                <HeaderSlotsInline />
+                            </div>
+                        )}
+                        <HeaderSlotsRow2 />
+                    </HeaderGroup>
                     {showValue &&
                         (htmlValueNode ?? (
                             <div className="aura-widget-value">
@@ -202,6 +211,7 @@ export function ValueWidget({ config }: WidgetProps) {
                                 {config.title}
                             </span>
                         )}
+                        <HeaderSlotsInline />
                     </div>
                 )}
                 {showValue &&
@@ -284,33 +294,37 @@ export function ValueWidget({ config }: WidgetProps) {
 
     return (
         <div className={`aura-widget-row flex flex-col h-full gap-2 ${posClass}`} style={{ position: 'relative' }}>
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-2" style={titleStyle}>
-                    {showIcon && (
-                        <DefaultIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                flex: '1',
-                                minWidth: 0,
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+            <HeaderGroup>
+                {(showTitle || showIcon) && (
+                    <div className="flex items-center gap-2" style={titleStyle}>
+                        {showIcon && (
+                            <DefaultIcon
+                                className="aura-widget-icon"
+                                size={iconSize}
+                                style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                            />
+                        )}
+                        {showTitle && (
+                            <p
+                                className="aura-widget-title text-xs"
+                                style={{
+                                    color: 'var(--text-secondary)',
+                                    textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    flex: '1',
+                                    minWidth: 0,
+                                }}
+                            >
+                                {config.title}
+                            </p>
+                        )}
+                        <HeaderSlotsInline />
+                    </div>
+                )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             {showValue &&
                 (htmlValueNode ?? (
                     <div className="aura-widget-value flex items-end gap-1.5">

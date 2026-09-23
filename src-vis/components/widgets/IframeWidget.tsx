@@ -17,6 +17,7 @@ import {
     stepIframeZoom,
     writeDeviceZoom,
 } from '../../utils/iframeZoom';
+import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 const LOAD_TIMEOUT_MS = 8000;
 
@@ -127,6 +128,50 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
     if (!url) {
         return (
             <div className="aura-widget-row flex flex-col h-full">
+                <HeaderGroup>
+                    {(showTitle || showIcon) && (
+                        <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
+                            {showIcon && (
+                                <WidgetIcon
+                                    className="aura-widget-icon"
+                                    size={iconSize}
+                                    style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
+                                />
+                            )}
+                            {showTitle && (
+                                <p
+                                    className="aura-widget-title text-xs truncate flex-1 min-w-0"
+                                    style={{
+                                        color: 'var(--text-secondary)',
+                                        textAlign: titleAlign as React.CSSProperties['textAlign'],
+                                    }}
+                                >
+                                    {config.title}
+                                </p>
+                            )}
+                            <HeaderSlotsInline />
+                        </div>
+                    )}
+                    <HeaderSlotsRow2 />
+                </HeaderGroup>
+                <div
+                    className="flex flex-col items-center justify-center flex-1 gap-2"
+                    style={{ color: 'var(--text-secondary)' }}
+                >
+                    <MonitorDot size={32} strokeWidth={1} />
+                    <span className="text-xs opacity-60">Keine URL konfiguriert</span>
+                </div>
+            </div>
+        );
+    }
+
+    const iframeKey = keepAlive ? `ka-${url}-w${wakeNonce}` : `${url}-${tick}-w${wakeNonce}`;
+
+    const sandboxAttr = resolveSandboxAttr(sandboxPreset, sandboxCustom, sandboxEnabled ? 'extended' : 'off');
+
+    return (
+        <div className="aura-widget-row flex flex-col h-full">
+            <HeaderGroup>
                 {(showTitle || showIcon) && (
                     <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
                         {showIcon && (
@@ -147,47 +192,11 @@ export function IframeWidget({ config, onNeedsActionButton }: WidgetProps) {
                                 {config.title}
                             </p>
                         )}
+                        <HeaderSlotsInline />
                     </div>
                 )}
-                <div
-                    className="flex flex-col items-center justify-center flex-1 gap-2"
-                    style={{ color: 'var(--text-secondary)' }}
-                >
-                    <MonitorDot size={32} strokeWidth={1} />
-                    <span className="text-xs opacity-60">Keine URL konfiguriert</span>
-                </div>
-            </div>
-        );
-    }
-
-    const iframeKey = keepAlive ? `ka-${url}-w${wakeNonce}` : `${url}-${tick}-w${wakeNonce}`;
-
-    const sandboxAttr = resolveSandboxAttr(sandboxPreset, sandboxCustom, sandboxEnabled ? 'extended' : 'off');
-
-    return (
-        <div className="aura-widget-row flex flex-col h-full">
-            {(showTitle || showIcon) && (
-                <div className="flex items-center gap-1 shrink-0 mb-1 min-w-0 px-2 pt-2">
-                    {showIcon && (
-                        <WidgetIcon
-                            className="aura-widget-icon"
-                            size={iconSize}
-                            style={{ color: 'var(--text-secondary)', flexShrink: 0 }}
-                        />
-                    )}
-                    {showTitle && (
-                        <p
-                            className="aura-widget-title text-xs truncate flex-1 min-w-0"
-                            style={{
-                                color: 'var(--text-secondary)',
-                                textAlign: titleAlign as React.CSSProperties['textAlign'],
-                            }}
-                        >
-                            {config.title}
-                        </p>
-                    )}
-                </div>
-            )}
+                <HeaderSlotsRow2 />
+            </HeaderGroup>
             <div
                 ref={frameBoxRef}
                 className="aura-widget-value relative flex-1 overflow-hidden group"

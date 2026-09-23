@@ -33,7 +33,7 @@ const inputStyle: React.CSSProperties = {
 const cls = 'text-xs rounded-lg px-2 py-1.5 focus:outline-none';
 const labelCls = 'text-[10px] w-16 shrink-0';
 
-const SOURCES: WidgetHeaderSource[] = ['dp', 'widget', 'text'];
+const SOURCES: WidgetHeaderSource[] = ['dp', 'widget', 'text', 'action'];
 const SHOWS: WidgetHeaderShow[] = ['always', 'collapsed', 'expanded'];
 
 const slotKey = (s: WidgetHeaderSlot) => `hdr.slot.${s}` as TranslationKey;
@@ -42,6 +42,7 @@ const slotKey = (s: WidgetHeaderSlot) => `hdr.slot.${s}` as TranslationKey;
 function itemSummary(item: WidgetHeaderItem, t: ReturnType<typeof useT>, config: WidgetConfig): string {
     if (item.source === 'dp') return item.dp?.split('.').pop() || t('hdr.src.dp');
     if (item.source === 'text') return item.text || t('hdr.src.text');
+    if (item.source === 'action') return t('hdr.src.action');
     const opt = widgetValueOptions(config).find((o) => o.key === item.widgetValue);
     return opt ? t(opt.labelKey) : t('hdr.src.widget');
 }
@@ -49,6 +50,7 @@ function itemSummary(item: WidgetHeaderItem, t: ReturnType<typeof useT>, config:
 function ItemRow({
     item,
     config,
+    hasClickAction,
     index,
     count,
     onChange,
@@ -57,6 +59,7 @@ function ItemRow({
 }: {
     item: WidgetHeaderItem;
     config: WidgetConfig;
+    hasClickAction: boolean;
     index: number;
     count: number;
     onChange: (item: WidgetHeaderItem) => void;
@@ -111,7 +114,11 @@ function ItemRow({
                     data-header-item-source=""
                 >
                     {SOURCES.map((s) => (
-                        <option key={s} value={s} disabled={s === 'widget' && !valueOptions.length}>
+                        <option
+                            key={s}
+                            value={s}
+                            disabled={(s === 'widget' && !valueOptions.length) || (s === 'action' && !hasClickAction)}
+                        >
                             {t(`hdr.src.${s}` as TranslationKey)}
                         </option>
                     ))}
@@ -257,8 +264,14 @@ function ItemRow({
                 </div>
             )}
 
+            {item.source === 'action' && (
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                    {hasClickAction ? t('hdr.actionHint') : t('hdr.actionNone')}
+                </p>
+            )}
+
             <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5" hidden={item.source === 'action'}>
                     <label className={labelCls} style={{ color: 'var(--text-secondary)' }}>
                         {t('hdr.icon')}
                     </label>
@@ -311,10 +324,13 @@ function ItemRow({
 export function HeaderItemsEditor({
     items,
     config,
+    hasClickAction = false,
     onChange,
 }: {
     items: WidgetHeaderItem[];
     config: WidgetConfig;
+    /** Whether a click action resolves for the widget — the 'action' source needs one. */
+    hasClickAction?: boolean;
     onChange: (items: WidgetHeaderItem[]) => void;
 }) {
     const t = useT();
@@ -395,6 +411,7 @@ export function HeaderItemsEditor({
                     key={item.id}
                     item={item}
                     config={config}
+                    hasClickAction={hasClickAction}
                     index={i}
                     count={items.length}
                     onChange={(next) => onChange(items.map((x) => (x.id === next.id ? next : x)))}
