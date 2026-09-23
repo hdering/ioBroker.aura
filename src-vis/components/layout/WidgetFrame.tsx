@@ -82,13 +82,18 @@ import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useWidgetFullscreenStore } from '../../store/widgetFullscreenStore';
 import {
     FULLSCREEN_POSITIONS,
-    actionButtonRight,
     cornerInset,
     fullscreenButtonEnabled,
     fullscreenButtonInset,
     fullscreenPosition,
     supportsFullscreenButton,
 } from '../../utils/fullscreenButton';
+import {
+    clickActionIconEnabled,
+    clickActionIconPosition,
+    clickActionIconSlot,
+    hasOwnClickAction,
+} from '../../utils/clickActionIcon';
 import {
     collapseButtonSlot,
     collapsePosition,
@@ -6707,6 +6712,7 @@ function WidgetFrameInner({
     );
     const [customCellCondOpen, setCustomCellCondOpen] = useState(false);
     const [draftIconSize, setDraftIconSize] = useState<number | null>(null);
+    const [actionIconPickerOpen, setActionIconPickerOpen] = useState(false);
     const [draftTransparency, setDraftTransparency] = useState<number | null>(null);
 
     // ── Custom-cell copy/cut/paste helpers (used by context menu + keyboard shortcuts) ──
@@ -7202,6 +7208,35 @@ function WidgetFrameInner({
     }, [config.id, frameCollapsible, initCollapse]);
     const isCollapsed = frameCollapsible && isCollapsedNow(collapsedMap, config.id);
     const collapsePos = collapsePosition(config.options);
+
+    // ── Click-action icon (issues #527, #702) ─────────────────────────────────
+    // Always for an iframe body that swallows the click, otherwise per
+    // utils/clickActionIcon (own action → on by default, type default → opt-in).
+    // Never in the editor (the corner belongs to the edit chrome) and never in a probe.
+    const actionIconOn =
+        !editMode && !isProbe && clickActionIconEnabled(config.options, { hasClickAction, embed: needsActionButton });
+    const showCornerActionIcon = actionIconOn && !isCollapsed;
+    const actionIconPos = clickActionIconPosition(config.options);
+    // The iframe widget's own fullscreen button sits top-right of the frame BODY,
+    // i.e. below the title row — no collision while that row exists. With title and
+    // icon both off there is no row, so the two would stack: step aside then only.
+    const actionIconSlot = clickActionIconSlot(actionIconPos, {
+        iframeOwnFullscreen:
+            config.type === 'iframe' &&
+            !!config.options?.fullscreenButton &&
+            config.options?.showTitle === false &&
+            config.options?.showIcon === false,
+        fullscreenSameCorner: showFullscreenButton && fsPos === actionIconPos,
+        collapseSameCorner: frameCollapsible && collapsePos === actionIconPos,
+    });
+    const DefaultActionIcon =
+        clickAction.kind === 'link-external'
+            ? ExternalLink
+            : clickAction.kind === 'link-tab' || clickAction.kind === 'link-widget'
+              ? ArrowUpRight
+              : MousePointerClick;
+    const ActionIcon = getWidgetIcon(config.options?.clickActionIconName as string | undefined, DefaultActionIcon);
+
     // Report the real header height so the Dashboard folds the grid item to exactly
     // this row (plus padding and border) — icon size and font scale change it.
     const collapsedHeaderEl = useRef<HTMLDivElement>(null);
@@ -7547,6 +7582,24 @@ function WidgetFrameInner({
                         >
                             {collapsedTitle}
                         </span>
+                        {/* The click action stays reachable while folded (issue #702):
+                            a tap on the icon runs it, a tap anywhere else unfolds.
+                            20 px tall, so it never grows the measured header row. */}
+                        {actionIconOn && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    runClickAction();
+                                }}
+                                className="nodrag aura-click-action-btn shrink-0 w-5 h-5 -my-1 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
+                                style={{ color: 'var(--text-secondary)' }}
+                                title={t('wf.embedAction')}
+                                aria-label={t('wf.embedAction')}
+                                data-click-action-icon=""
+                            >
+                                <ActionIcon size={14} />
+                            </button>
+                        )}
                     </div>
                 </div>
             ) : Widget ? (
@@ -7628,56 +7681,31 @@ function WidgetFrameInner({
                 document, so a click on it never enters this document's event path —
                 no z-index or capture trick changes that. This button is the only
                 host-side surface left for the click action. Deliberately always
-                visible (not hover-revealed): wall tablets have no hover. (issue #527) */}
-            {needsActionButton &&
-                hasClickAction &&
-                !editMode &&
-                !isCollapsed &&
-                (() => {
-                    const ActionIcon =
-                        clickAction.kind === 'link-external'
-                            ? ExternalLink
-                            : clickAction.kind === 'link-tab' || clickAction.kind === 'link-widget'
-                              ? ArrowUpRight
-                              : MousePointerClick;
-                    // The iframe widget's own fullscreen button sits top-right of the
-                    // frame BODY, i.e. below the title row — no collision while that
-                    // row exists. With title and icon both off there is no row, so the
-                    // two would stack: step aside in that case only. The frame's own
-                    // fullscreen button (issue #644) shares this corner unconditionally
-                    // when it is placed there, so both occupants go through one ladder.
-                    const iframeOwnFullscreen =
-                        config.type === 'iframe' &&
-                        !!config.options?.fullscreenButton &&
-                        config.options?.showTitle === false &&
-                        config.options?.showIcon === false;
-                    const actionRight = actionButtonRight({
-                        iframeOwnFullscreen,
-                        fullscreenTopRight: showFullscreenButton && fsPos === 'tr',
-                        collapseTopRight: frameCollapsible && collapsePos === 'tr',
-                    });
-                    return (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                runClickAction();
-                            }}
-                            className="nodrag absolute top-1.5 w-7 h-7 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
-                            style={{
-                                right: actionRight,
-                                zIndex: 4,
-                                background: 'rgba(0,0,0,0.55)',
-                                color: '#fff',
-                                backdropFilter: 'blur(4px)',
-                            }}
-                            title={t('wf.embedAction')}
-                            aria-label={t('wf.embedAction')}
-                            data-embed-action=""
-                        >
-                            <ActionIcon size={13} />
-                        </button>
-                    );
-                })()}
+                visible (not hover-revealed): wall tablets have no hover. (issue #527)
+                Every other widget shows the same button as a hint that it has a
+                click action (issue #702) — see utils/clickActionIcon. */}
+            {showCornerActionIcon && (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        runClickAction();
+                    }}
+                    className="nodrag aura-click-action-btn absolute w-7 h-7 flex items-center justify-center rounded-md opacity-75 hover:opacity-100 transition-opacity"
+                    style={{
+                        ...cornerInset(actionIconPos, actionIconSlot),
+                        zIndex: 4,
+                        background: 'rgba(0,0,0,0.55)',
+                        color: '#fff',
+                        backdropFilter: 'blur(4px)',
+                    }}
+                    title={t('wf.embedAction')}
+                    aria-label={t('wf.embedAction')}
+                    data-click-action-icon=""
+                    data-embed-action={needsActionButton ? '' : undefined}
+                >
+                    <ActionIcon size={13} />
+                </button>
+            )}
 
             {/* Open this widget across the whole screen (issue #644). Revealed on
                 hover where there is a pointer, permanently where there is none — a
@@ -8981,6 +9009,135 @@ function WidgetFrameInner({
                                             )}
                                         </>
                                     )}
+                                    {/* Click-action icon (issue #702). Only offered while a click
+                                        action resolves; an iframe body always shows it (#527). */}
+                                    {hasClickAction &&
+                                        (() => {
+                                            const embedForced = needsActionButton;
+                                            const aiOn =
+                                                embedForced ||
+                                                clickActionIconEnabled(o, { hasClickAction, embed: false });
+                                            const aiName = o.clickActionIconName as string | undefined;
+                                            const AiIcon = getWidgetIcon(aiName, DefaultActionIcon);
+                                            return (
+                                                <>
+                                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                                    <div className="flex items-center justify-between">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('wf.edit.clickActionIcon')}
+                                                        </label>
+                                                        <button
+                                                            onClick={() =>
+                                                                !embedForced && setO({ clickActionIcon: !aiOn })
+                                                            }
+                                                            disabled={embedForced}
+                                                            className="relative w-9 h-5 rounded-full transition-colors disabled:opacity-60"
+                                                            style={{
+                                                                background: aiOn
+                                                                    ? 'var(--accent)'
+                                                                    : 'var(--app-border)',
+                                                            }}
+                                                            data-click-action-icon-option=""
+                                                        >
+                                                            <span
+                                                                className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                                style={{ left: aiOn ? '18px' : '2px' }}
+                                                            />
+                                                        </button>
+                                                    </div>
+                                                    {aiOn && (
+                                                        <>
+                                                            <div className="flex items-center gap-2">
+                                                                <label
+                                                                    className="text-[11px] shrink-0"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {t('wf.edit.position')}
+                                                                </label>
+                                                                <div className="flex gap-1">
+                                                                    {FULLSCREEN_POSITIONS.map((pos) => {
+                                                                        const active =
+                                                                            clickActionIconPosition(o) === pos;
+                                                                        return (
+                                                                            <button
+                                                                                key={pos}
+                                                                                onClick={() =>
+                                                                                    setO({
+                                                                                        clickActionIconPosition: pos,
+                                                                                    })
+                                                                                }
+                                                                                className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                                                style={{
+                                                                                    background: active
+                                                                                        ? 'var(--accent)'
+                                                                                        : 'var(--app-bg)',
+                                                                                    color: active
+                                                                                        ? '#fff'
+                                                                                        : 'var(--text-secondary)',
+                                                                                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                                }}
+                                                                            >
+                                                                                {t(`wf.edit.fsPos.${pos}` as never)}
+                                                                            </button>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                            <button
+                                                                onClick={() => setActionIconPickerOpen(true)}
+                                                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                                                                style={{
+                                                                    background: 'var(--app-bg)',
+                                                                    border: '1px solid var(--app-border)',
+                                                                    color: 'var(--text-primary)',
+                                                                }}
+                                                                data-click-action-icon-pick=""
+                                                            >
+                                                                <AiIcon size={14} style={{ flexShrink: 0 }} />
+                                                                <span
+                                                                    className="flex-1 truncate"
+                                                                    style={{
+                                                                        color: aiName
+                                                                            ? 'var(--text-primary)'
+                                                                            : 'var(--text-secondary)',
+                                                                    }}
+                                                                >
+                                                                    {aiName ?? t('wf.edit.clickActionIconDefault')}
+                                                                </span>
+                                                                <span
+                                                                    className="text-[10px]"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    ›
+                                                                </span>
+                                                            </button>
+                                                            {actionIconPickerOpen && (
+                                                                <IconPickerModal
+                                                                    current={aiName ?? ''}
+                                                                    onSelect={(name) =>
+                                                                        setO({ clickActionIconName: name || undefined })
+                                                                    }
+                                                                    onClose={() => setActionIconPickerOpen(false)}
+                                                                />
+                                                            )}
+                                                        </>
+                                                    )}
+                                                    <p
+                                                        className="text-[10px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {embedForced
+                                                            ? t('wf.edit.clickActionIconEmbedHint')
+                                                            : hasOwnClickAction(o)
+                                                              ? t('wf.edit.clickActionIconHint')
+                                                              : t('wf.edit.clickActionIconTypeHint')}
+                                                    </p>
+                                                </>
+                                            );
+                                        })()}
                                     {/* Fullscreen button (issue #644). Excluded for the types that
                                         already carry their own — see utils/fullscreenButton. */}
                                     {supportsFullscreenButton(config.type) && (

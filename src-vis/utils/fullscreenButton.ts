@@ -67,28 +67,3 @@ export function fullscreenButtonInset(pos: FullscreenPosition): {
 export function cornerRight(index: number): number {
     return 6 + index * 32;
 }
-
-/**
- * Who else sits in a corner. The fullscreen button is always the outermost one;
- * the fold button of a collapsible widget (issue #676) takes the next slot when
- * both are configured for the same corner.
- */
-export interface CornerOccupants {
-    iframeOwnFullscreen: boolean;
-    fullscreenTopRight: boolean;
-    collapseTopRight?: boolean;
-}
-
-/**
- * Where the embed action button (issue #527) goes once the corner may hold other
- * buttons. It is always the innermost one, so it steps aside for each occupant to
- * its right: the iframe widget's own fullscreen button, this frame's fullscreen
- * button and the fold button, each when configured top-right.
- */
-export function actionButtonRight(occupants: CornerOccupants): number {
-    return cornerRight(
-        (occupants.iframeOwnFullscreen ? 1 : 0) +
-            (occupants.fullscreenTopRight ? 1 : 0) +
-            (occupants.collapseTopRight ? 1 : 0),
-    );
-}

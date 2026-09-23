@@ -1178,6 +1178,26 @@ export const UNIVERSAL_OPTIONS = {
             'Ecke des Einklapp-Knopfes bei defaultCollapsed: "tr" rechts oben (Standard), "tl" links oben, ' +
             '"br" rechts unten. Teilt er sich die Ecke mit dem Vollbild-Knopf, rückt er eine Stelle nach innen.',
     },
+    clickActionIcon: {
+        ts: 'boolean',
+        description:
+            'Symbol-Knopf in der Kartenecke, der die Klick-Aktion ausführt und zeigt, dass es eine gibt ' +
+            '(dauerhaft sichtbar, auch eingeklappt rechts in der Kopfzeile). Standard: an, wenn clickAction ' +
+            'am Widget selbst gesetzt ist; aus, wenn die Aktion nur aus dem Popup-Standard des Typs kommt — ' +
+            'dann mit true einschalten. false blendet ihn aus. Bei "iframe" mit bedienbarem Inhalt immer da.',
+    },
+    clickActionIconPosition: {
+        ts: "'tr' | 'tl' | 'br'",
+        description:
+            'Ecke des Klick-Aktions-Symbols: "tr" rechts oben (Standard), "tl" links oben, "br" rechts unten. ' +
+            'Es sitzt innen neben Vollbild- und Einklapp-Knopf, wenn die dieselbe Ecke belegen.',
+    },
+    clickActionIconName: {
+        ts: 'string',
+        description:
+            'Eigenes Symbol (Iconify-Id wie "mdi:chart-line" oder Lucide-Name). Ohne: Pfeil für Sprünge, ' +
+            'externer Link für URLs, Mauszeiger für Popups.',
+    },
     collapseInEditor: {
         ts: 'boolean',
         description:

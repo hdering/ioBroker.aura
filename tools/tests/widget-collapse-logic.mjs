@@ -43,7 +43,6 @@ const {
     collapseButtonSlot,
     cornerInset,
     fullscreenButtonInset,
-    actionButtonRight,
 } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
@@ -152,18 +151,9 @@ eq(
     0,
 );
 
-// ── 7. The embed action button steps aside for the fold button as well ──
-eq('old two-occupant shape unchanged', actionButtonRight({ iframeOwnFullscreen: false, fullscreenTopRight: false }), 6);
-eq(
-    'beside the fold button',
-    actionButtonRight({ iframeOwnFullscreen: false, fullscreenTopRight: false, collapseTopRight: true }),
-    38,
-);
-eq(
-    'beside all three',
-    actionButtonRight({ iframeOwnFullscreen: true, fullscreenTopRight: true, collapseTopRight: true }),
-    102,
-);
+// ── 7. The click-action icon steps aside for the fold button ──
+// Covered in click-action-icon-logic.mjs (clickActionIconSlot), which replaced the
+// top-right-only actionButtonRight.
 
 // ── Report ──
 const failed = results.filter((r) => !r.ok);

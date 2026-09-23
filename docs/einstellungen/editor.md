@@ -73,6 +73,20 @@ Auf Touch-Geräten ist der Knopf dauerhaft sichtbar, mit Maus erst beim Überfah
 
 Eingeklappt ist die Karte so flach wie eine eingeklappte Gruppe (zwei Rasterzeilen im Standardraster), im Editor wie im Frontend. Ein Neuladen stellt den eingeklappten Zustand wieder her; die gespeicherte Höhe bleibt in beiden Ansichten unangetastet. Der Einklapp-Knopf folgt den Sichtbarkeitsregeln des Vollbild-Knopfes. Die [Gruppe](./../widgets/gruppe) behält ihre eigene Kopfzeile mit Pfeil. Nicht beim `Abschnittstitel` und nicht für Widgets innerhalb einer Gruppe.
 
+## Klick-Aktions-Symbol
+
+`Bearbeiten` → **Darstellung** → `Klick-Aktions-Symbol`. Nur sichtbar, wenn das Widget eine Klick-Aktion hat. Ein Tipp auf das Symbol führt die Aktion aus, eingeklappt auch ohne Aufklappen.
+
+![](./assets/klick-aktion-symbol.png)
+
+| Option | |
+| --- | --- |
+| Klick-Aktions-Symbol | An (Standard bei eigener Klick-Aktion) / Aus. Kommt die Aktion nur aus dem Popup-Standard des Typs, ist es aus |
+| Position | `rechts oben` (Standard), `links oben`, `rechts unten` — neben Vollbild- und Einklapp-Knopf rückt es eine Stelle nach innen |
+| Symbol | Standard je Aktion (Popup, Tab/Widget, externer Link) oder eigenes |
+
+Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer an.
+
 ## PIN-Schutz
 
 Bereiche und Tabs lassen sich mit einer PIN sperren. Der Inhalt wird erst nach Eingabe des Codes gerendert — egal ob über Menü, Tab-Leiste, Widget-Klickaktion oder direkte URL.

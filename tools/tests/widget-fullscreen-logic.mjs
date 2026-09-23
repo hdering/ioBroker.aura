@@ -1,6 +1,6 @@
 // Placement rules of the frame-level fullscreen button (issue #644): which types
 // offer it, which corner it lands in, and how it shares the top-right corner with
-// the embed action button of issue #527.
+// the other corner buttons.
 //
 //   node tools/tests/widget-fullscreen-logic.mjs
 //
@@ -35,7 +35,6 @@ const {
     fullscreenPosition,
     fullscreenButtonInset,
     cornerRight,
-    actionButtonRight,
 } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
@@ -82,21 +81,10 @@ for (const pos of FULLSCREEN_POSITIONS) {
     ok(`${pos} pins exactly one horizontal and one vertical edge`, Object.keys(inset).length === 2);
 }
 
-// ── 5. The shared top-right ladder ──
-// The action button is the innermost one: every other occupant pushes it inwards
-// by one slot, so two buttons never end up on top of each other.
-eq('an empty corner', actionButtonRight({ iframeOwnFullscreen: false, fullscreenTopRight: false }), 6);
-eq('beside the iframe button', actionButtonRight({ iframeOwnFullscreen: true, fullscreenTopRight: false }), 38);
-eq('beside the frame button', actionButtonRight({ iframeOwnFullscreen: false, fullscreenTopRight: true }), 38);
-eq('beside both', actionButtonRight({ iframeOwnFullscreen: true, fullscreenTopRight: true }), 70);
-// A button is 28px wide, so consecutive slots must not overlap.
+// ── 5. Corner slots ──
+// The ladder of buttons sharing a corner (click-action icon, fold button) is
+// covered by click-action-icon-logic.mjs; here only the slot spacing itself.
 ok('slots clear the 28px button', cornerRight(1) - cornerRight(0) >= 28);
-// Placed anywhere but top right, the frame button leaves the ladder alone.
-eq(
-    'a left corner does not shift the action',
-    actionButtonRight({ iframeOwnFullscreen: false, fullscreenTopRight: false }),
-    6,
-);
 
 // ── 6. The excluded list matches what the schema tells a model ──
 const schema = JSON.parse(readFileSync('public/ai/aura-widget-schema.json', 'utf8'));

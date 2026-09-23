@@ -1124,6 +1124,14 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.showLastChange': 'Show Last Change',
     'wf.edit.fullscreenWidget': 'Fullscreen button',
     'wf.edit.fullscreenHint': 'Always visible on touch devices, on hover when there is a mouse.',
+    'wf.edit.clickActionIcon': 'Click action icon',
+    'wf.edit.clickActionIconDefault': 'Default (by action)',
+    'wf.edit.clickActionIconHint':
+        'Shows that the widget has a click action. Tapping the icon runs it, also while the widget is collapsed.',
+    'wf.edit.clickActionIconTypeHint':
+        'The click action comes from the popup default of the widget type. The icon is off by default for it.',
+    'wf.edit.clickActionIconEmbedHint':
+        'Always shown for embedded pages: a click inside the page never reaches the action.',
     'wf.edit.fsPos.tr': 'top right',
     'wf.edit.fsPos.tl': 'top left',
     'wf.edit.fsPos.br': 'bottom right',

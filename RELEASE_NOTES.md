@@ -10,3 +10,4 @@
 - Room climate - the chart can now draw those readings as extra series, on a second y axis where the scale differs (#698)
 - Settings - the Layouts and Frontend design pages no longer overflow or squeeze their buttons on a phone; their layout/scope tree folds into a bar above the detail
 - List - on a phone the "Manage datapoints" dialog folds the datapoint list into a bar above the editor, so the selected entry can be configured
+- Widgets with a click action now show a small icon that runs it, also in the folded header of a collapsed widget; it can be switched off, moved to another corner or given its own symbol under Appearance (#702)

@@ -1134,6 +1134,14 @@ export const de = {
     'wf.edit.showLastChange': 'Letzte Änderung anzeigen',
     'wf.edit.fullscreenWidget': 'Vollbild-Knopf',
     'wf.edit.fullscreenHint': 'Auf Touch-Geräten immer sichtbar, mit Maus erst beim Überfahren des Widgets.',
+    'wf.edit.clickActionIcon': 'Klick-Aktions-Symbol',
+    'wf.edit.clickActionIconDefault': 'Standard (je nach Aktion)',
+    'wf.edit.clickActionIconHint':
+        'Zeigt, dass das Widget eine Klick-Aktion hat. Ein Tipp auf das Symbol führt sie aus, auch im eingeklappten Zustand.',
+    'wf.edit.clickActionIconTypeHint':
+        'Die Klick-Aktion kommt aus dem Popup-Standard des Widget-Typs. Das Symbol ist dafür standardmäßig aus.',
+    'wf.edit.clickActionIconEmbedHint':
+        'Bei eingebetteten Seiten immer sichtbar: Ein Klick in die Seite erreicht die Aktion nicht.',
     'wf.edit.fsPos.tr': 'rechts oben',
     'wf.edit.fsPos.tl': 'links oben',
     'wf.edit.fsPos.br': 'rechts unten',
