@@ -9,7 +9,8 @@
 // corner, steps aside for the fullscreen and fold buttons, is absent in the editor,
 // while folded runs the action without unfolding (a tap beside it unfolds) and does
 // not make the folded card taller, and that Appearance always lists the option
-// (greyed out without a click action). The rules themselves are covered by
+// (greyed out without a click action), and that the click-action popup carries
+// the same switch. The rules themselves are covered by
 // click-action-icon-logic.mjs.
 import { chromium } from 'playwright';
 
@@ -176,6 +177,43 @@ check('with an action the switch is enabled', !(await dlg.locator('[data-click-a
 check(
     '…and the section is not greyed',
     (await dlg.locator('[data-click-action-icon-section]').getAttribute('aria-disabled')) === 'false',
+);
+await page.keyboard.press('Escape');
+await page.evaluate(() => window.__auraShot.setEditMode(false));
+
+// ── 9. The click-action popup carries the card-icon switch ───────────────────
+async function openActionPopup(options) {
+    const wid = `cai-${++seq}`;
+    await page.evaluate(
+        ([w]) => {
+            window.__auraShot.showWidgets([w], { editMode: true });
+            window.__auraShot.setEditMode(true);
+        },
+        [widget(wid, 'value', options)],
+    );
+    await settle();
+    await card(wid).hover();
+    await page.locator('.aura-edit-chrome button').first().click();
+    await page.locator('button:text-is("Klick-Aktion")').first().click();
+    await page.locator('[data-click-action-icon-hint]').waitFor({ timeout: 5000 });
+    return wid;
+}
+let wid = await openActionPopup({ clickAction: CLICK_ACTION });
+const hintToggle = page.locator('[data-click-action-icon-hint-toggle]');
+check('the click-action popup shows the card-icon switch', (await hintToggle.count()) === 1);
+check('…enabled with an action', !(await hintToggle.isDisabled()));
+await hintToggle.click();
+await page.waitForTimeout(300);
+check(
+    '…and it writes clickActionIcon',
+    (await page.evaluate((w) => window.__auraShot.widgetOptions(w), wid))?.clickActionIcon === false,
+);
+await page.keyboard.press('Escape');
+await settle();
+wid = await openActionPopup({});
+check(
+    'without an action the switch is disabled',
+    await page.locator('[data-click-action-icon-hint-toggle]').isDisabled(),
 );
 await page.keyboard.press('Escape');
 await page.evaluate(() => window.__auraShot.setEditMode(false));

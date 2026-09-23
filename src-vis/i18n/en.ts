@@ -1133,6 +1133,11 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.clickActionIconEmbedHint':
         'Always shown for embedded pages: a click inside the page never reaches the action.',
     'wf.edit.clickActionIconNoAction': 'No click action set up. Choose one under "Click action" in the widget menu.',
+    'wf.edit.clickActionIconOnCard': 'Show the icon on the card',
+    'wf.edit.clickActionIconMore':
+        'Corner and own symbol: Edit → Appearance → Click action icon. As a header item: Appearance → Header, source "Click action".',
+    'wf.edit.clickActionIconAsItem':
+        'The icon sits in the header as an item (Appearance → Header) instead of the card corner.',
     'wf.edit.fsPos.tr': 'top right',
     'wf.edit.fsPos.tl': 'top left',
     'wf.edit.fsPos.br': 'bottom right',

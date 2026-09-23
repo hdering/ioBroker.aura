@@ -8969,6 +8969,58 @@ function WidgetFrameInner({
                                             Zeilen. Das Widget braucht dafür die Höhe.
                                         </p>
                                     </div>
+                                    {/* Header items (issue #676): extra values in the header row.
+                                        The editor is too large for this panel, so it opens as
+                                        its own popup. */}
+                                    {config.type !== 'mirror' &&
+                                        (() => {
+                                            const hdrCount = headerItems(o).length;
+                                            return (
+                                                <>
+                                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <label
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('hdr.title')}
+                                                        </label>
+                                                        <button
+                                                            onClick={() => setHeaderEditorOpen(true)}
+                                                            className="text-[11px] px-2.5 py-1 rounded-lg hover:opacity-80"
+                                                            style={{
+                                                                background: 'var(--app-bg)',
+                                                                border: '1px solid var(--app-border)',
+                                                                color: 'var(--text-primary)',
+                                                            }}
+                                                            data-header-items-open=""
+                                                        >
+                                                            {hdrCount
+                                                                ? t('hdr.editCount', { n: String(hdrCount) })
+                                                                : t('hdr.editEmpty')}
+                                                        </button>
+                                                    </div>
+                                                    {headerEditorOpen && (
+                                                        <CenteredModal
+                                                            title={t('hdr.title')}
+                                                            onClose={() => setHeaderEditorOpen(false)}
+                                                            wide
+                                                        >
+                                                            <HeaderItemsEditor
+                                                                items={headerItems(o)}
+                                                                config={config}
+                                                                hasClickAction={hasClickAction}
+                                                                onChange={(next) =>
+                                                                    setO({
+                                                                        headerItems: next.length ? next : undefined,
+                                                                    })
+                                                                }
+                                                            />
+                                                        </CenteredModal>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                     <div className="flex items-center justify-between">
                                         <div>
@@ -9157,58 +9209,6 @@ function WidgetFrameInner({
                                             )}
                                         </>
                                     )}
-                                    {/* Header items (issue #676): extra values in the header row.
-                                        The editor is too large for this panel, so it opens as
-                                        its own popup. */}
-                                    {config.type !== 'mirror' &&
-                                        (() => {
-                                            const hdrCount = headerItems(o).length;
-                                            return (
-                                                <>
-                                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <label
-                                                            className="text-[11px]"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            {t('hdr.title')}
-                                                        </label>
-                                                        <button
-                                                            onClick={() => setHeaderEditorOpen(true)}
-                                                            className="text-[11px] px-2.5 py-1 rounded-lg hover:opacity-80"
-                                                            style={{
-                                                                background: 'var(--app-bg)',
-                                                                border: '1px solid var(--app-border)',
-                                                                color: 'var(--text-primary)',
-                                                            }}
-                                                            data-header-items-open=""
-                                                        >
-                                                            {hdrCount
-                                                                ? t('hdr.editCount', { n: String(hdrCount) })
-                                                                : t('hdr.editEmpty')}
-                                                        </button>
-                                                    </div>
-                                                    {headerEditorOpen && (
-                                                        <CenteredModal
-                                                            title={t('hdr.title')}
-                                                            onClose={() => setHeaderEditorOpen(false)}
-                                                            wide
-                                                        >
-                                                            <HeaderItemsEditor
-                                                                items={headerItems(o)}
-                                                                config={config}
-                                                                hasClickAction={hasClickAction}
-                                                                onChange={(next) =>
-                                                                    setO({
-                                                                        headerItems: next.length ? next : undefined,
-                                                                    })
-                                                                }
-                                                            />
-                                                        </CenteredModal>
-                                                    )}
-                                                </>
-                                            );
-                                        })()}
                                     {/* Click-action icon (issue #702). Always listed so it can be
                                         found; greyed out until a click action resolves. An iframe
                                         body always shows it (#527). */}
@@ -20604,6 +20604,52 @@ function WidgetFrameInner({
                             onConfigChange(c);
                         }}
                     />
+                    {/* The card's click-action icon (issue #702), right where the action is
+                        set up — the full settings (corner, own symbol) live in Darstellung.
+                        Only here, not inside ClickActionEditor: rows and popup triggers
+                        reuse that editor and have no card icon. */}
+                    {(() => {
+                        const o = config.options ?? {};
+                        const embedForced = needsActionButton;
+                        const iconOn = embedForced || clickActionIconEnabled(o, { hasClickAction, embed: false });
+                        const asItem = headerItems(o).some((i) => i.source === 'action');
+                        return (
+                            <div
+                                className="mt-4 rounded-lg px-3 py-2.5 space-y-1.5"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    border: '1px solid var(--app-border)',
+                                    opacity: hasClickAction ? 1 : 0.5,
+                                }}
+                                data-click-action-icon-hint=""
+                            >
+                                <div className="flex items-center justify-between gap-2">
+                                    <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
+                                        {t('wf.edit.clickActionIconOnCard')}
+                                    </span>
+                                    <button
+                                        onClick={() =>
+                                            hasClickAction &&
+                                            !embedForced &&
+                                            onConfigChange({ ...config, options: { ...o, clickActionIcon: !iconOn } })
+                                        }
+                                        disabled={embedForced || !hasClickAction}
+                                        className="relative w-9 h-5 rounded-full transition-colors shrink-0 disabled:opacity-60"
+                                        style={{ background: iconOn ? 'var(--accent)' : 'var(--app-border)' }}
+                                        data-click-action-icon-hint-toggle=""
+                                    >
+                                        <span
+                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                            style={{ left: iconOn ? '18px' : '2px' }}
+                                        />
+                                    </button>
+                                </div>
+                                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {asItem ? t('wf.edit.clickActionIconAsItem') : t('wf.edit.clickActionIconMore')}
+                                </p>
+                            </div>
+                        );
+                    })()}
                 </CenteredModal>
             )}
 

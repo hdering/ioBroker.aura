@@ -1144,6 +1144,11 @@ export const de = {
         'Bei eingebetteten Seiten immer sichtbar: Ein Klick in die Seite erreicht die Aktion nicht.',
     'wf.edit.clickActionIconNoAction':
         'Keine Klick-Aktion eingerichtet. Im Widget-Menü unter „Klick-Aktion“ festlegen.',
+    'wf.edit.clickActionIconOnCard': 'Symbol auf der Karte zeigen',
+    'wf.edit.clickActionIconMore':
+        'Ecke und eigenes Symbol: Bearbeiten → Darstellung → Klick-Aktions-Symbol. Als Element in der Kopfzeile: Darstellung → Kopfzeile, Quelle „Klick-Aktion“.',
+    'wf.edit.clickActionIconAsItem':
+        'Das Symbol steht als Element in der Kopfzeile (Darstellung → Kopfzeile) statt in der Kartenecke.',
     'wf.edit.fsPos.tr': 'rechts oben',
     'wf.edit.fsPos.tl': 'links oben',
     'wf.edit.fsPos.br': 'rechts unten',

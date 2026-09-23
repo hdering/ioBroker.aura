@@ -85,7 +85,7 @@ Eingeklappt ist die Karte so flach wie eine eingeklappte Gruppe (zwei Rasterzeil
 | Position | `rechts oben` (Standard), `links oben`, `rechts unten` — neben Vollbild- und Einklapp-Knopf rückt es eine Stelle nach innen |
 | Symbol | Standard je Aktion (Popup, Tab/Widget, externer Link) oder eigenes |
 
-Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer an.
+Dauerhaft sichtbar, nicht im Editor. Bei `iFrame` mit bedienbarem Inhalt immer an. Ein- und ausschalten geht auch direkt im Dialog `Klick-Aktion`.
 
 ## Kopfzeile
 
