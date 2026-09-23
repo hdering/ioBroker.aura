@@ -119,6 +119,12 @@ Vor dem Commit, wenn `src-vis/` angefasst wurde:
 Was das MCP bewusst NICHT kennt: Menü-Elemente (Header/Tab-Leiste/Bereichs-Menü) und deren
 Widgets. Kommt das dazu, ist es eine eigene Aufgabe, kein Nebeneffekt.
 
+## Pläne
+
+Implementierungs-, Doku- und Recherche-Pläne als Markdown (deutsch) unter
+`C:\projects\tools\plans\<sprechender-name>.md` ablegen — nicht im Projekt-Root, nicht unter
+`C:\projects\` direkt und nicht nur im Plan-Mode-Verzeichnis.
+
 ## Release Notes (Changelog Highlights)
 
 When the user requests a **user-facing change** (a feature, fix, or visible behavior change), append one short **English** bullet describing it to `RELEASE_NOTES.md` in the project root — in addition to the code commit. `release.ps1` turns these bullets into the ioBroker changelog (admin news + README) at release time and resets the file after the next stable release. If `RELEASE_NOTES.md` holds only `#`-comment lines, the release falls back to filtered feat/fix commit subjects. English only (the release linter rejects German). Skip purely internal changes (refactors, build/CI, dep bumps). Beim Release übersetzt `tools/release/translate-news.mjs` den neuen Eintrag in die zehn weiteren Admin-Sprachen (W1144) — die Bullets selbst bleiben englisch.
