@@ -14,7 +14,15 @@ import {
 import { TrendingUp, BarChart2, Loader } from 'lucide-react';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useConfigStore } from '../../store/configStore';
-import { useChartHistory, type ChartTimeRange, RANGE_LABELS } from '../../hooks/useChartHistory';
+import { useChartHistory, type ChartTimeRange, RANGE_LABELS, TOTAL_FLOOR_MS } from '../../hooks/useChartHistory';
+import {
+    parseRangeChips,
+    rangeKey,
+    rangeLabel,
+    unitSpanMs,
+    type RangeChip,
+    type RangeUnit,
+} from '../../utils/rangeChips';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import type { WidgetProps } from '../../types';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -64,9 +72,35 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const autoHistory = o.autoHistoryInstance === true;
     const cfgRange = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
-    const customUnit = (o.historyRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
-    const cfgCustomMs = cfgRange === 'custom' ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000) : undefined;
+    const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
     const lockRange = o.lockRange === true;
+    // User-defined chips (issue #709) replace the presets and the single custom chip.
+    const userChips = parseRangeChips(o.rangeChips as string[] | undefined);
+    const chipList: RangeChip[] =
+        userChips.length > 0
+            ? userChips
+            : [
+                  ...PRESET_RANGES.map((r) => ({ key: r, range: r, label: RANGE_LABELS[r] })),
+                  ...(cfgRange === 'custom'
+                      ? [
+                            {
+                                key: rangeKey('custom', customVal, customUnit),
+                                range: 'custom' as const,
+                                value: customVal,
+                                unit: customUnit,
+                                label: rangeLabel(customVal, customUnit),
+                            },
+                        ]
+                      : []),
+              ];
+    // The configured default when it is one of the user's chips (or there are none, or the range
+    // is locked) — otherwise the first chip, so one of them is always lit.
+    const cfgKey = rangeKey(cfgRange, customVal, customUnit);
+    const startChip =
+        !lockRange && userChips.length > 0 && !userChips.some((c) => c.key === cfgKey) ? userChips[0] : null;
+    const startRange = startChip?.range ?? cfgRange;
+    const startVal = startChip?.value ?? customVal;
+    const startUnit = startChip?.unit ?? customUnit;
     const titleAlign = (o.titleAlign as string) ?? 'left';
     const showAverage = o.showAverage === true;
     const showAverageAsValue = o.showAverageAsValue === true;
@@ -81,27 +115,36 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const WidgetIcon = getWidgetIcon(o.icon as string | undefined, TrendingUp);
 
     // ── Frontend-local range selection (starts from admin config, switchable at runtime) ──
-    const [activeRange, setActiveRange] = useState<ChartTimeRange>(cfgRange);
-    const [activeCustomMs, setActiveCustomMs] = useState<number | undefined>(cfgCustomMs);
+    const [activeRange, setActiveRange] = useState<ChartTimeRange>(startRange);
+    const [activeCustomVal, setActiveCustomVal] = useState<number>(startVal);
+    const [activeCustomUnit, setActiveCustomUnit] = useState<RangeUnit>(startUnit);
 
     // Reset when admin config changes
     useEffect(() => {
-        setActiveRange(cfgRange);
-        setActiveCustomMs(cfgCustomMs);
-    }, [cfgRange, cfgCustomMs]);
+        setActiveRange(startRange);
+        setActiveCustomVal(startVal);
+        setActiveCustomUnit(startUnit);
+    }, [startRange, startVal, startUnit]);
+
+    // Calendar months/years: the span only changes with the date, so this stays stable between
+    // renders and does not refetch on its own.
+    const activeCustomMs = activeRange === 'custom' ? unitSpanMs(activeCustomVal, activeCustomUnit) : undefined;
+    const activeKey = rangeKey(activeRange, activeCustomVal, activeCustomUnit);
 
     const effectiveRangeMs =
-        activeRange === 'custom'
-            ? (activeCustomMs ?? 86_400_000)
-            : ((
-                  {
-                      '1h': 3_600_000,
-                      '6h': 21_600_000,
-                      '24h': 86_400_000,
-                      '7d': 604_800_000,
-                      '30d': 2_592_000_000,
-                  } as Record<string, number>
-              )[activeRange] ?? 86_400_000);
+        activeCustomMs ??
+        (
+            {
+                '1h': 3_600_000,
+                '6h': 21_600_000,
+                '24h': 86_400_000,
+                '7d': 604_800_000,
+                '30d': 2_592_000_000,
+                '1y': 31_536_000_000,
+                total: TOTAL_FLOOR_MS,
+            } as Record<string, number>
+        )[activeRange] ??
+        86_400_000;
 
     // Auto-detected instance picked at runtime (only relevant when autoHistory and no
     // configured instance). useChartHistory falls back to its first detected adapter on its
@@ -231,40 +274,28 @@ export function ChartWidget({ config, editMode }: WidgetProps) {
     const rangeSelector =
         hasResolvedInstance && !lockRange ? (
             <div className="flex gap-1 flex-wrap">
-                {PRESET_RANGES.map((r) => {
-                    const active = activeRange === r;
+                {chipList.map((c) => {
+                    const active = activeKey === c.key;
                     return (
                         <button
-                            key={r}
+                            key={c.key}
                             className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
                             style={{
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
                                 color: active ? '#fff' : 'var(--text-secondary)',
                             }}
                             onClick={() => {
-                                setActiveRange(r);
-                                setActiveCustomMs(undefined);
+                                setActiveRange(c.range);
+                                if (c.range === 'custom') {
+                                    setActiveCustomVal(c.value ?? 24);
+                                    setActiveCustomUnit(c.unit ?? 'h');
+                                }
                             }}
                         >
-                            {RANGE_LABELS[r]}
+                            {c.label}
                         </button>
                     );
                 })}
-                {cfgRange === 'custom' && (
-                    <button
-                        className="nodrag px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
-                        style={{
-                            background: activeRange === 'custom' ? 'var(--accent)' : 'var(--app-border)',
-                            color: activeRange === 'custom' ? '#fff' : 'var(--text-secondary)',
-                        }}
-                        onClick={() => {
-                            setActiveRange('custom');
-                            setActiveCustomMs(cfgCustomMs);
-                        }}
-                    >
-                        {customVal} {customUnit === 'd' ? (customVal === 1 ? 'Tag' : 'Tage') : 'Std'}
-                    </button>
-                )}
             </div>
         ) : null;
 

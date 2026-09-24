@@ -1865,6 +1865,16 @@
         "custom"
       ]
     },
+    "RangeUnit": {
+      "type": "string",
+      "enum": [
+        "h",
+        "d",
+        "w",
+        "M",
+        "y"
+      ]
+    },
     "ClimateMetric": {
       "type": "object",
       "fields": {
@@ -2066,10 +2076,7 @@
         },
         "historyRangeCustomUnit": {
           "type": "string",
-          "enum": [
-            "h",
-            "d"
-          ]
+          "ref": "RangeUnit"
         },
         "smooth": {
           "type": "boolean"
@@ -7533,12 +7540,9 @@
         },
         "historyRangeCustomUnit": {
           "type": "string",
-          "enum": [
-            "h",
-            "d"
-          ],
+          "ref": "RangeUnit",
           "default": "h",
-          "description": "Einheit des eigenen Zeitraums: h oder d."
+          "description": "Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
         },
         "historyRangeCustomValue": {
           "type": "number",
@@ -7555,6 +7559,13 @@
           "type": "boolean",
           "default": false,
           "description": "Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten."
+        },
+        "rangeChips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (h, d, w, M = Monat, y = Jahr) oder \"total\", optional mit eigener Beschriftung nach \"=\": [\"1M\", \"3M=Quartal\", \"12M\", \"total\"]. Monate und Jahre zählen nach dem Kalender. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips."
         },
         "showAverage": {
           "type": "boolean",
@@ -7789,12 +7800,9 @@
         },
         "historyRangeCustomUnit": {
           "type": "string",
-          "enum": [
-            "h",
-            "d"
-          ],
+          "ref": "RangeUnit",
           "default": "h",
-          "description": "Einheit des eigenen Zeitraums: h oder d."
+          "description": "Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
         },
         "historyRangeCustomValue": {
           "type": "number",
@@ -8573,11 +8581,8 @@
         },
         "echartRangeCustomUnit": {
           "type": "string",
-          "enum": [
-            "h",
-            "d"
-          ],
-          "description": "Einheit des eigenen Zeitraums: h oder d."
+          "ref": "RangeUnit",
+          "description": "Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre)."
         },
         "echartRangeCustomValue": {
           "type": "number",
@@ -8667,12 +8672,19 @@
             "type": "string",
             "ref": "EChartTimeRange"
           },
-          "description": "Welche Zeiträume der Umschalter anbietet."
+          "description": "Welche eingebauten Zeiträume der Umschalter anbietet. Wirkungslos, sobald rangeChips gesetzt ist."
         },
         "lockRange": {
           "type": "boolean",
           "default": false,
           "description": "Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten."
+        },
+        "rangeChips": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (h, d, w, M = Monat, y = Jahr) oder \"total\", optional mit eigener Beschriftung nach \"=\": [\"1M\", \"3M=Quartal\", \"12M\", \"total\"]. Monate und Jahre zählen nach dem Kalender. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips."
         }
       }
     },

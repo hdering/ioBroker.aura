@@ -4,6 +4,7 @@ import { detectHistoryAdapters, TOTAL_FLOOR_MS, type DetectedAdapter } from './u
 import { applyValueTransform, transformMagnitude, transformSign } from '../utils/valueTransform';
 import type { NumberFormat } from '../utils/formatValue';
 import type { ioBrokerState } from '../types';
+import { unitSpanMs, type RangeUnit } from '../utils/rangeChips';
 
 export type EChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'total' | 'custom';
 
@@ -33,7 +34,7 @@ export interface EChartSeriesConfig {
     historyInstance?: string;
     historyRange?: EChartTimeRange;
     historyRangeCustomValue?: number;
-    historyRangeCustomUnit?: 'h' | 'd';
+    historyRangeCustomUnit?: RangeUnit;
     smooth?: boolean;
     yAxisIndex?: 0 | 1;
     lineWidth?: number;
@@ -208,10 +209,8 @@ const RANGE_STEP: Record<Exclude<EChartTimeRange, 'custom'>, number | undefined>
  * `total` has no configured span; it reports the floor, which is what live-window trimming needs
  * (never trim). The fetch path does NOT use this for `total` — it probes the real start instead.
  */
-export function rangeToMs(range: EChartTimeRange, customValue?: number, customUnit?: 'h' | 'd'): number {
-    if (range === 'custom') {
-        return Math.max(1, customValue ?? 24) * ((customUnit ?? 'h') === 'd' ? 86_400_000 : 3_600_000);
-    }
+export function rangeToMs(range: EChartTimeRange, customValue?: number, customUnit?: RangeUnit): number {
+    if (range === 'custom') return unitSpanMs(customValue ?? 24, customUnit ?? 'h');
     return RANGE_MS[range];
 }
 

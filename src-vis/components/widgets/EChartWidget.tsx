@@ -41,6 +41,7 @@ import { axisIsZeroBased, gridLineAxis } from '../../utils/chartAxis';
 import { legendGridTop, LEGEND_TOP } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
+import { parseRangeChips, rangeKey, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
 const DEFAULT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -287,18 +288,56 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const cfgCustomVal =
         (o.echartRangeCustomValue as number | undefined) ?? echartSeries[0]?.historyRangeCustomValue ?? 24;
     const cfgCustomUnit =
-        (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? echartSeries[0]?.historyRangeCustomUnit ?? 'h';
+        (o.echartRangeCustomUnit as RangeUnit | undefined) ?? echartSeries[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = o.lockRange === true;
+    // User-defined chips (issue #709) replace the presets AND the single custom chip below.
+    const userChips = parseRangeChips(o.rangeChips as string[] | undefined);
     // Which presets the frontend selector offers (config-selectable; default: all).
     const cfgVisibleRanges = o.echartVisibleRanges as EChartTimeRange[] | undefined;
     const visibleRanges =
         cfgVisibleRanges && cfgVisibleRanges.length > 0
             ? PRESET_RANGES.filter((r) => cfgVisibleRanges.includes(r))
             : PRESET_RANGES;
+    const chipList: RangeChip[] =
+        userChips.length > 0
+            ? userChips
+            : [
+                  ...visibleRanges.map((r) => ({ key: r, range: r, label: RANGE_LABELS[r] })),
+                  ...(cfgRange === 'custom'
+                      ? [
+                            {
+                                key: rangeKey('custom', cfgCustomVal, cfgCustomUnit),
+                                range: 'custom' as const,
+                                value: cfgCustomVal,
+                                unit: cfgCustomUnit,
+                                label: `${cfgCustomVal} ${
+                                    cfgCustomUnit === 'h'
+                                        ? t('echart.unitHoursShort')
+                                        : cfgCustomUnit === 'd'
+                                          ? cfgCustomVal === 1
+                                              ? t('echart.daySingular')
+                                              : t('echart.dayPlural')
+                                          : cfgCustomUnit
+                                }`,
+                            },
+                        ]
+                      : []),
+              ];
+    // A configured default that is not among the user's chips would leave no chip lit — start on
+    // the first one instead. A locked range keeps its configured window regardless.
+    const startChip =
+        !lockRange &&
+        userChips.length > 0 &&
+        !userChips.some((c) => c.key === rangeKey(cfgRange, cfgCustomVal, cfgCustomUnit))
+            ? userChips[0]
+            : null;
+    const startRange = startChip?.range ?? cfgRange;
+    const startCustomVal = startChip?.value ?? cfgCustomVal;
+    const startCustomUnit = startChip?.unit ?? cfgCustomUnit;
 
-    const [activeRange, setActiveRange] = useState<EChartTimeRange>(cfgRange);
-    const [activeCustomVal, setActiveCustomVal] = useState<number>(cfgCustomVal);
-    const [activeCustomUnit, setActiveCustomUnit] = useState<'h' | 'd'>(cfgCustomUnit);
+    const [activeRange, setActiveRange] = useState<EChartTimeRange>(startRange);
+    const [activeCustomVal, setActiveCustomVal] = useState<number>(startCustomVal);
+    const [activeCustomUnit, setActiveCustomUnit] = useState<RangeUnit>(startCustomUnit);
 
     // ── Day navigation (◀ Heute ▶): view a single calendar day, step day by day ──
     // null = normal rolling-range mode; number = offset in days from today (0 = today, -1 = yesterday …)
@@ -320,10 +359,10 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // day mode is its own selection and must survive a range change, and the start-on-today
     // option below would be pulled back to the rolling range on the very first run.
     useEffect(() => {
-        setActiveRange(cfgRange);
-        setActiveCustomVal(cfgCustomVal);
-        setActiveCustomUnit(cfgCustomUnit);
-    }, [cfgRange, cfgCustomVal, cfgCustomUnit]);
+        setActiveRange(startRange);
+        setActiveCustomVal(startCustomVal);
+        setActiveCustomUnit(startCustomUnit);
+    }, [startRange, startCustomVal, startCustomUnit]);
 
     // Only the two day-nav options themselves move the day mode — so toggling them in the editor
     // shows immediately, while browsing to another day afterwards is left alone.
@@ -1310,11 +1349,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             // day-nav controls; on very narrow widgets the chips scroll (swipe)
             // instead of wrapping the day-nav into a second row.
             <div className="nodrag flex gap-1 min-w-0 overflow-x-auto aura-no-scrollbar">
-                {visibleRanges.map((r) => {
-                    const active = dayOffset === null && activeRange === r;
+                {chipList.map((c) => {
+                    const active =
+                        dayOffset === null && rangeKey(activeRange, activeCustomVal, activeCustomUnit) === c.key;
                     return (
                         <button
-                            key={r}
+                            key={c.key}
                             className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
                             style={{
                                 background: active ? 'var(--accent)' : 'var(--app-border)',
@@ -1322,35 +1362,17 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             }}
                             onClick={() => {
                                 setDayOffset(null);
-                                setActiveRange(r);
+                                setActiveRange(c.range);
+                                if (c.range === 'custom') {
+                                    setActiveCustomVal(c.value ?? 24);
+                                    setActiveCustomUnit(c.unit ?? 'h');
+                                }
                             }}
                         >
-                            {RANGE_LABELS[r]}
+                            {c.label}
                         </button>
                     );
                 })}
-                {cfgRange === 'custom' && (
-                    <button
-                        className="nodrag shrink-0 whitespace-nowrap px-1.5 py-0.5 rounded text-[10px] font-medium hover:opacity-80 transition-opacity"
-                        style={{
-                            background: activeRange === 'custom' ? 'var(--accent)' : 'var(--app-border)',
-                            color: activeRange === 'custom' ? '#fff' : 'var(--text-secondary)',
-                        }}
-                        onClick={() => {
-                            setDayOffset(null);
-                            setActiveRange('custom');
-                            setActiveCustomVal(cfgCustomVal);
-                            setActiveCustomUnit(cfgCustomUnit);
-                        }}
-                    >
-                        {cfgCustomVal}{' '}
-                        {cfgCustomUnit === 'd'
-                            ? cfgCustomVal === 1
-                                ? t('echart.daySingular')
-                                : t('echart.dayPlural')
-                            : t('echart.unitHoursShort')}
-                    </button>
-                )}
             </div>
         ) : null;
 

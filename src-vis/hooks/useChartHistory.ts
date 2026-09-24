@@ -1,21 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { getObjectDirect, getHistoryDirect, getStateDirect, type HistoryEntry } from './useIoBroker';
 import type { ioBrokerState } from '../types';
+import { PRESET_LABELS } from '../utils/rangeChips';
 
 // `1y` and `total` are offered by the advanced chart widget only (issue #536); the simple chart's
 // own preset list leaves them out, but range maths and labels stay shared.
 export type ChartTimeRange = '1h' | '6h' | '24h' | '7d' | '30d' | '1y' | 'total' | 'custom';
 
-export const RANGE_LABELS: Record<ChartTimeRange, string> = {
-    '1h': '1 Std',
-    '6h': '6 Std',
-    '24h': '24 Std',
-    '7d': '7 Tage',
-    '30d': '30 Tage',
-    '1y': '1 Jahr',
-    total: 'Gesamt',
-    custom: 'Eigen',
-};
+export const RANGE_LABELS: Record<ChartTimeRange, string> = { ...PRESET_LABELS, custom: 'Eigen' };
 
 /**
  * Upper bound for a `total` ("since recording started") window.

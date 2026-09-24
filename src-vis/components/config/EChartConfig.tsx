@@ -16,6 +16,8 @@ import {
     type EChartTimeRange,
 } from '../../hooks/useMultiSeriesData';
 import { useT } from '../../i18n';
+import { RangeChipsEditor } from './RangeChipsEditor';
+import { parseRangeChips, RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 import { DatapointManagerField } from './list/DatapointManagerField';
 import type { ManagedEntry } from './list/EntryListItem';
 import { ChartModePanel, type EChartMode } from './chart/ChartModePanel';
@@ -160,13 +162,15 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
     const echartRangeCustomValue =
         (o.echartRangeCustomValue as number | undefined) ?? series[0]?.historyRangeCustomValue ?? 24;
     const echartRangeCustomUnit =
-        (o.echartRangeCustomUnit as 'h' | 'd' | undefined) ?? series[0]?.historyRangeCustomUnit ?? 'h';
+        (o.echartRangeCustomUnit as RangeUnit | undefined) ?? series[0]?.historyRangeCustomUnit ?? 'h';
     const lockRange = (o.lockRange as boolean | undefined) ?? false;
     const dayNav = (o.echartDayNav as boolean | undefined) ?? false;
     const dayNavDefault = (o.echartDayNavDefault as boolean | undefined) ?? false;
     // Which presets the frontend range selector offers (default: all).
     const frontendPresets = CHART_RANGES.filter((r) => r !== 'custom');
     const visibleRanges = (o.echartVisibleRanges as EChartTimeRange[] | undefined) ?? frontendPresets;
+    // An own chip list (issue #709) supersedes the preset toggles.
+    const hasOwnChips = parseRangeChips(o.rangeChips).length > 0;
     const setO = (patch: Record<string, unknown>) => onConfigChange({ ...config, options: { ...o, ...patch } });
     /**
      * The mode NEVER touches the series. It used to normalise their data sources — every series
@@ -689,11 +693,11 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             ))}
                         </div>
                         {echartRange === 'custom' && (
-                            <div className="flex items-center gap-1.5 mt-1.5">
+                            <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                                 <input
                                     type="number"
                                     min={1}
-                                    max={365}
+                                    max={999}
                                     value={echartRangeCustomValue}
                                     onChange={(e) =>
                                         setO({ echartRangeCustomValue: Math.max(1, Number(e.target.value) || 1) })
@@ -701,7 +705,7 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                     className="w-16 text-xs rounded-md px-2 py-1 text-center focus:outline-none"
                                     style={inputStyle}
                                 />
-                                {(['h', 'd'] as const).map((u) => (
+                                {RANGE_UNITS.map((u) => (
                                     <button
                                         key={u}
                                         onClick={() => setO({ echartRangeCustomUnit: u })}
@@ -712,12 +716,12 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                             border: `1px solid ${echartRangeCustomUnit === u ? 'var(--accent)' : 'var(--app-border)'}`,
                                         }}
                                     >
-                                        {u === 'h' ? t('echart.unitHoursShort') : t('echart.unitDaysShort')}
+                                        {t(`rangeChips.unit.${u}`)}
                                     </button>
                                 ))}
                             </div>
                         )}
-                        {!lockRange && (
+                        {!lockRange && !hasOwnChips && (
                             <div className="mt-2">
                                 <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
                                     {t('echart.visibleRanges')}
@@ -743,6 +747,18 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                                     })}
                                 </div>
                             </div>
+                        )}
+                        {!lockRange && (
+                            <RangeChipsEditor
+                                value={o.rangeChips}
+                                defaults={[
+                                    ...visibleRanges,
+                                    ...(echartRange === 'custom'
+                                        ? [rangeKey('custom', echartRangeCustomValue, echartRangeCustomUnit)]
+                                        : []),
+                                ]}
+                                onChange={(next) => setO({ rangeChips: next })}
+                            />
                         )}
                         <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                             <input

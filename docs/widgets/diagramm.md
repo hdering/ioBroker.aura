@@ -60,8 +60,20 @@ Das Häkchen **Negativ darstellen (× −1)** kehrt das Vorzeichen um (gespeiche
 | `historyInstance`         | —        | History-Adapter-Instanz (z. B. `history.0`)   |
 | `historyRange`            | `24h`    | `1h` · `6h` · `24h` · `7d` · `30d` · `custom` |
 | `historyRangeCustomValue` | `24`     | nur bei `custom`                              |
-| `historyRangeCustomUnit`  | `h`      | `h` · `d`, nur bei `custom`                   |
+| `historyRangeCustomUnit`  | `h`      | `h` · `d` · `w` · `M` · `y`, nur bei `custom` |
 | `lockRange`               | `false`  | Zeitraum-Umschalter im Frontend ausblenden    |
+| `rangeChips`              | —        | Eigene Zeitraum-Chips, siehe unten            |
+
+**Eigene Zeitraum-Chips** (`rangeChips`) ersetzen die eingebauten Chips im Frontend. Im Editor: **Eigene Liste anlegen**.
+
+| Kürzel                  | Bedeutung                                     |
+| ----------------------- | --------------------------------------------- |
+| `12h` · `2d` · `2w`     | Stunden · Tage · Wochen                       |
+| `3M` · `2y`             | Kalendermonate · Kalenderjahre                |
+| `total`                 | alles, was der Verlaufs-Adapter hergibt       |
+| `3M=Quartal`            | eigene Beschriftung nach `=`                  |
+
+Liegt der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Chip.
 
 ### Achsen
 

@@ -12,6 +12,8 @@ import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useT, t, keyLabel } from '../../i18n';
+import { RangeChipsEditor } from '../config/RangeChipsEditor';
+import { RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 import { isCopyDragModifier } from '../../utils/platformKeys';
 import {
     X,
@@ -1205,7 +1207,8 @@ function ChartHistoryConfig({
     const selectedInstance = o.historyInstance as string | undefined;
     const selectedRange = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
-    const customUnit = (o.historyRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
+    const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
+    const lockRange = (o.lockRange as boolean | undefined) ?? false;
 
     return (
         <>
@@ -1300,11 +1303,11 @@ function ChartHistoryConfig({
                     </div>
                     {/* Benutzerdefinierter Zeitraum */}
                     {selectedRange === 'custom' && (
-                        <div className="flex items-center gap-1.5 mt-1.5">
+                        <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
                             <input
                                 type="number"
                                 min={1}
-                                max={365}
+                                max={999}
                                 value={customVal}
                                 onChange={(e) =>
                                     set({ historyRangeCustomValue: Math.max(1, Number(e.target.value) || 1) })
@@ -1316,7 +1319,7 @@ function ChartHistoryConfig({
                                     border: '1px solid var(--app-border)',
                                 }}
                             />
-                            {(['h', 'd'] as const).map((u) => (
+                            {RANGE_UNITS.map((u) => (
                                 <button
                                     key={u}
                                     onClick={() => set({ historyRangeCustomUnit: u })}
@@ -1327,16 +1330,27 @@ function ChartHistoryConfig({
                                         border: `1px solid ${customUnit === u ? 'var(--accent)' : 'var(--app-border)'}`,
                                     }}
                                 >
-                                    {u === 'h' ? 'Std' : 'Tage'}
+                                    {t(`rangeChips.unit.${u}`)}
                                 </button>
                             ))}
                         </div>
+                    )}
+                    {/* Eigene Zeitraum-Chips (#709) — nur das Diagramm, das Klima-Widget behält seine */}
+                    {config.type === 'chart' && !lockRange && (
+                        <RangeChipsEditor
+                            value={o.rangeChips}
+                            defaults={[
+                                ...CHART_RANGES.filter((r) => r !== 'custom'),
+                                ...(selectedRange === 'custom' ? [rangeKey('custom', customVal, customUnit)] : []),
+                            ]}
+                            onChange={(next) => set({ rangeChips: next })}
+                        />
                     )}
                     {/* Zeitraum im Frontend sperren */}
                     <label className="flex items-center gap-2 mt-2 cursor-pointer select-none">
                         <input
                             type="checkbox"
-                            checked={(o.lockRange as boolean | undefined) ?? false}
+                            checked={lockRange}
                             onChange={(e) => set({ lockRange: e.target.checked })}
                             className="rounded"
                         />

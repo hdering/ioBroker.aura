@@ -140,7 +140,10 @@ export const KEY_DESCRIPTIONS = {
     autoHistoryInstance: 'History-Instanz automatisch aus dem Datenpunkt bestimmen.',
     historyRange: 'Angezeigter Zeitraum.',
     historyRangeCustomValue: 'Länge des eigenen Zeitraums.',
-    historyRangeCustomUnit: 'Einheit des eigenen Zeitraums: h oder d.',
+    historyRangeCustomUnit:
+        'Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre).',
+    rangeChips:
+        'Eigene Zeitraum-Chips im Frontend, ersetzen die eingebauten samt eigenem Zeitraum. Kürzel aus Zahl + Einheit (h, d, w, M = Monat, y = Jahr) oder "total", optional mit eigener Beschriftung nach "=": ["1M", "3M=Quartal", "12M", "total"]. Monate und Jahre zählen nach dem Kalender. Steht der Standard-Zeitraum nicht in der Liste, startet das Diagramm mit dem ersten Eintrag. Leer = eingebaute Chips.',
     lockRange: 'Zeitraum-Umschalter ausblenden und den eingestellten Zeitraum festhalten.',
     lineColor: 'Farbe der Linie.',
     avgColor: 'Farbe der Mittelwertlinie.',
@@ -722,8 +725,14 @@ export const WIDGET_OPTION_NOTES = {
         echartSeries: { description: 'Die Datenreihen des Diagramms.' },
         echartRange: { description: 'Angezeigter Zeitraum.' },
         echartRangeCustomValue: { description: 'Länge des eigenen Zeitraums.' },
-        echartRangeCustomUnit: { description: 'Einheit des eigenen Zeitraums: h oder d.' },
-        echartVisibleRanges: { description: 'Welche Zeiträume der Umschalter anbietet.' },
+        echartRangeCustomUnit: {
+            description:
+                'Einheit des eigenen Zeitraums: h (Stunden), d (Tage), w (Wochen), M (Kalendermonate), y (Kalenderjahre).',
+        },
+        echartVisibleRanges: {
+            description:
+                'Welche eingebauten Zeiträume der Umschalter anbietet. Wirkungslos, sobald rangeChips gesetzt ist.',
+        },
         echartDayNav: { description: 'Blättern zwischen einzelnen Tagen erlauben.' },
         echartDayNavDefault: {
             description:

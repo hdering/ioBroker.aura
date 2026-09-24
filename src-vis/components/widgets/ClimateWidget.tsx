@@ -37,6 +37,7 @@ import {
 } from '../../utils/climateMetrics';
 import { ClimateMetricGrid, ClimateMetricPrimary, ClimateMetricValue } from './ClimateMetricChips';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
+import { unitSpanMs, type RangeUnit } from '../../utils/rangeChips';
 
 const PRESET_RANGES: ChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
 
@@ -106,8 +107,8 @@ export function ClimateWidget({ config }: WidgetProps) {
     const historyInstance = o.historyInstance as string | undefined;
     const cfgRange = (o.historyRange as ChartTimeRange | undefined) ?? '24h';
     const customVal = (o.historyRangeCustomValue as number | undefined) ?? 24;
-    const customUnit = (o.historyRangeCustomUnit as 'h' | 'd' | undefined) ?? 'h';
-    const cfgCustomMs = cfgRange === 'custom' ? customVal * (customUnit === 'd' ? 86_400_000 : 3_600_000) : undefined;
+    const customUnit = (o.historyRangeCustomUnit as RangeUnit | undefined) ?? 'h';
+    const cfgCustomMs = cfgRange === 'custom' ? unitSpanMs(customVal, customUnit) : undefined;
     const lockRange = o.lockRange === true;
     const showYAxis = o.showYAxis === true;
     const yAxisCompact = o.yAxisCompact !== false;
@@ -350,7 +351,7 @@ export function ClimateWidget({ config }: WidgetProps) {
                         }}
                     >
                         {customVal}
-                        {customUnit === 'd' ? 'd' : 'h'}
+                        {customUnit}
                     </button>
                 )}
             </div>
