@@ -97,6 +97,7 @@
     "test:slider-scale-ui": "node tools/tests/slider-scale-ui.mjs",
     "test:mirror-types": "node tools/tests/mirror-all-types.mjs",
     "test:menu-overview": "node tools/tests/menu-overview.mjs",
+    "test:custom-css-scope": "node tools/tests/custom-css-scope.mjs",
     "test:admin-layouts-ui": "node tools/tests/admin-layouts-ui.mjs",
     "test:design-override-marks": "node tools/tests/design-override-marks.mjs",
     "test:dp-manager-narrow": "node tools/tests/dp-manager-narrow.mjs",

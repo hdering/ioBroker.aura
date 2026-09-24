@@ -2535,7 +2535,8 @@ export function AdminEditor() {
 
     // Run custom JS inside the editor preview when `customJSInEditor` is enabled.
     useCustomJs(activeLayoutId, activeSectionForEditor.id, true);
-    // Apply custom CSS inside the editor preview when `customCSSInEditor` is enabled.
+    // Apply custom CSS inside the editor preview when `customCSSInEditor` is enabled —
+    // scoped to the [data-aura-css-scope] boxes, never the admin UI around them (#710).
     useCustomCss(activeLayoutId, activeSectionForEditor.id, true);
     const [showManual, setShowManual] = useState(false);
     const [showImport, setShowImport] = useState(false);
@@ -2696,6 +2697,7 @@ export function AdminEditor() {
                     <div className="shrink-0 relative flex" style={{ width: drawerWidth }}>
                         <div
                             className="flex w-full"
+                            data-aura-css-scope=""
                             style={{ pointerEvents: 'none', filter: 'grayscale(1)', opacity: 0.45 }}
                             aria-hidden
                         >
@@ -2740,10 +2742,12 @@ export function AdminEditor() {
                     layout/section being edited. Without it the editor previewed every
                     dashboard at scale 1 and a title that fit here was cut off live (#668).
                     The frontend's own marker (data-aura-app) stays out on purpose — it
-                    answers the portal-target queries, which must not land in this box. */}
+                    answers the portal-target queries, which must not land in this box.
+                    data-aura-css-scope confines the custom CSS to the preview (#710). */}
                 <div
                     className="flex-1 min-w-0 flex flex-col overflow-hidden"
                     data-aura-scale=""
+                    data-aura-css-scope=""
                     style={{ '--font-scale': String(editorSettings.fontScale ?? 1) } as React.CSSProperties}
                 >
                     <FocusedWidgetContext.Provider value={focusedWidgetId}>
