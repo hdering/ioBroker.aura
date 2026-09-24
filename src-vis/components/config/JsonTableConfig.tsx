@@ -13,6 +13,8 @@ import {
     selectedTransformPreset,
 } from '../../utils/valueTransform';
 import { TIME_DISPLAY_PRESETS, formatTimeDisplay, hasTimeDisplay } from '../../utils/timeDisplay';
+import { NUMBER_FORMATS, NUMBER_FORMAT_SAMPLES, type NumberFormat } from '../../utils/formatValue';
+import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 
 interface Props {
     datapoint: string;
@@ -85,6 +87,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
     const [newKey, setNewKey] = useState('');
     const [loading, setLoading] = useState(false);
     const t = useT();
+    const globalNumFmt = useGlobalSettingsStore((s) => s.numberFormat);
 
     // First row of the live data — the format section previews against it, so
     // "Millisekunden-Stempel wird zu 10.07.2024" is verifiable before saving.
@@ -102,7 +105,8 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
         (c.valueTransform !== undefined ||
             c.valueFactor !== undefined ||
             c.valueOffset !== undefined ||
-            c.decimals !== undefined);
+            c.decimals !== undefined ||
+            c.numberFormat !== undefined);
     const setFormatFlag = (key: string, flag: 'time' | 'convert', on: boolean) =>
         setFormatOpen((prev) => ({ ...prev, [key]: { ...prev[key], [flag]: on } }));
 
@@ -175,7 +179,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
         );
     }
 
-    /** Umrechnung switch: off takes factor, offset and the decimal places with it. */
+    /** Zahlenformat switch: off takes factor, offset, decimals and separator with it. */
     function toggleConvert(idx: number, col: JsonColumnDef) {
         const on = !convertShown(col);
         setFormatFlag(col.key, 'convert', on);
@@ -185,6 +189,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                 valueFactor: undefined,
                 valueOffset: undefined,
                 decimals: undefined,
+                numberFormat: undefined,
             });
         }
     }
@@ -591,14 +596,14 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                         </label>
                                         <label
                                             className="flex items-center gap-1.5 cursor-pointer"
-                                            title="Zahlenwerte umrechnen und runden"
+                                            title="Zahlen umrechnen, runden und mit Tausendertrennzeichen versehen"
                                         >
                                             <Toggle
                                                 value={convertShown(col)}
                                                 onToggle={() => toggleConvert(idx, col)}
                                             />
                                             <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                                Umrechnung
+                                                Zahlenformat
                                             </span>
                                         </label>
                                     </>
@@ -756,36 +761,99 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                     </p>
                                 </div>
                             )}
-                            {/* Row 3.8: Umrechnung — factor/offset plus the decimal places, which are
-                                what keeps a converted number readable. */}
+                            {/* Row 3.8: Zahlenformat — conversion, decimal places and thousands separator in one row;
+                                the custom factor/offset follow below. */}
                             {!col.image && !col.html && convertShown(col) && (
                                 <div
                                     className="rounded-lg p-1.5 flex flex-col gap-1.5"
                                     style={{ border: '1px solid var(--app-border)' }}
                                 >
-                                    <select
-                                        value={selectedTransformPreset(
-                                            col.valueTransform,
-                                            col.valueFactor,
-                                            col.valueOffset,
-                                        )}
-                                        onChange={(e) => {
-                                            const { unit: _unit, ...patch } = chooseTransformPreset(e.target.value, {
-                                                factor: col.valueFactor,
-                                                offset: col.valueOffset,
-                                            });
-                                            updateCol(idx, patch);
-                                        }}
-                                        className={fmtCls}
-                                        style={jSty}
-                                    >
-                                        {VALUE_TRANSFORM_PRESETS.map((pr) => (
-                                            <option key={pr.id} value={pr.id}>
-                                                {pr.label}
-                                            </option>
-                                        ))}
-                                        <option value="custom">Eigene…</option>
-                                    </select>
+                                    <div className="flex items-end gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <label className="text-[9px] block mb-0.5 truncate" style={hintSty}>
+                                                Umrechnung
+                                            </label>
+                                            <select
+                                                value={selectedTransformPreset(
+                                                    col.valueTransform,
+                                                    col.valueFactor,
+                                                    col.valueOffset,
+                                                )}
+                                                onChange={(e) => {
+                                                    const { unit: _unit, ...patch } = chooseTransformPreset(
+                                                        e.target.value,
+                                                        {
+                                                            factor: col.valueFactor,
+                                                            offset: col.valueOffset,
+                                                        },
+                                                    );
+                                                    updateCol(idx, patch);
+                                                }}
+                                                className={fmtCls}
+                                                style={jSty}
+                                            >
+                                                {VALUE_TRANSFORM_PRESETS.map((pr) => (
+                                                    <option key={pr.id} value={pr.id}>
+                                                        {pr.label}
+                                                    </option>
+                                                ))}
+                                                <option value="custom">Eigene…</option>
+                                            </select>
+                                        </div>
+                                        <div className="w-20 shrink-0">
+                                            <label className="text-[9px] block mb-0.5" style={hintSty}>
+                                                Nachkommastellen
+                                            </label>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={10}
+                                                value={col.decimals ?? ''}
+                                                onChange={(e) =>
+                                                    updateCol(idx, {
+                                                        decimals:
+                                                            e.target.value === ''
+                                                                ? undefined
+                                                                : Math.max(0, Math.min(10, Number(e.target.value))),
+                                                    })
+                                                }
+                                                placeholder="unverändert"
+                                                className={fmtCls}
+                                                style={jSty}
+                                            />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <label className="text-[9px] block mb-0.5 truncate" style={hintSty}>
+                                                Tausendertrennzeichen
+                                            </label>
+                                            <select
+                                                value={col.numberFormat ?? 'global'}
+                                                onChange={(e) =>
+                                                    updateCol(idx, {
+                                                        numberFormat:
+                                                            e.target.value === 'global'
+                                                                ? undefined
+                                                                : (e.target.value as NumberFormat),
+                                                    })
+                                                }
+                                                className={fmtCls}
+                                                style={jSty}
+                                            >
+                                                <option value="global">
+                                                    Global (
+                                                    {globalNumFmt && globalNumFmt !== 'plain'
+                                                        ? NUMBER_FORMAT_SAMPLES[globalNumFmt]
+                                                        : 'ohne'}
+                                                    )
+                                                </option>
+                                                {NUMBER_FORMATS.map((f) => (
+                                                    <option key={f} value={f}>
+                                                        {f === 'plain' ? 'ohne' : NUMBER_FORMAT_SAMPLES[f]}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
                                     {selectedTransformPreset(col.valueTransform, col.valueFactor, col.valueOffset) ===
                                         'custom' && (
                                         <div className="flex items-center gap-2">
@@ -833,28 +901,6 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                             </div>
                                         </div>
                                     )}
-                                    <div className="flex items-center gap-2">
-                                        <label className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                            Nachkommastellen
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min={0}
-                                            max={10}
-                                            value={col.decimals ?? ''}
-                                            onChange={(e) =>
-                                                updateCol(idx, {
-                                                    decimals:
-                                                        e.target.value === ''
-                                                            ? undefined
-                                                            : Math.max(0, Math.min(10, Number(e.target.value))),
-                                                })
-                                            }
-                                            placeholder="unverändert"
-                                            className="text-xs rounded-lg px-2 py-1 focus:outline-none w-24"
-                                            style={jSty}
-                                        />
-                                    </div>
                                     <p className="text-[9px]" style={hintSty}>
                                         Nur für die Anzeige. Anzeige = Wert × Faktor + Offset
                                     </p>

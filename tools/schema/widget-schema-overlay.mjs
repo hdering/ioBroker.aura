@@ -178,7 +178,7 @@ export const WIDGET_OPTION_NOTES = {
     jsontable: {
         columns: {
             description:
-                'Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen.',
+                'Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen, numberFormat setzt das Tausendertrennzeichen (auch ohne decimals, dann mit den Nachkommastellen des Werts).',
         },
     },
     switch: {

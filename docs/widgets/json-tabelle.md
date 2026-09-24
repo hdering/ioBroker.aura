@@ -74,7 +74,7 @@ Liste in `columns` (leer = alle Spalten automatisch aus den JSON-Daten). Pro Spa
 
 #### Wert-Format
 
-Zwei Schalter in der Spalte, neben Bild/HTML/Icons: **Datum/Zeit** und **Umrechnung**. Jeder blendet seine Felder ein, wenn er an ist. Nur bei Text-Spalten (nicht Bild/HTML); ändert nur die Anzeige, nicht die JSON-Daten. Reihenfolge: Umrechnung → Zeit-Format → Nachkommastellen.
+Zwei Schalter in der Spalte, neben Bild/HTML/Icons: **Datum/Zeit** und **Zahlenformat** (Umrechnung, Nachkommastellen und Tausendertrennzeichen in einer Zeile). Jeder blendet seine Felder ein, wenn er an ist. Nur bei Text-Spalten (nicht Bild/HTML); ändert nur die Anzeige, nicht die JSON-Daten. Reihenfolge: Umrechnung → Zeit-Format → Nachkommastellen.
 
 | Feld | |
 | --- | --- |
@@ -83,6 +83,7 @@ Zwei Schalter in der Spalte, neben Bild/HTML/Icons: **Datum/Zeit** und **Umrechn
 | `valueTimeFormat` | Wert als Zeit: `relative` · `time` · `time-sec` · `date` · `date-long` · `datetime` · `datetime-sec` · `custom` |
 | `valueTimePattern` | Token-Muster bei `valueTimeFormat: custom`, z. B. `dd.MM.yyyy HH:mm` |
 | `decimals` | Nachkommastellen für Zahlen (leer = unverändert) |
+| `numberFormat` | Tausendertrennzeichen: `plain` · `de` · `en` · `space` · `apostrophe` (leer = global, greift dann nur mit `decimals`) |
 
 Zeitstempel in Sekunden und Millisekunden, ISO-Zeitangaben und `HH:mm` werden automatisch erkannt: `1720562400000` mit `valueTimeFormat: date` ergibt `10.07.2024`.
 

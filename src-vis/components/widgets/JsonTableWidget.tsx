@@ -9,6 +9,7 @@ import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { cellText, formatCellValue, hasCellFormat } from '../../utils/jsonTableFormat';
+import type { NumberFormat } from '../../utils/formatValue';
 import { resolveAssetUrl, proxifyIfMixed, resolveHtmlAssets, resolveImageSource } from '../../utils/assetUrl';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
 
@@ -52,6 +53,8 @@ export interface JsonColumnDef {
     valueTimePattern?: string; // token pattern, only used when valueTimeFormat is 'custom'
     /** Decimal places for numeric cells. Unset = print the number as it comes. */
     decimals?: number;
+    /** Thousands separator of numeric cells (also numeric strings). Unset = the global setting, applied only when decimals is set. */
+    numberFormat?: NumberFormat;
     order?: number; // lower = further left
 }
 

@@ -4964,6 +4964,11 @@
           "type": "number",
           "description": "Decimal places for numeric cells. Unset = print the number as it comes."
         },
+        "numberFormat": {
+          "type": "string",
+          "ref": "NumberFormat",
+          "description": "Thousands separator of numeric cells (also numeric strings). Unset = the global setting, applied only when decimals is set."
+        },
         "order": {
           "type": "number",
           "description": "lower = further left"
@@ -10348,7 +10353,7 @@
             "type": "object",
             "ref": "JsonColumnDef"
           },
-          "description": "Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen."
+          "description": "Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen, numberFormat setzt das Tausendertrennzeichen (auch ohne decimals, dann mit den Nachkommastellen des Werts)."
         },
         "defaultSortDir": {
           "description": "Richtung der Standard-Sortierung: asc (Standard) oder desc."

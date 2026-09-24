@@ -9,3 +9,4 @@
 - Custom CSS applied in the dashboard editor now styles only the dashboard preview, not the admin menu around it (#710)
 - Admin overview - the AI access (MCP) card can be dismissed, like the getting-started card
 - JSON table: new default sort - pick the column and direction the table is sorted by when it opens (#706)
+- JSON table: per-column thousands separator next to the decimal places; the "Umrechnung" switch is now called "Zahlenformat" and shows conversion, decimals and separator in one row (#707)

@@ -111,5 +111,33 @@ eq('decimals pad', formatCellValue({ decimals: 2 }, 7, t, 'plain'), '7.00');
 eq('the number format groups', formatCellValue({ decimals: 1 }, 1234.5, t, 'de'), '1.234,5');
 eq('decimals leave text alone', formatCellValue({ decimals: 2 }, 'AUS', t, 'plain'), 'AUS');
 
+// ── Thousands separator per column (#707) ───────────────────────────────────────
+check('the separator alone counts as a format', hasCellFormat({ numberFormat: 'de' }));
+eq(
+    'the column separator beats the global one',
+    formatCellValue({ numberFormat: 'de', decimals: 1 }, 1234.5, t, 'plain'),
+    '1.234,5',
+);
+eq(
+    'without decimals the own decimals stay',
+    formatCellValue({ numberFormat: 'de' }, 1234567.25, t, 'plain'),
+    '1.234.567,25',
+);
+eq('an integer stays an integer', formatCellValue({ numberFormat: 'en' }, 1234567, t, 'plain'), '1,234,567');
+eq('a numeric string is grouped too', formatCellValue({ numberFormat: 'de' }, '98765.4', t, 'plain'), '98.765,4');
+eq(
+    'the separator groups after a conversion',
+    formatCellValue({ numberFormat: 'de', valueFactor: 1 / 60 }, 90000, t),
+    '1.500',
+);
+eq('negative numbers keep the sign', formatCellValue({ numberFormat: 'de' }, -12345, t), '-12.345');
+eq('text stays text', formatCellValue({ numberFormat: 'de' }, 'AUS', t), 'AUS');
+eq(
+    '"plain" switches a global separator off',
+    formatCellValue({ numberFormat: 'plain', decimals: 0 }, 12345, t, 'de'),
+    '12345',
+);
+eq('unset keeps the untouched value verbatim', formatCellValue({}, 12345, t, 'de'), '12345');
+
 console.log(failed === 0 ? '\nAll JSON table cell formats OK' : `\n${failed} check(s) failed`);
 process.exit(failed === 0 ? 0 : 1);

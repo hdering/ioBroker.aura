@@ -28,6 +28,19 @@ export interface JsonCellFormat {
     valueTimePattern?: string;
     /** Decimal places for numeric cells. Unset = print the number as it comes. */
     decimals?: number;
+    /** Thousands separator of numeric cells. Unset = the global setting, which only applies
+     *  once decimals are set; picked explicitly it groups the number with its own decimals. */
+    numberFormat?: NumberFormat;
+}
+
+const NUMERIC_TEXT = /^-?\d+(\.\d+)?$/;
+
+/** Thousands grouping without touching the decimals the number already has. */
+function groupAsIs(n: number, fmt: NumberFormat): string {
+    const text = String(n);
+    if (/e/i.test(text)) return text; // 1e21 and friends: no digits to group
+    const dot = text.indexOf('.');
+    return formatNum(n, dot < 0 ? 0 : text.length - dot - 1, fmt);
 }
 
 /** Raw JSON value as plain text — the fallback whenever no format applies. */
@@ -43,7 +56,8 @@ export function hasCellFormat(col: JsonCellFormat): boolean {
         col.valueFactor !== undefined ||
         col.valueOffset !== undefined ||
         hasTimeDisplay(col.valueTimeFormat) ||
-        typeof col.decimals === 'number'
+        typeof col.decimals === 'number' ||
+        col.numberFormat !== undefined
     );
 }
 
@@ -54,11 +68,18 @@ export function formatCellValue(col: JsonCellFormat, raw: unknown, t: TFn, numFm
     if (hasTimeDisplay(col.valueTimeFormat)) {
         return formatTimeDisplay(value, col.valueTimeFormat, t, col.valueTimePattern) ?? TIME_DASH;
     }
+    const fmt = col.numberFormat ?? numFmt;
     if (typeof value === 'number' && Number.isFinite(value)) {
-        if (typeof col.decimals === 'number' && col.decimals >= 0) return formatNum(value, col.decimals, numFmt);
+        if (typeof col.decimals === 'number' && col.decimals >= 0) return formatNum(value, col.decimals, fmt);
         // A conversion without a decimal setting would otherwise print its float noise
         // (1234 × 0.001 = 1.2340000000000002); the value itself is kept.
-        if (value !== raw) return String(tidyDisplayNumber(value));
+        const tidy = value !== raw ? tidyDisplayNumber(value) : value;
+        if (col.numberFormat !== undefined) return groupAsIs(tidy, col.numberFormat);
+        if (value !== raw) return String(tidy);
+    }
+    // JSON often carries numbers as strings ("1234.5") - the separator is meant for them too.
+    if (col.numberFormat !== undefined && typeof value === 'string' && NUMERIC_TEXT.test(value.trim())) {
+        return groupAsIs(Number(value.trim()), col.numberFormat);
     }
     return cellText(value);
 }

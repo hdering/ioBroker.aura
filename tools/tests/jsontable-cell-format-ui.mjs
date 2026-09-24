@@ -169,20 +169,38 @@ const bodyText = (sel) =>
     check('the section previews the sample cell', preview.includes('10.07.2024'), preview.trim());
 
     // The conversion is a switch of its own, and switching it off clears what it held.
-    await tsCard.locator('label:has(span:text-is("Umrechnung"))').click();
+    await tsCard.locator('label:has(span:text-is("Zahlenformat"))').click();
     await page.waitForTimeout(250);
-    check('the conversion switch adds its own fields', (await tsCard.locator('select').count()) === 2);
+    // Conversion preset + thousands separator (#707), next to the decimal places.
+    check('the conversion switch adds its own fields', (await tsCard.locator('select').count()) === 3);
     await tsCard.locator('input[placeholder="unverändert"]').fill('2');
     await page.waitForTimeout(300);
     check(
         'the decimal places land on the column',
         (await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]?.decimals)) === 2,
     );
-    await tsCard.locator('label:has(span:text-is("Umrechnung"))').click();
+    await tsCard.locator('select').nth(2).selectOption('de');
+    await page.waitForTimeout(300);
+    check(
+        'the thousands separator lands on the column',
+        (await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]?.numberFormat)) === 'de',
+    );
+    const decBox = await tsCard.locator('input[placeholder="unverändert"]').boundingBox();
+    const sepBox = await tsCard.locator('select').nth(2).boundingBox();
+    check(
+        'decimals and separator sit in one row',
+        !!decBox && !!sepBox && Math.abs(decBox.y - sepBox.y) < 4,
+        JSON.stringify({ decBox, sepBox }),
+    );
+    if (process.env.AURA_SHOT_DIR)
+        await tsCard.screenshot({ path: `${process.env.AURA_SHOT_DIR}/jsontable-format-row.png` });
+    await tsCard.locator('label:has(span:text-is("Zahlenformat"))').click();
     await page.waitForTimeout(300);
     check(
         'switching it off drops them again',
-        (await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]?.decimals)) === undefined,
+        (await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]?.decimals)) === undefined &&
+            (await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]?.numberFormat)) ===
+                undefined,
     );
 
     const stored = await page.evaluate(() => window.__auraShot.widgetOptions('jtcf4')?.columns?.[1]);
