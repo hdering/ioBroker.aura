@@ -539,6 +539,11 @@ export const WIDGET_OPTION_NOTES = {
                 'Play/Pause; showStop schaltet sie wieder ab.',
         },
         showStop: { description: 'Stop-Taste anzeigen (greift nur, wenn stopDp gesetzt ist).' },
+        showVolumePresets: {
+            description:
+                'Zeile mit den Lautstärke-Schnellwahltasten 25/50/75/100 % unter dem Regler anzeigen ' +
+                '(Standard true, nur mit sichtbarem Regler). false spart eine Zeile Höhe (#708).',
+        },
         muteViaVolume: {
             description:
                 'Stummschalten, indem die Lautstärke auf 0 gesetzt wird — für Geräte ohne schreibbaren ' +

@@ -54,6 +54,7 @@ Sichtbare Elemente; ein Element wird zusätzlich nur gezeigt, wenn der zugehöri
 | `showPrev` / `showNext` | `true` | Skip-Tasten (nur mit DP) |
 | `showShuffle` / `showRepeat` | `true` | Zufall / Wiederholung (nur mit DP) |
 | `showVolume` | `true` | Lautstärkeregler (nur mit `volumeDp`) |
+| `showVolumePresets` | `true` | Lautstärke-Schnellwahl 25/50/75/100 % unter dem Regler |
 | `showMute` | `true` | Mute-Taste (nur mit `muteDp` oder `muteViaVolume`) |
 | `showChips` | `true` | Schnellzugriff-Chips (nur wenn vorhanden) |
 | `showIcon` | `true` | Platzhalter-Icon ohne Cover |

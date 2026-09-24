@@ -873,6 +873,16 @@ const MIN_MODIFIERS = {
             options: { showScale: true },
         },
     ],
+    // The volume presets (25/50/75/100 %) are part of the measured baseline;
+    // switching them off takes their row away again (#708) — a negative delta.
+    mediaplayer: [
+        {
+            key: 'showVolumePresets=false',
+            label: 'ohne Lautstärke-Schnellwahl (showVolumePresets false)',
+            when: { path: 'showVolumePresets', equals: false },
+            options: { showVolumePresets: false },
+        },
+    ],
     // The preset chips are a row of their own under the buttons; without presets
     // the row is not drawn at all, so the baseline is measured without them.
     countdown: [

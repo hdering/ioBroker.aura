@@ -293,6 +293,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
     const showStop = o.showStop !== false && !!o.stopDp;
     const showVolume = o.showVolume !== false && !!o.volumeDp;
     const showMute = o.showMute !== false && (!!o.muteDp || muteViaVolume);
+    const showVolumePresets = showVolume && o.showVolumePresets !== false;
     const chips = (o.chips as MediaChip[] | undefined) ?? [];
     const showChips = o.showChips !== false && chips.length > 0;
 
@@ -421,7 +422,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                                 </span>
                             )}
                         </div>
-                        {showVolume && (
+                        {showVolumePresets && (
                             <div className="flex gap-1.5">
                                 {[25, 50, 75, 100].map((p) => (
                                     <button
@@ -601,7 +602,7 @@ export function MediaplayerWidget({ config }: WidgetProps) {
                     )}
 
                     {/* Lautstärke-Schnellwahl */}
-                    {showVolume && (
+                    {showVolumePresets && (
                         <div className="shrink-0 flex gap-1">
                             {[25, 50, 75, 100].map((p) => (
                                 <button

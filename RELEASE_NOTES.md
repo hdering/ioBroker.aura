@@ -10,3 +10,4 @@
 - Admin overview - the AI access (MCP) card can be dismissed, like the getting-started card
 - JSON table: sort rules like the static list - several columns in a row, compare as number, text, on/off or date (also dd.MM.yyyy), empty cells first or last; a header click still takes over (#706)
 - JSON table: per-column thousands separator next to the decimal places; the "Umrechnung" switch is now called "Zahlenformat" and shows conversion, decimals and separator in one row (#707)
+- Media player: the volume quick-select buttons (25/50/75/100 %) can be hidden to save a row of height (#708)

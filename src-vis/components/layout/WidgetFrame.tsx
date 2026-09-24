@@ -293,6 +293,7 @@ const VIS_FIELDS_PER_TYPE: Partial<Record<WidgetType, { key: string; label: stri
         { key: 'showStop', label: 'Stop (nur mit Stop-Datenpunkt)' },
         { key: 'showRepeat', label: 'Repeat' },
         { key: 'showVolume', label: 'Lautstärke-Slider' },
+        { key: 'showVolumePresets', label: 'Lautstärke-Schnellwahl (25–100 %)' },
         { key: 'showMute', label: 'Mute' },
         { key: 'showChips', label: 'Schnellzugriff-Chips' },
     ],
