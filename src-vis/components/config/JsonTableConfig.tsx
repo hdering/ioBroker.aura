@@ -800,7 +800,7 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                                 <option value="custom">Eigene…</option>
                                             </select>
                                         </div>
-                                        <div className="w-20 shrink-0">
+                                        <div className="w-32 shrink-0">
                                             <label className="text-[9px] block mb-0.5" style={hintSty}>
                                                 Nachkommastellen
                                             </label>
