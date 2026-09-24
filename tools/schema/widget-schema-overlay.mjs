@@ -68,10 +68,6 @@ export const KEY_DESCRIPTIONS = {
     striped: 'Zeilen abwechselnd einfärben.',
     compact: 'Dichtere Darstellung mit kleineren Zeilen.',
     sortable: 'Spalten per Klick auf die Kopfzeile sortierbar machen.',
-    defaultSortKey:
-        'Standard-Sortierung: Schlüssel der Spalte, nach der beim Öffnen sortiert wird. ' +
-        'Gilt auch ohne sortable; ein Klick auf einen Spaltenkopf überschreibt sie.',
-    defaultSortDir: 'Richtung der Standard-Sortierung: asc (Standard) oder desc.',
     transparent: 'Kartenhintergrund weglassen.',
     readOnly: 'Nur anzeigen, nicht bedienbar.',
     autoRotate: 'Automatisch weiterblättern.',
@@ -176,6 +172,10 @@ export const KEY_DESCRIPTIONS = {
 /** Per-widget prose for a key the generator already found. */
 export const WIDGET_OPTION_NOTES = {
     jsontable: {
+        sortRules: {
+            description:
+                'Sortier-Kette wie bei der statischen Liste, aber je Spalte: [{column, order?, mode?, empty?}]. column = JSON-Schlüssel (auch ausgeblendete Spalten). order asc (Standard) | desc. mode auto (Standard) | number | text | active | time (liest Zeitstempel, ISO und dd.MM.yyyy als Zeitpunkt). empty first | last (Standard: Zeilen ohne Wert ans Ende, in beiden Richtungen). Die erste Regel entscheidet, die weiteren bei Gleichstand. Gilt auch ohne sortable; mit sortable übernimmt ein Klick auf den Spaltenkopf die Führung, der dritte Klick kehrt zur Kette zurück.',
+        },
         columns: {
             description:
                 'Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen, numberFormat setzt das Tausendertrennzeichen (auch ohne decimals, dann mit den Nachkommastellen des Werts).',

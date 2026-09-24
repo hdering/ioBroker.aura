@@ -9,6 +9,7 @@ import { useT } from '../../i18n';
 import type { WidgetProps } from '../../types';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { cellText, formatCellValue, hasCellFormat } from '../../utils/jsonTableFormat';
+import { sortJsonRows, usableJsonSortRules, type JsonSortRule } from '../../utils/jsonTableSort';
 import type { NumberFormat } from '../../utils/formatValue';
 import { resolveAssetUrl, proxifyIfMixed, resolveHtmlAssets, resolveImageSource } from '../../utils/assetUrl';
 import { HeaderGroup, HeaderSlotsInline, HeaderSlotsRow2 } from '../layout/HeaderSlotsContext';
@@ -61,20 +62,6 @@ export interface JsonColumnDef {
 /** Width mode of an HTML column — the old boolean stays readable as "fill". */
 function htmlWidthOf(col: JsonColumnDef): 'auto' | 'fill' | 'scale' {
     return col.htmlWidth ?? (col.htmlFill ? 'fill' : 'auto');
-}
-
-/** Compare two raw cell values: numeric when both look like numbers, else a
- *  locale-aware string compare (with numeric collation so "9" < "10"). */
-function compareCellValues(a: unknown, b: unknown): number {
-    const aEmpty = a === null || a === undefined || a === '';
-    const bEmpty = b === null || b === undefined || b === '';
-    if (aEmpty && bEmpty) return 0;
-    if (aEmpty) return -1;
-    if (bEmpty) return 1;
-    const na = typeof a === 'number' ? a : Number(a);
-    const nb = typeof b === 'number' ? b : Number(b);
-    if (Number.isFinite(na) && Number.isFinite(nb) && na !== nb) return na - nb;
-    return cellText(a).localeCompare(cellText(b), undefined, { numeric: true, sensitivity: 'base' });
 }
 
 // Iconify token pattern: <set>:<name>, e.g. "mdi:home", "material-symbols:lock".
@@ -239,10 +226,6 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const fontSize = (opts.fontSize as number) ?? 12;
     const autoHeight = (opts.autoHeight as boolean) ?? false;
     const sortable = (opts.sortable as boolean) ?? false;
-    // Preset order (#706): applies with or without clickable headers; a header click
-    // overrides it until the cycle comes back round to "off".
-    const defaultSortKey = (opts.defaultSortKey as string | undefined) || undefined;
-    const defaultSortDir: 'asc' | 'desc' = opts.defaultSortDir === 'desc' ? 'desc' : 'asc';
     const maxRows = (opts.maxRows as number) ?? 0;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
@@ -253,13 +236,8 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const numFmt = useGlobalSettingsStore((s) => s.numberFormat);
     const t = useT();
     const [query, setQuery] = useState('');
-    // The clicked sort; null falls back to the configured default.
-    const [sortOverride, setSortOverride] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
-    const defaultSort = useMemo(
-        () => (defaultSortKey ? { key: defaultSortKey, dir: defaultSortDir } : null),
-        [defaultSortKey, defaultSortDir],
-    );
-    const sort = (sortable ? sortOverride : null) ?? defaultSort;
+    // The clicked header; null falls back to the configured rule chain.
+    const [sortOverride, setSortOverride] = useState<JsonSortRule | null>(null);
 
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -303,17 +281,25 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         );
     }, [tableData, columns, query, t, numFmt]);
 
-    // Sort by the clicked column header or the configured default (only while the
-    // referenced column is still present).
-    const sortedRows = useMemo(() => {
-        if (!sort || !columns.some((c) => c.key === sort.key)) return filteredRows;
-        const arr = [...filteredRows];
-        arr.sort((r1, r2) => {
-            const cmp = compareCellValues(r1[sort.key], r2[sort.key]);
-            return sort.dir === 'asc' ? cmp : -cmp;
-        });
-        return arr;
-    }, [filteredRows, columns, sort]);
+    // Configured order (#706): the same rule chain as the static list, one rule per
+    // column. It applies with or without clickable headers; a header click takes the
+    // lead until the click cycle comes back round to "off". Rules on a column the data
+    // no longer has are skipped; hidden columns still sort.
+    const sortRules = useMemo(
+        () => usableJsonSortRules(opts.sortRules as JsonSortRule[] | undefined, tableData?.headers ?? []),
+        [opts.sortRules, tableData],
+    );
+    const override =
+        sortable && sortOverride && columns.some((c) => c.key === sortOverride.column) ? sortOverride : null;
+    // The clicked column leads; the configured rules stay behind it as tie-breakers.
+    const activeRules = useMemo(
+        () => (override ? [override, ...sortRules.filter((r) => r.column !== override.column)] : sortRules),
+        [override, sortRules],
+    );
+    /** The rule the header arrow shows — the one that decides first. */
+    const sort = activeRules[0] ?? null;
+
+    const sortedRows = useMemo(() => sortJsonRows(filteredRows, activeRules), [filteredRows, activeRules]);
 
     // Optional hard cap on the number of displayed rows.
     const displayedRows = useMemo(
@@ -321,20 +307,22 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         [sortedRows, maxRows],
     );
 
-    // Cycle a header through asc → desc → unsorted. "Unsorted" is the default order,
-    // so the default column itself just flips between its two directions.
+    // Cycle a header through asc → desc → unsorted. "Unsorted" is the configured
+    // order, so its leading column just flips between its two directions. A column the
+    // chain names keeps its compare mode (a date column stays a date).
     const toggleSort = (key: string) => {
-        const next: { key: string; dir: 'asc' | 'desc' } | null =
-            !sort || sort.key !== key
-                ? { key, dir: 'asc' }
-                : sort.dir === 'asc'
-                  ? { key, dir: 'desc' }
-                  : defaultSort?.key === key
-                    ? { key, dir: 'asc' }
+        const lead = sortRules[0];
+        const own = sortRules.find((r) => r.column === key);
+        const order: 'asc' | 'desc' | null =
+            !sort || sort.column !== key
+                ? 'asc'
+                : (sort.order ?? 'asc') === 'asc'
+                  ? 'desc'
+                  : lead?.column === key
+                    ? 'asc'
                     : null;
-        setSortOverride(
-            next && defaultSort && next.key === defaultSort.key && next.dir === defaultSort.dir ? null : next,
-        );
+        if (order === null || (lead?.column === key && (lead.order ?? 'asc') === order)) setSortOverride(null);
+        else setSortOverride({ column: key, order, mode: own?.mode, empty: own?.empty });
     };
 
     // HTML column in "scale" mode (#677): the widest cell of the column fills the
@@ -595,7 +583,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                             <tr>
                                 {columns.map((col, ci) => {
                                     const align = col.align ?? 'left';
-                                    const isSorted = sortable && sort?.key === col.key;
+                                    const isSorted = sortable && sort?.column === col.key;
                                     return (
                                         <th
                                             key={col.key}
@@ -643,7 +631,7 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                             visibility: isSorted ? 'visible' : 'hidden',
                                                         }}
                                                     >
-                                                        {sort?.dir === 'desc' ? (
+                                                        {sort?.order === 'desc' ? (
                                                             <ArrowDown size={Math.round(fs * 0.9)} />
                                                         ) : (
                                                             <ArrowUp size={Math.round(fs * 0.9)} />

@@ -28,9 +28,19 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `striped` | `true` | Zebra-Streifen |
 | `fontSize` | `12` | Schriftgröße in px |
 | `sortable` | `false` | Klick auf Spaltenkopf sortiert (auf/ab/aus) |
-| `defaultSortKey` | – | Standard-Sortierung: Spalte, nach der beim Öffnen sortiert wird |
-| `defaultSortDir` | `asc` | Richtung der Standard-Sortierung (`asc` / `desc`) |
+| `sortRules` | – | Sortier-Kette (Button **Sortierung**), siehe unten |
 | `maxRows` | `0` | höchstens so viele Zeilen (0 = alle) |
+
+### Sortierung
+
+Kriterien von oben nach unten; das erste entscheidet, die weiteren bei Gleichstand. Mit `sortable` übernimmt ein Klick auf einen Spaltenkopf die Führung, der dritte Klick kehrt zur Kette zurück.
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `column` | – | JSON-Schlüssel der Spalte (auch ausgeblendete) |
+| `order` | `asc` | `asc` / `desc` |
+| `mode` | `auto` | `auto`, `number`, `text`, `active`, `time` (Zeitstempel, ISO, `dd.MM.yyyy`) |
+| `empty` | `last` | Zeilen ohne Wert: `first` / `last` (in beiden Richtungen) |
 
 ### Kopfzeile
 

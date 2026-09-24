@@ -3,6 +3,8 @@ import { Plus, Trash2, ChevronUp, ChevronDown, RefreshCw, AlignLeft, AlignCenter
 import { parseJson, type JsonColumnDef } from '../widgets/JsonTableWidget';
 import { ColorPicker } from '../common/ColorPicker';
 import { ImagePathHint } from './ImagePathHint';
+import { JsonTableSortSection } from './JsonTableSortSection';
+import type { JsonSortRule } from '../../utils/jsonTableSort';
 import { getStateDirect } from '../../hooks/useIoBroker';
 import { useDatapoint } from '../../hooks/useDatapoint';
 import { useT } from '../../i18n';
@@ -209,14 +211,9 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
 
     const firstColHeader = boolOpt('firstColHeader', false);
 
-    // Columns to offer as the default sort: the configured ones, else what the data holds.
-    const defaultSortKey = (o.defaultSortKey as string | undefined) ?? '';
-    const sortKeys = (() => {
-        const keys =
-            colDefs.length > 0 ? colDefs.filter((c) => !c.hidden).map((c) => c.key) : (liveTable?.headers ?? []);
-        return defaultSortKey && !keys.includes(defaultSortKey) ? [...keys, defaultSortKey] : keys;
-    })();
-    const colLabel = (key: string) => colDefs.find((c) => c.key === key)?.label ?? key;
+    // Columns a sort rule can read: the configured ones (hidden ones too — a hidden
+    // timestamp is a fine sort key) plus whatever else the data holds.
+    const sortKeys = [...new Set([...colDefs.map((c) => c.key), ...(liveTable?.headers ?? [])])];
 
     return (
         <>
@@ -394,41 +391,14 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                 <Toggle value={boolOpt('sortable', false)} onToggle={() => toggleOpt('sortable', false)} />
             </div>
 
-            {/* Default sort (#706) */}
-            <div>
-                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
-                    Standard-Sortierung
-                </label>
-                <div className="flex items-center gap-2">
-                    <select
-                        value={defaultSortKey}
-                        onChange={(e) => set({ defaultSortKey: e.target.value || undefined })}
-                        className={`${jCls} flex-1`}
-                        style={jSty}
-                    >
-                        <option value="">Keine (Reihenfolge der Daten)</option>
-                        {sortKeys.map((k) => (
-                            <option key={k} value={k}>
-                                {colLabel(k)}
-                            </option>
-                        ))}
-                    </select>
-                    {defaultSortKey && (
-                        <select
-                            value={o.defaultSortDir === 'desc' ? 'desc' : 'asc'}
-                            onChange={(e) => set({ defaultSortDir: e.target.value === 'desc' ? 'desc' : undefined })}
-                            className={`${jCls} w-auto`}
-                            style={jSty}
-                        >
-                            <option value="asc">Aufsteigend</option>
-                            <option value="desc">Absteigend</option>
-                        </select>
-                    )}
-                </div>
-                <p className="text-[10px] mt-0.5" style={hintSty}>
-                    Gilt beim Öffnen; ein Klick auf den Spaltenkopf (Sortierbar) überschreibt sie.
-                </p>
-            </div>
+            {/* Sort rules (#706) — the static list's rule chain, per column. */}
+            <JsonTableSortSection
+                rules={(o.sortRules as JsonSortRule[] | undefined) ?? []}
+                onChange={(next) => set({ sortRules: next })}
+                keys={sortKeys}
+                colDefs={colDefs}
+                rows={liveTable?.rows ?? []}
+            />
 
             {/* Max rows */}
             <div>
