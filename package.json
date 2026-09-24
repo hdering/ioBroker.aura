@@ -128,6 +128,7 @@
     "test:jsontable-rows": "node tools/tests/jsontable-row-height.mjs",
     "test:jsontable-format": "node tools/tests/jsontable-cell-format.mjs",
     "test:jsontable-format-ui": "node tools/tests/jsontable-cell-format-ui.mjs",
+    "test:jsontable-sort": "node tools/tests/jsontable-default-sort.mjs",
     "test:apple-keys": "node tools/tests/apple-shortcut-keys.mjs",
     "test:aircontrol-daikin": "node tools/tests/aircontrol-daikin.mjs",
     "test:cell-bar-color": "node tools/tests/cell-bar-color.mjs",

@@ -89,7 +89,8 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
     // First row of the live data — the format section previews against it, so
     // "Millisekunden-Stempel wird zu 10.07.2024" is verifiable before saving.
     const { value: liveValue } = useDatapoint(datapoint);
-    const sampleRow = useMemo(() => parseJson(liveValue)?.rows[0], [liveValue]);
+    const liveTable = useMemo(() => parseJson(liveValue), [liveValue]);
+    const sampleRow = liveTable?.rows[0];
 
     // The two format switches work like the Bild/HTML ones, but they have no flag of
     // their own — they stand for a group of values. So the switch reads those values,
@@ -202,6 +203,15 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
     }
 
     const firstColHeader = boolOpt('firstColHeader', false);
+
+    // Columns to offer as the default sort: the configured ones, else what the data holds.
+    const defaultSortKey = (o.defaultSortKey as string | undefined) ?? '';
+    const sortKeys = (() => {
+        const keys =
+            colDefs.length > 0 ? colDefs.filter((c) => !c.hidden).map((c) => c.key) : (liveTable?.headers ?? []);
+        return defaultSortKey && !keys.includes(defaultSortKey) ? [...keys, defaultSortKey] : keys;
+    })();
+    const colLabel = (key: string) => colDefs.find((c) => c.key === key)?.label ?? key;
 
     return (
         <>
@@ -377,6 +387,42 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                     </p>
                 </div>
                 <Toggle value={boolOpt('sortable', false)} onToggle={() => toggleOpt('sortable', false)} />
+            </div>
+
+            {/* Default sort (#706) */}
+            <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    Standard-Sortierung
+                </label>
+                <div className="flex items-center gap-2">
+                    <select
+                        value={defaultSortKey}
+                        onChange={(e) => set({ defaultSortKey: e.target.value || undefined })}
+                        className={`${jCls} flex-1`}
+                        style={jSty}
+                    >
+                        <option value="">Keine (Reihenfolge der Daten)</option>
+                        {sortKeys.map((k) => (
+                            <option key={k} value={k}>
+                                {colLabel(k)}
+                            </option>
+                        ))}
+                    </select>
+                    {defaultSortKey && (
+                        <select
+                            value={o.defaultSortDir === 'desc' ? 'desc' : 'asc'}
+                            onChange={(e) => set({ defaultSortDir: e.target.value === 'desc' ? 'desc' : undefined })}
+                            className={`${jCls} w-auto`}
+                            style={jSty}
+                        >
+                            <option value="asc">Aufsteigend</option>
+                            <option value="desc">Absteigend</option>
+                        </select>
+                    )}
+                </div>
+                <p className="text-[10px] mt-0.5" style={hintSty}>
+                    Gilt beim Öffnen; ein Klick auf den Spaltenkopf (Sortierbar) überschreibt sie.
+                </p>
             </div>
 
             {/* Max rows */}

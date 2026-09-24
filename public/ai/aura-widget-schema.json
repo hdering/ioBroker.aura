@@ -1,7 +1,7 @@
 {
   "$meta": {
     "name": "AURA widget schema",
-    "auraVersion": "0.67.4",
+    "auraVersion": "0.68.2",
     "generator": "tools/schema/gen-widget-schema.mjs",
     "purpose": "Describes every AURA widget type so a JSON widget/tab config can be generated and pasted into the dashboard editor (\"Widget importieren\").",
     "usage": [
@@ -10349,6 +10349,13 @@
             "ref": "JsonColumnDef"
           },
           "description": "Spalten-Definitionen (JsonColumnDef). Leer = alle Spalten aus den JSON-Daten in ihrer Reihenfolge. Pro Spalte sind auch Anzeigeformate möglich: valueFactor/valueOffset rechnen um, valueTimeFormat macht aus einem Zeitstempel ein Datum, decimals begrenzt die Nachkommastellen."
+        },
+        "defaultSortDir": {
+          "description": "Richtung der Standard-Sortierung: asc (Standard) oder desc."
+        },
+        "defaultSortKey": {
+          "type": "string",
+          "description": "Standard-Sortierung: Schlüssel der Spalte, nach der beim Öffnen sortiert wird. Gilt auch ohne sortable; ein Klick auf einen Spaltenkopf überschreibt sie."
         },
         "firstColBg": {
           "type": "string",

@@ -68,6 +68,10 @@ export const KEY_DESCRIPTIONS = {
     striped: 'Zeilen abwechselnd einfärben.',
     compact: 'Dichtere Darstellung mit kleineren Zeilen.',
     sortable: 'Spalten per Klick auf die Kopfzeile sortierbar machen.',
+    defaultSortKey:
+        'Standard-Sortierung: Schlüssel der Spalte, nach der beim Öffnen sortiert wird. ' +
+        'Gilt auch ohne sortable; ein Klick auf einen Spaltenkopf überschreibt sie.',
+    defaultSortDir: 'Richtung der Standard-Sortierung: asc (Standard) oder desc.',
     transparent: 'Kartenhintergrund weglassen.',
     readOnly: 'Nur anzeigen, nicht bedienbar.',
     autoRotate: 'Automatisch weiterblättern.',

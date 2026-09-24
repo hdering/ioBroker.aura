@@ -236,6 +236,10 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const fontSize = (opts.fontSize as number) ?? 12;
     const autoHeight = (opts.autoHeight as boolean) ?? false;
     const sortable = (opts.sortable as boolean) ?? false;
+    // Preset order (#706): applies with or without clickable headers; a header click
+    // overrides it until the cycle comes back round to "off".
+    const defaultSortKey = (opts.defaultSortKey as string | undefined) || undefined;
+    const defaultSortDir: 'asc' | 'desc' = opts.defaultSortDir === 'desc' ? 'desc' : 'asc';
     const maxRows = (opts.maxRows as number) ?? 0;
     const showTitle = opts.showTitle !== false;
     const showIcon = opts.showIcon !== false;
@@ -246,7 +250,13 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
     const numFmt = useGlobalSettingsStore((s) => s.numberFormat);
     const t = useT();
     const [query, setQuery] = useState('');
-    const [sort, setSort] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
+    // The clicked sort; null falls back to the configured default.
+    const [sortOverride, setSortOverride] = useState<{ key: string; dir: 'asc' | 'desc' } | null>(null);
+    const defaultSort = useMemo(
+        () => (defaultSortKey ? { key: defaultSortKey, dir: defaultSortDir } : null),
+        [defaultSortKey, defaultSortDir],
+    );
+    const sort = (sortable ? sortOverride : null) ?? defaultSort;
 
     const contentRef = useRef<HTMLDivElement>(null);
 
@@ -290,17 +300,17 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         );
     }, [tableData, columns, query, t, numFmt]);
 
-    // Sort by the clicked column header (only when sorting is enabled and the
+    // Sort by the clicked column header or the configured default (only while the
     // referenced column is still present).
     const sortedRows = useMemo(() => {
-        if (!sortable || !sort || !columns.some((c) => c.key === sort.key)) return filteredRows;
+        if (!sort || !columns.some((c) => c.key === sort.key)) return filteredRows;
         const arr = [...filteredRows];
         arr.sort((r1, r2) => {
             const cmp = compareCellValues(r1[sort.key], r2[sort.key]);
             return sort.dir === 'asc' ? cmp : -cmp;
         });
         return arr;
-    }, [filteredRows, columns, sortable, sort]);
+    }, [filteredRows, columns, sort]);
 
     // Optional hard cap on the number of displayed rows.
     const displayedRows = useMemo(
@@ -308,13 +318,20 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
         [sortedRows, maxRows],
     );
 
-    // Cycle a header through asc → desc → unsorted.
+    // Cycle a header through asc → desc → unsorted. "Unsorted" is the default order,
+    // so the default column itself just flips between its two directions.
     const toggleSort = (key: string) => {
-        setSort((prev) => {
-            if (!prev || prev.key !== key) return { key, dir: 'asc' };
-            if (prev.dir === 'asc') return { key, dir: 'desc' };
-            return null;
-        });
+        const next: { key: string; dir: 'asc' | 'desc' } | null =
+            !sort || sort.key !== key
+                ? { key, dir: 'asc' }
+                : sort.dir === 'asc'
+                  ? { key, dir: 'desc' }
+                  : defaultSort?.key === key
+                    ? { key, dir: 'asc' }
+                    : null;
+        setSortOverride(
+            next && defaultSort && next.key === defaultSort.key && next.dir === defaultSort.dir ? null : next,
+        );
     };
 
     // HTML column in "scale" mode (#677): the widest cell of the column fills the

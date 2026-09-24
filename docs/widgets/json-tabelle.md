@@ -27,6 +27,10 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `showHeader` | `true` | Kopfzeile anzeigen |
 | `striped` | `true` | Zebra-Streifen |
 | `fontSize` | `12` | Schriftgröße in px |
+| `sortable` | `false` | Klick auf Spaltenkopf sortiert (auf/ab/aus) |
+| `defaultSortKey` | – | Standard-Sortierung: Spalte, nach der beim Öffnen sortiert wird |
+| `defaultSortDir` | `asc` | Richtung der Standard-Sortierung (`asc` / `desc`) |
+| `maxRows` | `0` | höchstens so viele Zeilen (0 = alle) |
 
 ### Kopfzeile
 
