@@ -101,7 +101,15 @@ export const TAB_KEYS: Record<SubTab, readonly (keyof LayoutSettings)[]> = {
     tabbar: ['tabBar'],
     theme: ['themeId', 'customVars', 'customVarsLight', 'customVarsDark'],
     typo: ['fontScale', 'gridGap', 'widgetPadding'],
-    grid: ['gridRowHeight', 'gridSnapX', 'mobileBreakpoint', 'tabletBreakpoint', 'tabletCols', 'hideGridScrollbar'],
+    grid: [
+        'gridRowHeight',
+        'gridSnapX',
+        'mobileBreakpoint',
+        'mobileCols',
+        'tabletBreakpoint',
+        'tabletCols',
+        'hideGridScrollbar',
+    ],
     guidelines: [
         'guidelinesEnabled',
         'guidelinesWidth',

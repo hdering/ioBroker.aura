@@ -168,6 +168,7 @@ export interface LayoutSettings {
     gridRowHeight?: number;
     gridSnapX?: number;
     mobileBreakpoint?: number;
+    mobileCols?: number;
     tabletBreakpoint?: number;
     tabletCols?: number;
     hideGridScrollbar?: boolean;

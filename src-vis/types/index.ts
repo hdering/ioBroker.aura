@@ -18,6 +18,8 @@ export interface WidgetConfig {
     tabletOrder?: number; // Sortierung in der Tablet-Ansicht (N Spalten); fehlt sie, gilt mobileOrder
     tabletCol?: number; // Spalte im Tablet-Fluss (0-basiert); fehlt sie, füllt das Widget die Spalte mit den wenigsten Widgets
     tabletWide?: boolean; // true = volle Breite über alle Tablet-Spalten (eigenes Band); fehlt sie, entscheidet die Desktop-Breite
+    mobileCol?: number; // Spalte in der mehrspaltigen Mobilansicht (mobileCols > 1, 0-basiert); fehlt sie, füllt das Widget die Spalte mit den wenigsten Widgets
+    mobileWide?: boolean; // true = volle Breite über alle Mobile-Spalten (eigenes Band); fehlt sie, entscheidet die Desktop-Breite
 }
 
 /**

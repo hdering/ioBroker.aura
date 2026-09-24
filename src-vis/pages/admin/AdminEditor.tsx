@@ -2542,6 +2542,8 @@ export function AdminEditor() {
     const [showImport, setShowImport] = useState(false);
     // Which flow-order panel is open (phone or tablet) — at most one at a time.
     const [orderPanel, setOrderPanel] = useState<FlowMode | null>(null);
+    // A phone with several columns (#413) is arranged in the column panel like the tablet.
+    const mobileCols = Math.min(4, Math.max(1, Math.round(editorSettings.mobileCols ?? 1)));
     const toggleOrderPanel = (mode: FlowMode) => setOrderPanel((cur) => (cur === mode ? null : mode));
 
     // "Peek" mode: while Ctrl+Alt (Cmd+Option on Apple, #651) are held, hide all
@@ -2754,7 +2756,12 @@ export function AdminEditor() {
                         <Dashboard editMode={true} />
                     </FocusedWidgetContext.Provider>
                 </div>
-                {orderPanel === 'mobile' && <OrderPanel layoutId={activeLayoutId} mode="mobile" />}
+                {orderPanel === 'mobile' &&
+                    (mobileCols > 1 ? (
+                        <TabletOrderPanel layoutId={activeLayoutId} cols={mobileCols} mode="mobile" />
+                    ) : (
+                        <OrderPanel layoutId={activeLayoutId} mode="mobile" />
+                    ))}
                 {orderPanel === 'tablet' && (
                     <TabletOrderPanel
                         layoutId={activeLayoutId}

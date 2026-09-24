@@ -6,10 +6,12 @@ import type { WidgetConfig } from '../../../types';
 import {
     emptiestColumn,
     flowBands,
+    flowFields,
     isWideInFlow,
     linearizeBands,
     tabExtentOf,
     type FlowBand,
+    type FlowMode,
 } from '../../../utils/flowOrder';
 
 type Band = FlowBand<WidgetConfig>;
@@ -84,9 +86,19 @@ const iconBtnStyle = {
  * frontend renders (utils/flowOrder.flowBands) — and every change is written back as
  * tabletOrder / tabletCol / tabletWide, so what you see here is what the tablet shows.
  * Unassigned widgets start out alternating in the mobile order; the first change pins
- * the whole tab, so nothing jumps around afterwards.
+ * the whole tab, so nothing jumps around afterwards. With mode 'mobile' the same panel
+ * arranges a phone with mobileCols > 1 and writes mobileOrder / mobileCol / mobileWide.
  */
-export function TabletOrderPanel({ layoutId, cols }: { layoutId: string; cols: number }) {
+export function TabletOrderPanel({
+    layoutId,
+    cols,
+    mode = 'tablet',
+}: {
+    layoutId: string;
+    cols: number;
+    mode?: FlowMode;
+}) {
+    const fields = flowFields(mode);
     const t = useT();
     const { layouts, updateWidgetInTab } = useDashboardStore();
     const activeTabId = useDashboardStore((s) => {
@@ -102,7 +114,7 @@ export function TabletOrderPanel({ layoutId, cols }: { layoutId: string; cols: n
     // A stable empty array, so the memo below does not rebuild on every render of an empty tab.
     const widgets = tab?.widgets ?? NO_WIDGETS;
 
-    const bands = useMemo(() => flowBands(widgets, 'tablet', cols), [widgets, cols]);
+    const bands = useMemo(() => flowBands(widgets, mode, cols), [widgets, mode, cols]);
 
     const [dragId, setDragId] = useState<string | null>(null);
     const [overId, setOverId] = useState<string | null>(null);
@@ -113,16 +125,16 @@ export function TabletOrderPanel({ layoutId, cols }: { layoutId: string; cols: n
         const tabExtent = tabExtentOf(widgets);
         for (const { widget: w, order, col, wide } of linearizeBands(normalize(next, cols))) {
             const patch: Partial<WidgetConfig> = {};
-            if (w.tabletOrder !== order) patch.tabletOrder = order;
+            if (w[fields.order] !== order) patch[fields.order] = order;
             if (wide) {
-                if (w.tabletWide !== true) patch.tabletWide = true;
+                if (w[fields.wide] !== true) patch[fields.wide] = true;
             } else {
-                if (w.tabletCol !== col) patch.tabletCol = col ?? undefined;
+                if (w[fields.col] !== col) patch[fields.col] = col ?? undefined;
                 // A card the desktop width would call wide needs an explicit "no";
                 // otherwise the flag can stay away and the desktop rule keeps deciding.
-                const autoWide = isWideInFlow({ ...w, tabletWide: undefined }, tabExtent, cols);
+                const autoWide = isWideInFlow({ ...w, [fields.wide]: undefined }, tabExtent, cols, mode);
                 const want = autoWide ? false : undefined;
-                if (w.tabletWide !== want) patch.tabletWide = want;
+                if (w[fields.wide] !== want) patch[fields.wide] = want;
             }
             if (Object.keys(patch).length) updateWidgetInTab(tab.id, w.id, { ...w, ...patch });
         }
@@ -318,16 +330,17 @@ export function TabletOrderPanel({ layoutId, cols }: { layoutId: string; cols: n
 
     return (
         <div
-            data-aura-order-list="tablet"
+            data-aura-order-list={mode}
             className="flex flex-col h-full overflow-hidden"
             style={{ borderLeft: '1px solid var(--app-border)', background: 'var(--app-surface)', width }}
         >
             <div className="px-4 py-3 shrink-0" style={{ borderBottom: '1px solid var(--app-border)' }}>
                 <p className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-                    {t('editor.tablet.title')}
+                    {t(mode === 'tablet' ? 'editor.tablet.title' : 'editor.mobile.title')}
                 </p>
                 <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
-                    {cols} {t('editor.tablet.columns')} · {t('editor.tablet.hint')}
+                    {cols} {t('editor.tablet.columns')} ·{' '}
+                    {t(mode === 'tablet' ? 'editor.tablet.hint' : 'editor.mobile.colsHint')}
                 </p>
             </div>
 

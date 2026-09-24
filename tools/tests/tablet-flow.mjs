@@ -60,7 +60,13 @@ async function show(page, { settings, orders, editMode = false }) {
         ([settings, widgets, editMode]) => {
             window.__auraShot.mock({ 'demo.t1': 21.5 });
             window.__auraShot.mockServerState({ 'demo.t1': 21.5 });
-            window.__auraShot.setFrontend({ mobileBreakpoint: 600, tabletBreakpoint: 0, tabletCols: 2, ...settings });
+            window.__auraShot.setFrontend({
+                mobileBreakpoint: 600,
+                mobileCols: 1,
+                tabletBreakpoint: 0,
+                tabletCols: 2,
+                ...settings,
+            });
             window.__auraShot.showWidgets(widgets, { editMode });
         },
         [settings, widgetDefs(orders), editMode],
@@ -318,6 +324,38 @@ const approx = (a, b, tol = 2) => Math.abs(a - b) <= tol;
         Object.values(g.boxes).every((b) => b.span === 1),
         JSON.stringify(Object.values(g.boxes).map((b) => b.span)),
     );
+    await ctx.close();
+}
+
+// ── Handy mit mehreren Spalten (mobileCols): gleiche Baender, eigene Zuordnung ─────────
+{
+    const { ctx, page, pageErrors } = await open(500);
+    await show(page, { settings: { tabletBreakpoint: 1024, tabletCols: 3, mobileCols: 2 } });
+    let g = await geometry(page);
+    check('mobileCols 2: Fluss mit zwei Spalten', g.mode === 'flow' && g.cols === 2, `${g.mode} ${g.cols}`);
+    check(
+        'mobileCols 2: A und B nebeneinander, C volle Breite',
+        sameRow(g.boxes.A, g.boxes.B) && g.boxes.C.span === 2 && approx(g.boxes.C.width, g.flowWidth),
+        `A ${g.boxes.A.left}/${g.boxes.A.top} B ${g.boxes.B.left}/${g.boxes.B.top} C ${g.boxes.C.width}`,
+    );
+    check('mobileCols 2: kein Ueberlauf', g.overflowX !== null && g.overflowX <= 0, `${g.overflowX}px`);
+
+    await show(page, {
+        settings: { tabletBreakpoint: 1024, tabletCols: 2, mobileCols: 2 },
+        orders: {
+            A: { mobileCol: 1, tabletCol: 0 },
+            B: { mobileCol: 0, tabletCol: 1 },
+            C: { mobileWide: false },
+        },
+    });
+    g = await geometry(page);
+    check(
+        'mobileCol gilt auf dem Handy, tabletCol nicht (B links)',
+        sameRow(g.boxes.A, g.boxes.B) && g.boxes.B.left < g.boxes.A.left,
+        `B ${g.boxes.B.left} A ${g.boxes.A.left}`,
+    );
+    check('mobileWide=false: C eine Spalte', g.boxes.C.span === 1, `span ${g.boxes.C.span}`);
+    check('mobileCols: keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
     await ctx.close();
 }
 {

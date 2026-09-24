@@ -166,6 +166,8 @@ export function Dashboard({
     // Tablet band (#413): 0 = off, and a value at/below the mobile breakpoint is off too.
     const tabletBreakpoint = settings.tabletBreakpoint ?? 0;
     const tabletCols = Math.min(4, Math.max(1, Math.round(settings.tabletCols ?? 2)));
+    // Columns of the phone flow — 1 is the classic single-column stack.
+    const mobileCols = Math.min(4, Math.max(1, Math.round(settings.mobileCols ?? 1)));
     // The tablet band is measured on the window, not on this component's box — see
     // flowModeFor. The box (containerWidth, below) still decides the phone stack.
     const viewportWidth = useViewportWidth();
@@ -553,7 +555,7 @@ export function Dashboard({
 
     // ── flow: the phone's single-column stack, or the tablet's N-column flow ──
     // One branch for both (#413). The phone stacks the tab's widgets in one column
-    // by `mobileOrder`; between the mobile and tablet breakpoints the same stack
+    // by `mobileOrder` (or in `mobileCols` columns); between the mobile and tablet breakpoints the same stack
     // is laid out as a CSS grid of `tabletCols` columns by `tabletOrder`, wide
     // widgets spanning several columns in proportion to their desktop width. No
     // RGL in either — a stray drag can never touch the desktop gridPos. Groups
@@ -564,7 +566,7 @@ export function Dashboard({
         { mobileBreakpoint, tabletBreakpoint, editMode },
     );
     if (flowMode) {
-        const flowCols = flowMode === 'tablet' ? tabletCols : 1;
+        const flowCols = flowMode === 'tablet' ? tabletCols : mobileCols;
         return (
             <DashboardMobileContext.Provider value={true}>
                 <ActiveLayoutContext.Provider value={effectiveLayoutId}>

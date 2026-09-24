@@ -296,6 +296,7 @@ export const de = {
     'settings.grid.mobileBreak': 'Mobile-Breakpoint',
     'settings.grid.tabletBreak': 'Tablet-Breakpoint',
     'settings.grid.tabletCols': 'Tablet-Spalten',
+    'settings.grid.mobileCols': 'Mobile-Spalten',
     'settings.grid.wizardMaxDp': 'Wizard Max-Datenpunkte',
     'settings.grid.mobileOff': 'Aus',
     'settings.grid.hideScrollbar': 'Scrollbalken ausblenden',
@@ -1036,6 +1037,8 @@ export const de = {
     'editor.lock.off': 'Bedienelemente entsperrt — Klicks schalten echte Geräte. Klicken zum Sperren.',
     'editor.mobile.title': 'Mobile-Reihenfolge',
     'editor.mobile.hint': 'Einspaltig unterhalb des Mobile-Breakpoints',
+    'editor.mobile.colsHint':
+        'Spalten wie unterhalb des Mobile-Breakpoints. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge.',
     'editor.tablet.title': 'Tablet-Reihenfolge',
     'editor.tablet.hint':
         'Spalten wie im Tablet-Bereich. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge.',

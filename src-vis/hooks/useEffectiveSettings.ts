@@ -22,6 +22,7 @@ const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = 
     'gridGap',
     'widgetPadding',
     'mobileBreakpoint',
+    'mobileCols',
     'tabletBreakpoint',
     'tabletCols',
     'hideGridScrollbar',

@@ -165,6 +165,24 @@ await tabletBtn.click();
 await page.waitForTimeout(200);
 check((await page.getByText('Tablet-Reihenfolge', { exact: true }).count()) === 0, 'zweiter Klick schliesst das Panel');
 
+// ── Handy mit zwei Spalten (mobileCols): Mobile-Knopf oeffnet das Spalten-Panel ──
+await page.evaluate(() => window.__auraShot.setFrontend({ tabletCols: 2, mobileCols: 2 }));
+await page.waitForTimeout(300);
+await mobileBtn.click();
+await page.waitForTimeout(300);
+const mobileCol = async (ci) =>
+    mobile.locator(`[data-aura-order-col="${ci}"] [data-aura-order-card] [data-aura-order-title]`).allInnerTexts();
+check((await mobile.locator('[data-aura-order-col]').count()) === 2, 'Mobile-Panel zeigt zwei Spalten');
+check(s(await mobileCol(0)) === 'Alpha,Gamma', 'Mobile Spalte 1 startet mit Alpha, Gamma', s(await mobileCol(0)));
+await mobile.locator('[data-aura-order-card="w0"] [data-aura-order-action="right"]').click();
+await page.waitForTimeout(300);
+check(s(await mobileCol(0)) === 'Gamma', '▶ an Alpha: Mobile Spalte 1 nur Gamma', s(await mobileCol(0)));
+check(s(await mobileCol(1)) === 'Alpha,Beta,Delta', 'Alpha oben in Mobile Spalte 2', s(await mobileCol(1)));
+await tabletBtn.click();
+await page.waitForTimeout(300);
+check(s(await colTitles(0)) === 'Alpha,Beta', 'Tablet-Anordnung davon unberuehrt', s(await colTitles(0)));
+await tabletBtn.click();
+
 check(pageErrors.length === 0, 'keine Seitenfehler', pageErrors.join(' | '));
 
 await browser.close();

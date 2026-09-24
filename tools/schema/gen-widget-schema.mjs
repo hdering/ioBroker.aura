@@ -838,7 +838,22 @@ async function build() {
             },
             layout: { type: 'string', description: 'Darstellungsvariante, siehe widgets.<type>.layouts.' },
             options: { type: 'object', description: 'Widget-spezifische Optionen, siehe widgets.<type>.' },
-            mobileOrder: { type: 'number', description: 'Reihenfolge in der einspaltigen Mobilansicht.' },
+            mobileOrder: {
+                type: 'number',
+                description: 'Reihenfolge in der Mobilansicht (einspaltig, oder mobileCols Spalten).',
+            },
+            mobileCol: {
+                type: 'number',
+                description:
+                    'Spalte in der mehrspaltigen Mobilansicht (Einstellung mobileCols > 1), 0-basiert, auf die Spaltenzahl gekappt. ' +
+                    'Fehlt sie, füllt das Widget die Spalte mit den wenigsten Widgets.',
+            },
+            mobileWide: {
+                type: 'boolean',
+                description:
+                    'true = volle Breite über alle Mobile-Spalten (eigenes Band), false = eine Spalte. ' +
+                    'Fehlt sie, entscheidet die Desktop-Breite. Nur bei mobileCols > 1 wirksam.',
+            },
             tabletOrder: {
                 type: 'number',
                 description:

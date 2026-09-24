@@ -84,6 +84,7 @@ Frontend-Design → **Grid & Mobile** legt fest, wie ein Layout auf schmalen Bil
 | Mobile-Breakpoint | Vorgabe 600 px; darunter Einspaltenansicht in der Mobile-Reihenfolge |
 | Tablet-Breakpoint | **Aus**, wenn das Wandtablet ein eigenes Layout hat (pixelgenau nach Hilfslinien). **An** (z. B. 1280), wenn Handy und Tablet dasselbe Layout nutzen |
 | Tablet-Spalten | 2 für Tablets im Hochformat, 3 im Querformat |
+| Mobile-Spalten | 1 = klassische Einspaltenansicht; 2 für kleine Kacheln nebeneinander |
 
 | Situation | Empfehlung |
 | --- | --- |
@@ -139,7 +140,7 @@ Details: [Dashboard-Editor](../einstellungen/editor), [Widgets](../widgets/).
 
 | | |
 | --- | --- |
-| Mobile-Reihenfolge | Editor → Toolbar: Reihenfolge der Einspaltenansicht unter dem Mobile-Breakpoint |
+| Mobile-Reihenfolge | Editor → Toolbar: Reihenfolge unter dem Mobile-Breakpoint; bei Mobile-Spalten > 1 mit Spalten wie die Tablet-Reihenfolge |
 | Tablet-Reihenfolge | Nur bei aktivem Tablet-Breakpoint; ohne eigene Reihenfolge gilt die mobile |
 | Testen | Frontend am Gerät öffnen – oder das Browserfenster am PC schmal ziehen |
 | Breite | In der Einspaltenansicht füllt jedes Widget die Breite, die Höhe bleibt |

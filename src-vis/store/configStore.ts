@@ -40,6 +40,8 @@ export interface FrontendSettings {
     wizardMaxDatapoints: number;
     fontScale: number;
     mobileBreakpoint: number;
+    /** Columns of the phone flow below mobileBreakpoint (1 = the classic single-column stack). */
+    mobileCols: number;
     /** Below this width (and at/above mobileBreakpoint) the dashboard flows its widgets
      *  into `tabletCols` columns instead of the desktop grid. 0 (or ≤ mobileBreakpoint) = off. */
     tabletBreakpoint: number;
@@ -192,6 +194,7 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     wizardMaxDatapoints: 500,
     fontScale: 1,
     mobileBreakpoint: 600,
+    mobileCols: 1,
     // Off by default: a persisted config without the key gets this value too, and a
     // wall tablet at 800 or 1024 px whose grid was designed for exactly that width
     // must not wake up in a two-column flow after an update (#413). Opt in per

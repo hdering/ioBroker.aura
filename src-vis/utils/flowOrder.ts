@@ -37,6 +37,14 @@ export function sortForFlow<T extends Pick<WidgetConfig, 'gridPos' | 'mobileOrde
 export const flowOrderField = (mode: FlowMode): 'mobileOrder' | 'tabletOrder' =>
     mode === 'tablet' ? 'tabletOrder' : 'mobileOrder';
 
+/** The three fields a column flow is arranged by. The phone can have columns too
+ *  (setting mobileCols, #413) and keeps its own pins, so a card placed in the
+ *  tablet's third column does not drag the phone layout along. */
+export const flowFields = (mode: FlowMode) =>
+    mode === 'tablet'
+        ? ({ order: 'tabletOrder', col: 'tabletCol', wide: 'tabletWide' } as const)
+        : ({ order: 'mobileOrder', col: 'mobileCol', wide: 'mobileWide' } as const);
+
 /** Columns the tab's widgets actually use on the desktop grid — the width a widget's
  *  share is measured against. Floor 2 so a lone widget never divides by one column. */
 export function tabExtentOf(widgets: readonly Pick<WidgetConfig, 'gridPos'>[]): number {
@@ -98,15 +106,16 @@ export function flowModeFor(
 
 export type FlowWidget = Pick<
     WidgetConfig,
-    'id' | 'gridPos' | 'mobileOrder' | 'tabletOrder' | 'tabletCol' | 'tabletWide'
+    'id' | 'gridPos' | 'mobileOrder' | 'tabletOrder' | 'tabletCol' | 'tabletWide' | 'mobileCol' | 'mobileWide'
 >;
 
 export type FlowBand<W> = { kind: 'full'; widget: W } | { kind: 'columns'; columns: W[][] };
 
-/** Does a widget take the whole tablet width? An explicit `tabletWide` wins; otherwise
- *  a widget that covers the tab's used width on the desktop (rounded to columns) does. */
-export function isWideInFlow(w: FlowWidget, tabExtent: number, cols: number): boolean {
-    if (typeof w.tabletWide === 'boolean') return w.tabletWide;
+/** Does a widget take the whole flow width? An explicit `tabletWide` / `mobileWide` wins;
+ *  otherwise a widget that covers the tab's used width on the desktop (rounded to columns) does. */
+export function isWideInFlow(w: FlowWidget, tabExtent: number, cols: number, mode: FlowMode = 'tablet'): boolean {
+    const wide = w[flowFields(mode).wide];
+    if (typeof wide === 'boolean') return wide;
     return cols > 1 && flowSpan(w, tabExtent, cols) === cols;
 }
 
@@ -118,23 +127,24 @@ export function emptiestColumn(columns: readonly (readonly unknown[])[]): number
 }
 
 /**
- * Build the bands for a tab. Mobile (or one column) is a single block with one
- * column in the mobile order — the phone stack as it always was. The tablet walks
- * the widgets in tablet order: a wide one becomes a band, every other one goes into
- * the current block, into its pinned `tabletCol` (clamped to the column count, so
- * dropping from 3 to 2 columns folds the third into the last) or, unpinned, into
- * the emptiest column.
+ * Build the bands for a tab. One column is a single block in the flow order — the
+ * phone stack as it always was. With several columns (tablet, or a phone with
+ * mobileCols > 1) the widgets are walked in flow order: a wide one becomes a band,
+ * every other one goes into the current block, into its pinned `tabletCol` /
+ * `mobileCol` (clamped to the column count, so dropping from 3 to 2 columns folds
+ * the third into the last) or, unpinned, into the emptiest column.
  */
 export function flowBands<W extends FlowWidget>(widgets: readonly W[], mode: FlowMode, cols: number): FlowBand<W>[] {
     const sorted = sortForFlow(widgets, mode);
-    if (mode === 'mobile' || cols <= 1) {
+    if (cols <= 1) {
         return sorted.length ? [{ kind: 'columns', columns: [sorted] }] : [];
     }
+    const colField = flowFields(mode).col;
     const tabExtent = tabExtentOf(widgets);
     const bands: FlowBand<W>[] = [];
     let block: W[][] | null = null;
     for (const w of sorted) {
-        if (isWideInFlow(w, tabExtent, cols)) {
+        if (isWideInFlow(w, tabExtent, cols, mode)) {
             block = null;
             bands.push({ kind: 'full', widget: w });
             continue;
@@ -143,8 +153,9 @@ export function flowBands<W extends FlowWidget>(widgets: readonly W[], mode: Flo
             block = Array.from({ length: cols }, () => [] as W[]);
             bands.push({ kind: 'columns', columns: block });
         }
-        const pinned = typeof w.tabletCol === 'number' && Number.isFinite(w.tabletCol);
-        const col = pinned ? Math.min(cols - 1, Math.max(0, Math.round(w.tabletCol as number))) : emptiestColumn(block);
+        const pin = w[colField];
+        const pinned = typeof pin === 'number' && Number.isFinite(pin);
+        const col = pinned ? Math.min(cols - 1, Math.max(0, Math.round(pin as number))) : emptiestColumn(block);
         block[col].push(w);
     }
     return bands;
@@ -152,7 +163,7 @@ export function flowBands<W extends FlowWidget>(widgets: readonly W[], mode: Flo
 
 /**
  * The order the panel writes back: bands top-down, a column block row by row (the
- * first card of every column, then the second …). Written to `tabletOrder`, with
+ * first card of every column, then the second …). Written to `tabletOrder` (phone: `mobileOrder`), with
  * `tabletCol` for every column card and `tabletWide` for every band, flowBands()
  * rebuilds exactly the structure the user arranged — and a widget added later
  * (no pin) lands in the emptiest column of the block its order falls into.

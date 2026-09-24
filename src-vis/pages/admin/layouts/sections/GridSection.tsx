@@ -16,6 +16,7 @@ const GRID_KEYS = [
     'gridRowHeight',
     'gridSnapX',
     'mobileBreakpoint',
+    'mobileCols',
     'tabletBreakpoint',
     'tabletCols',
     'hideGridScrollbar',
@@ -31,6 +32,7 @@ export function GridSection({ contextId }: GridSectionProps) {
     const [rowH, rowHOv] = eff('gridRowHeight');
     const [snapX, snapXOv] = eff('gridSnapX');
     const [mob, mobOv] = eff('mobileBreakpoint');
+    const [mobCols, mobColsOv] = eff('mobileCols');
     const [tab, tabOv] = eff('tabletBreakpoint');
     const [tabCols, tabColsOv] = eff('tabletCols');
     const [hideScroll, hideScrollOv] = eff('hideGridScrollbar');
@@ -40,6 +42,7 @@ export function GridSection({ contextId }: GridSectionProps) {
     const effectiveTab = (tab ?? 0) as number;
     const effectiveTabCols = (tabCols ?? 2) as number;
     const effectiveMob = (mob ?? 600) as number;
+    const effectiveMobCols = (mobCols ?? 1) as number;
 
     function resetDefaults() {
         // Column snap drives widget widths — keep them visually stable, exactly
@@ -144,6 +147,30 @@ export function GridSection({ contextId }: GridSectionProps) {
                         { label: '600', value: 600 },
                         { label: '768', value: 768 },
                         { label: t('settings.grid.mobileOff'), value: 0 },
+                    ]}
+                />
+                {/* Phone columns (#413): 1 keeps the classic single-column stack. */}
+                <SliderSetting
+                    label={t('settings.grid.mobileCols')}
+                    value={effectiveMobCols}
+                    min={1}
+                    max={4}
+                    step={1}
+                    onChange={(v) => set('mobileCols', v)}
+                    isOverridden={mobColsOv}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['mobileCols']}
+                            label={t('settings.grid.mobileCols')}
+                            format={(_, v) => String(v)}
+                        />
+                    }
+                    presets={[
+                        { label: '1', value: 1 },
+                        { label: '2', value: 2 },
+                        { label: '3', value: 3 },
+                        { label: '4', value: 4 },
                     ]}
                 />
                 {/* Tablet band (#413): widgets flow into N columns between the two
