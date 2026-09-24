@@ -295,6 +295,8 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.mobileBreak': 'Mobile Breakpoint',
     'settings.grid.tabletBreak': 'Tablet Breakpoint',
     'settings.grid.tabletCols': 'Tablet columns',
+    'settings.grid.groupMobile': 'Mobile',
+    'settings.grid.groupTablet': 'Tablet',
     'settings.grid.mobileCols': 'Mobile columns',
     'settings.grid.wizardMaxDp': 'Wizard Max Datapoints',
     'settings.grid.mobileOff': 'Off',
@@ -1028,6 +1030,7 @@ export const en: Record<TranslationKey, string> = {
     'editor.lock.off': 'Controls unlocked — clicks switch real devices. Click to lock.',
     'editor.mobile.title': 'Mobile Order',
     'editor.mobile.hint': 'Single column below the mobile breakpoint',
+    'editor.flow.settingsLink': 'Set breakpoint & columns',
     'editor.mobile.colsHint':
         'Columns as below the mobile breakpoint. Drag widgets or use the arrows; unassigned widgets alternate in the mobile order.',
     'editor.tablet.title': 'Tablet Order',

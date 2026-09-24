@@ -69,7 +69,7 @@ export function GridSection({ contextId }: GridSectionProps) {
                     scoped={level !== 'global'}
                 />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <SliderSetting
                     label={t('settings.grid.rowHeight')}
                     value={effectiveRowH}
@@ -125,103 +125,6 @@ export function GridSection({ contextId }: GridSectionProps) {
                         { label: '120', value: 120 },
                     ]}
                 />
-                <SliderSetting
-                    label={t('settings.grid.mobileBreak')}
-                    value={effectiveMob}
-                    min={0}
-                    max={1024}
-                    step={10}
-                    unit=" px"
-                    onChange={(v) => set('mobileBreakpoint', v)}
-                    isOverridden={mobOv}
-                    info={
-                        <OverrideState
-                            contextId={contextId}
-                            keys={['mobileBreakpoint']}
-                            label={t('settings.grid.mobileBreak')}
-                            format={(_, v) => `${v} px`}
-                        />
-                    }
-                    presets={[
-                        { label: '480', value: 480 },
-                        { label: '600', value: 600 },
-                        { label: '768', value: 768 },
-                        { label: t('settings.grid.mobileOff'), value: 0 },
-                    ]}
-                />
-                {/* Phone columns (#413): 1 keeps the classic single-column stack. */}
-                <SliderSetting
-                    label={t('settings.grid.mobileCols')}
-                    value={effectiveMobCols}
-                    min={1}
-                    max={4}
-                    step={1}
-                    onChange={(v) => set('mobileCols', v)}
-                    isOverridden={mobColsOv}
-                    info={
-                        <OverrideState
-                            contextId={contextId}
-                            keys={['mobileCols']}
-                            label={t('settings.grid.mobileCols')}
-                            format={(_, v) => String(v)}
-                        />
-                    }
-                    presets={[
-                        { label: '1', value: 1 },
-                        { label: '2', value: 2 },
-                        { label: '3', value: 3 },
-                        { label: '4', value: 4 },
-                    ]}
-                />
-                {/* Tablet band (#413): widgets flow into N columns between the two
-                    breakpoints. Off (0) keeps the desktop grid — and its horizontal
-                    scrollbar — on tablets, which is what existing designs expect. */}
-                <SliderSetting
-                    label={t('settings.grid.tabletBreak')}
-                    value={effectiveTab}
-                    min={0}
-                    max={1600}
-                    step={10}
-                    unit=" px"
-                    onChange={(v) => set('tabletBreakpoint', v)}
-                    isOverridden={tabOv}
-                    info={
-                        <OverrideState
-                            contextId={contextId}
-                            keys={['tabletBreakpoint']}
-                            label={t('settings.grid.tabletBreak')}
-                            format={(_, v) => `${v} px`}
-                        />
-                    }
-                    presets={[
-                        { label: '768', value: 768 },
-                        { label: '1024', value: 1024 },
-                        { label: '1280', value: 1280 },
-                        { label: t('settings.grid.mobileOff'), value: 0 },
-                    ]}
-                />
-                <SliderSetting
-                    label={t('settings.grid.tabletCols')}
-                    value={effectiveTabCols}
-                    min={1}
-                    max={4}
-                    step={1}
-                    onChange={(v) => set('tabletCols', v)}
-                    isOverridden={tabColsOv}
-                    info={
-                        <OverrideState
-                            contextId={contextId}
-                            keys={['tabletCols']}
-                            label={t('settings.grid.tabletCols')}
-                            format={(_, v) => String(v)}
-                        />
-                    }
-                    presets={[
-                        { label: '2', value: 2 },
-                        { label: '3', value: 3 },
-                        { label: '4', value: 4 },
-                    ]}
-                />
             </div>
             <ToggleRow
                 label={t('settings.grid.hideScrollbar')}
@@ -237,6 +140,131 @@ export function GridSection({ contextId }: GridSectionProps) {
                     />
                 }
             />
+            {/* Mobile and tablet belong together: each is a breakpoint plus its column
+                count, so they sit in two labelled boxes side by side (#413). */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div
+                    data-aura-grid-group="mobile"
+                    className="rounded-lg p-4 space-y-4"
+                    style={{ border: '1px solid var(--app-border)' }}
+                >
+                    <p
+                        className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        {t('settings.grid.groupMobile')}
+                    </p>
+                    <SliderSetting
+                        label={t('settings.grid.mobileBreak')}
+                        value={effectiveMob}
+                        min={0}
+                        max={1024}
+                        step={10}
+                        unit=" px"
+                        onChange={(v) => set('mobileBreakpoint', v)}
+                        isOverridden={mobOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['mobileBreakpoint']}
+                                label={t('settings.grid.mobileBreak')}
+                                format={(_, v) => `${v} px`}
+                            />
+                        }
+                        presets={[
+                            { label: '480', value: 480 },
+                            { label: '600', value: 600 },
+                            { label: '768', value: 768 },
+                            { label: t('settings.grid.mobileOff'), value: 0 },
+                        ]}
+                    />
+                    {/* Phone columns (#413): 1 keeps the classic single-column stack. */}
+                    <SliderSetting
+                        label={t('settings.grid.mobileCols')}
+                        value={effectiveMobCols}
+                        min={1}
+                        max={4}
+                        step={1}
+                        onChange={(v) => set('mobileCols', v)}
+                        isOverridden={mobColsOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['mobileCols']}
+                                label={t('settings.grid.mobileCols')}
+                                format={(_, v) => String(v)}
+                            />
+                        }
+                        presets={[
+                            { label: '1', value: 1 },
+                            { label: '2', value: 2 },
+                            { label: '3', value: 3 },
+                            { label: '4', value: 4 },
+                        ]}
+                    />
+                </div>
+                <div
+                    data-aura-grid-group="tablet"
+                    className="rounded-lg p-4 space-y-4"
+                    style={{ border: '1px solid var(--app-border)' }}
+                >
+                    <p
+                        className="text-xs font-semibold uppercase tracking-wide"
+                        style={{ color: 'var(--text-secondary)' }}
+                    >
+                        {t('settings.grid.groupTablet')}
+                    </p>
+                    {/* Tablet band (#413): widgets flow into N columns between the two
+                    breakpoints. Off (0) keeps the desktop grid — and its horizontal
+                    scrollbar — on tablets, which is what existing designs expect. */}
+                    <SliderSetting
+                        label={t('settings.grid.tabletBreak')}
+                        value={effectiveTab}
+                        min={0}
+                        max={1600}
+                        step={10}
+                        unit=" px"
+                        onChange={(v) => set('tabletBreakpoint', v)}
+                        isOverridden={tabOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['tabletBreakpoint']}
+                                label={t('settings.grid.tabletBreak')}
+                                format={(_, v) => `${v} px`}
+                            />
+                        }
+                        presets={[
+                            { label: '768', value: 768 },
+                            { label: '1024', value: 1024 },
+                            { label: '1280', value: 1280 },
+                            { label: t('settings.grid.mobileOff'), value: 0 },
+                        ]}
+                    />
+                    <SliderSetting
+                        label={t('settings.grid.tabletCols')}
+                        value={effectiveTabCols}
+                        min={1}
+                        max={4}
+                        step={1}
+                        onChange={(v) => set('tabletCols', v)}
+                        isOverridden={tabColsOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['tabletCols']}
+                                label={t('settings.grid.tabletCols')}
+                                format={(_, v) => String(v)}
+                            />
+                        }
+                        presets={[
+                            { label: '2', value: 2 },
+                            { label: '3', value: 3 },
+                            { label: '4', value: 4 },
+                        ]}
+                    />
+                </div>
+            </div>
         </div>
     );
 }

@@ -36,7 +36,7 @@ import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
 import { Icon } from '@iconify/react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { flowOrderField, sortForFlow, tabletBandActive, type FlowMode } from '../../utils/flowOrder';
-import { TabletOrderPanel } from './editor/TabletOrderPanel';
+import { FlowSettingsLink, TabletOrderPanel } from './editor/TabletOrderPanel';
 import { IconPickerModal } from '../../components/config/IconPickerModal';
 import { useDashboardStore, useActiveSection } from '../../store/dashboardStore';
 import { KEEP_PIN } from '../../utils/pinLock';
@@ -984,6 +984,7 @@ function OrderPanel({ layoutId, mode }: { layoutId: string; mode: FlowMode }) {
                 <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-secondary)' }}>
                     {t(mode === 'tablet' ? 'editor.tablet.hint' : 'editor.mobile.hint')}
                 </p>
+                <FlowSettingsLink layoutId={layoutId} />
             </div>
 
             <div className="aura-scroll flex-1 overflow-y-auto p-3 space-y-1">

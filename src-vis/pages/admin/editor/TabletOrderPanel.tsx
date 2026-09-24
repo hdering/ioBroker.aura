@@ -1,5 +1,14 @@
 import { useMemo, useState } from 'react';
-import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, GripVertical, Maximize2, Minimize2 } from 'lucide-react';
+import {
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    ChevronUp,
+    ExternalLink,
+    GripVertical,
+    Maximize2,
+    Minimize2,
+} from 'lucide-react';
 import { useDashboardStore } from '../../../store/dashboardStore';
 import { useT } from '../../../i18n';
 import type { WidgetConfig } from '../../../types';
@@ -70,6 +79,23 @@ function take(bands: Band[], id: string): WidgetConfig | null {
         return b.widget;
     }
     return b.columns[at.ci].splice(at.idx, 1)[0] ?? null;
+}
+
+/** Jump from an order panel to the breakpoint / column settings it depends on
+ *  (Frontend-Design → Grid & Mobile, scoped to the layout being edited). */
+export function FlowSettingsLink({ layoutId }: { layoutId: string }) {
+    const t = useT();
+    return (
+        <a
+            data-aura-order-settings-link=""
+            href={`#/admin/design?ctx=${encodeURIComponent(layoutId)}&tab=grid`}
+            className="inline-flex items-center gap-1 text-[11px] font-medium mt-1 hover:opacity-80"
+            style={{ color: 'var(--accent)' }}
+        >
+            {t('editor.flow.settingsLink')}
+            <ExternalLink size={11} />
+        </a>
+    );
 }
 
 const iconBtn =
@@ -342,6 +368,7 @@ export function TabletOrderPanel({
                     {cols} {t('editor.tablet.columns')} ·{' '}
                     {t(mode === 'tablet' ? 'editor.tablet.hint' : 'editor.mobile.colsHint')}
                 </p>
+                <FlowSettingsLink layoutId={layoutId} />
             </div>
 
             <div className="aura-scroll flex-1 overflow-y-auto p-3 space-y-2">

@@ -296,6 +296,8 @@ export const de = {
     'settings.grid.mobileBreak': 'Mobile-Breakpoint',
     'settings.grid.tabletBreak': 'Tablet-Breakpoint',
     'settings.grid.tabletCols': 'Tablet-Spalten',
+    'settings.grid.groupMobile': 'Mobile',
+    'settings.grid.groupTablet': 'Tablet',
     'settings.grid.mobileCols': 'Mobile-Spalten',
     'settings.grid.wizardMaxDp': 'Wizard Max-Datenpunkte',
     'settings.grid.mobileOff': 'Aus',
@@ -1037,6 +1039,7 @@ export const de = {
     'editor.lock.off': 'Bedienelemente entsperrt — Klicks schalten echte Geräte. Klicken zum Sperren.',
     'editor.mobile.title': 'Mobile-Reihenfolge',
     'editor.mobile.hint': 'Einspaltig unterhalb des Mobile-Breakpoints',
+    'editor.flow.settingsLink': 'Breakpoint & Spalten einstellen',
     'editor.mobile.colsHint':
         'Spalten wie unterhalb des Mobile-Breakpoints. Widgets ziehen oder mit den Pfeilen versetzen; ohne Zuordnung abwechselnd in der Mobile-Reihenfolge.',
     'editor.tablet.title': 'Tablet-Reihenfolge',
