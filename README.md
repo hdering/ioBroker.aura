@@ -122,6 +122,16 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.69.0 (2026-09-24)
+- Custom CSS applied in the dashboard editor now styles only the dashboard preview, not the admin menu around it ([#710](https://github.com/hdering/ioBroker.aura/issues/710))
+- Admin overview - the AI access (MCP) card can be dismissed, like the getting-started card
+- 🌟 **New feature:** JSON table: sort rules like the static list - several columns in a row, compare as number, text, on/off or date (also dd.MM.yyyy), empty cells first or last; a header click still takes over ([#706](https://github.com/hdering/ioBroker.aura/issues/706))
+- 🌟 **New feature:** JSON table: per-column thousands separator next to the decimal places; the "Umrechnung" switch is now called "Zahlenformat" and shows conversion, decimals and separator in one row ([#707](https://github.com/hdering/ioBroker.aura/issues/707))
+- Media player: the volume quick-select buttons (25/50/75/100 %) can be hidden to save a row of height ([#708](https://github.com/hdering/ioBroker.aura/issues/708))
+- 🌟 **New feature:** Chart / Advanced chart: define your own time-range chips for the frontend selector, e.g. only months (1, 2, 3, 6, 12, 24 months, total); custom ranges now also support weeks, months and years ([#709](https://github.com/hdering/ioBroker.aura/issues/709))
+- 🌟 **New feature:** Grid & Mobile - the mobile view can now use 2-4 columns like the tablet view (setting "Mobile columns"); the mobile order panel in the editor then arranges columns and full-width bands; in Frontend design the mobile and tablet settings are grouped side by side, and both order panels link straight to them ([#413](https://github.com/hdering/ioBroker.aura/issues/413))
+
+
 ### 0.68.2 (2026-09-23)
 - Design - every overridden setting of a layout or section now gets the orange marking, including the section menu, tab bar, theme and header title/elements
 
@@ -256,10 +266,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - Fixed a redraw loop that made a dashboard rebuild itself dozens of times a second on some phones: the layout is no longer switched by a momentary zero-width measurement, which also brings back icons that never got the chance to finish loading ([#636](https://github.com/hdering/ioBroker.aura/issues/636))
 
 
-### 0.60.6 (2026-09-16)
-- Diagnostics - the `?diag=1` report now names the element a redraw loop runs on and the class it toggles, and prints the configuration of the widget causing it so the loop can be rebuilt elsewhere ([#636](https://github.com/hdering/ioBroker.aura/issues/636))
-
-
 ## License
 
 MIT License
@@ -271,6 +277,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
