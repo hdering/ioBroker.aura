@@ -7,3 +7,4 @@
 # Issue reference (optional): append (#519) — or paste the full issue URL — and the
 # release turns it into a changelog link. release.ps1 also asks per entry.
 - Custom CSS applied in the dashboard editor now styles only the dashboard preview, not the admin menu around it (#710)
+- Admin overview - the AI access (MCP) card can be dismissed, like the getting-started card

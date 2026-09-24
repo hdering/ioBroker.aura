@@ -511,7 +511,10 @@ function McpSection() {
     const t = useT();
     const { enabled, mode } = useMcpStatus();
     const [expanded, setExpanded] = useState(false);
+    const dismissed = useAdminPrefsStore((s) => s.mcpCardDismissed);
+    const setDismissed = useAdminPrefsStore((s) => s.setMcpCardDismissed);
 
+    if (dismissed) return null;
     // Until the instance config answered we do not know whether MCP is set up —
     // rendering nothing beats a full guide card that collapses a moment later.
     if (enabled === null) return null;
@@ -565,15 +568,19 @@ function McpSection() {
                         {t(`dashboard.mcp.mode.${mode}`)}
                     </span>
                 )}
-                {enabled && (
-                    <div className="ml-auto flex items-center gap-3">
-                        {!expanded && docsLink}
+                <div className="ml-auto flex items-center gap-3">
+                    {enabled && !expanded && docsLink}
+                    {enabled && (
                         <GhostButton onClick={() => setExpanded((v) => !v)} testId="mcp-toggle-guide">
                             {expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                             {expanded ? t('dashboard.mcp.hideGuide') : t('dashboard.mcp.showGuide')}
                         </GhostButton>
-                    </div>
-                )}
+                    )}
+                    <GhostButton onClick={() => setDismissed(true)} testId="mcp-dismiss">
+                        <X size={12} />
+                        {t('dashboard.mcp.dismiss')}
+                    </GhostButton>
+                </div>
             </div>
 
             {guideVisible && (

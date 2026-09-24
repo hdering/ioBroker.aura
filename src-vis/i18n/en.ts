@@ -434,6 +434,7 @@ export const en: Record<TranslationKey, string> = {
     'dashboard.mcp.mode.delete': 'Write, rename & delete',
     'dashboard.mcp.showGuide': 'Setup guide',
     'dashboard.mcp.hideGuide': 'Hide guide',
+    'dashboard.mcp.dismiss': 'Dismiss',
     'dashboard.start.title': 'Getting started',
     'dashboard.start.description':
         'Set up Aura in the right order – from the target device to the first widget. The guide in the documentation walks through every step.',

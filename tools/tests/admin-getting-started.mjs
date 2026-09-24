@@ -5,7 +5,8 @@
 //
 // The admin overview carries a dismissible getting-started card above the MCP
 // guide; the dismissal is a browser preference (aura-admin-prefs) and survives
-// a reload. An empty tab in the frontend links to the admin and to the guide.
+// a reload. The MCP card can be dismissed the same way. An empty tab in the
+// frontend links to the admin and to the guide.
 // Everything runs through the screenshot harness (`?shot=1`), no datapoint is
 // touched.
 import { chromium } from 'playwright';
@@ -142,6 +143,29 @@ try {
     await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
     await openAdmin();
     check('clearing the preference brings the card back', await card.isVisible());
+
+    // ── 3b. The MCP card is dismissible the same way ─────────────────────────
+    const mcpCard = page.locator('[data-aura-mcp-card]');
+    await mcpCard.locator('[data-aura-action="mcp-dismiss"]').click();
+    await mcpCard.waitFor({ state: 'detached', timeout: 5000 });
+    eq('dismissing the MCP card removes it', await mcpCard.count(), 0);
+    check('while the getting-started card stays', await card.isVisible());
+    check(
+        'the MCP dismissal is a plain admin pref too',
+        await page.evaluate(() => {
+            const prefs = JSON.parse(localStorage.getItem('aura-admin-prefs') ?? '{}');
+            return prefs?.state?.mcpCardDismissed === true && prefs?.state?.gettingStartedDismissed === false;
+        }),
+    );
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await page.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    await seedInstance();
+    await page.evaluate(() => {
+        window.location.hash = '#/admin';
+    });
+    await card.waitFor({ state: 'visible', timeout: 20000 });
+    await page.waitForTimeout(500);
+    eq('the MCP dismissal survives a reload', await mcpCard.count(), 0);
 
     // ── 4. Frontend: the empty tab points at admin and guide ─────────────────
     await seedInstance();
