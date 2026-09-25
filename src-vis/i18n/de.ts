@@ -1163,8 +1163,7 @@ export const de = {
     'wf.edit.clickActionIconDefault': 'Standard (je nach Aktion)',
     'wf.edit.clickActionIconHint':
         'Zeigt, dass das Widget eine Klick-Aktion hat. Ein Tipp auf das Symbol führt sie aus, auch im eingeklappten Zustand.',
-    'wf.edit.clickActionIconTypeHint':
-        'Die Klick-Aktion kommt aus dem Popup-Standard des Widget-Typs. Das Symbol ist dafür standardmäßig aus.',
+    'wf.edit.clickActionIconTypeHint': 'Die Klick-Aktion kommt aus dem Popup-Standard des Widget-Typs.',
     'wf.edit.clickActionIconEmbedHint':
         'Bei eingebetteten Seiten immer sichtbar: Ein Klick in die Seite erreicht die Aktion nicht.',
     'wf.edit.clickActionIconNoAction':

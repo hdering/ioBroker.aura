@@ -82,7 +82,7 @@ Eingeklappt ist die Karte so flach wie eine eingeklappte Gruppe (zwei Rasterzeil
 
 | Option | |
 | --- | --- |
-| Klick-Aktions-Symbol | An (Standard bei eigener Klick-Aktion) / Aus. Kommt die Aktion nur aus dem Popup-Standard des Typs, ist es aus |
+| Klick-Aktions-Symbol | An / Aus (Standard) |
 | Position | `rechts oben` (Standard), `links oben`, `rechts unten` — neben Vollbild- und Einklapp-Knopf rückt es eine Stelle nach innen |
 | Symbol | Standard je Aktion (Popup, Tab/Widget, externer Link) oder eigenes |
 

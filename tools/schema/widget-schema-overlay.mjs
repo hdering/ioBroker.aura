@@ -1209,9 +1209,9 @@ export const UNIVERSAL_OPTIONS = {
         ts: 'boolean',
         description:
             'Symbol-Knopf in der Kartenecke, der die Klick-Aktion ausführt und zeigt, dass es eine gibt ' +
-            '(dauerhaft sichtbar, auch eingeklappt rechts in der Kopfzeile). Standard: an, wenn clickAction ' +
-            'am Widget selbst gesetzt ist; aus, wenn die Aktion nur aus dem Popup-Standard des Typs kommt — ' +
-            'dann mit true einschalten. false blendet ihn aus. Bei "iframe" mit bedienbarem Inhalt immer da.',
+            '(dauerhaft sichtbar, auch eingeklappt rechts in der Kopfzeile). Standard: aus — mit true einschalten, ' +
+            'egal ob clickAction am Widget oder aus dem Popup-Standard des Typs kommt. ' +
+            'Bei "iframe" mit bedienbarem Inhalt immer da.',
     },
     clickActionIconPosition: {
         ts: "'tr' | 'tl' | 'br'",

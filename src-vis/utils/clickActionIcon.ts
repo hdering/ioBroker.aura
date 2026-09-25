@@ -4,10 +4,9 @@
  *
  * It grew out of the embed action button (issue #527). An iframe-bodied widget
  * swallows every click in its foreign document, so there the button is the only way
- * to reach the action and is always shown. Every other widget shows it when the user
- * set a click action on the widget itself; the admin's per-type popup defaults and the
- * built-in fallback do not bring it along unless `clickActionIcon` is set to true —
- * otherwise every lamp with a type popup would sprout an icon after an update.
+ * to reach the action and is always shown. Every other widget shows it only when
+ * `clickActionIcon` is set to true — off by default, for an own click action as well
+ * as for the admin's per-type popup defaults and the built-in fallback.
  *
  * Pure logic, kept out of WidgetFrame so it is testable without a browser
  * (tools/tests/click-action-icon-logic.mjs).
@@ -35,10 +34,7 @@ export function clickActionIconEnabled(
 ): boolean {
     if (!ctx.hasClickAction) return false;
     if (ctx.embed) return true;
-    const flag = options?.clickActionIcon;
-    if (flag === false) return false;
-    if (flag === true) return true;
-    return hasOwnClickAction(options);
+    return options?.clickActionIcon === true;
 }
 
 export function clickActionIconPosition(options: Record<string, unknown> | undefined): ClickActionIconPosition {

@@ -1153,8 +1153,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.clickActionIconDefault': 'Default (by action)',
     'wf.edit.clickActionIconHint':
         'Shows that the widget has a click action. Tapping the icon runs it, also while the widget is collapsed.',
-    'wf.edit.clickActionIconTypeHint':
-        'The click action comes from the popup default of the widget type. The icon is off by default for it.',
+    'wf.edit.clickActionIconTypeHint': 'The click action comes from the popup default of the widget type.',
     'wf.edit.clickActionIconEmbedHint':
         'Always shown for embedded pages: a click inside the page never reaches the action.',
     'wf.edit.clickActionIconNoAction': 'No click action set up. Choose one under "Click action" in the widget menu.',

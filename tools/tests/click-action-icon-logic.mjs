@@ -49,7 +49,8 @@ ok("'none' is no action", !hasOwnClickAction({ clickAction: { kind: 'none' } }))
 ok('no options, no action', !hasOwnClickAction(undefined));
 
 // ── 2. When the icon shows ──
-ok('own action: on by default', on(OWN));
+ok('own action: off by default', !on(OWN));
+ok('own action: opt in', on({ ...OWN, clickActionIcon: true }));
 ok('own action: switched off', !on({ ...OWN, clickActionIcon: false }));
 // A type default (admin popup per type) resolves to an action without one being stored.
 ok('type default: off by default', !on({}));
