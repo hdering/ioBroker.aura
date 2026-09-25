@@ -177,6 +177,7 @@ export function GridSection({ contextId }: GridSectionProps) {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <SliderSetting
                             label={t('settings.grid.fluidDesignWidth')}
+                            hint={t('settings.grid.fluidDesignWidthHint')}
                             value={(designW ?? 0) as number}
                             min={0}
                             max={3840}
@@ -201,6 +202,7 @@ export function GridSection({ contextId }: GridSectionProps) {
                         />
                         <SliderSetting
                             label={t('settings.grid.fluidMinScale')}
+                            hint={t('settings.grid.fluidMinScaleHint')}
                             value={Math.round(((minScale ?? 0.6) as number) * 100)}
                             min={20}
                             max={100}
@@ -225,6 +227,7 @@ export function GridSection({ contextId }: GridSectionProps) {
                         />
                         <SliderSetting
                             label={t('settings.grid.fluidMaxScale')}
+                            hint={t('settings.grid.fluidMaxScaleHint')}
                             value={Math.round(((maxScale ?? 0) as number) * 100)}
                             min={0}
                             max={300}

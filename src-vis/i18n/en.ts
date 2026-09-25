@@ -310,6 +310,12 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.fluidAuto': 'Auto',
     'settings.grid.fluidMinScale': 'Squeeze down to at most',
     'settings.grid.fluidMaxScale': 'Stretch up to at most',
+    'settings.grid.fluidDesignWidthHint':
+        'The width the layout is built for — this is 100 %. Auto: the rightmost widget edge of the section, so the content always fills the whole width. With a fixed value (e.g. 1920) narrower content stays proportionally narrower.',
+    'settings.grid.fluidMinScaleHint':
+        'How far widgets are squeezed at most on narrow screens (in % of the design width). If the window gets narrower still, this width is kept and the dashboard scrolls horizontally — unless the tablet or mobile mode already applies.',
+    'settings.grid.fluidMaxScaleHint':
+        'How far widgets are stretched at most on wide screens (in % of the design width). Beyond that the right side stays empty, so widgets do not look distorted on very wide monitors. Off = always the full width.',
     'settings.grid.hideScrollbarHint': 'Hides the draggable scroll bar over the dashboard on touch devices.',
     'design.reset.toDefaults': 'Reset',
     'design.reset.hint': 'Restores these settings to their shipped defaults.',

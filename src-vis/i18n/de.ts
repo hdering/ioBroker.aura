@@ -311,6 +311,12 @@ export const de = {
     'settings.grid.fluidAuto': 'Auto',
     'settings.grid.fluidMinScale': 'Höchstens stauchen auf',
     'settings.grid.fluidMaxScale': 'Höchstens strecken auf',
+    'settings.grid.fluidDesignWidthHint':
+        'Die Breite, für die das Layout gebaut ist — sie entspricht 100 %. Auto: die rechteste Widget-Kante des Bereichs, der Inhalt füllt dann immer die ganze Breite. Mit festem Wert (z. B. 1920) bleibt ein schmalerer Inhalt anteilig schmaler.',
+    'settings.grid.fluidMinScaleHint':
+        'Wie weit die Widgets auf schmalen Bildschirmen höchstens zusammengedrückt werden (in % der Entwurfsbreite). Wird das Fenster noch schmaler, bleibt diese Breite und es wird waagerecht gescrollt — sofern nicht schon der Tablet- oder Mobile-Modus greift.',
+    'settings.grid.fluidMaxScaleHint':
+        'Wie weit die Widgets auf breiten Bildschirmen höchstens gestreckt werden (in % der Entwurfsbreite). Darüber bleibt rechts Platz, damit Widgets auf sehr breiten Monitoren nicht verzerrt wirken. Aus = immer die volle Breite.',
     'settings.grid.hideScrollbarHint': 'Blendet den ziehbaren Scrollbalken über dem Dashboard auf Touch-Geräten aus.',
     'design.reset.toDefaults': 'Auf Standard',
     'design.reset.hint': 'Setzt diese Einstellungen auf die Auslieferungswerte zurück.',

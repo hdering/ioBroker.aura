@@ -15,6 +15,8 @@ interface SliderSettingProps {
     onClearOverride?: () => void;
     /** Override state line (usually an <OverrideState>); replaces the built-in "set here" affordance. */
     info?: React.ReactNode;
+    /** One or two lines under the label explaining what the value means. */
+    hint?: string;
 }
 
 export function SliderSetting({
@@ -29,6 +31,7 @@ export function SliderSetting({
     isOverridden,
     onClearOverride,
     info,
+    hint,
 }: SliderSettingProps) {
     const t = useT();
     const accent = isOverridden ? OVERRIDE_COLOR : 'var(--accent)';
@@ -61,6 +64,11 @@ export function SliderSetting({
                     {unit}
                 </span>
             </div>
+            {hint && (
+                <p className="text-[10px] mb-1" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    {hint}
+                </p>
+            )}
             <input
                 type="range"
                 min={min}
