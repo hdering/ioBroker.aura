@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.69.0",
+    "version": "0.70.0",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.70.0": {
+        "en": "🌟 New feature: Widget fullscreen can fill the whole screen: the new \"Fill the screen\" option uses the browser's fullscreen mode, hiding the address bar and task bar (#711)\n🌟 New feature: Settings - new grid option \"Fill window width\": widgets stretch to the full screen width on any resolution, the arrangement stays; off by default (#413)",
+        "de": "🌟 Neue Funktion: Widget-Vollbild kann den gesamten Bildschirm ausfüllen: Die neue Option „Bildschirm ausfüllen“ verwendet den Vollbildmodus des Browsers und blendet die Adressleiste und die Taskleiste aus (#711)\n🌟 Neue Funktion: Einstellungen – neue Rasteroption „Fensterbreite ausfüllen“: Widgets werden bei jeder Auflösung auf die volle Bildschirmbreite gestreckt, die Anordnung bleibt erhalten; Standardmäßig deaktiviert (#413)",
+        "ru": "🌟 Новая функция: полноэкранный виджет может заполнять весь экран: новая опция «Заполнить экран» использует полноэкранный режим браузера, скрывая адресную строку и панель задач (#711).\n🌟 Новая функция: Настройки - новая опция сетки «Заполнить ширину окна»: виджеты растягиваются на всю ширину экрана при любом разрешении, расположение сохраняется; выключено по умолчанию (#413)",
+        "pt": "🌟 Novo recurso: Widget em tela cheia pode preencher a tela inteira: a nova opção \"Preencher a tela\" usa o modo de tela cheia do navegador, ocultando a barra de endereço e a barra de tarefas (#711)\n🌟 Novo recurso: Configurações - nova opção de grade \"Preencher largura da janela\": os widgets se estendem até a largura total da tela em qualquer resolução, a organização permanece; desativado por padrão (#413)",
+        "nl": "🌟 Nieuwe functie: Widget op volledig scherm kan het hele scherm vullen: de nieuwe optie \"Scherm vullen\" gebruikt de volledig schermmodus van de browser en verbergt de adresbalk en taakbalk (#711)\n🌟 Nieuwe functie: Instellingen - nieuwe rasteroptie \"Vensterbreedte vullen\": widgets strekken zich uit over de volledige schermbreedte bij elke resolutie, de indeling blijft; standaard uitgeschakeld (#413)",
+        "fr": "🌟 Nouvelle fonctionnalité : Le widget plein écran peut remplir tout l'écran : la nouvelle option \"Remplir l'écran\" utilise le mode plein écran du navigateur, masquant la barre d'adresse et la barre des tâches (#711)\n🌟 Nouvelle fonctionnalité : Paramètres - nouvelle option de grille « Remplir la largeur de la fenêtre » : les widgets s'étendent sur toute la largeur de l'écran quelle que soit la résolution, la disposition reste ; désactivé par défaut (#413)",
+        "it": "🌟 Nuova funzionalità: il widget a schermo intero può riempire l'intero schermo: la nuova opzione \"Riempi lo schermo\" utilizza la modalità a schermo intero del browser, nascondendo la barra degli indirizzi e la barra delle applicazioni (#711)\n🌟 Nuova funzionalità: Impostazioni - nuova opzione griglia \"Riempi larghezza finestra\": i widget si estendono fino alla larghezza dello schermo intero su qualsiasi risoluzione, la disposizione rimane; disattivato per impostazione predefinita (#413)",
+        "es": "🌟 Nueva característica: el widget de pantalla completa puede llenar toda la pantalla: la nueva opción \"Rellenar la pantalla\" utiliza el modo de pantalla completa del navegador, ocultando la barra de direcciones y la barra de tareas (#711)\n🌟 Nueva característica: Configuración - nueva opción de cuadrícula \"Rellenar ancho de ventana\": los widgets se extienden hasta el ancho completo de la pantalla en cualquier resolución, la disposición permanece; desactivado de forma predeterminada (#413)",
+        "pl": "🌟 Nowa funkcja: Pełny ekran widżetu może wypełnić cały ekran: nowa opcja „Wypełnij ekran” wykorzystuje tryb pełnoekranowy przeglądarki, ukrywając pasek adresu i pasek zadań (#711)\n🌟 Nowa funkcja: Ustawienia - nowa opcja siatki „Wypełnij szerokość okna”: widżety rozciągają się na pełną szerokość ekranu w dowolnej rozdzielczości, układ pozostaje niezmienny; domyślnie wyłączone (#413)",
+        "uk": "🌟 Нова функція: повноекранний віджет може заповнювати весь екран: нова опція «Заповнити екран» використовує повноекранний режим браузера, приховуючи адресний рядок і панель завдань (#711)\n🌟 Нова функція: Налаштування - нова опція сітки «Заповнити ширину вікна»: віджети розтягуються на всю ширину екрана в будь-якій роздільній здатності, розташування зберігається; вимкнено за замовчуванням (#413)",
+        "zh-cn": "🌟 新功能：Widget 全屏可以填满整个屏幕：新的“填满屏幕”选项使用浏览器的全屏模式，隐藏地址栏和任务栏(#711)\n🌟 New feature: Settings - new grid option \"Fill window width\": widgets stretch to the full screen width on any resolution, the arrangement stays; off by default (#413)"
+      },
       "0.69.0": {
         "en": "Custom CSS applied in the dashboard editor now styles only the dashboard preview, not the admin menu around it (#710)\nAdmin overview - the AI access (MCP) card can be dismissed, like the getting-started card\n🌟 New feature: JSON table: sort rules like the static list - several columns in a row, compare as number, text, on/off or date (also dd.MM.yyyy), empty cells first or last; a header click still takes over (#706)\n🌟 New feature: JSON table: per-column thousands separator next to the decimal places; the \"Umrechnung\" switch is now called \"Zahlenformat\" and shows conversion, decimals and separator in one row (#707)\nMedia player: the volume quick-select buttons (25/50/75/100 %) can be hidden to save a row of height (#708)\n🌟 New feature: Chart / Advanced chart: define your own time-range chips for the frontend selector, e.g. only months (1, 2, 3, 6, 12, 24 months, total); custom ranges now also support weeks, months and years (#709)\n🌟 New feature: Grid & Mobile - the mobile view can now use 2-4 columns like the tablet view (setting \"Mobile columns\"); the mobile order panel in the editor then arranges columns and full-width bands; in Frontend design the mobile and tablet settings are grouped side by side, and both order panels link straight to them (#413)",
         "de": "Benutzerdefiniertes CSS, das im Dashboard-Editor angewendet wird, formatiert jetzt nur die Dashboard-Vorschau, nicht das Admin-Menü darum herum (#710)\nAdmin-Übersicht – die AI Access (MCP)-Karte kann wie die Erste-Schritte-Karte abgewiesen werden\n🌟 Neue Funktion: JSON-Tabelle: Sortierregeln wie die statische Liste – mehrere Spalten hintereinander, Vergleich als Zahl, Text, Ein/Aus oder Datum (auch TT.MM.JJJJ), leere Zellen zuerst oder zuletzt; Ein Header-Klick übernimmt immer noch (#706)\n🌟 Neue Funktion: JSON-Tabelle: Tausendertrennzeichen pro Spalte neben den Dezimalstellen; Der Schalter „Umrechnung“ heißt jetzt „Zahlenformat“ und zeigt Umrechnung, Dezimalstellen und Trennzeichen in einer Zeile an (#707)\nMediaplayer: Die Lautstärke-Schnellwahltasten (25/50/75/100 %) können ausgeblendet werden, um eine Höhenreihe zu sparen (#708)\n🌟 Neue Funktion: Diagramm / Erweitertes Diagramm: Definieren Sie Ihre eigenen Zeitbereichschips für den Frontend-Selektor, z. nur Monate (1, 2, 3, 6, 12, 24 Monate, insgesamt); Benutzerdefinierte Bereiche unterstützen jetzt auch Wochen, Monate und Jahre (#709)\n🌟 Neue Funktion: Raster und mobil – die mobile Ansicht kann jetzt 2–4 Spalten wie die Tablet-Ansicht verwenden (Einstellung „Mobile Spalten“); Das mobile Bestellfeld im Editor ordnet dann Spalten und Bänder in voller Breite an. Im Frontend-Design sind die Mobil- und Tablet-Einstellungen nebeneinander gruppiert und beide Bestellfelder sind direkt darauf verlinkt (#413)",
@@ -184,19 +197,6 @@
         "pl": "Kolory — para kolorów jasny/ciemny zachowuje teraz pola kolorów wpisu, komórki i tabeli, a ustawienie tylko ciemnej połowy nie powoduje już malowania obu motywów (#689)",
         "uk": "Кольори — пара світлий/темний колір тепер зберігає значення для полів кольору введення, клітинок і таблиці, а налаштування лише темної половини більше не забарвлює обидві теми (#689)",
         "zh-cn": "颜色 - 浅色/深色对现在在条目、单元格和表格颜色字段中保留下来，并且仅设置深色一半不再绘制两个主题 (#689)"
-      },
-      "0.67.2": {
-        "en": "🌟 New feature: PIN protection - the padlock on a locked section or tab can now be hidden (#692)",
-        "de": "🌟 Neue Funktion: PIN-Schutz – das Vorhängeschloss an einem gesperrten Abschnitt oder Tab kann jetzt ausgeblendet werden (#692)",
-        "ru": "🌟 Новая функция: защита PIN-кодом — теперь можно скрыть замок на заблокированном разделе или вкладке (#692).",
-        "pt": "🌟 Novo recurso: Proteção PIN - o cadeado em uma seção ou guia bloqueada agora pode ser ocultado (#692)",
-        "nl": "🌟 Nieuwe functie: PIN-beveiliging - het hangslot op een vergrendeld gedeelte of tabblad kan nu worden verborgen (#692)",
-        "fr": "🌟 Nouvelle fonctionnalité : Protection par code PIN - le cadenas sur une section ou un onglet verrouillé peut désormais être masqué (#692)",
-        "it": "🌟 Nuova funzionalità: protezione PIN: ora è possibile nascondere il lucchetto su una sezione o scheda bloccata (#692)",
-        "es": "🌟 Nueva función: protección con PIN: ahora se puede ocultar el candado de una sección o pestaña bloqueada (#692)",
-        "pl": "🌟 Nowa funkcja: ochrona PIN-em - kłódkę w zamkniętej sekcji lub zakładce można teraz ukryć (#692)",
-        "uk": "🌟 Нова функція: захист PIN-кодом - замок на заблокованій частині чи вкладці тепер можна приховати (#692)",
-        "zh-cn": "🌟 新功能：PIN 码保护 - 现在可以隐藏锁定部分或选项卡上的挂锁 (#692)"
       }
     }
   },
