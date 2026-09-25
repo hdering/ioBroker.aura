@@ -1,7 +1,7 @@
 {
   "common": {
     "name": "aura",
-    "version": "0.70.0",
+    "version": "0.70.1",
     "readme": "https://hdering.github.io/ioBroker.aura/",
     "titleLang": {
       "en": "Aura",
@@ -107,6 +107,19 @@
       }
     ],
     "news": {
+      "0.70.1": {
+        "en": "Click action icon on widgets is now off by default and has to be switched on per widget",
+        "de": "Das Klick-Aktionssymbol in Widgets ist jetzt standardmäßig deaktiviert und muss pro Widget aktiviert werden",
+        "ru": "Значок действия по клику на виджетах теперь отключен по умолчанию, и его необходимо включать для каждого виджета.",
+        "pt": "O ícone de ação de clique em widgets agora está desativado por padrão e deve ser ativado por widget",
+        "nl": "Klikactiepictogram op widgets staat nu standaard uit en moet per widget worden ingeschakeld",
+        "fr": "L'icône d'action de clic sur les widgets est désormais désactivée par défaut et doit être activée pour chaque widget",
+        "it": "L'icona di azione clic sui widget ora è disattivata per impostazione predefinita e deve essere attivata per widget",
+        "es": "El icono de acción de clic en los widgets ahora está desactivado de forma predeterminada y debe activarse por widget",
+        "pl": "Ikona akcji kliknięcia na widżetach jest teraz domyślnie wyłączona i należy ją włączyć dla każdego widżetu",
+        "uk": "Значок дії клацання у віджетах тепер вимкнено за замовчуванням і його потрібно вмикати для кожного віджета",
+        "zh-cn": "小部件上的单击操作图标现在默认处于关闭状态，必须为每个小部件打开"
+      },
       "0.70.0": {
         "en": "🌟 New feature: Widget fullscreen can fill the whole screen: the new \"Fill the screen\" option uses the browser's fullscreen mode, hiding the address bar and task bar (#711)\n🌟 New feature: Settings - new grid option \"Fill window width\": widgets stretch to the full screen width on any resolution, the arrangement stays; off by default (#413)",
         "de": "🌟 Neue Funktion: Widget-Vollbild kann den gesamten Bildschirm ausfüllen: Die neue Option „Bildschirm ausfüllen“ verwendet den Vollbildmodus des Browsers und blendet die Adressleiste und die Taskleiste aus (#711)\n🌟 Neue Funktion: Einstellungen – neue Rasteroption „Fensterbreite ausfüllen“: Widgets werden bei jeder Auflösung auf die volle Bildschirmbreite gestreckt, die Anordnung bleibt erhalten; Standardmäßig deaktiviert (#413)",
@@ -184,19 +197,6 @@
         "pl": "🌟 Nowa funkcja: tabela JSON - kolumna może teraz sformatować swoją wartość: pokazać znacznik czasu jako datę/godzinę, przekonwertować go według współczynnika/przesunięcia i ustawić miejsca dziesiętne (#697)\nSelektor dat — wyczyszczenie pola powoduje teraz wyczyszczenie punktu danych w widżecie, komórce uniwersalnej i wierszu listy (#695)\n🌟 Nowa funkcja: Selektor dat - pola wejściowe przyjmują teraz rozmiar czcionki i kolor tekstu; w komórce uniwersalnej kolor komórki i pogrubienie/kursywa również do nich docierają (#696)\nUstawienia — każda automatyczna kopia zapasowa pokazuje teraz wersję Aury, która ją napisała, i nosi tę wersję w nazwie pliku (#694)",
         "uk": "🌟 Нова функція: таблиця JSON — стовпець тепер може форматувати своє значення: показувати мітку часу як дату/час, перетворювати її на коефіцієнт/зміщення та встановлювати десяткові знаки (#697)\nЗасіб вибору дати — очищення поля тепер очищає точку даних у віджеті, універсальній клітинці та рядку списку (#695)\n🌟 Нова функція: засіб вибору дати — поля введення тепер мають розмір шрифту та колір тексту; в універсальній клітинці колір клітинки та жирний/курсив також охоплюють їх (#696)\nНалаштування — кожне авторезервне копіювання тепер показує версію Aura, яка створила його, і містить цю версію в імені файлу (#694)",
         "zh-cn": "🌟 新功能：JSON 表 - 列现在可以格式化其值：将时间戳显示为日期/时间，按因子/偏移量进行转换，并设置其小数位 (#697)\n日期选择器 - 清除字段现在会清除小部件、通用单元格和列表行中的数据点 (#695)\n🌟 新功能：日期选择器 - 输入字段现在采用字体大小和文本颜色；在通用单元格中，单元格的颜色和粗体/斜体也可以到达它们(#696)\n设置 - 每个自动备份现在都会显示编写它的 Aura 版本，并在文件名中包含该版本 (#694)"
-      },
-      "0.67.3": {
-        "en": "Colors - a light/dark colour pair now survives the entry, cell and table colour fields, and setting only the dark half no longer paints both themes (#689)",
-        "de": "Farben – ein helles/dunkles Farbpaar überlebt jetzt die Farbfelder für den Eintrag, die Zelle und die Tabelle, und wenn nur die dunkle Hälfte festgelegt wird, werden nicht mehr beide Themen dargestellt (#689)",
-        "ru": "Цвета — пара светлых/темных цветов теперь сохраняется в полях ввода, ячейки и таблицы, а установка только темной половины больше не окрашивает обе темы (#689).",
-        "pt": "Cores - um par de cores claras/escuras agora sobrevive aos campos de entrada, células e cores da tabela, e definir apenas a metade escura não pinta mais ambos os temas (#689)",
-        "nl": "Kleuren - een licht/donker kleurenpaar overleeft nu de invoer-, cel- en tabelkleurvelden, en het instellen van alleen de donkere helft schildert niet langer beide thema's (#689)",
-        "fr": "Couleurs - une paire de couleurs claire/foncée survit désormais aux champs de couleur d'entrée, de cellule et de tableau, et définir uniquement la moitié sombre ne peint plus les deux thèmes (#689)",
-        "it": "Colori: una coppia di colori chiaro/scuro ora sopravvive nei campi colore di ingresso, cella e tabella e l'impostazione solo della metà scura non dipinge più entrambi i temi (#689).",
-        "es": "Colores: un par de colores claro/oscuro ahora sobrevive a los campos de color de entrada, celda y tabla, y configurar solo la mitad oscura ya no pinta ambos temas (#689)",
-        "pl": "Kolory — para kolorów jasny/ciemny zachowuje teraz pola kolorów wpisu, komórki i tabeli, a ustawienie tylko ciemnej połowy nie powoduje już malowania obu motywów (#689)",
-        "uk": "Кольори — пара світлий/темний колір тепер зберігає значення для полів кольору введення, клітинок і таблиці, а налаштування лише темної половини більше не забарвлює обидві теми (#689)",
-        "zh-cn": "颜色 - 浅色/深色对现在在条目、单元格和表格颜色字段中保留下来，并且仅设置深色一半不再绘制两个主题 (#689)"
       }
     }
   },
