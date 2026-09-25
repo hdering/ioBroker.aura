@@ -88,6 +88,8 @@ import {
     fullscreenButtonEnabled,
     fullscreenButtonInset,
     fullscreenPosition,
+    fullscreenScreenEnabled,
+    enterScreenFullscreen,
     supportsFullscreenButton,
 } from '../../utils/fullscreenButton';
 import {
@@ -7930,6 +7932,8 @@ function WidgetFrameInner({
                             // renderConfig, not config: condition overrides (colour,
                             // icon, title) must look the same in the overlay.
                             snapshot: renderConfig,
+                            // Inside the click: browsers grant fullscreen only here.
+                            ownsScreen: fullscreenScreenEnabled(config.options) && enterScreenFullscreen(document),
                         });
                     }}
                     className="nodrag aura-fullscreen-btn absolute w-7 h-7 flex items-center justify-center rounded-md transition-opacity"
@@ -9465,9 +9469,39 @@ function WidgetFrameInner({
                                                     </div>
                                                 </div>
                                             )}
+                                            {fsOn && (
+                                                <div className="flex items-center justify-between">
+                                                    <label
+                                                        className="text-[11px]"
+                                                        style={{ color: 'var(--text-secondary)' }}
+                                                    >
+                                                        {t('wf.edit.fullscreenScreen')}
+                                                    </label>
+                                                    <button
+                                                        onClick={() => setO({ fullscreenScreen: !o.fullscreenScreen })}
+                                                        className="relative w-9 h-5 rounded-full transition-colors"
+                                                        style={{
+                                                            background: o.fullscreenScreen
+                                                                ? 'var(--accent)'
+                                                                : 'var(--app-border)',
+                                                        }}
+                                                        data-fullscreen-screen-toggle=""
+                                                    >
+                                                        <span
+                                                            className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                                            style={{ left: o.fullscreenScreen ? '18px' : '2px' }}
+                                                        />
+                                                    </button>
+                                                </div>
+                                            )}
                                             <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                                                 {t('wf.edit.fullscreenHint')}
                                             </p>
+                                            {fsOn && !!o.fullscreenScreen && (
+                                                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                    {t('wf.edit.fullscreenScreenHint')}
+                                                </p>
+                                            )}
                                         </>
                                     )}
                                     {/* "Last change" makes no sense for a map (no single value) — hide it.

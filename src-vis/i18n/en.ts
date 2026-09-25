@@ -1130,6 +1130,9 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.titlePosition': 'Title Position',
     'wf.edit.showLastChange': 'Show Last Change',
     'wf.edit.fullscreenWidget': 'Fullscreen button',
+    'wf.edit.fullscreenScreen': 'Fill the screen',
+    'wf.edit.fullscreenScreenHint':
+        'Also hides the address bar and task bar (browser fullscreen). Not available on iPhone and in some kiosk apps — there it stays inside the window.',
     'wf.edit.fullscreenHint': 'Always visible on touch devices, on hover when there is a mouse.',
     'wf.edit.clickActionIcon': 'Click action icon',
     'wf.edit.clickActionIconDefault': 'Default (by action)',

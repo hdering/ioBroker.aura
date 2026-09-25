@@ -1140,6 +1140,9 @@ export const de = {
     'wf.edit.titlePosition': 'Titel-Position',
     'wf.edit.showLastChange': 'Letzte Änderung anzeigen',
     'wf.edit.fullscreenWidget': 'Vollbild-Knopf',
+    'wf.edit.fullscreenScreen': 'Bildschirmfüllend',
+    'wf.edit.fullscreenScreenHint':
+        'Blendet auch Adressleiste und Taskleiste aus (Browser-Vollbild). Auf dem iPhone und in manchen Kiosk-Apps nicht möglich – dort bleibt es beim Vollbild im Fenster.',
     'wf.edit.fullscreenHint': 'Auf Touch-Geräten immer sichtbar, mit Maus erst beim Überfahren des Widgets.',
     'wf.edit.clickActionIcon': 'Klick-Aktions-Symbol',
     'wf.edit.clickActionIconDefault': 'Standard (je nach Aktion)',

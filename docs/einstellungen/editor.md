@@ -58,6 +58,7 @@ Such- und Filterfelder wirken in beiden Ansichten. Eine Suche klappt die Zweige 
 | --- | --- |
 | Vollbild-Knopf | Aus (Standard) / An |
 | Position | `rechts oben` (Standard), `links oben`, `rechts unten` — umstellen, wenn das Widget dort selbst einen Wert zeigt |
+| Bildschirmfüllend | Aus (Standard) / An — nutzt das Browser-Vollbild, Adress- und Taskleiste verschwinden. War die Seite schon im Vollbild (F11, Kiosk), bleibt sie es. iPhone: nicht möglich, öffnet im Fenster |
 
 Auf Touch-Geräten ist der Knopf dauerhaft sichtbar, mit Maus erst beim Überfahren der Kachel. `Esc` oder das Kreuz schließt. Nicht bei `iFrame`, `Kamera` und `eCharts` — die haben ein eigenes Vollbild.
 

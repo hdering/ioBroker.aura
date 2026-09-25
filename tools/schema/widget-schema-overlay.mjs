@@ -1179,6 +1179,15 @@ export const UNIVERSAL_OPTIONS = {
             'Umstellen, wenn das Widget dort selbst etwas zeichnet — viele Typen setzen ihren aktuellen ' +
             'Wert rechts neben den Titel.',
     },
+    fullscreenScreen: {
+        ts: 'boolean',
+        description:
+            'Nur zusammen mit fullscreenWidget: Das Vollbild füllt den ganzen Bildschirm über die ' +
+            'Vollbild-Schnittstelle des Browsers (Adressleiste und Taskleiste verschwinden), nicht nur das ' +
+            'Browserfenster. Esc oder das Kreuz beenden beides. War die Seite schon im Vollbild (F11, ' +
+            'Kiosk-App), bleibt sie es auch nach dem Schließen. Wo der Browser das nicht erlaubt ' +
+            '(iPhone, manche WebViews), öffnet das Widget wie ohne die Option im Fenster.',
+    },
     defaultCollapsed: {
         ts: 'boolean',
         description:

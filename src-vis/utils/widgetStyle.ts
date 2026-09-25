@@ -78,6 +78,7 @@ const EXTRA_STYLE_KEYS = new Set([
     'colorThresholds',
     // The on/off twin of `fullscreenPosition`, which the suffix list already catches
     'fullscreenWidget',
+    'fullscreenScreen',
     // Density / flow
     'compact',
     'compactMode',
@@ -174,6 +175,7 @@ const FRAME_STYLE_KEYS = [
     'styleOverride',
     'fullscreenWidget',
     'fullscreenPosition',
+    'fullscreenScreen',
     'showTitle',
     'showIcon',
     'iconSize',

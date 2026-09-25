@@ -166,6 +166,65 @@ const overlay = '[data-widget-fullscreen]';
         JSON.stringify(afterChip),
     );
 
+    const scrToggle = page.locator('[data-fullscreen-screen-toggle]');
+    check('der Bildschirm-Schalter erscheint mit dem Knopf', (await scrToggle.count()) === 1);
+    await scrToggle.click();
+    await page.waitForTimeout(250);
+    const afterScr = await page.evaluate(() => window.__auraShot.widgetOptions('fs-cfg'));
+    check('der Schalter schreibt fullscreenScreen', afterScr?.fullscreenScreen === true, JSON.stringify(afterScr));
+
+    await ctx.close();
+}
+
+// ── 6b. Bildschirmfüllend über die Fullscreen-API des Browsers (Issue #711) ──────────
+{
+    const { ctx, page } = await open({});
+    const fsEl = () => page.evaluate(() => !!document.fullscreenElement);
+    const openFs = async (id) => {
+        await page.hover(`[data-aura-widget="${id}"]`);
+        await page.click(btn);
+        await page.waitForTimeout(400);
+    };
+
+    await show(page, [widget('fs-win', 'value', { fullscreenWidget: true })]);
+    await openFs('fs-win');
+    check('ohne Option kein Browser-Vollbild', !(await fsEl()));
+    await page.click('[data-widget-fullscreen-close]');
+    await page.waitForTimeout(300);
+
+    await show(page, [widget('fs-scr', 'value', { fullscreenWidget: true, fullscreenScreen: true })]);
+    await openFs('fs-scr');
+    check('mit Option geht die Seite ins Browser-Vollbild', await fsEl());
+    check('das Overlay ist offen', (await page.locator(overlay).count()) === 1);
+    await page.click('[data-widget-fullscreen-close]');
+    await page.waitForTimeout(400);
+    check('das Kreuz beendet auch das Browser-Vollbild', !(await fsEl()));
+
+    // Esc im echten Vollbild nimmt der Browser selbst — nachgestellt über exitFullscreen.
+    await openFs('fs-scr');
+    await page.evaluate(() => document.exitFullscreen());
+    await page.waitForTimeout(400);
+    check('Verlassen des Browser-Vollbilds schließt das Overlay', (await page.locator(overlay).count()) === 0);
+
+    // War die Seite schon im Vollbild (F11/Kiosk), bleibt sie es nach dem Schließen.
+    await page.evaluate(() => {
+        const b = document.createElement('button');
+        b.id = 'pre-fs';
+        b.textContent = 'fs';
+        b.style.cssText = 'position:fixed;left:0;bottom:0;z-index:99999';
+        b.onclick = () => document.documentElement.requestFullscreen();
+        document.body.appendChild(b);
+    });
+    await page.click('#pre-fs');
+    await page.waitForTimeout(400);
+    await page.evaluate(() => document.getElementById('pre-fs').remove());
+    check('Vorbedingung: Seite schon im Vollbild', await fsEl());
+    await openFs('fs-scr');
+    await page.click('[data-widget-fullscreen-close]');
+    await page.waitForTimeout(400);
+    check('fremdes Vollbild bleibt nach dem Schließen', await fsEl());
+    await page.evaluate(() => document.exitFullscreen());
+
     await ctx.close();
 }
 

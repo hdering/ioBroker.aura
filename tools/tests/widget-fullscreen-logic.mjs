@@ -35,6 +35,10 @@ const {
     fullscreenPosition,
     fullscreenButtonInset,
     cornerRight,
+    fullscreenScreenEnabled,
+    screenIsFullscreen,
+    enterScreenFullscreen,
+    exitScreenFullscreen,
 } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
@@ -95,6 +99,80 @@ for (const type of FULLSCREEN_EXCLUDED_TYPES) {
 eq('the schema offers the same corners', schema.commonOptions?.fullscreenPosition?.enum ?? [], [
     ...FULLSCREEN_POSITIONS,
 ]);
+
+// ── 7. Browser fullscreen on top of the overlay (issue #711) ──
+ok('screen off by default', !fullscreenScreenEnabled({ fullscreenWidget: true }));
+ok('screen needs the button', !fullscreenScreenEnabled({ fullscreenScreen: true }));
+ok('screen on with both', fullscreenScreenEnabled({ fullscreenWidget: true, fullscreenScreen: true }));
+
+/** Minimal document stand-in that records calls. */
+const fakeDoc = ({ already = false, api = 'std', reject = false, throws = false } = {}) => {
+    const calls = [];
+    const doc = { fullscreenElement: already ? {} : null, documentElement: {} };
+    if (api === 'std') {
+        doc.documentElement.requestFullscreen = () => {
+            calls.push('request');
+            if (throws) throw new Error('sync');
+            return reject ? Promise.reject(new Error('denied')) : Promise.resolve();
+        };
+        doc.exitFullscreen = () => {
+            calls.push('exit');
+            return Promise.resolve();
+        };
+    } else if (api === 'webkit') {
+        doc.documentElement.webkitRequestFullscreen = () => calls.push('webkitRequest');
+        doc.webkitExitFullscreen = () => calls.push('webkitExit');
+    }
+    return { doc, calls };
+};
+
+{
+    const { doc, calls } = fakeDoc();
+    ok('requests and owns the screen', enterScreenFullscreen(doc) === true);
+    eq('standard API used', calls, ['request']);
+}
+{
+    const { doc, calls } = fakeDoc({ already: true });
+    ok('already fullscreen (F11/kiosk): not owned', enterScreenFullscreen(doc) === false);
+    eq('no request when already fullscreen', calls, []);
+}
+{
+    const { doc, calls } = fakeDoc({ api: 'webkit' });
+    ok('webkit prefix counts as owned', enterScreenFullscreen(doc) === true);
+    eq('webkit request used', calls, ['webkitRequest']);
+}
+ok('no API (iPhone): not owned', enterScreenFullscreen(fakeDoc({ api: 'none' }).doc) === false);
+ok('a synchronous throw is swallowed', enterScreenFullscreen(fakeDoc({ throws: true }).doc) === false);
+{
+    // A rejected promise must not surface as an unhandled rejection.
+    let unhandled = false;
+    const onRej = () => (unhandled = true);
+    process.on('unhandledRejection', onRej);
+    enterScreenFullscreen(fakeDoc({ reject: true }).doc);
+    await new Promise((r) => setTimeout(r, 20));
+    process.off('unhandledRejection', onRej);
+    ok('a refused request is swallowed', !unhandled);
+}
+{
+    const { doc, calls } = fakeDoc();
+    exitScreenFullscreen(doc);
+    eq('exit is a no-op when not fullscreen', calls, []);
+    doc.fullscreenElement = {};
+    ok('screenIsFullscreen sees the element', screenIsFullscreen(doc));
+    exitScreenFullscreen(doc);
+    eq('exit leaves fullscreen', calls, ['exit']);
+}
+{
+    const { doc, calls } = fakeDoc({ api: 'webkit' });
+    doc.fullscreenElement = undefined;
+    doc.webkitFullscreenElement = {};
+    exitScreenFullscreen(doc);
+    eq('webkit exit used', calls, ['webkitExit']);
+}
+ok(
+    'the schema describes fullscreenScreen',
+    (schema.commonOptions?.fullscreenScreen?.description ?? '').includes('fullscreenWidget'),
+);
 
 const failed = results.filter((r) => !r.ok);
 for (const r of results) console.log(`${r.ok ? '  ✓' : '  ✗'} ${r.name}${r.ok ? '' : ` — ${r.detail}`}`);

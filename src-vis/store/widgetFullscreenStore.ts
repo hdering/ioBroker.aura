@@ -10,6 +10,11 @@ export interface WidgetFullscreenTarget {
      * (group children are kept in useGroupDefsStore, popup-view cells nowhere at all).
      */
     snapshot: WidgetConfig;
+    /**
+     * Aura put the page into browser fullscreen when opening (issue #711), so the
+     * overlay leaves it again on close and closes itself when the browser exits.
+     */
+    ownsScreen?: boolean;
 }
 
 interface WidgetFullscreenStore {

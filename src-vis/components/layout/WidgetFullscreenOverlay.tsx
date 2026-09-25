@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { X } from 'lucide-react';
 import type { WidgetConfig } from '../../types';
 import { useDashboardStore } from '../../store/dashboardStore';
@@ -6,6 +6,7 @@ import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import type { WidgetFullscreenTarget } from '../../store/widgetFullscreenStore';
+import { exitScreenFullscreen, screenIsFullscreen } from '../../utils/fullscreenButton';
 import { WidgetFrame } from './WidgetFrame';
 import { useT } from '../../i18n';
 
@@ -69,6 +70,33 @@ export function WidgetFullscreenOverlay({ target, onClose }: { target: WidgetFul
         window.addEventListener('keydown', onKey);
         return () => window.removeEventListener('keydown', onKey);
     }, [onClose]);
+
+    // Browser fullscreen that the button requested (issue #711). The browser takes
+    // Esc for itself there, so the keydown above never fires — follow its exit
+    // instead. Only a transition out closes: a request that was refused never
+    // enters, and must not shut the overlay it fell back to. Unmounting (the X,
+    // a tab change) hands the screen back.
+    // onClose arrives as a fresh arrow each render; keeping it out of the deps
+    // stops the cleanup from dropping fullscreen on every re-render.
+    const ownsScreen = target.ownsScreen === true;
+    const closeRef = useRef(onClose);
+    closeRef.current = onClose;
+    useEffect(() => {
+        if (!ownsScreen) return;
+        let entered = screenIsFullscreen(document);
+        const onChange = () => {
+            const now = screenIsFullscreen(document);
+            if (entered && !now) closeRef.current();
+            entered = now;
+        };
+        document.addEventListener('fullscreenchange', onChange);
+        document.addEventListener('webkitfullscreenchange', onChange);
+        return () => {
+            document.removeEventListener('fullscreenchange', onChange);
+            document.removeEventListener('webkitfullscreenchange', onChange);
+            exitScreenFullscreen(document);
+        };
+    }, [ownsScreen]);
 
     // The few types that lay themselves out from gridPos (group, panels, jsonTable,
     // mirror) would otherwise keep their small dashboard geometry inside a full
