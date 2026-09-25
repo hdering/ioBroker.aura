@@ -46,6 +46,17 @@ export interface FrontendSettings {
      *  into `tabletCols` columns instead of the desktop grid. 0 (or ≤ mobileBreakpoint) = off. */
     tabletBreakpoint: number;
     tabletCols: number;
+    /** Desktop grid width (#413): 'fixed' keeps every column ≈ gridSnapX px wide (a wider
+     *  window leaves space, a narrower one scrolls); 'fluid' keeps the column count and
+     *  stretches the columns so the widgets fill the window. Heights stay in px. */
+    gridWidthMode: 'fixed' | 'fluid';
+    /** Fluid grid: width in px the layout was designed for. 0 = the width the section's
+     *  widgets occupy, so the content always spans the full window. */
+    fluidDesignWidth: number;
+    /** Fluid grid: smallest factor the design is squeezed to; below it the grid scrolls. */
+    fluidMinScale: number;
+    /** Fluid grid: largest factor the design is stretched to (ultra-wide screens); 0 = no cap. */
+    fluidMaxScale: number;
     language: 'de' | 'en';
     /** Hide the draggable touch scroll indicator over the dashboard grid (mobile/coarse pointers). */
     hideGridScrollbar: boolean;
@@ -201,6 +212,12 @@ export const DEFAULT_FRONTEND: FrontendSettings = {
     // layout or globally in the Grid section.
     tabletBreakpoint: 0,
     tabletCols: 2,
+    // Off by default like the tablet band: a stretched grid would change every
+    // existing dashboard after an update (#413).
+    gridWidthMode: 'fixed',
+    fluidDesignWidth: 0,
+    fluidMinScale: 0.6,
+    fluidMaxScale: 0,
     language: 'de',
     hideGridScrollbar: false,
     // Fresh installs show the guidelines + resolution readout in the frontend so

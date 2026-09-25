@@ -121,6 +121,16 @@ Schriftart, Schriftgrößen und Abstände.
 | Mobile-Spalten             | Spaltenzahl unter dem Mobile-Breakpoint (1–4, Vorgabe 1); breite Widgets belegen anteilig mehrere Spalten |
 | Tablet-Breakpoint          | Fensterbreite, unter der Widgets in Tablet-Spalten fließen (Aus = Desktop-Raster, ggf. mit Scrollbalken); das Bereichs-Menü hat dort seine eigene „Platzierung auf Tablets“ |
 | Tablet-Spalten             | Spaltenzahl im Tablet-Bereich (1–4); breite Widgets belegen anteilig mehrere Spalten |
+| Fensterbreite füllen       | Aus = feste Spaltenbreite (breites Fenster lässt rechts Platz, schmales scrollt). An = Spaltenzahl bleibt, die Widgets strecken sich auf die volle Fensterbreite; Höhen bleiben. Der Editor zeigt die Entwurfsansicht |
+| Entwurfsbreite             | Breite, auf die das Layout gestreckt wird. Auto = belegte Breite des Bereichs (Inhalt füllt immer die volle Breite) |
+| Höchstens stauchen auf     | Schmaler als dieser Anteil der Entwurfsbreite wird nicht gestaucht, darunter wird gescrollt |
+| Höchstens strecken auf     | Obergrenze für sehr breite Bildschirme (Aus = unbegrenzt) |
+
+| Fensterbreite                        | Darstellung                                  |
+| ------------------------------------ | -------------------------------------------- |
+| unter Mobile-Breakpoint              | Mobile-Spalten                               |
+| zwischen Mobile- und Tablet-Breakpoint | Tablet-Spalten                             |
+| darüber                              | Raster — fest oder auf Fensterbreite gestreckt |
 
 ## Verhalten
 

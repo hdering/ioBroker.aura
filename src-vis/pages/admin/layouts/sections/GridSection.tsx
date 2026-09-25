@@ -19,6 +19,10 @@ const GRID_KEYS = [
     'mobileCols',
     'tabletBreakpoint',
     'tabletCols',
+    'gridWidthMode',
+    'fluidDesignWidth',
+    'fluidMinScale',
+    'fluidMaxScale',
     'hideGridScrollbar',
 ] as const;
 
@@ -36,6 +40,11 @@ export function GridSection({ contextId }: GridSectionProps) {
     const [tab, tabOv] = eff('tabletBreakpoint');
     const [tabCols, tabColsOv] = eff('tabletCols');
     const [hideScroll, hideScrollOv] = eff('hideGridScrollbar');
+    const [widthMode, widthModeOv] = eff('gridWidthMode');
+    const [designW, designWOv] = eff('fluidDesignWidth');
+    const [minScale, minScaleOv] = eff('fluidMinScale');
+    const [maxScale, maxScaleOv] = eff('fluidMaxScale');
+    const fluid = (widthMode ?? 'fixed') === 'fluid';
 
     const effectiveRowH = (rowH ?? 20) as number;
     const effectiveSnapX = (snapX ?? effectiveRowH) as number;
@@ -140,6 +149,108 @@ export function GridSection({ contextId }: GridSectionProps) {
                     />
                 }
             />
+            {/* Fluid width (#413): opt-in, the column count stays and the columns
+                stretch to the window. Positions are untouched, so switching back is free. */}
+            <div
+                data-aura-grid-group="width"
+                className="rounded-lg p-4 space-y-4"
+                style={{ border: '1px solid var(--app-border)' }}
+            >
+                <ToggleRow
+                    label={t('settings.grid.fluid')}
+                    hint={t('settings.grid.fluidHint')}
+                    value={fluid}
+                    onChange={(v) => set('gridWidthMode', v ? 'fluid' : 'fixed')}
+                    isOverridden={widthModeOv}
+                    info={
+                        <OverrideState
+                            contextId={contextId}
+                            keys={['gridWidthMode']}
+                            label={t('settings.grid.fluid')}
+                            format={(_, v) =>
+                                v === 'fluid' ? t('settings.grid.fluidOn') : t('settings.grid.fluidOff')
+                            }
+                        />
+                    }
+                />
+                {fluid && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <SliderSetting
+                            label={t('settings.grid.fluidDesignWidth')}
+                            value={(designW ?? 0) as number}
+                            min={0}
+                            max={3840}
+                            step={10}
+                            unit=" px"
+                            onChange={(v) => set('fluidDesignWidth', v)}
+                            isOverridden={designWOv}
+                            info={
+                                <OverrideState
+                                    contextId={contextId}
+                                    keys={['fluidDesignWidth']}
+                                    label={t('settings.grid.fluidDesignWidth')}
+                                    format={(_, v) => (v ? `${v} px` : t('settings.grid.fluidAuto'))}
+                                />
+                            }
+                            presets={[
+                                { label: t('settings.grid.fluidAuto'), value: 0 },
+                                { label: '1024', value: 1024 },
+                                { label: '1280', value: 1280 },
+                                { label: '1920', value: 1920 },
+                            ]}
+                        />
+                        <SliderSetting
+                            label={t('settings.grid.fluidMinScale')}
+                            value={Math.round(((minScale ?? 0.6) as number) * 100)}
+                            min={20}
+                            max={100}
+                            step={5}
+                            unit=" %"
+                            onChange={(v) => set('fluidMinScale', v / 100)}
+                            isOverridden={minScaleOv}
+                            info={
+                                <OverrideState
+                                    contextId={contextId}
+                                    keys={['fluidMinScale']}
+                                    label={t('settings.grid.fluidMinScale')}
+                                    format={(_, v) => `${Math.round(Number(v) * 100)} %`}
+                                />
+                            }
+                            presets={[
+                                { label: '50', value: 50 },
+                                { label: '60', value: 60 },
+                                { label: '80', value: 80 },
+                                { label: '100', value: 100 },
+                            ]}
+                        />
+                        <SliderSetting
+                            label={t('settings.grid.fluidMaxScale')}
+                            value={Math.round(((maxScale ?? 0) as number) * 100)}
+                            min={0}
+                            max={300}
+                            step={10}
+                            unit=" %"
+                            onChange={(v) => set('fluidMaxScale', v / 100)}
+                            isOverridden={maxScaleOv}
+                            info={
+                                <OverrideState
+                                    contextId={contextId}
+                                    keys={['fluidMaxScale']}
+                                    label={t('settings.grid.fluidMaxScale')}
+                                    format={(_, v) =>
+                                        v ? `${Math.round(Number(v) * 100)} %` : t('settings.grid.mobileOff')
+                                    }
+                                />
+                            }
+                            presets={[
+                                { label: t('settings.grid.mobileOff'), value: 0 },
+                                { label: '150', value: 150 },
+                                { label: '200', value: 200 },
+                            ]}
+                        />
+                    </div>
+                )}
+            </div>
             {/* Mobile and tablet belong together: each is a breakpoint plus its column
                 count, so they sit in two labelled boxes side by side (#413). */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

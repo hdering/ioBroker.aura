@@ -25,6 +25,7 @@ import { useT } from '../../i18n';
 import { CustomGridView } from './CustomGridView';
 import { getDragBridge, setDragBridge } from '../../utils/dragBridge';
 import { useDashboardMobile } from '../../contexts/DashboardMobileContext';
+import { useGridScale } from '../../contexts/GridScaleContext';
 import { useGroupDefsStore, newGroupDefId } from '../../store/groupDefsStore';
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { collapsibleWidget } from '../../utils/widgetCollapse';
@@ -137,6 +138,7 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     const cellSize = groupSettings.gridRowHeight ?? 20;
     const gridGap = groupSettings.gridGap ?? 10;
     const dashboardIsMobile = useDashboardMobile();
+    const gridScale = useGridScale();
     const [isDragOver, setIsDragOver] = useState(false);
 
     const containerRef = useRef<HTMLDivElement>(null);
@@ -275,7 +277,10 @@ export function GroupWidget({ config, editMode, onConfigChange }: WidgetProps) {
     // importing a tab authored on a dashboard with different grid settings.
     // Floor the count at designCols so the authored layout is always reproduced
     // (and scaled by RGL to the box width) instead of clamped.
-    const measuredCols = width > 0 ? Math.max(2, Math.floor((width - gridGap) / (cellSize + gridGap))) : 4;
+    // On the fluid grid (#413) the box is stretched by gridScale: measure against the
+    // width it was designed at, so the children stretch along instead of gaining columns.
+    const designWidth = width / (gridScale > 0 ? gridScale : 1);
+    const measuredCols = width > 0 ? Math.max(2, Math.floor((designWidth - gridGap) / (cellSize + gridGap))) : 4;
     const cols = keepGrid ? designCols : !isMobile && width > 0 ? Math.max(measuredCols, designCols) : 4;
     // ── Uniform GROUP_GAP inset + fill ──────────────────────────────────────────
     // Children sit on the outer grid pitch, so a fixed CSS inset would round the

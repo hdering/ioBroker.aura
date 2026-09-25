@@ -1817,6 +1817,18 @@ Warnung, kein Fehler: die Rahmenhöhen sind kalibrierte Schätzungen (das Fronte
 misst sie selbst, der Adapter kann das nicht), und Scrollen darf eine Entscheidung
 sein.
 
+**Fluid-Raster (#413).** Mit `gridWidthMode: 'fluid'` (3-stufig wie das Raster)
+behält das Frontend die Spaltenzahl und streckt die Spalten auf die Fensterbreite
+(`src-vis/utils/gridColumns.ts`); `gridPos.x/w` sind dann Anteile der
+Entwurfsbreite, Höhen bleiben in px. `designCanvas()` liefert `widthMode` und
+`designCols`: bei `fluidDesignWidth > 0` die Spalten dieser Breite (das ist dann
+`maxCols`), bei 0 (automatisch = belegte Breite des Bereichs) `null` — es gibt
+keine rechte Kante, die Breitenwarnung gegen die Hilfslinie entfällt.
+`renderCanvas()`/`renderWidthMode()` sagen den Modus in jeder Antwort mit dazu,
+auch ohne Hilfslinien; `aura_dashboard` markiert solche Bereiche mit
+„[Breite: füllt das Fenster]". Der Editor zeigt weiterhin die feste
+Entwurfsansicht.
+
 **Die Zeile, die ein Bereich nur vorläufig hat.** Aus der Praxis gemeldet: ein
 Bereich mit **einem** Tab wurde auf „endet auf Zeile 42 von 42" gebaut — und jeder
 Tab darin ging kaputt, sobald jemand einen zweiten anlegte. Die Tab-Leiste

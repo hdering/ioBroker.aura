@@ -150,6 +150,7 @@ Setzt eine [Bedingung](./editor) einen Effekt, landet die passende Klasse auf de
 | --- | --- |
 | `.aura-scroll` | Scrollbereich mit dünner Akzent-Scrollleiste |
 | `.aura-scroll-touch` | derselbe Bereich auf Touch-Geräten (native Leiste aus) |
+| `.aura-scroll[data-aura-grid-mode="fluid"]` | Dashboard-Raster im Modus „Fensterbreite füllen“ (sonst `"fixed"`) |
 | `.aura-no-scrollbar` | Scrollbereich ohne sichtbare Leiste |
 | `.aura-bleed-host` · `.aura-bleed-row` · `.aura-bleed-clip` · `.aura-bleed-scroll` | Listenzeilen, die in den Innenabstand der Karte ragen |
 

@@ -2748,6 +2748,29 @@ check('without guidelines the answer says so instead of inventing a size', () =>
     assert.match(renderCanvas(designCanvas({ frontend: TABLET, tabCount: 2 })), /1280×800 px/);
 });
 
+// The fluid grid (#413): the columns stretch to the window, so the guideline width
+// is no right edge any more — only an explicit design width is, and the automatic
+// one (0) has none at all.
+check('the fluid grid has no device edge on the right', () => {
+    const auto = designCanvas({ frontend: { ...TABLET, gridWidthMode: 'fluid' }, tabCount: 2 });
+    assert.equal(auto.widthMode, 'fluid');
+    assert.equal(auto.maxCols, null, 'automatic design width: nothing runs off to the right');
+    assert.equal(auto.maxRows, 23, 'heights stay in px, the row budget is unchanged');
+    assert.match(renderCanvas(auto), /Fensterbreite füllen/);
+    const designed = designCanvas({
+        frontend: { ...TABLET, gridWidthMode: 'fluid', fluidDesignWidth: 1920 },
+        tabCount: 2,
+    });
+    assert.equal(designed.maxCols, 63, 'floor((1920 − 10) / 30)');
+    const fixed = designCanvas({ frontend: TABLET, tabCount: 2 });
+    assert.equal(fixed.widthMode, 'fixed');
+    assert.ok(!/Fensterbreite/.test(renderCanvas(fixed)), 'the fixed grid says nothing about it');
+    // Without guidelines the mode is still reported.
+    const bare = designCanvas({ frontend: { gridRowHeight: 20, gridWidthMode: 'fluid' } });
+    assert.equal(bare.enabled, false);
+    assert.match(renderCanvas(bare), /Fensterbreite füllen/);
+});
+
 check('findTab refuses to guess when a name is ambiguous', () => {
     assert.ok(/mehrfach/.test(findTab(LAYOUTS, { tab: 'Licht' }).error ?? ''));
     assert.equal(findTab(LAYOUTS, { tab: 'Licht', layout: 'Tablet' }).tab.id, 't3');

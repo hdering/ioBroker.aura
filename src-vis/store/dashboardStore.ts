@@ -171,6 +171,10 @@ export interface LayoutSettings {
     mobileCols?: number;
     tabletBreakpoint?: number;
     tabletCols?: number;
+    gridWidthMode?: 'fixed' | 'fluid';
+    fluidDesignWidth?: number;
+    fluidMinScale?: number;
+    fluidMaxScale?: number;
     hideGridScrollbar?: boolean;
     // Guidelines
     guidelinesEnabled?: boolean;

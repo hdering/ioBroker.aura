@@ -35,6 +35,8 @@ import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } fr
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
 import { flowBands, flowModeFor } from '../../utils/flowOrder';
+import { gridColumns } from '../../utils/gridColumns';
+import { GridScaleContext } from '../../contexts/GridScaleContext';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
 import { reportMetric } from '../../utils/perfMetrics';
 import { measureRenderedWidgets, reportSignature, sendRenderReport } from '../../utils/renderReport';
@@ -481,16 +483,14 @@ export function Dashboard({
     }, []);
     const gridEditable = editMode && !coarsePointer;
 
-    // ── compute cols based on horizontal snap width ────────────────────────
-    // col_width = (rglWidth - (cols+1)*MARGIN) / cols ≈ snapX
-    // → cols ≈ (rglWidth - MARGIN) / (snapX + MARGIN)
-    const cols = rglWidth > 0 ? Math.max(2, Math.floor((rglWidth - MARGIN) / (snapX + MARGIN))) : 12;
-
-    // ── prevent widget repositioning in both frontend and admin ──────────────
+    // ── columns and render width of the desktop grid ─────────────────────
     // Keep cols ≥ the maximum column used across all tabs so RGL never clamps
-    // widget positions. If the window is narrower than the design width (frontend)
-    // or opened small (admin), the grid overflows and the container scrolls
-    // horizontally instead of reflowing widgets.
+    // widget positions. On the fixed grid a window narrower than the design width
+    // (frontend) or an admin opened small overflows and the container scrolls
+    // horizontally instead of reflowing widgets. The fluid mode (#413) keeps the
+    // column count and stretches the columns to the window instead — frontend
+    // only: the editor stays the design view on the fixed pitch, so there is room
+    // to drag a widget further right and the frontend follows the new extent.
     const minCols = useMemo(
         () =>
             tabs.reduce(
@@ -499,11 +499,19 @@ export function Dashboard({
             ),
         [tabs],
     );
-
-    const effectiveCols = Math.max(cols, minCols);
-    // When effectiveCols exceeds what fits in rglWidth, compute a wider virtual
-    // width so RGL cell sizes stay consistent with the original design.
-    const effectiveRglWidth = effectiveCols > cols ? effectiveCols * (snapX + MARGIN) + MARGIN : rglWidth;
+    const fluidMode = (settings.gridWidthMode ?? 'fixed') === 'fluid' && !editMode;
+    const gridCols = gridColumns({
+        mode: fluidMode ? 'fluid' : 'fixed',
+        width: rglWidth,
+        snapX,
+        gap: MARGIN,
+        usedCols: minCols,
+        designWidth: settings.fluidDesignWidth ?? 0,
+        minScale: settings.fluidMinScale ?? 0.6,
+        maxScale: settings.fluidMaxScale ?? 0,
+    });
+    const effectiveCols = gridCols.cols;
+    const effectiveRglWidth = gridCols.rglWidth;
 
     // Rescaling when snapX changes is handled in AdminSettings via rescaleAllWidgetsX.
 
@@ -823,6 +831,7 @@ export function Dashboard({
                     <div
                         ref={containerRefCallback}
                         className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2 sm:p-4"
+                        data-aura-grid-mode={gridCols.fluid ? 'fluid' : 'fixed'}
                         style={{
                             scrollbarGutter: 'stable both-edges',
                             ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
@@ -832,6 +841,7 @@ export function Dashboard({
                         {showGuidelines && (
                             <GuidelinesOverlay
                                 width={guidelinesWidth}
+                                showWidth={!gridCols.fluid}
                                 height={guidelinesHeight}
                                 menuInset={guidelinesMenuInset}
                                 editMode={editMode}
@@ -841,7 +851,7 @@ export function Dashboard({
                         )}
                         {resolutionOverlay}
                         {rglWidth > 0 && (
-                            <>
+                            <GridScaleContext.Provider value={gridCols.scale}>
                                 {/* Reflow-hidden widgets from all tabs rendered off-screen so conditions keep evaluating */}
                                 <div
                                     style={{
@@ -1220,7 +1230,7 @@ export function Dashboard({
                                             </div>
                                         );
                                     })}
-                            </>
+                            </GridScaleContext.Provider>
                         )}
                     </div>
                     {coarsePointer && !hideGridScrollbar && (
@@ -1262,6 +1272,7 @@ export function Dashboard({
 // has been opened, the editor falls back to the settings-based estimate.
 function GuidelinesOverlay({
     width,
+    showWidth = true,
     height,
     menuInset,
     editMode,
@@ -1269,6 +1280,8 @@ function GuidelinesOverlay({
     fallbackInset,
 }: {
     width: number;
+    /** False on the fluid grid (#413): it fills any width, a device edge means nothing there. */
+    showWidth?: boolean;
     height: number;
     menuInset: number;
     editMode: boolean;
@@ -1323,38 +1336,40 @@ function GuidelinesOverlay({
                 style={{ position: 'absolute', top: 0, left: 0, width: 0, height: 0, pointerEvents: 'none' }}
             />
             {/* Vertical line: right edge of the target width */}
-            <div
-                aria-hidden
-                style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: lineLeft,
-                    width: 0,
-                    bottom: 0,
-                    borderLeft: '2px dashed rgba(239,68,68,0.85)',
-                    pointerEvents: 'none',
-                    zIndex: 40,
-                }}
-            >
-                <span
+            {showWidth && (
+                <div
+                    aria-hidden
                     style={{
-                        position: 'sticky',
-                        top: 4,
-                        display: 'inline-block',
-                        background: 'rgba(239,68,68,0.85)',
-                        color: '#fff',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        padding: '1px 5px',
-                        borderRadius: 3,
-                        whiteSpace: 'nowrap',
-                        transform: 'translateX(4px)',
-                        lineHeight: 1.6,
+                        position: 'absolute',
+                        top: 0,
+                        left: lineLeft,
+                        width: 0,
+                        bottom: 0,
+                        borderLeft: '2px dashed rgba(239,68,68,0.85)',
+                        pointerEvents: 'none',
+                        zIndex: 40,
                     }}
                 >
-                    {width} px
-                </span>
-            </div>
+                    <span
+                        style={{
+                            position: 'sticky',
+                            top: 4,
+                            display: 'inline-block',
+                            background: 'rgba(239,68,68,0.85)',
+                            color: '#fff',
+                            fontSize: 10,
+                            fontWeight: 600,
+                            padding: '1px 5px',
+                            borderRadius: 3,
+                            whiteSpace: 'nowrap',
+                            transform: 'translateX(4px)',
+                            lineHeight: 1.6,
+                        }}
+                    >
+                        {width} px
+                    </span>
+                </div>
+            )}
             {/* Horizontal line: bottom edge of the target height */}
             <div
                 aria-hidden
