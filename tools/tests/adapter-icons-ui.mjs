@@ -214,6 +214,33 @@ const side = await picker
 check(side.min >= 24, 'sidebar entries keep their height', JSON.stringify(side));
 check(side.scrolls, 'long sidebar scrolls instead of squeezing', JSON.stringify(side));
 
+// "All sources" browses the adapters too: one heading per set, its folders below
+const headings = await picker.locator('div[title]').evaluateAll((els) => els.map((e) => e.getAttribute('title')));
+check(
+    headings.includes('Test mono SVG') && headings.includes('Test vis-2 pack'),
+    'all sources: a heading per adapter',
+    headings.join(','),
+);
+const allIds = await picker
+    .locator('[data-icon-id]')
+    .evaluateAll((els) => els.map((e) => e.getAttribute('data-icon-id')));
+check(
+    allIds.some((id) => id.startsWith('iob:')) && allIds.some((id) => !id.startsWith('iob:')),
+    'all sources: "all" holds Aura and adapter icons',
+);
+await picker.locator('button:has-text("Einfarbig (2)")').click();
+await settle(600);
+const groupIds = await picker
+    .locator('[data-icon-id]')
+    .evaluateAll((els) => els.map((e) => e.getAttribute('data-icon-id')));
+check(
+    JSON.stringify(groupIds) ===
+        '["iob:vis-2-test-pack/pack-solid/fan-off.svg","iob:vis-2-test-pack/pack-solid/fan-on.svg"]',
+    'all sources: an adapter group shows its icons',
+    JSON.stringify(groupIds),
+);
+check((await select.inputValue()) === 'all', 'all sources: browsing a group keeps the source');
+
 // Iconify set: browsable, or an explanation — never a silent empty grid
 const iconifyValue = values.find((v) => v === 'iconify:mdi');
 if (iconifyValue) {

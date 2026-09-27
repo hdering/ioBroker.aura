@@ -174,6 +174,11 @@ const FIXTURES = path.resolve('tools/fixtures/adapter-icons');
         'icons-mfd-svg': { '': [{ file: 'light.svg', isDir: false, stats: { size: 300 } }] },
         'aura.0': { '': [{ file: 'secret.png', isDir: false, stats: { size: 10 } }] },
         'icons-empty': { '': [] },
+        'icons-material-png': {
+            '': [{ file: 'action', isDir: true }],
+            action: [{ file: 'ic_home_black_48dp.png', isDir: false, stats: { size: 500 } }],
+        },
+        'vis-icontwo': { '': [{ file: 'Lights', isDir: true }], Lights: [{ file: 'light_on.png', isDir: false }] },
     };
     const reads = [];
     const adapter = {
@@ -193,6 +198,16 @@ const FIXTURES = path.resolve('tools/fixtures/adapter-icons');
                 'system.adapter.icons-empty': {
                     _id: 'system.adapter.icons-empty',
                     common: { name: 'icons-empty', type: 'visualization-icons', version: '1' },
+                },
+                // An older release still on the old type — icons-material-png 0.1.0
+                'system.adapter.icons-material-png': {
+                    _id: 'system.adapter.icons-material-png',
+                    common: { name: 'icons-material-png', type: 'visualisation', onlyWWW: true, version: '0.1.0' },
+                },
+                // Named like an icon package, web-only, other type
+                'system.adapter.vis-icontwo': {
+                    _id: 'system.adapter.vis-icontwo',
+                    common: { name: 'vis-icontwo', type: 'visualization-widgets', onlyWWW: true, version: '1' },
                 },
                 'system.adapter.aura': {
                     _id: 'system.adapter.aura',
@@ -215,13 +230,15 @@ const FIXTURES = path.resolve('tools/fixtures/adapter-icons');
     };
     const icons = createAdapterIcons({ source: ioBrokerIconSource(adapter) });
     const { json } = await call(icons, '/adapter-icons/sets');
+    const found = (json?.sets || []).map((s) => s.id).sort();
     check(
-        'iob: only icon adapters with files',
-        JSON.stringify(json?.sets.map((s) => s.id)) === '["icons-mfd-svg"]',
-        JSON.stringify(json),
+        'iob: icon adapters with files, old type and name rule included, aura left out',
+        JSON.stringify(found) === '["icons-material-png","icons-mfd-svg","vis-icontwo"]',
+        JSON.stringify(found),
     );
-    check('iob: german title preferred', json?.sets[0]?.title === 'MFD Icons');
-    check('iob: licence from common', json?.sets[0]?.license === 'CC-BY-SA-4.0');
+    const mfd = (json?.sets || []).find((s) => s.id === 'icons-mfd-svg');
+    check('iob: german title preferred', mfd?.title === 'MFD Icons');
+    check('iob: licence from common', mfd?.license === 'CC-BY-SA-4.0');
     const f = await call(icons, '/adapter-icons/file/icons-mfd-svg/light.svg');
     check('iob: file from adapter storage', f.res.status === 200 && reads.includes('icons-mfd-svg/light.svg'));
     const secret = await call(icons, '/adapter-icons/file/aura.0/secret.png');

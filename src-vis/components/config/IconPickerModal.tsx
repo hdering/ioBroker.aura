@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { Fragment, useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Info, Search, X } from 'lucide-react';
 import { iconLoaded, loadIcons } from '@iconify/react';
@@ -197,6 +197,19 @@ function IconItem({
     );
 }
 
+// ── Sidebar group heading ──────────────────────────────────────────────────────
+function SidebarHeading({ label }: { label: string }) {
+    return (
+        <div
+            className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wide truncate shrink-0"
+            title={label}
+            style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+        >
+            {label}
+        </div>
+    );
+}
+
 // ── Category sidebar button ────────────────────────────────────────────────────
 function CategoryBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
     return (
@@ -324,9 +337,9 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     // File lists: the chosen adapter set — or every set while searching across all sources.
     const wantedLists = useMemo(() => {
         if (sourceKind === 'adapter') return sourceId ? [sourceId] : [];
-        if (sourceKind === 'all' && query.trim().length >= 2) return adapterSets.map((s) => s.id);
+        if (sourceKind === 'all') return adapterSets.map((s) => s.id);
         return [];
-    }, [sourceKind, sourceId, query, adapterSets]);
+    }, [sourceKind, sourceId, adapterSets]);
     useEffect(() => {
         let cancelled = false;
         for (const id of wantedLists) {
@@ -439,7 +452,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     }, [query, needsOnline, sourceKind, sourceId]);
 
     // Sidebar: curated categories, the set's own categories, or the adapter's folders.
-    const sidebar = useMemo<{ id: string; label: string; count: number }[]>(() => {
+    const sidebar = useMemo<{ id: string; label: string; count: number; heading?: string }[]>(() => {
         if (sourceKind === 'iconify') {
             if (!collection) return [];
             return Object.entries(collection.categories)
@@ -475,13 +488,52 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                             : a.label.localeCompare(b.label),
                 );
         }
-        return ICON_CATEGORIES.map((cat) => ({
-            id: cat.id,
-            label: cat.label,
-            count: cat.icons.filter((n) => !missingIds.has(toIconifyId(n)) && available(toIconifyId(n))).length,
-        })).filter((c) => c.count > 0);
+        const curated: { id: string; label: string; count: number; heading?: string }[] = ICON_CATEGORIES.map(
+            (cat) => ({
+                id: cat.id,
+                label: cat.label,
+                count: cat.icons.filter((n) => !missingIds.has(toIconifyId(n)) && available(toIconifyId(n))).length,
+            }),
+        ).filter((c) => c.count > 0);
+        if (curated.length) curated[0].heading = t('iconPicker.groupAura');
+        // "All sources" browses the installed adapters too — each under its own
+        // heading with its folders / packs, like the adapter source shows them.
+        for (const set of adapterSets) {
+            const counts = new Map<string, number>();
+            for (const f of adapterFiles[set.id] ?? []) {
+                const folder = f.includes('/') ? f.slice(0, f.indexOf('/')) : ROOT_FOLDER;
+                counts.set(folder, (counts.get(folder) ?? 0) + 1);
+            }
+            let first = true;
+            for (const [folder, count] of counts) {
+                curated.push({
+                    id: `@${set.id}/${folder === ROOT_FOLDER ? '' : folder}`,
+                    label:
+                        folder === ROOT_FOLDER
+                            ? counts.size > 1
+                                ? t('iconPicker.rootFolder')
+                                : t('common.all')
+                            : (set.folderLabels?.[folder] ?? folder),
+                    count,
+                    heading: first ? set.title : undefined,
+                });
+                first = false;
+            }
+        }
+        return curated;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sourceKind, sourceId, collection, adapterFiles, missingIds, t, offlineOnly, cachedIds, adapterSet]);
+    }, [
+        sourceKind,
+        sourceId,
+        collection,
+        adapterFiles,
+        adapterSets,
+        missingIds,
+        t,
+        offlineOnly,
+        cachedIds,
+        adapterSet,
+    ]);
 
     const adapterIdsOf = (setId: string, files: string[]) => {
         const set = adapterSets.find((s) => s.id === setId);
@@ -535,7 +587,19 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         }
 
         if (categoryId === 'all') {
-            return validIds;
+            const out = [...validIds];
+            for (const set of adapterSets) out.push(...adapterIdsOf(set.id, adapterFiles[set.id] ?? []));
+            return out;
+        }
+
+        if (categoryId.startsWith('@')) {
+            const slash = categoryId.indexOf('/');
+            const setId = categoryId.slice(1, slash);
+            const folder = categoryId.slice(slash + 1);
+            const files = (adapterFiles[setId] ?? []).filter((f) =>
+                folder ? f.startsWith(`${folder}/`) : !f.includes('/'),
+            );
+            return adapterIdsOf(setId, files);
         }
 
         const cat = ICON_CATEGORIES.find((c) => c.id === categoryId);
@@ -570,7 +634,8 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
             ? (adapterFiles[sourceId]?.length ?? 0)
             : sourceKind === 'iconify'
               ? (collection?.names.filter((n) => available(`${sourceId}:${n}`)).length ?? 0)
-              : validIds.filter(available).length;
+              : validIds.filter(available).length +
+                adapterSets.reduce((n, set) => n + (adapterFiles[set.id]?.length ?? 0), 0);
     const loading =
         onlineLoading ||
         collectionLoading ||
@@ -779,16 +844,26 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                                 }}
                             />
                             {sidebar.map((cat) => (
-                                <CategoryBtn
-                                    key={cat.id}
-                                    label={`${cat.label} (${cat.count})`}
-                                    active={!query && categoryId === cat.id}
-                                    onClick={() => {
-                                        setQuery('');
-                                        setCategoryId(cat.id);
-                                    }}
-                                />
+                                <Fragment key={cat.id}>
+                                    {cat.heading && <SidebarHeading label={cat.heading} />}
+                                    <CategoryBtn
+                                        label={`${cat.label} (${cat.count})`}
+                                        active={!query && categoryId === cat.id}
+                                        onClick={() => {
+                                            setQuery('');
+                                            setCategoryId(cat.id);
+                                        }}
+                                    />
+                                </Fragment>
                             ))}
+                            {sourceKind === 'all' && iconifySets.length > 0 && (
+                                <p
+                                    className="px-3 pt-3 pb-2 text-[10px] leading-snug shrink-0"
+                                    style={{ color: 'var(--text-secondary)' }}
+                                >
+                                    {t('iconPicker.iconifyNote')}
+                                </p>
+                            )}
                         </div>
                     )}
 
