@@ -31,7 +31,8 @@ function sameIcon(a: string, b: string): boolean {
 
 // ── Sources (#716) ────────────────────────────────────────────────────────────
 //
-// `all`             curated categories; a query also searches every Iconify set + adapter files
+// `all`             curated categories + every installed adapter; a query also searches every Iconify set
+// `aura`            the curated list only — what Aura brings, available offline once the adapter cached it
 // `iconify:<pfx>`   one Iconify set, browsable without a query
 // `adapter:<name>`  one installed ioBroker icon adapter, straight from its storage
 
@@ -198,14 +199,31 @@ function IconItem({
 }
 
 // ── Sidebar group heading ──────────────────────────────────────────────────────
-function SidebarHeading({ label }: { label: string }) {
+function SidebarHeading({ label, badge, badgeHint }: { label: string; badge?: string; badgeHint?: string }) {
     return (
         <div
-            className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wide truncate shrink-0"
-            title={label}
-            style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+            className="px-3 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-wide shrink-0 flex items-center gap-1.5 min-w-0"
+            title={badgeHint ? `${label} — ${badgeHint}` : label}
+            data-aura-icon-heading={label}
+            style={{ color: 'var(--text-secondary)' }}
         >
-            {label}
+            <span className="truncate" style={{ opacity: 0.8 }}>
+                {label}
+            </span>
+            {badge && (
+                <span
+                    className="shrink-0 px-1.5 rounded-full normal-case tracking-normal font-medium"
+                    data-aura-icon-badge
+                    style={{
+                        fontSize: 9,
+                        lineHeight: '14px',
+                        color: 'var(--accent)',
+                        background: 'color-mix(in srgb, var(--accent) 14%, transparent)',
+                    }}
+                >
+                    {badge}
+                </span>
+            )}
         </div>
     );
 }
@@ -452,7 +470,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     }, [query, needsOnline, sourceKind, sourceId]);
 
     // Sidebar: curated categories, the set's own categories, or the adapter's folders.
-    const sidebar = useMemo<{ id: string; label: string; count: number; heading?: string }[]>(() => {
+    const sidebar = useMemo<{ id: string; label: string; count: number; heading?: string; badge?: boolean }[]>(() => {
         if (sourceKind === 'iconify') {
             if (!collection) return [];
             return Object.entries(collection.categories)
@@ -488,14 +506,17 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                             : a.label.localeCompare(b.label),
                 );
         }
-        const curated: { id: string; label: string; count: number; heading?: string }[] = ICON_CATEGORIES.map(
-            (cat) => ({
+        const curated: { id: string; label: string; count: number; heading?: string; badge?: boolean }[] =
+            ICON_CATEGORIES.map((cat) => ({
                 id: cat.id,
                 label: cat.label,
                 count: cat.icons.filter((n) => !missingIds.has(toIconifyId(n)) && available(toIconifyId(n))).length,
-            }),
-        ).filter((c) => c.count > 0);
-        if (curated.length) curated[0].heading = t('iconPicker.groupAura');
+            })).filter((c) => c.count > 0);
+        if (curated.length) {
+            curated[0].heading = t('iconPicker.groupAura');
+            curated[0].badge = true;
+        }
+        if (sourceKind !== 'all') return curated;
         // "All sources" browses the installed adapters too — each under its own
         // heading with its folders / packs, like the adapter source shows them.
         for (const set of adapterSets) {
@@ -570,6 +591,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
 
         if (q) {
             const local = validIds.filter((id) => id.toLowerCase().includes(q)).sort();
+            if (sourceKind === 'aura') return local;
             const seen = new Set(local);
             const out = [...local];
             const more = offlineOnly && cachedIds ? [...cachedIds].filter((id) => id.includes(q)).sort() : onlineIds;
@@ -587,6 +609,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         }
 
         if (categoryId === 'all') {
+            if (sourceKind === 'aura') return validIds;
             const out = [...validIds];
             for (const set of adapterSets) out.push(...adapterIdsOf(set.id, adapterFiles[set.id] ?? []));
             return out;
@@ -635,7 +658,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
             : sourceKind === 'iconify'
               ? (collection?.names.filter((n) => available(`${sourceId}:${n}`)).length ?? 0)
               : validIds.filter(available).length +
-                adapterSets.reduce((n, set) => n + (adapterFiles[set.id]?.length ?? 0), 0);
+                (sourceKind === 'all' ? adapterSets.reduce((n, set) => n + (adapterFiles[set.id]?.length ?? 0), 0) : 0);
     const loading =
         onlineLoading ||
         collectionLoading ||
@@ -744,6 +767,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                         style={{ ...selectStyle, maxWidth: 360 }}
                     >
                         <option value="all">{t('iconPicker.sourceAll')}</option>
+                        <option value="aura">{t('iconPicker.sourceAura')}</option>
                         <optgroup label={t('iconPicker.groupAdapters')}>
                             {adapterSets.map((s) => (
                                 <option key={s.id} value={`adapter:${s.id}`}>
@@ -845,7 +869,13 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                             />
                             {sidebar.map((cat) => (
                                 <Fragment key={cat.id}>
-                                    {cat.heading && <SidebarHeading label={cat.heading} />}
+                                    {cat.heading && (
+                                        <SidebarHeading
+                                            label={cat.heading}
+                                            badge={cat.badge ? t('iconPicker.offlineBadge') : undefined}
+                                            badgeHint={cat.badge ? t('iconPicker.offlineBadgeHint') : undefined}
+                                        />
+                                    )}
                                     <CategoryBtn
                                         label={`${cat.label} (${cat.count})`}
                                         active={!query && categoryId === cat.id}

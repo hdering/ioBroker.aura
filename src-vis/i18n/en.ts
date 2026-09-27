@@ -2646,8 +2646,12 @@ export const en: Record<TranslationKey, string> = {
     'iconPicker.search': 'Search icons…',
     'iconPicker.source': 'Source',
     'iconPicker.sourceAll': 'All sources',
+    'iconPicker.sourceAura': 'Aura (Iconify icons Lucide and MDI)',
+    'iconPicker.offlineBadge': 'offline',
+    'iconPicker.offlineBadgeHint':
+        'The icons Aura brings. The Aura server loads them once, the first time this picker opens, and keeps them — they also show on devices without internet.',
     'iconPicker.groupAdapters': 'Installed ioBroker adapters',
-    'iconPicker.groupAura': 'Aura selection',
+    'iconPicker.groupAura': 'Aura',
     'iconPicker.iconifyNote': 'Iconify sets (over 200,000 icons): use the search above, or pick one under “Source”.',
     'iconPicker.groupIconify': 'Iconify sets',
     'iconPicker.noAdapters': 'No icon adapter installed',

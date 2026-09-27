@@ -57,6 +57,7 @@ Jedes Icon-Feld öffnet dieselbe Auswahl. Die Titelleiste verschiebt den Dialog.
 | Quelle | |
 | --- | --- |
 | Alle Quellen | Aura-Auswahl nach Kategorien und darunter jeder installierte Icon-Adapter mit seinen Gruppen; die Suche findet zusätzlich Icons aller Iconify-Sets |
+| Aura (Iconify-Icons Lucide und MDI) | Nur die Auswahl, die Aura mitbringt. Markiert mit *offline*: der Aura-Server hält sie nach dem ersten Öffnen vor |
 | Installierte ioBroker-Adapter | Jeder installierte Icon-Adapter (`icons-mfd-svg`, `icons-material-png`, `vis-icontwo` …) und jedes vis-2-Iconset (z. B. *Vis 2 inventwo Iconset*) als eigene Quelle; links seine Ordner bzw. Pakete (*Einfarbig*, *Marken* …) |
 | Iconify-Sets | Ein einzelnes Set, ohne Suche durchblätterbar; links seine Kategorien. Fehlt die Internetverbindung, wird die Gruppe ausgeblendet |
 

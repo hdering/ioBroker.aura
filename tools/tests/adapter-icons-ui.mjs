@@ -215,7 +215,9 @@ check(side.min >= 24, 'sidebar entries keep their height', JSON.stringify(side))
 check(side.scrolls, 'long sidebar scrolls instead of squeezing', JSON.stringify(side));
 
 // "All sources" browses the adapters too: one heading per set, its folders below
-const headings = await picker.locator('div[title]').evaluateAll((els) => els.map((e) => e.getAttribute('title')));
+const headings = await picker
+    .locator('[data-aura-icon-heading]')
+    .evaluateAll((els) => els.map((e) => e.getAttribute('data-aura-icon-heading')));
 check(
     headings.includes('Test mono SVG') && headings.includes('Test vis-2 pack'),
     'all sources: a heading per adapter',
@@ -240,6 +242,30 @@ check(
     JSON.stringify(groupIds),
 );
 check((await select.inputValue()) === 'all', 'all sources: browsing a group keeps the source');
+
+// "Aura": the curated list alone, its heading marked as available offline
+const auraHeading = picker.locator('[data-aura-icon-heading="Aura"]');
+check((await auraHeading.locator('[data-aura-icon-badge]').count()) === 1, 'aura heading carries the offline badge');
+await select.selectOption('aura');
+await settle(800);
+check(
+    (await select.locator('option[value="aura"]').textContent())?.includes('Lucide') === true,
+    'aura source names Lucide and MDI',
+);
+const auraHeads = await picker
+    .locator('[data-aura-icon-heading]')
+    .evaluateAll((els) => els.map((e) => e.getAttribute('data-aura-icon-heading')));
+check(JSON.stringify(auraHeads) === '["Aura"]', 'aura source lists no adapters', JSON.stringify(auraHeads));
+const auraIds = await picker
+    .locator('[data-icon-id]')
+    .evaluateAll((els) => els.map((e) => e.getAttribute('data-icon-id')));
+check(auraIds.length > 0 && auraIds.every((id) => !id.startsWith('iob:')), 'aura source shows only its own icons');
+await picker.locator('input[placeholder]').first().fill('bulb');
+await settle(1200);
+check((await picker.locator('[data-icon-id^="iob:"]').count()) === 0, 'aura search stays in the curated list');
+await picker.locator('input[placeholder]').first().fill('');
+await select.selectOption('all');
+await settle(600);
 
 // Iconify set: browsable, or an explanation — never a silent empty grid
 const iconifyValue = values.find((v) => v === 'iconify:mdi');

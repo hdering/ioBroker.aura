@@ -2666,8 +2666,12 @@ export const de = {
     'iconPicker.search': 'Icon suchen…',
     'iconPicker.source': 'Quelle',
     'iconPicker.sourceAll': 'Alle Quellen',
+    'iconPicker.sourceAura': 'Aura (Iconify-Icons Lucide und MDI)',
+    'iconPicker.offlineBadge': 'offline',
+    'iconPicker.offlineBadgeHint':
+        'Die Icons, die Aura mitbringt. Der Aura-Server lädt sie beim ersten Öffnen dieser Auswahl einmal und hält sie danach vor — sie erscheinen auch auf Geräten ohne Internet.',
     'iconPicker.groupAdapters': 'Installierte ioBroker-Adapter',
-    'iconPicker.groupAura': 'Aura-Auswahl',
+    'iconPicker.groupAura': 'Aura',
     'iconPicker.iconifyNote':
         'Iconify-Sets (über 200 000 Icons) findest du über die Suche oben oder einzeln unter „Quelle“.',
     'iconPicker.groupIconify': 'Iconify-Sets',
