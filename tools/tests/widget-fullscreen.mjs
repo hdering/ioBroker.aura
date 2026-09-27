@@ -11,7 +11,7 @@
 // Aktions-Knopf aus #527 teilt, statt auf ihm zu liegen.
 //
 // Die reine Platzierungsrechnung steht in tools/tests/widget-fullscreen-logic.mjs.
-import { chromium } from 'playwright';
+import { chromium, firefox } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5173';
 const DESKTOP = { width: 1400, height: 900 };
@@ -225,6 +225,63 @@ const overlay = '[data-widget-fullscreen]';
     check('fremdes Vollbild bleibt nach dem Schließen', await fsEl());
     await page.evaluate(() => document.exitFullscreen());
 
+    await ctx.close();
+}
+
+// ── 6b. Breakpoint-Wechsel im Browser-Vollbild (#711) ────────────────────────────────
+// Das Vollbild vergrößert das Fenster. Kreuzt das einen Breakpoint, wechselt das
+// Dashboard zwischen Raster und Handy-Fluss und hängt das Overlay neu ein — das darf
+// das Vollbild nicht beenden. Firefox vergrößert das Fenster beim Vollbild wirklich
+// (851 → Bildschirmbreite), auf dem Handy im Querformat kommen Status- und
+// Navigationsleiste dazu; Chromium headless nicht, dort per Einstellung nachgestellt.
+{
+    const scrWidget = widget('fs-bp', 'value', { fullscreenWidget: true, fullscreenScreen: true });
+    const state = (page) =>
+        page.evaluate(() => ({
+            fs: !!document.fullscreenElement,
+            ov: !!document.querySelector('[data-widget-fullscreen]'),
+        }));
+    const openBp = async (page) => {
+        await page.hover('[data-aura-widget="fs-bp"]');
+        await page.click(btn);
+        await page.waitForTimeout(800);
+    };
+
+    const ff = await firefox.launch();
+    const fctx = await ff.newContext({ viewport: { width: 851, height: 393 } });
+    const fpage = await fctx.newPage();
+    fpage.on('pageerror', (e) => pageErrors.push(e.message));
+    await fpage.goto(`${BASE}/?shot=1`, { waitUntil: 'domcontentloaded' });
+    await fpage.waitForFunction(() => !!window.__auraShot?.ready, { timeout: 30000 });
+    await fpage.evaluate(() => window.__auraShot.setFrontend({ mobileBreakpoint: 1000 }));
+    await show(fpage, [scrWidget]);
+    await openBp(fpage);
+    const ffState = await state(fpage);
+    check(
+        'Firefox: Vollbild übersteht den Wechsel Handy-Fluss → Raster',
+        ffState.fs && ffState.ov,
+        JSON.stringify(ffState),
+    );
+    await fpage.click('[data-widget-fullscreen-close]');
+    await fpage.waitForTimeout(400);
+    check('Firefox: das Kreuz beendet danach das Browser-Vollbild', !(await state(fpage)).fs);
+    await fctx.close().catch(() => {});
+    await ff.close().catch(() => {});
+
+    const { ctx, page } = await open({});
+    await show(page, [scrWidget]);
+    await openBp(page);
+    await page.evaluate(() => window.__auraShot.setFrontend({ mobileBreakpoint: 2000 }));
+    await page.waitForTimeout(600);
+    const flipped = await state(page);
+    check(
+        'Chromium: Vollbild übersteht den Wechsel Raster → Handy-Fluss',
+        flipped.fs && flipped.ov,
+        JSON.stringify(flipped),
+    );
+    await page.click('[data-widget-fullscreen-close]');
+    await page.waitForTimeout(400);
+    check('Chromium: das Kreuz beendet danach das Browser-Vollbild', !(await state(page)).fs);
     await ctx.close();
 }
 

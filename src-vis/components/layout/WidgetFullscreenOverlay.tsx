@@ -6,7 +6,7 @@ import { useGroupDefsStore } from '../../store/groupDefsStore';
 import { useEffectiveSettings } from '../../hooks/useEffectiveSettings';
 import { useActiveLayoutId } from '../../contexts/ActiveLayoutContext';
 import type { WidgetFullscreenTarget } from '../../store/widgetFullscreenStore';
-import { exitScreenFullscreen, screenIsFullscreen } from '../../utils/fullscreenButton';
+import { screenIsFullscreen } from '../../utils/fullscreenButton';
 import { WidgetFrame } from './WidgetFrame';
 import { useT } from '../../i18n';
 
@@ -74,10 +74,12 @@ export function WidgetFullscreenOverlay({ target, onClose }: { target: WidgetFul
     // Browser fullscreen that the button requested (issue #711). The browser takes
     // Esc for itself there, so the keydown above never fires — follow its exit
     // instead. Only a transition out closes: a request that was refused never
-    // enters, and must not shut the overlay it fell back to. Unmounting (the X,
-    // a tab change) hands the screen back.
+    // enters, and must not shut the overlay it fell back to. Handing the screen
+    // back is the store's job (setTarget(null)), not this cleanup's: the overlay
+    // remounts when entering fullscreen flips the Dashboard between grid and
+    // phone flow, and must stay fullscreen across that.
     // onClose arrives as a fresh arrow each render; keeping it out of the deps
-    // stops the cleanup from dropping fullscreen on every re-render.
+    // saves re-subscribing on every re-render.
     const ownsScreen = target.ownsScreen === true;
     const closeRef = useRef(onClose);
     closeRef.current = onClose;
@@ -94,7 +96,6 @@ export function WidgetFullscreenOverlay({ target, onClose }: { target: WidgetFul
         return () => {
             document.removeEventListener('fullscreenchange', onChange);
             document.removeEventListener('webkitfullscreenchange', onChange);
-            exitScreenFullscreen(document);
         };
     }, [ownsScreen]);
 
