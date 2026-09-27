@@ -50,6 +50,28 @@ Such- und Filterfelder wirken in beiden Ansichten. Eine Suche klappt die Zweige 
 
 ![](./assets/dp-picker-baum.png)
 
+## Icon wählen
+
+Jedes Icon-Feld öffnet dieselbe Auswahl. Die Titelleiste verschiebt den Dialog.
+
+| Quelle | |
+| --- | --- |
+| Alle Quellen | Aura-Auswahl nach Kategorien; eine Suche durchsucht zusätzlich alle Iconify-Sets und die Dateinamen installierter Icon-Adapter |
+| Installierte ioBroker-Adapter | Jeder installierte Icon-Adapter (`icons-mfd-svg`, `icons-material-png`, `vis-icontwo` …) als eigene Quelle; links seine Ordner |
+| Iconify-Sets | Ein einzelnes Set, ohne Suche durchblätterbar; links seine Kategorien. Fehlt die Internetverbindung, wird die Gruppe ausgeblendet |
+
+| Option | |
+| --- | --- |
+| Nur offline verfügbare | Nur Icons, die der Adapter schon vorhält, plus Adapter-Icons. Vorbelegt, wenn das Layout [Icons für Offline-Geräte vorladen](./layouts#icons) nutzt |
+| Originalfarben | Nur bei SVG-Adaptern: Icon behält seine Farben. Bei bunten Sets vorbelegt |
+
+| Adapter-Icons | |
+| --- | --- |
+| SVG | Wird in der Icon-Farbe gezeichnet, Farbregeln wirken |
+| SVG mit Originalfarben, PNG, GIF | Eigene Farben; Icon-Farbe und Farbregeln wirken nicht |
+| Adapter deinstalliert | Das Widget zeigt sein Standard-Icon |
+| Lizenz | Die Icons liefert der installierte Adapter aus, Aura enthält keine davon. Es gelten die Bedingungen des Adapters (bei Icons8-Grafiken z. B. ein Link auf icons8.com) |
+
 ## Vollbild
 
 `Bearbeiten` → **Darstellung** → `Vollbild-Knopf`. Blendet einen Knopf in die Ecke der Kachel ein, der das Widget bildschirmfüllend öffnet.

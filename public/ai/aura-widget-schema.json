@@ -130,7 +130,7 @@
     },
     "icon": {
       "type": "string",
-      "description": "Lucide-Icon-Name (z. B. \"Lightbulb\", \"Thermometer\"). Leer = Standard-Icon des Typs."
+      "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, PNG hat immer eigene Farben). Leer = Standard-Icon des Typs."
     },
     "contentPosition": {
       "type": "string",
@@ -5845,7 +5845,7 @@
         "icon": {
           "type": "string",
           "default": "ScrollText",
-          "description": "Lucide-Icon-Name (z. B. \"Lightbulb\", \"Thermometer\"). Leer = Standard-Icon des Typs."
+          "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, PNG hat immer eigene Farben). Leer = Standard-Icon des Typs."
         },
         "levels": {
           "type": "array",
@@ -5954,7 +5954,7 @@
         "icon": {
           "type": "string",
           "default": "ServerCog",
-          "description": "Lucide-Icon-Name (z. B. \"Lightbulb\", \"Thermometer\"). Leer = Standard-Icon des Typs."
+          "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, PNG hat immer eigene Farben). Leer = Standard-Icon des Typs."
         },
         "showFilter": {
           "type": "boolean",
@@ -6230,7 +6230,7 @@
         "icon": {
           "type": "string",
           "default": "ShieldAlert",
-          "description": "Lucide-Icon-Name (z. B. \"Lightbulb\", \"Thermometer\"). Leer = Standard-Icon des Typs."
+          "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, PNG hat immer eigene Farben). Leer = Standard-Icon des Typs."
         },
         "logLines": {
           "type": "number",
@@ -11347,7 +11347,7 @@
         "icon": {
           "type": "string",
           "default": "Activity",
-          "description": "Lucide-Icon-Name (z. B. \"Lightbulb\", \"Thermometer\"). Leer = Standard-Icon des Typs."
+          "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, PNG hat immer eigene Farben). Leer = Standard-Icon des Typs."
         },
         "linkToEditor": {
           "type": "boolean",
@@ -11971,7 +11971,7 @@
         "icon": {
           "type": "string",
           "default": "BellRing",
-          "description": "Lucide-Icon-Name (z. B. \"Lightbulb\", \"Thermometer\"). Leer = Standard-Icon des Typs."
+          "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, PNG hat immer eigene Farben). Leer = Standard-Icon des Typs."
         },
         "layoutFilter": {
           "type": "string",
@@ -12208,7 +12208,7 @@
         "icon": {
           "type": "string",
           "default": "Code2",
-          "description": "Lucide-Icon-Name (z. B. \"Lightbulb\", \"Thermometer\"). Leer = Standard-Icon des Typs."
+          "description": "Icon: Lucide-Name (\"Lightbulb\"), Iconify-ID (\"mdi:garage\") oder Datei eines installierten ioBroker-Icon-Adapters (\"iob:<adapter>/<pfad>\", z. B. \"iob:icons-mfd-svg/light_light_dim_100.svg\"; Endung \"#original\" behält die Farben einer SVG, PNG hat immer eigene Farben). Leer = Standard-Icon des Typs."
         },
         "searchScope": {
           "type": "string",

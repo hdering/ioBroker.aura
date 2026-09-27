@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Globe2, LayoutDashboard, Layers } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout, type Section } from '../../store/dashboardStore';
 import { useT } from '../../i18n';
 
@@ -37,6 +36,7 @@ import { LayoutMenuSection } from './layouts/sections/LayoutMenuSection';
 import { NavigationSection } from './layouts/sections/NavigationSection';
 import { IconsSection } from './layouts/sections/IconsSection';
 import { ValueFormatSection } from './layouts/sections/ValueFormatSection';
+import { AuraIcon } from '../../components/common/AuraIcon';
 
 // ── ActiveSection ─────────────────────────────────────────────────────────────
 // One card (group) per tab. The global-only groups that used to hide inside
@@ -87,10 +87,10 @@ function ActiveSection({ subTab, contextId }: { subTab: SubTab; contextId: strin
 }
 
 function layoutIcon(l: DashboardLayout) {
-    return l.icon ? <Icon icon={l.icon} width={13} height={13} /> : <LayoutDashboard size={13} />;
+    return l.icon ? <AuraIcon icon={l.icon} width={13} height={13} /> : <LayoutDashboard size={13} />;
 }
 function sectionIcon(s: Section) {
-    return s.icon ? <Icon icon={s.icon} width={12} height={12} /> : <Layers size={12} />;
+    return s.icon ? <AuraIcon icon={s.icon} width={12} height={12} /> : <Layers size={12} />;
 }
 
 // ── AdminDesign ───────────────────────────────────────────────────────────────

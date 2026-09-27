@@ -12,3 +12,4 @@
 - JSON table - columns can now have their own background and text colour ("Colours" switch in the column settings) (#715)
 - Chart - value labels on the highest bar or point no longer run into the legend or get cut off at the top edge (#713)
 - Chart (advanced) - boolean datapoints plot as 0/1 on a clean 0…1 axis and draw as a step line by default; new "Step line" switch and "Texts instead of numbers" per series (e.g. 0=On; 1=Off), prefilled from the datapoint's own states (#718)
+- Icon picker - icons of installed ioBroker icon adapters (e.g. icons-mfd-svg, icons-material-png, vis-icontwo) can now be picked, straight from the adapter; new "Source" filter for adapters and single Iconify sets, "Offline only" filter, and the dialog can be moved (#716)

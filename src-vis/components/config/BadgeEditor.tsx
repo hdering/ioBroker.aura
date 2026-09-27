@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Plus, Trash2, ChevronDown, ChevronRight, Database } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { DatapointPicker } from './DatapointPicker';
 import { JsonPathButton } from './JsonPathButton';
 import { IconPickerModal } from './IconPickerModal';
@@ -14,6 +13,7 @@ import {
 } from '../../utils/conditionSources';
 import type { BadgeAggregate, BadgeAggregateMode, BadgeDef, BadgeStyle, BadgeCorner } from '../../types';
 import { useT } from '../../i18n';
+import { AuraIcon } from '../common/AuraIcon';
 
 const inputStyle: React.CSSProperties = {
     background: 'var(--app-bg)',
@@ -274,7 +274,7 @@ function BadgeRule({
                                     title={t('badge.icon')}
                                 >
                                     {badge.icon ? (
-                                        <Icon icon={badge.icon} width={13} height={13} />
+                                        <AuraIcon icon={badge.icon} width={13} height={13} />
                                     ) : (
                                         <Plus size={11} />
                                     )}

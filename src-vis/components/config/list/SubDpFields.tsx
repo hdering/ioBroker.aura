@@ -18,7 +18,6 @@
  */
 import { useEffect, useMemo, useState } from 'react';
 import { ChevronRight, Clock, Database, Plus, Trash2, X } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import type { EntrySubDp } from '../../widgets/EntrySubLine';
 import { DatapointPicker } from '../DatapointPicker';
 import { IconPickerModal } from '../IconPickerModal';
@@ -33,6 +32,7 @@ import { ensureDatapointCache, lookupDatapointEntry, type DatapointEntry } from 
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import { dpVarMap, subAll } from '../../../utils/popupPlaceholders';
 import { toSubDpTemplateId } from '../../../utils/subDpTemplate';
+import { AuraIcon } from '../../common/AuraIcon';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -357,7 +357,7 @@ export function SubDpFields({
                                                 style={{ ...iSty, height: 23 }}
                                             >
                                                 {sub.icon ? (
-                                                    <Icon icon={toIconifyId(sub.icon)} width={14} height={14} />
+                                                    <AuraIcon icon={toIconifyId(sub.icon)} width={14} height={14} />
                                                 ) : (
                                                     <Plus
                                                         size={12}

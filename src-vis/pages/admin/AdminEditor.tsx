@@ -33,7 +33,6 @@ import {
     Search,
 } from 'lucide-react';
 import { ImportWidgetDialog } from '../../components/config/ImportWidgetDialog';
-import { Icon } from '@iconify/react';
 import { getWidgetIcon } from '../../utils/widgetIconMap';
 import { flowOrderField, sortForFlow, tabletBandActive, type FlowMode } from '../../utils/flowOrder';
 import { FlowSettingsLink, TabletOrderPanel } from './editor/TabletOrderPanel';
@@ -82,6 +81,7 @@ import {
 import { slugify } from '../../utils/slugify';
 import { exportTab } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../../components/config/ExportAnonymizeDialog';
+import { AuraIcon } from '../../components/common/AuraIcon';
 
 // ── Recently used templates (persisted in localStorage) ──────────────────────
 const RECENT_TEMPLATES_KEY = 'aura-recent-templates';
@@ -1792,7 +1792,7 @@ const TabBar = memo(function TabBar() {
                                     }}
                                 >
                                     {settingsTab.icon ? (
-                                        <Icon
+                                        <AuraIcon
                                             icon={settingsTab.icon}
                                             width={14}
                                             height={14}

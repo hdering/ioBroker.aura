@@ -5,7 +5,6 @@
  */
 import { useState } from 'react';
 import { ArrowDown, ArrowUp, Database, Plus, Trash2 } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { ClauseList, ColorField } from './ConditionEditor';
@@ -25,6 +24,7 @@ import type {
     WidgetConfig,
 } from '../../types';
 import { useT, type TranslationKey } from '../../i18n';
+import { AuraIcon } from '../common/AuraIcon';
 
 const inputStyle: React.CSSProperties = {
     background: 'var(--app-bg)',
@@ -282,7 +282,7 @@ function ItemRow({
                         style={inputStyle}
                         data-header-item-icon=""
                     >
-                        {item.icon ? <Icon icon={item.icon} width={13} height={13} /> : <Plus size={11} />}
+                        {item.icon ? <AuraIcon icon={item.icon} width={13} height={13} /> : <Plus size={11} />}
                     </button>
                     {item.icon && (
                         <button

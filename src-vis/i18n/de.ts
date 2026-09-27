@@ -2660,6 +2660,36 @@ export const de = {
     'hdr.cond': 'Nur anzeigen, wenn …',
     'hdr.moveUp': 'Nach oben',
     'hdr.moveDown': 'Nach unten',
+
+    // ── Icon picker (#716) ──────────────────────────────────────────────────────
+    'iconPicker.title': 'Icon auswählen',
+    'iconPicker.search': 'Icon suchen…',
+    'iconPicker.source': 'Quelle',
+    'iconPicker.sourceAll': 'Alle Quellen',
+    'iconPicker.groupAdapters': 'Installierte ioBroker-Adapter',
+    'iconPicker.groupIconify': 'Iconify-Sets',
+    'iconPicker.noAdapters': 'Kein Icon-Adapter installiert',
+    'iconPicker.offlineOnly': 'Nur offline verfügbare',
+    'iconPicker.offlineOnlyHint':
+        'Nur Icons zeigen, die der Adapter schon in seinem Cache hat, dazu die Icons installierter Adapter. Diese erscheinen auch auf Geräten ohne Internet. Ist beim Layout „Icons offline“ eingeschaltet, ist der Filter vorbelegt.',
+    'iconPicker.keepColours': 'Originalfarben',
+    'iconPicker.hintRaster':
+        'Bild-Icons (PNG/GIF) behalten ihre eigenen Farben – Icon-Farbe, Farbregeln und Farbwechsel je Zustand wirken bei ihnen nicht.',
+    'iconPicker.hintTinted':
+        'SVG-Icons werden in der Icon-Farbe gezeichnet, Farbregeln wirken wie gewohnt. Mehrfarbige Icons werden dabei einfarbig – dafür „Originalfarben“ wählen.',
+    'iconPicker.hintOriginal':
+        'Originalfarben: Das Icon behält seine eigenen Farben – Icon-Farbe und Farbregeln wirken nicht.',
+    'iconPicker.hintLicense':
+        'Die Icons kommen aus dem installierten Adapter „{adapter}“ und fehlen, wenn er deinstalliert wird. Es gelten dessen Lizenzbedingungen',
+    'iconPicker.rootFolder': '(Hauptordner)',
+    'iconPicker.searching': 'Suche…',
+    'iconPicker.searchingOnline': 'sucht online…',
+    'iconPicker.setOffline':
+        'Die Icon-Liste dieses Sets ist gerade nicht erreichbar (keine Internetverbindung oder der Iconify-Server bremst zu viele Anfragen). Die Suche oben funktioniert trotzdem.',
+    'iconPicker.none': 'Keine Icons gefunden',
+    'iconPicker.more': '{n} weitere anzeigen',
+    'iconPicker.count': '{n} Icons',
+    'iconPicker.remove': 'Entfernen',
 } as const;
 
 export type TranslationKey = keyof typeof de;

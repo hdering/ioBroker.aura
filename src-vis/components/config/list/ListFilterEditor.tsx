@@ -14,7 +14,6 @@
  */
 import { useMemo, useState } from 'react';
 import { ChevronRight, Copy, Plus, Trash2, X } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../IconPickerModal';
 import { useTemplateValues } from '../../../hooks/useTemplateValues';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
@@ -33,6 +32,7 @@ import {
     type ListFilterRule,
     type ListFilterSource,
 } from '../../../utils/listFilter';
+import { AuraIcon } from '../../common/AuraIcon';
 
 /** One list row as the CONFIG knows it — values are read live in here. */
 export interface EditorFilterRow {
@@ -180,7 +180,7 @@ export function ListFilterEditor({
                                 style={{ ...iSty, width: 26, height: 24 }}
                             >
                                 {PresetIcon ? (
-                                    <Icon icon={PresetIcon} width={13} height={13} />
+                                    <AuraIcon icon={PresetIcon} width={13} height={13} />
                                 ) : (
                                     <Plus size={11} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
                                 )}

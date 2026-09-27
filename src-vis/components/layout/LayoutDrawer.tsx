@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Menu, X, LayoutDashboard, Lock } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { useDashboardStore } from '../../store/dashboardStore';
 import type { Section, LayoutMenuItem } from '../../store/dashboardStore';
 import { useConfigStore } from '../../store/configStore';
@@ -16,6 +15,7 @@ import { Badge } from '../common/Badge';
 import type { BadgeSize } from '../../types';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import { SECTION_DRAWER_OVERLAY_W } from '../../utils/menuItems';
+import { AuraIcon } from '../common/AuraIcon';
 
 export type LayoutDrawerSize = 'sm' | 'md' | 'lg';
 
@@ -349,7 +349,7 @@ export function LayoutDrawer({
                                 }}
                             >
                                 {section.icon ? (
-                                    <Icon icon={section.icon} width={iconSize} height={iconSize} />
+                                    <AuraIcon icon={section.icon} width={iconSize} height={iconSize} />
                                 ) : (
                                     <LayoutDashboard size={iconSize} />
                                 )}
@@ -452,7 +452,7 @@ export function LayoutDrawer({
                             style={{ color: navIcon(isActive) }}
                         >
                             {section.icon ? (
-                                <Icon icon={section.icon} width={iconSize} height={iconSize} />
+                                <AuraIcon icon={section.icon} width={iconSize} height={iconSize} />
                             ) : (
                                 <LayoutDashboard size={iconSize} />
                             )}

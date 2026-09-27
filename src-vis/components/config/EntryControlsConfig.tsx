@@ -5,7 +5,6 @@
  */
 import { useEffect, useState } from 'react';
 import { X, Database, Wand2, Plus } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { ImagePathHint } from './ImagePathHint';
@@ -28,6 +27,7 @@ import {
     WC_FALLBACK,
     WC_FALLBACK_ICON_NAME,
 } from '../../utils/windowContact';
+import { AuraIcon } from '../common/AuraIcon';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -409,7 +409,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                                 style={{ ...iSty, height: 28 }}
                                             >
                                                 {entry[key] ? (
-                                                    <Icon icon={toIconifyId(entry[key]!)} width={16} height={16} />
+                                                    <AuraIcon icon={toIconifyId(entry[key]!)} width={16} height={16} />
                                                 ) : (
                                                     <Plus
                                                         size={13}
@@ -1517,7 +1517,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                             style={{ ...iSty, width: 26, height: 26 }}
                                         >
                                             {p.icon ? (
-                                                <Icon icon={toIconifyId(p.icon)} width={14} height={14} />
+                                                <AuraIcon icon={toIconifyId(p.icon)} width={14} height={14} />
                                             ) : (
                                                 <Plus
                                                     size={12}
@@ -1755,7 +1755,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                     style={{ ...iSty, width: 26, height: 26 }}
                                 >
                                     {s.icon ? (
-                                        <Icon icon={toIconifyId(s.icon)} width={14} height={14} />
+                                        <AuraIcon icon={toIconifyId(s.icon)} width={14} height={14} />
                                     ) : (
                                         <Plus size={12} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
                                     )}
@@ -1944,7 +1944,7 @@ export function EntryControlsConfig({ entry, onUpdate, hideLabel, autoLabel }: P
                                     className="shrink-0 flex items-center justify-center rounded hover:opacity-80"
                                     style={{ ...iSty, width: 26, height: 26 }}
                                 >
-                                    <Icon
+                                    <AuraIcon
                                         icon={toIconifyId(ov?.icon || WC_FALLBACK_ICON_NAME[st])}
                                         width={14}
                                         height={14}

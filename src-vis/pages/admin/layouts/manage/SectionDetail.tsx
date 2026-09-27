@@ -20,7 +20,6 @@ import {
     Trash2,
     Layers,
 } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout, type Section, type Tab } from '../../../../store/dashboardStore';
 import { IconPickerModal } from '../../../../components/config/IconPickerModal';
 import { ExportAnonymizeDialog } from '../../../../components/config/ExportAnonymizeDialog';
@@ -44,6 +43,7 @@ import {
 } from './pieces';
 import { layoutHash, sectionIconNode } from './LayoutTree';
 import { countWidgets } from './LayoutDetail';
+import { AuraIcon } from '../../../../components/common/AuraIcon';
 
 interface SectionDetailProps {
     layout: DashboardLayout;
@@ -532,7 +532,7 @@ function TabList({ layout, section }: { layout: DashboardLayout; section: Sectio
                                 className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                                 style={{ background: 'var(--app-bg)', color: 'var(--text-secondary)' }}
                             >
-                                {tab.icon ? <Icon icon={tab.icon} width={15} height={15} /> : <Layers size={15} />}
+                                {tab.icon ? <AuraIcon icon={tab.icon} width={15} height={15} /> : <Layers size={15} />}
                             </span>
                             <div className="flex-1 min-w-0">
                                 <span className="flex items-center gap-2 min-w-0">

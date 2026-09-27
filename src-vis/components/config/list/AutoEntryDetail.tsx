@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../../types';
 import type { AutoListEntry } from '../../widgets/AutoListWidget';
 import { ColorField, DetailSection, pinSwitchIconSize } from './listFieldUi';
@@ -20,6 +19,7 @@ import type { EntrySubDp } from '../../widgets/EntrySubLine';
 import type { EntryControlConfig } from '../../widgets/entryControls';
 import { applyListDisplay } from '../../../utils/listDisplayDefaults';
 import { isStampSub } from '../../../utils/subDpStamp';
+import { AuraIcon } from '../../common/AuraIcon';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -135,11 +135,11 @@ export function AutoEntryDetail({
                                 style={{ ...iSty, height: 23 }}
                             >
                                 {entry.icon ? (
-                                    <Icon icon={toIconifyId(entry.icon)} width={15} height={15} />
+                                    <AuraIcon icon={toIconifyId(entry.icon)} width={15} height={15} />
                                 ) : listIcon ? (
                                     /* The list icon this row draws — faint, because it is not this
                                        row's own; picking one here replaces it for this row. */
-                                    <Icon
+                                    <AuraIcon
                                         icon={toIconifyId(listIcon)}
                                         width={15}
                                         height={15}

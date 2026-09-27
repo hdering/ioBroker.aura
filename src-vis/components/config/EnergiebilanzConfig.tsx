@@ -7,7 +7,6 @@
  */
 import { useState, useEffect, useRef } from 'react';
 import { Database, X, Plus, ChevronUp, ChevronDown, Settings2 } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import { REST_COLOR, OVER_COLOR } from '../widgets/EnergiebilanzWidget';
 import type { EnergyBalanceOptions, EnergyBar, LegendFormat } from '../widgets/EnergiebilanzWidget';
@@ -21,6 +20,7 @@ import { detectHistoryAdapters, RANGE_LABELS, type DetectedAdapter } from '../..
 import type { EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { applyDpNameFilter } from '../../utils/dpNameFilter';
+import { AuraIcon } from '../common/AuraIcon';
 
 // Presets offered for the configured (default) time range.
 const DEFAULT_RANGES: EChartTimeRange[] = ['1h', '24h', '7d', '30d', 'custom'];
@@ -120,7 +120,7 @@ function EntryRow({
                     </button>
                 </div>
                 {entry.icon && (
-                    <Icon icon={toIconifyId(entry.icon)} width={15} height={15} style={{ color: entry.color }} />
+                    <AuraIcon icon={toIconifyId(entry.icon)} width={15} height={15} style={{ color: entry.color }} />
                 )}
                 <span className="flex-1 truncate text-[11px]" style={{ color: 'var(--text-primary)' }}>
                     {entry.datapointId || <span style={{ color: 'var(--text-secondary)' }}>Kein Datenpunkt</span>}
@@ -182,7 +182,7 @@ function EntryRow({
                                 title="Icon wählen"
                             >
                                 {entry.icon ? (
-                                    <Icon icon={toIconifyId(entry.icon)} width={15} height={15} />
+                                    <AuraIcon icon={toIconifyId(entry.icon)} width={15} height={15} />
                                 ) : (
                                     <span className="text-[9px]" style={{ color: 'var(--text-secondary)' }}>
                                         …

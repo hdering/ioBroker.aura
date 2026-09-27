@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Icon } from '@iconify/react';
 import { AlertTriangle, CheckCircle2, Info, X, XCircle, type LucideIcon } from 'lucide-react';
 import { MessageHtml } from './MessageHtml';
 import { TabEmbedBody } from '../widgets/popup/TabEmbedBody';
@@ -7,6 +6,7 @@ import { usePopupConfigStore, newTriggerHost } from '../../store/popupConfigStor
 import { useMessagesStore } from '../../store/messagesStore';
 import { useT } from '../../i18n';
 import type { AuraMessage, MessageSeverity, MessageTimeFormat } from '../../types';
+import { AuraIcon } from '../common/AuraIcon';
 
 /** One accent colour per severity, matching the adapter-logs widget palette. */
 export const SEVERITY_COLOR: Record<MessageSeverity, string> = {
@@ -187,7 +187,7 @@ export function MessageToast({ msg, onClose, embedded }: Props) {
                 Without it a message longer than the card was simply clipped away. */}
             <div className="flex items-start gap-2.5 px-3 pt-2.5 pb-2 flex-1 min-h-0">
                 <span className="shrink-0 mt-0.5" style={{ color: onAccent ? '#fff' : color }}>
-                    {msg.icon ? <Icon icon={msg.icon} width={16} height={16} /> : <SeverityIcon size={16} />}
+                    {msg.icon ? <AuraIcon icon={msg.icon} width={16} height={16} /> : <SeverityIcon size={16} />}
                 </span>
                 <div className="flex-1 min-w-0 h-full overflow-auto aura-scroll">
                     {msg.title && (

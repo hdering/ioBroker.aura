@@ -3136,7 +3136,7 @@ check('the instructions tell the model where datapoints come from', () => {
 });
 
 const { tools } = await client.listTools();
-check('all thirty-six tools are announced with descriptions', () => {
+check('all thirty-seven tools are announced with descriptions', () => {
     assert.deepEqual(tools.map((t) => t.name).sort(), [
         'aura_add_widget',
         'aura_backups',
@@ -3150,6 +3150,7 @@ check('all thirty-six tools are announced with descriptions', () => {
         'aura_delete',
         'aura_find',
         'aura_group',
+        'aura_icons',
         'aura_insert_preset',
         'aura_measure',
         'aura_popup',

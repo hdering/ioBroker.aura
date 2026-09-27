@@ -9,7 +9,6 @@
  */
 import { useMemo, useState, useEffect } from 'react';
 import { PieChart as PieChartIcon } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import type { WidgetProps } from '../../types';
 import { useIoBroker } from '../../hooks/useIoBroker';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
@@ -19,6 +18,7 @@ import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import type { EChartTimeRange } from '../../hooks/useMultiSeriesData';
 import { useEnergyBalanceValues, type EnergyEntry } from '../../hooks/useEnergyBalanceValues';
+import { AuraIcon } from '../common/AuraIcon';
 
 /** Presets offered by the frontend range selector (custom handled separately). */
 const PRESET_RANGES: EChartTimeRange[] = ['1h', '6h', '24h', '7d', '30d'];
@@ -504,7 +504,12 @@ function StackedBar({
                         }}
                     >
                         {wantIcon && (
-                            <Icon icon={toIconifyId(c.entry.icon!)} width={15} height={15} style={{ color: '#fff' }} />
+                            <AuraIcon
+                                icon={toIconifyId(c.entry.icon!)}
+                                width={15}
+                                height={15}
+                                style={{ color: '#fff' }}
+                            />
                         )}
                         {wantPct && <span>{Math.round(c.percent)} %</span>}
                     </div>
@@ -576,7 +581,12 @@ function PieChart({
                         style={{ overflow: 'visible' }}
                     >
                         <div className="w-full h-full flex items-center justify-center">
-                            <Icon icon={toIconifyId(c.entry.icon!)} width={11} height={11} style={{ color: '#fff' }} />
+                            <AuraIcon
+                                icon={toIconifyId(c.entry.icon!)}
+                                width={11}
+                                height={11}
+                                style={{ color: '#fff' }}
+                            />
                         </div>
                     </foreignObject>
                 )}
@@ -794,7 +804,7 @@ function Legend({
         >
             {items.map((c) => {
                 const iconEl = wantIcon && c.entry.icon && (
-                    <Icon
+                    <AuraIcon
                         icon={toIconifyId(c.entry.icon)}
                         width={16}
                         height={16}

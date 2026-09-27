@@ -6,7 +6,6 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 import { Plus } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import { isDivider, type StaticListEntry, type StaticListOptions } from '../widgets/ListWidget';
 import type { ListStat } from '../../utils/listStats';
@@ -30,6 +29,7 @@ import type { EditorFilterRow } from './list/ListFilterEditor';
 import { RowClickSection } from './RowClickSection';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import { NS } from '../../utils/namespace';
+import { AuraIcon } from '../common/AuraIcon';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -530,7 +530,7 @@ export function StaticListConfig({ config, onConfigChange }: Props) {
                                                         }}
                                                     >
                                                         {opts.statIcons?.[key] ? (
-                                                            <Icon
+                                                            <AuraIcon
                                                                 icon={toIconifyId(opts.statIcons[key]!)}
                                                                 width={14}
                                                                 height={14}

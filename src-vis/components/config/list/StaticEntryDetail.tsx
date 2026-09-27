@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Database, X, Plus } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../../types';
 import type { StaticListEntry } from '../../widgets/ListWidget';
 import { ColorField, DetailSection, pinSwitchIconSize } from './listFieldUi';
@@ -17,6 +16,7 @@ import { lookupDatapointEntry } from '../../../hooks/useDatapointList';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import { EntryThresholdsFields } from './EntryThresholdsFields';
 import { isStampSub } from '../../../utils/subDpStamp';
+import { AuraIcon } from '../../common/AuraIcon';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -149,7 +149,7 @@ export function StaticEntryDetail({
                                 style={{ ...iSty, height: 23 }}
                             >
                                 {entry.icon ? (
-                                    <Icon icon={toIconifyId(entry.icon)} width={15} height={15} />
+                                    <AuraIcon icon={toIconifyId(entry.icon)} width={15} height={15} />
                                 ) : (
                                     <Plus size={13} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
                                 )}

@@ -2640,4 +2640,34 @@ export const en: Record<TranslationKey, string> = {
     'hdr.cond': 'Only show when …',
     'hdr.moveUp': 'Move up',
     'hdr.moveDown': 'Move down',
+
+    // ── Icon picker (#716) ──────────────────────────────────────────────────────
+    'iconPicker.title': 'Choose icon',
+    'iconPicker.search': 'Search icons…',
+    'iconPicker.source': 'Source',
+    'iconPicker.sourceAll': 'All sources',
+    'iconPicker.groupAdapters': 'Installed ioBroker adapters',
+    'iconPicker.groupIconify': 'Iconify sets',
+    'iconPicker.noAdapters': 'No icon adapter installed',
+    'iconPicker.offlineOnly': 'Offline only',
+    'iconPicker.offlineOnlyHint':
+        'Only show icons the adapter already holds in its cache, plus the icons of installed adapters. These also appear on devices without internet. Preset when the layout has “Icons offline” switched on.',
+    'iconPicker.keepColours': 'Original colours',
+    'iconPicker.hintRaster':
+        'Image icons (PNG/GIF) keep their own colours – icon colour, colour rules and per-state colours have no effect on them.',
+    'iconPicker.hintTinted':
+        'SVG icons are drawn in the icon colour, colour rules work as usual. Multi-coloured icons become single-coloured – choose “Original colours” for those.',
+    'iconPicker.hintOriginal':
+        'Original colours: the icon keeps its own colours – icon colour and colour rules have no effect.',
+    'iconPicker.hintLicense':
+        'The icons come from the installed adapter “{adapter}” and disappear if it is uninstalled. Its licence terms apply',
+    'iconPicker.rootFolder': '(root folder)',
+    'iconPicker.searching': 'Searching…',
+    'iconPicker.searchingOnline': 'searching online…',
+    'iconPicker.setOffline':
+        'The icon list of this set cannot be reached right now (no internet, or the Iconify server is throttling requests). Searching above still works.',
+    'iconPicker.none': 'No icons found',
+    'iconPicker.more': 'Show {n} more',
+    'iconPicker.count': '{n} icons',
+    'iconPicker.remove': 'Remove',
 };

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Icon } from '@iconify/react';
 import { LayoutDashboard, Search } from 'lucide-react';
 import {
     useDashboardStore,
@@ -16,6 +15,7 @@ import { useActiveSectionId } from '../../contexts/ActiveSectionContext';
 import { useT } from '../../i18n';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import type { WidgetProps } from '../../types';
+import { AuraIcon } from '../common/AuraIcon';
 
 type MenuMode = 'section' | 'tab' | 'overview';
 type MenuVariant = 'hbar' | 'vlist' | 'grid' | 'pills';
@@ -249,7 +249,7 @@ export function MenuWidget({ config, editMode }: WidgetProps) {
         // Sections fall back to a generic icon (like the section menu); tabs show
         // no icon when none is set (matching the tab bar).
         const glyph = item.icon ? (
-            <Icon icon={item.icon} width={size} height={size} style={{ color: 'currentColor' }} />
+            <AuraIcon icon={item.icon} width={size} height={size} style={{ color: 'currentColor' }} />
         ) : fallback ? (
             <LayoutDashboard size={size} />
         ) : null;

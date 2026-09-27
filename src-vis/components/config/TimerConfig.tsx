@@ -7,11 +7,11 @@
  */
 import { useState } from 'react';
 import { Database, X } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import type { WidgetConfig } from '../../types';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
+import { AuraIcon } from '../common/AuraIcon';
 
 function toIconifyId(name: string): string {
     if (!name) return '';
@@ -143,7 +143,7 @@ export function TimerConfig({ config, onConfigChange }: Props) {
                                     >
                                         {addIcon ? (
                                             <>
-                                                <Icon icon={toIconifyId(addIcon)} width={12} height={12} />
+                                                <AuraIcon icon={toIconifyId(addIcon)} width={12} height={12} />
                                                 <span className="truncate font-mono">{addIcon}</span>
                                             </>
                                         ) : (

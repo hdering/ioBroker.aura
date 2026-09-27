@@ -26,10 +26,10 @@ import { useDpDiscovery } from '../../hooks/useDpDiscovery';
 import { RowClickSection } from './RowClickSection';
 import { NS } from '../../utils/namespace';
 import { ColorField, ConfigSection } from './list/listFieldUi';
-import { Icon } from '@iconify/react';
 import { IconPickerModal } from './IconPickerModal';
 import { lucidePascalToIconify } from '../../utils/iconifyLoader';
 import type { ListStat } from '../../utils/listStats';
+import { AuraIcon } from '../common/AuraIcon';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -659,7 +659,7 @@ export function AutoListConfig({ config, onConfigChange }: Props) {
                                                         }}
                                                     >
                                                         {opts.statIcons?.[key] ? (
-                                                            <Icon
+                                                            <AuraIcon
                                                                 icon={toIconifyId(opts.statIcons[key]!)}
                                                                 width={14}
                                                                 height={14}

@@ -1,6 +1,6 @@
 import { GripVertical, X } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
+import { AuraIcon } from '../../common/AuraIcon';
 
 function toIconifyId(name: string): string {
     return name.includes(':') ? name : lucidePascalToIconify(name);
@@ -120,7 +120,7 @@ export function EntryListItem({
             )}
             {!isDivider && entry.icon && (
                 <span className="shrink-0 flex items-center" style={{ color: 'var(--text-secondary)' }}>
-                    <Icon
+                    <AuraIcon
                         icon={toIconifyId(entry.icon)}
                         width={Math.max(11, Math.min(20, entry.iconSize ?? 13))}
                         height={Math.max(11, Math.min(20, entry.iconSize ?? 13))}

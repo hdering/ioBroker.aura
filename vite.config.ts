@@ -14,6 +14,16 @@ const { createIconCache } = createRequire(path.resolve('package.json'))('./lib/i
   };
 };
 
+// Icons of installed ioBroker icon adapters (#716). The dev server has no
+// adapter storage, so every sub-folder of AURA_ADAPTER_ICONS_DIR (default: the
+// test fixtures) plays one installed icon adapter.
+const { createAdapterIcons, folderIconSource } = createRequire(path.resolve('package.json'))('./lib/adapterIcons.js') as {
+  createAdapterIcons: (o: { source: unknown; log?: unknown }) => {
+    handle: (req: unknown, res: unknown, url: URL) => boolean;
+  };
+  folderIconSource: (root: string) => unknown;
+};
+
 const DEFAULT_URL = 'http://192.168.188.168:8082';
 const URL_FILE = path.resolve('.iobroker-url');
 
@@ -62,6 +72,13 @@ function ioBrokerDevPlugin(): Plugin {
       const iconCache = createIconCache({ dir: path.resolve('node_modules/.cache/aura'), log: console });
       server.middlewares.use((req, res, next) => {
         if (!iconCache.handle(req, res, new URL(req.url ?? '', 'http://localhost'))) next();
+      });
+      const adapterIcons = createAdapterIcons({
+        source: folderIconSource(path.resolve(process.env.AURA_ADAPTER_ICONS_DIR || 'tools/fixtures/adapter-icons')),
+        log: console,
+      });
+      server.middlewares.use((req, res, next) => {
+        if (!adapterIcons.handle(req, res, new URL(req.url ?? '', 'http://localhost'))) next();
       });
 
       // Server-side iframe proxy – strips X-Frame-Options so pages can be embedded

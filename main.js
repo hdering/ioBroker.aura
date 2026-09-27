@@ -24,6 +24,7 @@ const {
 } = require('./lib/security/dashboardVault');
 const { createSecurityApi } = require('./lib/security/apiHandler');
 const { createIconCache } = require('./lib/iconCache');
+const { createAdapterIcons, ioBrokerIconSource } = require('./lib/adapterIcons');
 const { createConfigGuard, CONFIG_KEYS } = require('./lib/configGuard');
 const { runBackendCheck: buildBackendReport, resolveTarget, listBackends } = require('./lib/backendCheck');
 
@@ -1432,6 +1433,9 @@ class Aura extends utils.Adapter {
         };
         const iconCache = createIconCache({ dir: this._instanceDataDir(), log: this.log, onChange: publishIconCache });
         publishIconCache(iconCache.summary());
+        // Icons of installed ioBroker icon adapters (#716) — served from their
+        // own storage, never bundled or re-hosted by Aura.
+        const adapterIcons = createAdapterIcons({ source: ioBrokerIconSource(this), log: this.log });
 
         const handler = (req, res) => {
             let parsedUrl;
@@ -1456,6 +1460,9 @@ class Aura extends utils.Adapter {
             }
 
             if (iconCache.handle(req, res, parsedUrl)) {
+                return;
+            }
+            if (adapterIcons.handle(req, res, parsedUrl)) {
                 return;
             }
 

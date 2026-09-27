@@ -13,6 +13,8 @@
 import React, { useEffect, useState } from 'react';
 import { Icon, iconLoaded, loadIcon } from '@iconify/react';
 import { lucidePascalToIconify } from './iconifyLoader';
+import { parseAdapterIconId, type AdapterIconRef } from './adapterIconId';
+import { AdapterIcon } from '../components/common/AuraIcon';
 import type { LucideIcon } from 'lucide-react';
 
 const _iconComponentCache = new Map<string, LucideIcon>();
@@ -71,12 +73,44 @@ function makeIconComponent(iconId: string, Fallback: LucideIcon | null): LucideI
     return comp;
 }
 
+/** Same LucideIcon shape for a file of an installed icon adapter (#716). A file
+ *  that cannot be loaded (adapter uninstalled, file renamed) shows the fallback. */
+function makeAdapterIconComponent(iconId: string, iconRef: AdapterIconRef, Fallback: LucideIcon | null): LucideIcon {
+    const cacheKey = `${iconId}|${fallbackKey(Fallback)}`;
+    const cached = _iconComponentCache.get(cacheKey);
+    if (cached) return cached;
+    function AdapterIconWrapper({
+        size = 16,
+        style,
+        className,
+    }: {
+        size?: number | string;
+        style?: React.CSSProperties;
+        className?: string;
+    }) {
+        return React.createElement(AdapterIcon, {
+            iconRef,
+            width: size,
+            height: size,
+            style,
+            className,
+            fallback: Fallback ? React.createElement(Fallback, { size, style, className }) : null,
+        });
+    }
+    const comp = AdapterIconWrapper as unknown as LucideIcon;
+    _iconComponentCache.set(cacheKey, comp);
+    return comp;
+}
+
 /** Resolve a stored icon name/ID to a render-ready component.
+ *  - `iob:<adapter>/<file>` → a file of an installed icon adapter (#716)
  *  - Iconify ID (contains ":") → used directly
  *  - PascalCase legacy name (e.g. "ZapOff") → converted to "lucide:zap-off"
  *  - Empty / undefined → returns the fallback Lucide component unchanged */
 export function getWidgetIcon(name: string | undefined, fallback: LucideIcon | null): LucideIcon {
     if (!name) return fallback as LucideIcon;
+    const adapterRef = parseAdapterIconId(name);
+    if (adapterRef) return makeAdapterIconComponent(name, adapterRef, fallback);
     const iconId = name.includes(':') ? name : lucidePascalToIconify(name);
     return makeIconComponent(iconId, fallback);
 }

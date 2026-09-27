@@ -12,11 +12,11 @@
  */
 import { useMemo, useState } from 'react';
 import { Plus, X } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../IconPickerModal';
 import { ColorField } from './listFieldUi';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import type { AutoListOptions } from '../../widgets/AutoListWidget';
+import { AuraIcon } from '../../common/AuraIcon';
 
 const PREVIEW_ROWS = 6;
 const DEFAULT_SIZE = 13;
@@ -94,7 +94,7 @@ export function ListIconPanel({
                             style={{ ...box, height: 32 }}
                         >
                             {icon ? (
-                                <Icon icon={toIconifyId(icon)} width={18} height={18} />
+                                <AuraIcon icon={toIconifyId(icon)} width={18} height={18} />
                             ) : (
                                 <Plus size={15} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
                             )}
@@ -191,7 +191,7 @@ export function ListIconPanel({
                                 style={{ borderTop: i ? '1px solid var(--app-border)' : undefined }}
                             >
                                 {p.icon ? (
-                                    <Icon
+                                    <AuraIcon
                                         icon={toIconifyId(p.icon)}
                                         width={p.size}
                                         height={p.size}

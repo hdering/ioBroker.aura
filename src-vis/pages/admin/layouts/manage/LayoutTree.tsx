@@ -5,19 +5,19 @@
 // the frontend's section menu).
 
 import { GripVertical, Layers, LayoutDashboard } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { useDashboardStore, type DashboardLayout, type Section } from '../../../../store/dashboardStore';
 import { useT } from '../../../../i18n';
 import { ScopeRow } from '../shared/ScopeRow';
 import { CollapsibleRail } from '../shared/CollapsibleRail';
 import { useListDrag } from './pieces';
+import { AuraIcon } from '../../../../components/common/AuraIcon';
 
 export function layoutIconNode(layout: DashboardLayout, size = 13) {
-    return layout.icon ? <Icon icon={layout.icon} width={size} height={size} /> : <LayoutDashboard size={size} />;
+    return layout.icon ? <AuraIcon icon={layout.icon} width={size} height={size} /> : <LayoutDashboard size={size} />;
 }
 
 export function sectionIconNode(section: Section, size = 12) {
-    return section.icon ? <Icon icon={section.icon} width={size} height={size} /> : <Layers size={size} />;
+    return section.icon ? <AuraIcon icon={section.icon} width={size} height={size} /> : <Layers size={size} />;
 }
 
 export function layoutHash(layout: DashboardLayout, isFirst: boolean) {

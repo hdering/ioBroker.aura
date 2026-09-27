@@ -12,7 +12,6 @@ import type { Tab, TabBarItem, TabBarSettings, DashboardLayout } from '../../sto
 import { exportTab, importTab } from '../../utils/widgetExportImport';
 import { ExportAnonymizeDialog } from '../config/ExportAnonymizeDialog';
 import { useConfigStore } from '../../store/configStore';
-import { Icon } from '@iconify/react';
 import { IconPickerModal } from '../config/IconPickerModal';
 import { NAV_ACTIVE, navIcon, navText } from '../../utils/navColors';
 import { useT } from '../../i18n';
@@ -28,6 +27,7 @@ import { MenuItemView } from './MenuItemView';
 import { BadgeOverlay } from '../widgets/BadgeOverlay';
 import type { BadgeCorner, BadgeSize } from '../../types';
 import type { ResolvedBadge } from '../../hooks/useBadges';
+import { AuraIcon } from '../common/AuraIcon';
 
 interface TabBarProps {
     readonly?: boolean;
@@ -459,7 +459,7 @@ export function TabBar({
                                         color: navIcon(isActive),
                                     }}
                                 >
-                                    <Icon
+                                    <AuraIcon
                                         icon={tab.icon}
                                         width={tabIconSize}
                                         height={tabIconSize}
@@ -700,7 +700,7 @@ export function TabBar({
                                   }}
                               >
                                   {settingsTab.icon ? (
-                                      <Icon
+                                      <AuraIcon
                                           icon={settingsTab.icon}
                                           width={14}
                                           height={14}

@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
-import { Icon } from '@iconify/react';
 import { lucidePascalToIconify } from '../../../utils/iconifyLoader';
 import { IconPickerModal } from '../IconPickerModal';
 import { ColorField } from './listFieldUi';
 import type { EntryStateMap } from '../../widgets/entryControls';
+import { AuraIcon } from '../../common/AuraIcon';
 
 /**
  * A value → text table (issue #572): `true` becomes "ONLINE", `2` becomes "gekippt".
@@ -74,7 +74,7 @@ export function StateMapFields({
                         style={{ ...iSty, width: 26, height: 22 }}
                     >
                         {st.icon ? (
-                            <Icon icon={toIconifyId(st.icon)} width={13} height={13} />
+                            <AuraIcon icon={toIconifyId(st.icon)} width={13} height={13} />
                         ) : (
                             <Plus size={11} style={{ color: 'var(--text-secondary)', opacity: 0.6 }} />
                         )}

@@ -1,5 +1,5 @@
-import { Icon } from '@iconify/react';
 import type { BadgeStyle, BadgeSize } from '../../types';
+import { AuraIcon } from './AuraIcon';
 
 // Visual primitive for a single badge. Stateless — fed by useBadges.
 // Style reference: the small circular status badges in StatusBadges.tsx /
@@ -75,7 +75,7 @@ export function Badge({
                 whiteSpace: 'nowrap',
             }}
         >
-            {icon && <Icon icon={icon} width={fs} height={fs} style={{ color: 'currentColor' }} />}
+            {icon && <AuraIcon icon={icon} width={fs} height={fs} style={{ color: 'currentColor' }} />}
             {/* Own element so a text too long for the room the host leaves ends
                 in an ellipsis instead of running across the widget next to it —
                 text-overflow does not reach a flex container's own text node. */}
