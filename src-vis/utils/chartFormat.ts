@@ -134,3 +134,62 @@ export function bucketTooltipLabel(ts: number, bucket: ChartBucket, locale: stri
     if (bucket === 'week' || bucket === 'day') return d.toLocaleDateString(locale, { dateStyle: 'medium' });
     return d.toLocaleString(locale, { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
+
+/** Time span a tooltip headline has to be readable within — see `tooltipTimeLabel`. */
+export interface TimeExtent {
+    min: number;
+    max: number;
+    /** Every point sits on local midnight (daily aggregates) — a clock time would read "00:00". */
+    dateOnly: boolean;
+}
+
+/** Oldest and newest timestamp over all series (points need not be sorted), `null` without any. */
+export function timeExtent(
+    series: readonly (readonly (readonly [number, ...unknown[]] | null)[])[],
+): TimeExtent | null {
+    let min = Infinity;
+    let max = -Infinity;
+    let dateOnly = true;
+    for (const points of series) {
+        for (const p of points) {
+            const ts = p?.[0];
+            if (typeof ts !== 'number' || !Number.isFinite(ts)) continue;
+            if (ts < min) min = ts;
+            if (ts > max) max = ts;
+            if (dateOnly) {
+                const d = new Date(ts);
+                if (d.getHours() || d.getMinutes() || d.getSeconds() || d.getMilliseconds()) dateOnly = false;
+            }
+        }
+    }
+    return Number.isFinite(min) ? { min, max, dateOnly } : null;
+}
+
+const MONTH_MS = 31 * 86_400_000;
+
+/**
+ * Tooltip headline for a time axis (issue #712). A bucketed bar names its bucket; everything else
+ * used to read "12.03., 14:30" whatever the range — over months or years of data a narrow bar
+ * gave no hint which year it belonged to. The year is added as soon as the chart spans more than
+ * a month, crosses a year boundary or lies in an earlier year; a 24 h chart stays compact.
+ */
+export function tooltipTimeLabel(
+    ts: number,
+    bucket: ChartBucket | undefined,
+    extent: TimeExtent | null,
+    locale: string,
+    now: number = Date.now(),
+): string {
+    if (bucket && bucket !== 'hour') return bucketTooltipLabel(ts, bucket, locale);
+    const d = new Date(ts);
+    const withYear =
+        !!extent &&
+        (extent.max - extent.min > MONTH_MS ||
+            new Date(extent.min).getFullYear() !== new Date(extent.max).getFullYear() ||
+            new Date(extent.max).getFullYear() !== new Date(now).getFullYear());
+    const date: Intl.DateTimeFormatOptions = withYear
+        ? { day: '2-digit', month: '2-digit', year: 'numeric' }
+        : { day: '2-digit', month: '2-digit' };
+    if (!bucket && extent?.dateOnly) return d.toLocaleDateString(locale, date);
+    return d.toLocaleString(locale, { ...date, hour: '2-digit', minute: '2-digit' });
+}

@@ -23,8 +23,9 @@ import {
     bucketAxisLabel,
     bucketAxisMax,
     bucketAxisMinInterval,
-    bucketTooltipLabel,
     coarsestBucket,
+    timeExtent,
+    tooltipTimeLabel,
     type ChartBucket,
 } from '../../utils/chartFormat';
 import {
@@ -926,6 +927,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                       .sort((a, b) => a[0] - b[0]),
               )
             : [];
+        const jsonTimeExtent = jsonTimeAxis ? timeExtent(timePointsPerSeries) : null;
 
         // Labels missing from a series stay null so the line breaks instead of silently shifting
         // the remaining points onto the wrong categories.
@@ -1023,12 +1025,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         }</b>${shareOf(p.seriesIndex, p.num as number)}`;
                     });
                     const head = jsonTimeAxis
-                        ? new Date(Number(items[0].axisValue)).toLocaleString(t('echart.dateLocale'), {
-                              day: '2-digit',
-                              month: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                          })
+                        ? tooltipTimeLabel(
+                              Number(items[0].axisValue),
+                              undefined,
+                              jsonTimeExtent,
+                              t('echart.dateLocale'),
+                          )
                         : items[0].axisValue;
                     return `${head}<br/>${lines.join('<br/>')}`;
                 },
@@ -1163,6 +1165,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                   .map((s) => seriesDataMap.get(s.id)?.deltaBucket as ChartBucket | undefined),
           );
     const dateLocale = t('echart.dateLocale');
+    // Span of the plotted data — decides whether the tooltip carries the year (issue #712).
+    const tooltipExtent = timeExtent(alignedData as (readonly [number, ...unknown[]] | null)[][]);
 
     /**
      * Right edge of a rolling bucketed chart (issue #598 follow-up). Echarts pads a time axis by
@@ -1245,7 +1249,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 const ts = items[0].axisValue;
                 // A bucketed bar is a whole year / month / day of consumption — its headline is the
                 // bucket, not the second it happens to start at.
-                const timeStr = bucketTooltipLabel(ts, axisBucket ?? 'hour', dateLocale);
+                const timeStr = tooltipTimeLabel(ts, axisBucket, tooltipExtent, dateLocale);
                 // Aligning a stack pads the series that hadn't started yet with nulls \u2014 a row
                 // reading "null" is noise, the series simply has nothing at this moment.
                 const shown = hasStack ? items.filter((p) => typeof p.value?.[1] === 'number') : items;

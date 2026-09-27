@@ -22,7 +22,7 @@ const bundle = join(cache, `aura-bucket-axis-${process.pid}.mjs`);
 await build({
     stdin: {
         contents:
-            "export { bucketAxisLabel, bucketAxisMinInterval, bucketTooltipLabel, coarsestBucket } from './src-vis/utils/chartFormat.ts';",
+            "export { bucketAxisLabel, bucketAxisMinInterval, bucketTooltipLabel, coarsestBucket, timeExtent, tooltipTimeLabel } from './src-vis/utils/chartFormat.ts';",
         resolveDir: process.cwd(),
         loader: 'ts',
     },
@@ -46,9 +46,8 @@ await build({
         },
     ],
 });
-const { bucketAxisLabel, bucketAxisMinInterval, bucketTooltipLabel, coarsestBucket } = await import(
-    pathToFileURL(bundle).href
-);
+const { bucketAxisLabel, bucketAxisMinInterval, bucketTooltipLabel, coarsestBucket, timeExtent, tooltipTimeLabel } =
+    await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -177,6 +176,53 @@ const eq = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
     check('a monthly bar names month and year', /2026/.test(bucketTooltipLabel(ts, 'month', LOCALE)));
     check('a daily bar drops the clock', !bucketTooltipLabel(ts, 'day', LOCALE).includes(':'));
     check('an hourly bar keeps the clock', bucketTooltipLabel(ts, 'hour', LOCALE).includes(':'));
+}
+
+// -- 10. an unbucketed tooltip names the year once the range calls for it (issue #712) ---------
+{
+    const now = new Date(2026, 8, 27, 12).getTime();
+    const at = (y, m, d, h = 0, min = 0) => new Date(y, m, d, h, min).getTime();
+    const label = (ts, points, bucket) => tooltipTimeLabel(ts, bucket, timeExtent([points]), LOCALE, now);
+    const day = [
+        [at(2026, 8, 26, 12, 30), 1],
+        [at(2026, 8, 27, 12, 30), 2],
+    ];
+    check('a 24 h chart stays compact', label(day[0][0], day) === '26.09., 12:30', label(day[0][0], day));
+    const year = [
+        [at(2025, 11, 30, 14, 30), 1],
+        [at(2026, 0, 2, 9, 15), 2],
+    ];
+    check('a range across new year shows the year', label(year[0][0], year).includes('2025'), label(year[0][0], year));
+    const months = [
+        [at(2026, 2, 12, 14, 30), 1],
+        [at(2026, 8, 20, 9, 15), 2],
+    ];
+    check(
+        'a range of months shows the year',
+        label(months[0][0], months) === '12.03.2026, 14:30',
+        label(months[0][0], months),
+    );
+    const old = [
+        [at(2024, 4, 3, 8), 1],
+        [at(2024, 4, 3, 20), 2],
+    ];
+    check('an earlier year shows the year', label(old[0][0], old).includes('2024'), label(old[0][0], old));
+    const daily = [
+        [at(2026, 0, 5), 1],
+        [at(2026, 5, 5), 2],
+    ];
+    check(
+        'daily points drop the midnight clock',
+        label(daily[0][0], daily) === '05.01.2026',
+        label(daily[0][0], daily),
+    );
+    check('an hourly delta bar keeps its clock', label(daily[0][0], daily, 'hour').includes(':'));
+    check(
+        'a monthly bucket keeps its own headline',
+        label(daily[0][0], daily, 'month') === bucketTooltipLabel(daily[0][0], 'month', LOCALE),
+    );
+    check('unsorted and null points still give the extent', timeExtent([[null, [5, 1], [2, 1]], []])?.min === 2);
+    check('no points means no extent', timeExtent([[], []]) === null);
 }
 
 const failed = results.filter((r) => !r.ok);
