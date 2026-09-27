@@ -197,13 +197,26 @@ function IconItem({
     );
 }
 
+// ── Sidebar group heading ──────────────────────────────────────────────────────
+function SidebarHeading({ label }: { label: string }) {
+    return (
+        <div
+            className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wide truncate shrink-0"
+            title={label}
+            style={{ color: 'var(--text-secondary)', opacity: 0.8 }}
+        >
+            {label}
+        </div>
+    );
+}
+
 // ── Category sidebar button ────────────────────────────────────────────────────
 function CategoryBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
     return (
         <button
             onClick={onClick}
             title={label}
-            className="w-full text-left px-3 py-1.5 text-xs transition-colors truncate"
+            className="w-full text-left px-3 py-1.5 text-xs transition-colors truncate shrink-0"
             style={{
                 background: active ? 'color-mix(in srgb, var(--accent) 15%, transparent)' : 'transparent',
                 color: active ? 'var(--accent)' : 'var(--text-secondary)',
@@ -770,6 +783,26 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                                 scrollbarColor: 'var(--app-border) transparent',
                             }}
                         >
+                            {/* The installed adapters, right where the picker opens — behind the
+                                source select alone they went unnoticed (#716). */}
+                            {sourceKind === 'all' && adapterSets.length > 0 && (
+                                <>
+                                    <SidebarHeading label={t('iconPicker.sidebarAdapters')} />
+                                    {adapterSets.map((set) => (
+                                        <CategoryBtn
+                                            key={set.id}
+                                            label={`${set.title} (${set.count})`}
+                                            active={false}
+                                            onClick={() => {
+                                                setQuery('');
+                                                setSource(`adapter:${set.id}`);
+                                                setKeepColours(null);
+                                            }}
+                                        />
+                                    ))}
+                                    <SidebarHeading label={t('iconPicker.groupAura')} />
+                                </>
+                            )}
                             <CategoryBtn
                                 label={`${t('common.all')} (${totalCount})`}
                                 active={!query && categoryId === 'all'}

@@ -200,6 +200,22 @@ check(
     found.join(','),
 );
 
+// "All sources" lists the installed adapters in the sidebar; a click opens the set
+await select.selectOption('all');
+await settle(600);
+const side = await picker.locator('button:has-text("Test mono SVG (5)")').evaluate((btn) => {
+    const bar = btn.parentElement;
+    const heights = [...bar.querySelectorAll('button')].map((x) => x.getBoundingClientRect().height);
+    return { min: Math.min(...heights), scrolls: bar.scrollHeight > bar.clientHeight };
+});
+check(side.min >= 24, 'sidebar entries keep their height', JSON.stringify(side));
+check(side.scrolls, 'long sidebar scrolls instead of squeezing', JSON.stringify(side));
+const sideEntry = picker.locator('button:has-text("Test mono SVG (5)")');
+check((await sideEntry.count()) === 1, 'installed adapters listed in the all-sources sidebar');
+await sideEntry.click();
+await settle(800);
+check((await select.inputValue()) === 'adapter:icons-test-mono', 'sidebar entry switches the source');
+
 // Iconify set: browsable, or an explanation — never a silent empty grid
 const iconifyValue = values.find((v) => v === 'iconify:mdi');
 if (iconifyValue) {
