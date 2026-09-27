@@ -2679,9 +2679,14 @@ export const de = {
     'iconPicker.offlineOnly': 'Nur offline verfügbare',
     'iconPicker.offlineOnlyHint':
         'Nur Icons zeigen, die der Adapter schon in seinem Cache hat, dazu die Icons installierter Adapter. Diese erscheinen auch auf Geräten ohne Internet. Ist beim Layout „Icons offline“ eingeschaltet, ist der Filter vorbelegt.',
+    'iconPicker.tintRaster': 'Einfärben',
+    'iconPicker.tintRasterHint':
+        'PNG/GIF-Icons in der Icon-Farbe zeichnen. Passt zu einfarbigen Sets (z. B. Material PNG); bunte Bilder werden dabei zur Silhouette.',
+    'iconPicker.hintRasterTinted':
+        'Einfärben: Die Bild-Icons werden in der Icon-Farbe gezeichnet, Farbregeln wirken. Das passt zu einfarbigen Sets; bunte Bilder werden zur Silhouette.',
     'iconPicker.keepColours': 'Originalfarben',
     'iconPicker.hintRaster':
-        'Bild-Icons (PNG/GIF) behalten ihre eigenen Farben – Icon-Farbe, Farbregeln und Farbwechsel je Zustand wirken bei ihnen nicht.',
+        'Bild-Icons (PNG/GIF) behalten ihre eigenen Farben – Icon-Farbe, Farbregeln und Farbwechsel je Zustand wirken bei ihnen nicht. Einfarbige Sets lassen sich mit „Einfärben“ in der Icon-Farbe zeichnen.',
     'iconPicker.hintTinted':
         'SVG-Icons werden in der Icon-Farbe gezeichnet, Farbregeln wirken wie gewohnt. Mehrfarbige Icons werden dabei einfarbig – dafür „Originalfarben“ wählen.',
     'iconPicker.hintOriginal':

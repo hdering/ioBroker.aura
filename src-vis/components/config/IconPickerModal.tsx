@@ -26,7 +26,7 @@ function toIconifyId(name: string): string {
 
 /** Selection highlight ignores the colour flag — the file is what was picked. */
 function sameIcon(a: string, b: string): boolean {
-    return a.replace(/#original$/, '') === b.replace(/#original$/, '');
+    return a.replace(/#(original|tint)$/, '') === b.replace(/#(original|tint)$/, '');
 }
 
 // ── Sources (#716) ────────────────────────────────────────────────────────────
@@ -44,6 +44,8 @@ interface AdapterSet {
     folders: string[];
     multicolor: boolean;
     raster: boolean;
+    /** Holds PNG/GIF/WebP files — the "tint" switch applies to them. */
+    hasRaster?: boolean;
     /** Display names of folders — a vis-2 icon pack's own name ("Einfarbig"). */
     folderLabels?: Record<string, string>;
 }
@@ -314,6 +316,9 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const adapterSet = sourceKind === 'adapter' ? adapterSets.find((s) => s.id === sourceId) : undefined;
     // null = follow the set's own default (a colour set keeps its colours)
     const original = keepColours ?? adapterSet?.multicolor ?? false;
+    // Raster files keep their pixels unless tinted; a single-coloured PNG set
+    // (icons-material-png) reads far better in the icon colour.
+    const [tintRaster, setTintRaster] = useState<boolean>(() => !!currentRef?.tint);
 
     useEffect(() => {
         setTimeout(() => searchRef.current?.focus(), 50);
@@ -559,7 +564,8 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const adapterIdsOf = (setId: string, files: string[]) => {
         const set = adapterSets.find((s) => s.id === setId);
         const keep = setId === sourceId ? original : (set?.multicolor ?? false);
-        return files.map((f) => adapterIconId(setId, f, keep && f.toLowerCase().endsWith('.svg')));
+        const tint = setId === sourceId && tintRaster;
+        return files.map((f) => adapterIconId(setId, f, f.toLowerCase().endsWith('.svg') ? keep : tint));
     };
 
     // Visible icons for current selection
@@ -641,6 +647,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         adapterSets,
         collection,
         original,
+        tintRaster,
         offlineOnly,
         cachedIds,
     ]);
@@ -761,6 +768,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                         onChange={(e) => {
                             setSource(e.target.value);
                             setKeepColours(null);
+                            setTintRaster(false);
                         }}
                         data-aura-icon-source
                         className="text-xs rounded px-1.5 py-1 min-w-0 flex-1"
@@ -818,6 +826,21 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                             {t('iconPicker.keepColours')}
                         </label>
                     )}
+                    {adapterSet && (adapterSet.hasRaster ?? adapterSet.raster) && (
+                        <label
+                            className="flex items-center gap-1 text-[11px] cursor-pointer"
+                            title={t('iconPicker.tintRasterHint')}
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={tintRaster}
+                                onChange={(e) => setTintRaster(e.target.checked)}
+                                data-aura-icon-tint
+                            />
+                            {t('iconPicker.tintRaster')}
+                        </label>
+                    )}
                 </div>
 
                 {/* Adapter icons behave differently from Iconify icons — say how, once, right here. */}
@@ -834,7 +857,9 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                         <Info size={13} style={{ flexShrink: 0, marginTop: 1, color: 'var(--accent)' }} />
                         <div>
                             {adapterSet.raster
-                                ? t('iconPicker.hintRaster')
+                                ? tintRaster
+                                    ? t('iconPicker.hintRasterTinted')
+                                    : t('iconPicker.hintRaster')
                                 : original
                                   ? t('iconPicker.hintOriginal')
                                   : t('iconPicker.hintTinted')}{' '}

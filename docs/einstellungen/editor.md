@@ -54,6 +54,8 @@ Such- und Filterfelder wirken in beiden Ansichten. Eine Suche klappt die Zweige 
 
 Jedes Icon-Feld öffnet dieselbe Auswahl. Die Titelleiste verschiebt den Dialog.
 
+![](./assets/icon-picker.png)
+
 | Quelle | |
 | --- | --- |
 | Alle Quellen | Aura-Auswahl nach Kategorien und darunter jeder installierte Icon-Adapter mit seinen Gruppen; die Suche findet zusätzlich Icons aller Iconify-Sets |
@@ -65,11 +67,12 @@ Jedes Icon-Feld öffnet dieselbe Auswahl. Die Titelleiste verschiebt den Dialog.
 | --- | --- |
 | Nur offline verfügbare | Nur Icons, die der Adapter schon vorhält, plus Adapter-Icons. Vorbelegt, wenn das Layout [Icons für Offline-Geräte vorladen](./layouts#icons) nutzt |
 | Originalfarben | Nur bei SVG-Adaptern: Icon behält seine Farben. Bei bunten Sets vorbelegt |
+| Einfärben | Nur bei PNG/GIF-Adaptern: Bild wird in der Icon-Farbe gezeichnet, Farbregeln wirken. Für einfarbige Sets (z. B. Material PNG); bunte Bilder werden zur Silhouette |
 
 | Adapter-Icons | |
 | --- | --- |
 | SVG | Wird in der Icon-Farbe gezeichnet, Farbregeln wirken |
-| SVG mit Originalfarben, PNG, GIF | Eigene Farben; Icon-Farbe und Farbregeln wirken nicht |
+| SVG mit Originalfarben, PNG, GIF ohne Einfärben | Eigene Farben; Icon-Farbe und Farbregeln wirken nicht |
 | Adapter deinstalliert | Das Widget zeigt sein Standard-Icon |
 | Lizenz | Die Icons liefert der installierte Adapter aus, Aura enthält keine davon. Es gelten die Bedingungen des Adapters (bei Icons8-Grafiken z. B. ein Link auf icons8.com) |
 

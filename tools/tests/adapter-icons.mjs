@@ -313,6 +313,52 @@ const FIXTURES = path.resolve('tools/fixtures/adapter-icons');
     check('iob pack: icon served from the pack', f.res.status === 200 && String(f.res.body).includes('currentColor'));
 }
 
+// ── 2c. MCP tool aura_icons: pack names and keywords are searchable ───────────
+{
+    const { callTool } = require('../../lib/mcp/tools.js');
+    const svg = Buffer.from(
+        '<svg xmlns="http://www.w3.org/2000/svg"><g style="fill:currentColor"><path d="M0 0h1v1z"/></g></svg>',
+    ).toString('base64');
+    const pack = JSON.stringify({
+        'air-conditioner-off': { src: svg, name: 'Air Conditioner Off', words: ['Klima'] },
+        fan: { src: svg, name: 'Fan', words: [] },
+    });
+    const adapter = {
+        log: { warn() {} },
+        async getForeignObjectsAsync() {
+            return {
+                'system.adapter.vis-2-widgets-icontwo': {
+                    _id: 'system.adapter.vis-2-widgets-icontwo',
+                    common: {
+                        name: 'vis-2-widgets-icontwo',
+                        type: 'visualization-icons',
+                        version: '1',
+                        visIconSets: {
+                            s: { name: { de: 'Einfarbig' }, url: 'vis-2-widgets-icontwo/icon-set-solid.json' },
+                        },
+                    },
+                },
+            };
+        },
+        async readDirAsync() {
+            throw new Error('no web storage');
+        },
+        async readFileAsync(ns) {
+            if (ns === 'vis-2') return { file: Buffer.from(pack) };
+            throw new Error('not found');
+        },
+    };
+    const overview = (await callTool('aura_icons', {}, { adapter, schema: {} })).content[0].text;
+    check('mcp: overview names the pack', /icon-set-solid \(Einfarbig\)/.test(overview), overview);
+    const hit = (await callTool('aura_icons', { query: 'klima' }, { adapter, schema: {} })).content[0].text;
+    check(
+        'mcp: keyword finds the pack icon, with its name',
+        hit.includes('iob:vis-2-widgets-icontwo/icon-set-solid/air-conditioner-off.svg — Air Conditioner Off'),
+        hit,
+    );
+    check('mcp: other icons not listed', !hit.includes('/fan.svg'));
+}
+
 // ── 3. colour detection ───────────────────────────────────────────────────────
 check('colours: one fill', svgColours('<path fill="#000"/><path fill="#000000"/>').size === 1);
 check('colours: none/currentColor ignored', svgColours('<path fill="none" stroke="currentColor"/>').size === 0);

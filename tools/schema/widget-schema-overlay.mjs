@@ -22,7 +22,7 @@ export const KEY_DESCRIPTIONS = {
     showValue: 'Wert anzeigen.',
     showUnit: 'Einheit hinter dem Wert anzeigen.',
     showLabel: 'Beschriftung neben dem Bedienelement anzeigen.',
-    icon: 'Icon: Lucide-Name ("Lightbulb"), Iconify-ID ("mdi:garage") oder Datei eines installierten ioBroker-Icon-Adapters ("iob:<adapter>/<pfad>", z. B. "iob:icons-mfd-svg/light_light_dim_100.svg"; Endung "#original" behält die Farben einer SVG, PNG hat immer eigene Farben). Leer = Standard-Icon des Typs.',
+    icon: 'Icon: Lucide-Name ("Lightbulb"), Iconify-ID ("mdi:garage") oder Datei eines installierten ioBroker-Icon-Adapters ("iob:<adapter>/<pfad>", z. B. "iob:icons-mfd-svg/light_light_dim_100.svg"; Endung "#original" behält die Farben einer SVG, "#tint" färbt ein einfarbiges PNG in der Icon-Farbe ein; sonst hat ein PNG seine eigenen Farben). Leer = Standard-Icon des Typs.',
     iconSize: 'Icongröße in px.',
     titleAlign: 'Ausrichtung des Titels: left, center oder right.',
     titlePosition: 'Position der Titelzeile im Widget.',

@@ -2658,9 +2658,14 @@ export const en: Record<TranslationKey, string> = {
     'iconPicker.offlineOnly': 'Offline only',
     'iconPicker.offlineOnlyHint':
         'Only show icons the adapter already holds in its cache, plus the icons of installed adapters. These also appear on devices without internet. Preset when the layout has “Icons offline” switched on.',
+    'iconPicker.tintRaster': 'Tint',
+    'iconPicker.tintRasterHint':
+        'Draw PNG/GIF icons in the icon colour. Suits single-coloured sets (e.g. Material PNG); coloured images turn into a silhouette.',
+    'iconPicker.hintRasterTinted':
+        'Tint: the image icons are drawn in the icon colour, colour rules apply. Suits single-coloured sets; coloured images turn into a silhouette.',
     'iconPicker.keepColours': 'Original colours',
     'iconPicker.hintRaster':
-        'Image icons (PNG/GIF) keep their own colours – icon colour, colour rules and per-state colours have no effect on them.',
+        'Image icons (PNG/GIF) keep their own colours – icon colour, colour rules and per-state colours have no effect on them. Single-coloured sets can be drawn in the icon colour with “Tint”.',
     'iconPicker.hintTinted':
         'SVG icons are drawn in the icon colour, colour rules work as usual. Multi-coloured icons become single-coloured – choose “Original colours” for those.',
     'iconPicker.hintOriginal':

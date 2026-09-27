@@ -152,6 +152,16 @@ await settle(800);
 check((await picker.locator('[data-aura-icon-original]').count()) === 0, 'png set has no colour switch');
 check(/PNG/.test((await hint.textContent()) ?? ''), 'png set explains the fixed colours');
 
+// PNG set: "Tint" writes #tint and draws the image as a mask
+const tintBox = picker.locator('[data-aura-icon-tint]');
+check((await tintBox.count()) === 1 && !(await tintBox.isChecked()), 'png set offers tint, off by default');
+await tintBox.check();
+await settle(600);
+const tintTile = picker.locator('[data-icon-id="iob:vis-test-png/Lights/lamp_on.png#tint"]');
+check((await tintTile.count()) === 1, 'tinted png id carries #tint');
+check((await tintTile.locator('[data-aura-adapter-icon="mask"]').count()) === 1, 'tinted png renders as a mask');
+check(/Einfärben/.test((await hint.textContent()) ?? ''), 'hint explains tinting');
+
 // Colour set defaults to original colours
 await select.selectOption('adapter:icons-test-color');
 await settle(800);
