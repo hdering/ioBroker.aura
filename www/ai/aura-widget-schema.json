@@ -4959,6 +4959,16 @@
           ],
           "description": "Horizontal alignment of header + cells. Default 'left'."
         },
+        "cellBg": {
+          "type": "string",
+          "description": "Background colour of the column's data cells (hex, rgba(), CSS var or light/dark pair). Unset = row background. Wins over firstColBg and the zebra stripe.",
+          "color": true
+        },
+        "cellColor": {
+          "type": "string",
+          "description": "Text colour of the column's data cells. Unset = theme text colour (firstColColor for the label column).",
+          "color": true
+        },
         "valueTransform": {
           "type": "string",
           "description": "Display-only conversion of the cell value: preset id from VALUE_TRANSFORM_PRESETS, or 'custom'."
