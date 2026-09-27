@@ -5,7 +5,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { useResolvedColors } from '../../hooks/useResolvedColors';
 import {
     useMultiSeriesData,
-    useBooleanDatapoints,
+    useDatapointMeta,
     useAutoHistoryInstances,
     rangeToMs,
     parseTimeLabel,
@@ -39,7 +39,7 @@ import {
 } from '../../utils/stackedSeries';
 import { openNativePicker } from '../common/DateTimeInput';
 import { transformSign } from '../../utils/valueTransform';
-import { axisIsBoolean, axisIsZeroBased, gridLineAxis, parseValueLabels } from '../../utils/chartAxis';
+import { axisIsBoolean, axisIsZeroBased, axisValueLabels, gridLineAxis, parseValueLabels } from '../../utils/chartAxis';
 import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
@@ -111,7 +111,8 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
     // Boolean datapoints (issue #718): they plot as 0/1, draw as a step line by default and give an
     // axis of their own exactly the two ticks 0 and 1.
-    const boolDps = useBooleanDatapoints(echartSeries.map((s) => s.datapointId).filter((id) => !!id));
+    const dpMeta = useDatapointMeta(echartSeries.map((s) => s.datapointId).filter((id) => !!id));
+    const boolDps = dpMeta.bools;
     /**
      * Whether a series plots a switch state. A converted series (×100, +1 …) no longer lives on
      * 0/1, a delta series is a consumption and a JSON series a payload — none of them count.
@@ -134,12 +135,29 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     /** Step line for a line/area — see `EChartSeriesConfig.step`. */
     const stepOf = (s: EChartSeriesConfig): boolean =>
         (s.chartType === 'line' || s.chartType === 'area') && (s.step ?? isBoolSeries(s));
-    // Axis texts in place of numbers, e.g. `0=An; 1=Aus` (issue #718).
-    const leftValueLabels = parseValueLabels(o.echartLeftValueLabels as string | undefined);
-    const rightValueLabels = parseValueLabels(o.echartRightValueLabels as string | undefined);
-    /** The text a value of series `s` maps to on its axis — undefined when it has none. */
+    /**
+     * Texts in place of values per series, e.g. `0=An; 1=Aus` (issue #718): typed ones first, then
+     * the datapoint's `common.states`. Those describe RAW values, so a converted, differenced or
+     * JSON series does not inherit them.
+     */
+    const labelsById = new Map(
+        echartSeries.map((s) => {
+            if (s.valueLabels?.trim()) return [s.id, parseValueLabels(s.valueLabels)];
+            const raw =
+                s.aggregate !== 'delta' &&
+                o.echartMode !== 'json' &&
+                s.source !== 'json' &&
+                (s.valueFactor ?? 1) === 1 &&
+                !s.valueOffset;
+            return [s.id, (raw ? dpMeta.states.get(s.datapointId) : undefined) ?? new Map<number, string>()];
+        }),
+    );
+    const seriesLabels = (s: EChartSeriesConfig) => labelsById.get(s.id) ?? new Map<number, string>();
+    const leftValueLabels = axisValueLabels(echartSeries, 0, seriesLabels);
+    const rightValueLabels = axisValueLabels(echartSeries, 1, seriesLabels);
+    /** The text a value of series `s` maps to — undefined when it has none. */
     const mappedLabel = (v: number, s?: EChartSeriesConfig): string | undefined =>
-        ((s?.yAxisIndex ?? 0) === 1 ? rightValueLabels : leftValueLabels).get(v);
+        s ? seriesLabels(s).get(v) : undefined;
     /** A series value with its unit, or the axis text that replaces both. */
     const fmtWithUnit = (v: number, s: EChartSeriesConfig | undefined, unit: string, sep = ' '): string =>
         mappedLabel(v, s) ?? `${fmtSeries(v, s)}${unit ? `${sep}${unit}` : ''}`;

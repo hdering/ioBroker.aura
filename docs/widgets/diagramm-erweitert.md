@@ -167,6 +167,7 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | `echartSeries[].yAxisIndex`    | `0`          | `0` = links, `1` = rechte Y-Achse                                                                                                                                                                                  |
 | `echartSeries[].smooth`        | `true`       | geglättete Linie (nur Linie/Fläche)                                                                                                                                                                                |
 | `echartSeries[].step`          | boolescher DP: `true`, sonst `false` | Treppenkurve — jeder Wert gilt bis zum nächsten (nur Linie/Fläche, ersetzt `smooth`) |
+| `echartSeries[].valueLabels`   | `common.states` des DP | Texte statt Zahlen, z. B. `0=An; 1=Aus` — im Tooltip, an den Werten und im aktuellen Wert; an der Achse, wenn alle Serien darauf dieselben Texte haben. Leer = Texte aus `common.states` (nicht bei ƒx-Umrechnung) |
 | `echartSeries[].stack`         | `false`      | Serie auf die anderen gestapelten Serien derselben Y-Achse addieren (siehe unten)                                                                                                                                  |
 | `echartSeries[].aggregate`     | `average`    | `average` · `minmax` · `max` · `min` · `total` · `delta` · `none` — `minmax` erhält echte Extremwerte mit echten Zeitstempeln (empfohlen für änderungsbasiert geloggte Zähler wie Tagesregen), `delta` siehe unten |
 | `echartSeries[].deltaBucket`   | `hour`       | `auto` · `hour` · `day` · `week` · `month` · `year` — Zeiteinheit für `aggregate: delta`                                                                                                                           |
@@ -228,7 +229,7 @@ der Offset fällt heraus (die Differenz zweier verschobener Zählerstände ist d
 | --------------------------------- | ---------------------------------------------------------------------------------- |
 | Balken, gestapelt oder `delta`    | enthält immer die 0 — die Balkenlänge ist der Wert, die Nulllinie bleibt sichtbar  |
 | nur Linie / Fläche / Punkte       | passt sich dem Wertebereich an (eine Kurve bei 200–250 klebt sonst am oberen Rand) |
-| nur boolesche Datenpunkte         | genau 0 und 1, ein Schritt; `true`/`false` werden als 1/0 gezeichnet, gebündelt mit `max` statt `average` |
+| nur boolesche Datenpunkte         | genau 0 und 1, ein Schritt; `true`/`false` werden als 1/0 gezeichnet, gebündelt mit `max` statt `average` (Aggregation leer lassen) |
 | `echartLeftMin` / `echartLeftMax` | gesetzte Grenzen gewinnen in beiden Fällen                                         |
 
 Beide Y-Achsen entscheiden das für sich: Balken links und eine Temperaturkurve rechts behalten
@@ -309,7 +310,6 @@ Für Serien mit `source: json` — im Modus `json` alle, im Modus `timeseries` d
 | `echartShowGridLines`                   | `true`   | horizontale Hilfslinien (von der Achse, an der die Serien hängen)                       |
 | `echartLeftUnit`                        | —        | Einheit der linken Y-Achse                                                              |
 | `echartRightUnit`                       | —        | Einheit der rechten Y-Achse                                                             |
-| `echartLeftValueLabels` / `echartRightValueLabels` | —        | Texte statt Zahlen, z. B. `0=An; 1=Aus` — an der Achse, im Tooltip und im aktuellen Wert |
 | `echartLeftMin` / `echartLeftMax`       | `auto`   | Skala links; Zahl oder `dataMin`/`dataMax`                                              |
 | `echartRightMin` / `echartRightMax`     | `auto`   | Skala rechts; Zahl oder `dataMin`/`dataMax`                                             |
 | `echartLeftMinDp` / `echartLeftMaxDp`   | —        | Datenpunkt liefert die Grenze links — ändert sich die Zahl, skaliert die Achse mit      |

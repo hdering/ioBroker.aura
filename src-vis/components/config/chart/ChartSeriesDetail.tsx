@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Database } from 'lucide-react';
 import { useT } from '../../../i18n';
-import { useBooleanDatapoints, type EChartSeriesConfig } from '../../../hooks/useMultiSeriesData';
+import { useDatapointMeta, type EChartSeriesConfig } from '../../../hooks/useMultiSeriesData';
 import { ColorPicker } from '../../common/ColorPicker';
 import { ValueFormatRow } from '../ValueFormatRow';
 import type { NumberFormat } from '../../../utils/formatValue';
@@ -74,7 +74,16 @@ export function ChartSeriesDetail({
     const t = useT();
     const [pickerOpen, setPickerOpen] = useState(false);
     // A boolean datapoint draws as a step line unless switched off (issue #718).
-    const isBoolDp = useBooleanDatapoints(s.datapointId ? [s.datapointId] : []).has(s.datapointId);
+    const dpMeta = useDatapointMeta(s.datapointId ? [s.datapointId] : []);
+    const isBoolDp = dpMeta.bools.has(s.datapointId);
+    // The datapoint's own `common.states`, shown as what an empty field falls back to.
+    const dpStates = dpMeta.states.get(s.datapointId);
+    const statesHint = dpStates
+        ? [...dpStates.entries()]
+              .sort((a, b) => a[0] - b[0])
+              .map(([k, v]) => `${k}=${v}`)
+              .join('; ')
+        : '';
     const step = s.step ?? isBoolDp;
     // The JSON mode forces every series onto the payload source; in a timeseries chart each
     // series decides for itself (issue #595).
@@ -268,6 +277,24 @@ export function ChartSeriesDetail({
                     inheritLabel={t('echart.formatFollowChart')}
                     className="flex-1 min-w-0"
                 />
+            </div>
+
+            {/* Texts in place of values (issue #718) — empty = the datapoint's common.states */}
+            <div>
+                <label className="text-[11px] mb-1 block" style={{ color: 'var(--text-secondary)' }}>
+                    {t('echart.valueLabels')}
+                </label>
+                <input
+                    type="text"
+                    value={s.valueLabels ?? ''}
+                    onChange={(e) => update({ valueLabels: e.target.value || undefined })}
+                    placeholder={statesHint || t('echart.valueLabelsPlaceholder')}
+                    className={`${inputCls} w-full`}
+                    style={inputStyle}
+                />
+                <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                    {statesHint && !s.valueLabels ? t('echart.valueLabelsFromStates') : t('echart.valueLabelsHint')}
+                </p>
             </div>
 
             {/* Y-Axis, Smooth, LineWidth, History — hidden in comparison mode */}
@@ -545,7 +572,13 @@ export function ChartSeriesDetail({
                     )}
 
                     {!seriesIsJson && (
-                        <ChartSeriesHistoryPanel s={s} adState={adState} update={update} onDetect={onDetect} />
+                        <ChartSeriesHistoryPanel
+                            s={s}
+                            adState={adState}
+                            update={update}
+                            onDetect={onDetect}
+                            isBool={isBoolDp}
+                        />
                     )}
                 </>
             )}

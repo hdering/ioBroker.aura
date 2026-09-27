@@ -51,7 +51,7 @@ export function gridLineAxis(series: AxisSeries[]): 0 | 1 {
 }
 
 /**
- * Value-to-text mapping of an axis (issue #718), typed as `0=An; 1=Aus`: entries split at `;` or a
+ * Value-to-text mapping of a series (issue #718), typed as `0=An; 1=Aus`: entries split at `;` or a
  * line break, key and text at the first `=`. `true`/`false` stand for 1/0, and a decimal comma is
  * read as a point. Entries without a number or without a text are skipped.
  */
@@ -68,6 +68,48 @@ export function parseValueLabels(text: string | undefined): Map<number, string> 
         if (Number.isFinite(key)) map.set(key, label);
     }
     return map;
+}
+
+/**
+ * Value texts a datapoint declares itself in `common.states` (issue #718) — either an object
+ * (`{"0":"Aus","1":"An"}`, `{"true":"An","false":"Aus"}`) or the legacy string form
+ * (`0:Aus;1:An`). Only numeric keys count: the chart plots numbers, a key like `HEAT` has no place
+ * on its axis.
+ */
+export function parseCommonStates(states: unknown): Map<number, string> {
+    const map = new Map<number, string>();
+    const add = (rawKey: string, label: unknown) => {
+        const k = rawKey.trim().toLowerCase();
+        const key = k === 'true' ? 1 : k === 'false' ? 0 : k === '' ? NaN : Number(k);
+        const text = typeof label === 'string' || typeof label === 'number' ? String(label).trim() : '';
+        if (Number.isFinite(key) && text) map.set(key, text);
+    };
+    if (typeof states === 'string') {
+        for (const entry of states.split(';')) {
+            const colon = entry.indexOf(':');
+            if (colon > 0) add(entry.slice(0, colon), entry.slice(colon + 1));
+        }
+    } else if (states && typeof states === 'object' && !Array.isArray(states)) {
+        for (const [k, v] of Object.entries(states as Record<string, unknown>)) add(k, v);
+    }
+    return map;
+}
+
+/**
+ * The texts an AXIS can carry: those of its series, when every series on it has texts and they all
+ * agree. "Heizung An/Aus" next to "Fenster offen/zu" on one axis cannot label the same tick twice —
+ * the axis then shows numbers, while tooltip and current value keep each series' own texts.
+ */
+export function axisValueLabels<S extends AxisSeries>(
+    series: S[],
+    axis: 0 | 1,
+    labelsOf: (s: S) => Map<number, string>,
+): Map<number, string> {
+    const maps = series.filter((s) => on(s, axis)).map(labelsOf);
+    if (maps.length === 0 || maps.some((m) => m.size === 0)) return new Map();
+    const key = (m: Map<number, string>) => JSON.stringify([...m.entries()].sort((a, b) => a[0] - b[0]));
+    const first = key(maps[0]);
+    return maps.every((m) => key(m) === first) ? maps[0] : new Map();
 }
 
 /**

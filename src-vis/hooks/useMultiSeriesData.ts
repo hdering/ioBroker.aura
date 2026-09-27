@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { getHistoryDirect, getStateFromCache, getObjectDirect, type HistoryEntry } from './useIoBroker';
 import { detectHistoryAdapters, TOTAL_FLOOR_MS, type DetectedAdapter } from './useChartHistory';
 import { applyValueTransform, transformMagnitude, transformSign } from '../utils/valueTransform';
+import { parseCommonStates } from '../utils/chartAxis';
 import type { NumberFormat } from '../utils/formatValue';
 import type { ioBrokerState } from '../types';
 import { unitSpanMs, type RangeUnit } from '../utils/rangeChips';
@@ -41,6 +42,12 @@ export interface EChartSeriesConfig {
      * on for a boolean datapoint, off otherwise. Overrides `smooth`.
      */
     step?: boolean;
+    /**
+     * Texts in place of values, typed as `0=An; 1=Aus` (issue #718) — in the tooltip, the value
+     * labels, the current-value block and, when every series on the axis agrees, on the axis. Unset
+     * = the datapoint's own `common.states`, as long as the series is not converted (ƒx).
+     */
+    valueLabels?: string;
     yAxisIndex?: 0 | 1;
     lineWidth?: number;
     /**
@@ -152,26 +159,44 @@ export function datapointIsBoolean(id: string): Promise<boolean> {
         .catch(() => false);
 }
 
+/** What a chart takes from a datapoint's object (issue #718). */
+export interface DatapointMeta {
+    /** Datapoints declared `common.type: boolean`. */
+    bools: Set<string>;
+    /** Value texts from `common.states`, per datapoint — only those that declare any. */
+    states: Map<string, Map<number, string>>;
+}
+
 /**
- * The datapoints among `ids` that are booleans (issue #718). A boolean series is drawn as a step
- * line by default, and an axis carrying only booleans shows exactly 0 and 1.
+ * Type and value texts of the datapoints among `ids`, read from their (cached) objects. A boolean
+ * series is drawn as a step line by default and gives a boolean-only axis exactly 0 and 1;
+ * `common.states` is the default of a series' value texts.
  */
-export function useBooleanDatapoints(ids: string[]): Set<string> {
-    const [bools, setBools] = useState<Set<string>>(() => new Set());
+export function useDatapointMeta(ids: string[]): DatapointMeta {
+    const [meta, setMeta] = useState<DatapointMeta>(() => ({ bools: new Set(), states: new Map() }));
     const key = ids.join('|');
     useEffect(() => {
         let alive = true;
-        Promise.all(ids.map((id) => datapointIsBoolean(id).then((b) => (b ? id : null)))).then((found) => {
+        const wanted = ids.filter((id) => !!id && !id.includes('{{'));
+        Promise.all(wanted.map((id) => getObjectDirect(id).catch(() => null))).then((objs) => {
             if (!alive) return;
-            const next = new Set(found.filter((id): id is string => id !== null));
-            setBools((prev) => (prev.size === next.size && [...next].every((id) => prev.has(id)) ? prev : next));
+            const bools = new Set<string>();
+            const states = new Map<string, Map<number, string>>();
+            objs.forEach((obj, i) => {
+                if (obj?.common?.type === 'boolean') bools.add(wanted[i]);
+                const m = parseCommonStates((obj?.common as { states?: unknown } | undefined)?.states);
+                if (m.size > 0) states.set(wanted[i], m);
+            });
+            const sig = (m: DatapointMeta) =>
+                JSON.stringify([[...m.bools].sort(), [...m.states.entries()].map(([k, v]) => [k, [...v]])]);
+            setMeta((prev) => (sig(prev) === sig({ bools, states }) ? prev : { bools, states }));
         });
         return () => {
             alive = false;
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [key]);
-    return bools;
+    return meta;
 }
 
 /** A series' raw number as it should be displayed — see `valueFactor` / `valueOffset`. */

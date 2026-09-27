@@ -14,12 +14,15 @@ export function ChartSeriesHistoryPanel({
     adState,
     update,
     onDetect,
+    isBool = false,
 }: {
     s: EChartSeriesConfig;
     adState?: SeriesAdapterState;
     update: (patch: Partial<EChartSeriesConfig>) => void;
     /** Re-run adapter detection for this series' datapoint. */
     onDetect: () => void;
+    /** Boolean datapoint: an unset aggregation means `max`, not `average` (issue #718). */
+    isBool?: boolean;
 }) {
     const t = useT();
     const isTpl = (s.datapointId ?? '').includes('{{');
@@ -111,12 +114,15 @@ export function ChartSeriesHistoryPanel({
                         {t('echart.aggregation')}
                     </label>
                     <select
-                        value={s.aggregate ?? 'average'}
+                        value={s.aggregate ?? (isBool ? '' : 'average')}
                         onChange={(e) => {
+                            // Unset is the default: `average`, or `max` for a boolean — which then
+                            // has to store an explicit `average` when that is picked.
+                            const v = e.target.value;
                             const agg =
-                                e.target.value === 'average'
+                                v === '' || (!isBool && v === 'average')
                                     ? undefined
-                                    : (e.target.value as EChartSeriesConfig['aggregate']);
+                                    : (v as EChartSeriesConfig['aggregate']);
                             update({
                                 aggregate: agg,
                                 // Per-bucket consumption reads as bars, not
@@ -128,7 +134,8 @@ export function ChartSeriesHistoryPanel({
                         className={inputCls}
                         style={inputStyle}
                     >
-                        <option value="average">{t('echart.aggAverage')}</option>
+                        {isBool && <option value="">{t('echart.aggBoolDefault')}</option>}
+                        <option value="average">{isBool ? t('echart.aggAverageBool') : t('echart.aggAverage')}</option>
                         <option value="minmax">{t('echart.aggMinmax')}</option>
                         <option value="max">{t('echart.aggMax')}</option>
                         <option value="min">{t('echart.aggMin')}</option>

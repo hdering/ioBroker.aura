@@ -6,8 +6,9 @@
 // Use case from the issue: temperatures on the left axis, the heating's on/off state on the
 // right. Checked: true/false rows plot as 1/0, a boolean series draws as a step line by default
 // (and can be switched back), a boolean-only axis spans 0…1 in one step, its bucket aggregation
-// is `max` instead of a duty-cycle average, and `echartRightValueLabels` puts the texts on the
-// axis and into the current-value block.
+// is `max` instead of a duty-cycle average, and a series' `valueLabels` (or the datapoint's
+// `common.states`) put texts on the axis and into the current-value block — the axis only when
+// every series on it agrees.
 import { chromium } from 'playwright';
 
 const BASE = process.env.AURA_BASE ?? 'http://localhost:5174';
@@ -34,16 +35,19 @@ const temp = Array.from({ length: 96 }, (_, i) => [now - (95 - i) * 15 * 60 * 10
 
 let n = 0;
 /** Renders one chart (own widget id each time — see the harness notes) and waits for its series. */
-async function render(options, seriesPatch = {}, tempPatch = {}) {
+async function render(options, seriesPatch = {}, tempPatch = {}, heatCommon = {}) {
     n++;
     const ids = { heat: `demo.heat${n}`, temp: `demo.flow${n}` };
     await page.evaluate(
-        ([ids, heat, temp, n, options, seriesPatch, tempPatch]) => {
+        ([ids, heat, temp, n, options, seriesPatch, tempPatch, heatCommon]) => {
             const a = window.__auraShot;
             a.enableHistory(true);
             a.mockHistory({ [ids.heat]: heat, [ids.temp]: temp });
             a.mockObject({
-                [ids.heat]: { type: 'state', common: { type: 'boolean', custom: { 'history.0': { enabled: true } } } },
+                [ids.heat]: {
+                    type: 'state',
+                    common: { type: 'boolean', custom: { 'history.0': { enabled: true } }, ...heatCommon },
+                },
                 [ids.temp]: { type: 'state', common: { type: 'number', custom: { 'history.0': { enabled: true } } } },
             });
             const vals = { [ids.heat]: true, [ids.temp]: 44.2 };
@@ -87,7 +91,7 @@ async function render(options, seriesPatch = {}, tempPatch = {}) {
                 },
             ]);
         },
-        [ids, heat, temp, n, options, seriesPatch, tempPatch],
+        [ids, heat, temp, n, options, seriesPatch, tempPatch, heatCommon],
     );
     await page.waitForFunction(
         () => {
@@ -151,7 +155,7 @@ async function render(options, seriesPatch = {}, tempPatch = {}) {
 
 // ── 3. Value texts on the axis and in the current-value block ───────────────
 {
-    const r = await render({ echartRightValueLabels: '0=An; 1=Aus' });
+    const r = await render({}, { valueLabels: '0=An; 1=Aus' });
     check(
         'axis shows the mapped texts',
         r.texts.includes('An') && r.texts.includes('Aus'),
@@ -166,6 +170,38 @@ async function render(options, seriesPatch = {}, tempPatch = {}) {
         'current block shows the text for the live value',
         /\bAus\b/.test(r.header),
         r.header.replace(/\s+/g, ' ').slice(0, 80),
+    );
+}
+
+// ── 3b. Default from common.states, typed texts win ─────────────────────────
+{
+    const r = await render({}, {}, {}, { states: { false: 'Zu', true: 'Offen' } });
+    check(
+        'common.states label the axis',
+        r.texts.includes('Zu') && r.texts.includes('Offen'),
+        JSON.stringify(r.texts.slice(-8)),
+    );
+    check('common.states label the current value', /Offen/.test(r.header), r.header.replace(/\s+/g, ' ').slice(0, 60));
+    const typed = await render({}, { valueLabels: '0=An; 1=Aus' }, {}, { states: { false: 'Zu', true: 'Offen' } });
+    check(
+        'typed texts win over common.states',
+        typed.texts.includes('Aus') && !typed.texts.includes('Offen'),
+        JSON.stringify(typed.texts.slice(-8)),
+    );
+}
+
+// ── 3c. Two series with different texts on one axis: numbers on the axis ───
+{
+    const r = await render({}, { valueLabels: '0=An; 1=Aus' }, { yAxisIndex: 1, valueLabels: '0=Zu; 1=Offen' });
+    check(
+        'conflicting texts leave the axis numeric',
+        !r.texts.includes('An') && !r.texts.includes('Zu'),
+        JSON.stringify(r.texts.slice(0, 12)),
+    );
+    check(
+        'each series keeps its own text in the current block',
+        /Aus/.test(r.header),
+        r.header.replace(/\s+/g, ' ').slice(0, 60),
     );
 }
 

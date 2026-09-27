@@ -1703,9 +1703,11 @@ export const de = {
     'echart.max': 'Max',
     'echart.yAxisRight': 'Y-Achse rechts',
     'echart.unitRight': 'Einheit (z.B. %)',
-    'echart.valueLabels': 'Texte statt Werte, z.B. 0=Aus; 1=An',
+    'echart.valueLabels': 'Texte statt Zahlen',
+    'echart.valueLabelsPlaceholder': 'z.B. 0=Aus; 1=An',
     'echart.valueLabelsHint':
-        'Ersetzt Zahlen an der Achse, im Tooltip und in der Wertanzeige. Einträge mit ; trennen, true/false stehen für 1/0.',
+        'Im Tooltip, an den Werten und in der Wertanzeige; an der Achse, wenn alle Serien darauf dieselben Texte haben. Einträge mit ; trennen, true/false stehen für 1/0.',
+    'echart.valueLabelsFromStates': 'Leer = Texte aus dem Datenpunkt (common.states), wie im Platzhalter.',
     'echart.jsonOverride': 'JSON-Override',
     'echart.jsonOverrideHint':
         'Wird mit der auto-generierten ECharts-Option zusammengeführt (deep merge). Arrays werden ersetzt.',
@@ -1784,6 +1786,8 @@ export const de = {
     'echart.boundDpClear': 'Datenpunkt entfernen',
     'echart.aggregation': 'Aggregation',
     'echart.aggAverage': 'Durchschnitt (Standard)',
+    'echart.aggBoolDefault': 'Maximum (Standard bei Schaltern: war es an?)',
+    'echart.aggAverageBool': 'Durchschnitt (Anteil der Einschaltzeit)',
     'echart.aggMinmax': 'Min/Max (echte Extremwerte — z.B. Regenzähler)',
     'echart.aggMax': 'Maximum',
     'echart.aggMin': 'Minimum',

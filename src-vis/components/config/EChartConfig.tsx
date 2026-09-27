@@ -813,15 +813,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             style={inputStyle}
                         />
                     </div>
-                    <input
-                        type="text"
-                        value={(o.echartLeftValueLabels as string | undefined) ?? ''}
-                        onChange={(e) => setO({ echartLeftValueLabels: e.target.value || undefined })}
-                        placeholder={t('echart.valueLabels')}
-                        title={t('echart.valueLabelsHint')}
-                        className={`${inputCls} w-full mb-1`}
-                        style={inputStyle}
-                    />
                     <div className="flex flex-col gap-1">
                         <AxisBoundRow
                             valueKey="echartLeftMin"
@@ -859,15 +850,6 @@ export function EChartConfig({ config, onConfigChange }: EChartConfigProps) {
                             style={inputStyle}
                         />
                     </div>
-                    <input
-                        type="text"
-                        value={(o.echartRightValueLabels as string | undefined) ?? ''}
-                        onChange={(e) => setO({ echartRightValueLabels: e.target.value || undefined })}
-                        placeholder={t('echart.valueLabels')}
-                        title={t('echart.valueLabelsHint')}
-                        className={`${inputCls} w-full mb-1`}
-                        style={inputStyle}
-                    />
                     <div className="flex flex-col gap-1">
                         <AxisBoundRow
                             valueKey="echartRightMin"
