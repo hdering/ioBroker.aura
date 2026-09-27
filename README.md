@@ -122,6 +122,18 @@ So the path of any release is: `-nextN` test build → **Latest** (published, on
 
 _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 
+### 0.71.0 (2026-09-27)
+- 🌟 **New feature:** Settings - "Fill window width" grid can now also stretch vertically: rows either scale with the width (widgets keep their aspect ratio) or fill the window height; off by default ([#413](https://github.com/hdering/ioBroker.aura/issues/413))
+- 🌟 **New feature:** Widget fullscreen - browser fullscreen no longer drops back right after opening when entering it resizes the window across a layout breakpoint (Firefox on phones in landscape) ([#711](https://github.com/hdering/ioBroker.aura/issues/711))
+- Chart - the tooltip now shows the year when the chart spans more than a month, crosses a year boundary or lies in an earlier year; daily values drop the meaningless 00:00 ([#712](https://github.com/hdering/ioBroker.aura/issues/712))
+- 🌟 **New feature:** JSON table - columns can now have their own background and text colour ("Colours" switch in the column settings) ([#715](https://github.com/hdering/ioBroker.aura/issues/715))
+- Chart - value labels on the highest bar or point no longer run into the legend or get cut off at the top edge ([#713](https://github.com/hdering/ioBroker.aura/issues/713))
+- 🌟 **New feature:** Chart (advanced) - boolean datapoints plot as 0/1 on a clean 0…1 axis and draw as a step line by default; new "Step line" switch and "Texts instead of numbers" per series (e.g. 0=On; 1=Off), prefilled from the datapoint's own states ([#718](https://github.com/hdering/ioBroker.aura/issues/718))
+- 🌟 **New feature:** Icon picker - icons of installed ioBroker icon adapters (e.g. icons-mfd-svg, icons-material-png, vis-icontwo) and vis-2 icon sets (e.g. Vis 2 inventwo Iconset) can now be picked, straight from the adapter; new "Source" filter for Aura's own icons, adapters and single Iconify sets, "Offline only" filter, optional tinting of single-coloured PNG sets, and the dialog can be moved ([#716](https://github.com/hdering/ioBroker.aura/issues/716))
+- 🌟 **New feature:** Instance settings - new "Reset admin PIN on next start" checkbox for a forgotten admin PIN: the admin area asks for a new PIN afterwards, PINs of protected sections and tabs are kept
+- 🌟 **New feature:** Custom layout - right-click a cell to insert a row above/below or a column left/right of it, or to delete its row/column, instead of only adding at the end; the cell context menu no longer closes the edit dialog ([#717](https://github.com/hdering/ioBroker.aura/issues/717))
+
+
 ### 0.70.1 (2026-09-25)
 - Click action icon on widgets is now off by default and has to be switched on per widget
 
@@ -253,19 +265,6 @@ _Older releases: see [CHANGELOG_OLD.md](CHANGELOG_OLD.md)._
 - 🌟 **New feature:** Fill level - optional datapoints for charging and connection: a bolt shows while the device charges, with an optional blinking or Knight-Rider effect on the fill, and a lost connection greys the widget out and shows its own icon; each datapoint can be read as a flag, an inverted flag (UNREACH) or a charge power ([#671](https://github.com/hdering/ioBroker.aura/issues/671))
 
 
-### 0.61.0 (2026-09-17)
-- 🌟 **New feature:** Advanced chart - can start on the current calendar day (00:00-24:00) instead of the rolling range
-- 🌟 **New feature:** Editor - undo/redo for every edit: step-wise via Ctrl+Z / Ctrl+Y or the arrows in the save bar, also after saving; "Discard" reverts all unsaved changes and is itself undoable; the history menu in the save bar lists every step of the session by name plus the saved states from the auto-backups, restoring one writes a safety backup first and is a single undo step; the history survives a reload of the admin as long as nothing else changed the configuration in between. Unsaved changes are no longer saved automatically when the admin is reloaded but stay unsaved and are flagged as carried over from the last session; toggling a timer or an auto-list picking up new datapoints no longer saves the whole dashboard on its own either. Dropping a widget no longer re-renders every other widget on the tab, so releasing it no longer stutters on busy tabs, and the preview renders with the font scale of the layout being edited, so the admin shows what the frontend shows ([#668](https://github.com/hdering/ioBroker.aura/issues/668))
-- Messages - the presentation defaults take part in undo/redo; undoing them back to the saved values disarms the save bar again
-- Settings - the first change to a setting that was never saved before (fresh installation, unused datapoint groups) now arms the save bar and can be discarded like any other
-- Adapter - a config datapoint (aura.0.config.*) written by a script or another tool without ack is backed up first; the previous value appears in the backup list as an external write
-- Popups - a fresh installation no longer receives every built-in popup view and type assignment on the second load, a discard or a restore; only the datapoint view is seeded until a popup is actually configured
-- Frontend - opened in the same browser as an admin, the frontend no longer mirrors the admin's unsaved edits live (every widget drag used to show up there at once); it shows the saved configuration, leaves the admin's copy and flags alone, and takes a save over the moment it arrives
-- Value widget - in the "minimal" layout value and title shrink to stay inside the card instead of the title being cut off at the bottom edge ([#668](https://github.com/hdering/ioBroker.aura/issues/668))
-- Value widget - a double click in the HTML template field selects the clicked word again instead of the whole template ([#670](https://github.com/hdering/ioBroker.aura/issues/670))
-- 🌟 **New feature:** iFrame widget - the embedded page can be zoomed: one level for all devices in the editor, plus optional controls on the widget whose level is remembered for that device alone; where the content is locked, two fingers zoom it directly ([#667](https://github.com/hdering/ioBroker.aura/issues/667))
-
-
 ## License
 
 MIT License
@@ -277,6 +276,7 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
 
 
 
