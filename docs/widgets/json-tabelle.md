@@ -81,6 +81,7 @@ Liste in `columns` (leer = alle Spalten automatisch aus den JSON-Daten). Pro Spa
 | `align` | Ausrichtung: `left` · `center` · `right` |
 | `wrap` | Zeilenumbruch erlauben (sonst einzeilig mit …) |
 | `prefix` / `suffix` | Text vor / hinter dem Wert (z. B. `€`, ` °C`) |
+| `cellBg` / `cellColor` | Schalter **Farben**: Hintergrund- / Textfarbe der Datenzellen (Kopfzeile bleibt); überstimmt Bezeichnungsspalte und Zebra-Streifen |
 
 #### Wert-Format
 

@@ -45,6 +45,10 @@ export interface JsonColumnDef {
     wrap?: boolean;
     /** Horizontal alignment of header + cells. Default 'left'. */
     align?: 'left' | 'center' | 'right';
+    /** Background colour of the column's data cells (hex, rgba(), CSS var or light/dark pair). Unset = row background. Wins over firstColBg and the zebra stripe. */
+    cellBg?: string;
+    /** Text colour of the column's data cells. Unset = theme text colour (firstColColor for the label column). */
+    cellColor?: string;
     /** Display-only conversion of the cell value: preset id from VALUE_TRANSFORM_PRESETS, or 'custom'. */
     valueTransform?: string;
     valueFactor?: number; // display-only multiplier, applied before the time format
@@ -696,8 +700,12 @@ export function JsonTableWidget({ config, onConfigChange }: WidgetProps) {
                                                 key={col.key}
                                                 style={{
                                                     padding: pad,
-                                                    color: isLabel ? firstColColor : 'var(--text-primary)',
-                                                    background: isLabel ? firstColBg : undefined,
+                                                    // A column colour (#715) is the more specific setting and
+                                                    // wins over the label column's colours.
+                                                    color:
+                                                        col.cellColor ||
+                                                        (isLabel ? firstColColor : 'var(--text-primary)'),
+                                                    background: col.cellBg || (isLabel ? firstColBg : undefined),
                                                     fontWeight: isLabel ? 600 : 400,
                                                     textAlign: col.align ?? 'left',
                                                     width: hasWidth ? col.width : undefined,

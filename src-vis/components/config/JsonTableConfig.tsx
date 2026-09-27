@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Plus, Trash2, ChevronUp, ChevronDown, RefreshCw, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
+import { Plus, Trash2, X, ChevronUp, ChevronDown, RefreshCw, AlignLeft, AlignCenter, AlignRight } from 'lucide-react';
 import { parseJson, type JsonColumnDef } from '../widgets/JsonTableWidget';
 import { ColorPicker } from '../common/ColorPicker';
 import { ImagePathHint } from './ImagePathHint';
@@ -100,7 +100,9 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
     // The two format switches work like the Bild/HTML ones, but they have no flag of
     // their own — they stand for a group of values. So the switch reads those values,
     // and a switch turned on before anything is picked is remembered here until then.
-    const [formatOpen, setFormatOpen] = useState<Record<string, { time?: boolean; convert?: boolean }>>({});
+    const [formatOpen, setFormatOpen] = useState<
+        Record<string, { time?: boolean; convert?: boolean; color?: boolean }>
+    >({});
     const timeShown = (c: JsonColumnDef) => formatOpen[c.key]?.time ?? hasTimeDisplay(c.valueTimeFormat);
     const convertShown = (c: JsonColumnDef) =>
         formatOpen[c.key]?.convert ??
@@ -109,7 +111,8 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
             c.valueOffset !== undefined ||
             c.decimals !== undefined ||
             c.numberFormat !== undefined);
-    const setFormatFlag = (key: string, flag: 'time' | 'convert', on: boolean) =>
+    const colorShown = (c: JsonColumnDef) => formatOpen[c.key]?.color ?? !!(c.cellBg || c.cellColor);
+    const setFormatFlag = (key: string, flag: 'time' | 'convert' | 'color', on: boolean) =>
         setFormatOpen((prev) => ({ ...prev, [key]: { ...prev[key], [flag]: on } }));
 
     /** What the first row's cell will look like - also says when a value is no time at all. */
@@ -194,6 +197,13 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                 numberFormat: undefined,
             });
         }
+    }
+
+    /** Farben switch: off clears both colours. */
+    function toggleColor(idx: number, col: JsonColumnDef) {
+        const on = !colorShown(col);
+        setFormatFlag(col.key, 'color', on);
+        if (!on) updateCol(idx, { cellBg: undefined, cellColor: undefined });
     }
 
     function removeCol(idx: number) {
@@ -548,6 +558,15 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                         Ausblenden
                                     </span>
                                 </label>
+                                <label
+                                    className="flex items-center gap-1.5 cursor-pointer"
+                                    title="Hintergrund- und Textfarbe der Spaltenzellen"
+                                >
+                                    <Toggle value={colorShown(col)} onToggle={() => toggleColor(idx, col)} />
+                                    <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                        Farben
+                                    </span>
+                                </label>
                                 {/* A path or markup is nothing a value format could sensibly touch,
                                     so these two only show up for plain text columns. */}
                                 {!col.image && !col.html && (
@@ -672,6 +691,41 @@ export function JsonTableConfig({ datapoint, options: o, onChange }: Props) {
                                             style={jSty}
                                         />
                                     </div>
+                                </div>
+                            )}
+                            {/* Row 3.65: column colours (#715) — the switch above decides whether this shows. */}
+                            {colorShown(col) && (
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    {(
+                                        [
+                                            ['cellBg', 'Hintergrund', '#6366f1'],
+                                            ['cellColor', 'Textfarbe', '#ffffff'],
+                                        ] as const
+                                    ).map(([field, label, fallback]) => (
+                                        <div key={field} className="flex items-center gap-1.5">
+                                            <ColorPicker
+                                                value={col[field] || fallback}
+                                                unset={!col[field]}
+                                                onChange={(v) => updateCol(idx, { [field]: v || undefined })}
+                                                className="w-8 h-7 rounded cursor-pointer shrink-0"
+                                                style={{ border: '1px solid var(--app-border)', padding: '1px' }}
+                                            />
+                                            <span className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
+                                                {label}
+                                            </span>
+                                            {col[field] && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateCol(idx, { [field]: undefined })}
+                                                    className="p-0.5 rounded hover:opacity-70"
+                                                    style={{ color: 'var(--text-secondary)' }}
+                                                    title="Farbe entfernen"
+                                                >
+                                                    <X size={11} />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
                                 </div>
                             )}
                             {/* Row 3.7: Datum/Zeit — the switch above decides whether this shows. */}
