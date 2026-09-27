@@ -12,12 +12,40 @@ Allgemeine Einstellungen: Frontend, Grid, Sicherheit und Backup.
 | Ungespeichert nach Neuladen | Ungespeicherte Änderungen bleiben nach `F5` erhalten **und ungespeichert**; die Speicherleiste zeigt „Ungespeicherte Änderungen · aus der letzten Sitzung übernommen“. Speichern, Verwerfen oder Rückgängig ist Handarbeit (bis 0.60.8 wurden sie beim Laden des Admins automatisch gespeichert) |
 | Frontend im selben Browser | Das Frontend zeigt immer den gespeicherten Stand. Läuft es im selben Browser wie ein Admin, übernimmt es dessen ungespeicherte Änderungen nicht mehr live (bis 0.60.8 wanderte jedes Verschieben sofort ins Frontend-Tab) und lässt Kopie und Markierung des Admins unangetastet; nach **Speichern** kommt der neue Stand wie auf jedem anderen Gerät über die Verbindung zum Adapter |
 | Verlauf (Uhr-Symbol in der Speicherleiste) | Alle Schritte dieser Sitzung mit Beschreibung („Widget „Küche“ verschoben“), Klick springt zu einem Stand. Darunter die gespeicherten Stände (Auto-Backups): Wiederherstellen legt vorher eine Sicherung des aktuellen Stands ab und ist ein einzelner Rückgängig-Schritt |
-| Admin-PIN | Passwort für den Adminbereich (min. 4 Zeichen). Wird serverseitig im Adapter geprüft (scrypt); nach dem Update auf diese Version einmalig neu setzen. Die Anmeldung gilt 8 Stunden — danach führt der Editor zurück zur Anmeldung. PIN vergessen: im Instanz-Datenverzeichnis in `security.json` den Eintrag `admin` löschen und die Instanz neu starten (geschützte Bereiche bleiben erhalten) |
+| Admin-PIN | Passwort für den Adminbereich (min. 4 Zeichen). Wird serverseitig im Adapter geprüft (scrypt); nach dem Update auf diese Version einmalig neu setzen. Die Anmeldung gilt 8 Stunden — danach führt der Editor zurück zur Anmeldung. PIN vergessen: siehe [Admin-PIN zurücksetzen](#admin-pin-zurucksetzen) |
 | Super-Admin-Schlüssel | Schützt Standard-Views vor Löschen; aktiviert über `/admin/popups?key=…` |
 | Admin-Basis-URL | Relative Bildpfade in JSON-Tabellen-Widgets auflösen |
 | Verbundene Geräte | Liste der Clients; umbenennen, feste ID vergeben, entfernen |
 | Backup & Restore | Manuelles Backup laden/importieren; Auto-Backups (Anzahl, Wiederherstellen). Jeder Eintrag nennt neben Datum und Uhrzeit die Aura-Version, die ihn geschrieben hat, und trägt sie auch im Dateinamen (`backup-2026-09-21T14-34-07-891Z-v0.66.0.json.gz`). Schreibt ein Skript oder ein anderes Werkzeug einen `aura.0.config.*`-Datenpunkt ohne `ack`, sichert der Adapter den vorherigen Stand automatisch in dieselbe Liste („Fremder Schreibzugriff von …“, höchstens alle 30 s je Datenpunkt) |
 | Alles zurücksetzen | Löscht Dashboards, Widgets, Themes und Einstellungen — nicht rückgängig |
+
+## Admin-PIN zurücksetzen
+
+Der PIN liegt nur als Hash im Adapter und lässt sich nicht anzeigen. Zurücksetzen geht auf
+dem ioBroker-Host (SSH):
+
+| Schritt | Befehl |
+| --- | --- |
+| 1. Instanz stoppen | `iobroker stop aura.0` |
+| 2. In das Datenverzeichnis wechseln | `cd /opt/iobroker/iobroker-data/aura.0` |
+| 3. Sicherung anlegen | `cp security.json security.json.bak` |
+| 4. Admin-PIN löschen | siehe unten |
+| 5. Instanz starten | `iobroker start aura.0` |
+| 6. Adminbereich öffnen | Aura fragt wie bei der Ersteinrichtung nach einem neuen PIN |
+
+Schritt 4:
+
+```bash
+node -e 'const f="security.json",fs=require("fs");const d=JSON.parse(fs.readFileSync(f,"utf8"));d.admin=null;fs.writeFileSync(f,JSON.stringify(d),{mode:0o600})'
+```
+
+| Hinweis | |
+| --- | --- |
+| Andere Instanz | `aura.0` in Schritt 1, 2 und 5 durch die eigene Instanz ersetzen (z. B. `aura.1`) |
+| Docker / andere Installation | Datenverzeichnis ist `<ioBroker-Verzeichnis>/iobroker-data/aura.<n>/`; die Befehle im Container ausführen |
+| Bleibt erhalten | PINs geschützter Bereiche und Tabs, alle Dashboards und Einstellungen |
+| Ohne `node` | `security.json` im Editor öffnen und `"admin":{…}` durch `"admin":null` ersetzen |
+| Rückgängig | `security.json.bak` zurück nach `security.json` kopieren, Instanz neu starten |
 
 ## Client-ID
 
