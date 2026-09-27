@@ -1047,6 +1047,7 @@ class Aura extends utils.Adapter {
             data.serverSecret = generateServerSecret();
             this.vault.save(data);
         }
+        if (this.config.resetAdminPin === true) await this._resetAdminPin(data);
         this._securityApi = createSecurityApi({
             vault: this.vault,
             log: this.log,
@@ -1059,6 +1060,28 @@ class Aura extends utils.Adapter {
             this.log.warn(`aura: PIN vault init could not read config.dashboard — ${e.message}`);
         }
         this.log.info(`aura: PIN vault ready (${dir})`);
+    }
+
+    /**
+     * "Reset admin PIN on next start" in the instance settings: drop the
+     * admin hash so the editor offers first-run setup again, and rotate the signing
+     * secret so sessions opened with the old PIN end too. Section/tab PINs stay.
+     * Only someone who may edit the instance object gets here — a state would let
+     * any socket client (the frontend included) take over the admin area.
+     * Clearing the flag rewrites native, so js-controller restarts the instance once.
+     */
+    async _resetAdminPin(data) {
+        data.admin = null;
+        data.serverSecret = generateServerSecret();
+        this.vault.save(data);
+        this.log.warn('aura: admin PIN reset from the instance settings — set a new one in the admin area');
+        try {
+            await this.extendForeignObjectAsync(`system.adapter.${this.namespace}`, {
+                native: { resetAdminPin: false },
+            });
+        } catch (e) {
+            this.log.warn(`aura: could not clear the admin PIN reset flag — ${e.message}`);
+        }
     }
 
     /**

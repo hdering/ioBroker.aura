@@ -222,6 +222,7 @@
     "timerTickSeconds": 30,
     "perfTracking": true,
     "perfWidgetTracking": false,
+    "resetAdminPin": false,
     "messageHistorySize": 100,
     "messageRetentionDays": 30,
     "updateNotify": false,

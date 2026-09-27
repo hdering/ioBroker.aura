@@ -480,6 +480,36 @@
       "lg": 4,
       "xl": 4
     },
+    "_securityHeader": {
+      "type": "header",
+      "text": {
+        "en": "Security",
+        "de": "Sicherheit"
+      },
+      "size": 2,
+      "xs": 12,
+      "sm": 12,
+      "md": 12,
+      "lg": 12,
+      "xl": 12
+    },
+    "resetAdminPin": {
+      "type": "checkbox",
+      "label": {
+        "en": "Reset admin PIN on next start",
+        "de": "Admin-PIN beim nächsten Start zurücksetzen"
+      },
+      "help": {
+        "en": "For a forgotten admin PIN: tick, then Save and close. The instance restarts, removes the admin PIN and signs everyone out; the admin area then asks for a new PIN. PINs of protected sections and tabs are kept. The box clears itself.",
+        "de": "Für einen vergessenen Admin-PIN: anhaken, dann Speichern und schließen. Die Instanz startet neu, entfernt den Admin-PIN und meldet alle ab; der Adminbereich fragt danach nach einem neuen PIN. PINs geschützter Bereiche und Tabs bleiben erhalten. Der Haken entfernt sich selbst."
+      },
+      "default": false,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
+    },
     "_mcpHeader": {
       "type": "header",
       "text": {

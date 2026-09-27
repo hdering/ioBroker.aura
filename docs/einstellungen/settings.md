@@ -21,8 +21,25 @@ Allgemeine Einstellungen: Frontend, Grid, Sicherheit und Backup.
 
 ## Admin-PIN zurücksetzen
 
-Der PIN liegt nur als Hash im Adapter und lässt sich nicht anzeigen. Zurücksetzen geht auf
-dem ioBroker-Host (SSH):
+Der PIN liegt nur als Hash im Adapter und lässt sich nicht anzeigen.
+
+| Schritt | ioBroker-Admin → Instanzen → Aura (Schraubenschlüssel) |
+| --- | --- |
+| 1. Haken setzen | Abschnitt **Sicherheit** → **Admin-PIN beim nächsten Start zurücksetzen** |
+| 2. Speichern | **Speichern und schließen** — die Instanz startet neu |
+| 3. Adminbereich öffnen | Aura fragt wie bei der Ersteinrichtung nach einem neuen PIN |
+
+| Hinweis | |
+| --- | --- |
+| Bleibt erhalten | PINs geschützter Bereiche und Tabs, alle Dashboards und Einstellungen |
+| Abgemeldet | Alle offenen Admin- und Bereichs-Sitzungen, auf allen Geräten |
+| Haken | Entfernt sich nach dem Zurücksetzen selbst; die Instanz startet dafür ein zweites Mal |
+| Log | `aura: admin PIN reset from the instance settings …` (Warnung) |
+| Kein Datenpunkt | Absicht: Datenpunkte kann jeder Socket-Client schreiben, auch das Frontend |
+
+### Manuell (SSH)
+
+Ohne Zugriff auf den ioBroker-Admin geht es direkt auf dem ioBroker-Host:
 
 | Schritt | Befehl |
 | --- | --- |
@@ -36,15 +53,14 @@ dem ioBroker-Host (SSH):
 Schritt 4:
 
 ```bash
-node -e 'const f="security.json",fs=require("fs");const d=JSON.parse(fs.readFileSync(f,"utf8"));d.admin=null;fs.writeFileSync(f,JSON.stringify(d),{mode:0o600})'
+node -e 'const f="security.json",fs=require("fs");const d=JSON.parse(fs.readFileSync(f,"utf8"));d.admin=null;d.serverSecret=null;fs.writeFileSync(f,JSON.stringify(d),{mode:0o600})'
 ```
 
 | Hinweis | |
 | --- | --- |
 | Andere Instanz | `aura.0` in Schritt 1, 2 und 5 durch die eigene Instanz ersetzen (z. B. `aura.1`) |
 | Docker / andere Installation | Datenverzeichnis ist `<ioBroker-Verzeichnis>/iobroker-data/aura.<n>/`; die Befehle im Container ausführen |
-| Bleibt erhalten | PINs geschützter Bereiche und Tabs, alle Dashboards und Einstellungen |
-| Ohne `node` | `security.json` im Editor öffnen und `"admin":{…}` durch `"admin":null` ersetzen |
+| Ohne `node` | `security.json` im Editor öffnen, `"admin":{…}` durch `"admin":null` und `"serverSecret":"…"` durch `"serverSecret":null` ersetzen (meldet alle ab) |
 | Rückgängig | `security.json.bak` zurück nach `security.json` kopieren, Instanz neu starten |
 
 ## Client-ID
