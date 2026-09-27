@@ -311,6 +311,15 @@ export const de = {
     'settings.grid.fluidAuto': 'Auto',
     'settings.grid.fluidMinScale': 'Höchstens stauchen auf',
     'settings.grid.fluidMaxScale': 'Höchstens strecken auf',
+    'settings.grid.height': 'Höhe',
+    'settings.grid.heightFixed': 'Fest',
+    'settings.grid.heightScale': 'Mitskalieren',
+    'settings.grid.heightFill': 'Fensterhöhe füllen',
+    'settings.grid.heightFixedHint': 'Die Zeilen behalten ihre Rastergröße, nur die Breite passt sich an.',
+    'settings.grid.heightScaleHint':
+        'Die Zeilen wachsen und schrumpfen im selben Verhältnis wie die Breite — die Widgets behalten ihr Seitenverhältnis. Ein Tab kann dadurch höher als der Bildschirm werden.',
+    'settings.grid.heightFillHint':
+        'Die Zeilen strecken sich, bis der Inhalt jedes Tabs bis zum unteren Rand reicht. Gestaucht wird nie: ein Tab, der höher als der Bildschirm ist, scrollt wie bisher. „Höchstens strecken auf“ gilt auch hier.',
     'settings.grid.fluidDesignWidthHint':
         'Die Breite, für die das Layout gebaut ist — sie entspricht 100 %. Auto: die rechteste Widget-Kante des Bereichs, der Inhalt füllt dann immer die ganze Breite. Mit festem Wert (z. B. 1920) bleibt ein schmalerer Inhalt anteilig schmaler.',
     'settings.grid.fluidMinScaleHint':

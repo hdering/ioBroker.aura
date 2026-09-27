@@ -112,6 +112,7 @@ export const TAB_KEYS: Record<SubTab, readonly (keyof LayoutSettings)[]> = {
         'fluidDesignWidth',
         'fluidMinScale',
         'fluidMaxScale',
+        'gridHeightMode',
         'hideGridScrollbar',
     ],
     guidelines: [

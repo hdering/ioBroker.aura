@@ -25,7 +25,7 @@ await build({
     outfile: bundle,
     logLevel: 'warning',
 });
-const { gridColumns, gridWidthPx, colsForWidth } = await import(pathToFileURL(bundle).href);
+const { gridColumns, gridWidthPx, colsForWidth, gridRows, compactedRows } = await import(pathToFileURL(bundle).href);
 rmSync(bundle, { force: true });
 
 const results = [];
@@ -87,6 +87,44 @@ for (const width of [800, 1210, 1920, 2560]) {
 
 // ── 5. width 0 (not measured yet) behaves like the fixed grid ──
 eq('fluid without a width falls back to fixed', fluid(0).fluid, false);
+
+// ── 6. vertical: fixed / scale / fill ──
+const rowsBase = { rowHeight: 20, gap: 10, scaleX: 1.5, height: 800, usedRows: 10 };
+eq('height fixed keeps the row height', gridRows({ ...rowsBase, mode: 'fixed' }), { rowHeight: 20, scale: 1 });
+eq('height scale follows the width factor', gridRows({ ...rowsBase, mode: 'scale' }), { rowHeight: 30, scale: 1.5 });
+eq('height scale shrinks along too', gridRows({ ...rowsBase, mode: 'scale', scaleX: 0.8 }).rowHeight, 16);
+{
+    const r = gridRows({ ...rowsBase, mode: 'fill' });
+    // 10 rows + 9 gaps must reach 800 px: (800 − 90) / 10 = 71
+    eq('fill stretches the rows to the height', r.rowHeight, 71);
+    ok('fill: rows + gaps never exceed the height', 10 * r.rowHeight + 9 * 10 <= 800);
+    eq('fill never squeezes a tab taller than the screen', gridRows({ ...rowsBase, mode: 'fill', usedRows: 40 }), {
+        rowHeight: 20,
+        scale: 1,
+    });
+    eq('fill respects maxScale', gridRows({ ...rowsBase, mode: 'fill', maxScale: 2 }).rowHeight, 40);
+    eq(
+        'fill without a measured height keeps the rows',
+        gridRows({ ...rowsBase, mode: 'fill', height: 0 }).rowHeight,
+        20,
+    );
+    eq('fill on an empty tab keeps the rows', gridRows({ ...rowsBase, mode: 'fill', usedRows: 0 }).rowHeight, 20);
+    const odd = gridRows({ ...rowsBase, mode: 'fill', height: 777, usedRows: 7 });
+    ok('fill truncates, so the sum stays inside the box', 7 * odd.rowHeight + 6 * 10 <= 777, `${odd.rowHeight}`);
+}
+
+// ── 7. compaction the fill measures against ──
+eq('compaction closes a gap at the top', compactedRows([{ x: 0, y: 5, w: 2, h: 3 }]), 3);
+eq(
+    'stacked items add up',
+    compactedRows([
+        { x: 0, y: 0, w: 4, h: 2 },
+        { x: 0, y: 9, w: 4, h: 3 },
+        { x: 4, y: 0, w: 2, h: 4 },
+    ]),
+    5,
+);
+eq('an empty tab has no rows', compactedRows([]), 0);
 
 // ── Report ──
 const failed = results.filter((r) => !r.ok);

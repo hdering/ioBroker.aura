@@ -49,7 +49,7 @@ async function open(width) {
     return { ctx, page, pageErrors };
 }
 
-async function show(page, { settings, editMode = false }) {
+async function show(page, { settings, editMode = false, widgets = widgetDefs() }) {
     await page.evaluate(
         ([settings, widgets, editMode]) => {
             window.__auraShot.mock({ 'demo.t1': 21.5 });
@@ -66,11 +66,12 @@ async function show(page, { settings, editMode = false }) {
                 fluidDesignWidth: 0,
                 fluidMinScale: 0.6,
                 fluidMaxScale: 0,
+                gridHeightMode: 'fixed',
                 ...settings,
             });
             window.__auraShot.showWidgets(widgets, { editMode });
         },
-        [settings, widgetDefs(), editMode],
+        [settings, widgets, editMode],
     );
     await page.waitForSelector('[data-aura-widget="A"]', { timeout: 10000 });
     await page.waitForTimeout(400);
@@ -89,6 +90,7 @@ const geometry = (page) =>
                 top: r1(b.top),
                 left: r1(b.left),
                 right: r1(b.right),
+                bottom: r1(b.bottom),
                 width: r1(b.width),
                 height: r1(b.height),
             };
@@ -106,6 +108,16 @@ const geometry = (page) =>
                   parseFloat(getComputedStyle(scroller).paddingRight)
                 : 0,
             overflowX: scroller ? scroller.scrollWidth - scroller.clientWidth : null,
+            overflowY: scroller ? scroller.scrollHeight - scroller.clientHeight : null,
+            heightMode: scroller?.getAttribute('data-aura-grid-height-mode') ?? null,
+            // Bottom of the scroller's content box (inside its padding).
+            contentBottom: scroller
+                ? r1(
+                      scroller.getBoundingClientRect().top +
+                          scroller.clientHeight -
+                          parseFloat(getComputedStyle(scroller).paddingBottom),
+                  )
+                : 0,
             boxes,
         };
     });
@@ -273,6 +285,55 @@ async function groupGeometry(width, settings) {
     check('fluid 2560: Gruppenkinder gleich breit', approx(g.x1, g.x2, 1), `${g.x1}/${g.x2}`);
     const f = await groupGeometry(1920, { gridWidthMode: 'fixed' });
     check('fixed 1920: Gruppenkinder fuellen die Gruppe', f.gRight - f.x2Right < 12, `Rest ${f.gRight - f.x2Right}`);
+}
+
+// ── Hoehe: fest / mitskalieren / Fensterhoehe fuellen ─────────────────────────
+{
+    const { ctx, page, pageErrors } = await open(1920);
+    const FIXED_H = 4 * 20 + 3 * 10;
+
+    await show(page, { settings: { gridWidthMode: 'fluid', gridHeightMode: 'scale' } });
+    let g = await geometry(page);
+    const sx = span(g) / DESIGN_PX;
+    check('Hoehe mitskalieren: Modus am Scroller', g.heightMode === 'scale', `${g.heightMode}`);
+    check(
+        'Hoehe mitskalieren: Zeilen wachsen mit der Breite',
+        approx(g.boxes.A.height, 4 * 20 * sx + 3 * 10, 3),
+        `${g.boxes.A.height} bei Faktor ${sx.toFixed(3)}`,
+    );
+
+    await show(page, { settings: { gridWidthMode: 'fluid', gridHeightMode: 'fill' } });
+    g = await geometry(page);
+    check('Fensterhoehe fuellen: Modus am Scroller', g.heightMode === 'fill', `${g.heightMode}`);
+    check(
+        'Fensterhoehe fuellen: C endet am unteren Rand',
+        approx(g.boxes.C.bottom, g.contentBottom, 2),
+        `${g.boxes.C.bottom}/${g.contentBottom}`,
+    );
+    check('Fensterhoehe fuellen: kein senkrechter Scroll', g.overflowY <= 0, `${g.overflowY}px`);
+    check('Fensterhoehe fuellen: A und C gleich hoch', approx(g.boxes.A.height, g.boxes.C.height, 1));
+    check('Fensterhoehe fuellen: Breite weiter gestreckt', approx(span(g), g.contentWidth, 1));
+
+    await show(page, { settings: { gridWidthMode: 'fluid', gridHeightMode: 'fill', fluidMaxScale: 1.5 } });
+    g = await geometry(page);
+    check('Fensterhoehe fuellen: Deckel greift', approx(g.boxes.A.height, 4 * 30 + 3 * 10, 2), `${g.boxes.A.height}`);
+
+    // Hoeher als der Bildschirm: nie stauchen, scrollen wie bisher.
+    const tall = widgetDefs().map((w) => ({ ...w, gridPos: { ...w.gridPos, h: 20 } }));
+    await show(page, { settings: { gridWidthMode: 'fluid', gridHeightMode: 'fill' }, widgets: tall });
+    g = await geometry(page);
+    check('Fensterhoehe fuellen, hoher Tab: Zeilen bleiben', approx(g.boxes.A.height, 20 * 20 + 19 * 10, 1));
+    check('Fensterhoehe fuellen, hoher Tab: scrollt', g.overflowY > 0, `${g.overflowY}px`);
+
+    await show(page, { settings: { gridWidthMode: 'fixed', gridHeightMode: 'fill' } });
+    g = await geometry(page);
+    check('festes Raster: Hoehenmodus wirkt nicht', g.heightMode === 'fixed' && approx(g.boxes.A.height, FIXED_H, 1));
+
+    await show(page, { settings: { gridWidthMode: 'fluid', gridHeightMode: 'fill' }, editMode: true });
+    g = await geometry(page);
+    check('Editor: Hoehe fest', approx(g.boxes.A.height, FIXED_H, 1), `${g.boxes.A.height}`);
+    check('Hoehenmodi: keine Seitenfehler', pageErrors.length === 0, pageErrors.join(' | '));
+    await ctx.close();
 }
 
 // ── Tablet-Fluss hat Vorrang, Editor zeigt die Entwurfsansicht ───────────────────

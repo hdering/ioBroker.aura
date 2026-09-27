@@ -35,7 +35,7 @@ import { getDragBridge, setDragBridge, setTabDropAccept, type TabDropAccept } fr
 import { verticalCompact } from '../../utils/gridCompact';
 import { groupRows } from '../../utils/groupLayout';
 import { flowBands, flowModeFor } from '../../utils/flowOrder';
-import { gridColumns } from '../../utils/gridColumns';
+import { compactedRows, gridColumns, gridRows } from '../../utils/gridColumns';
 import { GridScaleContext } from '../../contexts/GridScaleContext';
 import { useViewportWidth } from '../../hooks/useViewportWidth';
 import { reportMetric } from '../../utils/perfMetrics';
@@ -404,6 +404,9 @@ export function Dashboard({
     // have when it is shown again instead of flashing blank on the way back.
     const roRef = useRef<ResizeObserver | null>(null);
     const [containerWidth, setContainerWidth] = useState(() => (typeof window !== 'undefined' ? window.innerWidth : 0));
+    // Visible height of the scroller's content box — only the fluid grid's
+    // vertical 'fill' reads it (#413). A zero is never believed, like the width.
+    const [containerHeight, setContainerHeight] = useState(0);
     // The live scroll element, exposed so TouchScrollbar can mirror its scroll
     // position (native scrollbars are hidden / invisible on touch devices).
     const [scrollEl, setScrollEl] = useState<HTMLDivElement | null>(null);
@@ -440,6 +443,8 @@ export function Dashboard({
         const ro = new ResizeObserver(([entry]) => {
             const w = Math.floor(entry.contentRect.width);
             if (w > 0) setContainerWidth(w);
+            const h = Math.floor(entry.contentRect.height);
+            if (h > 0) setContainerHeight(h);
         });
         ro.observe(el);
         roRef.current = ro;
@@ -512,6 +517,18 @@ export function Dashboard({
     });
     const effectiveCols = gridCols.cols;
     const effectiveRglWidth = gridCols.rglWidth;
+    // Vertical counterpart (#413): only together with the fluid width, frontend only.
+    const heightMode = gridCols.fluid ? (settings.gridHeightMode ?? 'fixed') : 'fixed';
+    const rowsFor = (usedRows: number) =>
+        gridRows({
+            mode: heightMode,
+            rowHeight: cellSize,
+            gap: MARGIN,
+            scaleX: gridCols.scale,
+            height: containerHeight,
+            usedRows,
+            maxScale: settings.fluidMaxScale ?? 0,
+        });
 
     // Rescaling when snapX changes is handled in AdminSettings via rescaleAllWidgetsX.
 
@@ -832,6 +849,7 @@ export function Dashboard({
                         ref={containerRefCallback}
                         className="aura-scroll aura-scroll-touch absolute inset-0 overflow-auto p-2 sm:p-4"
                         data-aura-grid-mode={gridCols.fluid ? 'fluid' : 'fixed'}
+                        data-aura-grid-height-mode={heightMode}
                         style={{
                             scrollbarGutter: 'stable both-edges',
                             ...(effectiveRglWidth > containerWidth ? { overflowX: 'auto' } : {}),
@@ -842,6 +860,7 @@ export function Dashboard({
                             <GuidelinesOverlay
                                 width={guidelinesWidth}
                                 showWidth={!gridCols.fluid}
+                                showHeight={heightMode === 'fixed'}
                                 height={guidelinesHeight}
                                 menuInset={guidelinesMenuInset}
                                 editMode={editMode}
@@ -1096,6 +1115,10 @@ export function Dashboard({
                                         });
                                         // Rendered heights of this pass — see the group rule in buildTabUpdated.
                                         const shownH = new Map(tabLayout.map((l): [string, number] => [l.i, l.h]));
+                                        // Row height of THIS tab: 'fill' stretches each tab to the screen by
+                                        // its own content. Rows are counted at the design pitch, so a derived
+                                        // height (hug, auto-height) keeps its row count and just gets taller.
+                                        const tabRows = rowsFor(heightMode === 'fill' ? compactedRows(tabLayout) : 0);
                                         const buildTabUpdated = (
                                             newLayout: readonly {
                                                 i: string;
@@ -1181,7 +1204,7 @@ export function Dashboard({
                                                     className="layout"
                                                     layout={tabLayout}
                                                     cols={effectiveCols}
-                                                    rowHeight={cellSize}
+                                                    rowHeight={tabRows.rowHeight}
                                                     width={effectiveRglWidth}
                                                     isDraggable={isActive && gridEditable}
                                                     isResizable={isActive && gridEditable}
@@ -1273,6 +1296,7 @@ export function Dashboard({
 function GuidelinesOverlay({
     width,
     showWidth = true,
+    showHeight = true,
     height,
     menuInset,
     editMode,
@@ -1282,6 +1306,8 @@ function GuidelinesOverlay({
     width: number;
     /** False on the fluid grid (#413): it fills any width, a device edge means nothing there. */
     showWidth?: boolean;
+    /** False when the fluid grid stretches its rows: the device bottom then moves with them. */
+    showHeight?: boolean;
     height: number;
     menuInset: number;
     editMode: boolean;
@@ -1371,37 +1397,39 @@ function GuidelinesOverlay({
                 </div>
             )}
             {/* Horizontal line: bottom edge of the target height */}
-            <div
-                aria-hidden
-                style={{
-                    position: 'absolute',
-                    left: 0,
-                    top: lineTop,
-                    right: 0,
-                    height: 0,
-                    borderTop: '2px dashed rgba(239,68,68,0.85)',
-                    pointerEvents: 'none',
-                    zIndex: 40,
-                }}
-            >
-                <span
+            {showHeight && (
+                <div
+                    aria-hidden
                     style={{
                         position: 'absolute',
-                        left: 4,
-                        top: 3,
-                        background: 'rgba(239,68,68,0.85)',
-                        color: '#fff',
-                        fontSize: 10,
-                        fontWeight: 600,
-                        padding: '1px 5px',
-                        borderRadius: 3,
-                        whiteSpace: 'nowrap',
-                        lineHeight: 1.6,
+                        left: 0,
+                        top: lineTop,
+                        right: 0,
+                        height: 0,
+                        borderTop: '2px dashed rgba(239,68,68,0.85)',
+                        pointerEvents: 'none',
+                        zIndex: 40,
                     }}
                 >
-                    {height} px
-                </span>
-            </div>
+                    <span
+                        style={{
+                            position: 'absolute',
+                            left: 4,
+                            top: 3,
+                            background: 'rgba(239,68,68,0.85)',
+                            color: '#fff',
+                            fontSize: 10,
+                            fontWeight: 600,
+                            padding: '1px 5px',
+                            borderRadius: 3,
+                            whiteSpace: 'nowrap',
+                            lineHeight: 1.6,
+                        }}
+                    >
+                        {height} px
+                    </span>
+                </div>
+            )}
         </>
     );
 }

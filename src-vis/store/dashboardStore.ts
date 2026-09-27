@@ -175,6 +175,7 @@ export interface LayoutSettings {
     fluidDesignWidth?: number;
     fluidMinScale?: number;
     fluidMaxScale?: number;
+    gridHeightMode?: 'fixed' | 'scale' | 'fill';
     hideGridScrollbar?: boolean;
     // Guidelines
     guidelinesEnabled?: boolean;

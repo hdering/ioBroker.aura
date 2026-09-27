@@ -71,3 +71,60 @@ export function gridColumns(input: GridColumnsInput): GridColumns {
     const rglWidth = effectiveCols > cols ? gridWidthPx(effectiveCols, snapX, gap) : width;
     return { cols: effectiveCols, rglWidth, scale: 1, fluid: false };
 }
+
+/**
+ * Vertical counterpart of the fluid grid (#413), active only together with it:
+ *  - `fixed`: rows stay gridRowHeight px (the classic behaviour).
+ *  - `scale`: the row height follows the horizontal scale, so every widget keeps
+ *    its aspect ratio — a camera or a gauge is not just drawn wider.
+ *  - `fill`: the rows stretch until the tab's content reaches the bottom of the
+ *    visible area. It never squeezes (widget content is px, a shorter row would
+ *    cut it) — a tab taller than the screen scrolls exactly as before.
+ * Gaps stay in px in every mode; `maxScale` (0 = no cap) caps the stretch.
+ */
+export type GridHeightMode = 'fixed' | 'scale' | 'fill';
+
+export interface GridRowsInput {
+    mode: GridHeightMode;
+    rowHeight: number;
+    gap: number;
+    /** Horizontal factor from gridColumns. */
+    scaleX: number;
+    /** Visible height of the grid area, px (fill). */
+    height: number;
+    /** Rows the tab's content occupies after vertical compaction (fill). */
+    usedRows: number;
+    maxScale?: number;
+}
+
+export function gridRows(input: GridRowsInput): { rowHeight: number; scale: number } {
+    const { rowHeight, gap } = input;
+    const maxScale = Math.max(0, input.maxScale ?? 0);
+    const cap = (s: number) => (maxScale > 0 ? Math.min(s, maxScale) : s);
+    if (input.mode === 'scale' && input.scaleX > 0) {
+        return { rowHeight: rowHeight * input.scaleX, scale: input.scaleX };
+    }
+    if (input.mode === 'fill' && input.height > 0 && input.usedRows > 0) {
+        const rows = input.usedRows;
+        // Truncated to 1/100 px so the rows never sum a hair above the box — the
+        // scroller would answer that with a scrollbar.
+        const fit = Math.floor(((input.height - (rows - 1) * gap) / rows) * 100) / 100;
+        const scale = cap(Math.max(1, fit / rowHeight));
+        return { rowHeight: scale === fit / rowHeight ? fit : rowHeight * scale, scale };
+    }
+    return { rowHeight, scale: 1 };
+}
+
+/** Bottom row of a layout after react-grid-layout's vertical compaction. */
+export function compactedRows(items: readonly { x: number; y: number; w: number; h: number }[]): number {
+    const sorted = [...items].sort((a, b) => (a.y !== b.y ? a.y - b.y : a.x - b.x));
+    const placed: { x: number; y: number; w: number; h: number }[] = [];
+    let bottom = 0;
+    for (const it of sorted) {
+        let y = 0;
+        while (placed.some((p) => p.x < it.x + it.w && p.x + p.w > it.x && p.y < y + it.h && p.y + p.h > y)) y++;
+        placed.push({ ...it, y });
+        bottom = Math.max(bottom, y + it.h);
+    }
+    return bottom;
+}

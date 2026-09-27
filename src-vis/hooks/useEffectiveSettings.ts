@@ -29,6 +29,7 @@ const LAYOUT_FRONTEND_KEYS: (keyof LayoutSettings & keyof FrontendSettings)[] = 
     'fluidDesignWidth',
     'fluidMinScale',
     'fluidMaxScale',
+    'gridHeightMode',
     'hideGridScrollbar',
     'guidelinesEnabled',
     'guidelinesWidth',

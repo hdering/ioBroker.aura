@@ -125,12 +125,13 @@ Schriftart, Schriftgrößen und Abstände.
 | Entwurfsbreite             | Breite, auf die das Layout gestreckt wird. Auto = belegte Breite des Bereichs (Inhalt füllt immer die volle Breite) |
 | Höchstens stauchen auf     | Schmaler als dieser Anteil der Entwurfsbreite wird nicht gestaucht, darunter wird gescrollt |
 | Höchstens strecken auf     | Obergrenze für sehr breite Bildschirme (Aus = unbegrenzt) |
+| Höhe                       | Nur bei „Fensterbreite füllen“. Fest = Zeilen behalten ihre Größe. Mitskalieren = Zeilen wachsen mit der Breite, Widgets behalten ihr Seitenverhältnis. Fensterhöhe füllen = Zeilen strecken sich, bis jeder Tab bis zum unteren Rand reicht (nie gestaucht, höhere Tabs scrollen) |
 
 | Fensterbreite                        | Darstellung                                  |
 | ------------------------------------ | -------------------------------------------- |
 | unter Mobile-Breakpoint              | Mobile-Spalten                               |
 | zwischen Mobile- und Tablet-Breakpoint | Tablet-Spalten                             |
-| darüber                              | Raster — fest oder auf Fensterbreite gestreckt |
+| darüber                              | Raster — fest oder auf Fensterbreite gestreckt, Höhe wahlweise mit |
 
 ## Verhalten
 

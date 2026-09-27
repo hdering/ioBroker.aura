@@ -1827,7 +1827,12 @@ keine rechte Kante, die Breitenwarnung gegen die Hilfslinie entfällt.
 `renderCanvas()`/`renderWidthMode()` sagen den Modus in jeder Antwort mit dazu,
 auch ohne Hilfslinien; `aura_dashboard` markiert solche Bereiche mit
 „[Breite: füllt das Fenster]". Der Editor zeigt weiterhin die feste
-Entwurfsansicht.
+Entwurfsansicht. Senkrecht dazu `gridHeightMode` (nur zusammen mit `fluid`):
+`scale` skaliert die Zeilenhöhe mit dem Breitenfaktor, `fill` streckt die Zeilen
+jedes Tabs bis zum unteren Rand (nie stauchen, `fluidMaxScale` deckelt).
+`designCanvas()` liefert `heightMode`, `renderWidthMode()` sagt, dass die
+px-Höhen dann ein Minimum sind; das Zeilenbudget (`maxRows`) bleibt gültig, weil
+`fill` nie staucht.
 
 **Die Zeile, die ein Bereich nur vorläufig hat.** Aus der Praxis gemeldet: ein
 Bereich mit **einem** Tab wurde auf „endet auf Zeile 42 von 42" gebaut — und jeder

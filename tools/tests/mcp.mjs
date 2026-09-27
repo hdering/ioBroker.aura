@@ -2769,6 +2769,16 @@ check('the fluid grid has no device edge on the right', () => {
     const bare = designCanvas({ frontend: { gridRowHeight: 20, gridWidthMode: 'fluid' } });
     assert.equal(bare.enabled, false);
     assert.match(renderCanvas(bare), /Fensterbreite füllen/);
+    // The vertical mode is reported too, and only together with the fluid width.
+    const fill = designCanvas({ frontend: { ...TABLET, gridWidthMode: 'fluid', gridHeightMode: 'fill' }, tabCount: 2 });
+    assert.equal(fill.heightMode, 'fill');
+    assert.match(renderCanvas(fill), /Fensterhöhe füllen/);
+    const scale = designCanvas({
+        frontend: { ...TABLET, gridWidthMode: 'fluid', gridHeightMode: 'scale' },
+        tabCount: 2,
+    });
+    assert.match(renderCanvas(scale), /Mitskalieren/);
+    assert.equal(designCanvas({ frontend: { ...TABLET, gridHeightMode: 'fill' }, tabCount: 2 }).heightMode, 'fixed');
 });
 
 check('findTab refuses to guess when a name is ambiguous', () => {

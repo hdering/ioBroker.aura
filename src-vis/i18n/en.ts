@@ -310,6 +310,15 @@ export const en: Record<TranslationKey, string> = {
     'settings.grid.fluidAuto': 'Auto',
     'settings.grid.fluidMinScale': 'Squeeze down to at most',
     'settings.grid.fluidMaxScale': 'Stretch up to at most',
+    'settings.grid.height': 'Height',
+    'settings.grid.heightFixed': 'Fixed',
+    'settings.grid.heightScale': 'Scale along',
+    'settings.grid.heightFill': 'Fill window height',
+    'settings.grid.heightFixedHint': 'Rows keep their grid size, only the width adapts.',
+    'settings.grid.heightScaleHint':
+        'Rows grow and shrink in the same ratio as the width — widgets keep their aspect ratio. A tab can become taller than the screen.',
+    'settings.grid.heightFillHint':
+        'Rows stretch until the content of every tab reaches the bottom edge. Never squeezed: a tab taller than the screen scrolls as before. "Stretch up to at most" applies here too.',
     'settings.grid.fluidDesignWidthHint':
         'The width the layout is built for — this is 100 %. Auto: the rightmost widget edge of the section, so the content always fills the whole width. With a fixed value (e.g. 1920) narrower content stays proportionally narrower.',
     'settings.grid.fluidMinScaleHint':

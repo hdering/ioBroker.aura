@@ -6,6 +6,7 @@ import { ResetDefaultsButton } from '../shared/ResetDefaultsButton';
 import { useDashboardStore } from '../../../../store/dashboardStore';
 import { DEFAULT_FRONTEND } from '../../../../store/configStore';
 import { useT } from '../../../../i18n';
+import { OVERRIDE_COLOR, OVERRIDE_TINT } from '../shared/scopeBands';
 
 interface GridSectionProps {
     contextId: string | null;
@@ -23,8 +24,13 @@ const GRID_KEYS = [
     'fluidDesignWidth',
     'fluidMinScale',
     'fluidMaxScale',
+    'gridHeightMode',
     'hideGridScrollbar',
 ] as const;
+
+/** Vertical behaviour of the fluid grid (#413) — see utils/gridColumns.ts gridRows. */
+type HeightMode = 'fixed' | 'scale' | 'fill';
+const HEIGHT_MODES: readonly HeightMode[] = ['fixed', 'scale', 'fill'];
 
 export function GridSection({ contextId }: GridSectionProps) {
     const t = useT();
@@ -44,6 +50,22 @@ export function GridSection({ contextId }: GridSectionProps) {
     const [designW, designWOv] = eff('fluidDesignWidth');
     const [minScale, minScaleOv] = eff('fluidMinScale');
     const [maxScale, maxScaleOv] = eff('fluidMaxScale');
+    const [heightMode, heightModeOv] = eff('gridHeightMode');
+    const effectiveHeightMode = (heightMode ?? 'fixed') as HeightMode;
+    const heightLabel = (m: HeightMode) =>
+        m === 'scale'
+            ? t('settings.grid.heightScale')
+            : m === 'fill'
+              ? t('settings.grid.heightFill')
+              : t('settings.grid.heightFixed');
+    const heightHint = (m: HeightMode) =>
+        t(
+            m === 'scale'
+                ? 'settings.grid.heightScaleHint'
+                : m === 'fill'
+                  ? 'settings.grid.heightFillHint'
+                  : 'settings.grid.heightFixedHint',
+        );
     const fluid = (widthMode ?? 'fixed') === 'fluid';
 
     const effectiveRowH = (rowH ?? 20) as number;
@@ -173,6 +195,24 @@ export function GridSection({ contextId }: GridSectionProps) {
                         />
                     }
                 />
+                {fluid && (
+                    <ChoiceSetting
+                        label={t('settings.grid.height')}
+                        hint={heightHint(effectiveHeightMode)}
+                        value={effectiveHeightMode}
+                        options={HEIGHT_MODES.map((m) => ({ value: m, label: heightLabel(m), hint: heightHint(m) }))}
+                        onChange={(v) => set('gridHeightMode', v)}
+                        isOverridden={heightModeOv}
+                        info={
+                            <OverrideState
+                                contextId={contextId}
+                                keys={['gridHeightMode']}
+                                label={t('settings.grid.height')}
+                                format={(_, v) => heightLabel((v ?? 'fixed') as HeightMode)}
+                            />
+                        }
+                    />
+                )}
                 {fluid && (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <SliderSetting
@@ -379,6 +419,74 @@ export function GridSection({ contextId }: GridSectionProps) {
                     />
                 </div>
             </div>
+        </div>
+    );
+}
+
+/** A row of mutually exclusive buttons, styled like the slider presets. */
+function ChoiceSetting<T extends string>({
+    label,
+    hint,
+    value,
+    options,
+    onChange,
+    isOverridden,
+    info,
+}: {
+    label: string;
+    hint?: string;
+    value: T;
+    /** `hint` becomes the button's tooltip, so the other choices explain themselves too. */
+    options: { value: T; label: string; hint?: string }[];
+    onChange: (v: T) => void;
+    isOverridden?: boolean;
+    info?: React.ReactNode;
+}) {
+    const accent = isOverridden ? OVERRIDE_COLOR : 'var(--accent)';
+    return (
+        <div
+            data-aura-grid-choice={label}
+            className={isOverridden ? 'rounded-r-lg pl-3 -ml-3' : undefined}
+            style={
+                isOverridden
+                    ? {
+                          boxShadow: `inset 3px 0 0 ${OVERRIDE_COLOR}`,
+                          background: `linear-gradient(90deg, ${OVERRIDE_TINT}, transparent 45%)`,
+                      }
+                    : undefined
+            }
+            data-overridden={isOverridden ? 'true' : undefined}
+        >
+            <p className="text-sm font-medium mb-1" style={{ color: 'var(--text-primary)' }}>
+                {label}
+            </p>
+            <div className="flex gap-1.5 flex-wrap mb-1">
+                {options.map((o) => {
+                    const active = value === o.value;
+                    return (
+                        <button
+                            key={o.value}
+                            data-value={o.value}
+                            title={o.hint}
+                            onClick={() => onChange(o.value)}
+                            className="px-2.5 py-1 rounded-lg text-xs font-medium hover:opacity-80"
+                            style={{
+                                background: active ? accent : 'var(--app-bg)',
+                                color: active ? '#fff' : 'var(--text-secondary)',
+                                border: `1px solid ${active ? accent : 'var(--app-border)'}`,
+                            }}
+                        >
+                            {o.label}
+                        </button>
+                    );
+                })}
+            </div>
+            {hint && (
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)', opacity: 0.7 }}>
+                    {hint}
+                </p>
+            )}
+            {info && <div className="mt-2">{info}</div>}
         </div>
     );
 }
