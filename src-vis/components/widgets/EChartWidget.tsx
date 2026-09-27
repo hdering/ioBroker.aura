@@ -5,6 +5,7 @@ import { useIoBroker } from '../../hooks/useIoBroker';
 import { useResolvedColors } from '../../hooks/useResolvedColors';
 import {
     useMultiSeriesData,
+    useBooleanDatapoints,
     useAutoHistoryInstances,
     rangeToMs,
     parseTimeLabel,
@@ -38,7 +39,7 @@ import {
 } from '../../utils/stackedSeries';
 import { openNativePicker } from '../common/DateTimeInput';
 import { transformSign } from '../../utils/valueTransform';
-import { axisIsZeroBased, gridLineAxis } from '../../utils/chartAxis';
+import { axisIsBoolean, axisIsZeroBased, gridLineAxis, parseValueLabels } from '../../utils/chartAxis';
 import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
@@ -107,14 +108,41 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     const { defaultDecimals, numberFormat: globalNumFmt } = useGlobalSettingsStore();
     const decimals = (o.decimals as number) ?? defaultDecimals;
     const numFmt = (o.numberFormat as NumberFormat | undefined) ?? globalNumFmt;
+    const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
+    // Boolean datapoints (issue #718): they plot as 0/1, draw as a step line by default and give an
+    // axis of their own exactly the two ticks 0 and 1.
+    const boolDps = useBooleanDatapoints(echartSeries.map((s) => s.datapointId).filter((id) => !!id));
+    /**
+     * Whether a series plots a switch state. A converted series (×100, +1 …) no longer lives on
+     * 0/1, a delta series is a consumption and a JSON series a payload — none of them count.
+     */
+    const isBoolSeries = (s: EChartSeriesConfig): boolean =>
+        boolDps.has(s.datapointId) &&
+        s.aggregate !== 'delta' &&
+        o.echartMode !== 'json' &&
+        s.source !== 'json' &&
+        (s.valueFactor ?? 1) === 1 &&
+        !s.valueOffset;
     /**
      * A series may format its own numbers (issue #600): a kWh bar with two decimals next to a
      * percentage line without any. Unset falls back to the chart-wide setting above, which itself
      * falls back to the global default. Axis ticks stay chart-wide — an axis carries several series.
+     * A boolean without its own decimals reads 0/1, not 1.00.
      */
     const fmtSeries = (v: number, s?: EChartSeriesConfig): string =>
-        formatNum(v, s?.decimals ?? decimals, s?.numberFormat ?? numFmt);
-    const echartSeries = (o.echartSeries as EChartSeriesConfig[] | undefined) ?? [];
+        formatNum(v, s?.decimals ?? (s && isBoolSeries(s) ? 0 : decimals), s?.numberFormat ?? numFmt);
+    /** Step line for a line/area — see `EChartSeriesConfig.step`. */
+    const stepOf = (s: EChartSeriesConfig): boolean =>
+        (s.chartType === 'line' || s.chartType === 'area') && (s.step ?? isBoolSeries(s));
+    // Axis texts in place of numbers, e.g. `0=An; 1=Aus` (issue #718).
+    const leftValueLabels = parseValueLabels(o.echartLeftValueLabels as string | undefined);
+    const rightValueLabels = parseValueLabels(o.echartRightValueLabels as string | undefined);
+    /** The text a value of series `s` maps to on its axis — undefined when it has none. */
+    const mappedLabel = (v: number, s?: EChartSeriesConfig): string | undefined =>
+        ((s?.yAxisIndex ?? 0) === 1 ? rightValueLabels : leftValueLabels).get(v);
+    /** A series value with its unit, or the axis text that replaces both. */
+    const fmtWithUnit = (v: number, s: EChartSeriesConfig | undefined, unit: string, sep = ' '): string =>
+        mappedLabel(v, s) ?? `${fmtSeries(v, s)}${unit ? `${sep}${unit}` : ''}`;
     const containerRef = useRef<HTMLDivElement>(null);
     // Colours, resolved against this widget's own element before they reach the
     // canvas. eCharts renders with `renderer: 'canvas'`, and a canvas has no CSS:
@@ -269,7 +297,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 if (v === null || v === undefined) return '';
                 if (interval > 1 && ((count ?? 0) - 1 - p.dataIndex) % interval !== 0) return '';
                 const parts: string[] = [];
-                if (show) parts.push(`${fmtSeries(v, series)}${unit ? ` ${unit}` : ''}`);
+                if (show) parts.push(fmtWithUnit(v, series, unit));
                 if (withShare) {
                     const s = share(p.dataIndex);
                     // Both on: the percentage is the aside, so it goes in brackets behind the value.
@@ -631,9 +659,26 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
     // `dataMax`) the outermost ticks are raw samples — 16.759028325055955 °C instead of
     // 16.76 °C (issue #548). Run every tick through the widget's decimals/number format.
     const axisLabelFormatter =
-        (unit: string) =>
+        (unit: string, labels: Map<number, string> = new Map(), bool = false) =>
         (v: number): string =>
-            `${formatNum(v, decimals, numFmt)}${unit ? ` ${unit}` : ''}`;
+            labels.get(v) ?? `${formatNum(v, bool ? 0 : decimals, numFmt)}${unit ? ` ${unit}` : ''}`;
+    // A boolean axis spans exactly 0…1 in one step; an explicit bound still wins (issue #718).
+    const boolAxis = (axis: 0 | 1) => axisIsBoolean(echartSeries, axis, isBoolSeries);
+    /**
+     * Extra keys of an axis with booleans or value texts. Texts sit on whole numbers as a rule
+     * (0/1/2 = Aus/Heizen/Kühlen), so such an axis keeps its ticks on integers — an interval of 0.5
+     * would label only every second tick.
+     */
+    const axisExtras = (axis: 0 | 1, labels: Map<number, string>, min: unknown, max: unknown) => {
+        if (boolAxis(axis)) {
+            return {
+                interval: 1,
+                ...(min === undefined ? { min: 0 } : {}),
+                ...(max === undefined ? { max: 1 } : {}),
+            };
+        }
+        return labels.size > 0 && [...labels.keys()].every(Number.isInteger) ? { minInterval: 1 } : {};
+    };
 
     const leftAxis: Record<string, unknown> = {
         type: 'value',
@@ -645,13 +690,14 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             show: echartShowYAxis,
             color: onCanvasMuted,
             fontSize: 10,
-            formatter: axisLabelFormatter(echartLeftUnit),
+            formatter: axisLabelFormatter(echartLeftUnit, leftValueLabels, boolAxis(0)),
         },
         axisTick: { show: echartShowYAxis },
         axisLine: { show: echartShowYAxis, lineStyle: { color: onCanvasLine } },
         splitLine: { show: showGridOn(0), lineStyle: { color: onCanvasGrid } },
         ...(leftMin !== undefined ? { min: leftMin } : {}),
         ...(leftMax !== undefined ? { max: leftMax } : {}),
+        ...axisExtras(0, leftValueLabels, leftMin, leftMax),
     };
 
     const rightAxis: Record<string, unknown> = hasRightAxis
@@ -662,13 +708,14 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                   show: echartShowYAxisRight,
                   color: onCanvasMuted,
                   fontSize: 10,
-                  formatter: axisLabelFormatter(echartRightUnit),
+                  formatter: axisLabelFormatter(echartRightUnit, rightValueLabels, boolAxis(1)),
               },
               axisTick: { show: echartShowYAxisRight },
               axisLine: { show: echartShowYAxisRight, lineStyle: { color: onCanvasLine } },
               splitLine: { show: showGridOn(1), lineStyle: { color: onCanvasGrid } },
               ...(rightMin !== undefined ? { min: rightMin } : {}),
               ...(rightMax !== undefined ? { max: rightMax } : {}),
+              ...axisExtras(1, rightValueLabels, rightMin, rightMax),
           }
         : { show: false };
 
@@ -962,7 +1009,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                 // therefore filled with the colour they were given — see `areaOpacityFor`.
                 areaStyle: s.chartType === 'area' ? { opacity: areaOpacityFor(s) } : undefined,
                 stack: stackIdFor(s),
-                smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
+                // A step line holds each value until the next one — smoothing would round the steps off.
+                step: stepOf(s) ? 'end' : false,
+                smooth: !stepOf(s) && (s.smooth ?? (s.chartType === 'line' || s.chartType === 'area')),
                 smoothMonotone: 'x',
                 // Stacked bands go without an outline — see `outlineWidthFor`.
                 lineStyle: { width: outlineWidthFor(s) },
@@ -1036,9 +1085,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     const lines = rows.map((p) => {
                         const seriesCfg = echartSeries[p.seriesIndex];
                         const unit = (seriesCfg?.yAxisIndex ?? 0) === 1 ? echartRightUnit : echartLeftUnit;
-                        return `${p.marker} ${p.seriesName}: <b>${fmtSeries(p.num as number, seriesCfg)}${
-                            unit ? `\u202F${unit}` : ''
-                        }</b>${shareOf(p.seriesIndex, p.num as number)}`;
+                        return `${p.marker} ${p.seriesName}: <b>${fmtWithUnit(
+                            p.num as number,
+                            seriesCfg,
+                            unit,
+                            '\u202F',
+                        )}</b>${shareOf(p.seriesIndex, p.num as number)}`;
                     });
                     const head = jsonTimeAxis
                         ? tooltipTimeLabel(
@@ -1128,8 +1180,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                             <div className={currentBlockCls}>
                                 {jsonCurrentValues.map((c, i) => (
                                     <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
-                                        {fmtSeries(c.value as number, c.series)}
-                                        {c.unit ? ` ${c.unit}` : ''}
+                                        {fmtWithUnit(c.value as number, c.series, c.unit)}
                                     </span>
                                 ))}
                             </div>
@@ -1218,7 +1269,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             // `areaOpacityFor`; the series' own `areaOpacity` overrides both.
             areaStyle: s.chartType === 'area' ? { opacity: areaOpacityFor(s) } : undefined,
             stack: stackIdFor(s),
-            smooth: s.smooth ?? (s.chartType === 'line' || s.chartType === 'area'),
+            // A step line holds each value until the next one — smoothing would round the steps off.
+            step: stepOf(s) ? 'end' : false,
+            smooth: !stepOf(s) && (s.smooth ?? (s.chartType === 'line' || s.chartType === 'area')),
             // Monotone smoothing never overshoots the data — a flat run of equal values
             // (e.g. dry days at 0) stays exactly flat instead of wobbling around it.
             smoothMonotone: 'x',
@@ -1278,8 +1331,9 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                     // Stacked or not, echarts hands the formatter the series' own value, never the
                     // stacked one \u2014 the total is added below instead.
                     const raw = p.value[1];
-                    const dispVal = typeof raw === 'number' ? fmtSeries(raw, echartSeries[p.seriesIndex]) : raw;
-                    return `${p.marker} ${p.seriesName}: <b>${dispVal}${unit ? `\u202F${unit}` : ''}</b>${shareOf(
+                    const dispVal =
+                        typeof raw === 'number' ? fmtWithUnit(raw, echartSeries[p.seriesIndex], unit, '\u202F') : raw;
+                    return `${p.marker} ${p.seriesName}: <b>${dispVal}</b>${shareOf(
                         p.seriesIndex,
                         typeof raw === 'number' ? raw : null,
                     )}`;
@@ -1506,8 +1560,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
                         <div className={currentBlockCls}>
                             {currentValues.map((c, i) => (
                                 <span key={i} className="text-sm font-bold leading-none" style={{ color: c.color }}>
-                                    {fmtSeries(c.value as number, c.series)}
-                                    {c.unit ? ` ${c.unit}` : ''}
+                                    {fmtWithUnit(c.value as number, c.series, c.unit)}
                                 </span>
                             ))}
                         </div>

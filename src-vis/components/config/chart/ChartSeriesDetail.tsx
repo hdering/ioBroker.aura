@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Database } from 'lucide-react';
 import { useT } from '../../../i18n';
-import type { EChartSeriesConfig } from '../../../hooks/useMultiSeriesData';
+import { useBooleanDatapoints, type EChartSeriesConfig } from '../../../hooks/useMultiSeriesData';
 import { ColorPicker } from '../../common/ColorPicker';
 import { ValueFormatRow } from '../ValueFormatRow';
 import type { NumberFormat } from '../../../utils/formatValue';
@@ -73,6 +73,9 @@ export function ChartSeriesDetail({
 }) {
     const t = useT();
     const [pickerOpen, setPickerOpen] = useState(false);
+    // A boolean datapoint draws as a step line unless switched off (issue #718).
+    const isBoolDp = useBooleanDatapoints(s.datapointId ? [s.datapointId] : []).has(s.datapointId);
+    const step = s.step ?? isBoolDp;
     // The JSON mode forces every series onto the payload source; in a timeseries chart each
     // series decides for itself (issue #595).
     const seriesIsJson = isJson || s.source === 'json';
@@ -360,6 +363,31 @@ export function ChartSeriesDetail({
                     )}
 
                     {(s.chartType === 'line' || s.chartType === 'area') && (
+                        <div>
+                            <div className="flex items-center justify-between">
+                                <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
+                                    {t('echart.step')}
+                                </label>
+                                <button
+                                    onClick={() => update({ step: !step })}
+                                    className="relative w-9 h-5 rounded-full transition-colors"
+                                    style={{
+                                        background: step ? 'var(--accent)' : 'var(--app-border)',
+                                    }}
+                                >
+                                    <span
+                                        className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform"
+                                        style={{ left: step ? '18px' : '2px' }}
+                                    />
+                                </button>
+                            </div>
+                            <p className="text-[10px] mt-1 leading-tight" style={{ color: 'var(--text-secondary)' }}>
+                                {isBoolDp ? t('echart.stepHintBool') : t('echart.stepHint')}
+                            </p>
+                        </div>
+                    )}
+
+                    {(s.chartType === 'line' || s.chartType === 'area') && !step && (
                         <div className="flex items-center justify-between">
                             <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
                                 {t('echart.smooth')}

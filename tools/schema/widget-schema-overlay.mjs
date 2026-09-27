@@ -759,6 +759,14 @@ export const WIDGET_OPTION_NOTES = {
         echartLeftMaxDp: { description: 'Datenpunkt, der das Ende der linken Y-Achse liefert.' },
         echartRightMinDp: { description: 'Datenpunkt, der den Anfang der rechten Y-Achse liefert.' },
         echartRightMaxDp: { description: 'Datenpunkt, der das Ende der rechten Y-Achse liefert.' },
+        echartLeftValueLabels: {
+            description:
+                'Texte statt Zahlen an der linken Y-Achse, im Tooltip und in der Wertanzeige, z. B. "0=Aus; 1=An". Einträge mit ; trennen, true/false stehen für 1/0. Eine Achse nur mit booleschen Reihen zeigt ohnehin genau 0 und 1.',
+        },
+        echartRightValueLabels: {
+            description:
+                'Wie echartLeftValueLabels, für die rechte Y-Achse — typisch für einen Schaltzustand (Heizung An/Aus) neben Temperaturen links.',
+        },
         echartJsonExtra: { description: 'Zusätzliche ECharts-Option, die über die erzeugte gelegt wird.' },
         echartJsonTimeAxis: { description: 'Im JSON-Modus die X-Achse als Zeitachse behandeln.' },
         echartJsonAxisBounds: { description: 'Im JSON-Modus die Achsengrenzen aus dieser Konfiguration übernehmen.' },

@@ -1677,6 +1677,9 @@ export const de = {
     'echart.yLeft': 'Links',
     'echart.yRight': 'Rechts',
     'echart.smooth': 'Glatt',
+    'echart.step': 'Treppenkurve',
+    'echart.stepHint': 'Jeder Wert gilt bis zum nächsten — für Schalter und Betriebsarten.',
+    'echart.stepHintBool': 'Boolescher Datenpunkt: standardmäßig als Treppe gezeichnet (Werte 0/1).',
     'echart.stack': 'Stapeln',
     'echart.stackHint': 'Addiert die Serie auf die anderen gestapelten Serien derselben Y-Achse.',
     'echart.stackTotal': 'Summe',
@@ -1700,6 +1703,9 @@ export const de = {
     'echart.max': 'Max',
     'echart.yAxisRight': 'Y-Achse rechts',
     'echart.unitRight': 'Einheit (z.B. %)',
+    'echart.valueLabels': 'Texte statt Werte, z.B. 0=Aus; 1=An',
+    'echart.valueLabelsHint':
+        'Ersetzt Zahlen an der Achse, im Tooltip und in der Wertanzeige. Einträge mit ; trennen, true/false stehen für 1/0.',
     'echart.jsonOverride': 'JSON-Override',
     'echart.jsonOverrideHint':
         'Wird mit der auto-generierten ECharts-Option zusammengeführt (deep merge). Arrays werden ersetzt.',

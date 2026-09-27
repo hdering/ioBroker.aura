@@ -135,7 +135,10 @@ function aggregateRaw(
     aggregate: HistoryAggregate | undefined,
 ): HistoryEntry[] {
     if (!step || !aggregate || aggregate === 'none') return raw;
-    const nums = raw.filter((e): e is { ts: number; val: number } => typeof e.val === 'number');
+    // Adapters aggregate a boolean as 1/0; its raw rows stay true/false (issue #718).
+    const nums = raw
+        .map((e) => (typeof e.val === 'boolean' ? { ...e, val: e.val ? 1 : 0 } : e))
+        .filter((e): e is { ts: number; val: number } => typeof e.val === 'number');
     const groups = new Map<number, { ts: number; val: number }[]>();
     for (const e of nums) {
         const key = Math.floor((e.ts - start) / step);
@@ -604,14 +607,26 @@ function installScreenshotApi(): void {
                   first: unknown;
                   last: unknown;
                   xs: unknown[];
+                  ys: unknown[];
                   color: unknown;
+                  step: unknown;
+                  smooth: unknown;
               }[]
             | null {
             const el = document.querySelector('[_echarts_instance_]');
             const inst = el instanceof HTMLElement ? getInstanceByDom(el) : undefined;
             if (!inst) return null;
             const opt = inst.getOption() as
-                | { series?: { name?: unknown; data?: unknown[]; itemStyle?: { color?: unknown }; color?: unknown }[] }
+                | {
+                      series?: {
+                          name?: unknown;
+                          data?: unknown[];
+                          itemStyle?: { color?: unknown };
+                          color?: unknown;
+                          step?: unknown;
+                          smooth?: unknown;
+                      }[];
+                  }
                 | undefined;
             // An instance that exists but has no option yet answers undefined —
             // asking too early must read as "not ready", not throw.
@@ -628,7 +643,11 @@ function installScreenshotApi(): void {
                     // just at the ends - a duplicate bar half a step in front of the first one
                     // is invisible in a count (issue #685).
                     xs: data.map(at),
+                    ys: data.map((p) => (Array.isArray(p) ? p[1] : p)),
                     color: s.itemStyle?.color ?? s.color,
+                    // Step line vs. curve (issue #718).
+                    step: s.step,
+                    smooth: s.smooth,
                 };
             });
         },

@@ -36,6 +36,11 @@ export interface EChartSeriesConfig {
     historyRangeCustomValue?: number;
     historyRangeCustomUnit?: RangeUnit;
     smooth?: boolean;
+    /**
+     * Draw a line/area as a step line: each value holds until the next one (issue #718). Unset =
+     * on for a boolean datapoint, off otherwise. Overrides `smooth`.
+     */
+    step?: boolean;
     yAxisIndex?: 0 | 1;
     lineWidth?: number;
     /**
@@ -127,6 +132,46 @@ export interface EChartSeriesConfig {
     decimals?: number;
     /** Thousands separator of this series' numbers, unset = follow the chart-wide setting. */
     numberFormat?: NumberFormat;
+}
+
+/**
+ * A state or history value as a number the chart can plot: a boolean draws as 1/0 (issue #718),
+ * anything else that is not a finite number is dropped.
+ */
+export function chartNumber(v: unknown): number | null {
+    if (typeof v === 'number') return Number.isFinite(v) ? v : null;
+    if (typeof v === 'boolean') return v ? 1 : 0;
+    return null;
+}
+
+/** Whether a datapoint is declared `common.type: boolean` — read from the (cached) object. */
+export function datapointIsBoolean(id: string): Promise<boolean> {
+    if (!id || id.includes('{{')) return Promise.resolve(false);
+    return getObjectDirect(id)
+        .then((obj) => obj?.common?.type === 'boolean')
+        .catch(() => false);
+}
+
+/**
+ * The datapoints among `ids` that are booleans (issue #718). A boolean series is drawn as a step
+ * line by default, and an axis carrying only booleans shows exactly 0 and 1.
+ */
+export function useBooleanDatapoints(ids: string[]): Set<string> {
+    const [bools, setBools] = useState<Set<string>>(() => new Set());
+    const key = ids.join('|');
+    useEffect(() => {
+        let alive = true;
+        Promise.all(ids.map((id) => datapointIsBoolean(id).then((b) => (b ? id : null)))).then((found) => {
+            if (!alive) return;
+            const next = new Set(found.filter((id): id is string => id !== null));
+            setBools((prev) => (prev.size === next.size && [...next].every((id) => prev.has(id)) ? prev : next));
+        });
+        return () => {
+            alive = false;
+        };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [key]);
+    return bools;
 }
 
 /** A series' raw number as it should be displayed — see `valueFactor` / `valueOffset`. */
@@ -387,7 +432,7 @@ async function probeHistoryStart(id: string, instance: string, end: number): Pro
             aggregate: 'min',
             count: 1000,
         });
-        const first = entries.find((e) => typeof e.val === 'number');
+        const first = entries.find((e) => chartNumber(e.val) !== null);
         return first ? first.ts : null;
     } catch {
         return null;
@@ -1017,7 +1062,8 @@ export function useMultiSeriesData(
                 const cached = getStateFromCache(s.datapointId);
                 const seedFromState = (state: ioBrokerState | null) => {
                     if (!mountedRef.current) return;
-                    const val = typeof state?.val === 'number' ? seriesValue(s, state.val as number) : null;
+                    const num = chartNumber(state?.val);
+                    const val = num !== null ? seriesValue(s, num) : null;
                     setResultsMap((prev) => {
                         const next = new Map(prev);
                         const existing = next.get(s.id);
@@ -1052,7 +1098,7 @@ export function useMultiSeriesData(
              * step and delta bucket are chosen from — for a pinned day window that is the full day
              * even once `end` has been clamped to now, so the resolution doesn't drift through the day.
              */
-            const fetchWindow = (start: number, end: number, rangeMs: number) => {
+            const fetchWindow = (start: number, end: number, rangeMs: number, isBool: boolean) => {
                 // `none` = raw points: skip bucketing so the adapter returns the actual logged
                 // values instead of per-bucket averages.
                 const wantRaw = s.aggregate === 'none';
@@ -1090,24 +1136,26 @@ export function useMultiSeriesData(
                                 ? 'minmax'
                                 : 'max'
                             : step
-                              ? (s.aggregate ?? 'average')
+                              ? // A bucket average of a switch is a duty cycle (0.25, 0.6 …), which
+                                // no 0/1 axis can label — a boolean takes the bucket's `max`
+                                // instead: "was it on at all" (issue #718).
+                                (s.aggregate ?? (isBool ? 'max' : 'average'))
                               : 'none',
                     count: isDelta ? deltaFetchCount(step as number, rangeMs) : 1000,
                 })
                     .then((entries: HistoryEntry[]) => {
                         if (!mountedRef.current) return;
                         let data: [number, number][] = entries
-                            .filter(
-                                (e): e is { ts: number; val: number; ack?: boolean; q?: number } =>
-                                    typeof e.val === 'number',
-                            )
+                            // Raw rows of a boolean come back as true/false and plot as 1/0 (#718).
+                            .map((e) => ({ ts: e.ts, num: chartNumber(e.val) }))
+                            .filter((e): e is { ts: number; num: number } => e.num !== null)
                             // Converted here, at the single point every downstream path flows through:
                             // the plotted points, the delta bucketing and the "current" value all
                             // derive from `data` (issue #540). A delta series is differenced on the
                             // magnitude — its sign goes onto the finished bars (issue #594).
                             .map((e): [number, number] => [
                                 e.ts,
-                                isDelta ? deltaMagnitude(s, e.val as number) : seriesValue(s, e.val as number),
+                                isDelta ? deltaMagnitude(s, e.num) : seriesValue(s, e.num),
                             ])
                             .sort((a, b) => a[0] - b[0]);
 
@@ -1198,7 +1246,8 @@ export function useMultiSeriesData(
                         // curve drops to reality instead of running flat.
                         const finish = (state: ioBrokerState | null) => {
                             if (!mountedRef.current) return;
-                            const liveVal = typeof state?.val === 'number' ? seriesValue(s, state.val as number) : null;
+                            const liveNum = chartNumber(state?.val);
+                            const liveVal = liveNum !== null ? seriesValue(s, liveNum) : null;
                             let outData = data;
                             if (liveVal !== null && data.length > 0 && data[data.length - 1][1] !== liveVal) {
                                 outData = [...data, [Date.now(), liveVal]];
@@ -1233,27 +1282,30 @@ export function useMultiSeriesData(
                     });
             };
 
+            // Only an unset aggregation depends on the type — the object is cached after the first read.
+            const isBoolP = s.aggregate ? Promise.resolve(false) : datapointIsBoolean(s.datapointId);
+
             if (isTotal) {
                 // Probe first, then fetch the discovered window. A probe that finds nothing falls
                 // back to the floor, which simply yields an empty chart — same as any other window
                 // without records.
-                probeHistoryStart(s.datapointId, instance, now).then((first) => {
+                Promise.all([probeHistoryStart(s.datapointId, instance, now), isBoolP]).then(([first, isBool]) => {
                     if (!mountedRef.current) return;
                     const start = first ?? now - TOTAL_FLOOR_MS;
-                    fetchWindow(start, now, now - start);
+                    fetchWindow(start, now, now - start, isBool);
                 });
                 return;
             }
 
             const rangeMs = hasAbsWindow ? (s.historyEnd as number) - (s.historyStart as number) : getRangeMs(s);
             const end = hasAbsWindow ? Math.min(s.historyEnd as number, now) : now;
-            fetchWindow(
-                // Rolling windows open on the shared bucket edge, so the delta bars and the plain
-                // series start at the same instant (issue #598).
-                hasAbsWindow ? (s.historyStart as number) : rollingWindowStart(series, rangeMs, end),
-                end,
-                rangeMs,
-            );
+            // Rolling windows open on the shared bucket edge, so the delta bars and the plain
+            // series start at the same instant (issue #598).
+            const windowStart = hasAbsWindow ? (s.historyStart as number) : rollingWindowStart(series, rangeMs, end);
+            isBoolP.then((isBool) => {
+                if (!mountedRef.current) return;
+                fetchWindow(windowStart, end, rangeMs, isBool);
+            });
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [depKey, connected, refreshTick]);
@@ -1297,7 +1349,8 @@ export function useMultiSeriesData(
                     // only while the update still falls into its bucket; once the counter rolls into
                     // the next bucket the base is stale and the next refetch takes over.
                     return subscribe(s.datapointId, (state: ioBrokerState) => {
-                        if (typeof state.val !== 'number') return;
+                        const num = chartNumber(state.val);
+                        if (num === null) return;
                         // The unit comes from the fetch that filled the bar, not from a second
                         // resolution here — an `auto`/`total` series would otherwise disagree with it
                         // and silently stop growing the trailing bar.
@@ -1308,7 +1361,7 @@ export function useMultiSeriesData(
                         // space the bars were differenced in, with the sign put back on afterwards
                         // (issue #594).
                         const { sign } = deltaTransform(s);
-                        const diff = Math.max(0, deltaMagnitude(s, state.val as number) - info.base) * sign;
+                        const diff = Math.max(0, deltaMagnitude(s, num) - info.base) * sign;
                         setResultsMap((prev) => {
                             const existing = prev.get(s.id);
                             if (!existing || existing.loading || existing.data.length === 0) return prev;
@@ -1324,8 +1377,9 @@ export function useMultiSeriesData(
                     });
                 }
                 return subscribe(s.datapointId, (state: ioBrokerState) => {
-                    if (typeof state.val !== 'number') return;
-                    const val = seriesValue(s, state.val as number);
+                    const num = chartNumber(state.val);
+                    if (num === null) return;
+                    const val = seriesValue(s, num);
                     setResultsMap((prev) => {
                         const existing = prev.get(s.id);
                         // Adapters often re-write unchanged values on every poll (only the ts

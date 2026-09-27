@@ -49,3 +49,32 @@ export function axisIsZeroBased(series: AxisSeries[], axis: 0 | 1): boolean {
 export function gridLineAxis(series: AxisSeries[]): 0 | 1 {
     return axisHasSeries(series, 0) || !axisHasSeries(series, 1) ? 0 : 1;
 }
+
+/**
+ * Value-to-text mapping of an axis (issue #718), typed as `0=An; 1=Aus`: entries split at `;` or a
+ * line break, key and text at the first `=`. `true`/`false` stand for 1/0, and a decimal comma is
+ * read as a point. Entries without a number or without a text are skipped.
+ */
+export function parseValueLabels(text: string | undefined): Map<number, string> {
+    const map = new Map<number, string>();
+    if (!text) return map;
+    for (const entry of text.split(/[;\n]/)) {
+        const eq = entry.indexOf('=');
+        if (eq < 0) continue;
+        const rawKey = entry.slice(0, eq).trim().toLowerCase();
+        const label = entry.slice(eq + 1).trim();
+        if (!rawKey || !label) continue;
+        const key = rawKey === 'true' ? 1 : rawKey === 'false' ? 0 : Number(rawKey.replace(',', '.'));
+        if (Number.isFinite(key)) map.set(key, label);
+    }
+    return map;
+}
+
+/**
+ * Does this axis carry nothing but booleans (issue #718)? Then it spans exactly 0…1 in one step,
+ * instead of echarts' 0.2 grid. `isBool` decides per series — see the widget for what counts.
+ */
+export function axisIsBoolean<S extends AxisSeries>(series: S[], axis: 0 | 1, isBool: (s: S) => boolean): boolean {
+    const onAxis = series.filter((s) => on(s, axis));
+    return onAxis.length > 0 && onAxis.every(isBool);
+}
