@@ -141,7 +141,19 @@ ausgedünnt. Die Zahlen folgen der Schrittweite, nicht `decimals`.
 | --- | --- |
 | Drag & Drop | Zelle verschieben |
 | Strg + Drag & Drop (Mac: ⌥) | Zelle kopieren |
-| Rechtsklick | Kontextmenü (Kopieren · Ausschneiden · Einfügen · Leeren) |
+| Rechtsklick | Kontextmenü (Kopieren · Ausschneiden · Einfügen · Leeren · Zeile/Spalte einfügen oder löschen) |
+
+### Zeilen & Spalten einfügen
+
+Rechtsklick auf eine Zelle:
+
+| Eintrag | Aktion |
+| --- | --- |
+| Zeile darüber / darunter einfügen | leere Zeile an dieser Stelle, alles darunter rückt nach unten |
+| Spalte links / rechts einfügen | leere Spalte an dieser Stelle, alles rechts davon rückt nach rechts |
+| Zeile _n_ löschen / Spalte _n_ löschen | entfernt die Zeile/Spalte; enthält sie konfigurierte Zellen, wird nachgefragt |
+
+`colSpan`/`rowSpan`, die über die Stelle reichen, wachsen bzw. schrumpfen mit. Spaltenbreiten bleiben der jeweiligen Spalte zugeordnet, neue Spalten bekommen `1`.
 
 ### Mit der Tastatur
 

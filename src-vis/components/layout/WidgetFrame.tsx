@@ -127,6 +127,14 @@ import type {
     WidgetLayout,
 } from '../../types';
 import { DEFAULT_CUSTOM_GRID, DEFAULT_UNIVERSAL_GRID, normalizeGrid } from '../widgets/CustomGridView';
+import {
+    CUSTOM_GRID_MAX,
+    deleteGridCol,
+    deleteGridRow,
+    gridLineHasContent,
+    insertGridCol,
+    insertGridRow,
+} from '../../utils/customGridEdit';
 import { DEFAULT_KNOB_GRID } from '../widgets/KnobWidget';
 import {
     OVER_COLOR as FILL_OVER_COLOR,
@@ -6795,6 +6803,38 @@ function WidgetFrameInner({
     const cellClear = (idx: number) => {
         const g = resolveCustomGrid();
         writeCustomGrid({ ...g, cells: g.cells.map((c, i) => (i === idx ? { type: 'empty' as const } : c)) });
+    };
+    // Insert / delete a whole row or column at the right-clicked cell (#717); the
+    // selection follows its cell, or is dropped when that cell was deleted.
+    const [customGridLineDelete, setCustomGridLineDelete] = useState<{ axis: 'row' | 'col'; at: number } | null>(null);
+    const editGridLine = (op: 'insert' | 'delete', axis: 'row' | 'col', at: number) => {
+        const g = resolveCustomGrid();
+        const next =
+            op === 'insert'
+                ? axis === 'row'
+                    ? insertGridRow(g, at)
+                    : insertGridCol(g, at)
+                : axis === 'row'
+                  ? deleteGridRow(g, at)
+                  : deleteGridCol(g, at);
+        if (next === g) return;
+        writeCustomGrid(next);
+        if (selectedCustomCell === null) return;
+        let r = Math.floor(selectedCustomCell / g.cols);
+        let c = selectedCustomCell % g.cols;
+        const line = axis === 'row' ? r : c;
+        if (op === 'delete' && line === at) {
+            setSelectedCustomCell(null);
+            return;
+        }
+        const shift = op === 'insert' ? (line >= at ? 1 : 0) : line > at ? -1 : 0;
+        if (axis === 'row') r += shift;
+        else c += shift;
+        setSelectedCustomCell(r * next.cols + c);
+    };
+    const requestGridLineDelete = (axis: 'row' | 'col', at: number) => {
+        if (gridLineHasContent(resolveCustomGrid(), axis, at)) setCustomGridLineDelete({ axis, at });
+        else editGridLine('delete', axis, at);
     };
 
     // Ctrl/Cmd+C / +X / +V and Delete on the selected custom cell
@@ -18877,6 +18917,10 @@ function WidgetFrameInner({
                                                             }}
                                                             onContextMenu={(e) => {
                                                                 e.preventDefault();
+                                                                // The edit dialog is a portal, so React bubbles this up
+                                                                // to the widget, whose own right-click menu would replace
+                                                                // the dialog.
+                                                                e.stopPropagation();
                                                                 setSelectedCustomCell(i);
                                                                 setCustomCellContextMenu({
                                                                     idx: i,
@@ -18913,6 +18957,13 @@ function WidgetFrameInner({
                                                     );
                                                 })}
                                             </div>
+                                            <p
+                                                className="text-[10px]"
+                                                style={{ color: 'var(--text-secondary)', opacity: 0.7 }}
+                                            >
+                                                Rechtsklick auf eine Zelle: Zeile oder Spalte an dieser Stelle einfügen
+                                                bzw. löschen.
+                                            </p>
 
                                             {/* Per-cell editor */}
                                             <div
@@ -20288,10 +20339,14 @@ function WidgetFrameInner({
                     const cell = g.cells[idx];
                     const hasContent = !!(cell && cell.type !== 'empty');
                     const hasClip = !!cellClipboard;
+                    const row = Math.floor(idx / g.cols);
+                    const col = idx % g.cols;
+                    const canAddRow = g.rows < CUSTOM_GRID_MAX;
+                    const canAddCol = g.cols < CUSTOM_GRID_MAX;
                     const MENU_W = 200;
-                    const MENU_H = 180;
+                    const MENU_H = 400;
                     const left = Math.min(customCellContextMenu.x, window.innerWidth - MENU_W - 8);
-                    const top = Math.min(customCellContextMenu.y, window.innerHeight - MENU_H - 8);
+                    const top = Math.max(8, Math.min(customCellContextMenu.y, window.innerHeight - MENU_H - 8));
                     const itemBase: React.CSSProperties = {
                         display: 'flex',
                         alignItems: 'center',
@@ -20330,7 +20385,10 @@ function WidgetFrameInner({
                                 top,
                                 minWidth: MENU_W,
                             }}
-                            onContextMenu={(e) => e.preventDefault()}
+                            onContextMenu={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                            }}
                         >
                             <button
                                 style={hasContent ? itemBase : itemDisabled}
@@ -20385,6 +20443,43 @@ function WidgetFrameInner({
                                 <span>Leeren</span>
                                 <span style={{ opacity: 0.55, fontSize: 10 }}>{keyLabel('del')}</span>
                             </button>
+                            <div style={{ height: 1, background: 'var(--app-border)', margin: '4px 6px' }} />
+                            {(
+                                [
+                                    ['Zeile darüber einfügen', canAddRow, () => editGridLine('insert', 'row', row)],
+                                    [
+                                        'Zeile darunter einfügen',
+                                        canAddRow,
+                                        () => editGridLine('insert', 'row', row + 1),
+                                    ],
+                                    ['Spalte links einfügen', canAddCol, () => editGridLine('insert', 'col', col)],
+                                    ['Spalte rechts einfügen', canAddCol, () => editGridLine('insert', 'col', col + 1)],
+                                    null,
+                                    [`Zeile ${row + 1} löschen`, g.rows > 1, () => requestGridLineDelete('row', row)],
+                                    [`Spalte ${col + 1} löschen`, g.cols > 1, () => requestGridLineDelete('col', col)],
+                                ] as const
+                            ).map((item, k) =>
+                                item === null ? (
+                                    <div
+                                        key={k}
+                                        style={{ height: 1, background: 'var(--app-border)', margin: '4px 6px' }}
+                                    />
+                                ) : (
+                                    <button
+                                        key={k}
+                                        style={item[1] ? itemBase : itemDisabled}
+                                        onClick={onItem(item[2], item[1])}
+                                        onMouseEnter={(e) => {
+                                            if (item[1]) e.currentTarget.style.background = 'var(--app-bg)';
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.background = 'transparent';
+                                        }}
+                                    >
+                                        <span>{item[0]}</span>
+                                    </button>
+                                ),
+                            )}
                         </div>,
                         widgetFramePortalTarget,
                     );
@@ -20475,6 +20570,45 @@ function WidgetFrameInner({
                         </CenteredModal>
                     );
                 })()}
+
+            {/* Custom-Grid row/column delete confirmation (the line still holds content) */}
+            {customGridLineDelete && (
+                <CenteredModal
+                    title={customGridLineDelete.axis === 'row' ? 'Zeile löschen?' : 'Spalte löschen?'}
+                    onClose={() => setCustomGridLineDelete(null)}
+                >
+                    <div className="space-y-4">
+                        <p className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                            {customGridLineDelete.axis === 'row' ? 'Zeile' : 'Spalte'}{' '}
+                            <strong>{customGridLineDelete.at + 1}</strong> enthält konfigurierte Zellen. Diese werden
+                            mitgelöscht.
+                        </p>
+                        <div className="flex gap-2 justify-end">
+                            <button
+                                onClick={() => setCustomGridLineDelete(null)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                                style={{
+                                    background: 'var(--app-bg)',
+                                    color: 'var(--text-secondary)',
+                                    border: '1px solid var(--app-border)',
+                                }}
+                            >
+                                Abbrechen
+                            </button>
+                            <button
+                                onClick={() => {
+                                    editGridLine('delete', customGridLineDelete.axis, customGridLineDelete.at);
+                                    setCustomGridLineDelete(null);
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                                style={{ background: 'var(--accent)', color: '#fff', border: 'none' }}
+                            >
+                                Löschen
+                            </button>
+                        </div>
+                    </div>
+                </CenteredModal>
+            )}
 
             {/* Custom-Grid image file picker */}
             {customCellImagePickerOpen &&
