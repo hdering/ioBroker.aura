@@ -9,3 +9,4 @@
 - Settings - "Fill window width" grid can now also stretch vertically: rows either scale with the width (widgets keep their aspect ratio) or fill the window height; off by default (#413)
 - Widget fullscreen - browser fullscreen no longer drops back right after opening when entering it resizes the window across a layout breakpoint (Firefox on phones in landscape) (#711)
 - Chart - the tooltip now shows the year when the chart spans more than a month, crosses a year boundary or lies in an earlier year; daily values drop the meaningless 00:00 (#712)
+- Chart - value labels on the highest bar or point no longer run into the legend or get cut off at the top edge (#713)

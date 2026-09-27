@@ -69,3 +69,19 @@ export function legendGridTop(
     if (!rows) return fallback;
     return LEGEND_TOP + PADDING + rows * ROW_HEIGHT + (rows - 1) * ITEM_GAP + CHART_GAP;
 }
+
+// A value label with `position: 'top'` sits above its mark: the 5px label distance plus one line of
+// the 10px label font (zrender takes a line to be as tall as the font is wide). Neither the grid nor
+// containLabel knows about it, so the label on the tallest bar rose into the legend (issue #713).
+const VALUE_LABEL_RISE = 15;
+/** Least air between a raised value label and the legend (or the canvas edge) above it. */
+const VALUE_LABEL_AIR = 2;
+
+/**
+ * `grid.top` that also leaves room for value labels above the highest mark. `top` is what the
+ * grid would get without labels, `legend` whether that already clears a legend.
+ */
+export function valueLabelGridTop(top: number, legend: boolean): number {
+    const need = VALUE_LABEL_RISE + VALUE_LABEL_AIR;
+    return legend ? top + Math.max(0, need - CHART_GAP) : Math.max(top, need);
+}

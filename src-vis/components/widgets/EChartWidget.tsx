@@ -39,7 +39,7 @@ import {
 import { openNativePicker } from '../common/DateTimeInput';
 import { transformSign } from '../../utils/valueTransform';
 import { axisIsZeroBased, gridLineAxis } from '../../utils/chartAxis';
-import { legendGridTop, LEGEND_TOP } from '../../utils/chartLegend';
+import { legendGridTop, LEGEND_TOP, valueLabelGridTop } from '../../utils/chartLegend';
 import { useT } from '../../i18n';
 import { RANGE_LABELS } from '../../hooks/useChartHistory';
 import { parseRangeChips, rangeKey, type RangeChip, type RangeUnit } from '../../utils/rangeChips';
@@ -279,6 +279,16 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             },
         };
     };
+    /**
+     * Whether some value label sits ABOVE its mark and needs room under the legend (issue #713).
+     * Stacked bars write theirs inside the bar, series drawn below zero put them underneath.
+     */
+    const labelsAbove = echartSeries.some(
+        (s) =>
+            (seriesShowValues(s) || (echartShowStackPercent && !!s.stack)) &&
+            !(s.stack && s.chartType === 'bar') &&
+            transformSign(s.valueFactor) !== -1,
+    );
     /** Line labels hang on the symbols — echarts creates none while `showSymbol` is off. A
      *  percentage-only chart therefore needs them on the stacked series, and only there. */
     const labelSymbols = (s: EChartSeriesConfig) => seriesShowValues(s) || (echartShowStackPercent && !!s.stack);
@@ -444,6 +454,12 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         ro.observe(el);
         return () => ro.disconnect();
     }, []);
+
+    /** `grid.top` below the legend (if any) and, when needed, the value labels on the highest mark. */
+    const gridTop = (names: string[], legend: boolean) => {
+        const top = legend ? legendGridTop(names, chartWidth, AXIS_GAP_V) : AXIS_GAP_V;
+        return labelsAbove ? valueLabelGridTop(top, legend) : top;
+    };
 
     // Dense series would otherwise stamp a label on every single point; echarts drops the
     // ones that would collide and keeps the rest readable.
@@ -796,7 +812,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             grid: {
                 left: AXIS_GAP,
                 right: AXIS_GAP,
-                top: 16,
+                top: labelsAbove ? valueLabelGridTop(16, false) : 16,
                 bottom: AXIS_GAP_V,
                 containLabel: true,
             },
@@ -1041,7 +1057,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
             grid: {
                 left: AXIS_GAP,
                 right: AXIS_GAP,
-                top: echartShowLegend ? legendGridTop(jsonLegendNames, chartWidth, AXIS_GAP_V) : AXIS_GAP_V,
+                top: gridTop(jsonLegendNames, echartShowLegend),
                 bottom: AXIS_GAP_V,
                 containLabel: true,
             },
@@ -1303,7 +1319,7 @@ export function EChartWidget({ config, editMode }: WidgetProps) {
         grid: {
             left: AXIS_GAP,
             right: AXIS_GAP,
-            top: echartShowLegend ? legendGridTop(legendNames, chartWidth, AXIS_GAP_V) : AXIS_GAP_V,
+            top: gridTop(legendNames, echartShowLegend),
             bottom: AXIS_GAP_V,
             containLabel: true,
         },
