@@ -166,6 +166,27 @@ check(
     colourIds.join(','),
 );
 
+// vis-2 icon pack: packs as named folders, tinted, searchable by the icon's name
+await select.selectOption('adapter:vis-2-test-pack');
+await settle(1000);
+check((await picker.locator('button:has-text("Einfarbig (2)")').count()) === 1, 'pack folder shows the pack name');
+check((await picker.locator('button:has-text("Marken (1)")').count()) === 1, 'second pack listed');
+const packTile = picker.locator('[data-icon-id="iob:vis-2-test-pack/pack-solid/fan-on.svg"]');
+check((await packTile.count()) === 1, 'pack icon offered');
+check((await packTile.locator('[data-aura-adapter-icon="mask"]').count()) === 1, 'pack icon is tinted');
+check(/Fan On/.test((await packTile.getAttribute('title')) ?? ''), 'pack icon tooltip names the icon');
+await picker.locator('input[placeholder]').first().fill('lüfter');
+await settle(600);
+const packHits = await picker
+    .locator('[data-icon-id]')
+    .evaluateAll((els) => els.map((e) => e.getAttribute('data-icon-id')));
+check(
+    JSON.stringify(packHits) === '["iob:vis-2-test-pack/pack-solid/fan-on.svg"]',
+    'search finds pack keywords',
+    JSON.stringify(packHits),
+);
+await picker.locator('input[placeholder]').first().fill('');
+
 // Search across all sources finds adapter files by name
 await select.selectOption('all');
 await picker.locator('input[placeholder]').first().fill('bulb');

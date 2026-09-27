@@ -43,6 +43,8 @@ interface AdapterSet {
     folders: string[];
     multicolor: boolean;
     raster: boolean;
+    /** Display names of folders — a vis-2 icon pack's own name ("Einfarbig"). */
+    folderLabels?: Record<string, string>;
 }
 
 interface IconifySet {
@@ -138,12 +140,17 @@ function fetchAdapterSets(): Promise<AdapterSet[]> {
 }
 
 const adapterLists = new Map<string, Promise<string[]>>();
+/** set → path → name (+ keywords) of icons that carry one — vis-2 pack entries. */
+const adapterTitles = new Map<string, Record<string, string>>();
 function fetchAdapterList(set: string): Promise<string[]> {
     let p = adapterLists.get(set);
     if (!p) {
         p = fetch(`/adapter-icons/list?set=${encodeURIComponent(set)}`)
             .then((r) => (r.ok ? r.json() : { icons: [] }))
-            .then((d: { icons?: string[] }) => (Array.isArray(d?.icons) ? d.icons : []))
+            .then((d: { icons?: string[]; titles?: Record<string, string> }) => {
+                adapterTitles.set(set, d?.titles && typeof d.titles === 'object' ? d.titles : {});
+                return Array.isArray(d?.icons) ? d.icons : [];
+            })
             .catch(() => {
                 adapterLists.delete(set);
                 return [];
@@ -151,6 +158,11 @@ function fetchAdapterList(set: string): Promise<string[]> {
         adapterLists.set(set, p);
     }
     return p;
+}
+
+/** Search hits a file name or, for a pack entry, its name and keywords. */
+function adapterFileMatches(set: string, file: string, q: string): boolean {
+    return file.toLowerCase().includes(q) || !!adapterTitles.get(set)?.[file]?.toLowerCase().includes(q);
 }
 
 /** Root-level files of an adapter set get this pseudo folder in the sidebar. */
@@ -448,9 +460,19 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
             }
             if (counts.size < 2) return [];
             return [...counts.entries()]
-                .map(([id, count]) => ({ id, label: id === ROOT_FOLDER ? t('iconPicker.rootFolder') : id, count }))
+                .map(([id, count]) => ({
+                    id,
+                    label: id === ROOT_FOLDER ? t('iconPicker.rootFolder') : (adapterSet?.folderLabels?.[id] ?? id),
+                    count,
+                }))
                 .sort((a, b) =>
-                    a.id === ROOT_FOLDER ? -1 : b.id === ROOT_FOLDER ? 1 : a.label.localeCompare(b.label),
+                    a.id === ROOT_FOLDER
+                        ? -1
+                        : b.id === ROOT_FOLDER
+                          ? 1
+                          : adapterSet?.folderLabels?.[a.id] || adapterSet?.folderLabels?.[b.id]
+                            ? 0
+                            : a.label.localeCompare(b.label),
                 );
         }
         return ICON_CATEGORIES.map((cat) => ({
@@ -459,7 +481,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
             count: cat.icons.filter((n) => !missingIds.has(toIconifyId(n)) && available(toIconifyId(n))).length,
         })).filter((c) => c.count > 0);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sourceKind, sourceId, collection, adapterFiles, missingIds, t, offlineOnly, cachedIds]);
+    }, [sourceKind, sourceId, collection, adapterFiles, missingIds, t, offlineOnly, cachedIds, adapterSet]);
 
     const adapterIdsOf = (setId: string, files: string[]) => {
         const set = adapterSets.find((s) => s.id === setId);
@@ -478,7 +500,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                     categoryId === ROOT_FOLDER ? !f.includes('/') : f.startsWith(`${categoryId}/`),
                 );
             }
-            if (q) files = files.filter((f) => f.toLowerCase().includes(q));
+            if (q) files = files.filter((f) => adapterFileMatches(sourceId, f, q));
             return adapterIdsOf(sourceId, files);
         }
 
@@ -506,7 +528,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                 }
             }
             for (const set of adapterSets) {
-                const files = (adapterFiles[set.id] ?? []).filter((f) => f.toLowerCase().includes(q));
+                const files = (adapterFiles[set.id] ?? []).filter((f) => adapterFileMatches(set.id, f, q));
                 out.push(...adapterIdsOf(set.id, files));
             }
             return out;
@@ -559,7 +581,10 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         const ref = parseAdapterIconId(id);
         if (!ref) return id;
         const set = adapterSets.find((s) => s.id === ref.adapter);
-        return `${adapterIconLabel(ref)}\n${set?.title ?? ref.adapter} · ${ref.path}`;
+        const name = adapterTitles.get(ref.adapter)?.[ref.path] || adapterIconLabel(ref);
+        const slash = ref.path.indexOf('/');
+        const folder = slash > 0 ? set?.folderLabels?.[ref.path.slice(0, slash)] : undefined;
+        return `${name}\n${set?.title ?? ref.adapter}${folder ? ` · ${folder}` : ''} · ${ref.path}`;
     };
 
     const currentLabel = (() => {

@@ -63,7 +63,8 @@ const FIXTURES = path.resolve('tools/fixtures/adapter-icons');
     const { res, json } = await call(icons, '/adapter-icons/sets');
     check('sets: 200', res.status === 200, `got ${res.status}`);
     const byId = Object.fromEntries((json?.sets || []).map((s) => [s.id, s]));
-    check('sets: three fixture sets', Object.keys(byId).length === 3, Object.keys(byId).join(','));
+    check('sets: four fixture sets', Object.keys(byId).length === 4, Object.keys(byId).join(','));
+    check('sets: storage stand-in is not a set', !byId['_vis-2']);
     check('sets: title from metadata', byId['icons-test-mono']?.title === 'Test mono SVG');
     check('sets: licence reported', byId['icons-test-color']?.license === 'EPL-1.0');
     check('sets: mono set is tintable', byId['icons-test-mono']?.multicolor === false);
@@ -123,6 +124,48 @@ const FIXTURES = path.resolve('tools/fixtures/adapter-icons');
 
     const post = await call(icons, '/adapter-icons/sets', 'POST');
     check('POST refused', post.res.status === 405);
+}
+
+// ── 1b. vis-2 icon packs (common.visIconSets) ─────────────────────────────────
+{
+    const icons = createAdapterIcons({ source: folderIconSource(FIXTURES), log: { warn() {} } });
+    const { json } = await call(icons, '/adapter-icons/sets');
+    const pack = (json?.sets || []).find((s) => s.id === 'vis-2-test-pack');
+    check('pack: adapter listed', !!pack);
+    check(
+        'pack: one folder per readable pack, in declared order',
+        JSON.stringify(pack?.folders) === '["pack-solid","pack-brands"]',
+        JSON.stringify(pack?.folders),
+    );
+    check(
+        'pack: folder labels from visIconSets',
+        pack?.folderLabels?.['pack-solid'] === 'Einfarbig' && pack?.folderLabels?.['pack-brands'] === 'Marken',
+    );
+    check('pack: currentColor pack is tintable', pack?.multicolor === false);
+    check('pack: counts valid entries only', pack?.count === 3, String(pack?.count));
+
+    const list = await call(icons, '/adapter-icons/list?set=vis-2-test-pack');
+    check(
+        'pack: entries as <pack>/<key>.svg',
+        JSON.stringify(list.json?.icons) ===
+            '["pack-solid/fan-off.svg","pack-solid/fan-on.svg","pack-brands/logo.svg"]',
+        JSON.stringify(list.json?.icons),
+    );
+    check('pack: titles carry name and words', list.json?.titles?.['pack-solid/fan-on.svg'] === 'Fan On · Lüfter');
+
+    const f = await call(icons, '/adapter-icons/file/vis-2-test-pack/pack-solid/fan-on.svg');
+    check('pack: icon served', f.res.status === 200 && f.res.headers['Content-Type'] === 'image/svg+xml');
+    check('pack: icon decoded from base64', String(f.res.body).includes('currentColor'));
+    const d = await call(icons, '/adapter-icons/file/vis-2-test-pack/pack-brands/logo.svg');
+    check('pack: data-url entry decoded', d.res.status === 200 && String(d.res.body).includes('<svg'));
+    for (const [label, url] of [
+        ['unknown key', '/adapter-icons/file/vis-2-test-pack/pack-solid/nope.svg'],
+        ['wrong extension', '/adapter-icons/file/vis-2-test-pack/pack-solid/fan-on.png'],
+        ['rejected key', '/adapter-icons/file/vis-2-test-pack/pack-solid/bad%20key!.svg'],
+    ]) {
+        const r = await call(icons, url);
+        check(`pack: ${label} refused`, r.res.status === 404, `got ${r.res.status}`);
+    }
 }
 
 // ── 2. ioBroker source ────────────────────────────────────────────────────────
@@ -186,10 +229,83 @@ const FIXTURES = path.resolve('tools/fixtures/adapter-icons');
     check('iob: non-icon namespace never read', !reads.some((r) => r.startsWith('aura.0/')));
 }
 
+// ── 2b. ioBroker source with a vis-2 pack, laid out like the real instance ─────
+{
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg"><g style="fill:currentColor"><path d="M0 0h1v1z"/></g></svg>';
+    const packJson = JSON.stringify({
+        'air-conditioner-off': { src: Buffer.from(svg).toString('base64'), name: 'Air Conditioner Off', words: [] },
+    });
+    const reads = [];
+    const adapter = {
+        async getForeignObjectsAsync() {
+            return {
+                'system.adapter.vis-2-widgets-icontwo': {
+                    _id: 'system.adapter.vis-2-widgets-icontwo',
+                    common: {
+                        name: 'vis-2-widgets-icontwo',
+                        type: 'visualization-icons',
+                        version: '1.42.2',
+                        titleLang: { de: 'Vis 2 inventwo Iconset' },
+                        visIconSets: {
+                            vis2IcontwoSet: {
+                                iconSet: true,
+                                name: { en: 'Monochrome', de: 'Einfarbig' },
+                                url: 'vis-2-widgets-icontwo/icon-set-solid.json',
+                            },
+                        },
+                    },
+                },
+                // A widget adapter of another type that brings a pack is found too.
+                'system.adapter.vis-2-widgets-other': {
+                    _id: 'system.adapter.vis-2-widgets-other',
+                    common: {
+                        name: 'vis-2-widgets-other',
+                        type: 'visualization-widgets',
+                        version: '1',
+                        visIconSets: { s: { name: 'Other', url: 'vis-2-widgets-other/set.json' } },
+                    },
+                },
+            };
+        },
+        async readDirAsync() {
+            throw new Error('no web storage'); // onlyWWW adapter without www
+        },
+        async readFileAsync(ns, file) {
+            reads.push(`${ns}/${file}`);
+            if (ns === 'vis-2' && file === 'widgets/vis-2-widgets-icontwo/icon-set-solid.json') {
+                return { file: Buffer.from(packJson), mimeType: 'application/json' };
+            }
+            if (ns === 'vis' && file === 'widgets/vis-2-widgets-other/set.json') {
+                return { file: Buffer.from(packJson), mimeType: 'application/json' };
+            }
+            throw new Error('not found');
+        },
+    };
+    const icons = createAdapterIcons({ source: ioBrokerIconSource(adapter), log: { warn() {} } });
+    const { json } = await call(icons, '/adapter-icons/sets');
+    const ids = (json?.sets || []).map((x) => x.id);
+    check('iob pack: icontwo found without any web files', ids.includes('vis-2-widgets-icontwo'), JSON.stringify(json));
+    check('iob pack: pack of a widget adapter found (vis fallback)', ids.includes('vis-2-widgets-other'));
+    check(
+        'iob pack: read from vis-2/widgets/<url>',
+        reads.includes('vis-2/widgets/vis-2-widgets-icontwo/icon-set-solid.json'),
+    );
+    const set = json?.sets.find((x) => x.id === 'vis-2-widgets-icontwo');
+    check('iob pack: folder label in German', set?.folderLabels?.['icon-set-solid'] === 'Einfarbig');
+    const f = await call(icons, '/adapter-icons/file/vis-2-widgets-icontwo/icon-set-solid/air-conditioner-off.svg');
+    check('iob pack: icon served from the pack', f.res.status === 200 && String(f.res.body).includes('currentColor'));
+}
+
 // ── 3. colour detection ───────────────────────────────────────────────────────
 check('colours: one fill', svgColours('<path fill="#000"/><path fill="#000000"/>').size === 1);
 check('colours: none/currentColor ignored', svgColours('<path fill="none" stroke="currentColor"/>').size === 0);
 check('colours: style attribute', svgColours('<path style="fill:#f00;stroke:#00f"/>').size === 2);
+check(
+    'colours: unused <style> classes ignored',
+    svgColours('<path fill="#000"/><style>.a{stroke:#f00}.b{fill:#fff}</style>').size === 1,
+);
+check('colours: alpha-0 hex ignored', svgColours('<path style="fill:#80000000"/><path fill="#fff"/>').size === 1);
+check('colours: SMIL freeze ignored', svgColours('<animate fill="freeze"/><path fill="#fff"/>').size === 1);
 check('colours: gradient ref ignored', svgColours('<path fill="url(#g)"/><stop stop-color="#fff"/>').size === 1);
 
 console.log(`adapter-icons: ${pass} passed, ${fails.length} failed`);

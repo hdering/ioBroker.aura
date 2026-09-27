@@ -1,0 +1,22 @@
+{
+  "title": "Test vis-2 pack",
+  "license": "MIT",
+  "version": "1.0.0",
+  "iconSets": [
+    {
+      "key": "solid",
+      "name": "Einfarbig",
+      "url": "vis-2-test-pack/pack-solid.json"
+    },
+    {
+      "key": "brands",
+      "name": "Marken",
+      "url": "vis-2-test-pack/pack-brands.json"
+    },
+    {
+      "key": "gone",
+      "name": "Fehlt",
+      "url": "vis-2-test-pack/pack-missing.json"
+    }
+  ]
+}
