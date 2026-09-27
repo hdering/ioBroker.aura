@@ -2093,6 +2093,10 @@
         "smooth": {
           "type": "boolean"
         },
+        "step": {
+          "type": "boolean",
+          "description": "Draw a line/area as a step line: each value holds until the next one (issue #718). Unset = on for a boolean datapoint, off otherwise. Overrides `smooth`."
+        },
         "yAxisIndex": {
           "tsType": "0 | 1"
         },
@@ -8609,6 +8613,10 @@
           "default": "",
           "description": "Einheit der linken Y-Achse."
         },
+        "echartLeftValueLabels": {
+          "type": "string",
+          "description": "Texte statt Zahlen an der linken Y-Achse, im Tooltip und in der Wertanzeige, z. B. \"0=Aus; 1=An\". Einträge mit ; trennen, true/false stehen für 1/0. Eine Achse nur mit booleschen Reihen zeigt ohnehin genau 0 und 1."
+        },
         "echartMode": {
           "type": "string",
           "default": "timeseries",
@@ -8658,6 +8666,10 @@
           "type": "string",
           "default": "",
           "description": "Einheit der rechten Y-Achse."
+        },
+        "echartRightValueLabels": {
+          "type": "string",
+          "description": "Wie echartLeftValueLabels, für die rechte Y-Achse — typisch für einen Schaltzustand (Heizung An/Aus) neben Temperaturen links."
         },
         "echartSeries": {
           "type": "array",
