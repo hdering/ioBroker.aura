@@ -14,8 +14,10 @@ const { createIconCache } = createRequire(path.resolve('package.json'))('./lib/i
   };
 };
 
-// Icons of installed ioBroker icon adapters (#716). The dev server has no
-// adapter storage, so every sub-folder of AURA_ADAPTER_ICONS_DIR (default: the
+// Icons of installed ioBroker icon adapters (#716). Against a real instance the
+// dev server asks that instance's Aura server — only it can read the adapters'
+// storage (see adapterIconsTarget). Offline (loopback target, the harness) or
+// with AURA_ADAPTER_ICONS_DIR set, every sub-folder of that folder (default: the
 // test fixtures) plays one installed icon adapter.
 const { createAdapterIcons, folderIconSource } = createRequire(path.resolve('package.json'))('./lib/adapterIcons.js') as {
   createAdapterIcons: (o: { source: unknown; log?: unknown }) => {
@@ -41,6 +43,24 @@ function readUrlFile(): string {
 }
 
 let proxyTarget = readUrlFile();
+
+/**
+ * Where `/adapter-icons/*` goes: null = serve the fixture folder, else the Aura
+ * server of the proxied instance — same host, port 8095 unless AURA_SERVER_URL
+ * names it. Read per request, the proxy target can change at runtime.
+ */
+function adapterIconsTarget(): URL | null {
+  if (process.env.AURA_ADAPTER_ICONS_DIR) return null;
+  const explicit = process.env.AURA_SERVER_URL?.trim();
+  if (explicit) return new URL(explicit);
+  try {
+    const t = new URL(proxyTarget);
+    if (/^(127\.|localhost$|\[?::1\]?$)/.test(t.hostname)) return null;
+    return new URL(`http://${t.hostname}:8095`);
+  } catch {
+    return null;
+  }
+}
 
 function ioBrokerDevPlugin(): Plugin {
   return {
@@ -78,7 +98,35 @@ function ioBrokerDevPlugin(): Plugin {
         log: console,
       });
       server.middlewares.use((req, res, next) => {
-        if (!adapterIcons.handle(req, res, new URL(req.url ?? '', 'http://localhost'))) next();
+        const url = new URL(req.url ?? '', 'http://localhost');
+        if (!url.pathname.startsWith('/adapter-icons/')) return next();
+        const target = adapterIconsTarget();
+        if (!target) {
+          if (!adapterIcons.handle(req, res, url)) next();
+          return;
+        }
+        const lib = target.protocol === 'https:' ? https : http;
+        const up = lib.request(
+          {
+            hostname: target.hostname,
+            port: target.port || (target.protocol === 'https:' ? 443 : 80),
+            path: req.url,
+            method: req.method,
+            rejectUnauthorized: false,
+            timeout: 15000,
+          } as http.RequestOptions,
+          (upRes) => {
+            res.writeHead(upRes.statusCode ?? 502, upRes.headers);
+            upRes.pipe(res);
+          },
+        );
+        up.on('timeout', () => up.destroy(new Error('timeout')));
+        up.on('error', (e) => {
+          if (res.headersSent) return res.end();
+          res.writeHead(502, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: `Aura server ${target.origin} unreachable: ${e.message}`, sets: [] }));
+        });
+        up.end();
       });
 
       // Server-side iframe proxy – strips X-Frame-Options so pages can be embedded

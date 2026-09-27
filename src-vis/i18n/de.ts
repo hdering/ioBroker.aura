@@ -2667,8 +2667,6 @@ export const de = {
     'iconPicker.source': 'Quelle',
     'iconPicker.sourceAll': 'Alle Quellen',
     'iconPicker.groupAdapters': 'Installierte ioBroker-Adapter',
-    'iconPicker.sidebarAdapters': 'ioBroker-Adapter',
-    'iconPicker.groupAura': 'Aura-Auswahl',
     'iconPicker.groupIconify': 'Iconify-Sets',
     'iconPicker.noAdapters': 'Kein Icon-Adapter installiert',
     'iconPicker.offlineOnly': 'Nur offline verfügbare',

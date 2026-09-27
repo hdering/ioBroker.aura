@@ -2647,8 +2647,6 @@ export const en: Record<TranslationKey, string> = {
     'iconPicker.source': 'Source',
     'iconPicker.sourceAll': 'All sources',
     'iconPicker.groupAdapters': 'Installed ioBroker adapters',
-    'iconPicker.sidebarAdapters': 'ioBroker adapters',
-    'iconPicker.groupAura': 'Aura selection',
     'iconPicker.groupIconify': 'Iconify sets',
     'iconPicker.noAdapters': 'No icon adapter installed',
     'iconPicker.offlineOnly': 'Offline only',
