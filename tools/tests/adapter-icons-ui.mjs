@@ -146,27 +146,18 @@ check(
     JSON.stringify(lightIds),
 );
 
-// PNG set: raster hint, no colour switch
+// PNG set: the hint says the colour is asked at the pick; no switches at the top
 await select.selectOption('adapter:vis-test-png');
 await settle(800);
-check((await picker.locator('[data-aura-icon-original]').count()) === 0, 'png set has no colour switch');
-check(/PNG/.test((await hint.textContent()) ?? ''), 'png set explains the fixed colours');
+check(/PNG/.test((await hint.textContent()) ?? ''), 'png set explains the colour choice');
+check(
+    (await picker.locator('[data-aura-icon-tint], [data-aura-icon-original]').count()) === 0,
+    'no colour switches at the top',
+);
 
-// PNG set: "Tint" writes #tint and draws the image as a mask
-const tintBox = picker.locator('[data-aura-icon-tint]');
-check((await tintBox.count()) === 1 && !(await tintBox.isChecked()), 'png set offers tint, off by default');
-await tintBox.check();
-await settle(600);
-const tintTile = picker.locator('[data-icon-id="iob:vis-test-png/Lights/lamp_on.png#tint"]');
-check((await tintTile.count()) === 1, 'tinted png id carries #tint');
-check((await tintTile.locator('[data-aura-adapter-icon="mask"]').count()) === 1, 'tinted png renders as a mask');
-check(/Einfärben/.test((await hint.textContent()) ?? ''), 'hint explains tinting');
-
-// Colour set defaults to original colours
+// Colour set: its SVGs are offered with their own colours
 await select.selectOption('adapter:icons-test-color');
 await settle(800);
-const origBox = picker.locator('[data-aura-icon-original]');
-check((await origBox.count()) === 1 && (await origBox.isChecked()), 'colour set keeps its colours by default');
 const colourIds = await picker
     .locator('[data-icon-id]')
     .evaluateAll((els) => els.map((e) => e.getAttribute('data-icon-id')));
@@ -339,36 +330,80 @@ check(
 const stillOpen = (await picker.count()) === 1;
 check(stillOpen, 'dragging does not close the picker');
 
-// Under "All sources" a search that finds PNGs offers "Tint" right away, and the
-// pick carries it — no detour over the adapter source (reported flow, #716)
+// Pick an SVG → taken at once, written back as the widget's icon
+await select.selectOption('all');
+await picker.locator('input[placeholder]').first().fill('bulb');
+await settle(1200);
+await picker.locator('[data-icon-id="iob:icons-test-mono/Lights/bulb_on.svg"]').click();
+await settle();
+let opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-mono'));
+check(opts?.icon === 'iob:icons-test-mono/Lights/bulb_on.svg', 'svg pick written to the widget', String(opts?.icon));
+check((await picker.count()) === 0, 'svg pick closes the picker');
+
+/** Open the widget's picker again from its icon field (clicked through the DOM, see above). */
+async function reopen(id) {
+    await dlg
+        .getByText(id)
+        .last()
+        .evaluate((e) => e.closest('button').click());
+    await settle(1500);
+}
+
+// Footer: the current SVG offers "Original colours", switching rewrites the icon in place
+await reopen('iob:icons-test-mono/Lights/bulb_on.svg');
+const svgFlag = picker.locator('[data-aura-icon-current-flag="original"]');
+check(
+    (await svgFlag.count()) === 1 && !(await svgFlag.isChecked()),
+    'footer offers original colours for the current svg',
+);
+await svgFlag.check();
+await settle(500);
+opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-mono'));
+check(
+    opts?.icon === 'iob:icons-test-mono/Lights/bulb_on.svg#original',
+    'footer switch writes #original',
+    String(opts?.icon),
+);
+
+// Pick a PNG under "All sources" → the colour is asked, "In icon colour" writes #tint (reported flow)
 await select.selectOption('all');
 await picker.locator('input[placeholder]').first().fill('lamp_on');
 await settle(1200);
-const allTint = picker.locator('[data-aura-icon-tint]');
-check((await allTint.count()) === 1, 'all sources: tint offered when a png is in view');
-if (!(await allTint.isChecked())) await allTint.check();
-await settle(500);
-const allTinted = picker.locator('[data-icon-id="iob:vis-test-png/Lights/lamp_on.png#tint"]');
-check((await allTinted.count()) === 1, 'all sources: tint applies to the search result');
-check((await allTinted.locator('[data-aura-adapter-icon="mask"]').count()) === 1, 'all sources: tinted tile is a mask');
-await picker.locator('input[placeholder]').first().fill('garage');
-await settle(1200);
-check((await allTint.count()) === 1, 'tint stays visible while switched on');
-await allTint.evaluate((el) => el.click()); // disappears at once, uncheck() could not verify
-await settle(500);
-check((await picker.locator('[data-aura-icon-tint]').count()) === 0, 'tint hidden without pngs in view');
+await picker.locator('[data-icon-id="iob:vis-test-png/Lights/lamp_on.png"]').click();
+await settle(400);
+const chooser = picker.locator('[data-aura-icon-choose]');
+check((await chooser.count()) === 1, 'png pick asks for the colour');
+check((await picker.count()) === 1, 'picker stays open while asking');
 check(
-    (await picker.locator('[data-aura-icon-original]').count()) === 1,
-    'all sources: original offered for svgs in view',
+    (await chooser.locator('[data-aura-icon-choose-option="tint"] [data-aura-adapter-icon="mask"]').count()) === 1,
+    'tint option previews the tinted icon',
 );
-await picker.locator('input[placeholder]').first().fill('bulb');
-await settle(1200);
-
-// Pick one → written back as the widget's icon
-await picker.locator('[data-icon-id="iob:icons-test-mono/Lights/bulb_on.svg"]').click();
+check(
+    (await chooser.locator('[data-aura-icon-choose-option="original"] img[data-aura-adapter-icon="image"]').count()) ===
+        1,
+    'original option previews the image as is',
+);
+await page.keyboard.press('Escape');
+await settle(300);
+check((await chooser.count()) === 0 && (await picker.count()) === 1, 'Escape closes only the colour choice');
+await picker.locator('[data-icon-id="iob:vis-test-png/Lights/lamp_on.png"]').click();
+await settle(400);
+await chooser.locator('[data-aura-icon-choose-option="tint"]').click();
 await settle();
-const opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-mono'));
-check(opts?.icon === 'iob:icons-test-mono/Lights/bulb_on.svg', 'chosen id written to the widget', String(opts?.icon));
+opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-mono'));
+check(opts?.icon === 'iob:vis-test-png/Lights/lamp_on.png#tint', 'in icon colour writes #tint', String(opts?.icon));
+check((await picker.count()) === 0, 'the choice closes the picker');
+
+// Afterwards: the footer switch turns the tint off again without searching the icon
+await reopen('iob:vis-test-png/Lights/lamp_on.png#tint');
+const pngFlag = picker.locator('[data-aura-icon-current-flag="tint"]');
+check((await pngFlag.count()) === 1 && (await pngFlag.isChecked()), 'footer shows tint on for the current png');
+await pngFlag.uncheck();
+await settle(500);
+opts = await page.evaluate(() => window.__auraShot.widgetOptions('w-mono'));
+check(opts?.icon === 'iob:vis-test-png/Lights/lamp_on.png', 'footer switch removes #tint', String(opts?.icon));
+await page.keyboard.press('Escape');
+await settle(300);
 
 check(pageErrors.length === 0, 'no page errors', pageErrors.join(' | '));
 

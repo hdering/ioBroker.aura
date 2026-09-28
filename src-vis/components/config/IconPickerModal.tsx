@@ -4,7 +4,7 @@ import { Info, Search, X } from 'lucide-react';
 import { iconLoaded, loadIcons } from '@iconify/react';
 import { ICON_CATEGORIES } from '../../utils/iconCategories';
 import { isIconsOfflineActive, lucidePascalToIconify } from '../../utils/iconifyLoader';
-import { adapterIconId, adapterIconLabel, parseAdapterIconId } from '../../utils/adapterIconId';
+import { adapterIconFile, adapterIconId, adapterIconLabel, parseAdapterIconId } from '../../utils/adapterIconId';
 import { AuraIcon } from '../common/AuraIcon';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
 import { useOverlayZ } from '../../contexts/OverlayZContext';
@@ -254,7 +254,13 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const t = useT();
     const portalTarget = usePortalTarget();
     const overlayZ = useOverlayZ();
-    const currentRef = parseAdapterIconId(current || '');
+    // The footer's colour switch rewrites the current icon in place, so the value
+    // is held here and follows the prop only when the caller changes it.
+    const [value, setValue] = useState(current || '');
+    useEffect(() => setValue(current || ''), [current]);
+    const currentRef = parseAdapterIconId(value);
+    /** Raster adapter icon whose colour choice is open (the id without a flag). */
+    const [choosing, setChoosing] = useState<string | null>(null);
     const [query, setQuery] = useState('');
     const [source, setSource] = useState<string>(() => (currentRef ? `adapter:${currentRef.adapter}` : 'all'));
     const [categoryId, setCategoryId] = useState('all');
@@ -267,7 +273,6 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const [adapterFiles, setAdapterFiles] = useState<Record<string, string[]>>({});
     const [collection, setCollection] = useState<CollectionData | null>(null);
     const [collectionLoading, setCollectionLoading] = useState(false);
-    const [keepColours, setKeepColours] = useState<boolean | null>(() => (currentRef ? currentRef.original : null));
     const [shown, setShown] = useState(PAGE);
     // "Offline only" (#716): starts on where the layout declared its devices
     // offline (iconsOffline) — there, an icon the adapter has not cached stays blank.
@@ -306,19 +311,17 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         window.addEventListener('pointercancel', onUp);
     };
 
-    // Topmost layer: Escape closes the picker, not the dialog it was opened from.
-    useEscapeLayer(onClose);
+    // Topmost layer: Escape closes the colour choice first, then the picker —
+    // never the dialog it was opened from.
+    useEscapeLayer(() => (choosing ? setChoosing(null) : onClose()));
 
-    const currentId = currentRef ? current : toIconifyId(current);
+    const currentId = currentRef ? value : toIconifyId(value);
 
     const sourceKind = source.startsWith('iconify:') ? 'iconify' : source.startsWith('adapter:') ? 'adapter' : source;
     const sourceId = source.includes(':') ? source.slice(source.indexOf(':') + 1) : '';
     const adapterSet = sourceKind === 'adapter' ? adapterSets.find((s) => s.id === sourceId) : undefined;
-    // null = follow the set's own default (a colour set keeps its colours)
-    const original = keepColours ?? adapterSet?.multicolor ?? false;
-    // Raster files keep their pixels unless tinted; a single-coloured PNG set
-    // (icons-material-png) reads far better in the icon colour.
-    const [tintRaster, setTintRaster] = useState<boolean>(() => !!currentRef?.tint);
+    // An SVG set's own default: a colour set keeps its colours.
+    const original = adapterSet?.multicolor ?? false;
 
     useEffect(() => {
         setTimeout(() => searchRef.current?.focus(), 50);
@@ -562,11 +565,11 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     ]);
 
     const adapterIdsOf = (setId: string, files: string[]) => {
-        // The colour switches act on every adapter icon in view, whichever source
-        // shows it — under "All sources" too, where a search finds them (#716).
+        // Tiles show each file as its set draws it; whether a PNG is tinted is asked
+        // when it is picked, and the footer changes it later (#716).
         const set = adapterSets.find((s) => s.id === setId);
-        const keep = keepColours ?? set?.multicolor ?? false;
-        return files.map((f) => adapterIconId(setId, f, f.toLowerCase().endsWith('.svg') ? keep : tintRaster));
+        const keep = set?.multicolor ?? false;
+        return files.map((f) => adapterIconId(setId, f, f.toLowerCase().endsWith('.svg') && keep));
     };
 
     // Visible icons for current selection
@@ -647,28 +650,35 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         adapterFiles,
         adapterSets,
         collection,
-        keepColours,
-        tintRaster,
         offlineOnly,
         cachedIds,
     ]);
     const entries = useMemo(() => rawEntries.filter(available), [rawEntries, offlineOnly, cachedIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const visible = entries.slice(0, shown);
-    const adapterKinds = useMemo(() => {
-        let svg = false;
-        let raster = false;
-        for (const id of entries) {
-            if (!id.startsWith('iob:')) continue;
-            if (/\.svg(#[a-z]+)?$/i.test(id)) svg = true;
-            else raster = true;
-            if (svg && raster) break;
+
+    /** Take an icon: a raster adapter file first asks how to colour it. */
+    const pick = (id: string) => {
+        const ref = parseAdapterIconId(id);
+        if (ref && ref.ext !== 'svg') {
+            setChoosing(adapterIconFile(id));
+            return;
         }
-        return { svg, raster };
-    }, [entries]);
-    // Shown while it can matter: icons of that kind in view, or already switched on.
-    const showKeepColours = adapterSet ? !adapterSet.raster : adapterKinds.svg || keepColours === true;
-    const showTint = adapterSet ? !!(adapterSet.hasRaster ?? adapterSet.raster) : adapterKinds.raster || tintRaster;
+        onSelect(id);
+        onClose();
+    };
+    const choose = (id: string) => {
+        setChoosing(null);
+        onSelect(id);
+        onClose();
+    };
+    /** Footer switch: rewrite the current icon's colour flag without closing. */
+    const setCurrentFlag = (on: boolean) => {
+        if (!currentRef) return;
+        const next = adapterIconId(currentRef.adapter, currentRef.path, on);
+        setValue(next);
+        onSelect(next);
+    };
     const shownIconifySets = useMemo(() => {
         if (!offlineOnly || !cachedIds) return iconifySets;
         const prefixes = new Set([...cachedIds].map((id) => id.slice(0, id.indexOf(':'))));
@@ -782,7 +792,6 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                         value={source}
                         onChange={(e) => {
                             setSource(e.target.value);
-                            setKeepColours(null);
                         }}
                         data-aura-icon-source
                         className="text-xs rounded px-1.5 py-1 min-w-0 flex-1"
@@ -826,35 +835,6 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                         />
                         {t('iconPicker.offlineOnly')}
                     </label>
-                    {showKeepColours && (
-                        <label
-                            className="flex items-center gap-1 text-[11px] cursor-pointer"
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            <input
-                                type="checkbox"
-                                checked={original}
-                                onChange={(e) => setKeepColours(e.target.checked)}
-                                data-aura-icon-original
-                            />
-                            {t('iconPicker.keepColours')}
-                        </label>
-                    )}
-                    {showTint && (
-                        <label
-                            className="flex items-center gap-1 text-[11px] cursor-pointer"
-                            title={t('iconPicker.tintRasterHint')}
-                            style={{ color: 'var(--text-secondary)' }}
-                        >
-                            <input
-                                type="checkbox"
-                                checked={tintRaster}
-                                onChange={(e) => setTintRaster(e.target.checked)}
-                                data-aura-icon-tint
-                            />
-                            {t('iconPicker.tintRaster')}
-                        </label>
-                    )}
                 </div>
 
                 {/* Adapter icons behave differently from Iconify icons — say how, once, right here. */}
@@ -871,9 +851,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                         <Info size={13} style={{ flexShrink: 0, marginTop: 1, color: 'var(--accent)' }} />
                         <div>
                             {adapterSet.raster
-                                ? tintRaster
-                                    ? t('iconPicker.hintRasterTinted')
-                                    : t('iconPicker.hintRaster')
+                                ? t('iconPicker.hintRaster')
                                 : original
                                   ? t('iconPicker.hintOriginal')
                                   : t('iconPicker.hintTinted')}{' '}
@@ -957,10 +935,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                                             id={id}
                                             title={titleOf(id)}
                                             selected={!!currentId && sameIcon(currentId, id)}
-                                            onSelect={() => {
-                                                onSelect(id);
-                                                onClose();
-                                            }}
+                                            onSelect={() => pick(id)}
                                         />
                                     ))}
                                 </div>
@@ -978,6 +953,68 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                     </div>
                 </div>
 
+                {/* Colour choice for a PNG/GIF adapter icon — asked at the click, so it
+                    cannot be forgotten; the footer switch changes it later. */}
+                {choosing && (
+                    <div
+                        className="absolute inset-0 rounded-xl flex items-center justify-center"
+                        style={{ background: 'rgba(0,0,0,0.35)', zIndex: 2 }}
+                        onMouseDown={(e) => e.target === e.currentTarget && setChoosing(null)}
+                    >
+                        <div
+                            className="rounded-xl p-3 flex flex-col gap-2"
+                            data-aura-icon-choose
+                            style={{
+                                background: 'linear-gradient(var(--app-surface), var(--app-surface)), var(--app-bg)',
+                                border: '1px solid var(--app-border)',
+                                boxShadow: '0 12px 40px rgba(0,0,0,0.35)',
+                                width: 280,
+                                maxWidth: '90%',
+                            }}
+                        >
+                            <p className="text-xs font-semibold truncate" style={{ color: 'var(--text-primary)' }}>
+                                {titleOf(choosing).split('\n')[0]}
+                            </p>
+                            {[false, true].map((tint) => {
+                                const id = choosing + (tint ? '#tint' : '');
+                                return (
+                                    <button
+                                        key={String(tint)}
+                                        onClick={() => choose(id)}
+                                        data-aura-icon-choose-option={tint ? 'tint' : 'original'}
+                                        className="flex items-center gap-3 px-2.5 py-2 rounded-lg text-left text-xs hover:opacity-80"
+                                        style={{ ...selectStyle }}
+                                    >
+                                        <span
+                                            className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
+                                            style={{
+                                                background: 'var(--app-surface)',
+                                                border: '1px solid var(--app-border)',
+                                                color: 'var(--accent)',
+                                            }}
+                                        >
+                                            <AuraIcon icon={id} width={26} height={26} />
+                                        </span>
+                                        <span className="min-w-0">
+                                            <span className="block font-medium">
+                                                {tint ? t('iconPicker.chooseTint') : t('iconPicker.chooseOriginal')}
+                                            </span>
+                                            <span
+                                                className="block text-[10px]"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                            >
+                                                {tint
+                                                    ? t('iconPicker.chooseTintHint')
+                                                    : t('iconPicker.chooseOriginalHint')}
+                                            </span>
+                                        </span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                )}
+
                 {/* Footer: count + selected name + remove */}
                 <div className="h-px shrink-0" style={{ background: 'var(--app-border)' }} />
                 <div className="flex items-center gap-2 px-3 py-2 shrink-0">
@@ -990,6 +1027,25 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                             </span>
                         )}
                     </span>
+                    {currentRef && (
+                        <label
+                            className="flex items-center gap-1 text-[11px] cursor-pointer shrink-0"
+                            title={
+                                currentRef.ext === 'svg'
+                                    ? t('iconPicker.keepColoursHint')
+                                    : t('iconPicker.tintRasterHint')
+                            }
+                            style={{ color: 'var(--text-secondary)' }}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={currentRef.ext === 'svg' ? currentRef.original : currentRef.tint}
+                                onChange={(e) => setCurrentFlag(e.target.checked)}
+                                data-aura-icon-current-flag={currentRef.ext === 'svg' ? 'original' : 'tint'}
+                            />
+                            {currentRef.ext === 'svg' ? t('iconPicker.keepColours') : t('iconPicker.tintRaster')}
+                        </label>
+                    )}
                     {currentId && (
                         <button
                             onClick={() => {

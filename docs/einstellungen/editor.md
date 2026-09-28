@@ -66,8 +66,8 @@ Jedes Icon-Feld öffnet dieselbe Auswahl. Die Titelleiste verschiebt den Dialog.
 | Option | |
 | --- | --- |
 | Nur offline verfügbare | Nur Icons, die der Adapter schon vorhält, plus Adapter-Icons. Vorbelegt, wenn das Layout [Icons für Offline-Geräte vorladen](./layouts#icons) nutzt |
-| Originalfarben | Nur bei SVG-Adaptern: Icon behält seine Farben. Bei bunten Sets vorbelegt |
-| Einfärben | Nur bei PNG/GIF-Adaptern: Bild wird in der Icon-Farbe gezeichnet, Farbregeln wirken. Für einfarbige Sets (z. B. Material PNG); bunte Bilder werden zur Silhouette |
+| Originalfarben | Unten beim aktuellen SVG-Icon: behält seine Farben. Bei bunten Sets vorbelegt |
+| Einfärben | Beim Auswählen eines PNG/GIF-Icons: *Originalfarben* oder *In Icon-Farbe* (Farbregeln wirken; für einfarbige Sets wie Material PNG). Später unten beim aktuellen Icon umschaltbar |
 
 | Adapter-Icons | |
 | --- | --- |

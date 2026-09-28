@@ -2682,13 +2682,16 @@ export const de = {
     'iconPicker.tintRaster': 'Einfärben',
     'iconPicker.tintRasterHint':
         'PNG/GIF-Icons in der Icon-Farbe zeichnen. Passt zu einfarbigen Sets (z. B. Material PNG); bunte Bilder werden dabei zur Silhouette.',
-    'iconPicker.hintRasterTinted':
-        'Einfärben: Die Bild-Icons werden in der Icon-Farbe gezeichnet, Farbregeln wirken. Das passt zu einfarbigen Sets; bunte Bilder werden zur Silhouette.',
-    'iconPicker.keepColours': 'Originalfarben',
     'iconPicker.hintRaster':
-        'Bild-Icons (PNG/GIF) behalten ihre eigenen Farben – Icon-Farbe, Farbregeln und Farbwechsel je Zustand wirken bei ihnen nicht. Einfarbige Sets lassen sich mit „Einfärben“ in der Icon-Farbe zeichnen.',
+        'Bild-Icons (PNG/GIF): Beim Auswählen fragt der Picker, ob das Icon seine eigenen Farben behält oder in der Icon-Farbe gezeichnet wird (dann wirken Farbregeln). Ändern lässt sich das später unten beim aktuellen Icon.',
     'iconPicker.hintTinted':
-        'SVG-Icons werden in der Icon-Farbe gezeichnet, Farbregeln wirken wie gewohnt. Mehrfarbige Icons werden dabei einfarbig – dafür „Originalfarben“ wählen.',
+        'SVG-Icons werden in der Icon-Farbe gezeichnet, Farbregeln wirken wie gewohnt. Mehrfarbige Icons werden dabei einfarbig – unten beim aktuellen Icon lässt sich „Originalfarben“ wählen.',
+    'iconPicker.keepColoursHint': 'Das SVG behält seine eigenen Farben; Icon-Farbe und Farbregeln wirken dann nicht.',
+    'iconPicker.chooseOriginal': 'Originalfarben',
+    'iconPicker.chooseOriginalHint': 'wie gezeichnet, Farbregeln wirken nicht',
+    'iconPicker.chooseTint': 'In Icon-Farbe',
+    'iconPicker.chooseTintHint': 'für einfarbige Icons, Farbregeln wirken',
+    'iconPicker.keepColours': 'Originalfarben',
     'iconPicker.hintOriginal':
         'Originalfarben: Das Icon behält seine eigenen Farben – Icon-Farbe und Farbregeln wirken nicht.',
     'iconPicker.hintLicense':

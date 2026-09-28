@@ -2661,13 +2661,16 @@ export const en: Record<TranslationKey, string> = {
     'iconPicker.tintRaster': 'Tint',
     'iconPicker.tintRasterHint':
         'Draw PNG/GIF icons in the icon colour. Suits single-coloured sets (e.g. Material PNG); coloured images turn into a silhouette.',
-    'iconPicker.hintRasterTinted':
-        'Tint: the image icons are drawn in the icon colour, colour rules apply. Suits single-coloured sets; coloured images turn into a silhouette.',
-    'iconPicker.keepColours': 'Original colours',
     'iconPicker.hintRaster':
-        'Image icons (PNG/GIF) keep their own colours – icon colour, colour rules and per-state colours have no effect on them. Single-coloured sets can be drawn in the icon colour with “Tint”.',
+        'Image icons (PNG/GIF): when you pick one, the picker asks whether it keeps its own colours or is drawn in the icon colour (colour rules then apply). You can change it later at the current icon below.',
     'iconPicker.hintTinted':
-        'SVG icons are drawn in the icon colour, colour rules work as usual. Multi-coloured icons become single-coloured – choose “Original colours” for those.',
+        'SVG icons are drawn in the icon colour, colour rules work as usual. Multi-coloured icons become single-coloured – choose “Original colours” at the current icon below.',
+    'iconPicker.keepColoursHint': 'The SVG keeps its own colours; icon colour and colour rules then have no effect.',
+    'iconPicker.chooseOriginal': 'Original colours',
+    'iconPicker.chooseOriginalHint': 'as drawn, colour rules have no effect',
+    'iconPicker.chooseTint': 'In icon colour',
+    'iconPicker.chooseTintHint': 'for single-coloured icons, colour rules apply',
+    'iconPicker.keepColours': 'Original colours',
     'iconPicker.hintOriginal':
         'Original colours: the icon keeps its own colours – icon colour and colour rules have no effect.',
     'iconPicker.hintLicense':
