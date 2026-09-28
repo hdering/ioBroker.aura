@@ -562,10 +562,11 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     ]);
 
     const adapterIdsOf = (setId: string, files: string[]) => {
+        // The colour switches act on every adapter icon in view, whichever source
+        // shows it — under "All sources" too, where a search finds them (#716).
         const set = adapterSets.find((s) => s.id === setId);
-        const keep = setId === sourceId ? original : (set?.multicolor ?? false);
-        const tint = setId === sourceId && tintRaster;
-        return files.map((f) => adapterIconId(setId, f, f.toLowerCase().endsWith('.svg') ? keep : tint));
+        const keep = keepColours ?? set?.multicolor ?? false;
+        return files.map((f) => adapterIconId(setId, f, f.toLowerCase().endsWith('.svg') ? keep : tintRaster));
     };
 
     // Visible icons for current selection
@@ -646,7 +647,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
         adapterFiles,
         adapterSets,
         collection,
-        original,
+        keepColours,
         tintRaster,
         offlineOnly,
         cachedIds,
@@ -654,6 +655,20 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
     const entries = useMemo(() => rawEntries.filter(available), [rawEntries, offlineOnly, cachedIds]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const visible = entries.slice(0, shown);
+    const adapterKinds = useMemo(() => {
+        let svg = false;
+        let raster = false;
+        for (const id of entries) {
+            if (!id.startsWith('iob:')) continue;
+            if (/\.svg(#[a-z]+)?$/i.test(id)) svg = true;
+            else raster = true;
+            if (svg && raster) break;
+        }
+        return { svg, raster };
+    }, [entries]);
+    // Shown while it can matter: icons of that kind in view, or already switched on.
+    const showKeepColours = adapterSet ? !adapterSet.raster : adapterKinds.svg || keepColours === true;
+    const showTint = adapterSet ? !!(adapterSet.hasRaster ?? adapterSet.raster) : adapterKinds.raster || tintRaster;
     const shownIconifySets = useMemo(() => {
         if (!offlineOnly || !cachedIds) return iconifySets;
         const prefixes = new Set([...cachedIds].map((id) => id.slice(0, id.indexOf(':'))));
@@ -768,7 +783,6 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                         onChange={(e) => {
                             setSource(e.target.value);
                             setKeepColours(null);
-                            setTintRaster(false);
                         }}
                         data-aura-icon-source
                         className="text-xs rounded px-1.5 py-1 min-w-0 flex-1"
@@ -812,7 +826,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                         />
                         {t('iconPicker.offlineOnly')}
                     </label>
-                    {adapterSet && !adapterSet.raster && (
+                    {showKeepColours && (
                         <label
                             className="flex items-center gap-1 text-[11px] cursor-pointer"
                             style={{ color: 'var(--text-secondary)' }}
@@ -826,7 +840,7 @@ export function IconPickerModal({ current, onSelect, onClose }: IconPickerModalP
                             {t('iconPicker.keepColours')}
                         </label>
                     )}
-                    {adapterSet && (adapterSet.hasRaster ?? adapterSet.raster) && (
+                    {showTint && (
                         <label
                             className="flex items-center gap-1 text-[11px] cursor-pointer"
                             title={t('iconPicker.tintRasterHint')}

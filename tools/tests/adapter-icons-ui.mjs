@@ -339,6 +339,31 @@ check(
 const stillOpen = (await picker.count()) === 1;
 check(stillOpen, 'dragging does not close the picker');
 
+// Under "All sources" a search that finds PNGs offers "Tint" right away, and the
+// pick carries it — no detour over the adapter source (reported flow, #716)
+await select.selectOption('all');
+await picker.locator('input[placeholder]').first().fill('lamp_on');
+await settle(1200);
+const allTint = picker.locator('[data-aura-icon-tint]');
+check((await allTint.count()) === 1, 'all sources: tint offered when a png is in view');
+if (!(await allTint.isChecked())) await allTint.check();
+await settle(500);
+const allTinted = picker.locator('[data-icon-id="iob:vis-test-png/Lights/lamp_on.png#tint"]');
+check((await allTinted.count()) === 1, 'all sources: tint applies to the search result');
+check((await allTinted.locator('[data-aura-adapter-icon="mask"]').count()) === 1, 'all sources: tinted tile is a mask');
+await picker.locator('input[placeholder]').first().fill('garage');
+await settle(1200);
+check((await allTint.count()) === 1, 'tint stays visible while switched on');
+await allTint.evaluate((el) => el.click()); // disappears at once, uncheck() could not verify
+await settle(500);
+check((await picker.locator('[data-aura-icon-tint]').count()) === 0, 'tint hidden without pngs in view');
+check(
+    (await picker.locator('[data-aura-icon-original]').count()) === 1,
+    'all sources: original offered for svgs in view',
+);
+await picker.locator('input[placeholder]').first().fill('bulb');
+await settle(1200);
+
 // Pick one → written back as the widget's icon
 await picker.locator('[data-icon-id="iob:icons-test-mono/Lights/bulb_on.svg"]').click();
 await settle();
