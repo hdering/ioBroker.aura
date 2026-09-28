@@ -1563,7 +1563,30 @@
         },
         "showValue": {
           "type": "boolean",
-          "description": "'progress' cell: overlay current value/percentage on top of bar"
+          "description": "'progress' cell: print the current value (in the bar or beside it, see valuePlacement)"
+        },
+        "valuePlacement": {
+          "type": "string",
+          "enum": [
+            "inside",
+            "outside"
+          ],
+          "description": "'progress' cell: value over the bar ('inside', default) or beside it, leaving the bar the rest of the cell ('outside')"
+        },
+        "trackColor": {
+          "type": "string",
+          "description": "'progress' cell: colour of the unfilled part of the bar (default: the fill colour at 20 % over the background); the fill itself is `color`",
+          "color": true
+        },
+        "valueFilledColor": {
+          "type": "string",
+          "description": "'progress' cell: text colour of the value where it lies over the filled part (inside placement; default white). Setting this or valueEmptyColor replaces the single blended text colour",
+          "color": true
+        },
+        "valueEmptyColor": {
+          "type": "string",
+          "description": "'progress' cell: text colour of the value where it lies over the unfilled part (inside placement; default the theme text colour)",
+          "color": true
         },
         "trueText": {
           "type": "string",
@@ -9392,7 +9415,7 @@
         "barSize": {
           "type": "number",
           "default": 80,
-          "description": "Größe des Balkens in Prozent der verfügbaren Fläche."
+          "description": "Balkenstärke 10–100. Layout bar mit Wert neben dem Balken: 8–32 px; mit valuePlacement inside: Prozent der Kachelbreite (vertikal) bzw. -höhe (horizontal). Übrige Layouts: Prozent des Widgets."
         },
         "baseBandColor": {
           "type": "string",
@@ -9467,6 +9490,12 @@
         "dischargeIcon": {
           "type": "string",
           "description": "Icon, solange entladen wird — beliebiges Iconify-Icon oder Lucide-Name. Leer = mdi:battery-arrow-down."
+        },
+        "fillColor": {
+          "type": "string",
+          "default": "var(--accent)",
+          "description": "Grundfarbe der Füllung in allen Layouts (#720). Leer = Akzentfarbe. Farbzonen, Abschnittsfarben der Grenzen, eine erreichte Grenze und die Warnfarbe malen darüber.",
+          "color": true
         },
         "limitClampNeighbours": {
           "type": "boolean",
@@ -9565,10 +9594,28 @@
           "type": "boolean",
           "default": true
         },
+        "trackColor": {
+          "type": "string",
+          "description": "Nur Layout bar: Farbe der ungefüllten Fläche des Balkens (#720). Leer = Seitenhintergrund.",
+          "color": true
+        },
         "unit": {
           "type": "string",
           "default": "%",
           "description": "Einheit hinter dem Wert, z. B. \"°C\", \"%\", \"kWh\"."
+        },
+        "valueEmptyColor": {
+          "type": "string",
+          "description": "Nur Layout bar mit valuePlacement inside: Schriftfarbe des Werts über der ungefüllten Fläche (#720). Leer = Theme-Textfarbe.",
+          "color": true
+        },
+        "valueFilledColor": {
+          "type": "string",
+          "description": "Nur Layout bar mit valuePlacement inside: Schriftfarbe des Werts über dem gefüllten Teil (#720). Leer = weiß. Der Wert wechselt die Farbe genau an der Füllkante.",
+          "color": true
+        },
+        "valuePlacement": {
+          "description": "Nur Layout bar: outside (Standard) = Wert neben dem schmalen Balken, inside = Wert im Balken (#719). Bei inside ist der Balken barSize % der Breite (vertikal) bzw. Höhe (horizontal) breit statt einer festen Pille — gedacht für schmale Kacheln wie Tintenpatronen. Wirkt nur mit showValue. Gleiche Einstellung wie valuePlacement der progress-Zelle im universal-Widget."
         },
         "zones": {
           "type": "array",
