@@ -931,7 +931,7 @@ export interface ClimateMetric {
 // options.headerItems; several items may share a slot and sit side by side.
 
 /** Where a header item sits. Row 1 left belongs to the title; row 2 only appears when used. */
-export type WidgetHeaderSlot = 'r1-center' | 'r1-right' | 'r2-left' | 'r2-center' | 'r2-right';
+export type WidgetHeaderSlot = 'r1-left' | 'r1-center' | 'r1-right' | 'r2-left' | 'r2-center' | 'r2-right';
 export type WidgetHeaderSource = 'dp' | 'widget' | 'text' | 'action';
 /** 'always' (default), only while the widget is folded, or only while unfolded. */
 export type WidgetHeaderShow = 'always' | 'collapsed' | 'expanded';
@@ -939,7 +939,7 @@ export type WidgetHeaderShow = 'always' | 'collapsed' | 'expanded';
 export interface WidgetHeaderItem {
     id: string;
     source: WidgetHeaderSource; // 'dp' = datapoint below, 'widget' = widgetValue, 'text' = text with bindings, 'action' = the click-action icon (replaces the corner button)
-    slot: WidgetHeaderSlot; // 'r1-center' | 'r1-right' | 'r2-left' | 'r2-center' | 'r2-right'
+    slot: WidgetHeaderSlot; // 'r1-left' (left end of the title row) | 'r1-center' | 'r1-right' | 'r2-left' | 'r2-center' | 'r2-right'
     show?: WidgetHeaderShow; // default 'always'
     titleSide?: 'before' | 'after'; // slot 'r1-center' with a centred title (titleAlign 'center'): left or right of the title; default 'after'. Below the title = slot 'r2-center'
     dp?: string; // source 'dp': state id, JSON path allowed ('0_userdata.0.x?soc')

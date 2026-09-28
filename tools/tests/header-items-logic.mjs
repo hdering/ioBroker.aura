@@ -197,7 +197,7 @@ eq(
 eq('empty slots are empty', layout['r2-center'], []);
 ok('row two when used', m.hasSecondRow([{ slot: 'r2-center' }]));
 ok('no row two otherwise', !m.hasSecondRow([{ slot: 'r1-center' }, { slot: 'r1-right' }]));
-eq('five slots', [...m.HEADER_SLOTS], ['r1-center', 'r1-right', 'r2-left', 'r2-center', 'r2-right']);
+eq('six slots', [...m.HEADER_SLOTS], ['r1-left', 'r1-center', 'r1-right', 'r2-left', 'r2-center', 'r2-right']);
 
 // ── 9a. Extra values: thermostat, room climate, custom cells ──
 const thermo = {

@@ -150,6 +150,112 @@ for (const collapsed of [false, true]) {
     check(`${tag}: default → right of the title`, r.rightOk, JSON.stringify(r));
 }
 
+// ── iconPlace: the symbol left, before/after the title or far right ─────────
+async function iconSpot(id) {
+    return page.evaluate((wid) => {
+        const card = document.querySelector(`[data-aura-widget="${wid}"]`);
+        const titleEl = card.querySelector('.aura-widget-title');
+        const iconEl = card.querySelector('.aura-widget-icon');
+        if (!titleEl || !iconEl) return null;
+        const range = document.createRange();
+        range.selectNodeContents(titleEl);
+        const t = range.getBoundingClientRect();
+        const i = iconEl.getBoundingClientRect();
+        const c = card.getBoundingClientRect();
+        const r = card.querySelector('[data-header-slot="r1-right"]')?.getBoundingClientRect();
+        return {
+            gapBefore: Math.round(t.left - i.right),
+            gapAfter: Math.round(i.left - t.right),
+            fromLeft: Math.round(i.left - c.left),
+            fromRight: Math.round(c.right - i.right),
+            rightOfItems: !r || i.left >= r.right - 0.5,
+            offset: Math.round((t.left + t.width / 2 - (c.left + c.width / 2)) * 10) / 10,
+            // Symbol + title as one unit (before/after: the unit is what is centred).
+            groupOffset:
+                Math.round(
+                    ((Math.min(i.left, t.left) + Math.max(i.right, t.right)) / 2 - (c.left + c.width / 2)) * 10,
+                ) / 10,
+        };
+    }, id);
+}
+const PLACE_OK = {
+    lead: (m) => m.gapBefore >= 0 && m.fromLeft < 30,
+    beforeTitle: (m) => m.gapBefore >= 0 && m.gapBefore <= 12,
+    afterTitle: (m) => m.gapAfter >= 0 && m.gapAfter <= 12,
+    trail: (m) => m.fromRight < 30 && m.rightOfItems,
+};
+for (const [type, opts] of [
+    ['switch', {}],
+    ['list', { entries: [{ id: 'demo.sw', label: 'Ofen' }], hideFilterButton: true }],
+]) {
+    for (const align of ['left', 'center', 'right']) {
+        for (const place of Object.keys(PLACE_OK)) {
+            const id = await show(type, { ...opts, titleAlign: align, iconPlace: place, headerItems: RIGHT });
+            const m = await iconSpot(id);
+            const beside = place === 'beforeTitle' || place === 'afterTitle';
+            const centredOk = align !== 'center' || (m && Math.abs(beside ? m.groupOffset : m.offset) <= 1.5);
+            check(
+                `${type}/${align}/${place}: symbol in place`,
+                !!m && PLACE_OK[place](m) && centredOk,
+                JSON.stringify(m),
+            );
+        }
+    }
+}
+for (const align of ['left', 'center']) {
+    for (const place of Object.keys(PLACE_OK)) {
+        const id = await show('switch', {
+            defaultCollapsed: true,
+            collapsible: true,
+            titleAlign: align,
+            iconPlace: place,
+            headerItems: RIGHT,
+        });
+        const m = await iconSpot(id);
+        const ok = place === 'lead' ? !!m && m.gapBefore >= 0 && m.fromLeft < 50 : !!m && PLACE_OK[place](m);
+        check(`folded/${align}/${place}: symbol in place`, ok, JSON.stringify(m));
+    }
+}
+
+// ── r1-left: items at the left end of the title row ─────────────────────────
+for (const [align, collapsed] of [
+    ['left', false],
+    ['center', false],
+    ['left', true],
+    ['center', true],
+]) {
+    const id = await show('switch', {
+        titleAlign: align,
+        defaultCollapsed: collapsed,
+        collapsible: true,
+        headerItems: [{ id: 'L', source: 'text', text: 'Links', slot: 'r1-left' }, ...RIGHT],
+    });
+    const r = await page.evaluate((wid) => {
+        const card = document.querySelector(`[data-aura-widget="${wid}"]`);
+        const l = card.querySelector('[data-header-item="L"]')?.getBoundingClientRect();
+        const icon = card.querySelector('.aura-widget-icon')?.getBoundingClientRect();
+        const title = card.querySelector('.aura-widget-title');
+        const range = document.createRange();
+        range.selectNodeContents(title);
+        const t = range.getBoundingClientRect();
+        const c = card.getBoundingClientRect();
+        return {
+            shown: !!l && l.width > 0,
+            beforeIcon: !!l && !!icon && l.right <= icon.left + 0.5,
+            beforeTitle: !!l && l.right <= t.left + 0.5,
+            offset: Math.round((t.left + t.width / 2 - (c.left + c.width / 2)) * 10) / 10,
+            strip: !!card.querySelector('[data-header-strip]'),
+        };
+    }, id);
+    const tag = `${collapsed ? 'folded' : 'expanded'}/${align}`;
+    check(
+        `${tag}: r1-left item at the left end`,
+        r.shown && r.beforeTitle && r.beforeIcon && !r.strip,
+        JSON.stringify(r),
+    );
+    if (align === 'center') check(`${tag}: title stays in the middle`, Math.abs(r.offset) <= 1.5, JSON.stringify(r));
+}
+
 // ── Narrow card: the title truncates, the row does not overflow ─────────────
 {
     const id = await show(
@@ -287,6 +393,35 @@ for (const [type, opts] of [
             .pop()
             .startsWith('offen'),
     );
+    // The symbol's place: picker under Darstellung → Icon, shown in the map.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    const pick = dlg.locator('[data-icon-place-picker] [data-icon-place="trail"]');
+    check('editor: icon offers a position', (await pick.count()) === 1);
+    await pick.click();
+    await page.waitForTimeout(300);
+    o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check('editor: position writes iconPlace', o?.iconPlace === 'trail', String(o?.iconPlace));
+    await dlg.locator('[data-header-items-open]').click();
+    await editor.waitFor({ timeout: 5000 });
+    check(
+        'editor: map shows the symbol far right',
+        (await editor.locator('[data-header-slot-add="r1-right"] [data-header-map-icon="trail"]').count()) === 1,
+    );
+    check(
+        'editor: …and no longer on the left',
+        (await editor.locator('[data-header-slot-add="r1-left"] [data-header-map-icon]').count()) === 0,
+    );
+    await editor.locator('[data-header-slot-add="r1-left"]').click();
+    await page.waitForTimeout(300);
+    o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    check(
+        'editor: the left cell adds an item on r1-left',
+        o?.headerItems?.some((h) => h.slot === 'r1-left'),
+        JSON.stringify(o?.headerItems),
+    );
+    await editor.locator('[data-header-item-delete]').last().click();
+    await page.waitForTimeout(300);
     await side.selectOption('below');
     await page.waitForTimeout(300);
     o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);

@@ -3,8 +3,8 @@
  * „Kopfzeile“ in its own popup. A slot map on top (tap a slot = new item there),
  * the item list below. See utils/headerItems for slots, sources and visibility.
  */
-import { useState } from 'react';
-import { ArrowDown, ArrowUp, Database, Plus, Trash2 } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { ArrowDown, ArrowUp, Database, Plus, Shapes, Trash2 } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { ClauseList, ColorField } from './ConditionEditor';
@@ -25,6 +25,7 @@ import type {
 } from '../../types';
 import { useT, type TranslationKey } from '../../i18n';
 import { AuraIcon } from '../common/AuraIcon';
+import { getWidgetIcon } from '../../utils/widgetIconMap';
 
 const inputStyle: React.CSSProperties = {
     background: 'var(--app-bg)',
@@ -423,21 +424,15 @@ export function HeaderItemsEditor({
     // A centred title stands in the middle of the row and the r1-center items right
     // behind it (TitleRow) — the map shows the row that way.
     const titleCentered = config.options?.titleAlign === 'center';
-    const staticCell = (label: string, text: string, attr: string) => (
-        <div
-            className="min-w-0 rounded-lg px-2 py-1.5"
-            style={{ background: 'var(--app-bg)', border: '1px solid var(--app-border)' }}
-            data-header-map-cell={attr}
-        >
-            <span className="block text-[9px] uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
-                {label}
+    // The symbol stands where options.iconPlace puts it (TitleRow).
+    const iconPlace = config.options?.showIcon === false ? null : ((config.options?.iconPlace as string) ?? 'lead');
+    const MapIcon = getWidgetIcon(config.options?.icon as string | undefined, Shapes) ?? Shapes;
+    const sym = (place: string) =>
+        iconPlace === place ? (
+            <span className="inline-flex align-[-1px] mx-0.5" data-header-map-icon={place}>
+                <MapIcon size={11} style={{ color: 'var(--text-secondary)' }} />
             </span>
-            <span className="block text-[11px] truncate" style={{ color: 'var(--text-secondary)' }}>
-                {text}
-            </span>
-        </div>
-    );
-
+        ) : null;
     const summary = (list: WidgetHeaderItem[], sep: string, lead = false) =>
         list.length ? (
             <span>
@@ -447,7 +442,15 @@ export function HeaderItemsEditor({
             </span>
         ) : null;
 
-    const slotCell = (slot: WidgetHeaderSlot, withTitle = false) => (
+    const titleText = (
+        <span style={{ color: 'var(--text-secondary)' }} data-header-map-title="">
+            {config.title || '—'}
+        </span>
+    );
+    const plus = <Plus size={11} className="inline" style={{ color: 'var(--text-secondary)' }} />;
+
+    /** A slot of the map: a tap adds an item there. `content` replaces the plain item summary. */
+    const slotCell = (slot: WidgetHeaderSlot, label: string = t(slotKey(slot)), content?: ReactNode) => (
         <button
             key={slot}
             onClick={() => add(slot)}
@@ -457,34 +460,32 @@ export function HeaderItemsEditor({
             data-header-slot-add={slot}
         >
             <span className="block text-[9px] uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
-                {withTitle ? t('hdr.slot.titleCenter') : t(slotKey(slot))}
+                {label}
             </span>
             <span className="block text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>
-                {withTitle ? (
-                    <>
-                        {summary(
-                            bySlot[slot].filter((it) => it.titleSide === 'before'),
-                            ' ',
-                        )}
-                        <span style={{ color: 'var(--text-secondary)' }} data-header-map-title="">
-                            {config.title || '—'}
-                        </span>
-                        {summary(
-                            bySlot[slot].filter((it) => it.titleSide !== 'before'),
-                            ' ',
-                            true,
-                        )}
-                        {!bySlot[slot].length && (
-                            <Plus size={11} className="inline ml-1" style={{ color: 'var(--text-secondary)' }} />
-                        )}
-                    </>
-                ) : bySlot[slot].length ? (
-                    bySlot[slot].map((it) => itemSummary(it, t, config)).join(' · ')
-                ) : (
-                    <Plus size={11} style={{ color: 'var(--text-secondary)' }} />
-                )}
+                {content ?? (bySlot[slot].length ? summary(bySlot[slot], '') : plus)}
             </span>
         </button>
+    );
+    const leftItems = summary(bySlot['r1-left'], ' ');
+    const centerBefore = summary(
+        bySlot['r1-center'].filter((it) => it.titleSide === 'before'),
+        ' ',
+    );
+    const centerAfter = summary(
+        bySlot['r1-center'].filter((it) => it.titleSide !== 'before'),
+        ' ',
+        true,
+    );
+    const rightCell = slotCell(
+        'r1-right',
+        undefined,
+        bySlot['r1-right'].length || iconPlace === 'trail' ? (
+            <>
+                {summary(bySlot['r1-right'], '')}
+                {sym('trail')}
+            </>
+        ) : undefined,
     );
 
     return (
@@ -496,16 +497,46 @@ export function HeaderItemsEditor({
                 <div className="grid grid-cols-3 gap-1.5" data-title-centered={titleCentered ? '' : undefined}>
                     {titleCentered ? (
                         <>
-                            {staticCell(t('hdr.slot.lead'), '—', 'lead')}
-                            {slotCell('r1-center', true)}
+                            {slotCell(
+                                'r1-left',
+                                undefined,
+                                bySlot['r1-left'].length || iconPlace === 'lead' ? (
+                                    <>
+                                        {leftItems}
+                                        {sym('lead')}
+                                    </>
+                                ) : undefined,
+                            )}
+                            {slotCell(
+                                'r1-center',
+                                t('hdr.slot.titleCenter'),
+                                <>
+                                    {centerBefore}
+                                    {sym('beforeTitle')}
+                                    {titleText}
+                                    {sym('afterTitle')}
+                                    {centerAfter}
+                                    {!bySlot['r1-center'].length && <span className="ml-1">{plus}</span>}
+                                </>,
+                            )}
                         </>
                     ) : (
                         <>
-                            {staticCell(t('hdr.slot.title'), config.title || '—', 'title')}
+                            {slotCell(
+                                'r1-left',
+                                t('hdr.slot.leftTitle'),
+                                <>
+                                    {leftItems}
+                                    {sym('lead')}
+                                    {sym('beforeTitle')}
+                                    {titleText}
+                                    {sym('afterTitle')}
+                                </>,
+                            )}
                             {slotCell('r1-center')}
                         </>
                     )}
-                    {slotCell('r1-right')}
+                    {rightCell}
                     {slotCell('r2-left')}
                     {slotCell('r2-center')}
                     {slotCell('r2-right')}

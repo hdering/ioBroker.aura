@@ -29,7 +29,14 @@ import {
 } from './conditionSources';
 import type { ValueTransformSettings } from './valueTransform';
 
-export const HEADER_SLOTS: readonly WidgetHeaderSlot[] = ['r1-center', 'r1-right', 'r2-left', 'r2-center', 'r2-right'];
+export const HEADER_SLOTS: readonly WidgetHeaderSlot[] = [
+    'r1-left',
+    'r1-center',
+    'r1-right',
+    'r2-left',
+    'r2-center',
+    'r2-right',
+];
 export const DEFAULT_HEADER_SLOT: WidgetHeaderSlot = 'r1-right';
 const SOURCES: readonly WidgetHeaderSource[] = ['dp', 'widget', 'text', 'action'];
 

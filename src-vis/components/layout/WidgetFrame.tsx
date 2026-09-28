@@ -11,7 +11,7 @@ import React, {
 import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '../../utils/perfBreakdown';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
-import { useT, t, keyLabel } from '../../i18n';
+import { useT, t, keyLabel, type TranslationKey } from '../../i18n';
 import { RangeChipsEditor } from '../config/RangeChipsEditor';
 import { RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 import { isCopyDragModifier } from '../../utils/platformKeys';
@@ -109,7 +109,7 @@ import {
 import { useWidgetCollapseStore } from '../../store/widgetCollapseStore';
 import { useHeaderItems } from '../../hooks/useHeaderItems';
 import { HeaderRowOne, HeaderRowTwo } from './HeaderItemSlots';
-import { HeaderSlotsContext, type HeaderRow, type HeaderSlotsValue } from './HeaderSlotsContext';
+import { HeaderSlotsContext, type HeaderRow, type HeaderSlotsValue, type IconPlace } from './HeaderSlotsContext';
 import { HeaderItemsEditor } from '../config/HeaderItemsEditor';
 import { groupBySlot, hasSecondRow, headerItemVisible, headerItems } from '../../utils/headerItems';
 import { copyWidget, freshWidgetId } from '../../utils/widgetCopy';
@@ -7371,8 +7371,13 @@ function WidgetFrameInner({
         [headerActionEnabled],
     );
     const headerSlots = useMemo<HeaderSlotsValue>(
-        () => ({ items: expandedHeaderItems, register: registerHeaderRow, onAction: onHeaderAction }),
-        [expandedHeaderItems, registerHeaderRow, onHeaderAction],
+        () => ({
+            items: expandedHeaderItems,
+            register: registerHeaderRow,
+            onAction: onHeaderAction,
+            iconPlace: renderConfig.options?.iconPlace as IconPlace | undefined,
+        }),
+        [expandedHeaderItems, registerHeaderRow, onHeaderAction, renderConfig.options?.iconPlace],
     );
     // An 'action' item puts the click-action icon on a slot; the corner button and the
     // folded header's trailing icon step back for it in the state it shows in.
@@ -7383,7 +7388,9 @@ function WidgetFrameInner({
     const actionItemExpanded = actionItemIn(false);
     // Fallback strip: rows the widget did not draw.
     const hdrSlots = groupBySlot(expandedHeaderItems);
-    const stripRowOne = hdrRows.r1 === 0 && (hdrSlots['r1-center'].length > 0 || hdrSlots['r1-right'].length > 0);
+    const stripRowOne =
+        hdrRows.r1 === 0 &&
+        (hdrSlots['r1-left'].length > 0 || hdrSlots['r1-center'].length > 0 || hdrSlots['r1-right'].length > 0);
     const stripRowTwo = hdrRows.r2 === 0 && hasSecondRow(expandedHeaderItems);
     const showCornerActionIcon = showCornerActionIconBase && !actionItemExpanded;
     // Row 1 in the fallback lies on the line of the widget's own title, wherever the
@@ -7742,17 +7749,14 @@ function WidgetFrameInner({
                             onAction={onHeaderAction}
                             align={collapsedTitleAlign}
                             lead={
-                                <>
-                                    <ChevronDown
-                                        size={16}
-                                        className="shrink-0"
-                                        style={{ transform: 'rotate(-90deg)' }}
-                                    />
-                                    {collapsedShowIcon && (
-                                        <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
-                                    )}
-                                </>
+                                <ChevronDown size={16} className="shrink-0" style={{ transform: 'rotate(-90deg)' }} />
                             }
+                            icon={
+                                collapsedShowIcon ? (
+                                    <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
+                                ) : null
+                            }
+                            iconPlace={collapsedSource.options?.iconPlace as string | undefined}
                             title={
                                 <>
                                     <span
@@ -8943,6 +8947,49 @@ function WidgetFrameInner({
                                             </div>
                                             {iconOn && (
                                                 <>
+                                                    {/* Where the title row puts the symbol (TitleRow / folded header). */}
+                                                    <div
+                                                        className="flex items-center justify-between gap-2"
+                                                        data-icon-place-picker=""
+                                                    >
+                                                        <span
+                                                            className="text-[11px]"
+                                                            style={{ color: 'var(--text-secondary)' }}
+                                                        >
+                                                            {t('wf.edit.iconPlace')}
+                                                        </span>
+                                                        <div className="flex flex-wrap justify-end gap-1">
+                                                            {(
+                                                                ['lead', 'beforeTitle', 'afterTitle', 'trail'] as const
+                                                            ).map((p) => {
+                                                                const active =
+                                                                    ((o.iconPlace as string) ?? 'lead') === p;
+                                                                return (
+                                                                    <button
+                                                                        key={p}
+                                                                        onClick={() =>
+                                                                            setO({
+                                                                                iconPlace: p === 'lead' ? undefined : p,
+                                                                            })
+                                                                        }
+                                                                        className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
+                                                                        style={{
+                                                                            background: active
+                                                                                ? 'var(--accent)'
+                                                                                : 'var(--app-bg)',
+                                                                            color: active
+                                                                                ? '#fff'
+                                                                                : 'var(--text-secondary)',
+                                                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                                                                        }}
+                                                                        data-icon-place={p}
+                                                                    >
+                                                                        {t(`wf.edit.iconPlace.${p}` as TranslationKey)}
+                                                                    </button>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
                                                     {config.type !== 'windowcontact' && (
                                                         <>
                                                             <button

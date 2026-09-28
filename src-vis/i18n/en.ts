@@ -1191,6 +1191,11 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.group.mobileKeepGridHint':
         'By default widgets are stacked in a single column on mobile. When enabled, the side-by-side arrangement from the normal view is kept, just scaled down.',
     'wf.edit.position': 'Position',
+    'wf.edit.iconPlace': 'Position',
+    'wf.edit.iconPlace.lead': 'Left',
+    'wf.edit.iconPlace.beforeTitle': 'Before title',
+    'wf.edit.iconPlace.afterTitle': 'After title',
+    'wf.edit.iconPlace.trail': 'Right',
     'wf.edit.posLeft': 'Left',
     'wf.edit.posCenter': 'Center',
     'wf.edit.posRight': 'Right',
@@ -2595,8 +2600,8 @@ export const en: Record<TranslationKey, string> = {
     'hdr.addHere': 'New item on this slot',
     'hdr.foldHint':
         "Expanded, the items sit in the widget's title row; collapsed, in the folded header. In layouts without a title row of their own they line up with the title, row 2 goes below the content.",
-    'hdr.slot.title': 'Title',
-    'hdr.slot.lead': 'Icon',
+    'hdr.slot.leftTitle': 'Row 1 left · title',
+    'hdr.slot.r1-left': 'Row 1 left',
     'hdr.slot.titleCenter': 'Title · centre',
     'hdr.centerHint':
         'The title is centred: it sits in the middle of the card, items on "Row 1 centre" right beside it — left, right or below, per item.',

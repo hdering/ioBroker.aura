@@ -1202,6 +1202,11 @@ export const de = {
     'wf.edit.group.mobileKeepGridHint':
         'Standardmäßig werden Widgets auf dem Smartphone untereinander gestapelt. Aktiviert bleibt die nebeneinander-Anordnung wie in der normalen Ansicht erhalten, nur verkleinert.',
     'wf.edit.position': 'Position',
+    'wf.edit.iconPlace': 'Position',
+    'wf.edit.iconPlace.lead': 'Links',
+    'wf.edit.iconPlace.beforeTitle': 'Vor Titel',
+    'wf.edit.iconPlace.afterTitle': 'Hinter Titel',
+    'wf.edit.iconPlace.trail': 'Rechts',
     'wf.edit.posLeft': 'Links',
     'wf.edit.posCenter': 'Mitte',
     'wf.edit.posRight': 'Rechts',
@@ -2614,8 +2619,8 @@ export const de = {
     'hdr.addHere': 'Neues Element auf diesem Platz',
     'hdr.foldHint':
         'Aufgeklappt stehen die Elemente in der Titelzeile des Widgets, eingeklappt in der Kopfzeile. In Layouts ohne eigene Titelzeile stehen sie auf der Höhe des Titels, Zeile 2 unter dem Inhalt.',
-    'hdr.slot.title': 'Titel',
-    'hdr.slot.lead': 'Symbol',
+    'hdr.slot.leftTitle': 'Zeile 1 links · Titel',
+    'hdr.slot.r1-left': 'Zeile 1 links',
     'hdr.slot.titleCenter': 'Titel · Mitte',
     'hdr.centerHint':
         'Der Titel ist zentriert: Er steht in der Mitte der Karte, Elemente auf „Zeile 1 Mitte“ direkt daneben – links, rechts oder darunter, je Element einstellbar.',

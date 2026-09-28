@@ -1225,13 +1225,21 @@ export const UNIVERSAL_OPTIONS = {
             'Eigenes Symbol (Iconify-Id wie "mdi:chart-line" oder Lucide-Name). Ohne: Pfeil für Sprünge, ' +
             'externer Link für URLs, Mauszeiger für Popups.',
     },
+    iconPlace: {
+        ts: "'lead' | 'beforeTitle' | 'afterTitle' | 'trail'",
+        description:
+            'Wo die Titelzeile das Widget-Symbol zeigt: "lead" links außen (Standard), "beforeTitle" direkt ' +
+            'vor dem Titel, "afterTitle" direkt dahinter, "trail" ganz rechts (hinter den Kopfzeilen-Werten). ' +
+            'Gilt aufgeklappt in Layouts mit eigener Titelzeile (meist "default") und in der eingeklappten ' +
+            'Kopfzeile; bei zentriertem Titel wird Symbol + Titel gemeinsam zentriert.',
+    },
     headerItems: {
         ts: 'WidgetHeaderItem[]',
         description:
             'Zusätzliche Werte in der Kopfzeile: je Element eine Quelle (source "dp" = freier Datenpunkt, ' +
             '"widget" = Wert, den das Widget schon hat, z. B. "main" oder bei Listen "list:sum", "text" = ' +
             'Text mit Bindings wie bei Markern, "action" = das Klick-Aktions-Symbol auf diesem Platz statt in ' +
-            'der Kartenecke) und ein Platz (slot): "r1-center"/"r1-right" neben dem Titel, ' +
+            'der Kartenecke) und ein Platz (slot): "r1-left" am linken Ende der Titelzeile, "r1-center"/"r1-right" neben dem Titel, ' +
             '"r2-left"/"r2-center"/"r2-right" in einer zweiten Zeile, die nur erscheint, wenn dort etwas liegt. ' +
             'Bei titleAlign "center" steht der Titel in der Kartenmitte und "r1-center" direkt daneben ' +
             '(titleSide "after" = rechts, Standard, "before" = links); unter dem Titel = slot "r2-center". ' +

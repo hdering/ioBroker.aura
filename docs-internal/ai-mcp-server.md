@@ -2022,7 +2022,7 @@ Engine ohne js-controller, `npm run test:countdown-format` die Ziffern,
 ## Kopfzeilen-Elemente: Werte ohne eigene Kachel
 
 `options.headerItems` (#676) setzt Werte in die Kopfzeile eines Widgets: je
-Element eine Quelle (`dp`, `widget`, `text`), ein Platz (`r1-center`, `r1-right`,
+Element eine Quelle (`dp`, `widget`, `text`), ein Platz (`r1-left`, `r1-center`, `r1-right`,
 `r2-left`, `r2-center`, `r2-right`) und `show` (`always`, `collapsed`,
 `expanded`). Der Rahmen berechnet die Werte selbst, weil der Widget-Inhalt
 eingeklappt gar nicht gemountet ist; Listen-Summen laufen deshalb über
@@ -2034,7 +2034,11 @@ das Widget die Plätze selbst ein: `HeaderSlotsInline` / `HeaderSlotsRow2` in
 `HeaderGroup` (components/layout/HeaderSlotsContext). Die Titelzeile selbst ist ein
 `TitleRow`: bei `titleAlign: "center"` drei Spalten (davor | Titel mit `r1-center`
 links/rechts je `titleSide` | danach), die äußeren gleich breit, damit der Titel in der
-Kartenmitte bleibt. „Unter dem Titel“ ist `r2-center`. Ist Titel und Symbol aus, behalten
+Kartenmitte bleibt. „Unter dem Titel“ ist `r2-center`. `r1-left` öffnet die Zeile (im
+einfachen Fall per `order: -1`, ohne das Markup des Widgets anzufassen). `options.iconPlace`
+(`lead`/`beforeTitle`/`afterTitle`/`trail`) setzt das Symbol um; `TitleRow` liest es aus
+dem Kontext, das Widget zeichnet das Symbol weiter selbst (Plan:
+`C:\projects\tools\plans\kopfzeile-titel-symbol-platzierbar.md`). Ist Titel und Symbol aus, behalten
 die Listen ihre Kopfzeile samt Trennlinie, solange Kopfzeilen-Elemente da sind. Eine Zeile, die kein Widget
 zeichnet, holt der Rahmen nach: Zeile 1 als Überlagerung auf der Höhe des
 gemessenen Titels (`.aura-widget-title`, sonst oben), Zeile 2 unter dem Inhalt. `npm run test:header-items-sweep` prüft alle

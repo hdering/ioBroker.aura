@@ -83,14 +83,19 @@ function Slot({
 export function HeaderRowOne({
     items,
     lead,
+    icon,
+    iconPlace = 'lead',
     title,
     align,
     trailing,
     onAction,
 }: {
     items: ResolvedHeaderItem[];
-    /** Chevron and icon, left of the title. */
+    /** The chevron, left of everything. */
     lead?: ReactNode;
+    /** The widget's symbol, placed by iconPlace (as TitleRow does expanded). */
+    icon?: ReactNode;
+    iconPlace?: string;
     /** The title — the left part of the row. Omitted: a row of items only. */
     title?: ReactNode;
     /** The title's alignment. 'center' puts it in the middle of the row, the centre items beside it. */
@@ -100,8 +105,16 @@ export function HeaderRowOne({
     onAction?: () => void;
 }) {
     const slots = groupBySlot(items);
+    const left = slots['r1-left'];
     const center = slots['r1-center'];
     const right = slots['r1-right'];
+    const leadSlot =
+        left.length > 0 ? <Slot items={left} slot="r1-left" style={{ flex: '0 1 auto' }} onAction={onAction} /> : null;
+    const place = title ? iconPlace : iconPlace === 'trail' ? 'trail' : 'lead';
+    const leadIcon = place === 'lead' ? icon : null;
+    const beforeIcon = place === 'beforeTitle' ? icon : null;
+    const afterIcon = place === 'afterTitle' ? icon : null;
+    const trailIcon = place === 'trail' ? icon : null;
     if (title && align === 'center') {
         // [lead | centre items + title + centre items | right items] — the outer two
         // grow equally, so the title is the middle of the card (see TitleRow).
@@ -111,14 +124,18 @@ export function HeaderRowOne({
             <div className="flex items-center gap-2 min-w-0 w-full" data-header-row="1" data-title-align="center">
                 <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 0' }}>
                     {lead}
+                    {leadSlot}
+                    {leadIcon}
                 </div>
                 <div className="flex items-center gap-2 min-w-0" style={{ flex: '0 1 auto' }}>
                     {before.length > 0 && (
                         <Slot items={before} slot="r1-center" style={{ flex: '0 1 auto' }} onAction={onAction} />
                     )}
+                    {beforeIcon}
                     <div className="flex min-w-0" style={{ flex: '0 1 auto' }}>
                         {title}
                     </div>
+                    {afterIcon}
                     {after.length > 0 && (
                         <Slot items={after} slot="r1-center" style={{ flex: '0 1 auto' }} onAction={onAction} />
                     )}
@@ -127,6 +144,7 @@ export function HeaderRowOne({
                     {right.length > 0 && (
                         <Slot items={right} slot="r1-right" className="justify-end" onAction={onAction} />
                     )}
+                    {trailIcon}
                     {trailing}
                 </div>
             </div>
@@ -137,7 +155,27 @@ export function HeaderRowOne({
         <div className="flex items-center gap-2 min-w-0 w-full" data-header-row="1">
             <div className="flex items-center gap-2 min-w-0" style={{ flex: '1 1 0' }}>
                 {lead}
-                {title}
+                {leadSlot}
+                {leadIcon}
+                {beforeIcon || afterIcon ? (
+                    // The symbol right beside the title: the title box shrinks to its
+                    // text so the symbol can follow it.
+                    <div
+                        className="flex items-center gap-2 min-w-0"
+                        style={{ flex: '1 1 0', justifyContent: align === 'right' ? 'flex-end' : 'flex-start' }}
+                    >
+                        {beforeIcon}
+                        <div
+                            className="flex min-w-0"
+                            style={{ flex: afterIcon || align === 'right' ? '0 1 auto' : '1 1 auto' }}
+                        >
+                            {title}
+                        </div>
+                        {afterIcon}
+                    </div>
+                ) : (
+                    title
+                )}
             </div>
             {centered && (
                 <Slot
@@ -157,6 +195,7 @@ export function HeaderRowOne({
                     onAction={onAction}
                 />
             )}
+            {trailIcon}
             {trailing}
         </div>
     );
