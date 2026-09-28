@@ -336,7 +336,7 @@ for (const [type, opts] of [
     }
 }
 
-// ── Editor: the slot map shows the centred title in the middle ─────────────
+// ── Editor: title and symbol are tiles in the header map ────────────────────
 {
     const id = `tc-${++seq}`;
     await page.evaluate(
@@ -364,57 +364,71 @@ for (const [type, opts] of [
     await dlg.waitFor({ timeout: 10000 });
     await dlg.locator('summary:has(span:text-is("Darstellung"))').first().click();
     await page.waitForTimeout(300);
-    await dlg.locator('[data-header-items-open]').click();
+    const opts = () => page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
     const editor = page.locator('[data-header-items-editor]');
+    const cell = (slot) => editor.locator(`[data-header-slot-add="${slot}"]`);
+
+    // Darstellung only switches title and icon on/off; the position lives in the dialog.
+    check('Darstellung: no alignment buttons any more', (await dlg.locator('button:text-is("Mitte")').count()) === 0);
+    const posLink = dlg.locator('[data-header-position-open]');
+    check('Darstellung: link to the header position', (await posLink.count()) === 1);
+    await posLink.click();
     await editor.waitFor({ timeout: 5000 });
-    const mid = editor.locator('[data-header-slot-add="r1-center"]');
+
     check('editor: map marks the title as centred', (await editor.locator('[data-title-centered]').count()) === 1);
     check(
-        'editor: title and centre items share the middle cell',
-        (await mid.locator('[data-header-map-title]').count()) === 1 && (await mid.innerText()).includes('Sauna'),
-        await mid.innerText(),
-    );
-    check('editor: no title cell on the left', (await editor.locator('[data-header-map-cell="title"]').count()) === 0);
-    const side = editor.locator('[data-header-item-title-side]').first();
-    check('editor: centre item offers its side of the title', (await side.count()) === 1);
-    await side.selectOption('before');
-    await page.waitForTimeout(300);
-    let o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
-    check(
-        'editor: left of the title writes titleSide',
-        o?.headerItems?.[0]?.titleSide === 'before',
-        JSON.stringify(o?.headerItems),
+        'editor: title tile in the middle cell',
+        (await cell('r1-center').locator('[data-header-chip="title"]').count()) === 1,
     );
     check(
-        'editor: map shows the item before the title',
-        (await editor.locator('[data-header-slot-add="r1-center"]').innerText())
-            .trim()
-            .split(/\n/)
-            .pop()
-            .startsWith('offen'),
+        'editor: symbol tile on the left',
+        (await cell('r1-left').locator('[data-header-chip="icon"]').count()) === 1,
     );
-    // The symbol's place: picker under Darstellung → Icon, shown in the map.
-    await page.keyboard.press('Escape');
-    await page.waitForTimeout(300);
-    const pick = dlg.locator('[data-icon-place-picker] [data-icon-place="trail"]');
-    check('editor: icon offers a position', (await pick.count()) === 1);
-    await pick.click();
-    await page.waitForTimeout(300);
-    o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
-    check('editor: position writes iconPlace', o?.iconPlace === 'trail', String(o?.iconPlace));
-    await dlg.locator('[data-header-items-open]').click();
-    await editor.waitFor({ timeout: 5000 });
+
+    // Move the title: tap the tile, then a place in row 1.
+    await editor.locator('[data-header-chip="title"]').click();
     check(
-        'editor: map shows the symbol far right',
-        (await editor.locator('[data-header-slot-add="r1-right"] [data-header-map-icon="trail"]').count()) === 1,
+        'editor: picking the title marks the row-1 places',
+        (await editor.locator('[data-title-target]').count()) === 2,
     );
-    check(
-        'editor: …and no longer on the left',
-        (await editor.locator('[data-header-slot-add="r1-left"] [data-header-map-icon]').count()) === 0,
-    );
-    await editor.locator('[data-header-slot-add="r1-left"]').click();
+    await cell('r1-left').click();
     await page.waitForTimeout(300);
-    o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    let o = await opts();
+    check('editor: title moved to the left writes titleAlign', o?.titleAlign === 'left', String(o?.titleAlign));
+    check('editor: …and adds no item', (o?.headerItems ?? []).length === 1, JSON.stringify(o?.headerItems));
+    check('editor: title tile now left', (await cell('r1-left').locator('[data-header-chip="title"]').count()) === 1);
+
+    // Move the symbol: tap the tile, then one of the marks.
+    await editor.locator('[data-header-chip="icon"]').click();
+    const marks = await editor.locator('[data-icon-target]').evaluateAll((els) => els.map((e) => e.dataset.iconTarget));
+    check(
+        'editor: picking the symbol shows the other places',
+        marks.sort().join() === 'afterTitle,beforeTitle,trail',
+        marks.join(),
+    );
+    await editor.locator('[data-icon-target="trail"]').click();
+    await page.waitForTimeout(300);
+    o = await opts();
+    check('editor: symbol far right writes iconPlace', o?.iconPlace === 'trail', String(o?.iconPlace));
+    check(
+        'editor: symbol tile now in the right cell',
+        (await cell('r1-right').locator('[data-header-chip="icon"]').count()) === 1,
+    );
+    await editor.locator('[data-header-chip="icon"]').click();
+    await editor.locator('[data-icon-target="afterTitle"]').click();
+    await page.waitForTimeout(300);
+    o = await opts();
+    check('editor: symbol after the title', o?.iconPlace === 'afterTitle', String(o?.iconPlace));
+    await editor.locator('[data-header-chip="icon"]').click();
+    await editor.locator('[data-icon-target="lead"]').click();
+    await page.waitForTimeout(300);
+    o = await opts();
+    check('editor: back to the left clears iconPlace', o?.iconPlace === undefined, String(o?.iconPlace));
+
+    // A tap on a place without a picked tile still adds an item there.
+    await cell('r1-left').click();
+    await page.waitForTimeout(300);
+    o = await opts();
     check(
         'editor: the left cell adds an item on r1-left',
         o?.headerItems?.some((h) => h.slot === 'r1-left'),
@@ -422,9 +436,24 @@ for (const [type, opts] of [
     );
     await editor.locator('[data-header-item-delete]').last().click();
     await page.waitForTimeout(300);
+
+    // Title back to the middle: the side choice of a centre item.
+    await editor.locator('[data-header-chip="title"]').click();
+    await cell('r1-center').click();
+    await page.waitForTimeout(300);
+    const side = editor.locator('[data-header-item-title-side]').first();
+    check('editor: centre item offers its side of the title', (await side.count()) === 1);
+    await side.selectOption('before');
+    await page.waitForTimeout(300);
+    o = await opts();
+    check(
+        'editor: left of the title writes titleSide',
+        o?.headerItems?.[0]?.titleSide === 'before',
+        JSON.stringify(o?.headerItems),
+    );
     await side.selectOption('below');
     await page.waitForTimeout(300);
-    o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    o = await opts();
     check(
         'editor: below the title moves the item to row 2 centre',
         o?.headerItems?.[0]?.slot === 'r2-center' && o.headerItems[0].titleSide === undefined,
@@ -432,9 +461,53 @@ for (const [type, opts] of [
     );
     await editor.locator('[data-header-item-title-side]').first().selectOption('after');
     await page.waitForTimeout(300);
-    o = await page.evaluate((wid) => window.__auraShot.widgetOptions(wid), id);
+    o = await opts();
     check('editor: right of the title brings it back to row 1', o?.headerItems?.[0]?.slot === 'r1-center');
-    if (process.env.SHOTS) await editor.screenshot({ path: `${process.env.SHOTS}/editor.png` });
+
+    // A hidden title stays in the map, greyed out.
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(300);
+    if (process.env.SHOTS) await editor.screenshot({ path: `${process.env.SHOTS}/editor.png` }).catch(() => {});
+    await page.keyboard.press('Escape');
+    await page.evaluate(() => window.__auraShot.setEditMode(false));
+}
+
+// ── Editor: a fixed layout keeps its symbol, the dialog says so ─────────────
+{
+    const id = `tc-${++seq}`;
+    await page.evaluate(
+        ([w]) => {
+            window.__auraShot.showWidgets([w], { editMode: true });
+            window.__auraShot.setEditMode(true);
+        },
+        [
+            {
+                id,
+                type: 'switch',
+                title: 'Sauna',
+                datapoint: 'demo.sw',
+                layout: 'compact',
+                gridPos: { x: 0, y: 0, w: 8, h: 6 },
+                options: {},
+            },
+        ],
+    );
+    await page.waitForTimeout(600);
+    await page.locator(`[data-aura-widget="${id}"]`).hover();
+    await page.locator('.aura-edit-chrome button').first().click();
+    await page.locator('button:text-is("Bearbeiten")').click();
+    const dlg = page.locator('.aura-widget-edit-modal');
+    await dlg.waitFor({ timeout: 10000 });
+    await dlg.locator('summary:has(span:text-is("Darstellung"))').first().click();
+    await page.waitForTimeout(300);
+    await dlg.locator('[data-header-position-open]').click();
+    const editor = page.locator('[data-header-items-editor]');
+    await editor.waitFor({ timeout: 5000 });
+    check(
+        'compact: the dialog says the symbol is fixed',
+        (await editor.locator('[data-icon-fixed-hint]').count()) === 1,
+    );
+    if (process.env.SHOTS) await editor.screenshot({ path: `${process.env.SHOTS}/editor-compact.png` });
     await page.keyboard.press('Escape');
     await page.keyboard.press('Escape');
     await page.evaluate(() => window.__auraShot.setEditMode(false));

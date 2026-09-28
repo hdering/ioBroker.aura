@@ -3,8 +3,8 @@
  * „Kopfzeile“ in its own popup. A slot map on top (tap a slot = new item there),
  * the item list below. See utils/headerItems for slots, sources and visibility.
  */
-import { useState, type ReactNode } from 'react';
-import { ArrowDown, ArrowUp, Database, Plus, Shapes, Trash2 } from 'lucide-react';
+import { Fragment, useState, type ReactNode } from 'react';
+import { ArrowDown, ArrowUp, Database, Plus, Shapes, Trash2, type LucideIcon } from 'lucide-react';
 import { DatapointPicker } from './DatapointPicker';
 import { IconPickerModal } from './IconPickerModal';
 import { ClauseList, ColorField } from './ConditionEditor';
@@ -393,17 +393,41 @@ function ItemRow({
     );
 }
 
+/** Title and symbol placement — plain widget options the map writes. */
+export interface HeaderLayoutPatch {
+    titleAlign?: 'left' | 'center' | 'right';
+    iconPlace?: 'beforeTitle' | 'afterTitle' | 'trail';
+}
+
+type Picked = 'title' | 'icon' | null;
+type IconPlaceKey = 'lead' | 'beforeTitle' | 'afterTitle' | 'trail';
+const TITLE_SLOT: Record<string, WidgetHeaderSlot> = { left: 'r1-left', center: 'r1-center', right: 'r1-right' };
+const SLOT_ALIGN: Partial<Record<WidgetHeaderSlot, 'left' | 'center' | 'right'>> = {
+    'r1-left': 'left',
+    'r1-center': 'center',
+    'r1-right': 'right',
+};
+
 export function HeaderItemsEditor({
     items,
     config,
     hasClickAction = false,
+    iconFixed = false,
+    defaultIcon,
     onChange,
+    onLayoutChange,
 }: {
     items: WidgetHeaderItem[];
     config: WidgetConfig;
     /** Whether a click action resolves for the widget — the 'action' source needs one. */
     hasClickAction?: boolean;
+    /** The widget draws its symbol in a fixed spot when expanded (no TitleRow in this layout). */
+    iconFixed?: boolean;
+    /** The type's own symbol, for a widget without options.icon. */
+    defaultIcon?: LucideIcon;
     onChange: (items: WidgetHeaderItem[]) => void;
+    /** Moves title / symbol (titleAlign, iconPlace). Absent: the two tiles are not shown. */
+    onLayoutChange?: (patch: HeaderLayoutPatch) => void;
 }) {
     const t = useT();
     const bySlot = groupBySlot(items);
@@ -424,126 +448,212 @@ export function HeaderItemsEditor({
     // A centred title stands in the middle of the row and the r1-center items right
     // behind it (TitleRow) — the map shows the row that way.
     const titleCentered = config.options?.titleAlign === 'center';
-    // The symbol stands where options.iconPlace puts it (TitleRow).
-    const iconPlace = config.options?.showIcon === false ? null : ((config.options?.iconPlace as string) ?? 'lead');
-    const MapIcon = getWidgetIcon(config.options?.icon as string | undefined, Shapes) ?? Shapes;
-    const sym = (place: string) =>
-        iconPlace === place ? (
-            <span className="inline-flex align-[-1px] mx-0.5" data-header-map-icon={place}>
-                <MapIcon size={11} style={{ color: 'var(--text-secondary)' }} />
-            </span>
-        ) : null;
-    const summary = (list: WidgetHeaderItem[], sep: string, lead = false) =>
+    const titleAlign = (config.options?.titleAlign as string) ?? 'left';
+    const titleSlot = TITLE_SLOT[titleAlign] ?? 'r1-left';
+    const iconPlace = ((config.options?.iconPlace as string) ?? 'lead') as IconPlaceKey;
+    const titleOn = config.options?.showTitle !== false;
+    const iconOn = config.options?.showIcon !== false;
+    const movable = !!onLayoutChange;
+    const MapIcon = getWidgetIcon(config.options?.icon as string | undefined, defaultIcon ?? Shapes) ?? Shapes;
+
+    // Title and symbol are tiles: tap (or drag) one, then tap where it goes.
+    const [picked, setPicked] = useState<Picked>(null);
+    const moveTitle = (slot: WidgetHeaderSlot) => {
+        const align = SLOT_ALIGN[slot];
+        if (align && onLayoutChange) onLayoutChange({ titleAlign: align });
+        setPicked(null);
+    };
+    const moveIcon = (place: IconPlaceKey) => {
+        onLayoutChange?.({ iconPlace: place === 'lead' ? undefined : place });
+        setPicked(null);
+    };
+
+    const summary = (list: WidgetHeaderItem[]) =>
         list.length ? (
-            <span>
-                {lead ? sep : ''}
-                {list.map((it) => itemSummary(it, t, config)).join(' · ')}
-                {lead ? '' : sep}
+            <span className="truncate">{list.map((it) => itemSummary(it, t, config)).join(' · ')}</span>
+        ) : null;
+    const plus = <Plus size={11} className="shrink-0" style={{ color: 'var(--text-secondary)' }} />;
+
+    const chip = (kind: 'title' | 'icon') => {
+        const on = kind === 'title' ? titleOn : iconOn;
+        const active = picked === kind;
+        const hint = !on ? t('hdr.chip.hidden') : t(kind === 'title' ? 'hdr.chip.moveTitle' : 'hdr.chip.moveIcon');
+        const toggle = () => setPicked(active ? null : kind);
+        return (
+            <span
+                role="button"
+                tabIndex={0}
+                draggable
+                onClick={(e) => {
+                    e.stopPropagation();
+                    toggle();
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggle();
+                    }
+                }}
+                onDragStart={(e) => {
+                    e.dataTransfer.setData('text/plain', kind);
+                    e.dataTransfer.effectAllowed = 'move';
+                    setPicked(kind);
+                }}
+                onDragEnd={() => setPicked(null)}
+                className="inline-flex items-center gap-1 min-w-0 shrink rounded-md px-1.5 py-0.5 text-[11px] font-medium"
+                style={{
+                    cursor: 'grab',
+                    background: active ? 'var(--accent)' : 'var(--app-surface)',
+                    color: active ? '#fff' : 'var(--text-primary)',
+                    border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
+                    opacity: on ? 1 : 0.45,
+                }}
+                title={hint}
+                data-header-chip={kind}
+                data-chip-off={on ? undefined : ''}
+            >
+                {kind === 'icon' ? (
+                    <MapIcon size={12} className="shrink-0" />
+                ) : (
+                    <span className="truncate">{config.title || t('hdr.chip.title')}</span>
+                )}
+            </span>
+        );
+    };
+
+    /** A drop mark for the symbol, shown while the symbol is picked. */
+    const iconTarget = (place: IconPlaceKey) =>
+        picked === 'icon' ? (
+            <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    moveIcon(place);
+                }}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        moveIcon(place);
+                    }
+                }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    moveIcon(place);
+                }}
+                className="inline-flex items-center justify-center shrink-0 rounded-md w-5 h-5"
+                style={{
+                    border: '1px dashed var(--accent)',
+                    background: 'color-mix(in srgb, var(--accent) 12%, transparent)',
+                }}
+                title={t(`wf.edit.iconPlace.${place}` as TranslationKey)}
+                data-icon-target={place}
+            >
+                <Plus size={10} style={{ color: 'var(--accent)' }} />
             </span>
         ) : null;
+    /** The symbol at a place: the tile itself, or a drop mark while it is being moved. */
+    const iconAt = (place: IconPlaceKey) => {
+        if (!movable) return null;
+        if (iconPlace === place) return chip('icon');
+        return iconTarget(place);
+    };
 
-    const titleText = (
-        <span style={{ color: 'var(--text-secondary)' }} data-header-map-title="">
-            {config.title || '—'}
-        </span>
-    );
-    const plus = <Plus size={11} className="inline" style={{ color: 'var(--text-secondary)' }} />;
+    const cellContent = (slot: WidgetHeaderSlot): ReactNode[] => {
+        const list = bySlot[slot];
+        const parts: ReactNode[] = [];
+        const titleGroup =
+            movable && slot === titleSlot ? [iconAt('beforeTitle'), chip('title'), iconAt('afterTitle')] : [];
+        if (slot === 'r1-left') parts.push(summary(list), iconAt('lead'), ...titleGroup);
+        else if (slot === 'r1-center' && titleGroup.length)
+            parts.push(
+                summary(list.filter((it) => it.titleSide === 'before')),
+                ...titleGroup,
+                summary(list.filter((it) => it.titleSide !== 'before')),
+            );
+        else if (slot === 'r1-right') parts.push(...titleGroup, summary(list), iconAt('trail'));
+        else parts.push(summary(list));
+        if (!list.length && !parts.some(Boolean)) parts.push(plus);
+        return parts;
+    };
 
-    /** A slot of the map: a tap adds an item there. `content` replaces the plain item summary. */
-    const slotCell = (slot: WidgetHeaderSlot, label: string = t(slotKey(slot)), content?: ReactNode) => (
-        <button
-            key={slot}
-            onClick={() => add(slot)}
-            className="min-w-0 rounded-lg px-2 py-1.5 text-left hover:opacity-80"
-            style={{ background: 'var(--app-bg)', border: '1px dashed var(--app-border)' }}
-            title={t('hdr.addHere')}
-            data-header-slot-add={slot}
-        >
-            <span className="block text-[9px] uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
-                {label}
-            </span>
-            <span className="block text-[11px] truncate" style={{ color: 'var(--text-primary)' }}>
-                {content ?? (bySlot[slot].length ? summary(bySlot[slot], '') : plus)}
-            </span>
-        </button>
-    );
-    const leftItems = summary(bySlot['r1-left'], ' ');
-    const centerBefore = summary(
-        bySlot['r1-center'].filter((it) => it.titleSide === 'before'),
-        ' ',
-    );
-    const centerAfter = summary(
-        bySlot['r1-center'].filter((it) => it.titleSide !== 'before'),
-        ' ',
-        true,
-    );
-    const rightCell = slotCell(
-        'r1-right',
-        undefined,
-        bySlot['r1-right'].length || iconPlace === 'trail' ? (
-            <>
-                {summary(bySlot['r1-right'], '')}
-                {sym('trail')}
-            </>
-        ) : undefined,
-    );
+    const slotCell = (slot: WidgetHeaderSlot) => {
+        const titleTarget = picked === 'title' && !!SLOT_ALIGN[slot] && slot !== titleSlot;
+        const dimmed = picked === 'title' && !SLOT_ALIGN[slot];
+        const act = () => {
+            if (titleTarget) moveTitle(slot);
+            else if (picked) setPicked(null);
+            else add(slot);
+        };
+        return (
+            <div
+                key={slot}
+                role="button"
+                tabIndex={0}
+                onClick={act}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        act();
+                    }
+                }}
+                onDragOver={(e) => {
+                    if (titleTarget) e.preventDefault();
+                }}
+                onDrop={(e) => {
+                    e.preventDefault();
+                    if (titleTarget) moveTitle(slot);
+                }}
+                className="min-w-0 rounded-lg px-2 py-1.5 text-left hover:opacity-80 cursor-pointer select-none"
+                style={{
+                    background: titleTarget ? 'color-mix(in srgb, var(--accent) 10%, var(--app-bg))' : 'var(--app-bg)',
+                    border: `1px dashed ${titleTarget ? 'var(--accent)' : 'var(--app-border)'}`,
+                    opacity: dimmed ? 0.45 : 1,
+                }}
+                title={titleTarget ? t('hdr.chip.titleHere') : picked ? undefined : t('hdr.addHere')}
+                data-header-slot-add={slot}
+                data-title-target={titleTarget ? '' : undefined}
+            >
+                <span className="block text-[9px] uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
+                    {t(slotKey(slot))}
+                </span>
+                <span
+                    className="flex items-center gap-1 min-w-0 overflow-hidden whitespace-nowrap text-[11px]"
+                    style={{ color: 'var(--text-primary)', minHeight: 20 }}
+                >
+                    {cellContent(slot).map((part, i) => (part ? <Fragment key={i}>{part}</Fragment> : null))}
+                </span>
+            </div>
+        );
+    };
 
     return (
         <div className="p-3 space-y-3" onMouseDown={(e) => e.stopPropagation()} data-header-items-editor="">
             <div className="space-y-1">
-                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                    {t('hdr.mapHint')}
+                <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }} data-header-map-hint="">
+                    {picked === 'title'
+                        ? t('hdr.pickHint.title')
+                        : picked === 'icon'
+                          ? t('hdr.pickHint.icon')
+                          : movable
+                            ? t('hdr.mapHintTiles')
+                            : t('hdr.mapHint')}
                 </p>
                 <div className="grid grid-cols-3 gap-1.5" data-title-centered={titleCentered ? '' : undefined}>
-                    {titleCentered ? (
-                        <>
-                            {slotCell(
-                                'r1-left',
-                                undefined,
-                                bySlot['r1-left'].length || iconPlace === 'lead' ? (
-                                    <>
-                                        {leftItems}
-                                        {sym('lead')}
-                                    </>
-                                ) : undefined,
-                            )}
-                            {slotCell(
-                                'r1-center',
-                                t('hdr.slot.titleCenter'),
-                                <>
-                                    {centerBefore}
-                                    {sym('beforeTitle')}
-                                    {titleText}
-                                    {sym('afterTitle')}
-                                    {centerAfter}
-                                    {!bySlot['r1-center'].length && <span className="ml-1">{plus}</span>}
-                                </>,
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            {slotCell(
-                                'r1-left',
-                                t('hdr.slot.leftTitle'),
-                                <>
-                                    {leftItems}
-                                    {sym('lead')}
-                                    {sym('beforeTitle')}
-                                    {titleText}
-                                    {sym('afterTitle')}
-                                </>,
-                            )}
-                            {slotCell('r1-center')}
-                        </>
-                    )}
-                    {rightCell}
-                    {slotCell('r2-left')}
-                    {slotCell('r2-center')}
-                    {slotCell('r2-right')}
+                    {HEADER_SLOTS.map((slot) => slotCell(slot))}
                 </div>
                 {titleCentered && (
                     <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
                         {t('hdr.centerHint')}
+                    </p>
+                )}
+                {movable && iconFixed && iconOn && (
+                    <p className="text-[10px]" style={{ color: 'var(--text-secondary)' }} data-icon-fixed-hint="">
+                        {t('hdr.iconFixedHint')}
                     </p>
                 )}
             </div>

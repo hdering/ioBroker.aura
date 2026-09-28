@@ -1202,7 +1202,7 @@ export const de = {
     'wf.edit.group.mobileKeepGridHint':
         'Standardmäßig werden Widgets auf dem Smartphone untereinander gestapelt. Aktiviert bleibt die nebeneinander-Anordnung wie in der normalen Ansicht erhalten, nur verkleinert.',
     'wf.edit.position': 'Position',
-    'wf.edit.iconPlace': 'Position',
+    'wf.edit.placeInHeader': 'Position in der Kopfzeile festlegen',
     'wf.edit.iconPlace.lead': 'Links',
     'wf.edit.iconPlace.beforeTitle': 'Vor Titel',
     'wf.edit.iconPlace.afterTitle': 'Hinter Titel',
@@ -2619,9 +2619,18 @@ export const de = {
     'hdr.addHere': 'Neues Element auf diesem Platz',
     'hdr.foldHint':
         'Aufgeklappt stehen die Elemente in der Titelzeile des Widgets, eingeklappt in der Kopfzeile. In Layouts ohne eigene Titelzeile stehen sie auf der Höhe des Titels, Zeile 2 unter dem Inhalt.',
-    'hdr.slot.leftTitle': 'Zeile 1 links · Titel',
     'hdr.slot.r1-left': 'Zeile 1 links',
-    'hdr.slot.titleCenter': 'Titel · Mitte',
+    'hdr.mapHintTiles':
+        'Tipp auf einen Platz legt dort ein neues Element an. Titel und Symbol antippen oder ziehen, um sie zu verschieben.',
+    'hdr.pickHint.title': 'Titel verschieben: einen Platz in Zeile 1 antippen.',
+    'hdr.pickHint.icon': 'Symbol verschieben: eine der markierten Stellen antippen.',
+    'hdr.chip.title': 'Titel',
+    'hdr.chip.moveTitle': 'Titel verschieben',
+    'hdr.chip.moveIcon': 'Symbol verschieben',
+    'hdr.chip.titleHere': 'Titel hierher',
+    'hdr.chip.hidden': 'Unter Darstellung ausgeblendet',
+    'hdr.iconFixedHint':
+        'In diesem Layout sitzt das Symbol aufgeklappt an festem Platz; die Position gilt für die eingeklappte Kopfzeile.',
     'hdr.centerHint':
         'Der Titel ist zentriert: Er steht in der Mitte der Karte, Elemente auf „Zeile 1 Mitte“ direkt daneben – links, rechts oder darunter, je Element einstellbar.',
     'hdr.titleSide': 'Lage zum zentrierten Titel',

@@ -11,7 +11,7 @@ import React, {
 import { recordWidgetRender, recordWidgetReady, isWidgetTrackingEnabled } from '../../utils/perfBreakdown';
 import { createPortal } from 'react-dom';
 import { usePortalTarget } from '../../contexts/PortalTargetContext';
-import { useT, t, keyLabel, type TranslationKey } from '../../i18n';
+import { useT, t, keyLabel } from '../../i18n';
 import { RangeChipsEditor } from '../config/RangeChipsEditor';
 import { RANGE_UNITS, rangeKey, type RangeUnit } from '../../utils/rangeChips';
 import { isCopyDragModifier } from '../../utils/platformKeys';
@@ -8880,36 +8880,6 @@ function WidgetFrameInner({
                                                 Titel
                                             </span>
                                             <div className="flex items-center gap-2">
-                                                {titleOn && (
-                                                    <div className="flex gap-1">
-                                                        {(['left', 'center', 'right'] as const).map((p) => {
-                                                            const lbls: Record<string, string> = {
-                                                                left: t('wf.edit.posLeft'),
-                                                                center: t('wf.edit.posCenter'),
-                                                                right: t('wf.edit.posRight'),
-                                                            };
-                                                            const active = ((o.titleAlign as string) ?? 'left') === p;
-                                                            return (
-                                                                <button
-                                                                    key={p}
-                                                                    onClick={() => setO({ titleAlign: p })}
-                                                                    className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                                                                    style={{
-                                                                        background: active
-                                                                            ? 'var(--accent)'
-                                                                            : 'var(--app-bg)',
-                                                                        color: active
-                                                                            ? '#fff'
-                                                                            : 'var(--text-secondary)',
-                                                                        border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                    }}
-                                                                >
-                                                                    {lbls[p]}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
-                                                )}
                                                 <button
                                                     onClick={() => setO({ showTitle: !titleOn })}
                                                     className="relative w-7 h-4 rounded-full transition-colors shrink-0"
@@ -8945,51 +8915,20 @@ function WidgetFrameInner({
                                                     />
                                                 </button>
                                             </div>
+                                            {(titleOn || iconOn) && (
+                                                // Title and icon are placed in the header dialog (#676);
+                                                // here they are only switched on and off.
+                                                <button
+                                                    onClick={() => setHeaderEditorOpen(true)}
+                                                    className="text-[10px] hover:underline text-left"
+                                                    style={{ color: 'var(--accent)' }}
+                                                    data-header-position-open=""
+                                                >
+                                                    {t('wf.edit.placeInHeader')} ›
+                                                </button>
+                                            )}
                                             {iconOn && (
                                                 <>
-                                                    {/* Where the title row puts the symbol (TitleRow / folded header). */}
-                                                    <div
-                                                        className="flex items-center justify-between gap-2"
-                                                        data-icon-place-picker=""
-                                                    >
-                                                        <span
-                                                            className="text-[11px]"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            {t('wf.edit.iconPlace')}
-                                                        </span>
-                                                        <div className="flex flex-wrap justify-end gap-1">
-                                                            {(
-                                                                ['lead', 'beforeTitle', 'afterTitle', 'trail'] as const
-                                                            ).map((p) => {
-                                                                const active =
-                                                                    ((o.iconPlace as string) ?? 'lead') === p;
-                                                                return (
-                                                                    <button
-                                                                        key={p}
-                                                                        onClick={() =>
-                                                                            setO({
-                                                                                iconPlace: p === 'lead' ? undefined : p,
-                                                                            })
-                                                                        }
-                                                                        className="text-[10px] px-2 py-0.5 rounded-full transition-colors"
-                                                                        style={{
-                                                                            background: active
-                                                                                ? 'var(--accent)'
-                                                                                : 'var(--app-bg)',
-                                                                            color: active
-                                                                                ? '#fff'
-                                                                                : 'var(--text-secondary)',
-                                                                            border: `1px solid ${active ? 'var(--accent)' : 'var(--app-border)'}`,
-                                                                        }}
-                                                                        data-icon-place={p}
-                                                                    >
-                                                                        {t(`wf.edit.iconPlace.${p}` as TranslationKey)}
-                                                                    </button>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
                                                     {config.type !== 'windowcontact' && (
                                                         <>
                                                             <button
@@ -9167,6 +9106,14 @@ function WidgetFrameInner({
                                                                 items={headerItems(o)}
                                                                 config={config}
                                                                 hasClickAction={hasClickAction}
+                                                                // Expanded without a TitleRow (fixed layouts) the widget
+                                                                // keeps its symbol where it is — only the folded header
+                                                                // follows iconPlace. A folded card has no body to ask.
+                                                                iconFixed={!isCollapsed && hdrRows.r1 === 0}
+                                                                defaultIcon={
+                                                                    WIDGET_BY_TYPE[config.type as WidgetType]?.Icon
+                                                                }
+                                                                onLayoutChange={(patch) => setO({ ...patch })}
                                                                 onChange={(next) =>
                                                                     setO({
                                                                         headerItems: next.length ? next : undefined,
