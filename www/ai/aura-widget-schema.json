@@ -293,6 +293,9 @@
       ],
       "description": "Wo die Titelzeile das Widget-Symbol zeigt: \"lead\" links außen (Standard), \"beforeTitle\" direkt vor dem Titel, \"afterTitle\" direkt dahinter, \"trail\" ganz rechts (hinter den Kopfzeilen-Werten). Gilt aufgeklappt in Layouts mit eigener Titelzeile (meist \"default\") und in der eingeklappten Kopfzeile; bei zentriertem Titel wird Symbol + Titel gemeinsam zentriert."
     },
+    "titleRow": {
+      "description": "2 = der Titel steht in der zweiten Kopfzeile (links/Mitte/rechts nach titleAlign, zwischen den Elementen auf r2-*); ein Symbol mit iconPlace \"beforeTitle\"/\"afterTitle\" wandert mit, \"lead\"/\"trail\" bleibt in Zeile 1. Kostet wie ein Element auf r2-* eine Kopfzeile Höhe (Zuschlag \"headerRow2\", beides zusammen nur einmal). Weglassen = Zeile 1. Wirkt in Layouts mit eigener Titelzeile und in der eingeklappten Kopfzeile."
+    },
     "headerItems": {
       "type": "array",
       "items": {
@@ -5846,6 +5849,7 @@
         "showTitle",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -5949,6 +5953,7 @@
         "showTitle",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -6057,6 +6062,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -6236,6 +6242,7 @@
         "showTitle",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -6398,6 +6405,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -6960,6 +6968,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -7029,6 +7038,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -7099,6 +7109,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -7298,6 +7309,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -7429,6 +7441,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -7584,6 +7597,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unit"
@@ -7721,6 +7735,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -7853,6 +7868,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -8062,6 +8078,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -8167,6 +8184,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -8315,6 +8333,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -8419,6 +8438,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -8566,6 +8586,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -8811,6 +8832,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -8866,6 +8888,7 @@
         "showTitle",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -9076,6 +9099,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -9198,6 +9222,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -9357,6 +9382,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "valueFactor",
@@ -9595,6 +9621,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "valueFactor",
@@ -9789,6 +9816,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -9918,6 +9946,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -10002,6 +10031,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -10083,6 +10113,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -10177,6 +10208,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -10297,6 +10329,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -10368,6 +10401,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -10504,6 +10538,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -10626,6 +10661,7 @@
         "showValue",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -10771,6 +10807,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -10963,6 +11000,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -11383,6 +11421,7 @@
         "showTitle",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -11472,6 +11511,7 @@
         "iconPlace",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -11609,6 +11649,7 @@
         "statusBadgesAlertOnly",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -11846,6 +11887,7 @@
         "iconPlace",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -12003,6 +12045,7 @@
         "showTitle",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -12106,6 +12149,7 @@
         "iconPlace",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -12154,6 +12198,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -12240,6 +12285,7 @@
         "showTitle",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -12382,6 +12428,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -12578,6 +12625,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -12732,6 +12780,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -12861,6 +12910,7 @@
         "iconPlace",
         "styleOverride",
         "textLines",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -13155,6 +13205,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -13322,6 +13373,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
@@ -13436,6 +13488,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -13548,6 +13601,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -13602,6 +13656,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -13714,6 +13769,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -13778,6 +13834,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unit",
@@ -13856,6 +13913,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent"
       ],
@@ -14038,6 +14096,7 @@
         "styleOverride",
         "textLines",
         "titleAlign",
+        "titleRow",
         "transparency",
         "transparent",
         "unreachDp"
