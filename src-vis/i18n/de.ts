@@ -2622,7 +2622,7 @@ export const de = {
     'hdr.slot.r1-left': 'Zeile 1 links',
     'hdr.mapHintTiles':
         'Tipp auf einen Platz legt dort ein neues Element an. Titel und Symbol antippen oder ziehen, um sie zu verschieben.',
-    'hdr.pickHint.title': 'Titel verschieben: einen Platz in Zeile 1 antippen.',
+    'hdr.pickHint.title': 'Titel verschieben: einen Platz antippen. In Zeile 2 wird die Karte eine Zeile höher.',
     'hdr.pickHint.icon': 'Symbol verschieben: eine der markierten Stellen antippen.',
     'hdr.chip.title': 'Titel',
     'hdr.chip.moveTitle': 'Titel verschieben',

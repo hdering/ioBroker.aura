@@ -2036,7 +2036,9 @@ das Widget die Plätze selbst ein: `HeaderSlotsInline` / `HeaderSlotsRow2` in
 links/rechts je `titleSide` | danach), die äußeren gleich breit, damit der Titel in der
 Kartenmitte bleibt. „Unter dem Titel“ ist `r2-center`. `r1-left` öffnet die Zeile (im
 einfachen Fall per `order: -1`, ohne das Markup des Widgets anzufassen). `options.iconPlace`
-(`lead`/`beforeTitle`/`afterTitle`/`trail`) setzt das Symbol um; `TitleRow` liest es aus
+(`lead`/`beforeTitle`/`afterTitle`/`trail`) setzt das Symbol um, `options.titleRow: 2` den
+Titel in Zeile 2 (TitleRow zeichnet dann beide Zeilen und meldet `t2`, `HeaderSlotsRow2`
+tritt zurück; `aura_measure` rechnet den Zuschlag `headerRow2` per `when.any`); `TitleRow` liest es aus
 dem Kontext, das Widget zeichnet das Symbol weiter selbst (Plan:
 `C:\projects\tools\plans\kopfzeile-titel-symbol-platzierbar.md`). Ist Titel und Symbol aus, behalten
 die Listen ihre Kopfzeile samt Trennlinie, solange Kopfzeilen-Elemente da sind. Eine Zeile, die kein Widget

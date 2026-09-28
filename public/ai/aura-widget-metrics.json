@@ -67,10 +67,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "perItemPx": 0,
@@ -595,10 +603,18 @@
         },
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "perItemPx": 0,
@@ -736,10 +752,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "perItemPx": 0,
@@ -835,10 +859,18 @@
         },
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "perItemPx": 0,
@@ -987,10 +1019,18 @@
         },
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "perItemPx": 0,
@@ -1030,10 +1070,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1050,10 +1098,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 0
         }
@@ -1070,10 +1126,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1100,10 +1164,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1120,10 +1192,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1140,10 +1220,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1163,10 +1251,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1183,10 +1279,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1205,10 +1309,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 0
         }
@@ -1226,10 +1338,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1264,10 +1384,18 @@
         },
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1283,10 +1411,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1302,10 +1438,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1333,10 +1477,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1353,10 +1505,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1373,10 +1533,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1393,10 +1561,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1413,10 +1589,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1433,10 +1617,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1453,10 +1645,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1488,10 +1688,18 @@
         },
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 0
         }
@@ -1505,10 +1713,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1534,10 +1750,18 @@
         },
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1554,10 +1778,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1574,10 +1806,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1594,10 +1834,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1614,10 +1862,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1634,10 +1890,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1657,10 +1921,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1679,10 +1951,18 @@
       "modifiers": [
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {
@@ -1711,10 +1991,18 @@
         },
         {
           "key": "headerRow2",
-          "label": "zweite Kopfzeile (headerItems auf r2-*)",
+          "label": "zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)",
           "when": {
-            "path": "headerItems[].slot",
-            "startsWith": "r2-"
+            "any": [
+              {
+                "path": "headerItems[].slot",
+                "startsWith": "r2-"
+              },
+              {
+                "path": "titleRow",
+                "equals": 2
+              }
+            ]
           },
           "basePx": 20,
           "fontScalePx": {

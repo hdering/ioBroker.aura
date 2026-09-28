@@ -838,10 +838,16 @@ const MIN_VARIANTS = {
  * common rather than listed per type. Measured with one plain text item on r2-left.
  */
 const HEADER_ROW2_ITEM = { id: 'm-r2', source: 'text', text: 'Zweite Zeile', slot: 'r2-left' };
+// The title moved to row 2 (titleRow 2) opens the same row, so one modifier covers both.
 const HEADER_ROW2_MODIFIER = {
     key: 'headerRow2',
-    label: 'zweite Kopfzeile (headerItems auf r2-*)',
-    when: { path: 'headerItems[].slot', startsWith: 'r2-' },
+    label: 'zweite Kopfzeile (headerItems auf r2-* oder titleRow 2)',
+    when: {
+        any: [
+            { path: 'headerItems[].slot', startsWith: 'r2-' },
+            { path: 'titleRow', equals: 2 },
+        ],
+    },
 };
 
 const MIN_MODIFIERS = {

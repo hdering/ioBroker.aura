@@ -2602,7 +2602,7 @@ export const en: Record<TranslationKey, string> = {
         "Expanded, the items sit in the widget's title row; collapsed, in the folded header. In layouts without a title row of their own they line up with the title, row 2 goes below the content.",
     'hdr.slot.r1-left': 'Row 1 left',
     'hdr.mapHintTiles': 'Tap a place to add an item there. Tap or drag the title and the icon to move them.',
-    'hdr.pickHint.title': 'Move the title: tap a place in row 1.',
+    'hdr.pickHint.title': 'Move the title: tap a place. In row 2 the card gets one row taller.',
     'hdr.pickHint.icon': 'Move the icon: tap one of the marked spots.',
     'hdr.chip.title': 'Title',
     'hdr.chip.moveTitle': 'Move the title',

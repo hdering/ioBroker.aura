@@ -256,6 +256,80 @@ for (const [align, collapsed] of [
     if (align === 'center') check(`${tag}: title stays in the middle`, Math.abs(r.offset) <= 1.5, JSON.stringify(r));
 }
 
+// ── titleRow 2: the title in the second row ─────────────────────────────────
+async function rowSpot(id) {
+    return page.evaluate((wid) => {
+        const card = document.querySelector(`[data-aura-widget="${wid}"]`);
+        const titleEl = card.querySelector('.aura-widget-title');
+        const iconEl = card.querySelector('.aura-widget-icon');
+        const r2 = card.querySelectorAll('[data-header-row="2"]');
+        if (!titleEl) return null;
+        const range = document.createRange();
+        range.selectNodeContents(titleEl);
+        const t = range.getBoundingClientRect();
+        const c = card.getBoundingClientRect();
+        const i = iconEl?.getBoundingClientRect();
+        const item = card.querySelector('[data-header-item="r2"]')?.getBoundingClientRect();
+        return {
+            rows2: r2.length,
+            inRow2: !!titleEl.closest('[data-header-row="2"]'),
+            belowIcon: !!i && t.top >= i.bottom - 2,
+            iconBeside: !!i && Math.abs(i.top + i.height / 2 - (t.top + t.height / 2)) < 6,
+            fromLeft: Math.round(t.left - c.left),
+            fromRight: Math.round(c.right - t.right),
+            offset: Math.round((t.left + t.width / 2 - (c.left + c.width / 2)) * 10) / 10,
+            itemShown: !!item && item.width > 0,
+            strip: !!card.querySelector('[data-header-strip]'),
+        };
+    }, id);
+}
+const R2ITEM = [{ id: 'r2', source: 'text', text: 'Zeile2', slot: 'r2-right' }];
+for (const [type, opts] of [
+    ['switch', {}],
+    ['list', { entries: [{ id: 'demo.sw', label: 'Ofen' }], hideFilterButton: true }],
+]) {
+    for (const align of ['left', 'center', 'right']) {
+        const id = await show(type, {
+            ...opts,
+            titleAlign: align,
+            titleRow: 2,
+            headerItems: [...RIGHT, ...(align === 'right' ? [] : R2ITEM)],
+        });
+        const m = await rowSpot(id);
+        const posOk =
+            align === 'left'
+                ? m?.fromLeft < 30
+                : align === 'right'
+                  ? m?.fromRight < 30
+                  : Math.abs(m?.offset ?? 99) <= 1.5;
+        check(
+            `${type}/${align}: title in row 2, one row 2 only`,
+            m?.inRow2 && m.rows2 === 1 && m.belowIcon && !m.strip,
+            JSON.stringify(m),
+        );
+        check(`${type}/${align}: title at its place in row 2`, posOk, JSON.stringify(m));
+        if (align !== 'right') check(`${type}/${align}: row-2 item still shown`, m?.itemShown, JSON.stringify(m));
+    }
+}
+{
+    // A symbol set beside the title moves with it.
+    const id = await show('switch', { titleAlign: 'left', titleRow: 2, iconPlace: 'beforeTitle' });
+    const m = await rowSpot(id);
+    check('titleRow 2 + beforeTitle: the symbol moves along', m?.inRow2 && m.iconBeside, JSON.stringify(m));
+}
+{
+    // Folded: the header gets one row taller, the title sits in row 2.
+    const one = await show('switch', { defaultCollapsed: true, collapsible: true });
+    const h1 = (await page.locator(`[data-aura-widget="${one}"]`).boundingBox()).height;
+    const two = await show('switch', { defaultCollapsed: true, collapsible: true, titleRow: 2 });
+    const h2 = (await page.locator(`[data-aura-widget="${two}"]`).boundingBox()).height;
+    const m = await rowSpot(two);
+    check('folded titleRow 2: title in row 2', m?.inRow2 && m.belowIcon, JSON.stringify(m));
+    check('folded titleRow 2: card one row taller', h2 > h1 + 10, `${h1} → ${h2}`);
+    if (process.env.SHOTS)
+        await page.locator(`[data-aura-widget="${two}"]`).screenshot({ path: `${process.env.SHOTS}/folded-row2.png` });
+}
+
 // ── Narrow card: the title truncates, the row does not overflow ─────────────
 {
     const id = await show(
@@ -388,8 +462,8 @@ for (const [type, opts] of [
     // Move the title: tap the tile, then a place in row 1.
     await editor.locator('[data-header-chip="title"]').click();
     check(
-        'editor: picking the title marks the row-1 places',
-        (await editor.locator('[data-title-target]').count()) === 2,
+        'editor: picking the title marks the other places',
+        (await editor.locator('[data-title-target]').count()) === 5,
     );
     await cell('r1-left').click();
     await page.waitForTimeout(300);
@@ -424,6 +498,30 @@ for (const [type, opts] of [
     await page.waitForTimeout(300);
     o = await opts();
     check('editor: back to the left clears iconPlace', o?.iconPlace === undefined, String(o?.iconPlace));
+
+    // The title into row 2 and back.
+    await editor.locator('[data-header-chip="title"]').click();
+    await cell('r2-center').click();
+    await page.waitForTimeout(300);
+    o = await opts();
+    check(
+        'editor: title to row 2 writes titleRow 2',
+        o?.titleRow === 2 && o?.titleAlign === 'center',
+        JSON.stringify({ r: o?.titleRow, a: o?.titleAlign }),
+    );
+    check(
+        'editor: title tile now in row 2',
+        (await cell('r2-center').locator('[data-header-chip="title"]').count()) === 1,
+    );
+    await editor.locator('[data-header-chip="title"]').click();
+    await cell('r1-left').click();
+    await page.waitForTimeout(300);
+    o = await opts();
+    check(
+        'editor: back to row 1 clears titleRow',
+        o?.titleRow === undefined && o?.titleAlign === 'left',
+        JSON.stringify({ r: o?.titleRow, a: o?.titleAlign }),
+    );
 
     // A tap on a place without a picked tile still adds an item there.
     await cell('r1-left').click();

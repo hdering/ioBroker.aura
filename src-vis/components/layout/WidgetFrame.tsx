@@ -7345,6 +7345,22 @@ function WidgetFrameInner({
     const collapsedIconSize = (collapsedSource.options?.iconSize as number | undefined) || 20;
     const collapsedTitleAlign = ((collapsedSource.options?.titleAlign as string | undefined) ??
         'left') as React.CSSProperties['textAlign'];
+    // Title in the second row (options.titleRow 2): the folded header carries it there too,
+    // with a symbol set beside it; one set far left/right stays in row 1.
+    const collapsedTitleRow2 = collapsedSource.options?.titleRow === 2;
+    const collapsedIconPlace = (collapsedSource.options?.iconPlace as string | undefined) ?? 'lead';
+    const collapsedIconBeside = collapsedIconPlace === 'beforeTitle' || collapsedIconPlace === 'afterTitle';
+    const collapsedIconEl = collapsedShowIcon ? (
+        <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
+    ) : null;
+    const collapsedTitleEl = (
+        <span
+            className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
+            style={{ textAlign: collapsedTitleAlign }}
+        >
+            {collapsedTitle}
+        </span>
+    );
     // Header items (issue #676) of the folded card. A mirror shows its source's.
     const collapsedHeaderItems = useHeaderItems(collapsedSource, true, isCollapsed, ActionIcon);
     // Expanded, the widget places the items into its own title row (HeaderSlotsContext);
@@ -7357,7 +7373,7 @@ function WidgetFrameInner({
     );
     // Which rows the widget drew itself. A row nobody drew falls back to a strip above
     // the body (see HeaderSlotsContext).
-    const [hdrRows, setHdrRows] = useState<Record<HeaderRow, number>>({ r1: 0, r2: 0 });
+    const [hdrRows, setHdrRows] = useState<Record<HeaderRow, number>>({ r1: 0, r2: 0, t2: 0 });
     const registerHeaderRow = useCallback((row: HeaderRow) => {
         setHdrRows((s) => ({ ...s, [row]: s[row] + 1 }));
         return () => setHdrRows((s) => ({ ...s, [row]: s[row] - 1 }));
@@ -7376,8 +7392,17 @@ function WidgetFrameInner({
             register: registerHeaderRow,
             onAction: onHeaderAction,
             iconPlace: renderConfig.options?.iconPlace as IconPlace | undefined,
+            titleRow: renderConfig.options?.titleRow as number | undefined,
+            titleInRow2: hdrRows.t2 > 0,
         }),
-        [expandedHeaderItems, registerHeaderRow, onHeaderAction, renderConfig.options?.iconPlace],
+        [
+            expandedHeaderItems,
+            registerHeaderRow,
+            onHeaderAction,
+            renderConfig.options?.iconPlace,
+            renderConfig.options?.titleRow,
+            hdrRows.t2,
+        ],
     );
     // An 'action' item puts the click-action icon on a slot; the corner button and the
     // folded header's trailing icon step back for it in the state it shows in.
@@ -7751,22 +7776,9 @@ function WidgetFrameInner({
                             lead={
                                 <ChevronDown size={16} className="shrink-0" style={{ transform: 'rotate(-90deg)' }} />
                             }
-                            icon={
-                                collapsedShowIcon ? (
-                                    <CollapsedIcon className="aura-widget-icon shrink-0" size={collapsedIconSize} />
-                                ) : null
-                            }
-                            iconPlace={collapsedSource.options?.iconPlace as string | undefined}
-                            title={
-                                <>
-                                    <span
-                                        className="aura-widget-title text-xs font-semibold truncate flex-1 min-w-0"
-                                        style={{ textAlign: collapsedTitleAlign }}
-                                    >
-                                        {collapsedTitle}
-                                    </span>
-                                </>
-                            }
+                            icon={collapsedTitleRow2 && collapsedIconBeside ? null : collapsedIconEl}
+                            iconPlace={collapsedIconPlace}
+                            title={collapsedTitleRow2 ? undefined : collapsedTitleEl}
                             trailing={
                                 <>
                                     {/* The click action stays reachable while folded (issue #702):
@@ -7790,7 +7802,20 @@ function WidgetFrameInner({
                                 </>
                             }
                         />
-                        <HeaderRowTwo items={collapsedHeaderItems} onAction={onHeaderAction} />
+                        <HeaderRowTwo
+                            items={collapsedHeaderItems}
+                            onAction={onHeaderAction}
+                            titleAlign={collapsedTitleAlign as string}
+                            title={
+                                collapsedTitleRow2 ? (
+                                    <>
+                                        {collapsedIconPlace === 'beforeTitle' && collapsedIconEl}
+                                        {collapsedTitleEl}
+                                        {collapsedIconPlace === 'afterTitle' && collapsedIconEl}
+                                    </>
+                                ) : undefined
+                            }
+                        />
                     </div>
                 </div>
             ) : Widget ? (

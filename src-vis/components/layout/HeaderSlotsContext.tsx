@@ -32,7 +32,8 @@ import type { ResolvedHeaderItem } from '../../hooks/useHeaderItems';
 import { groupBySlot, hasSecondRow } from '../../utils/headerItems';
 import { HeaderItemView, HeaderRowTwo } from './HeaderItemSlots';
 
-export type HeaderRow = 'r1' | 'r2';
+/** 't2': a TitleRow drew the title in row 2 (options.titleRow 2) — row 2 is its. */
+export type HeaderRow = 'r1' | 'r2' | 't2';
 
 export interface HeaderSlotsValue {
     items: ResolvedHeaderItem[];
@@ -42,17 +43,21 @@ export interface HeaderSlotsValue {
     onAction?: () => void;
     /** options.iconPlace: where TitleRow puts the widget's symbol. Default 'lead'. */
     iconPlace?: IconPlace;
+    /** options.titleRow: 2 moves the title (with a symbol beside it) to the second row. */
+    titleRow?: number;
+    /** A TitleRow drew the title in row 2 — it draws that row, HeaderSlotsRow2 steps back. */
+    titleInRow2?: boolean;
 }
 
 export type IconPlace = 'lead' | 'beforeTitle' | 'afterTitle' | 'trail';
 
 export const HeaderSlotsContext = createContext<HeaderSlotsValue | null>(null);
 
-function useRegister(ctx: HeaderSlotsValue | null, row: HeaderRow) {
+function useRegister(ctx: HeaderSlotsValue | null, row: HeaderRow, active = true) {
     const register = ctx?.register;
     // Layout effect: the frame hears about the row before the first paint, so its
     // fallback strip never flashes up for a widget that draws the row itself.
-    useLayoutEffect(() => (register ? register(row) : undefined), [register, row]);
+    useLayoutEffect(() => (register && active ? register(row) : undefined), [register, row, active]);
 }
 
 /**
@@ -188,15 +193,21 @@ function liftWrappers(kids: ReturnType<typeof Children.toArray>, depth = 0): Ret
  * or no title at all: a plain flex row, exactly as before.
  */
 export function TitleRow({ align, children, ...rest }: { align?: string } & HTMLAttributes<HTMLDivElement>): ReactNode {
-    const place = useContext(HeaderSlotsContext)?.iconPlace ?? 'lead';
+    const ctx = useContext(HeaderSlotsContext);
+    const place = ctx?.iconPlace ?? 'lead';
     const centered = align === 'center';
-    if (!centered && place === 'lead') return <div {...rest}>{children}</div>;
+    const toRow2 = ctx?.titleRow === 2;
     let kids = liftWrappers(Children.toArray(children));
     // The symbol moves as one piece — the widget still draws it (state colour, clicks).
     const iconAt = place === 'lead' ? -1 : kids.findIndex((k) => holds(k, isIcon) && !holds(k, isTitle));
     const icon = iconAt >= 0 ? kids[iconAt] : null;
     if (icon) kids = kids.filter((_, i) => i !== iconAt);
     const titleAt = kids.findIndex((k) => holds(k, isTitle));
+    const inRow2 = toRow2 && titleAt >= 0;
+    useRegister(ctx, 't2', inRow2);
+    useRegister(ctx, 'r2', inRow2);
+    if (inRow2 && ctx) return titleInRowTwo({ ctx, kids, icon, place, titleAt, align, rest });
+    if (!centered && place === 'lead') return <div {...rest}>{children}</div>;
     if (titleAt < 0) {
         // No title: only "far right" still means something.
         if (!icon || place !== 'trail') return <div {...rest}>{children}</div>;
@@ -281,6 +292,69 @@ export function TitleRow({ align, children, ...rest }: { align?: string } & HTML
 }
 
 /**
+ * options.titleRow 2: row 1 keeps everything but the title (a symbol at the far
+ * left or right stays there), row 2 carries the title — with a symbol set beside
+ * it — at its alignment, among the row-2 items. Both rows in one column, so a
+ * parent that spreads its children moves them together.
+ */
+function titleInRowTwo({
+    ctx,
+    kids,
+    icon,
+    place,
+    titleAt,
+    align,
+    rest,
+}: {
+    ctx: HeaderSlotsValue;
+    kids: ReturnType<typeof Children.toArray>;
+    icon: ReturnType<typeof Children.toArray>[number] | null;
+    place: IconPlace;
+    titleAt: number;
+    align?: string;
+    rest: HTMLAttributes<HTMLDivElement>;
+}): ReactNode {
+    const beside = icon && (place === 'beforeTitle' || place === 'afterTitle');
+    const title = (
+        <>
+            {beside && place === 'beforeTitle' ? icon : null}
+            <div className="flex min-w-0" style={{ flex: '0 1 auto' }}>
+                {kids[titleAt]}
+            </div>
+            {beside && place === 'afterTitle' ? icon : null}
+        </>
+    );
+    // The title's place in row 1 becomes a spacer, so the widget's own controls
+    // still sit at the right end.
+    const rowOne = [
+        ...kids.slice(0, titleAt),
+        <div key="title-spacer" style={{ flex: '1 1 0' }} />,
+        ...kids.slice(titleAt + 1),
+        icon && place === 'trail' ? (
+            <span key="title-trail-icon" className="flex items-center shrink-0">
+                {icon}
+            </span>
+        ) : null,
+    ];
+    const r1Items = ctx.items.some((i) => i.slot.startsWith('r1-'));
+    const r1Content = kids.some((k, i) => i !== titleAt && !(isValidElement(k) && k.type === HeaderSlotsInline));
+    const showRowOne = r1Items || r1Content || (!!icon && place === 'trail');
+    return (
+        <div className="flex flex-col gap-1 min-w-0" style={{ alignSelf: 'stretch' }} data-title-row="2">
+            {showRowOne ? (
+                <div {...rest} data-icon-place={place}>
+                    {rowOne}
+                </div>
+            ) : (
+                // Nothing on row 1 but the slots: they still register (and stay empty).
+                kids.filter((k) => isValidElement(k) && k.type === HeaderSlotsInline)
+            )}
+            <HeaderRowTwo items={ctx.items} title={title} titleAlign={align} onAction={ctx.onAction} />
+        </div>
+    );
+}
+
+/**
  * Whether the widget has header items to show. A widget whose title row is optional
  * (title and icon off) keeps the row — and its divider — while items sit on it,
  * instead of leaving them to the frame's overlay strip.
@@ -293,7 +367,7 @@ export function useHasHeaderItems(): boolean {
 export function HeaderSlotsRow2(): ReactNode {
     const ctx = useContext(HeaderSlotsContext);
     useRegister(ctx, 'r2');
-    if (!ctx?.items.length || !hasSecondRow(ctx.items)) return null;
+    if (ctx?.titleInRow2 || !ctx?.items.length || !hasSecondRow(ctx.items)) return null;
     return <HeaderRowTwo items={ctx.items} onAction={ctx.onAction} />;
 }
 

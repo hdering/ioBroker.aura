@@ -1233,6 +1233,15 @@ export const UNIVERSAL_OPTIONS = {
             'Gilt aufgeklappt in Layouts mit eigener Titelzeile (meist "default") und in der eingeklappten ' +
             'Kopfzeile; bei zentriertem Titel wird Symbol + Titel gemeinsam zentriert.',
     },
+    titleRow: {
+        ts: '2',
+        description:
+            '2 = der Titel steht in der zweiten Kopfzeile (links/Mitte/rechts nach titleAlign, zwischen den ' +
+            'Elementen auf r2-*); ein Symbol mit iconPlace "beforeTitle"/"afterTitle" wandert mit, "lead"/"trail" ' +
+            'bleibt in Zeile 1. Kostet wie ein Element auf r2-* eine Kopfzeile Höhe (Zuschlag "headerRow2", ' +
+            'beides zusammen nur einmal). Weglassen = Zeile 1. Wirkt in Layouts mit eigener Titelzeile und ' +
+            'in der eingeklappten Kopfzeile.',
+    },
     headerItems: {
         ts: 'WidgetHeaderItem[]',
         description:

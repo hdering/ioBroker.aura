@@ -397,15 +397,18 @@ function ItemRow({
 export interface HeaderLayoutPatch {
     titleAlign?: 'left' | 'center' | 'right';
     iconPlace?: 'beforeTitle' | 'afterTitle' | 'trail';
+    titleRow?: 2;
 }
 
 type Picked = 'title' | 'icon' | null;
 type IconPlaceKey = 'lead' | 'beforeTitle' | 'afterTitle' | 'trail';
-const TITLE_SLOT: Record<string, WidgetHeaderSlot> = { left: 'r1-left', center: 'r1-center', right: 'r1-right' };
-const SLOT_ALIGN: Partial<Record<WidgetHeaderSlot, 'left' | 'center' | 'right'>> = {
+const SLOT_ALIGN: Record<WidgetHeaderSlot, 'left' | 'center' | 'right'> = {
     'r1-left': 'left',
     'r1-center': 'center',
     'r1-right': 'right',
+    'r2-left': 'left',
+    'r2-center': 'center',
+    'r2-right': 'right',
 };
 
 export function HeaderItemsEditor({
@@ -449,7 +452,9 @@ export function HeaderItemsEditor({
     // behind it (TitleRow) — the map shows the row that way.
     const titleCentered = config.options?.titleAlign === 'center';
     const titleAlign = (config.options?.titleAlign as string) ?? 'left';
-    const titleSlot = TITLE_SLOT[titleAlign] ?? 'r1-left';
+    const titleRow2 = config.options?.titleRow === 2;
+    const titleSlot =
+        `${titleRow2 ? 'r2' : 'r1'}-${titleAlign === 'center' || titleAlign === 'right' ? titleAlign : 'left'}` as WidgetHeaderSlot;
     const iconPlace = ((config.options?.iconPlace as string) ?? 'lead') as IconPlaceKey;
     const titleOn = config.options?.showTitle !== false;
     const iconOn = config.options?.showIcon !== false;
@@ -459,8 +464,8 @@ export function HeaderItemsEditor({
     // Title and symbol are tiles: tap (or drag) one, then tap where it goes.
     const [picked, setPicked] = useState<Picked>(null);
     const moveTitle = (slot: WidgetHeaderSlot) => {
-        const align = SLOT_ALIGN[slot];
-        if (align && onLayoutChange) onLayoutChange({ titleAlign: align });
+        // Row 2 costs the card a row of height, as row-2 items do.
+        onLayoutChange?.({ titleAlign: SLOT_ALIGN[slot], titleRow: slot.startsWith('r2-') ? 2 : undefined });
         setPicked(null);
     };
     const moveIcon = (place: IconPlaceKey) => {
@@ -576,14 +581,14 @@ export function HeaderItemsEditor({
                 summary(list.filter((it) => it.titleSide !== 'before')),
             );
         else if (slot === 'r1-right') parts.push(...titleGroup, summary(list), iconAt('trail'));
-        else parts.push(summary(list));
+        else if (slot === 'r2-right') parts.push(summary(list), ...titleGroup);
+        else parts.push(...titleGroup, summary(list));
         if (!list.length && !parts.some(Boolean)) parts.push(plus);
         return parts;
     };
 
     const slotCell = (slot: WidgetHeaderSlot) => {
-        const titleTarget = picked === 'title' && !!SLOT_ALIGN[slot] && slot !== titleSlot;
-        const dimmed = picked === 'title' && !SLOT_ALIGN[slot];
+        const titleTarget = picked === 'title' && slot !== titleSlot;
         const act = () => {
             if (titleTarget) moveTitle(slot);
             else if (picked) setPicked(null);
@@ -612,7 +617,6 @@ export function HeaderItemsEditor({
                 style={{
                     background: titleTarget ? 'color-mix(in srgb, var(--accent) 10%, var(--app-bg))' : 'var(--app-bg)',
                     border: `1px dashed ${titleTarget ? 'var(--accent)' : 'var(--app-border)'}`,
-                    opacity: dimmed ? 0.45 : 1,
                 }}
                 title={titleTarget ? t('hdr.chip.titleHere') : picked ? undefined : t('hdr.addHere')}
                 data-header-slot-add={slot}

@@ -201,13 +201,45 @@ export function HeaderRowOne({
     );
 }
 
-export function HeaderRowTwo({ items, onAction }: { items: ResolvedHeaderItem[]; onAction?: () => void }) {
-    if (!hasSecondRow(items)) return null;
+export function HeaderRowTwo({
+    items,
+    title,
+    titleAlign,
+    onAction,
+}: {
+    items: ResolvedHeaderItem[];
+    /** The title (with its symbol) moved to the second row — options.titleRow 2. */
+    title?: ReactNode;
+    /** Where the title stands in the row: left, center or right. */
+    titleAlign?: string;
+    onAction?: () => void;
+}) {
+    if (!title && !hasSecondRow(items)) return null;
     const slots = groupBySlot(items);
-    // With a centre item the outer columns are equal, so the centre is the middle;
-    // without one, left and right take what they need and a lone item is not capped
-    // at a third of the row.
-    const centered = slots['r2-center'].length > 0;
+    const titleCol = !title ? null : titleAlign === 'center' ? 'center' : titleAlign === 'right' ? 'right' : 'left';
+    const titleBox = title ? (
+        <div className="flex items-center gap-2 min-w-0" style={{ flex: '0 1 auto' }} data-title-in-row2="">
+            {title}
+        </div>
+    ) : null;
+    // With a centre item (or the title in the middle) the outer columns are equal, so
+    // the centre is the middle; without one, left and right take what they need and
+    // a lone item is not capped at a third of the row.
+    const centered = slots['r2-center'].length > 0 || titleCol === 'center';
+    const column = (slot: 'r2-left' | 'r2-center' | 'r2-right', justify: string, style?: CSSProperties) => {
+        const list = slots[slot];
+        const here = titleCol === slot.slice(3);
+        const itemsEl = list.length ? (
+            <Slot items={list} slot={slot} className={justify} style={{ flex: '0 1 auto' }} onAction={onAction} />
+        ) : null;
+        if (!here) return <Slot items={list} slot={slot} className={justify} style={style} onAction={onAction} />;
+        return (
+            <div className={`flex items-center gap-2 min-w-0 ${justify}`} style={style}>
+                {slot === 'r2-right' ? itemsEl : titleBox}
+                {slot === 'r2-right' ? titleBox : itemsEl}
+            </div>
+        );
+    };
     return (
         <div
             className="gap-2 min-w-0 w-full"
@@ -218,23 +250,9 @@ export function HeaderRowTwo({ items, onAction }: { items: ResolvedHeaderItem[];
             }
             data-header-row="2"
         >
-            <Slot
-                items={slots['r2-left']}
-                slot="r2-left"
-                className="justify-start"
-                style={{ flex: '0 1 auto' }}
-                onAction={onAction}
-            />
-            {centered && (
-                <Slot items={slots['r2-center']} slot="r2-center" className="justify-center" onAction={onAction} />
-            )}
-            <Slot
-                items={slots['r2-right']}
-                slot="r2-right"
-                className="justify-end"
-                style={{ flex: '0 1 auto' }}
-                onAction={onAction}
-            />
+            {column('r2-left', 'justify-start', { flex: '0 1 auto' })}
+            {centered && column('r2-center', 'justify-center')}
+            {column('r2-right', 'justify-end', { flex: '0 1 auto' })}
         </div>
     );
 }
