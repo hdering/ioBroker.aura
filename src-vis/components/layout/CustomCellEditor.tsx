@@ -22,6 +22,7 @@ import { useIsDarkTheme } from '../../contexts/BrightnessContext';
 import { pickDual } from '../../utils/dualColor';
 import type { EnumJsonKeys } from '../../utils/enumEntriesJson';
 import { ColorPicker } from '../common/ColorPicker';
+import { BarValueFields } from '../config/BarValueFields';
 
 /** Cell option carrying the field-name override for one JSON field (#615). */
 const ENTRY_KEY_OPTION: Record<keyof EnumJsonKeys, string> = {
@@ -2079,7 +2080,7 @@ export function CustomCellEditor({
                     </div>
                     <div className="flex items-center justify-between">
                         <label className="text-[11px]" style={{ color: 'var(--text-secondary)' }}>
-                            Wert im Balken anzeigen
+                            Wert anzeigen
                         </label>
                         <button
                             onClick={() => onChange({ showValue: !cell.showValue })}
@@ -2092,6 +2093,19 @@ export function CustomCellEditor({
                             />
                         </button>
                     </div>
+                    {/* Same block as the fill widget's bar layout (#719, #720). */}
+                    <BarValueFields
+                        showValue={!!cell.showValue}
+                        placement={cell.valuePlacement ?? 'inside'}
+                        fillColor={cell.color || undefined}
+                        fillFallback="var(--accent)"
+                        onFillColor={(v) => onChange({ color: v ?? '' })}
+                        trackColor={cell.trackColor}
+                        trackFallback="var(--app-bg)"
+                        valueFilledColor={cell.valueFilledColor}
+                        valueEmptyColor={cell.valueEmptyColor}
+                        onChange={onChange}
+                    />
                 </div>
             )}
 

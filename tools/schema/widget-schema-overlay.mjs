@@ -321,6 +321,36 @@ export const WIDGET_OPTION_NOTES = {
         statusAlign: { description: 'Ausrichtung des Zustandstexts.' },
     },
     fill: {
+        fillColor: {
+            description:
+                'Grundfarbe der Füllung in allen Layouts (#720). Leer = Akzentfarbe. Farbzonen, Abschnittsfarben ' +
+                'der Grenzen, eine erreichte Grenze und die Warnfarbe malen darüber.',
+        },
+        valuePlacement: {
+            description:
+                'Nur Layout bar: outside (Standard) = Wert neben dem schmalen Balken, inside = Wert im Balken (#719). ' +
+                'Bei inside ist der Balken barSize % der Breite (vertikal) bzw. Höhe (horizontal) breit statt einer ' +
+                'festen Pille — gedacht für schmale Kacheln wie Tintenpatronen. Wirkt nur mit showValue. ' +
+                'Gleiche Einstellung wie valuePlacement der progress-Zelle im universal-Widget.',
+        },
+        trackColor: {
+            description: 'Nur Layout bar: Farbe der ungefüllten Fläche des Balkens (#720). Leer = Seitenhintergrund.',
+        },
+        valueFilledColor: {
+            description:
+                'Nur Layout bar mit valuePlacement inside: Schriftfarbe des Werts über dem gefüllten Teil (#720). ' +
+                'Leer = weiß. Der Wert wechselt die Farbe genau an der Füllkante.',
+        },
+        valueEmptyColor: {
+            description:
+                'Nur Layout bar mit valuePlacement inside: Schriftfarbe des Werts über der ungefüllten Fläche (#720). ' +
+                'Leer = Theme-Textfarbe.',
+        },
+        barSize: {
+            description:
+                'Balkenstärke 10–100. Layout bar mit Wert neben dem Balken: 8–32 px; mit valuePlacement inside: ' +
+                'Prozent der Kachelbreite (vertikal) bzw. -höhe (horizontal). Übrige Layouts: Prozent des Widgets.',
+        },
         limits: {
             description:
                 'Verstellbare Grenzen auf der Skala (#613) — Ladelimit, Entladegrenze, Priorisierungsschwelle. ' +

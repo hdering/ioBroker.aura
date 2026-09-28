@@ -78,6 +78,7 @@ import { defaultLayoutFor, getLayoutOptions, isUnknownLayout } from '../../utils
 import { isInteractiveTarget } from '../../utils/interactiveTargets';
 import { JsonPathButton } from '../config/JsonPathButton';
 import { ColorPicker } from '../common/ColorPicker';
+import { BarValueFields } from '../config/BarValueFields';
 import { useDashboardStore, useActiveSection, useActiveLayout } from '../../store/dashboardStore';
 import { useStoreWithEqualityFn } from 'zustand/traditional';
 import { useGroupDefsStore } from '../../store/groupDefsStore';
@@ -13712,7 +13713,7 @@ function WidgetFrameInner({
                                 return (
                                     <>
                                         {hdr('Anzeige')}
-                                        {(['default', 'battery', 'segments'] as string[]).includes(
+                                        {(['default', 'battery', 'segments', 'bar'] as string[]).includes(
                                             config.layout ?? 'default',
                                         ) && (
                                             <div className="flex items-center justify-between">
@@ -13748,7 +13749,7 @@ function WidgetFrameInner({
                                                 </div>
                                             </div>
                                         )}
-                                        {['default', 'battery', 'segments', 'wave'].includes(
+                                        {['default', 'battery', 'segments', 'wave', 'bar'].includes(
                                             config.layout ?? 'default',
                                         ) && (
                                             <div>
@@ -13823,6 +13824,20 @@ function WidgetFrameInner({
                                                 />
                                             </button>
                                         </div>
+                                        {/* Same block as the Universal widget's progress cell (#719, #720). */}
+                                        <BarValueFields
+                                            fillOnly={config.layout !== 'bar'}
+                                            showValue={(o.showValue as boolean) ?? true}
+                                            placement={o.valuePlacement === 'inside' ? 'inside' : 'outside'}
+                                            fillColor={o.fillColor as string | undefined}
+                                            fillFallback="var(--accent)"
+                                            onFillColor={(v) => set({ fillColor: v })}
+                                            trackColor={o.trackColor as string | undefined}
+                                            trackFallback="var(--app-bg)"
+                                            valueFilledColor={o.valueFilledColor as string | undefined}
+                                            valueEmptyColor={o.valueEmptyColor as string | undefined}
+                                            onChange={(patch) => set({ ...patch })}
+                                        />
 
                                         {hdr('Skala')}
                                         <div className="flex gap-2">

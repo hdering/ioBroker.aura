@@ -18,6 +18,7 @@ import { useT } from '../../i18n';
 import { baseDpId } from '../../utils/dpRef';
 import { cellStateActive } from '../../utils/cellState';
 import { cellBarColor } from '../../utils/cellBarColor';
+import { BarValueLabel, BAR_VALUE_EMPTY_COLOR, BAR_VALUE_FILLED_COLOR } from './BarValueLabel';
 import { useCellConditionStyle, type CellCondResult } from '../../hooks/useCellConditionStyle';
 import { parseEnumEntriesJson } from '../../utils/enumEntriesJson';
 import { EnumCurrent, EnumOptionLabel, type EnumEntry } from './enumEntry';
@@ -1359,6 +1360,55 @@ function ProgressCellView({
         cond,
     );
     if (cond.hide) return <div className={`aura-custom-cell-${index}`} style={wrapSty} />;
+    // Split text colours as soon as one of the two is set (#720). Untouched cells keep
+    // the old single-colour label with its difference blend, so a saved dashboard does
+    // not change its look on update.
+    const splitText = !!(cell.valueFilledColor || cell.valueEmptyColor);
+    const inside = cell.valuePlacement !== 'outside';
+    const trackBg = cell.trackColor || `color-mix(in srgb, ${color} 20%, var(--app-bg))`;
+    const bar = (
+        <div
+            className="relative rounded-2xl overflow-hidden"
+            data-aura-progress-bar=""
+            style={{
+                width: isVertical ? `${barSize}%` : '100%',
+                height: isVertical ? '100%' : `${barSize}%`,
+                background: trackBg,
+            }}
+        >
+            {isVertical ? (
+                <div
+                    className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
+                    style={{ height: `${ratio * 100}%`, background: color, transition: 'height 200ms ease' }}
+                />
+            ) : (
+                <div
+                    className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
+                    style={{ width: `${ratio * 100}%`, background: color, transition: 'width 200ms ease' }}
+                />
+            )}
+            {cell.showValue &&
+                inside &&
+                (splitText ? (
+                    <BarValueLabel
+                        ratio={ratio}
+                        vertical={isVertical}
+                        filledColor={cell.valueFilledColor || BAR_VALUE_FILLED_COLOR}
+                        emptyColor={cell.valueEmptyColor || BAR_VALUE_EMPTY_COLOR}
+                        textStyle={cellTextStyle(cell, '#fff', cond)}
+                    >
+                        <span>{label}</span>
+                    </BarValueLabel>
+                ) : (
+                    <div
+                        className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                        style={{ ...cellTextStyle(cell, '#fff', cond), mixBlendMode: 'difference' }}
+                    >
+                        <span>{label}</span>
+                    </div>
+                ))}
+        </div>
+    );
     return (
         <div className={`aura-custom-cell-${index}`} style={wrapSty}>
             <div
@@ -1366,39 +1416,45 @@ function ProgressCellView({
                     flex: cell.showLastChange ? 1 : undefined,
                     width: '100%',
                     height: cell.showLastChange ? undefined : '100%',
+                    minHeight: 0,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
+                    gap: 6,
                 }}
             >
-                <div
-                    className="relative rounded-2xl overflow-hidden"
-                    style={{
-                        width: isVertical ? `${barSize}%` : '100%',
-                        height: isVertical ? '100%' : `${barSize}%`,
-                        background: `color-mix(in srgb, ${color} 20%, var(--app-bg))`,
-                    }}
-                >
-                    {isVertical ? (
+                {cell.showValue && !inside ? (
+                    <>
+                        {/* Value beside the bar (#719): the bar keeps its share of what is
+                            left once the number has taken its room. */}
                         <div
-                            className="absolute bottom-0 left-0 right-0 rounded-t-2xl"
-                            style={{ height: `${ratio * 100}%`, background: color, transition: 'height 200ms ease' }}
-                        />
-                    ) : (
-                        <div
-                            className="absolute top-0 left-0 bottom-0 rounded-r-2xl"
-                            style={{ width: `${ratio * 100}%`, background: color, transition: 'width 200ms ease' }}
-                        />
-                    )}
-                    {cell.showValue && (
-                        <div
-                            className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                            style={{ ...cellTextStyle(cell, '#fff', cond), mixBlendMode: 'difference' }}
+                            style={{
+                                flex: 1,
+                                // A long label in a narrow cell gives way (ellipsis) before
+                                // the bar vanishes altogether.
+                                minWidth: 12,
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
                         >
-                            <span>{label}</span>
+                            {bar}
                         </div>
-                    )}
-                </div>
+                        <span
+                            data-aura-bar-value="outside"
+                            style={{
+                                ...cellTextStyle(cell, 'var(--text-primary)', cond),
+                                minWidth: 0,
+                                flexShrink: 1,
+                            }}
+                        >
+                            {label}
+                        </span>
+                    </>
+                ) : (
+                    bar
+                )}
             </div>
             {cell.showLastChange && <LastChangeLine lc={state?.lc} fmt={cell.lastChangeFormat ?? 'relative'} />}
         </div>

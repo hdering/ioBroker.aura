@@ -164,6 +164,7 @@
     "test:header-subtitle": "node tools/tests/header-subtitle.mjs",
     "test:fill-limits": "node tools/tests/fill-limits.mjs",
     "test:fill-status": "node tools/tests/fill-status.mjs",
+    "test:bar-value": "node tools/tests/bar-value.mjs",
     "test:fill-status-logic": "node tools/tests/fill-status-logic.mjs",
     "test:knob-touch": "node tools/tests/knob-touch.mjs",
     "test:dp-scale": "node tools/tests/dp-scale.mjs",

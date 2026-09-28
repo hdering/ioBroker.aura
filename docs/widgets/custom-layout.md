@@ -42,6 +42,23 @@ Klick auf eine Zelle öffnet den Zell-Editor (Schriftgröße, Farbe, Ausrichtung
 Die Balkenfarbe von `progress` und `slider` (mit `barStyle`) ist `color`, sonst die Akzentfarbe. Eine zutreffende
 Zell-Bedingung mit `color` färbt den Balken mit — `bg` färbt dagegen die ganze Zelle, nie den Balken.
 
+#### Fortschrittsbalken (`progress`)
+
+Gleiche Einstellungen wie der Balken der [Füllstandsanzeige](./fuellstandsanzeige#bar).
+
+| Feld | Standard | |
+| --- | --- | --- |
+| `showValue` | `false` | Wert anzeigen |
+| `valuePlacement` | `inside` | `inside` (im Balken) · `outside` (neben dem Balken) |
+| `color` | Akzentfarbe | Farbe der Füllung |
+| `trackColor` | Füllfarbe, 20 % | Ungefüllte Fläche |
+| `valueFilledColor` | Weiß | Schrift über der Füllung |
+| `valueEmptyColor` | Textfarbe | Schrift über der ungefüllten Fläche |
+
+Ohne `valueFilledColor`/`valueEmptyColor` bleibt der Wert einfarbig mit Differenz-Mischung wie bisher.
+
+![](./assets/custom-layout/progress-colors.png)
+
 ### Umrechnung & Zeit-Formatierung (`dp`)
 
 Der Button neben dem Datenpunkt-Feld öffnet beide Anzeige-Optionen — der Datenpunkt bleibt unverändert.

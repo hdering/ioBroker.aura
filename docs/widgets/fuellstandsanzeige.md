@@ -22,6 +22,9 @@ Batterie-Silhouette mit Pol-Nub und Füllstands-Markierungen.
 ### Bar
 Flacher Balken mit runden Enden. Für Grenzen, die kein Tank sind (Ladelimit, Entladegrenze).
 `showTicks` zeigt hier Skalenanfang und -ende an den Balkenenden.
+Mit `valuePlacement: inside` steht der Wert im Balken, und der Balken nutzt die frei gewordene Breite.
+
+![](./assets/fuellstandsanzeige/bar-inside.png)
 
 ### Segments
 Zwölf LED-Segmente, die je nach Füllstand aufleuchten.
@@ -56,6 +59,11 @@ Alle Optionen werden im Editor unter **Widget bearbeiten** gesetzt.
 | --- | --- | --- |
 | `orientation` | `vertical` | `vertical` · `horizontal` |
 | `barSize` | `80` | Breite/Höhe des Balkens in % der Zelle (10–100) |
+| `fillColor` | Akzentfarbe | Farbe der Füllung (alle Layouts; Zonen, Grenzen und Warnfarbe malen darüber) |
+| `valuePlacement` | `outside` | Nur Balken: `outside` (neben dem Balken) · `inside` (im Balken, Balken dann `barSize` % breit) |
+| `trackColor` | Hintergrund | Nur Balken: ungefüllte Fläche |
+| `valueFilledColor` | Weiß | Nur Balken mit `inside`: Schrift über der Füllung |
+| `valueEmptyColor` | Textfarbe | Nur Balken mit `inside`: Schrift über der ungefüllten Fläche |
 
 ### Skala
 

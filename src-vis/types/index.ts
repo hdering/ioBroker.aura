@@ -350,7 +350,11 @@ export interface CustomCell {
     clearAfterSubmit?: boolean; // 'input' cell: command field — clear the field after sending and never show the DP value
     inputUnit?: string; // 'input' cell: unit rendered right of the field (issue #622); empty = none. Named apart from the 'unit' cell type, which prints the widget's own unit.
     // 'progress' type
-    showValue?: boolean; // 'progress' cell: overlay current value/percentage on top of bar
+    showValue?: boolean; // 'progress' cell: print the current value (in the bar or beside it, see valuePlacement)
+    valuePlacement?: 'inside' | 'outside'; // 'progress' cell: value over the bar ('inside', default) or beside it, leaving the bar the rest of the cell ('outside')
+    trackColor?: string; // 'progress' cell: colour of the unfilled part of the bar (default: the fill colour at 20 % over the background); the fill itself is `color`
+    valueFilledColor?: string; // 'progress' cell: text colour of the value where it lies over the filled part (inside placement; default white). Setting this or valueEmptyColor replaces the single blended text colour
+    valueEmptyColor?: string; // 'progress' cell: text colour of the value where it lies over the unfilled part (inside placement; default the theme text colour)
     // 'state-text' type — reuses trueColor/falseColor + color/text styling
     trueText?: string; // 'state-text' cell / 'switch' cell (button mode): label rendered for truthy value
     falseText?: string; // 'state-text' cell / 'switch' cell (button mode): label rendered for falsy value

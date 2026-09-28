@@ -7,6 +7,7 @@ import type { WidgetProps } from '../../types';
 import { CustomGridView } from './CustomGridView';
 import { FillLimits } from './FillLimits';
 import { FillStatusLayer } from './FillStatus';
+import { BarValueLabel, BAR_VALUE_EMPTY_COLOR, BAR_VALUE_FILLED_COLOR, type BarValuePlacement } from './BarValueLabel';
 import { resolveFillStatus, type FillCondition, type FillChargeEffect } from '../../utils/fillStatus';
 import { useGlobalSettingsStore } from '../../store/globalSettingsStore';
 import { formatNum, type NumberFormat } from '../../utils/formatValue';
@@ -1141,6 +1142,10 @@ function BarViz({
     barSize,
     barRef,
     solid,
+    placement,
+    trackColor,
+    valueFilledColor,
+    valueEmptyColor,
 }: Pick<
     TankProps,
     | 'pct'
@@ -1159,8 +1164,17 @@ function BarViz({
     orientation: Orientation;
     barSize: number;
     barRef: RefObject<HTMLDivElement>;
+    placement: BarValuePlacement;
+    trackColor?: string;
+    valueFilledColor?: string;
+    valueEmptyColor?: string;
 }) {
     const vertical = orientation === 'vertical';
+    // Value over the bar (#719): the number no longer needs room beside the bar, so the
+    // bar takes barSize % of the cross axis instead of a fixed pill — that is the whole
+    // point for a row of narrow ink cartridges. A floor keeps the digits inside it.
+    const inside = showValue && placement === 'inside';
+    const insideShare = `${Math.max(10, Math.min(100, barSize))}%`;
     // barSize keeps its meaning ("how chunky is the bar") but maps to px here: a
     // percentage of the cell would collapse the bar to a hairline in a short widget,
     // which is where this layout is most likely to sit.
@@ -1187,10 +1201,16 @@ function BarViz({
             style={{
                 position: 'relative',
                 overflow: 'hidden',
-                borderRadius: thickness / 2,
-                background: 'var(--app-bg)',
+                borderRadius: inside ? 12 : thickness / 2,
+                background: trackColor || 'var(--app-bg)',
                 border: '1px solid var(--app-border)',
-                ...(vertical ? { width: thickness, height: '100%' } : { height: thickness, width: '100%' }),
+                ...(inside
+                    ? vertical
+                        ? { width: insideShare, minWidth: 28, height: '100%' }
+                        : { height: insideShare, minHeight: 20, width: '100%' }
+                    : vertical
+                      ? { width: thickness, height: '100%' }
+                      : { height: thickness, width: '100%' }),
             }}
         >
             {bandSegs &&
@@ -1206,32 +1226,71 @@ function BarViz({
                 />
             ))}
             {!bandSegs && pct > 0 && <div data-aura-fill-level="" style={seg(0, pct / 100, fillColor)} />}
+            {inside && (
+                <BarValueLabel
+                    ratio={pct / 100}
+                    vertical={vertical}
+                    filledColor={valueFilledColor || BAR_VALUE_FILLED_COLOR}
+                    emptyColor={valueEmptyColor || BAR_VALUE_EMPTY_COLOR}
+                    textStyle={{ fontSize: 12, fontWeight: 700 }}
+                >
+                    <span>
+                        {displayVal}
+                        {unit && (
+                            <span style={{ fontSize: 10, fontWeight: 400, marginLeft: 2, opacity: 0.85 }}>{unit}</span>
+                        )}
+                    </span>
+                </BarValueLabel>
+            )}
         </div>
     );
 
-    const valueEl = showValue ? (
-        <span className="text-xs font-bold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
-            {displayVal}
-            {unit && (
-                <span className="text-[10px] font-normal ml-0.5" style={{ color: 'var(--text-secondary)' }}>
-                    {unit}
-                </span>
-            )}
-        </span>
-    ) : null;
+    const valueEl =
+        showValue && !inside ? (
+            <span className="text-xs font-bold whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                {displayVal}
+                {unit && (
+                    <span className="text-[10px] font-normal ml-0.5" style={{ color: 'var(--text-secondary)' }}>
+                        {unit}
+                    </span>
+                )}
+            </span>
+        ) : null;
+
+    const ticksV = showTicks && (
+        <div
+            className="flex flex-col justify-between text-[9px] shrink-0"
+            style={{ color: 'var(--text-secondary)', opacity: 0.75 }}
+        >
+            <span>{endLabel(max)}</span>
+            <span>{endLabel(min)}</span>
+        </div>
+    );
+    const ticksH = showTicks && (
+        <div className="flex justify-between text-[9px]" style={{ color: 'var(--text-secondary)', opacity: 0.75 }}>
+            <span>{endLabel(min)}</span>
+            <span>{endLabel(max)}</span>
+        </div>
+    );
+
+    if (inside) {
+        return vertical ? (
+            <div className="h-full w-full flex items-stretch justify-center gap-1.5">
+                {ticksV}
+                <div className="flex-1 min-w-0 flex justify-center">{bar}</div>
+            </div>
+        ) : (
+            <div className="h-full w-full flex flex-col justify-center gap-1">
+                <div className="flex-1 min-h-0 flex items-center">{bar}</div>
+                {ticksH}
+            </div>
+        );
+    }
 
     if (vertical) {
         return (
             <div className="h-full flex items-stretch justify-center gap-1.5">
-                {showTicks && (
-                    <div
-                        className="flex flex-col justify-between text-[9px] shrink-0"
-                        style={{ color: 'var(--text-secondary)', opacity: 0.75 }}
-                    >
-                        <span>{endLabel(max)}</span>
-                        <span>{endLabel(min)}</span>
-                    </div>
-                )}
+                {ticksV}
                 <div className="shrink-0">{bar}</div>
                 {valueEl && <div className="flex items-center shrink-0">{valueEl}</div>}
             </div>
@@ -1244,15 +1303,7 @@ function BarViz({
                 <div className="flex-1 min-w-0">{bar}</div>
                 {valueEl}
             </div>
-            {showTicks && (
-                <div
-                    className="flex justify-between text-[9px]"
-                    style={{ color: 'var(--text-secondary)', opacity: 0.75 }}
-                >
-                    <span>{endLabel(min)}</span>
-                    <span>{endLabel(max)}</span>
-                </div>
-            )}
+            {ticksH}
         </div>
     );
 }
@@ -1374,7 +1425,9 @@ export function FillWidget({ config }: WidgetProps) {
     const bandsActive = bands.some((b) => b.color);
 
     // Determine fill color
-    let fillColor = 'var(--accent)';
+    // Own base colour (#720) before the theme accent; zones, limits and the warning
+    // colour still paint over it below.
+    let fillColor = (opts.fillColor as string) || 'var(--accent)';
     // Once a section has its own colour, the sections own the colouring - a section
     // WITHOUT one falls back to `fillColor`, and taking that out of the zones would
     // smuggle a zone colour back into a bar that is no longer drawing zones.
@@ -1593,6 +1646,7 @@ export function FillWidget({ config }: WidgetProps) {
     }
 
     if (layout === 'bar') {
+        const barPlacement: BarValuePlacement = opts.valuePlacement === 'inside' ? 'inside' : 'outside';
         return (
             <div className="flex flex-col h-full">
                 <HeaderGroup>
@@ -1628,7 +1682,15 @@ export function FillWidget({ config }: WidgetProps) {
                     }`}
                     style={{ position: 'relative' }}
                 >
-                    <div style={orientation === 'vertical' ? { height: '100%' } : { width: '100%' }}>
+                    <div
+                        style={
+                            showValue && barPlacement === 'inside'
+                                ? { height: '100%', width: '100%' }
+                                : orientation === 'vertical'
+                                  ? { height: '100%' }
+                                  : { width: '100%' }
+                        }
+                    >
                         <BarViz
                             pct={pct}
                             min={min}
@@ -1645,6 +1707,10 @@ export function FillWidget({ config }: WidgetProps) {
                             barSize={barSize}
                             barRef={barRef}
                             solid={solid}
+                            placement={barPlacement}
+                            trackColor={opts.trackColor as string | undefined}
+                            valueFilledColor={opts.valueFilledColor as string | undefined}
+                            valueEmptyColor={opts.valueEmptyColor as string | undefined}
                         />
                     </div>
                     {limitsLayerFor(barRef)}
