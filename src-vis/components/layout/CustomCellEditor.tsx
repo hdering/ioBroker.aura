@@ -510,6 +510,13 @@ const inputSty: React.CSSProperties = {
     border: '1px solid var(--app-border)',
 };
 
+/** What a switch / state-icon cell draws when no colour is stored — the pickers
+ *  show exactly this, so an untouched field does not look set (#716). Keep in
+ *  step with CustomGridView. */
+const SWITCH_TRUE_DEFAULT = 'var(--accent-green)';
+const STATE_ICON_TRUE_DEFAULT = 'var(--accent)';
+const STATE_FALSE_DEFAULT = 'var(--text-secondary)';
+
 /** Shared active-state detection editor: boolean coercion vs. an operator/value comparison.
  *  Used by 'state-icon' (#467) and by 'switch' / 'state-text' (#567). */
 function StateEvalRow({ cell, onChange }: { cell: CustomCell; onChange: (patch: Partial<CustomCell>) => void }) {
@@ -1188,8 +1195,10 @@ export function CustomCellEditor({
                     const FalsePrev = cell.falseIcon
                         ? getWidgetIcon(cell.falseIcon, (() => null) as unknown as LucideIcon)
                         : null;
-                    const trueCol = preview(cell.trueColor, '#22c55e');
-                    const falseCol = preview(cell.falseColor, '#6b7280');
+                    // Same fallbacks as the cell itself (CustomGridView) — a picker that
+                    // showed green while the cell drew something else read as "set" (#716).
+                    const trueCol = preview(cell.trueColor || cell.color, SWITCH_TRUE_DEFAULT);
+                    const falseCol = preview(cell.falseColor, STATE_FALSE_DEFAULT);
                     const pickBtn = (
                         slot: 'trueIcon' | 'falseIcon',
                         Preview: LucideIcon | null,
@@ -1287,7 +1296,7 @@ export function CustomCellEditor({
                                                 // picker takes a theme colour and a
                                                 // light/dark pair, and a stripped value
                                                 // would be written back over the pair (#689).
-                                                value={cell.trueColor || '#22c55e'}
+                                                value={cell.trueColor || cell.color || SWITCH_TRUE_DEFAULT}
                                                 onChange={(v) => onChange({ trueColor: v })}
                                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                             />
@@ -1300,7 +1309,7 @@ export function CustomCellEditor({
                                                 Farbe AUS
                                             </label>
                                             <ColorPicker
-                                                value={cell.falseColor || '#6b7280'}
+                                                value={cell.falseColor || STATE_FALSE_DEFAULT}
                                                 onChange={(v) => onChange({ falseColor: v })}
                                                 className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                             />
@@ -1897,8 +1906,9 @@ export function CustomCellEditor({
                     const FalsePrev = cell.falseIcon
                         ? getWidgetIcon(cell.falseIcon, (() => null) as unknown as LucideIcon)
                         : null;
-                    const trueCol = cell.trueColor || '#22c55e';
-                    const falseCol = cell.falseColor || '#64748b';
+                    // Same fallbacks as StateIconCellView — see the switch above (#716).
+                    const trueCol = preview(cell.trueColor || cell.color, STATE_ICON_TRUE_DEFAULT);
+                    const falseCol = preview(cell.falseColor || cell.color, STATE_FALSE_DEFAULT);
                     const pickBtn = (
                         slot: 'trueIcon' | 'falseIcon',
                         Preview: LucideIcon | null,
@@ -1961,7 +1971,7 @@ export function CustomCellEditor({
                                         Farbe an
                                     </label>
                                     <ColorPicker
-                                        value={cell.trueColor || '#22c55e'}
+                                        value={cell.trueColor || cell.color || STATE_ICON_TRUE_DEFAULT}
                                         onChange={(v) => onChange({ trueColor: v })}
                                         className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                     />
@@ -1974,7 +1984,7 @@ export function CustomCellEditor({
                                         Farbe aus
                                     </label>
                                     <ColorPicker
-                                        value={cell.falseColor || '#64748b'}
+                                        value={cell.falseColor || cell.color || STATE_FALSE_DEFAULT}
                                         onChange={(v) => onChange({ falseColor: v })}
                                         className="w-full h-7 rounded cursor-pointer border-0 p-0"
                                     />
