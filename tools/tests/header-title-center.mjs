@@ -444,8 +444,23 @@ for (const [type, opts] of [
 
     // Darstellung only switches title and icon on/off; the position lives in the dialog.
     check('Darstellung: no alignment buttons any more', (await dlg.locator('button:text-is("Mitte")').count()) === 0);
-    const posLink = dlg.locator('[data-header-position-open]');
-    check('Darstellung: link to the header position', (await posLink.count()) === 1);
+    // Icon | Titel side by side in one framed group, picker and size in the icon column,
+    // the header dialog right below with the hint that title and icon are placed there.
+    const group = dlg.locator('[data-head-group]');
+    check('Darstellung: icon, title and header in one group', (await group.count()) === 1);
+    check(
+        'Darstellung: picker and size sit in the icon column',
+        (await group.locator('[data-icon-col] [data-icon-pick]').count()) === 1 &&
+            (await group.locator('[data-icon-col] [data-icon-size]').count()) === 1,
+    );
+    check(
+        'Darstellung: the header row says where title and icon are placed',
+        (await group.locator('[data-header-position-hint]').count()) === 1,
+    );
+    const pickBox = await group.locator('[data-icon-pick]').boundingBox();
+    check('Darstellung: the icon picker is a small button', pickBox && pickBox.width <= 32, JSON.stringify(pickBox));
+    if (process.env.SHOTS) await dlg.screenshot({ path: `${process.env.SHOTS}/darstellung.png` });
+    const posLink = group.locator('[data-header-items-open]');
     await posLink.click();
     await editor.waitFor({ timeout: 5000 });
 
@@ -562,10 +577,25 @@ for (const [type, opts] of [
     o = await opts();
     check('editor: right of the title brings it back to row 1', o?.headerItems?.[0]?.slot === 'r1-center');
 
-    // A hidden title stays in the map, greyed out.
+    // Darstellung's reset: back to the defaults, the header items stay.
     await page.keyboard.press('Escape');
     await page.waitForTimeout(300);
-    if (process.env.SHOTS) await editor.screenshot({ path: `${process.env.SHOTS}/editor.png` }).catch(() => {});
+    const reset = dlg.locator('[data-display-reset]');
+    check('Darstellung: reset shown after a change', (await reset.count()) === 1);
+    await reset.click();
+    await page.waitForTimeout(300);
+    o = await opts();
+    check(
+        'Darstellung: reset clears the display options',
+        o?.titleAlign === undefined && o?.iconPlace === undefined && o?.titleRow === undefined,
+        JSON.stringify({ a: o?.titleAlign, p: o?.iconPlace, r: o?.titleRow }),
+    );
+    check(
+        'Darstellung: reset keeps the header items',
+        (o?.headerItems ?? []).length === 1,
+        JSON.stringify(o?.headerItems),
+    );
+    check('Darstellung: reset button gone again', (await reset.count()) === 0);
     await page.keyboard.press('Escape');
     await page.evaluate(() => window.__auraShot.setEditMode(false));
 }
@@ -598,7 +628,7 @@ for (const [type, opts] of [
     await dlg.waitFor({ timeout: 10000 });
     await dlg.locator('summary:has(span:text-is("Darstellung"))').first().click();
     await page.waitForTimeout(300);
-    await dlg.locator('[data-header-position-open]').click();
+    await dlg.locator('[data-header-items-open]').click();
     const editor = page.locator('[data-header-items-editor]');
     await editor.waitFor({ timeout: 5000 });
     check(

@@ -1202,7 +1202,7 @@ export const de = {
     'wf.edit.group.mobileKeepGridHint':
         'Standardmäßig werden Widgets auf dem Smartphone untereinander gestapelt. Aktiviert bleibt die nebeneinander-Anordnung wie in der normalen Ansicht erhalten, nur verkleinert.',
     'wf.edit.position': 'Position',
-    'wf.edit.placeInHeader': 'Position in der Kopfzeile festlegen',
+    'wf.edit.placeInHeaderHint': 'Position von Titel und Icon sowie zusätzliche Werte',
     'wf.edit.iconPlace.lead': 'Links',
     'wf.edit.iconPlace.beforeTitle': 'Vor Titel',
     'wf.edit.iconPlace.afterTitle': 'Hinter Titel',

@@ -6417,6 +6417,32 @@ function inFilledTile(el: HTMLElement, host: HTMLElement): boolean {
     return false;
 }
 
+/** Options the Darstellung panel sets — its reset button clears them (headerItems stay). */
+const DISPLAY_OPTION_KEYS = [
+    'showTitle',
+    'showIcon',
+    'icon',
+    'iconSize',
+    'titleAlign',
+    'iconPlace',
+    'titleRow',
+    'textLines',
+    'transparent',
+    'transparency',
+    'defaultCollapsed',
+    'collapseInEditor',
+    'collapsePosition',
+    'clickActionIcon',
+    'clickActionIconName',
+    'clickActionIconPosition',
+    'fullscreenWidget',
+    'fullscreenScreen',
+    'fullscreenPosition',
+    'showLastChange',
+    'lastChangePosition',
+    'lastChangeDatapoint',
+] as const;
+
 function WidgetFrameInner({
     config,
     editMode,
@@ -8873,9 +8899,10 @@ function WidgetFrameInner({
                         const collapsedOn = o.defaultCollapsed === true;
                         const collapseEditorOn = o.collapseInEditor === true;
                         const currentIconName = o.icon as string | undefined;
+                        // Without an own icon the button shows the type's default one.
                         const CurrentIcon = currentIconName
                             ? getWidgetIcon(currentIconName, (() => null) as unknown as LucideIcon)
-                            : null;
+                            : (WIDGET_BY_TYPE[config.type as WidgetType]?.Icon ?? null);
                         const displayIconSize = draftIconSize ?? ((o.iconSize as number) || 20);
                         return (
                             <details
@@ -8892,164 +8919,291 @@ function WidgetFrameInner({
                                     >
                                         Darstellung
                                     </span>
-                                    <ChevronDown
-                                        size={13}
-                                        className="transition-transform group-open:rotate-180"
-                                        style={{ color: 'var(--text-secondary)' }}
-                                    />
+                                    <div className="flex items-center gap-2">
+                                        {/* Like Erweitert: back to the type's defaults. The header
+                                            items themselves stay — they are content, not looks. */}
+                                        {DISPLAY_OPTION_KEYS.some((k) => o[k] !== undefined) && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    const rest = { ...o };
+                                                    for (const k of DISPLAY_OPTION_KEYS) delete rest[k];
+                                                    onConfigChange({ ...config, options: rest });
+                                                }}
+                                                className="text-[10px] hover:opacity-70"
+                                                style={{ color: 'var(--text-secondary)' }}
+                                                data-display-reset=""
+                                            >
+                                                {t('wf.edit.styleReset')}
+                                            </button>
+                                        )}
+                                        <ChevronDown
+                                            size={13}
+                                            className="transition-transform group-open:rotate-180"
+                                            style={{ color: 'var(--text-secondary)' }}
+                                        />
+                                    </div>
                                 </summary>
                                 <div className="mt-2.5 space-y-2.5">
-                                    {config.type !== 'mediaplayer' && config.type !== 'mirror' && (
-                                        <div className="flex items-center justify-between gap-2">
-                                            <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                                Titel
-                                            </span>
-                                            <div className="flex items-center gap-2">
+                                    {/* Icon, Titel, the icon's picker/size and the header dialog belong
+                                        together (#676): one framed group, lines between the rows. */}
+                                    <div
+                                        className="rounded-lg px-2.5 py-2 space-y-2"
+                                        style={{ border: '1px solid var(--app-border)' }}
+                                        data-head-group=""
+                                    >
+                                        {/* Icon | Titel side by side, the icon's picker and size below —
+                                        where they sit is set in the header dialog right after (#676). */}
+                                        {(() => {
+                                            const iconAllowed =
+                                                config.type !== 'stateimage' && config.type !== 'mirror';
+                                            const titleAllowed =
+                                                config.type !== 'mediaplayer' && config.type !== 'mirror';
+                                            if (!iconAllowed && !titleAllowed) return null;
+                                            const toggle = (on: boolean, flip: () => void, attr: string) => (
                                                 <button
-                                                    onClick={() => setO({ showTitle: !titleOn })}
+                                                    onClick={flip}
                                                     className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background: titleOn ? 'var(--accent)' : 'var(--app-border)',
-                                                    }}
+                                                    style={{ background: on ? 'var(--accent)' : 'var(--app-border)' }}
+                                                    data-display-toggle={attr}
                                                 >
                                                     <span
                                                         className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: titleOn ? '14px' : '2px' }}
+                                                        style={{ left: on ? '14px' : '2px' }}
                                                     />
                                                 </button>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {config.type !== 'stateimage' && config.type !== 'mirror' && (
-                                        <>
-                                            <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[11px]" style={{ color: 'var(--text-primary)' }}>
-                                                    Icon
-                                                </span>
-                                                <button
-                                                    onClick={() => setO({ showIcon: !iconOn })}
-                                                    className="relative w-7 h-4 rounded-full transition-colors shrink-0"
-                                                    style={{
-                                                        background: iconOn ? 'var(--accent)' : 'var(--app-border)',
-                                                    }}
-                                                >
-                                                    <span
-                                                        className="absolute top-0.5 w-3 h-3 bg-white rounded-full shadow transition-transform"
-                                                        style={{ left: iconOn ? '14px' : '2px' }}
-                                                    />
-                                                </button>
-                                            </div>
-                                            {(titleOn || iconOn) && (
-                                                // Title and icon are placed in the header dialog (#676);
-                                                // here they are only switched on and off.
-                                                <button
-                                                    onClick={() => setHeaderEditorOpen(true)}
-                                                    className="text-[10px] hover:underline text-left"
-                                                    style={{ color: 'var(--accent)' }}
-                                                    data-header-position-open=""
-                                                >
-                                                    {t('wf.edit.placeInHeader')} ›
-                                                </button>
-                                            )}
-                                            {iconOn && (
+                                            );
+                                            return (
                                                 <>
-                                                    {config.type !== 'windowcontact' && (
-                                                        <>
+                                                    <div className="grid grid-cols-2 gap-x-4" data-head-toggles="">
+                                                        {iconAllowed ? (
+                                                            <div className="space-y-2 min-w-0" data-icon-col="">
+                                                                <div className="flex items-center justify-between gap-2">
+                                                                    <span
+                                                                        className="text-[11px]"
+                                                                        style={{ color: 'var(--text-primary)' }}
+                                                                    >
+                                                                        Icon
+                                                                    </span>
+                                                                    {toggle(
+                                                                        iconOn,
+                                                                        () => setO({ showIcon: !iconOn }),
+                                                                        'icon',
+                                                                    )}
+                                                                </div>
+                                                                {iconAllowed && iconOn && (
+                                                                    <div
+                                                                        className="flex items-center gap-2"
+                                                                        data-icon-row=""
+                                                                    >
+                                                                        {config.type !== 'windowcontact' && (
+                                                                            <>
+                                                                                <button
+                                                                                    onClick={() =>
+                                                                                        setIconPickerOpen(true)
+                                                                                    }
+                                                                                    className="w-7 h-7 shrink-0 flex items-center justify-center rounded-lg transition-colors hover:opacity-80"
+                                                                                    style={{
+                                                                                        background: 'var(--app-bg)',
+                                                                                        border: '1px solid var(--app-border)',
+                                                                                        color: 'var(--text-primary)',
+                                                                                    }}
+                                                                                    title={
+                                                                                        currentIconName ??
+                                                                                        'Icon auswählen…'
+                                                                                    }
+                                                                                    aria-label="Icon auswählen"
+                                                                                    data-icon-pick=""
+                                                                                >
+                                                                                    {CurrentIcon ? (
+                                                                                        <CurrentIcon size={15} />
+                                                                                    ) : (
+                                                                                        <span
+                                                                                            className="text-[10px]"
+                                                                                            style={{
+                                                                                                color: 'var(--text-secondary)',
+                                                                                            }}
+                                                                                        >
+                                                                                            …
+                                                                                        </span>
+                                                                                    )}
+                                                                                </button>
+                                                                                {iconPickerOpen && (
+                                                                                    <IconPickerModal
+                                                                                        current={currentIconName ?? ''}
+                                                                                        onSelect={(name) =>
+                                                                                            onConfigChange({
+                                                                                                ...config,
+                                                                                                options: {
+                                                                                                    ...o,
+                                                                                                    icon:
+                                                                                                        name ||
+                                                                                                        undefined,
+                                                                                                },
+                                                                                            })
+                                                                                        }
+                                                                                        onClose={() =>
+                                                                                            setIconPickerOpen(false)
+                                                                                        }
+                                                                                    />
+                                                                                )}
+                                                                            </>
+                                                                        )}
+                                                                        <label
+                                                                            className="flex items-center gap-2 flex-1 min-w-0"
+                                                                            title="Icon-Größe"
+                                                                            data-icon-size=""
+                                                                        >
+                                                                            <span
+                                                                                className="text-[10px] shrink-0"
+                                                                                style={{
+                                                                                    color: 'var(--text-secondary)',
+                                                                                }}
+                                                                            >
+                                                                                Größe
+                                                                            </span>
+                                                                            <input
+                                                                                type="range"
+                                                                                min={12}
+                                                                                max={256}
+                                                                                step={4}
+                                                                                value={displayIconSize}
+                                                                                onChange={(e) =>
+                                                                                    setDraftIconSize(
+                                                                                        Number(e.target.value),
+                                                                                    )
+                                                                                }
+                                                                                onPointerUp={(e) => {
+                                                                                    onConfigChange({
+                                                                                        ...config,
+                                                                                        options: {
+                                                                                            ...o,
+                                                                                            iconSize: Number(
+                                                                                                (
+                                                                                                    e.target as HTMLInputElement
+                                                                                                ).value,
+                                                                                            ),
+                                                                                        },
+                                                                                    });
+                                                                                    setDraftIconSize(null);
+                                                                                }}
+                                                                                className="h-1 flex-1 min-w-0"
+                                                                                style={{ accentColor: 'var(--accent)' }}
+                                                                            />
+                                                                            <span
+                                                                                className="text-[10px] tabular-nums w-10 text-right shrink-0"
+                                                                                style={{ color: 'var(--text-primary)' }}
+                                                                            >
+                                                                                {displayIconSize} px
+                                                                            </span>
+                                                                        </label>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <span />
+                                                        )}
+                                                        {titleAllowed && (
+                                                            <div
+                                                                className="flex items-start justify-between gap-2 pl-4"
+                                                                style={{ borderLeft: '1px solid var(--app-border)' }}
+                                                                data-title-col=""
+                                                            >
+                                                                <span
+                                                                    className="text-[11px]"
+                                                                    style={{ color: 'var(--text-primary)' }}
+                                                                >
+                                                                    Titel
+                                                                </span>
+                                                                {toggle(
+                                                                    titleOn,
+                                                                    () => setO({ showTitle: !titleOn }),
+                                                                    'title',
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            );
+                                        })()}
+                                        {/* Header items (issue #676): extra values in the header row.
+                                        The editor is too large for this panel, so it opens as
+                                        its own popup. */}
+                                        {config.type !== 'mirror' &&
+                                            (() => {
+                                                const hdrCount = headerItems(o).length;
+                                                return (
+                                                    <>
+                                                        <div
+                                                            className="h-px"
+                                                            style={{ background: 'var(--app-border)' }}
+                                                        />
+                                                        <div className="flex items-center justify-between gap-2">
+                                                            <div className="min-w-0">
+                                                                <label
+                                                                    className="text-[11px]"
+                                                                    style={{ color: 'var(--text-secondary)' }}
+                                                                >
+                                                                    {t('hdr.title')}
+                                                                </label>
+                                                                {/* Title and icon are only switched on and off above;
+                                                                where they sit is set in this dialog. */}
+                                                                <p
+                                                                    className="text-[10px] mt-0.5"
+                                                                    style={{
+                                                                        color: 'var(--text-secondary)',
+                                                                        opacity: 0.7,
+                                                                    }}
+                                                                    data-header-position-hint=""
+                                                                >
+                                                                    {t('wf.edit.placeInHeaderHint')}
+                                                                </p>
+                                                            </div>
                                                             <button
-                                                                onClick={() => setIconPickerOpen(true)}
-                                                                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors w-full text-left"
+                                                                onClick={() => setHeaderEditorOpen(true)}
+                                                                className="text-[11px] px-2.5 py-1 rounded-lg hover:opacity-80"
                                                                 style={{
                                                                     background: 'var(--app-bg)',
                                                                     border: '1px solid var(--app-border)',
                                                                     color: 'var(--text-primary)',
                                                                 }}
+                                                                data-header-items-open=""
                                                             >
-                                                                {CurrentIcon ? (
-                                                                    <CurrentIcon size={14} style={{ flexShrink: 0 }} />
-                                                                ) : (
-                                                                    <span
-                                                                        style={{
-                                                                            width: 14,
-                                                                            height: 14,
-                                                                            display: 'inline-block',
-                                                                            flexShrink: 0,
-                                                                        }}
-                                                                    />
-                                                                )}
-                                                                <span
-                                                                    className="flex-1 truncate"
-                                                                    style={{
-                                                                        color: currentIconName
-                                                                            ? 'var(--text-primary)'
-                                                                            : 'var(--text-secondary)',
-                                                                    }}
-                                                                >
-                                                                    {currentIconName ?? 'Icon auswählen…'}
-                                                                </span>
-                                                                <span
-                                                                    className="text-[10px]"
-                                                                    style={{ color: 'var(--text-secondary)' }}
-                                                                >
-                                                                    ›
-                                                                </span>
+                                                                {hdrCount
+                                                                    ? t('hdr.editCount', { n: String(hdrCount) })
+                                                                    : t('hdr.editEmpty')}
                                                             </button>
-                                                            {iconPickerOpen && (
-                                                                <IconPickerModal
-                                                                    current={currentIconName ?? ''}
-                                                                    onSelect={(name) =>
-                                                                        onConfigChange({
-                                                                            ...config,
-                                                                            options: { ...o, icon: name || undefined },
+                                                        </div>
+                                                        {headerEditorOpen && (
+                                                            <CenteredModal
+                                                                title={t('hdr.title')}
+                                                                onClose={() => setHeaderEditorOpen(false)}
+                                                                wide
+                                                            >
+                                                                <HeaderItemsEditor
+                                                                    items={headerItems(o)}
+                                                                    config={config}
+                                                                    hasClickAction={hasClickAction}
+                                                                    // Expanded without a TitleRow (fixed layouts) the widget
+                                                                    // keeps its symbol where it is — only the folded header
+                                                                    // follows iconPlace. A folded card has no body to ask.
+                                                                    iconFixed={!isCollapsed && hdrRows.r1 === 0}
+                                                                    defaultIcon={
+                                                                        WIDGET_BY_TYPE[config.type as WidgetType]?.Icon
+                                                                    }
+                                                                    onLayoutChange={(patch) => setO({ ...patch })}
+                                                                    onChange={(next) =>
+                                                                        setO({
+                                                                            headerItems: next.length ? next : undefined,
                                                                         })
                                                                     }
-                                                                    onClose={() => setIconPickerOpen(false)}
                                                                 />
-                                                            )}
-                                                        </>
-                                                    )}
-                                                    <div>
-                                                        <div className="flex items-center justify-between mb-1">
-                                                            <label
-                                                                className="text-[11px]"
-                                                                style={{ color: 'var(--text-secondary)' }}
-                                                            >
-                                                                Icon-Größe
-                                                            </label>
-                                                            <span
-                                                                className="text-[11px] tabular-nums"
-                                                                style={{ color: 'var(--text-primary)' }}
-                                                            >
-                                                                {displayIconSize} px
-                                                            </span>
-                                                        </div>
-                                                        <input
-                                                            type="range"
-                                                            min={12}
-                                                            max={256}
-                                                            step={4}
-                                                            value={displayIconSize}
-                                                            onChange={(e) => setDraftIconSize(Number(e.target.value))}
-                                                            onPointerUp={(e) => {
-                                                                onConfigChange({
-                                                                    ...config,
-                                                                    options: {
-                                                                        ...o,
-                                                                        iconSize: Number(
-                                                                            (e.target as HTMLInputElement).value,
-                                                                        ),
-                                                                    },
-                                                                });
-                                                                setDraftIconSize(null);
-                                                            }}
-                                                            className="w-full h-1"
-                                                            style={{ accentColor: 'var(--accent)' }}
-                                                        />
-                                                    </div>
-                                                </>
-                                            )}
-                                        </>
-                                    )}
+                                                            </CenteredModal>
+                                                        )}
+                                                    </>
+                                                );
+                                            })()}
+                                    </div>
                                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                     {/* Textumbruch (#653) — one universal option instead of a
                                         wrap toggle per widget type; the .aura-textwrap rule in
@@ -9090,66 +9244,6 @@ function WidgetFrameInner({
                                             Zeilen. Das Widget braucht dafür die Höhe.
                                         </p>
                                     </div>
-                                    {/* Header items (issue #676): extra values in the header row.
-                                        The editor is too large for this panel, so it opens as
-                                        its own popup. */}
-                                    {config.type !== 'mirror' &&
-                                        (() => {
-                                            const hdrCount = headerItems(o).length;
-                                            return (
-                                                <>
-                                                    <div className="h-px" style={{ background: 'var(--app-border)' }} />
-                                                    <div className="flex items-center justify-between gap-2">
-                                                        <label
-                                                            className="text-[11px]"
-                                                            style={{ color: 'var(--text-secondary)' }}
-                                                        >
-                                                            {t('hdr.title')}
-                                                        </label>
-                                                        <button
-                                                            onClick={() => setHeaderEditorOpen(true)}
-                                                            className="text-[11px] px-2.5 py-1 rounded-lg hover:opacity-80"
-                                                            style={{
-                                                                background: 'var(--app-bg)',
-                                                                border: '1px solid var(--app-border)',
-                                                                color: 'var(--text-primary)',
-                                                            }}
-                                                            data-header-items-open=""
-                                                        >
-                                                            {hdrCount
-                                                                ? t('hdr.editCount', { n: String(hdrCount) })
-                                                                : t('hdr.editEmpty')}
-                                                        </button>
-                                                    </div>
-                                                    {headerEditorOpen && (
-                                                        <CenteredModal
-                                                            title={t('hdr.title')}
-                                                            onClose={() => setHeaderEditorOpen(false)}
-                                                            wide
-                                                        >
-                                                            <HeaderItemsEditor
-                                                                items={headerItems(o)}
-                                                                config={config}
-                                                                hasClickAction={hasClickAction}
-                                                                // Expanded without a TitleRow (fixed layouts) the widget
-                                                                // keeps its symbol where it is — only the folded header
-                                                                // follows iconPlace. A folded card has no body to ask.
-                                                                iconFixed={!isCollapsed && hdrRows.r1 === 0}
-                                                                defaultIcon={
-                                                                    WIDGET_BY_TYPE[config.type as WidgetType]?.Icon
-                                                                }
-                                                                onLayoutChange={(patch) => setO({ ...patch })}
-                                                                onChange={(next) =>
-                                                                    setO({
-                                                                        headerItems: next.length ? next : undefined,
-                                                                    })
-                                                                }
-                                                            />
-                                                        </CenteredModal>
-                                                    )}
-                                                </>
-                                            );
-                                        })()}
                                     <div className="h-px" style={{ background: 'var(--app-border)' }} />
                                     <div className="flex items-center justify-between">
                                         <div>

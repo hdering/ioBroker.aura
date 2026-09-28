@@ -1191,7 +1191,7 @@ export const en: Record<TranslationKey, string> = {
     'wf.edit.group.mobileKeepGridHint':
         'By default widgets are stacked in a single column on mobile. When enabled, the side-by-side arrangement from the normal view is kept, just scaled down.',
     'wf.edit.position': 'Position',
-    'wf.edit.placeInHeader': 'Place them in the header',
+    'wf.edit.placeInHeaderHint': 'Where title and icon sit, plus extra values',
     'wf.edit.iconPlace.lead': 'Left',
     'wf.edit.iconPlace.beforeTitle': 'Before title',
     'wf.edit.iconPlace.afterTitle': 'After title',
